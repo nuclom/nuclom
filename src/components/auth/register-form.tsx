@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ interface RegisterFormProps {
   readonly redirectTo?: string;
 }
 
-export function RegisterForm({ redirectTo = "/vercel" }: RegisterFormProps) {
+export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +24,10 @@ export function RegisterForm({ redirectTo = "/vercel" }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL from search params or use default
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +56,7 @@ export function RegisterForm({ redirectTo = "/vercel" }: RegisterFormProps) {
       if (result.error) {
         setError(result.error.message || "Failed to create account");
       } else {
-        router.push(redirectTo);
+        router.push(finalRedirectTo);
         router.refresh();
       }
     } catch (err) {
@@ -70,7 +74,7 @@ export function RegisterForm({ redirectTo = "/vercel" }: RegisterFormProps) {
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: redirectTo,
+        callbackURL: finalRedirectTo,
       });
     } catch (err) {
       setError("Failed to sign up with GitHub");
@@ -203,7 +207,9 @@ export function RegisterForm({ redirectTo = "/vercel" }: RegisterFormProps) {
       <CardFooter className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
-          <a href="/login">Sign in</a>
+          <a href={`/login${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}>
+            Sign in
+          </a>
         </Button>
       </CardFooter>
     </Card>

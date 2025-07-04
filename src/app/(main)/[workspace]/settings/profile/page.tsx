@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequireAuth } from "@/components/auth/auth-guard";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 
-export default function ProfileSettingsPage() {
-  const { user, isLoading } = useAuth();
+function ProfileForm() {
+  const { user } = useAuth();
   const [name, setName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -54,33 +55,6 @@ export default function ProfileSettingsPage() {
       setIsUpdating(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Profile</CardTitle>
-          <CardDescription>Loading your profile information...</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="h-20 w-20 bg-muted rounded-full" />
-              <div className="h-9 w-24 bg-muted rounded" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 w-16 bg-muted rounded" />
-              <div className="h-10 bg-muted rounded" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 w-20 bg-muted rounded" />
-              <div className="h-10 bg-muted rounded" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
@@ -143,5 +117,13 @@ export default function ProfileSettingsPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function ProfileSettingsPage() {
+  return (
+    <RequireAuth>
+      <ProfileForm />
+    </RequireAuth>
   );
 }

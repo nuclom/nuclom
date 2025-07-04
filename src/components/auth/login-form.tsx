@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,13 +14,17 @@ interface LoginFormProps {
   readonly redirectTo?: string;
 }
 
-export function LoginForm({ redirectTo = "/vercel" }: LoginFormProps) {
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL from search params or use default
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +40,7 @@ export function LoginForm({ redirectTo = "/vercel" }: LoginFormProps) {
       if (result.error) {
         setError(result.error.message || "Failed to sign in");
       } else {
-        router.push(redirectTo);
+        router.push(finalRedirectTo);
         router.refresh();
       }
     } catch (err) {
@@ -54,7 +58,7 @@ export function LoginForm({ redirectTo = "/vercel" }: LoginFormProps) {
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: redirectTo,
+        callbackURL: finalRedirectTo,
       });
     } catch (err) {
       setError("Failed to sign in with GitHub");
@@ -145,7 +149,9 @@ export function LoginForm({ redirectTo = "/vercel" }: LoginFormProps) {
       <CardFooter className="text-center text-sm text-muted-foreground">
         Don't have an account?{" "}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
-          <a href="/register">Sign up</a>
+          <a href={`/register${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}>
+            Sign up
+          </a>
         </Button>
       </CardFooter>
     </Card>
