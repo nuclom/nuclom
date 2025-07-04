@@ -1,4 +1,7 @@
 import { VideoCard } from "@/components/video-card";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import Link from "next/link";
 
 const myVideoData = [
   {
@@ -28,7 +31,15 @@ export default async function MyVideosPage({
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">My Videos</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">My Videos</h1>
+        <Link href={`/${workspace}/upload`}>
+          <Button className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Upload Video
+          </Button>
+        </Link>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {myVideoData.map((video) => (
           <VideoCard

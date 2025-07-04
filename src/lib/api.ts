@@ -111,6 +111,81 @@ export const videoApi = {
       method: "DELETE",
     });
   },
+
+  async uploadVideo(
+    file: File,
+    metadata: {
+      title: string;
+      description?: string;
+      workspaceId: string;
+      authorId: string;
+      channelId?: string;
+      seriesId?: string;
+    },
+    onProgress?: (progress: number) => void,
+  ): Promise<{
+    videoId: string;
+    videoUrl: string;
+    thumbnailUrl: string;
+    duration: string;
+  }> {
+    const formData = new FormData();
+    formData.append("video", file);
+    formData.append("title", metadata.title);
+    if (metadata.description) formData.append("description", metadata.description);
+    formData.append("workspaceId", metadata.workspaceId);
+    formData.append("authorId", metadata.authorId);
+    if (metadata.channelId) formData.append("channelId", metadata.channelId);
+    if (metadata.seriesId) formData.append("seriesId", metadata.seriesId);
+
+    const xhr = new XMLHttpRequest();
+
+    return new Promise((resolve, reject) => {
+      // Track upload progress
+      if (onProgress) {
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100);
+            onProgress(progress);
+          }
+        });
+      }
+
+      xhr.addEventListener("load", async () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+              resolve(response.data);
+            } else {
+              reject(new Error(response.error || "Upload failed"));
+            }
+          } catch (error) {
+            reject(new Error("Invalid response format"));
+          }
+        } else {
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            reject(new Error(errorResponse.error || `HTTP ${xhr.status}`));
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+          }
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        reject(new Error("Network error occurred"));
+      });
+
+      xhr.addEventListener("timeout", () => {
+        reject(new Error("Upload timeout"));
+      });
+
+      xhr.open("POST", `${API_BASE_URL}/videos/upload`);
+      xhr.timeout = 300000; // 5 minutes timeout
+      xhr.send(formData);
+    });
+  },
 };
 
 // Workspace API functions

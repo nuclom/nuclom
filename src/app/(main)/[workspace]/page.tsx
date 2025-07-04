@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { VideoCard } from "@/components/video-card";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import Link from "next/link";
 
 import { mockVideoApi } from "@/lib/mock-data";
 import type { VideoWithAuthor } from "@/lib/types";
@@ -59,7 +62,17 @@ function VideoSection({
 
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-6">{title}</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        {title === "New this week" && workspace && (
+          <Link href={`/${workspace}/upload`}>
+            <Button size="sm" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Video
+            </Button>
+          </Link>
+        )}
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {videos.map((video) => (
           <VideoCard
