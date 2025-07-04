@@ -62,14 +62,22 @@ function VideoSection({
       <h2 className="text-2xl font-bold mb-6">{title}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {videos.map((video) => (
-          <VideoCard key={video.id} {...video} workspace={workspace} />
+          <VideoCard
+            key={video.id}
+            id={video.id}
+            title={video.title}
+            author={video.author}
+            thumbnailUrl={video.thumbnailUrl || "/placeholder.svg"}
+            duration={video.duration}
+            workspace={workspace}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-export default async function HomePage({
+export default function HomePage({
   params,
 }: {
   params: Promise<{ workspace: string }>;

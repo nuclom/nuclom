@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { workspaces, workspaceUsers, videos, channels, series } from "@/lib/db/schema";
+import { eq, desc, count, inArray } from "drizzle-orm";
 import type { ApiResponse, CreateWorkspaceData } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -7,37 +9,66 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    const where: any = {};
+    let workspacesData: any[];
     if (userId) {
-      where.users = {
-        some: {
-          userId: userId,
+      // Get workspace IDs for the user first
+      const userWorkspaces = await db.select({ workspaceId: workspaceUsers.workspaceId })
+        .from(workspaceUsers)
+        .where(eq(workspaceUsers.userId, userId));
+      
+      const workspaceIds = userWorkspaces.map(uw => uw.workspaceId);
+      
+      if (workspaceIds.length > 0) {
+        workspacesData = await db.query.workspaces.findMany({
+          where: inArray(workspaces.id, workspaceIds),
+          with: {
+            users: {
+              with: {
+                user: true,
+              },
+            },
+          },
+          orderBy: desc(workspaces.createdAt),
+        });
+      } else {
+        workspacesData = [];
+      }
+    } else {
+      workspacesData = await db.query.workspaces.findMany({
+        with: {
+          users: {
+            with: {
+              user: true,
+            },
+          },
         },
-      };
+        orderBy: desc(workspaces.createdAt),
+      });
     }
 
-    const workspaces = await prisma.workspace.findMany({
-      where,
-      include: {
-        users: {
-          include: {
-            user: true,
+    // Get counts for each workspace
+    const workspacesWithCounts = await Promise.all(
+      workspacesData.map(async (workspace) => {
+        const [videoCount, channelCount, seriesCount] = await Promise.all([
+          db.select({ count: count() }).from(videos).where(eq(videos.workspaceId, workspace.id)),
+          db.select({ count: count() }).from(channels).where(eq(channels.workspaceId, workspace.id)),
+          db.select({ count: count() }).from(series).where(eq(series.workspaceId, workspace.id)),
+        ]);
+
+        return {
+          ...workspace,
+          _count: {
+            videos: videoCount[0]?.count || 0,
+            channels: channelCount[0]?.count || 0,
+            series: seriesCount[0]?.count || 0,
           },
-        },
-        _count: {
-          select: {
-            videos: true,
-            channels: true,
-            series: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        };
+      })
+    );
 
     const response: ApiResponse = {
       success: true,
-      data: workspaces,
+      data: workspacesWithCounts,
     };
 
     return NextResponse.json(response);
@@ -55,21 +86,23 @@ export async function POST(request: NextRequest) {
     const body: CreateWorkspaceData & { ownerId: string } =
       await request.json();
 
-    const workspace = await prisma.workspace.create({
-      data: {
-        name: body.name,
-        slug: body.slug,
-        description: body.description,
+    const [insertedWorkspace] = await db.insert(workspaces).values({
+      name: body.name,
+      slug: body.slug,
+      description: body.description,
+    }).returning();
+
+    await db.insert(workspaceUsers).values({
+      userId: body.ownerId,
+      workspaceId: insertedWorkspace.id,
+      role: "OWNER",
+    });
+
+    const workspace = await db.query.workspaces.findFirst({
+      where: eq(workspaces.id, insertedWorkspace.id),
+      with: {
         users: {
-          create: {
-            userId: body.ownerId,
-            role: "OWNER",
-          },
-        },
-      },
-      include: {
-        users: {
-          include: {
+          with: {
             user: true,
           },
         },

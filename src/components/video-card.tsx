@@ -4,46 +4,24 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import type { VideoWithAuthor } from "@/lib/types";
 
-interface VideoCardProps extends Omit<VideoWithAuthor, "author"> {
-  author: VideoWithAuthor["author"];
-  workspace: string;
-}
-
-// Backward compatibility interface for legacy usage
-interface LegacyVideoCardProps {
+interface VideoCardProps {
   id: string;
   title: string;
-  author: string;
+  author: VideoWithAuthor["author"];
   thumbnailUrl: string;
-  authorImageUrl: string;
   duration: string;
   workspace: string;
 }
 
-export function VideoCard(props: VideoCardProps | LegacyVideoCardProps) {
-  // Handle both new API format and legacy format
-  const isLegacy = typeof props.author === "string";
-
-  const videoData = isLegacy
-    ? {
-        id: props.id,
-        title: props.title,
-        duration: props.duration,
-        thumbnailUrl: props.thumbnailUrl,
-        author: {
-          name: props.author,
-          avatarUrl: (props as LegacyVideoCardProps).authorImageUrl,
-        },
-        workspace: props.workspace,
-      }
-    : {
-        id: props.id,
-        title: props.title,
-        duration: props.duration,
-        thumbnailUrl: props.thumbnailUrl,
-        author: props.author,
-        workspace: props.workspace,
-      };
+export function VideoCard(props: VideoCardProps) {
+  const videoData = {
+    id: props.id,
+    title: props.title,
+    duration: props.duration,
+    thumbnailUrl: props.thumbnailUrl,
+    author: props.author,
+    workspace: props.workspace,
+  };
 
   return (
     <Link

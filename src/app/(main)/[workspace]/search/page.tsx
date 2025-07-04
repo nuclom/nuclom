@@ -38,7 +38,22 @@ export default async function SearchPage({
       </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {searchResults.map((video) => (
-          <VideoCard key={video.id} {...video} workspace={workspace} />
+          <VideoCard
+            key={video.id}
+            id={video.id}
+            title={video.title}
+            author={{
+              id: `author-${video.id}`,
+              name: video.author,
+              email: `${video.author.toLowerCase().replace(' ', '.')}@example.com`,
+              avatarUrl: video.authorImageUrl,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }}
+            thumbnailUrl={video.thumbnailUrl}
+            duration={video.duration}
+            workspace={workspace}
+          />
         ))}
       </div>
     </div>

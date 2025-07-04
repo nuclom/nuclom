@@ -1,32 +1,33 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { videos, users, workspaces, channels, series, comments } from "@/lib/db/schema";
+import { eq, isNull, asc } from "drizzle-orm";
 import type { ApiResponse, UpdateVideoData } from "@/lib/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const video = await prisma.video.findUnique({
-      where: { id: params.id },
-      include: {
+    const resolvedParams = await params;
+    const video = await db.query.videos.findFirst({
+      where: eq(videos.id, resolvedParams.id),
+      with: {
         author: true,
         workspace: true,
         channel: true,
         series: true,
         comments: {
-          include: {
+          with: {
             author: true,
             replies: {
-              include: {
+              with: {
                 author: true,
               },
             },
           },
-          where: {
-            parentId: null, // Only top-level comments
-          },
-          orderBy: { createdAt: "asc" },
+          where: isNull(comments.parentId),
+          orderBy: asc(comments.createdAt),
         },
       },
     });
@@ -55,15 +56,19 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const resolvedParams = await params;
     const body: UpdateVideoData = await request.json();
 
-    const video = await prisma.video.update({
-      where: { id: params.id },
-      data: body,
-      include: {
+    await db.update(videos)
+      .set(body)
+      .where(eq(videos.id, resolvedParams.id));
+
+    const video = await db.query.videos.findFirst({
+      where: eq(videos.id, resolvedParams.id),
+      with: {
         author: true,
         workspace: true,
         channel: true,
@@ -88,12 +93,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await prisma.video.delete({
-      where: { id: params.id },
-    });
+    const resolvedParams = await params;
+    await db.delete(videos)
+      .where(eq(videos.id, resolvedParams.id));
 
     const response: ApiResponse = {
       success: true,

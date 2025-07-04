@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { videos } from "@/lib/db/schema";
+import { eq, and, desc, count } from "drizzle-orm";
 import type { ApiResponse, CreateVideoData } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -10,33 +12,37 @@ export async function GET(request: NextRequest) {
     const seriesId = searchParams.get("seriesId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    const where: any = {};
-    if (workspaceId) where.workspaceId = workspaceId;
-    if (channelId) where.channelId = channelId;
-    if (seriesId) where.seriesId = seriesId;
+    const conditions = [];
+    if (workspaceId) conditions.push(eq(videos.workspaceId, workspaceId));
+    if (channelId) conditions.push(eq(videos.channelId, channelId));
+    if (seriesId) conditions.push(eq(videos.seriesId, seriesId));
 
-    const [videos, total] = await Promise.all([
-      prisma.video.findMany({
-        where,
-        include: {
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [videosData, totalResult] = await Promise.all([
+      db.query.videos.findMany({
+        where: whereClause,
+        with: {
           author: true,
           workspace: true,
           channel: true,
           series: true,
         },
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
+        orderBy: desc(videos.createdAt),
+        offset,
+        limit,
       }),
-      prisma.video.count({ where }),
+      db.select({ count: count() }).from(videos).where(whereClause),
     ]);
+
+    const total = totalResult[0]?.count || 0;
 
     const response: ApiResponse = {
       success: true,
       data: {
-        videos,
+        videos: videosData,
         pagination: {
           page,
           limit,
@@ -61,19 +67,21 @@ export async function POST(request: NextRequest) {
     const body: CreateVideoData & { authorId: string; workspaceId: string } =
       await request.json();
 
-    const video = await prisma.video.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        duration: body.duration,
-        thumbnailUrl: body.thumbnailUrl,
-        videoUrl: body.videoUrl,
-        authorId: body.authorId,
-        workspaceId: body.workspaceId,
-        channelId: body.channelId,
-        seriesId: body.seriesId,
-      },
-      include: {
+    const [insertedVideo] = await db.insert(videos).values({
+      title: body.title,
+      description: body.description,
+      duration: body.duration,
+      thumbnailUrl: body.thumbnailUrl,
+      videoUrl: body.videoUrl,
+      authorId: body.authorId,
+      workspaceId: body.workspaceId,
+      channelId: body.channelId,
+      seriesId: body.seriesId,
+    }).returning();
+
+    const video = await db.query.videos.findFirst({
+      where: eq(videos.id, insertedVideo.id),
+      with: {
         author: true,
         workspace: true,
         channel: true,

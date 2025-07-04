@@ -15,6 +15,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "1.0.0-beta.3",
+    "@ai-sdk/react": "2.0.0-beta.7",
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -44,7 +46,7 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@tailwindcss/postcss": "^4.1.11",
-    "ai": "^4.3.16",
+    "ai": "5.0.0-beta.7",
     "autoprefixer": "^10.4.21",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",

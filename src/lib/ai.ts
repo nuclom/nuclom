@@ -1,9 +1,9 @@
-import { openai } from "@ai-sdk/openai";
+import { gateway } from "@ai-sdk/gateway";
 import { generateText, streamText } from "ai";
 
 // AI service for video analysis and summaries
 export class AIService {
-  private model = openai("gpt-4-turbo");
+  private model = gateway("xai/grok-3");
 
   async generateVideoSummary(transcript: string): Promise<string> {
     try {
