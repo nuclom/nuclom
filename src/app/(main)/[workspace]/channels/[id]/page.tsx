@@ -66,9 +66,14 @@ export default async function ChannelPage({
               id: `author-${video.id}`,
               name: video.author,
               email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
-              avatarUrl: video.authorImageUrl,
+              image: video.authorImageUrl,
               createdAt: new Date(),
               updatedAt: new Date(),
+              emailVerified: true,
+              role: null,
+              banned: null,
+              banReason: null,
+              banExpires: null,
             }}
             thumbnailUrl={video.thumbnailUrl}
             duration={video.duration}

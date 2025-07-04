@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
   channels,
-  series,
+  collections,
   videos,
   workspaces,
   workspaceUsers,
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     // Get counts for each workspace
     const workspacesWithCounts = await Promise.all(
       workspacesData.map(async (workspace) => {
-        const [videoCount, channelCount, seriesCount] = await Promise.all([
+        const [videoCount, channelCount, collectionCount] = await Promise.all([
           db
             .select({ count: count() })
             .from(videos)
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
             .where(eq(channels.workspaceId, workspace.id)),
           db
             .select({ count: count() })
-            .from(series)
-            .where(eq(series.workspaceId, workspace.id)),
+            .from(collections)
+            .where(eq(collections.workspaceId, workspace.id)),
         ]);
 
         return {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
           _count: {
             videos: videoCount[0]?.count || 0,
             channels: channelCount[0]?.count || 0,
-            series: seriesCount[0]?.count || 0,
+            collections: collectionCount[0]?.count || 0,
           },
         };
       }),
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       role: "OWNER",
     });
 
-    const workspace = await db.query.workspaces.findFirst({
+    const workspaceData = await db.query.workspaces.findFirst({
       where: eq(workspaces.id, insertedWorkspace.id),
       with: {
         users: {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     const response: ApiResponse = {
       success: true,
-      data: workspace,
+      data: workspaceData,
     };
 
     return NextResponse.json(response, { status: 201 });

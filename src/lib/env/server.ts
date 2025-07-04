@@ -1,9 +1,10 @@
 import { z } from "zod/v4";
-import "server-only";
 import { ClientEnv } from "@/lib/env/client";
 
 export const ServerEnv = ClientEnv.merge(z.object({
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string(),
+  VERCEL_OIDC_TOKEN: z.string(),
+  RESEND_API_KEY: z.string(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),

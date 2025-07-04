@@ -1,15 +1,11 @@
-import { asc, eq, isNull } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import {
-  channels,
   comments,
-  series,
-  users,
-  videos,
-  workspaces,
+  videos
 } from "@/lib/db/schema";
 import type { ApiResponse, UpdateVideoData } from "@/lib/types";
+import { asc, eq, isNull } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -17,13 +13,13 @@ export async function GET(
 ) {
   try {
     const resolvedParams = await params;
-    const video = await db.query.videos.findFirst({
+    const videoData = await db.query.videos.findFirst({
       where: eq(videos.id, resolvedParams.id),
       with: {
         author: true,
         workspace: true,
         channel: true,
-        series: true,
+        collection: true,
         comments: {
           with: {
             author: true,
@@ -39,7 +35,7 @@ export async function GET(
       },
     });
 
-    if (!video) {
+    if (!videoData) {
       return NextResponse.json(
         { success: false, error: "Video not found" },
         { status: 404 },
@@ -48,7 +44,7 @@ export async function GET(
 
     const response: ApiResponse = {
       success: true,
-      data: video,
+      data: videoData,
     };
 
     return NextResponse.json(response);
@@ -71,19 +67,19 @@ export async function PUT(
 
     await db.update(videos).set(body).where(eq(videos.id, resolvedParams.id));
 
-    const video = await db.query.videos.findFirst({
+    const videoData = await db.query.videos.findFirst({
       where: eq(videos.id, resolvedParams.id),
       with: {
         author: true,
         workspace: true,
         channel: true,
-        series: true,
+        collection: true,
       },
     });
 
     const response: ApiResponse = {
       success: true,
-      data: video,
+      data: videoData,
     };
 
     return NextResponse.json(response);
