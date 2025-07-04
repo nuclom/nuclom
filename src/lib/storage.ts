@@ -57,14 +57,9 @@ export class StorageService {
     key: string,
     options: UploadOptions = {},
   ): Promise<UploadResult> {
-    // If R2 is not configured, return mock data for development
+    // If R2 is not configured, throw error instead of using mock
     if (!isR2Configured || !r2Client) {
-      console.warn("R2 not configured, using mock storage for development");
-      return {
-        key,
-        url: `https://mock-storage.example.com/${key}`,
-        etag: `mock-etag-${Date.now()}`,
-      };
+      throw new Error("R2 storage not configured. Please set up R2 credentials.");
     }
 
     const uploadParams: PutObjectCommandInput = {
@@ -108,28 +103,7 @@ export class StorageService {
   ): Promise<UploadResult> {
     // If R2 is not configured, return mock data for development
     if (!isR2Configured || !r2Client) {
-      console.warn("R2 not configured, using mock storage for development");
-
-      // Simulate progress for development
-      if (onProgress) {
-        const total = buffer.length;
-        let loaded = 0;
-        const interval = setInterval(() => {
-          loaded += total / 10;
-          if (loaded >= total) {
-            onProgress({ loaded: total, total });
-            clearInterval(interval);
-          } else {
-            onProgress({ loaded, total });
-          }
-        }, 100);
-      }
-
-      return {
-        key,
-        url: `https://mock-storage.example.com/${key}`,
-        etag: `mock-etag-${Date.now()}`,
-      };
+      throw new Error("R2 storage not configured. Please set up R2 credentials.");
     }
 
     const uploadParams: PutObjectCommandInput = {
@@ -207,12 +181,9 @@ export class StorageService {
     contentType: string,
     expiresIn = 3600, // 1 hour
   ): Promise<string> {
-    // If R2 is not configured, return mock URL for development
+    // If R2 is not configured, throw error instead of using mock
     if (!isR2Configured || !r2Client) {
-      console.warn(
-        "R2 not configured, returning mock presigned URL for development",
-      );
-      return `https://mock-storage.example.com/upload/${key}?expires=${Date.now() + expiresIn * 1000}`;
+      throw new Error("R2 storage not configured. Please set up R2 credentials.");
     }
 
     try {
@@ -236,7 +207,7 @@ export class StorageService {
    */
   static getPublicUrl(key: string): string {
     if (!isR2Configured) {
-      return `https://mock-storage.example.com/${key}`;
+      throw new Error("R2 storage not configured. Please set up R2 credentials.");
     }
     return `https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;
   }

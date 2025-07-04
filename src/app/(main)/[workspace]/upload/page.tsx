@@ -1,43 +1,44 @@
-"use client";
-
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import { VideoUpload } from "@/components/video-upload";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { workspaces } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import Link from "next/link";
 
-export default function UploadPage({
+export default async function UploadPage({
   params,
 }: {
   params: Promise<{ workspace: string }>;
 }) {
-  const router = useRouter();
-  const [workspaceSlug, setWorkspaceSlug] = useState<string>("");
+  const { workspace: workspaceSlug } = await params;
 
-  // Use the params promise
-  React.useEffect(() => {
-    params.then(({ workspace }) => {
-      setWorkspaceSlug(workspace);
-    });
-  }, [params]);
+  // Get user from session
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  const handleUploadComplete = (result: {
-    videoId: string;
-    videoUrl: string;
-    thumbnailUrl: string;
-    duration: string;
-  }) => {
-    // Redirect to the newly uploaded video
-    router.push(`/${workspaceSlug}/videos/${result.videoId}`);
-  };
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
 
-  const handleCancel = () => {
-    router.push(`/${workspaceSlug}`);
-  };
+  // Get workspace by slug
+  const workspace = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.slug, workspaceSlug))
+    .limit(1);
 
-  // For now, we'll use mock user data - in production this would come from authentication
-  const mockAuthorId = "user-123";
-  const mockWorkspaceId = "workspace-123";
+  if (!workspace.length) {
+    redirect("/");
+  }
+
+  const authorId = session.user.id;
+  const workspaceId = workspace[0].id;
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -47,11 +48,13 @@ export default function UploadPage({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleCancel}
+            asChild
             className="flex items-center gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Videos
+            <Link href={`/${workspaceSlug}`}>
+              <ArrowLeft className="h-4 w-4" />
+              Back to Videos
+            </Link>
           </Button>
         </div>
 
@@ -64,10 +67,8 @@ export default function UploadPage({
 
         {/* Upload Component */}
         <VideoUpload
-          workspaceId={mockWorkspaceId}
-          authorId={mockAuthorId}
-          onUploadComplete={handleUploadComplete}
-          onCancel={handleCancel}
+          workspaceId={workspaceId}
+          authorId={authorId}
         />
       </div>
     </div>

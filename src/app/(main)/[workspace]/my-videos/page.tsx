@@ -44,23 +44,37 @@ export default async function MyVideosPage({
         {myVideoData.map((video) => (
           <VideoCard
             key={video.id}
-            id={video.id}
-            title={video.title}
-            author={{
-              id: `author-${video.id}`,
-              name: video.author,
-              email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
-              image: video.authorImageUrl,
+            video={{
+              id: video.id,
+              title: video.title,
+              description: null,
+              duration: video.duration,
+              thumbnailUrl: video.thumbnailUrl,
+              videoUrl: null,
+              authorId: `author-${video.id}`,
+              workspaceId: "workspace",
+              channelId: null,
+              collectionId: null,
+              transcript: null,
+              aiSummary: null,
               createdAt: new Date(),
               updatedAt: new Date(),
-              emailVerified: true,
-              role: null,
-              banned: null,
-              banReason: null,
-              banExpires: null,
+              author: {
+                id: `author-${video.id}`,
+                name: video.author,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
+                image: video.authorImageUrl,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                emailVerified: true,
+                role: null,
+                banned: null,
+                banReason: null,
+                banExpires: null,
+              },
             }}
-            thumbnailUrl={video.thumbnailUrl}
-            duration={video.duration}
             workspace={workspace}
           />
         ))}

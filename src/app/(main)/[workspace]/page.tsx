@@ -1,12 +1,14 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { VideoCard } from "@/components/video-card";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import Link from "next/link";
-
-import { mockVideoApi } from "@/lib/mock-data";
+import { getVideos } from "@/lib/api/videos";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { workspaces } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import type { VideoWithAuthor } from "@/lib/types";
 
 // Loading component
@@ -18,13 +20,8 @@ function VideoSectionSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={`skeleton-${i}`} className="space-y-3">
             <div className="aspect-video bg-muted animate-pulse rounded-lg" />
-            <div className="flex items-start gap-3">
-              <div className="h-9 w-9 bg-muted animate-pulse rounded-full" />
-              <div className="space-y-2 flex-1">
-                <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-              </div>
-            </div>
+            <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+            <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
           </div>
         ))}
       </div>
@@ -32,6 +29,7 @@ function VideoSectionSkeleton() {
   );
 }
 
+// Video section with proper error handling
 function VideoSection({
   title,
   videos,
@@ -53,8 +51,35 @@ function VideoSection({
     return (
       <section>
         <h2 className="text-2xl font-bold mb-6">{title}</h2>
-        <div className="p-4 border border-red-200 rounded-lg bg-red-50 text-red-700">
-          Error loading videos: {error}
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-4">
+            {error}
+          </p>
+          <Button asChild>
+            <Link href={`/${workspace}/upload`}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload first video
+            </Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <section>
+        <h2 className="text-2xl font-bold mb-6">{title}</h2>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-4">
+            No videos found. Upload your first video to get started.
+          </p>
+          <Button asChild>
+            <Link href={`/${workspace}/upload`}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload first video
+            </Link>
+          </Button>
         </div>
       </section>
     );
@@ -62,89 +87,77 @@ function VideoSection({
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">{title}</h2>
-        {title === "New this week" && workspace && (
-          <Link href={`/${workspace}/upload`}>
-            <Button size="sm" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Upload Video
-            </Button>
-          </Link>
-        )}
-      </div>
+      <h2 className="text-2xl font-bold mb-6">{title}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {videos.map((video) => (
-          <VideoCard
-            key={video.id}
-            id={video.id}
-            title={video.title}
-            author={video.author}
-            thumbnailUrl={video.thumbnailUrl || "/placeholder.svg"}
-            duration={video.duration}
-            workspace={workspace}
-          />
+          <VideoCard key={video.id} video={video} workspace={workspace} />
         ))}
       </div>
     </section>
   );
 }
 
-export default function HomePage({
+export default async function WorkspacePage({
   params,
 }: {
   params: Promise<{ workspace: string }>;
 }) {
-  const [videos, setVideos] = useState<VideoWithAuthor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [workspace, setWorkspace] = useState<string>("");
+  const { workspace: workspaceSlug } = await params;
+  
+  // Get session and user
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Get workspace from params
-        const { workspace: workspaceSlug } = await params;
-        setWorkspace(workspaceSlug);
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
 
-        setLoading(true);
-        setError(null);
+  // Get workspace by slug
+  const workspace = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.slug, workspaceSlug))
+    .limit(1);
 
-        // For now, use mock data since database may not be set up
-        // In production, this would use: useVideos({ workspaceId: workspaceSlug })
-        const result = await mockVideoApi.getVideos();
-        setVideos(result.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load videos");
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (!workspace.length) {
+    redirect("/");
+  }
 
-    loadData();
-  }, [params]);
+  const workspaceId = workspace[0].id;
+
+  // Get videos for this workspace
+  let videos: VideoWithAuthor[] = [];
+  let error: string | null = null;
+
+  try {
+    const result = await getVideos(workspaceId);
+    videos = result.data;
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load videos";
+  }
 
   return (
     <div className="space-y-12">
       <VideoSection
         title="Continue watching"
         videos={videos.slice(0, 2)}
-        workspace={workspace}
-        loading={loading}
+        workspace={workspaceSlug}
+        loading={false}
         error={error}
       />
       <VideoSection
         title="New this week"
         videos={videos}
-        workspace={workspace}
-        loading={loading}
+        workspace={workspaceSlug}
+        loading={false}
         error={error}
       />
       <VideoSection
         title="From your channels"
         videos={videos.slice(1, 4)}
-        workspace={workspace}
-        loading={loading}
+        workspace={workspaceSlug}
+        loading={false}
         error={error}
       />
     </div>
