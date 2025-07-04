@@ -4,6 +4,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, organization } from "better-auth/plugins";
 import { db } from "./db";
 import { resend } from "./email";
+import { eq } from "drizzle-orm";
+import { members } from "./db/schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -28,6 +30,29 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          // Get user's first organization as active organization
+          const userMembership = await db
+            .select()
+            .from(members)
+            .where(eq(members.userId, session.userId))
+            .limit(1);
+          
+          const activeOrganizationId = userMembership[0]?.organizationId || null;
+          
+          return {
+            data: {
+              ...session,
+              activeOrganizationId,
+            },
+          };
+        },
+      },
+    },
   },
   plugins: [
     admin({
