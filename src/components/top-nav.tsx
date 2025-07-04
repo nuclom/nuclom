@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, Film, Plus, Settings, Users } from "lucide-react";
+import { Bell, Film, Plus, Settings, Users, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +16,33 @@ import {
 import { CommandBar } from "./command-bar";
 import { ThemeToggle } from "./theme-toggle";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import { useAuth } from "@/hooks/use-auth";
+import { authClient } from "@/lib/auth-client";
 
 export function TopNav({ workspace }: { workspace: string }) {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card">
       <div className="flex h-16 items-center px-4 md:px-6 max-w-screen-2xl mx-auto">
@@ -49,14 +75,25 @@ export function TopNav({ workspace }: { workspace: string }) {
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer">
                 <AvatarImage
-                  src="/placeholder.svg?height=36&width=36"
+                  src={user?.image || "/placeholder.svg?height=36&width=36"}
                   alt="User Avatar"
                 />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback>
+                  {isLoading ? "..." : getInitials(user?.name)}
+                </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name || "Loading..."}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email || ""}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/${workspace}/settings/profile`}>
@@ -69,7 +106,8 @@ export function TopNav({ workspace }: { workspace: string }) {
                 <span>Team</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
