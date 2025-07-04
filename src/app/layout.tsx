@@ -24,7 +24,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen bg-background text-foreground">
+          <div className="min-h-screen bg-background text-foreground">
             {children}
           </div>
           <Toaster />

@@ -24,7 +24,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
               <Play className="w-5 h-5 text-primary-foreground" />
@@ -65,12 +65,12 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-24 px-4 text-center overflow-hidden">
+      <section className="relative py-24 px-4 sm:px-6 lg:px-8 text-center overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
 
-        <div className="container mx-auto max-w-5xl relative z-10">
+        <div className="w-full max-w-7xl mx-auto relative z-10">
           <div className="flex items-center justify-center mb-6">
             <Badge
               variant="secondary"
@@ -116,8 +116,8 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4 bg-muted/30">
-        <div className="container mx-auto max-w-7xl">
+      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
               Features
@@ -215,8 +215,8 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4 bg-muted/30">
-        <div className="container mx-auto max-w-7xl">
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
               Pricing
@@ -382,8 +382,8 @@ export default function LandingPage() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 px-4">
-        <div className="container mx-auto max-w-7xl">
+      <section id="about" className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
               About
@@ -451,9 +451,9 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-24 px-4 text-center overflow-hidden">
+      <section className="relative py-24 px-4 sm:px-6 lg:px-8 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10" />
-        <div className="container mx-auto max-w-5xl relative z-10">
+        <div className="w-full max-w-7xl mx-auto relative z-10">
           <Badge variant="outline" className="mb-6 px-4 py-2">
             Ready to start?
           </Badge>
@@ -489,7 +489,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t mt-auto bg-muted/20">
-        <div className="container mx-auto px-4 py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-6 md:mb-0">
               <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg">
