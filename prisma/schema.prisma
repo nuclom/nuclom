@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workspaces        WorkspaceUser[]
+  videos            Video[]
+  comments          Comment[]
+  videoProgresses   VideoProgress[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users     WorkspaceUser[]
+  videos    Video[]
+  channels  Channel[]
+  series    Series[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceUser {
+  id          String        @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@map("workspace_users")
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  duration     String // Format: "12:34"
+  thumbnailUrl String?
+  videoUrl     String?
+  authorId     String
+  workspaceId  String
+  channelId    String?
+  seriesId     String?
+  transcript   String?
+  aiSummary    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  author           User              @relation(fields: [authorId], references: [id])
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  channel          Channel?          @relation(fields: [channelId], references: [id])
+  series           Series?           @relation(fields: [seriesId], references: [id])
+  comments         Comment[]
+  videoProgresses  VideoProgress[]
+
+  @@map("videos")
+}
+
+model Channel {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  workspaceId String
+  memberCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  videos    Video[]
+
+  @@map("channels")
+}
+
+model Series {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  videos    Video[]
+
+  @@map("series")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  timestamp String? // Video timestamp when comment was made
+  authorId  String
+  videoId   String
+  parentId  String? // For threaded comments
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  video    Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentThread", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentThread")
+
+  @@map("comments")
+}
+
+model VideoProgress {
+  id            String   @id @default(cuid())
+  userId        String
+  videoId       String
+  currentTime   String // Format: "12:34"
+  completed     Boolean  @default(false)
+  lastWatchedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@map("video_progress")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
