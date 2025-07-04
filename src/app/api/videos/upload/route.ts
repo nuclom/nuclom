@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
+          error:
+            "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
         },
         { status: 400 },
       );
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error("Error uploading video:", error);
-    
+
     // Return appropriate error message
     let errorMessage = "Failed to upload video";
     if (error instanceof Error) {

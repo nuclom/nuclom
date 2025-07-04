@@ -6,18 +6,22 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Upload } from "@aws-sdk/lib-storage";
+import { env } from "@/lib/env/server";
 
 // Cloudflare R2 configuration
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "nuclom-videos";
+const R2_ACCOUNT_ID = env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = env.R2_BUCKET_NAME;
 
 // For development, allow missing R2 configuration
-const isR2Configured = R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY;
+const isR2Configured =
+  R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY;
 
 if (!isR2Configured) {
-  console.warn("R2 configuration not found. Video upload will use mock storage.");
+  console.warn(
+    "R2 configuration not found. Video upload will use mock storage.",
+  );
 }
 
 // Create S3 client configured for Cloudflare R2 (only if configured)
@@ -87,7 +91,9 @@ export class StorageService {
       };
     } catch (error) {
       console.error("Error uploading file to R2:", error);
-      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -103,7 +109,7 @@ export class StorageService {
     // If R2 is not configured, return mock data for development
     if (!isR2Configured || !r2Client) {
       console.warn("R2 not configured, using mock storage for development");
-      
+
       // Simulate progress for development
       if (onProgress) {
         const total = buffer.length;
@@ -118,7 +124,7 @@ export class StorageService {
           }
         }, 100);
       }
-      
+
       return {
         key,
         url: `https://mock-storage.example.com/${key}`,
@@ -162,7 +168,9 @@ export class StorageService {
       };
     } catch (error) {
       console.error("Error uploading large file to R2:", error);
-      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -185,7 +193,9 @@ export class StorageService {
       await r2Client.send(command);
     } catch (error) {
       console.error("Error deleting file from R2:", error);
-      throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -199,7 +209,9 @@ export class StorageService {
   ): Promise<string> {
     // If R2 is not configured, return mock URL for development
     if (!isR2Configured || !r2Client) {
-      console.warn("R2 not configured, returning mock presigned URL for development");
+      console.warn(
+        "R2 not configured, returning mock presigned URL for development",
+      );
       return `https://mock-storage.example.com/upload/${key}?expires=${Date.now() + expiresIn * 1000}`;
     }
 
@@ -213,7 +225,9 @@ export class StorageService {
       return await getSignedUrl(r2Client, command, { expiresIn });
     } catch (error) {
       console.error("Error generating presigned URL:", error);
-      throw new Error(`Failed to generate presigned URL: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Failed to generate presigned URL: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 

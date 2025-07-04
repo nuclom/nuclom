@@ -1,5 +1,14 @@
+# Build outputs
 .next/
-node_modules/
 dist/
 build/
-.git/
+out/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env*
+
+# Config files that need process.env access
+drizzle.config.ts

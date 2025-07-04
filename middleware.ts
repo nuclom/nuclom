@@ -11,7 +11,9 @@ export async function middleware(request: NextRequest) {
 
   // Public routes that don't require authentication
   const publicRoutes = ["/login", "/register"];
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
 
   // API routes are handled separately (better-auth handles its own auth)
   if (pathname.startsWith("/api/")) {
@@ -20,7 +22,7 @@ export async function middleware(request: NextRequest) {
 
   // For client-side authentication, we'll let the components handle auth state
   // This middleware primarily handles redirects and basic routing
-  
+
   return NextResponse.next();
 }
 

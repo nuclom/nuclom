@@ -225,7 +225,8 @@ export default function LandingPage() {
               Simple, Transparent Pricing
             </h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Choose the plan that fits your team's needs. Start free and scale as you grow.
+              Choose the plan that fits your team's needs. Start free and scale
+              as you grow.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -233,9 +234,7 @@ export default function LandingPage() {
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">Starter</CardTitle>
-                <div className="text-4xl font-bold mb-2">
-                  Free
-                </div>
+                <div className="text-4xl font-bold mb-2">Free</div>
                 <CardDescription className="text-base">
                   Perfect for small teams getting started
                 </CardDescription>
@@ -284,7 +283,9 @@ export default function LandingPage() {
                 <CardTitle className="text-2xl mb-2">Pro</CardTitle>
                 <div className="text-4xl font-bold mb-2">
                   $29
-                  <span className="text-base font-normal text-muted-foreground">/month</span>
+                  <span className="text-base font-normal text-muted-foreground">
+                    /month
+                  </span>
                 </div>
                 <CardDescription className="text-base">
                   For growing teams that need more power
@@ -333,9 +334,7 @@ export default function LandingPage() {
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
-                <div className="text-4xl font-bold mb-2">
-                  Custom
-                </div>
+                <div className="text-4xl font-bold mb-2">Custom</div>
                 <CardDescription className="text-base">
                   For large organizations with custom needs
                 </CardDescription>
@@ -393,21 +392,23 @@ export default function LandingPage() {
               Built for the Future of Video Collaboration
             </h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              We're reimagining how teams work with video content, making collaboration seamless and intuitive.
+              We're reimagining how teams work with video content, making
+              collaboration seamless and intuitive.
             </p>
           </div>
-          
+
           <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
             <div className="space-y-6">
               <h4 className="text-3xl font-bold">Our Mission</h4>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                At Nuclom, we believe that video is the future of communication. Our platform removes the barriers 
-                that prevent teams from collaborating effectively on video content, enabling creativity and 
-                productivity like never before.
+                At Nuclom, we believe that video is the future of communication.
+                Our platform removes the barriers that prevent teams from
+                collaborating effectively on video content, enabling creativity
+                and productivity like never before.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Whether you're a content creator, educator, or enterprise team, our tools adapt to your workflow 
-                and scale with your needs.
+                Whether you're a content creator, educator, or enterprise team,
+                our tools adapt to your workflow and scale with your needs.
               </p>
             </div>
             <div className="relative">

@@ -21,7 +21,10 @@ function ProfileForm() {
   const { user } = useAuth();
   const [name, setName] = useState(user?.name || "");
   const [isUpdating, setIsUpdating] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -44,7 +47,10 @@ function ProfileForm() {
       });
 
       if (result.error) {
-        setMessage({ type: "error", text: result.error.message || "Failed to update profile" });
+        setMessage({
+          type: "error",
+          text: result.error.message || "Failed to update profile",
+        });
       } else {
         setMessage({ type: "success", text: "Profile updated successfully!" });
       }
@@ -66,7 +72,9 @@ function ProfileForm() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user?.image || "/placeholder.svg?height=80&width=80"} />
+              <AvatarImage
+                src={user?.image || "/placeholder.svg?height=80&width=80"}
+              />
               <AvatarFallback className="text-lg">
                 {getInitials(user?.name)}
               </AvatarFallback>
@@ -95,7 +103,8 @@ function ProfileForm() {
               className="bg-muted"
             />
             <p className="text-xs text-muted-foreground">
-              Email address cannot be changed. Contact support if you need to update it.
+              Email address cannot be changed. Contact support if you need to
+              update it.
             </p>
           </div>
           {message && (

@@ -27,6 +27,9 @@
       },
       "suspicious": {
         "noExplicitAny": "warn"
+      },
+      "nursery": {
+        "noProcessGlobal": "error"
       }
     }
   },
