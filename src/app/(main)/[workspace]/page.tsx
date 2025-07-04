@@ -69,7 +69,7 @@ function VideoSection({
   );
 }
 
-export default function HomePage({
+export default async function HomePage({
   params,
 }: {
   params: Promise<{ workspace: string }>;

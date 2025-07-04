@@ -23,20 +23,19 @@ const seriesData = [
   },
 ];
 
-export default function SeriesListPage({
+export default async function SeriesListPage({
   params,
 }: {
-  params: { workspace: string };
+  params: Promise<{ workspace: string }>;
 }) {
+  const { workspace } = await params;
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Series</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {seriesData.map((series) => (
-          <Link
-            key={series.id}
-            href={`/${params.workspace}/series/${series.id}`}
-          >
+          <Link key={series.id} href={`/${workspace}/series/${series.id}`}>
             <Card className="group hover:border-primary transition-colors">
               <CardHeader className="p-0">
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">

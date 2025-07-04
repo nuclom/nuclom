@@ -54,7 +54,7 @@ function TranscriptLine({
   return (
     <div className="group relative flex gap-4 p-2 rounded-md hover:bg-secondary">
       <div className="absolute left-[-40px] top-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="p-1 rounded-full hover:bg-muted-foreground/20">
+        <button type="button" className="p-1 rounded-full hover:bg-muted-foreground/20">
           <MessageSquarePlus className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
@@ -69,14 +69,20 @@ function TranscriptLine({
   );
 }
 
-export default function VideoPage({ params }: { params: { id: string } }) {
+export default async function VideoPage({
+  params,
+}: {
+  params: Promise<{ workspace: string; id: string }>;
+}) {
+  const { id } = await params;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
       {/* Main Content: Transcript and Comments */}
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
         <header>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Video Title for ID: {params.id}
+            Video Title for ID: {id}
           </h1>
           <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">

@@ -9,6 +9,7 @@ export default async function MainLayout({
   params: Promise<{ workspace: string }>;
 }) {
   const { workspace } = await params;
+
   return (
     <div className="flex flex-col min-h-screen">
       <TopNav workspace={workspace} />
