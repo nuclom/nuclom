@@ -62,7 +62,9 @@ export default async function MyVideosPage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),

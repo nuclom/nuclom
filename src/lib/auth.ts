@@ -41,9 +41,9 @@ export const auth = betterAuth({
             .from(members)
             .where(eq(members.userId, session.userId))
             .limit(1);
-          
+
           const activeOrganizationId = userMembership[0]?.organizationId || null;
-          
+
           return {
             data: {
               ...session,

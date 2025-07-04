@@ -13,10 +13,7 @@ export function VideoCard({ video, workspace }: VideoCardProps) {
   const workspaceSlug = workspace || "default";
 
   return (
-    <Link
-      href={`/${workspaceSlug}/videos/${video.id}`}
-      className="group"
-    >
+    <Link href={`/${workspaceSlug}/videos/${video.id}`} className="group">
       <Card className="bg-transparent border-0 shadow-none rounded-lg overflow-hidden">
         <CardContent className="p-0">
           <div className="relative aspect-video overflow-hidden rounded-lg border group-hover:border-primary transition-colors">
