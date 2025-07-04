@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
 import { ClientEnv } from "@/lib/env/client";
 
-export const ServerEnv = ClientEnv.merge(z.object({
+export const ServerEnv = z.object({
+  ...ClientEnv.shape,
   DATABASE_URL: z.string(),
   VERCEL_OIDC_TOKEN: z.string(),
   RESEND_API_KEY: z.string(),
@@ -16,6 +17,6 @@ export const ServerEnv = ClientEnv.merge(z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
-}));
+});
 
 export const env = ServerEnv.parse(process.env);
