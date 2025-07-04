@@ -44,7 +44,7 @@ export function VideoCard(props: VideoCardProps) {
           <div className="flex items-start gap-3 mt-3">
             <Avatar className="h-9 w-9">
               <AvatarImage
-                src={videoData.author.avatarUrl || "/placeholder.svg"}
+                src={videoData.author.image || "/placeholder.svg"}
                 alt={videoData.author.name || "Author"}
               />
               <AvatarFallback>

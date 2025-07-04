@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const workspaceId = formData.get("workspaceId") as string;
     const authorId = formData.get("authorId") as string;
     const channelId = formData.get("channelId") as string;
-    const seriesId = formData.get("seriesId") as string;
+    const collectionId = formData.get("collectionId") as string;
 
     // Validate required fields
     if (!file || !title || !workspaceId || !authorId) {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         authorId,
         workspaceId,
         channelId: channelId || null,
-        seriesId: seriesId || null,
+        collectionId: collectionId || null,
       })
       .returning();
 

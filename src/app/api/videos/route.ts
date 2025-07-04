@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get("workspaceId");
     const channelId = searchParams.get("channelId");
-    const seriesId = searchParams.get("seriesId");
+    const collectionId = searchParams.get("collectionId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = (page - 1) * limit;
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const conditions = [];
     if (workspaceId) conditions.push(eq(videos.workspaceId, workspaceId));
     if (channelId) conditions.push(eq(videos.channelId, channelId));
-    if (seriesId) conditions.push(eq(videos.seriesId, seriesId));
+    if (collectionId) conditions.push(eq(videos.collectionId, collectionId));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
           author: true,
           workspace: true,
           channel: true,
-          series: true,
+          collection: true,
         },
         orderBy: desc(videos.createdAt),
         offset,
@@ -78,23 +78,23 @@ export async function POST(request: NextRequest) {
         authorId: body.authorId,
         workspaceId: body.workspaceId,
         channelId: body.channelId,
-        seriesId: body.seriesId,
+        collectionId: body.collectionId,
       })
       .returning();
 
-    const video = await db.query.videos.findFirst({
+    const videoData = await db.query.videos.findFirst({
       where: eq(videos.id, insertedVideo.id),
       with: {
         author: true,
         workspace: true,
         channel: true,
-        series: true,
+        collection: true,
       },
     });
 
     const response: ApiResponse = {
       success: true,
-      data: video,
+      data: videoData,
     };
 
     return NextResponse.json(response, { status: 201 });

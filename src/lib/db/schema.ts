@@ -16,15 +16,146 @@ export const workspaceRoleEnum = pgEnum("WorkspaceRole", [
 ]);
 
 export const users = pgTable("users", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  email: text("email").unique().notNull(),
-  name: text("name"),
-  avatarUrl: text("avatar_url"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').$defaultFn(() => false).notNull(),
+  image: text('image'),
+  createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+  updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+  role: text('role'),
+  banned: boolean('banned'),
+  banReason: text('ban_reason'),
+  banExpires: timestamp('ban_expires')
 });
+
+export const sessions = pgTable("sessions", {
+  id: text('id').primaryKey(),
+  expiresAt: timestamp('expires_at').notNull(),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  activeOrganizationId: text('active_organization_id'),
+  impersonatedBy: text('impersonated_by')
+});
+
+export const accounts = pgTable("accounts", {
+  id: text('id').primaryKey(),
+  accountId: text('account_id').notNull(),
+  providerId: text('provider_id').notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at'),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
+});
+
+export const verifications = pgTable("verifications", {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()),
+  updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date())
+});
+
+export const organizations = pgTable("organizations", {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  slug: text('slug').unique(),
+  logo: text('logo'),
+  createdAt: timestamp('created_at').notNull(),
+  metadata: text('metadata')
+});
+
+export const members = pgTable("members", {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text('role').default("member").notNull(),
+  createdAt: timestamp('created_at').notNull()
+});
+
+export const invitations = pgTable("invitations", {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  role: text('role'),
+  status: text('status').default("pending").notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  inviterId: text('inviter_id').notNull().references(() => users.id, { onDelete: 'cascade' })
+});
+
+export const apikeys = pgTable("apikeys", {
+  id: text('id').primaryKey(),
+  name: text('name'),
+  start: text('start'),
+  prefix: text('prefix'),
+  key: text('key').notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  refillInterval: integer('refill_interval'),
+  refillAmount: integer('refill_amount'),
+  lastRefillAt: timestamp('last_refill_at'),
+  enabled: boolean('enabled').default(true),
+  rateLimitEnabled: boolean('rate_limit_enabled').default(true),
+  rateLimitTimeWindow: integer('rate_limit_time_window').default(60000),
+  rateLimitMax: integer('rate_limit_max').default(100),
+  requestCount: integer('request_count'),
+  remaining: integer('remaining'),
+  lastRequest: timestamp('last_request'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull(),
+  permissions: text('permissions'),
+  metadata: text('metadata')
+});
+
+export const oauthApplications = pgTable("oauth_applications", {
+  id: text('id').primaryKey(),
+  name: text('name'),
+  icon: text('icon'),
+  metadata: text('metadata'),
+  clientId: text('client_id').unique(),
+  clientSecret: text('client_secret'),
+  redirectURLs: text('redirect_u_r_ls'),
+  type: text('type'),
+  disabled: boolean('disabled'),
+  userId: text('user_id'),
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at')
+});
+
+export const oauthAccessTokens = pgTable("oauth_access_tokens", {
+  id: text('id').primaryKey(),
+  accessToken: text('access_token').unique(),
+  refreshToken: text('refresh_token').unique(),
+  accessTokenExpiresAt: timestamp('access_token_expires_at'),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+  clientId: text('client_id'),
+  userId: text('user_id'),
+  scopes: text('scopes'),
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at')
+});
+
+export const oauthConsents = pgTable("oauth_consents", {
+  id: text('id').primaryKey(),
+  clientId: text('client_id'),
+  userId: text('user_id'),
+  scopes: text('scopes'),
+  createdAt: timestamp('created_at'),
+  updatedAt: timestamp('updated_at'),
+  consentGiven: boolean('consent_given')
+});
+
 
 export const workspaces = pgTable("workspaces", {
   id: text("id")
@@ -71,7 +202,7 @@ export const channels = pgTable("channels", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const series = pgTable("series", {
+export const collections = pgTable("collections", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -100,7 +231,7 @@ export const videos = pgTable("videos", {
     .notNull()
     .references(() => workspaces.id, { onDelete: "cascade" }),
   channelId: text("channel_id").references(() => channels.id),
-  seriesId: text("series_id").references(() => series.id),
+  collectionId: text("collection_id").references(() => collections.id),
   transcript: text("transcript"),
   aiSummary: text("ai_summary"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -124,8 +255,8 @@ export const comments = pgTable("comments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const videoProgress = pgTable(
-  "video_progress",
+export const videoProgresses = pgTable(
+  "video_progresses",
   {
     id: text("id")
       .primaryKey()
@@ -146,18 +277,18 @@ export const videoProgress = pgTable(
 );
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ many }) => ({
   workspaces: many(workspaceUsers),
   videos: many(videos),
   comments: many(comments),
-  videoProgresses: many(videoProgress),
+  videoProgresses: many(videoProgresses),
 }));
 
-export const workspacesRelations = relations(workspaces, ({ many }) => ({
+export const workspaceRelations = relations(workspaces, ({ many }) => ({
   users: many(workspaceUsers),
   videos: many(videos),
   channels: many(channels),
-  series: many(series),
+  collections: many(collections),
 }));
 
 export const workspaceUsersRelations = relations(workspaceUsers, ({ one }) => ({
@@ -184,15 +315,15 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     fields: [videos.channelId],
     references: [channels.id],
   }),
-  series: one(series, {
-    fields: [videos.seriesId],
-    references: [series.id],
+  collection: one(collections, {
+    fields: [videos.collectionId],
+    references: [collections.id],
   }),
   comments: many(comments),
-  videoProgresses: many(videoProgress),
+  videoProgresses: many(videoProgresses),
 }));
 
-export const channelsRelations = relations(channels, ({ one, many }) => ({
+export const channelRelations = relations(channels, ({ one, many }) => ({
   workspace: one(workspaces, {
     fields: [channels.workspaceId],
     references: [workspaces.id],
@@ -200,15 +331,15 @@ export const channelsRelations = relations(channels, ({ one, many }) => ({
   videos: many(videos),
 }));
 
-export const seriesRelations = relations(series, ({ one, many }) => ({
+export const collectionRelations = relations(collections, ({ one, many }) => ({
   workspace: one(workspaces, {
-    fields: [series.workspaceId],
+    fields: [collections.workspaceId],
     references: [workspaces.id],
   }),
   videos: many(videos),
 }));
 
-export const commentsRelations = relations(comments, ({ one, many }) => ({
+export const commentRelations = relations(comments, ({ one, many }) => ({
   author: one(users, {
     fields: [comments.authorId],
     references: [users.id],
@@ -227,13 +358,13 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   }),
 }));
 
-export const videoProgressRelations = relations(videoProgress, ({ one }) => ({
+export const videoProgressRelations = relations(videoProgresses, ({ one }) => ({
   user: one(users, {
-    fields: [videoProgress.userId],
+    fields: [videoProgresses.userId],
     references: [users.id],
   }),
   video: one(videos, {
-    fields: [videoProgress.videoId],
+    fields: [videoProgresses.videoId],
     references: [videos.id],
   }),
 }));
@@ -248,9 +379,9 @@ export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
 export type NewChannel = typeof channels.$inferInsert;
-export type Series = typeof series.$inferSelect;
-export type NewSeries = typeof series.$inferInsert;
+export type Collection = typeof collections.$inferSelect;
+export type NewCollection = typeof collections.$inferInsert;
 export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
-export type VideoProgress = typeof videoProgress.$inferSelect;
-export type NewVideoProgress = typeof videoProgress.$inferInsert;
+export type VideoProgress = typeof videoProgresses.$inferSelect;
+export type NewVideoProgress = typeof videoProgresses.$inferInsert;

@@ -1,7 +1,7 @@
 import type {
   Channel,
+  Collection,
   Comment,
-  Series,
   User,
   Video,
   Workspace,
@@ -16,7 +16,7 @@ export type VideoWithDetails = Video & {
   author: User;
   workspace: Workspace;
   channel?: Channel | null;
-  series?: Series | null;
+  collection?: Collection | null;
   comments: (Comment & { author: User })[];
 };
 
@@ -28,9 +28,7 @@ export type ChannelWithVideos = Channel & {
   videos: VideoWithAuthor[];
 };
 
-export type SeriesWithVideos = Series & {
-  videos: VideoWithAuthor[];
-};
+
 
 // API Response types
 export type ApiResponse<T = unknown> = {
@@ -57,7 +55,7 @@ export type CreateVideoData = {
   thumbnailUrl?: string;
   videoUrl?: string;
   channelId?: string;
-  seriesId?: string;
+  collectionId?: string;
 };
 
 export type UpdateVideoData = Partial<CreateVideoData>;
@@ -73,7 +71,7 @@ export type CreateChannelData = {
   description?: string;
 };
 
-export type CreateSeriesData = {
+export type CreateCollectionData = {
   name: string;
   description?: string;
 };
