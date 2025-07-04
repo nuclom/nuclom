@@ -1,13 +1,4 @@
-import {
-  Bookmark,
-  Code,
-  Github,
-  ListTodo,
-  MessageSquarePlus,
-  Share2,
-  Sparkles,
-  ThumbsUp,
-} from "lucide-react";
+import { Bookmark, Code, Github, ListTodo, MessageSquarePlus, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,9 +18,7 @@ function CommentThread() {
             <p className="font-semibold text-sm">Jane Doe</p>
             <p className="text-xs text-muted-foreground">2 hours ago</p>
           </div>
-          <p className="text-sm mt-1">
-            This is a great point. We should probably create a ticket for this.
-          </p>
+          <p className="text-sm mt-1">This is a great point. We should probably create a ticket for this.</p>
           <div className="mt-2 flex items-center gap-2">
             <Button variant="ghost" size="sm" className="text-muted-foreground">
               <Github className="h-4 w-4 mr-2" />
@@ -42,28 +31,15 @@ function CommentThread() {
   );
 }
 
-function TranscriptLine({
-  time,
-  text,
-  hasComment,
-}: {
-  time: string;
-  text: string;
-  hasComment?: boolean;
-}) {
+function TranscriptLine({ time, text, hasComment }: { time: string; text: string; hasComment?: boolean }) {
   return (
     <div className="group relative flex gap-4 p-2 rounded-md hover:bg-secondary">
       <div className="absolute left-[-40px] top-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          type="button"
-          className="p-1 rounded-full hover:bg-muted-foreground/20"
-        >
+        <button type="button" className="p-1 rounded-full hover:bg-muted-foreground/20">
           <MessageSquarePlus className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
-      <p className="font-mono text-xs text-muted-foreground w-16 shrink-0 pt-1">
-        {time}
-      </p>
+      <p className="font-mono text-xs text-muted-foreground w-16 shrink-0 pt-1">{time}</p>
       <p className="flex-1 text-sm">{text}</p>
       {hasComment && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-[hsl(var(--brand-accent))]"></div>
@@ -72,11 +48,7 @@ function TranscriptLine({
   );
 }
 
-export default async function VideoPage({
-  params,
-}: {
-  params: Promise<{ workspace: string; id: string }>;
-}) {
+export default async function VideoPage({ params }: { params: Promise<{ workspace: string; id: string }> }) {
   const { id } = await params;
 
   return (
@@ -84,16 +56,11 @@ export default async function VideoPage({
       {/* Main Content: Transcript and Comments */}
       <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
         <header>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Video Title for ID: {id}
-          </h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Video Title for ID: {id}</h1>
           <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarImage
-                  src="/placeholder.svg?height=24&width=24"
-                  alt="Author"
-                />
+                <AvatarImage src="/placeholder.svg?height=24&width=24" alt="Author" />
                 <AvatarFallback>A</AvatarFallback>
               </Avatar>
               <span>Author Name</span>
@@ -121,10 +88,7 @@ export default async function VideoPage({
                 time="00:32.89"
                 text="Let's dive into the details. The core idea is to decouple services..."
               />
-              <TranscriptLine
-                time="00:45.12"
-                text="This is where we introduce the new message queue system."
-              />
+              <TranscriptLine time="00:45.12" text="This is where we introduce the new message queue system." />
             </div>
           </CardContent>
         </Card>
@@ -146,11 +110,7 @@ export default async function VideoPage({
             <Button variant="ghost" size="sm">
               <ThumbsUp className="h-4 w-4 mr-2" /> 12
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground"
-            >
+            <Button variant="ghost" size="icon" className="text-muted-foreground">
               <Bookmark className="h-4 w-4" />
             </Button>
           </div>
@@ -179,9 +139,7 @@ export default async function VideoPage({
                     Action Items
                   </h4>
                   <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                    <li>
-                      Create ticket for message queue system implementation.
-                    </li>
+                    <li>Create ticket for message queue system implementation.</li>
                     <li>Review scalability metrics by end of week.</li>
                   </ul>
                 </div>
@@ -203,9 +161,8 @@ export default async function VideoPage({
                 <CardTitle className="text-base">Description</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                This is the description of the video. It can be a few sentences
-                long, explaining what the video is about, providing context, or
-                linking to relevant resources.
+                This is the description of the video. It can be a few sentences long, explaining what the video is
+                about, providing context, or linking to relevant resources.
               </CardContent>
             </Card>
           </TabsContent>

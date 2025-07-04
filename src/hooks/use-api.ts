@@ -1,12 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ApiError, videoApi, workspaceApi } from "@/lib/api";
-import type {
-  PaginatedResponse,
-  VideoWithAuthor,
-  VideoWithDetails,
-} from "@/lib/types";
+import { ApiError, videoApi, organizationApi } from "@/lib/api";
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 interface UseApiState<T> {
   data: T | null;
@@ -16,17 +12,9 @@ interface UseApiState<T> {
 
 // Custom hook for fetching videos
 export function useVideos(
-  params: {
-    workspaceId?: string;
-    channelId?: string;
-    seriesId?: string;
-    page?: number;
-    limit?: number;
-  } = {},
+  params: { workspaceId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
 ) {
-  const [state, setState] = useState<
-    UseApiState<PaginatedResponse<VideoWithAuthor>>
-  >({
+  const [state, setState] = useState<UseApiState<PaginatedResponse<VideoWithAuthor>>>({
     data: null,
     loading: true,
     error: null,
@@ -129,7 +117,7 @@ export function useWorkspaces(userId?: string) {
     const fetchWorkspaces = async () => {
       try {
         setState((prev) => ({ ...prev, loading: true, error: null }));
-        const data = await workspaceApi.getWorkspaces(userId);
+        const data = await organizationApi.getOrganizations(userId);
 
         if (isMounted) {
           setState({ data, loading: false, error: null });

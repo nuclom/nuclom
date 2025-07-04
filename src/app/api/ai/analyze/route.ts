@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
     const { transcript, type } = await request.json();
 
     if (!transcript) {
-      return NextResponse.json(
-        { success: false, error: "Transcript is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: "Transcript is required" }, { status: 400 });
     }
 
     let result: any;
@@ -23,10 +20,7 @@ export async function POST(request: NextRequest) {
         result = await aiService.extractActionItems(transcript);
         break;
       default:
-        return NextResponse.json(
-          { success: false, error: "Invalid analysis type" },
-          { status: 400 },
-        );
+        return NextResponse.json({ success: false, error: "Invalid analysis type" }, { status: 400 });
     }
 
     const response: ApiResponse = {
@@ -37,9 +31,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error in AI analysis:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to analyze content" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Failed to analyze content" }, { status: 500 });
   }
 }

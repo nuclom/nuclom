@@ -36,11 +36,7 @@ export const auth = betterAuth({
       create: {
         before: async (session) => {
           // Get user's first organization as active organization
-          const userMembership = await db
-            .select()
-            .from(members)
-            .where(eq(members.userId, session.userId))
-            .limit(1);
+          const userMembership = await db.select().from(members).where(eq(members.userId, session.userId)).limit(1);
 
           const activeOrganizationId = userMembership[0]?.organizationId || null;
 
@@ -71,17 +67,17 @@ export const auth = betterAuth({
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
       async sendInvitationEmail(data) {
-        const inviteLink = `https://nuclom.com/accept-invitation/${data.id}`
+        const inviteLink = `https://nuclom.com/accept-invitation/${data.id}`;
 
         await resend.emails.send({
-          from: 'no-reply@nuclom.com',
+          from: "no-reply@nuclom.com",
           to: data.email,
           subject: `You're invited to join ${data.organization.name}`,
           html: `<p>Hi there,</p>
                  <p>${data.inviter.user.name} has invited you to join the organization ${data.organization.name}.</p>
                  <p>Please click the link below to accept the invitation:</p>
                  <p><a href="${inviteLink}">Accept Invitation</a></p>
-                 <p>Thank you!</p>`
+                 <p>Thank you!</p>`,
         });
       },
     }),

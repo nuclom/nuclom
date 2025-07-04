@@ -1,21 +1,9 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Play, Mail, Phone, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
 
@@ -46,12 +34,10 @@ export default function ContactPage() {
       <main className="flex-1 py-16 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Contact Sales
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Sales</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Ready to transform your video workflow? Let's discuss how Nuclom
-              can help your team collaborate more effectively.
+              Ready to transform your video workflow? Let's discuss how Nuclom can help your team collaborate more
+              effectively.
             </p>
           </div>
 
@@ -62,8 +48,7 @@ export default function ContactPage() {
                 <CardHeader>
                   <CardTitle className="text-2xl">Get in Touch</CardTitle>
                   <CardDescription>
-                    Fill out the form below and our sales team will get back to
-                    you within 24 hours.
+                    Fill out the form below and our sales team will get back to you within 24 hours.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -81,20 +66,11 @@ export default function ContactPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="email">Work Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john@company.com"
-                        required
-                      />
+                      <Input id="email" type="email" placeholder="john@company.com" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+1 (555) 000-0000"
-                      />
+                      <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
                     </div>
                   </div>
 
@@ -120,9 +96,7 @@ export default function ContactPage() {
                           <SelectItem value="1-10">1-10 people</SelectItem>
                           <SelectItem value="11-50">11-50 people</SelectItem>
                           <SelectItem value="51-200">51-200 people</SelectItem>
-                          <SelectItem value="201-1000">
-                            201-1000 people
-                          </SelectItem>
+                          <SelectItem value="201-1000">201-1000 people</SelectItem>
                           <SelectItem value="1000+">1000+ people</SelectItem>
                         </SelectContent>
                       </Select>
@@ -138,9 +112,7 @@ export default function ContactPage() {
                           <SelectItem value="education">Education</SelectItem>
                           <SelectItem value="healthcare">Healthcare</SelectItem>
                           <SelectItem value="finance">Finance</SelectItem>
-                          <SelectItem value="media">
-                            Media & Entertainment
-                          </SelectItem>
+                          <SelectItem value="media">Media & Entertainment</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -148,9 +120,7 @@ export default function ContactPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="useCase">
-                      How do you plan to use Nuclom?
-                    </Label>
+                    <Label htmlFor="useCase">How do you plan to use Nuclom?</Label>
                     <Textarea
                       id="useCase"
                       placeholder="Tell us about your video collaboration needs, current challenges, and what you're looking to achieve..."
@@ -167,15 +137,9 @@ export default function ContactPage() {
                       <SelectContent>
                         <SelectItem value="immediate">Immediately</SelectItem>
                         <SelectItem value="1-month">Within 1 month</SelectItem>
-                        <SelectItem value="3-months">
-                          Within 3 months
-                        </SelectItem>
-                        <SelectItem value="6-months">
-                          Within 6 months
-                        </SelectItem>
-                        <SelectItem value="evaluating">
-                          Just evaluating
-                        </SelectItem>
+                        <SelectItem value="3-months">Within 3 months</SelectItem>
+                        <SelectItem value="6-months">Within 6 months</SelectItem>
+                        <SelectItem value="evaluating">Just evaluating</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -186,17 +150,11 @@ export default function ContactPage() {
 
                   <p className="text-sm text-muted-foreground text-center">
                     By submitting this form, you agree to our{" "}
-                    <Link
-                      href="/privacy"
-                      className="text-primary hover:underline"
-                    >
+                    <Link href="/privacy" className="text-primary hover:underline">
                       Privacy Policy
                     </Link>{" "}
                     and{" "}
-                    <Link
-                      href="/terms"
-                      className="text-primary hover:underline"
-                    >
+                    <Link href="/terms" className="text-primary hover:underline">
                       Terms of Service
                     </Link>
                     .
@@ -218,9 +176,7 @@ export default function ContactPage() {
                       <p className="text-muted-foreground">sales@nuclom.com</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Send us an email and we'll respond within 24 hours.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Send us an email and we'll respond within 24 hours.</p>
                 </CardContent>
               </Card>
 
@@ -235,9 +191,7 @@ export default function ContactPage() {
                       <p className="text-muted-foreground">+1 (555) 123-4567</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Call us Monday through Friday, 9 AM to 6 PM PST.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Call us Monday through Friday, 9 AM to 6 PM PST.</p>
                 </CardContent>
               </Card>
 
@@ -294,22 +248,13 @@ export default function ContactPage() {
               <span className="text-xl font-bold">Nuclom</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <Link
-                href="/privacy"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Link
-                href="/terms"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/terms" className="hover:text-foreground transition-colors">
                 Terms of Service
               </Link>
-              <Link
-                href="/support"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/support" className="hover:text-foreground transition-colors">
                 Support
               </Link>
             </div>

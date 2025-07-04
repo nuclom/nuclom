@@ -1,23 +1,18 @@
 import { db } from "@/lib/db";
-import {
-  comments,
-  videos
-} from "@/lib/db/schema";
-import type { ApiResponse, UpdateVideoData } from "@/lib/types";
+import { comments, videos } from "@/lib/db/schema";
+import type { ApiResponse } from "@/lib/types";
+import type { NewVideo } from "@/lib/db/schema";
 import { asc, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     const videoData = await db.query.videos.findFirst({
       where: eq(videos.id, resolvedParams.id),
       with: {
         author: true,
-        workspace: true,
+        organization: true,
         channel: true,
         collection: true,
         comments: {
@@ -36,10 +31,7 @@ export async function GET(
     });
 
     if (!videoData) {
-      return NextResponse.json(
-        { success: false, error: "Video not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
     }
 
     const response: ApiResponse = {
@@ -50,20 +42,14 @@ export async function GET(
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching video:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch video" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Failed to fetch video" }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
-    const body: UpdateVideoData = await request.json();
+    const body: Partial<NewVideo> = await request.json();
 
     await db.update(videos).set(body).where(eq(videos.id, resolvedParams.id));
 
@@ -71,7 +57,7 @@ export async function PUT(
       where: eq(videos.id, resolvedParams.id),
       with: {
         author: true,
-        workspace: true,
+        organization: true,
         channel: true,
         collection: true,
       },
@@ -85,17 +71,11 @@ export async function PUT(
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error updating video:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update video" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Failed to update video" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     await db.delete(videos).where(eq(videos.id, resolvedParams.id));
@@ -108,9 +88,6 @@ export async function DELETE(
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error deleting video:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete video" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Failed to delete video" }, { status: 500 });
   }
 }

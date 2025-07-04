@@ -1,9 +1,4 @@
-import type {
-  ApiResponse,
-  PaginatedResponse,
-  VideoWithAuthor,
-  VideoWithDetails,
-} from "@/lib/types";
+import type { ApiResponse, PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 const API_BASE_URL = "/api";
 
@@ -17,10 +12,7 @@ class ApiError extends Error {
   }
 }
 
-async function fetchApi<T>(
-  endpoint: string,
-  options?: RequestInit,
-): Promise<T> {
+async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
     headers: {
@@ -31,10 +23,7 @@ async function fetchApi<T>(
   });
 
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      `HTTP error! status: ${response.status}`,
-    );
+    throw new ApiError(response.status, `HTTP error! status: ${response.status}`);
   }
 
   const data: ApiResponse<T> = await response.json();
@@ -49,13 +38,7 @@ async function fetchApi<T>(
 // Video API functions
 export const videoApi = {
   async getVideos(
-    params: {
-      workspaceId?: string;
-      channelId?: string;
-      seriesId?: string;
-      page?: number;
-      limit?: number;
-    } = {},
+    params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
   ): Promise<PaginatedResponse<VideoWithAuthor>> {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -78,7 +61,7 @@ export const videoApi = {
     thumbnailUrl?: string;
     videoUrl?: string;
     authorId: string;
-    workspaceId: string;
+    organizationId: string;
     channelId?: string;
     seriesId?: string;
   }): Promise<VideoWithDetails> {
@@ -117,7 +100,7 @@ export const videoApi = {
     metadata: {
       title: string;
       description?: string;
-      workspaceId: string;
+      organizationId: string;
       authorId: string;
       channelId?: string;
       seriesId?: string;
@@ -132,9 +115,8 @@ export const videoApi = {
     const formData = new FormData();
     formData.append("video", file);
     formData.append("title", metadata.title);
-    if (metadata.description)
-      formData.append("description", metadata.description);
-    formData.append("workspaceId", metadata.workspaceId);
+    if (metadata.description) formData.append("description", metadata.description);
+    formData.append("organizationId", metadata.organizationId);
     formData.append("authorId", metadata.authorId);
     if (metadata.channelId) formData.append("channelId", metadata.channelId);
     if (metadata.seriesId) formData.append("seriesId", metadata.seriesId);
@@ -189,28 +171,23 @@ export const videoApi = {
   },
 };
 
-// Workspace API functions
-export const workspaceApi = {
-  async getWorkspaces(userId?: string) {
+// Organization API functions
+export const organizationApi = {
+  async getOrganizations(userId?: string) {
     const searchParams = new URLSearchParams();
     if (userId) {
       searchParams.append("userId", userId);
     }
 
-    return fetchApi(`/workspaces?${searchParams.toString()}`);
+    return fetchApi(`/organizations?${searchParams.toString()}`);
   },
 
-  async getWorkspace(id: string) {
-    return fetchApi(`/workspaces/${id}`);
+  async getOrganization(id: string) {
+    return fetchApi(`/organizations/${id}`);
   },
 
-  async createWorkspace(data: {
-    name: string;
-    slug: string;
-    description?: string;
-    ownerId: string;
-  }) {
-    return fetchApi("/workspaces", {
+  async createOrganization(data: { name: string; slug: string; description?: string; ownerId: string }) {
+    return fetchApi("/organizations", {
       method: "POST",
       body: JSON.stringify(data),
     });

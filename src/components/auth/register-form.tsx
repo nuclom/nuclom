@@ -6,14 +6,7 @@ import { Eye, EyeOff, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
@@ -34,8 +27,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo =
-    redirectTo || searchParams.get("redirectTo") || "/vercel";
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,12 +86,8 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
-          Create account
-        </CardTitle>
-        <CardDescription className="text-center">
-          Enter your details to create your account
-        </CardDescription>
+        <CardTitle className="text-2xl font-bold text-center">Create account</CardTitle>
+        <CardDescription className="text-center">Enter your details to create your account</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleRegister} className="space-y-4">
@@ -148,11 +136,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -177,19 +161,11 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isLoading}
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </div>
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Create account"}
           </Button>
@@ -200,30 +176,18 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
-            </span>
+            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleGithubSignup}
-          disabled={isLoading}
-        >
+        <Button variant="outline" className="w-full" onClick={handleGithubSignup} disabled={isLoading}>
           <Github className="mr-2 h-4 w-4" />
           GitHub
         </Button>
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Button
-          variant="link"
-          className="p-0 h-auto font-normal"
-          disabled={isLoading}
-          asChild
-        >
+        <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
           <a
             href={`/login${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
           >

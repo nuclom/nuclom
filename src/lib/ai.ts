@@ -34,10 +34,7 @@ Please format the response as:
     }
   }
 
-  async generateVideoTags(
-    title: string,
-    description?: string,
-  ): Promise<string[]> {
+  async generateVideoTags(title: string, description?: string): Promise<string[]> {
     try {
       const { text } = await generateText({
         model: this.model,
@@ -67,9 +64,7 @@ ${transcript}
 Return each action item on a new line, or "None" if no action items are found.`,
       });
 
-      const items = text
-        .split("\n")
-        .filter((item) => item.trim() && !item.includes("None"));
+      const items = text.split("\n").filter((item) => item.trim() && !item.includes("None"));
       return items.map((item) => item.replace(/^[-*]\s*/, "").trim());
     } catch (error) {
       console.error("Error extracting action items:", error);

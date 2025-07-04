@@ -36,11 +36,7 @@ const channelVideoData = [
   },
 ];
 
-export default async function ChannelPage({
-  params,
-}: {
-  params: Promise<{ workspace: string; id: string }>;
-}) {
+export default async function ChannelPage({ params }: { params: Promise<{ workspace: string; id: string }> }) {
   const { workspace, id } = await params;
   const channelName = id.replace("-", " ");
   return (
@@ -68,7 +64,7 @@ export default async function ChannelPage({
               thumbnailUrl: video.thumbnailUrl,
               videoUrl: null,
               authorId: `author-${video.id}`,
-              workspaceId: "workspace",
+              organizationId: "organization",
               channelId: null,
               collectionId: null,
               transcript: null,
@@ -78,14 +74,12 @@ export default async function ChannelPage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author
-                  .toLowerCase()
-                  .replace(" ", ".")}@example.com`,
+                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 emailVerified: true,
-                role: null,
+                role: "user",
                 banned: null,
                 banReason: null,
                 banExpires: null,

@@ -34,17 +34,17 @@ export async function POST(request: NextRequest) {
     const file = formData.get("video") as File;
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
-    const workspaceId = formData.get("workspaceId") as string;
+    const organizationId = formData.get("organizationId") as string;
     const authorId = formData.get("authorId") as string;
     const channelId = formData.get("channelId") as string;
     const collectionId = formData.get("collectionId") as string;
 
     // Validate required fields
-    if (!file || !title || !workspaceId || !authorId) {
+    if (!file || !title || !organizationId || !authorId) {
       return NextResponse.json(
         {
           success: false,
-          error: "Missing required fields: video, title, workspaceId, authorId",
+          error: "Missing required fields: video, title, organizationId, authorId",
         },
         { status: 400 },
       );
@@ -55,8 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
+          error: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
         },
         { status: 400 },
       );
@@ -80,7 +79,7 @@ export async function POST(request: NextRequest) {
     const processingResult = await VideoProcessor.processVideo(
       buffer,
       file.name,
-      workspaceId,
+      organizationId,
       // Progress callback could be used with WebSockets in the future
     );
 
@@ -94,7 +93,7 @@ export async function POST(request: NextRequest) {
         thumbnailUrl: processingResult.thumbnailUrl,
         videoUrl: processingResult.videoUrl,
         authorId,
-        workspaceId,
+        organizationId,
         channelId: channelId || null,
         collectionId: collectionId || null,
       })
@@ -120,9 +119,6 @@ export async function POST(request: NextRequest) {
       errorMessage = error.message;
     }
 
-    return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }

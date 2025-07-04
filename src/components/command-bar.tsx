@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  FolderKanban,
-  Home,
-  Plus,
-  SearchIcon,
-  Settings,
-  Users,
-  Video,
-} from "lucide-react";
+import { FolderKanban, Home, Plus, SearchIcon, Settings, Users, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -65,59 +57,37 @@ export function CommandBar({ workspace }: { workspace: string }) {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Navigation">
-            <CommandItem
-              onSelect={() => runCommand(() => router.push(`/${workspace}`))}
-            >
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${workspace}`))}>
               <Home className="mr-2 h-4 w-4" />
               <span>Home</span>
             </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                runCommand(() => router.push(`/${workspace}/my-videos`))
-              }
-            >
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${workspace}/my-videos`))}>
               <Video className="mr-2 h-4 w-4" />
               <span>My Videos</span>
             </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                runCommand(() => router.push(`/${workspace}/notebooks`))
-              }
-            >
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${workspace}/notebooks`))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>Notebooks</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Actions">
-            <CommandItem
-              onSelect={() => runCommand(() => console.log("New Video"))}
-            >
+            <CommandItem onSelect={() => runCommand(() => console.log("New Video"))}>
               <Plus className="mr-2 h-4 w-4" />
               <span>New Video</span>
             </CommandItem>
-            <CommandItem
-              onSelect={() => runCommand(() => console.log("New Notebook"))}
-            >
+            <CommandItem onSelect={() => runCommand(() => console.log("New Notebook"))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>New Notebook</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
-            <CommandItem
-              onSelect={() =>
-                runCommand(() => router.push(`/${workspace}/settings/profile`))
-              }
-            >
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${workspace}/settings/profile`))}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </CommandItem>
-            <CommandItem
-              onSelect={() =>
-                runCommand(() => router.push(`/${workspace}/settings/members`))
-              }
-            >
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${workspace}/settings/members`))}>
               <Users className="mr-2 h-4 w-4" />
               <span>Members</span>
             </CommandItem>

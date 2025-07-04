@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(organizations);
   } catch (error) {
     console.error("Error fetching organizations:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -38,10 +35,7 @@ export async function POST(request: NextRequest) {
     const { name, slug, logo } = body;
 
     if (!name || !slug) {
-      return NextResponse.json(
-        { error: "Name and slug are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Name and slug are required" }, { status: 400 });
     }
 
     const organization = await createOrganization({
@@ -54,9 +48,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(organization);
   } catch (error) {
     console.error("Error creating organization:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

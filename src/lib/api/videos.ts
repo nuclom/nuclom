@@ -1,11 +1,11 @@
 import { db } from "@/lib/db";
-import { videos, users, workspaces, channels, collections, comments } from "@/lib/db/schema";
+import { videos, users, organizations, channels, collections, comments } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import type { VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
-export async function getVideos(workspaceId: string, page = 1, limit = 20) {
+export async function getVideos(organizationId: string, page = 1, limit = 20) {
   const offset = (page - 1) * limit;
-  
+
   const videosData = await db
     .select({
       id: videos.id,
@@ -15,7 +15,7 @@ export async function getVideos(workspaceId: string, page = 1, limit = 20) {
       thumbnailUrl: videos.thumbnailUrl,
       videoUrl: videos.videoUrl,
       authorId: videos.authorId,
-      workspaceId: videos.workspaceId,
+      organizationId: videos.organizationId,
       channelId: videos.channelId,
       collectionId: videos.collectionId,
       transcript: videos.transcript,
@@ -38,15 +38,12 @@ export async function getVideos(workspaceId: string, page = 1, limit = 20) {
     })
     .from(videos)
     .innerJoin(users, eq(videos.authorId, users.id))
-    .where(eq(videos.workspaceId, workspaceId))
+    .where(eq(videos.organizationId, organizationId))
     .orderBy(desc(videos.createdAt))
     .offset(offset)
     .limit(limit);
 
-  const totalCount = await db
-    .select()
-    .from(videos)
-    .where(eq(videos.workspaceId, workspaceId));
+  const totalCount = await db.select().from(videos).where(eq(videos.organizationId, organizationId));
 
   return {
     data: videosData as VideoWithAuthor[],
@@ -69,7 +66,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       thumbnailUrl: videos.thumbnailUrl,
       videoUrl: videos.videoUrl,
       authorId: videos.authorId,
-      workspaceId: videos.workspaceId,
+      organizationId: videos.organizationId,
       channelId: videos.channelId,
       collectionId: videos.collectionId,
       transcript: videos.transcript,
@@ -89,18 +86,18 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         banReason: users.banReason,
         banExpires: users.banExpires,
       },
-      workspace: {
-        id: workspaces.id,
-        name: workspaces.name,
-        slug: workspaces.slug,
-        description: workspaces.description,
-        createdAt: workspaces.createdAt,
-        updatedAt: workspaces.updatedAt,
+      organization: {
+        id: organizations.id,
+        name: organizations.name,
+        slug: organizations.slug,
+        logo: organizations.logo,
+        createdAt: organizations.createdAt,
+        metadata: organizations.metadata,
       },
     })
     .from(videos)
     .innerJoin(users, eq(videos.authorId, users.id))
-    .innerJoin(workspaces, eq(videos.workspaceId, workspaces.id))
+    .innerJoin(organizations, eq(videos.organizationId, organizations.id))
     .where(eq(videos.id, id))
     .limit(1);
 
@@ -111,11 +108,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
   // Get channel if exists
   let channel = null;
   if (videoData[0].channelId) {
-    const channelData = await db
-      .select()
-      .from(channels)
-      .where(eq(channels.id, videoData[0].channelId))
-      .limit(1);
+    const channelData = await db.select().from(channels).where(eq(channels.id, videoData[0].channelId)).limit(1);
     channel = channelData[0] || null;
   }
 
@@ -175,16 +168,13 @@ export async function createVideo(data: {
   thumbnailUrl?: string;
   videoUrl?: string;
   authorId: string;
-  workspaceId: string;
+  organizationId: string;
   channelId?: string;
   collectionId?: string;
   transcript?: string;
   aiSummary?: string;
 }) {
-  const newVideo = await db
-    .insert(videos)
-    .values(data)
-    .returning();
+  const newVideo = await db.insert(videos).values(data).returning();
 
   return newVideo[0];
 }

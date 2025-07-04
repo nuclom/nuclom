@@ -1,12 +1,4 @@
-import type {
-  Channel,
-  Collection,
-  Comment,
-  User,
-  Video,
-  Workspace,
-  WorkspaceUser,
-} from "./db/schema";
+import type { Channel, Collection, Comment, User, Video, Organization, Member } from "./db/schema";
 
 export type VideoWithAuthor = Video & {
   author: User;
@@ -14,21 +6,19 @@ export type VideoWithAuthor = Video & {
 
 export type VideoWithDetails = Video & {
   author: User;
-  workspace: Workspace;
+  organization: Organization;
   channel?: Channel | null;
   collection?: Collection | null;
   comments: (Comment & { author: User })[];
 };
 
-export type WorkspaceWithUsers = Workspace & {
-  users: (WorkspaceUser & { user: User })[];
+export type OrganizationWithMembers = Organization & {
+  members: (Member & { user: User })[];
 };
 
 export type ChannelWithVideos = Channel & {
   videos: VideoWithAuthor[];
 };
-
-
 
 // API Response types
 export type ApiResponse<T = unknown> = {
@@ -47,37 +37,3 @@ export type PaginatedResponse<T> = {
   };
 };
 
-// Form types for creating/updating entities
-export type CreateVideoData = {
-  title: string;
-  description?: string;
-  duration: string;
-  thumbnailUrl?: string;
-  videoUrl?: string;
-  channelId?: string;
-  collectionId?: string;
-};
-
-export type UpdateVideoData = Partial<CreateVideoData>;
-
-export type CreateWorkspaceData = {
-  name: string;
-  slug: string;
-  description?: string;
-};
-
-export type CreateChannelData = {
-  name: string;
-  description?: string;
-};
-
-export type CreateCollectionData = {
-  name: string;
-  description?: string;
-};
-
-export type CreateCommentData = {
-  content: string;
-  timestamp?: string;
-  parentId?: string;
-};

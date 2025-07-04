@@ -13,26 +13,20 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const workspaceId = searchParams.get("workspaceId");
+    const organizationId = searchParams.get("organizationId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    if (!workspaceId) {
-      return NextResponse.json(
-        { error: "Workspace ID is required" },
-        { status: 400 },
-      );
+    if (!organizationId) {
+      return NextResponse.json({ error: "Organization ID is required" }, { status: 400 });
     }
 
-    const result = await getVideos(workspaceId, page, limit);
+    const result = await getVideos(organizationId, page, limit);
 
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching videos:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -53,18 +47,15 @@ export async function POST(request: NextRequest) {
       duration,
       thumbnailUrl,
       videoUrl,
-      workspaceId,
+      organizationId,
       channelId,
       collectionId,
       transcript,
       aiSummary,
     } = body;
 
-    if (!title || !duration || !workspaceId) {
-      return NextResponse.json(
-        { error: "Title, duration, and workspace ID are required" },
-        { status: 400 },
-      );
+    if (!title || !duration || !organizationId) {
+      return NextResponse.json({ error: "Title, duration, and workspace ID are required" }, { status: 400 });
     }
 
     const video = await createVideo({
@@ -74,7 +65,7 @@ export async function POST(request: NextRequest) {
       thumbnailUrl,
       videoUrl,
       authorId: session.user.id,
-      workspaceId,
+      organizationId,
       channelId,
       collectionId,
       transcript,
@@ -84,9 +75,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(video);
   } catch (error) {
     console.error("Error creating video:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
