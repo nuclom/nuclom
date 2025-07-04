@@ -72,20 +72,25 @@ function VideoSection({
 export default function HomePage({
   params,
 }: {
-  params: { workspace: string };
+  params: Promise<{ workspace: string }>;
 }) {
   const [videos, setVideos] = useState<VideoWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [workspace, setWorkspace] = useState<string>("");
 
   useEffect(() => {
-    const loadVideos = async () => {
+    const loadData = async () => {
       try {
+        // Get workspace from params
+        const { workspace: workspaceSlug } = await params;
+        setWorkspace(workspaceSlug);
+
         setLoading(true);
         setError(null);
 
         // For now, use mock data since database may not be set up
-        // In production, this would use: useVideos({ workspaceId: params.workspace })
+        // In production, this would use: useVideos({ workspaceId: workspaceSlug })
         const result = await mockVideoApi.getVideos();
         setVideos(result.data);
       } catch (err) {
@@ -95,29 +100,29 @@ export default function HomePage({
       }
     };
 
-    loadVideos();
-  }, []);
+    loadData();
+  }, [params]);
 
   return (
     <div className="space-y-12">
       <VideoSection
         title="Continue watching"
         videos={videos.slice(0, 2)}
-        workspace={params.workspace}
+        workspace={workspace}
         loading={loading}
         error={error}
       />
       <VideoSection
         title="New this week"
         videos={videos}
-        workspace={params.workspace}
+        workspace={workspace}
         loading={loading}
         error={error}
       />
       <VideoSection
         title="From your channels"
         videos={videos.slice(1, 4)}
-        workspace={params.workspace}
+        workspace={workspace}
         loading={loading}
         error={error}
       />
