@@ -10,11 +10,7 @@ interface AuthGuardProps {
   redirectTo?: string;
 }
 
-export function AuthGuard({
-  children,
-  fallback,
-  redirectTo = "/login",
-}: AuthGuardProps) {
+export function AuthGuard({ children, fallback, redirectTo = "/login" }: AuthGuardProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -63,12 +59,8 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">
-            Authentication Required
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            You need to be signed in to access this content.
-          </p>
+          <h3 className="text-lg font-semibold mb-2">Authentication Required</h3>
+          <p className="text-muted-foreground mb-4">You need to be signed in to access this content.</p>
           <a
             href="/login"
             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"

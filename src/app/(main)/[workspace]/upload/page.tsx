@@ -6,15 +6,11 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { workspaces } from "@/lib/db/schema";
+import { organizations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 
-export default async function UploadPage({
-  params,
-}: {
-  params: Promise<{ workspace: string }>;
-}) {
+export default async function UploadPage({ params }: { params: Promise<{ workspace: string }> }) {
   const { workspace: workspaceSlug } = await params;
 
   // Get user from session
@@ -26,31 +22,22 @@ export default async function UploadPage({
     redirect("/auth/sign-in");
   }
 
-  // Get workspace by slug
-  const workspace = await db
-    .select()
-    .from(workspaces)
-    .where(eq(workspaces.slug, workspaceSlug))
-    .limit(1);
+  // Get organization by slug
+  const organization = await db.select().from(organizations).where(eq(organizations.slug, workspaceSlug)).limit(1);
 
-  if (!workspace.length) {
+  if (!organization.length) {
     redirect("/");
   }
 
   const authorId = session.user.id;
-  const workspaceId = workspace[0].id;
+  const organizationId = organization[0].id;
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="flex items-center gap-2"
-          >
+          <Button variant="ghost" size="sm" asChild className="flex items-center gap-2">
             <Link href={`/${workspaceSlug}`}>
               <ArrowLeft className="h-4 w-4" />
               Back to Videos
@@ -60,16 +47,11 @@ export default async function UploadPage({
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Upload Video</h1>
-          <p className="text-muted-foreground">
-            Upload a new video to your workspace
-          </p>
+          <p className="text-muted-foreground">Upload a new video to your workspace</p>
         </div>
 
         {/* Upload Component */}
-        <VideoUpload
-          workspaceId={workspaceId}
-          authorId={authorId}
-        />
+        <VideoUpload organizationId={organizationId} authorId={authorId} />
       </div>
     </div>
   );

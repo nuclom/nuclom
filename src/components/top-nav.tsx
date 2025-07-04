@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CommandBar } from "./command-bar";
 import { ThemeToggle } from "./theme-toggle";
-import { WorkspaceSwitcher } from "./workspace-switcher";
+import { OrganizationSwitcher } from "./organization-switcher";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 
@@ -49,12 +49,10 @@ export function TopNav({ workspace }: { workspace: string }) {
         <div className="flex items-center gap-4">
           <Link href={`/${workspace}`} className="flex items-center gap-2.5">
             <Film className="h-7 w-7 text-[hsl(var(--brand-accent))]" />
-            <span className="text-lg font-semibold hidden sm:inline-block">
-              Nuclom
-            </span>
+            <span className="text-lg font-semibold hidden sm:inline-block">Nuclom</span>
           </Link>
           <div className="hidden md:block">
-            <WorkspaceSwitcher currentWorkspace={workspace} />
+            <OrganizationSwitcher currentWorkspace={workspace} />
           </div>
         </div>
 
@@ -74,24 +72,15 @@ export function TopNav({ workspace }: { workspace: string }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer">
-                <AvatarImage
-                  src={user?.image || "/placeholder.svg?height=36&width=36"}
-                  alt="User Avatar"
-                />
-                <AvatarFallback>
-                  {isLoading ? "..." : getInitials(user?.name)}
-                </AvatarFallback>
+                <AvatarImage src={user?.image || "/placeholder.svg?height=36&width=36"} alt="User Avatar" />
+                <AvatarFallback>{isLoading ? "..." : getInitials(user?.name)}</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name || "Loading..."}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email || ""}
-                  </p>
+                  <p className="text-sm font-medium leading-none">{user?.name || "Loading..."}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -115,7 +104,7 @@ export function TopNav({ workspace }: { workspace: string }) {
         </div>
       </div>
       <div className="px-4 pb-2 md:hidden">
-        <WorkspaceSwitcher currentWorkspace={workspace} />
+        <OrganizationSwitcher currentWorkspace={workspace} />
       </div>
     </header>
   );

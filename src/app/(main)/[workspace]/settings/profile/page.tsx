@@ -3,14 +3,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequireAuth } from "@/components/auth/auth-guard";
@@ -72,12 +65,8 @@ function ProfileForm() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage
-                src={user?.image || "/placeholder.svg?height=80&width=80"}
-              />
-              <AvatarFallback className="text-lg">
-                {getInitials(user?.name)}
-              </AvatarFallback>
+              <AvatarImage src={user?.image || "/placeholder.svg?height=80&width=80"} />
+              <AvatarFallback className="text-lg">{getInitials(user?.name)}</AvatarFallback>
             </Avatar>
             <Button type="button" variant="outline" disabled={isUpdating}>
               Change Photo
@@ -95,16 +84,9 @@ function ProfileForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={user?.email || ""}
-              disabled
-              className="bg-muted"
-            />
+            <Input id="email" type="email" value={user?.email || ""} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">
-              Email address cannot be changed. Contact support if you need to
-              update it.
+              Email address cannot be changed. Contact support if you need to update it.
             </p>
           </div>
           {message && (

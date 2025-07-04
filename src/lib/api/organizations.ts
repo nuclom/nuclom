@@ -2,12 +2,7 @@ import { db } from "@/lib/db";
 import { organizations, members } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function createOrganization(data: {
-  name: string;
-  slug: string;
-  logo?: string;
-  userId: string;
-}) {
+export async function createOrganization(data: { name: string; slug: string; logo?: string; userId: string }) {
   const newOrganization = await db.transaction(async (tx) => {
     // Create organization
     const org = await tx
@@ -22,15 +17,13 @@ export async function createOrganization(data: {
       .returning();
 
     // Add user as owner
-    await tx
-      .insert(members)
-      .values({
-        id: crypto.randomUUID(),
-        organizationId: org[0].id,
-        userId: data.userId,
-        role: "owner",
-        createdAt: new Date(),
-      });
+    await tx.insert(members).values({
+      id: crypto.randomUUID(),
+      organizationId: org[0].id,
+      userId: data.userId,
+      role: "owner",
+      createdAt: new Date(),
+    });
 
     return org[0];
   });

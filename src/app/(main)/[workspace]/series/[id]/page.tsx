@@ -29,22 +29,15 @@ const seriesVideoData = [
   },
 ];
 
-export default async function SeriesPage({
-  params,
-}: {
-  params: Promise<{ workspace: string; id: string }>;
-}) {
+export default async function SeriesPage({ params }: { params: Promise<{ workspace: string; id: string }> }) {
   const { workspace, id } = await params;
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-4xl font-bold capitalize">
-          {id.replace("-", " ")} Series
-        </h1>
+        <h1 className="text-4xl font-bold capitalize">{id.replace("-", " ")} Series</h1>
         <p className="text-gray-400 mt-2 max-w-2xl">
-          A collection of videos exploring a specific topic in depth. Follow
-          along to master new skills.
+          A collection of videos exploring a specific topic in depth. Follow along to master new skills.
         </p>
         <Button className="mt-4">
           <Plus className="mr-2 h-4 w-4" /> Add to my videos
@@ -62,7 +55,7 @@ export default async function SeriesPage({
               thumbnailUrl: video.thumbnailUrl,
               videoUrl: null,
               authorId: `author-${video.id}`,
-              workspaceId: "workspace",
+              organizationId: "organization",
               channelId: null,
               collectionId: null,
               transcript: null,
@@ -72,14 +65,12 @@ export default async function SeriesPage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author
-                  .toLowerCase()
-                  .replace(" ", ".")}@example.com`,
+                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 emailVerified: true,
-                role: null,
+                role: "user",
                 banned: null,
                 banReason: null,
                 banExpires: null,

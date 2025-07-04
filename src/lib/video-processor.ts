@@ -31,10 +31,7 @@ export class VideoProcessor {
     // For now, return mock data based on file size
     // In production, you'd use ffmpeg or a media processing library
     const size = buffer.length;
-    const estimatedDuration = Math.max(
-      10,
-      Math.floor(size / (1024 * 1024)) * 60,
-    ); // Rough estimate
+    const estimatedDuration = Math.max(10, Math.floor(size / (1024 * 1024)) * 60); // Rough estimate
 
     return {
       duration: this.formatDuration(estimatedDuration),
@@ -64,11 +61,7 @@ export class VideoProcessor {
         message: "Uploading video file...",
       });
 
-      const videoKey = StorageService.generateFileKey(
-        workspaceId,
-        `${videoId}-${filename}`,
-        "video",
-      );
+      const videoKey = StorageService.generateFileKey(workspaceId, `${videoId}-${filename}`, "video");
       const contentType = this.getContentType(filename);
 
       const uploadResult = await StorageService.uploadLargeFile(
@@ -83,9 +76,7 @@ export class VideoProcessor {
           },
         },
         (uploadProgress) => {
-          const progressPercent =
-            Math.floor((uploadProgress.loaded / uploadProgress.total) * 30) +
-            10;
+          const progressPercent = Math.floor((uploadProgress.loaded / uploadProgress.total) * 30) + 10;
           onProgress?.({
             stage: "uploading",
             progress: progressPercent,
@@ -111,24 +102,16 @@ export class VideoProcessor {
 
       // Stage 3: Generate thumbnail
       const thumbnailBuffer = await this.generateThumbnail(buffer, filename);
-      const thumbnailKey = StorageService.generateFileKey(
-        workspaceId,
-        `${videoId}-thumbnail.jpg`,
-        "thumbnail",
-      );
+      const thumbnailKey = StorageService.generateFileKey(workspaceId, `${videoId}-thumbnail.jpg`, "thumbnail");
 
-      const thumbnailResult = await StorageService.uploadFile(
-        thumbnailBuffer,
-        thumbnailKey,
-        {
-          contentType: "image/jpeg",
-          metadata: {
-            videoId,
-            workspaceId,
-            type: "thumbnail",
-          },
+      const thumbnailResult = await StorageService.uploadFile(thumbnailBuffer, thumbnailKey, {
+        contentType: "image/jpeg",
+        metadata: {
+          videoId,
+          workspaceId,
+          type: "thumbnail",
         },
-      );
+      });
 
       onProgress?.({
         stage: "complete",
@@ -144,9 +127,7 @@ export class VideoProcessor {
       };
     } catch (error) {
       console.error("Error processing video:", error);
-      throw new Error(
-        `Video processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      throw new Error(`Video processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -154,10 +135,7 @@ export class VideoProcessor {
    * Generate a thumbnail from video
    * This is a mock implementation - in production you'd use ffmpeg
    */
-  private static async generateThumbnail(
-    buffer: Buffer,
-    filename: string,
-  ): Promise<Buffer> {
+  private static async generateThumbnail(buffer: Buffer, filename: string): Promise<Buffer> {
     // Mock thumbnail generation - create a simple colored rectangle
     // In production, you'd use ffmpeg to extract a frame from the video
 
@@ -173,11 +151,7 @@ export class VideoProcessor {
   /**
    * Create a placeholder thumbnail image
    */
-  private static createPlaceholderImage(
-    width: number,
-    height: number,
-    filename: string,
-  ): Buffer {
+  private static createPlaceholderImage(width: number, height: number, filename: string): Buffer {
     // Create a minimal JPEG-like buffer for a placeholder
     // In production, you'd use a proper image library like Sharp or Canvas
 
