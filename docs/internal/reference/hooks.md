@@ -17,7 +17,7 @@ function VideoList() {
   const { data, loading, error } = useVideos({
     workspaceId: "workspace-123",
     channelId: "channel-456", // optional
-    seriesId: "series-789",   // optional
+    seriesId: "series-789", // optional
     page: 1,
     limit: 20,
   });
@@ -28,7 +28,7 @@ function VideoList() {
 
   return (
     <div>
-      {data.data.map(video => (
+      {data.data.map((video) => (
         <VideoCard key={video.id} video={video} />
       ))}
       <Pagination
@@ -83,7 +83,7 @@ function WorkspaceList() {
 
   return (
     <div>
-      {workspaces?.map(workspace => (
+      {workspaces?.map((workspace) => (
         <WorkspaceCard key={workspace.id} workspace={workspace} />
       ))}
     </div>
@@ -103,15 +103,7 @@ import { useMobile } from "@/hooks/use-mobile";
 function ResponsiveComponent() {
   const isMobile = useMobile();
 
-  return (
-    <div>
-      {isMobile ? (
-        <MobileNavigation />
-      ) : (
-        <DesktopNavigation />
-      )}
-    </div>
-  );
+  return <div>{isMobile ? <MobileNavigation /> : <DesktopNavigation />}</div>;
 }
 ```
 
@@ -188,16 +180,17 @@ export function useDataFetcher<T>({
       try {
         setLoading(true);
         setError(null);
-        
+
         const result = await fetcher();
-        
+
         if (isMounted) {
           setData(result);
           onSuccess?.(result);
         }
       } catch (err) {
         if (isMounted) {
-          const errorMessage = err instanceof Error ? err.message : "Unknown error";
+          const errorMessage =
+            err instanceof Error ? err.message : "Unknown error";
           setError(errorMessage);
           onError?.(err as Error);
         }
@@ -245,9 +238,10 @@ export function useLocalStorage<T>(
 
   const setValue = (value: T | ((prev: T) => T)) => {
     try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
-      
+
       if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
@@ -298,7 +292,7 @@ function SearchComponent() {
       />
       {results && (
         <div>
-          {results.map(result => (
+          {results.map((result) => (
             <div key={result.id}>{result.title}</div>
           ))}
         </div>
@@ -332,7 +326,7 @@ export function useAsync<T>(
 
   const execute = useCallback(async () => {
     setState({ data: null, loading: true, error: null });
-    
+
     try {
       const result = await asyncFunction();
       setState({ data: result, loading: false, error: null });
@@ -363,12 +357,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Usage
-<div className={cn(
-  "base-class",
-  condition && "conditional-class",
-  { "variant-class": variant === "primary" },
-  className
-)} />
+<div
+  className={cn(
+    "base-class",
+    condition && "conditional-class",
+    { "variant-class": variant === "primary" },
+    className
+  )}
+/>;
 ```
 
 ### Date Utilities
@@ -391,9 +387,11 @@ export function formatDuration(seconds: number): string {
   const remainingSeconds = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
   }
-  
+
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
@@ -402,14 +400,14 @@ export function formatDuration(seconds: number): string {
   <p>Created: {formatDate(video.createdAt)}</p>
   <p>Updated: {formatRelativeTime(video.updatedAt)}</p>
   <p>Duration: {formatDuration(video.duration)}</p>
-</div>
+</div>;
 ```
 
 ### Validation Utilities
 
 ```typescript
 // src/lib/validation.ts
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const videoSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title too long"),
@@ -421,7 +419,10 @@ export const videoSchema = z.object({
 
 export const workspaceSchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name too long"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Invalid slug format"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(/^[a-z0-9-]+$/, "Invalid slug format"),
   description: z.string().max(200, "Description too long").optional(),
 });
 
@@ -439,11 +440,7 @@ export function validateWorkspace(data: unknown) {
 ```typescript
 // src/lib/api-utils.ts
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public data?: unknown
-  ) {
+  constructor(public status: number, message: string, public data?: unknown) {
     super(message);
     this.name = "ApiError";
   }
@@ -459,21 +456,23 @@ export async function fetchWithRetry<T>(
   for (let i = 0; i <= maxRetries; i++) {
     try {
       const response = await fetch(url, options);
-      
+
       if (!response.ok) {
         throw new ApiError(response.status, response.statusText);
       }
-      
+
       return await response.json();
     } catch (error) {
       lastError = error as Error;
-      
+
       if (i === maxRetries) {
         throw lastError;
       }
-      
+
       // Exponential backoff
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, i) * 1000)
+      );
     }
   }
 
@@ -482,13 +481,13 @@ export async function fetchWithRetry<T>(
 
 export function createQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, String(value));
     }
   });
-  
+
   return searchParams.toString();
 }
 ```
@@ -506,10 +505,7 @@ export function getFormErrors(form: UseFormReturn<any>) {
   }, {} as Record<string, string>);
 }
 
-export function resetFormWithData<T>(
-  form: UseFormReturn<T>,
-  data: Partial<T>
-) {
+export function resetFormWithData<T>(form: UseFormReturn<T>, data: Partial<T>) {
   form.reset(data);
   form.clearErrors();
 }
@@ -590,16 +586,14 @@ export interface ApiError {
 // src/lib/hocs.ts
 import { ComponentType } from "react";
 
-export function withLoading<T extends object>(
-  Component: ComponentType<T>
-) {
+export function withLoading<T extends object>(Component: ComponentType<T>) {
   return function WithLoadingComponent(props: T & { loading?: boolean }) {
     const { loading, ...rest } = props;
-    
+
     if (loading) {
       return <div>Loading...</div>;
     }
-    
+
     return <Component {...(rest as T)} />;
   };
 }
@@ -634,7 +628,7 @@ interface AsyncRenderProps<T> {
 
 export function AsyncRender<T>({ children, fetcher }: AsyncRenderProps<T>) {
   const { data, loading, error } = useAsync(fetcher);
-  
+
   return <>{children({ data, loading, error })}</>;
 }
 
@@ -646,7 +640,7 @@ export function AsyncRender<T>({ children, fetcher }: AsyncRenderProps<T>) {
     if (!data) return <NotFound />;
     return <VideoPlayer video={data} />;
   }}
-</AsyncRender>
+</AsyncRender>;
 ```
 
 ## Testing Utilities
@@ -659,21 +653,20 @@ import { render, RenderOptions } from "@testing-library/react";
 import { ReactElement } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
+  });
 
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   const queryClient = createTestQueryClient();
-  
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
@@ -744,17 +737,15 @@ export function useMemoizedValue<T>(
   return useMemo(factory, deps);
 }
 
-export function createMemoizedSelector<T, R>(
-  selector: (state: T) => R
-) {
+export function createMemoizedSelector<T, R>(selector: (state: T) => R) {
   let lastState: T;
   let lastResult: R;
-  
+
   return (state: T): R => {
     if (state === lastState) {
       return lastResult;
     }
-    
+
     lastState = state;
     lastResult = selector(state);
     return lastResult;

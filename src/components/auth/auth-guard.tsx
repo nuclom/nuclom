@@ -10,7 +10,11 @@ interface AuthGuardProps {
   redirectTo?: string;
 }
 
-export function AuthGuard({ children, fallback, redirectTo = "/login" }: AuthGuardProps) {
+export function AuthGuard({
+  children,
+  fallback,
+  redirectTo = "/login",
+}: AuthGuardProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -21,10 +25,12 @@ export function AuthGuard({ children, fallback, redirectTo = "/login" }: AuthGua
   }, [user, isLoading, router, redirectTo]);
 
   if (isLoading) {
-    return fallback || (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      )
     );
   }
 
@@ -44,10 +50,12 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return fallback || (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+    return (
+      fallback || (
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )
     );
   }
 
@@ -55,7 +63,9 @@ export function RequireAuth({ children, fallback }: RequireAuthProps) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">Authentication Required</h3>
+          <h3 className="text-lg font-semibold mb-2">
+            Authentication Required
+          </h3>
           <p className="text-muted-foreground mb-4">
             You need to be signed in to access this content.
           </p>

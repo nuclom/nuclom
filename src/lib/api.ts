@@ -132,7 +132,8 @@ export const videoApi = {
     const formData = new FormData();
     formData.append("video", file);
     formData.append("title", metadata.title);
-    if (metadata.description) formData.append("description", metadata.description);
+    if (metadata.description)
+      formData.append("description", metadata.description);
     formData.append("workspaceId", metadata.workspaceId);
     formData.append("authorId", metadata.authorId);
     if (metadata.channelId) formData.append("channelId", metadata.channelId);

@@ -200,11 +200,7 @@ export function VideoPlayer({ videoId }: { videoId: string }) {
     };
   }, []);
 
-  return (
-    <div>
-      {/* Component JSX */}
-    </div>
-  );
+  return <div>{/* Component JSX */}</div>;
 }
 ```
 
@@ -241,7 +237,7 @@ import { cn } from "@/lib/utils";
     size === "lg" && "h-12 px-6 text-lg",
     disabled && "opacity-50 cursor-not-allowed"
   )}
-/>
+/>;
 ```
 
 ### API and Database
@@ -252,7 +248,7 @@ import { cn } from "@/lib/utils";
 // ✅ Good: Proper error handling and response structure
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const createVideoSchema = z.object({
   title: z.string().min(1).max(100),
@@ -268,10 +264,7 @@ export async function POST(request: NextRequest) {
     // Process request
     const result = await createVideo(validatedData);
 
-    return NextResponse.json(
-      { success: true, data: result },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -312,10 +305,13 @@ export async function createVideoWithAuthor(
     }
 
     // Create video
-    const [video] = await db.insert(videos).values({
-      ...videoData,
-      authorId,
-    }).returning();
+    const [video] = await db
+      .insert(videos)
+      .values({
+        ...videoData,
+        authorId,
+      })
+      .returning();
 
     return video;
   } catch (error) {
@@ -345,7 +341,7 @@ describe("MyComponent", () => {
   it("handles click events", async () => {
     const handleClick = jest.fn();
     render(<MyComponent onClick={handleClick}>Click me</MyComponent>);
-    
+
     await user.click(screen.getByText("Click me"));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -452,7 +448,7 @@ Reviewers will check for:
 // ✅ Good: Clear JSDoc comments
 /**
  * Creates a new video in the specified workspace.
- * 
+ *
  * @param videoData - The video data to create
  * @param workspaceId - The ID of the workspace
  * @returns Promise resolving to the created video
@@ -469,6 +465,7 @@ export async function createVideo(
 ### README Updates
 
 Update documentation when:
+
 - Adding new features
 - Changing API endpoints
 - Modifying environment variables
@@ -484,7 +481,7 @@ import { memo, useMemo } from "react";
 
 const ExpensiveComponent = memo(function ExpensiveComponent({ data }) {
   const processedData = useMemo(() => {
-    return data.map(item => ({
+    return data.map((item) => ({
       ...item,
       processed: expensiveOperation(item),
     }));
@@ -492,7 +489,7 @@ const ExpensiveComponent = memo(function ExpensiveComponent({ data }) {
 
   return (
     <div>
-      {processedData.map(item => (
+      {processedData.map((item) => (
         <div key={item.id}>{item.processed}</div>
       ))}
     </div>
@@ -526,7 +523,7 @@ const videos = await db.query.videos.findMany({
 
 ```typescript
 // ✅ Good: Validate all inputs
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const updateVideoSchema = z.object({
   title: z.string().min(1).max(100),
@@ -544,7 +541,7 @@ export async function updateVideo(id: string, data: unknown) {
 
 ```typescript
 // ✅ Good: Validate environment variables
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
@@ -561,11 +558,7 @@ export const env = envSchema.parse(process.env);
 
 ```typescript
 // ✅ Good: Proper ARIA attributes
-<button
-  aria-label="Play video"
-  aria-pressed={isPlaying}
-  onClick={handlePlay}
->
+<button aria-label="Play video" aria-pressed={isPlaying} onClick={handlePlay}>
   {isPlaying ? <PauseIcon /> : <PlayIcon />}
 </button>
 ```
@@ -596,12 +589,12 @@ export const env = envSchema.parse(process.env);
 ```typescript
 // ❌ Bad: Using any
 function processData(data: any): any {
-  return data.map(item => item.value);
+  return data.map((item) => item.value);
 }
 
 // ✅ Good: Using proper types
 function processData<T extends { value: string }>(data: T[]): string[] {
-  return data.map(item => item.value);
+  return data.map((item) => item.value);
 }
 ```
 
@@ -667,19 +660,23 @@ All changes are documented in [CHANGELOG.md](../CHANGELOG.md):
 ## [1.2.0] - 2024-01-15
 
 ### Added
+
 - Video upload functionality
 - Workspace management
 - User authentication
 
 ### Changed
+
 - Improved video player performance
 - Updated UI components
 
 ### Fixed
+
 - Fixed video playback issues
 - Resolved database connection problems
 
 ### Removed
+
 - Removed deprecated API endpoints
 ```
 

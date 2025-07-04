@@ -209,7 +209,7 @@ The application validates environment variables at runtime:
 
 ```typescript
 // src/lib/env.ts
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),

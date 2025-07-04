@@ -31,8 +31,11 @@ export class VideoProcessor {
     // For now, return mock data based on file size
     // In production, you'd use ffmpeg or a media processing library
     const size = buffer.length;
-    const estimatedDuration = Math.max(10, Math.floor(size / (1024 * 1024)) * 60); // Rough estimate
-    
+    const estimatedDuration = Math.max(
+      10,
+      Math.floor(size / (1024 * 1024)) * 60,
+    ); // Rough estimate
+
     return {
       duration: this.formatDuration(estimatedDuration),
       width: 1920,
@@ -52,7 +55,7 @@ export class VideoProcessor {
     onProgress?: (progress: ProcessingProgress) => void,
   ): Promise<ProcessingResult> {
     const videoId = uuidv4();
-    
+
     try {
       // Stage 1: Upload original video
       onProgress?.({
@@ -61,22 +64,28 @@ export class VideoProcessor {
         message: "Uploading video file...",
       });
 
-      const videoKey = StorageService.generateFileKey(workspaceId, `${videoId}-${filename}`, "video");
+      const videoKey = StorageService.generateFileKey(
+        workspaceId,
+        `${videoId}-${filename}`,
+        "video",
+      );
       const contentType = this.getContentType(filename);
-      
+
       const uploadResult = await StorageService.uploadLargeFile(
         buffer,
         videoKey,
-        { 
+        {
           contentType,
           metadata: {
             originalFilename: filename,
             videoId,
             workspaceId,
-          }
+          },
         },
         (uploadProgress) => {
-          const progressPercent = Math.floor((uploadProgress.loaded / uploadProgress.total) * 30) + 10;
+          const progressPercent =
+            Math.floor((uploadProgress.loaded / uploadProgress.total) * 30) +
+            10;
           onProgress?.({
             stage: "uploading",
             progress: progressPercent,
@@ -102,18 +111,22 @@ export class VideoProcessor {
 
       // Stage 3: Generate thumbnail
       const thumbnailBuffer = await this.generateThumbnail(buffer, filename);
-      const thumbnailKey = StorageService.generateFileKey(workspaceId, `${videoId}-thumbnail.jpg`, "thumbnail");
-      
+      const thumbnailKey = StorageService.generateFileKey(
+        workspaceId,
+        `${videoId}-thumbnail.jpg`,
+        "thumbnail",
+      );
+
       const thumbnailResult = await StorageService.uploadFile(
         thumbnailBuffer,
         thumbnailKey,
-        { 
+        {
           contentType: "image/jpeg",
           metadata: {
             videoId,
             workspaceId,
             type: "thumbnail",
-          }
+          },
         },
       );
 
@@ -129,10 +142,11 @@ export class VideoProcessor {
         duration: videoInfo.duration,
         info: videoInfo,
       };
-
     } catch (error) {
       console.error("Error processing video:", error);
-      throw new Error(`Video processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Video processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -140,14 +154,17 @@ export class VideoProcessor {
    * Generate a thumbnail from video
    * This is a mock implementation - in production you'd use ffmpeg
    */
-  private static async generateThumbnail(buffer: Buffer, filename: string): Promise<Buffer> {
+  private static async generateThumbnail(
+    buffer: Buffer,
+    filename: string,
+  ): Promise<Buffer> {
     // Mock thumbnail generation - create a simple colored rectangle
     // In production, you'd use ffmpeg to extract a frame from the video
-    
+
     // For now, return a minimal JPEG header for a 320x180 placeholder
     const width = 320;
     const height = 180;
-    
+
     // This is a very basic placeholder - you'd use a proper image library or ffmpeg
     const placeholder = this.createPlaceholderImage(width, height, filename);
     return placeholder;
@@ -156,13 +173,18 @@ export class VideoProcessor {
   /**
    * Create a placeholder thumbnail image
    */
-  private static createPlaceholderImage(width: number, height: number, filename: string): Buffer {
+  private static createPlaceholderImage(
+    width: number,
+    height: number,
+    filename: string,
+  ): Buffer {
     // Create a minimal JPEG-like buffer for a placeholder
     // In production, you'd use a proper image library like Sharp or Canvas
-    
+
     // Simple base64 encoded 1x1 pixel JPEG that we'll expand
-    const base64Jpeg = "/9j/4AAQSkZJRgABAQEAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=";
-    
+    const base64Jpeg =
+      "/9j/4AAQSkZJRgABAQEAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=";
+
     // For a real implementation, you'd generate an actual thumbnail image
     // This is just a placeholder to demonstrate the structure
     return Buffer.from(base64Jpeg, "base64");
@@ -196,7 +218,7 @@ export class VideoProcessor {
       flv: "video/x-flv",
       wmv: "video/x-ms-wmv",
     };
-    
+
     return contentTypes[ext || ""] || "video/mp4";
   }
 

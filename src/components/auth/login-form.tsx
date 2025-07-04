@@ -6,7 +6,14 @@ import { Eye, EyeOff, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
@@ -24,7 +31,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
+  const finalRedirectTo =
+    redirectTo || searchParams.get("redirectTo") || "/vercel";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +44,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         email,
         password,
       });
-      
+
       if (result.error) {
         setError(result.error.message || "Failed to sign in");
       } else {
@@ -70,7 +78,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">
+          Welcome back
+        </CardTitle>
         <CardDescription className="text-center">
           Sign in to your account to continue
         </CardDescription>
@@ -132,7 +142,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
           </div>
         </div>
 
@@ -148,8 +160,15 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">
         Don't have an account?{" "}
-        <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
-          <a href={`/register${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}>
+        <Button
+          variant="link"
+          className="p-0 h-auto font-normal"
+          disabled={isLoading}
+          asChild
+        >
+          <a
+            href={`/register${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
+          >
             Sign up
           </a>
         </Button>
