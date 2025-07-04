@@ -56,27 +56,29 @@ function VideoSection({
   );
 }
 
-export default function HomePage({
+export default async function HomePage({
   params,
 }: {
-  params: { workspace: string };
+  params: Promise<{ workspace: string }>;
 }) {
+  const { workspace } = await params;
+
   return (
     <div className="space-y-12">
       <VideoSection
         title="Continue watching"
         videos={videoData.slice(0, 2)}
-        workspace={params.workspace}
+        workspace={workspace}
       />
       <VideoSection
         title="New this week"
         videos={videoData}
-        workspace={params.workspace}
+        workspace={workspace}
       />
       <VideoSection
         title="From your channels"
         videos={videoData.slice(1, 4)}
-        workspace={params.workspace}
+        workspace={workspace}
       />
     </div>
   );

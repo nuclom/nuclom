@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "nuclom",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.6",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -19,17 +19,19 @@ const myVideoData = [
   },
 ];
 
-export default function MyVideosPage({
+export default async function MyVideosPage({
   params,
 }: {
-  params: { workspace: string };
+  params: Promise<{ workspace: string }>;
 }) {
+  const { workspace } = await params;
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">My Videos</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {myVideoData.map((video) => (
-          <VideoCard key={video.id} {...video} workspace={params.workspace} />
+          <VideoCard key={video.id} {...video} workspace={workspace} />
         ))}
       </div>
     </div>

@@ -10,11 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function WorkspaceSettingsPage({
+export default async function WorkspaceSettingsPage({
   params,
 }: {
-  params: { workspace: string };
+  params: Promise<{ workspace: string }>;
 }) {
+  const { workspace } = await params;
+
   return (
     <Card>
       <CardHeader>
@@ -26,14 +28,12 @@ export default function WorkspaceSettingsPage({
           <Label htmlFor="workspace-name">Workspace Name</Label>
           <Input
             id="workspace-name"
-            defaultValue={
-              params.workspace === "vercel" ? "Vercel" : "Acme Inc."
-            }
+            defaultValue={workspace === "vercel" ? "Vercel" : "Acme Inc."}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="workspace-slug">Workspace Slug</Label>
-          <Input id="workspace-slug" defaultValue={params.workspace} />
+          <Input id="workspace-slug" defaultValue={workspace} />
         </div>
       </CardContent>
       <CardFooter className="bg-muted/50 border-t px-6 py-4 flex justify-between">

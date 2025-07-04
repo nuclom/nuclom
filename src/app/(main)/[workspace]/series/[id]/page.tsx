@@ -29,12 +29,18 @@ const seriesVideoData = [
   },
 ];
 
-export default function SeriesPage({ params }: { params: { id: string } }) {
+export default async function SeriesPage({
+  params,
+}: {
+  params: Promise<{ workspace: string; id: string }>;
+}) {
+  const { workspace, id } = await params;
+
   return (
     <div className="space-y-8">
       <header>
         <h1 className="text-4xl font-bold capitalize">
-          {params.id.replace("-", " ")} Series
+          {id.replace("-", " ")} Series
         </h1>
         <p className="text-gray-400 mt-2 max-w-2xl">
           A collection of videos exploring a specific topic in depth. Follow
@@ -46,7 +52,7 @@ export default function SeriesPage({ params }: { params: { id: string } }) {
       </header>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {seriesVideoData.map((video) => (
-          <VideoCard key={video.id} {...video} />
+          <VideoCard key={video.id} {...video} workspace={workspace} />
         ))}
       </div>
     </div>

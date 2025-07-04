@@ -36,8 +36,13 @@ const channelVideoData = [
   },
 ];
 
-export default function ChannelPage({ params }: { params: { id: string } }) {
-  const channelName = params.id.replace("-", " ");
+export default async function ChannelPage({
+  params,
+}: {
+  params: Promise<{ workspace: string; id: string }>;
+}) {
+  const { workspace, id } = await params;
+  const channelName = id.replace("-", " ");
   return (
     <div className="space-y-8">
       <header className="flex items-center gap-4">
@@ -53,7 +58,7 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
       </header>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {channelVideoData.map((video) => (
-          <VideoCard key={video.id} {...video} />
+          <VideoCard key={video.id} {...video} workspace={workspace} />
         ))}
       </div>
     </div>
