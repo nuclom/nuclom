@@ -1,5 +1,7 @@
 # Nuclom - Video Collaboration Platform
 
+Use docs/ folder for documentation, make sure you look there for any guidance and always keep it up to date after making changes to the code.
+
 ## Commands
 
 - `pnpm dev` - Start development server
@@ -7,7 +9,7 @@
 - `pnpm start` - Start production server
 - `pnpm lint` - Run biome checker
 - `pnpm format` - Run biome formatter
-- No tests configured
+- Testing not yet configured (see docs/reference/testing.md for setup guide)
 
 ## Architecture
 

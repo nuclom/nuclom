@@ -1,1 +1,1 @@
-See ./AGENTS.md
+AI.md
