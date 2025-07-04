@@ -59,7 +59,7 @@ export default async function SeriesPage({
             author={{
               id: `author-${video.id}`,
               name: video.author,
-              email: `${video.author.toLowerCase().replace(' ', '.')}@example.com`,
+              email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
               avatarUrl: video.authorImageUrl,
               createdAt: new Date(),
               updatedAt: new Date(),

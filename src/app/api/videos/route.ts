@@ -1,7 +1,7 @@
+import { and, count, desc, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import { eq, and, desc, count } from "drizzle-orm";
 import type { ApiResponse, CreateVideoData } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -67,17 +67,20 @@ export async function POST(request: NextRequest) {
     const body: CreateVideoData & { authorId: string; workspaceId: string } =
       await request.json();
 
-    const [insertedVideo] = await db.insert(videos).values({
-      title: body.title,
-      description: body.description,
-      duration: body.duration,
-      thumbnailUrl: body.thumbnailUrl,
-      videoUrl: body.videoUrl,
-      authorId: body.authorId,
-      workspaceId: body.workspaceId,
-      channelId: body.channelId,
-      seriesId: body.seriesId,
-    }).returning();
+    const [insertedVideo] = await db
+      .insert(videos)
+      .values({
+        title: body.title,
+        description: body.description,
+        duration: body.duration,
+        thumbnailUrl: body.thumbnailUrl,
+        videoUrl: body.videoUrl,
+        authorId: body.authorId,
+        workspaceId: body.workspaceId,
+        channelId: body.channelId,
+        seriesId: body.seriesId,
+      })
+      .returning();
 
     const video = await db.query.videos.findFirst({
       where: eq(videos.id, insertedVideo.id),

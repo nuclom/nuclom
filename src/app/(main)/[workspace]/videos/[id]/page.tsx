@@ -54,7 +54,10 @@ function TranscriptLine({
   return (
     <div className="group relative flex gap-4 p-2 rounded-md hover:bg-secondary">
       <div className="absolute left-[-40px] top-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button type="button" className="p-1 rounded-full hover:bg-muted-foreground/20">
+        <button
+          type="button"
+          className="p-1 rounded-full hover:bg-muted-foreground/20"
+        >
           <MessageSquarePlus className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>

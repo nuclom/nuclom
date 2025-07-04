@@ -1,7 +1,13 @@
+import { count, desc, eq, inArray } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { workspaces, workspaceUsers, videos, channels, series } from "@/lib/db/schema";
-import { eq, desc, count, inArray } from "drizzle-orm";
+import {
+  channels,
+  series,
+  videos,
+  workspaces,
+  workspaceUsers,
+} from "@/lib/db/schema";
 import type { ApiResponse, CreateWorkspaceData } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -12,12 +18,13 @@ export async function GET(request: NextRequest) {
     let workspacesData: any[];
     if (userId) {
       // Get workspace IDs for the user first
-      const userWorkspaces = await db.select({ workspaceId: workspaceUsers.workspaceId })
+      const userWorkspaces = await db
+        .select({ workspaceId: workspaceUsers.workspaceId })
         .from(workspaceUsers)
         .where(eq(workspaceUsers.userId, userId));
-      
-      const workspaceIds = userWorkspaces.map(uw => uw.workspaceId);
-      
+
+      const workspaceIds = userWorkspaces.map((uw) => uw.workspaceId);
+
       if (workspaceIds.length > 0) {
         workspacesData = await db.query.workspaces.findMany({
           where: inArray(workspaces.id, workspaceIds),
@@ -50,9 +57,18 @@ export async function GET(request: NextRequest) {
     const workspacesWithCounts = await Promise.all(
       workspacesData.map(async (workspace) => {
         const [videoCount, channelCount, seriesCount] = await Promise.all([
-          db.select({ count: count() }).from(videos).where(eq(videos.workspaceId, workspace.id)),
-          db.select({ count: count() }).from(channels).where(eq(channels.workspaceId, workspace.id)),
-          db.select({ count: count() }).from(series).where(eq(series.workspaceId, workspace.id)),
+          db
+            .select({ count: count() })
+            .from(videos)
+            .where(eq(videos.workspaceId, workspace.id)),
+          db
+            .select({ count: count() })
+            .from(channels)
+            .where(eq(channels.workspaceId, workspace.id)),
+          db
+            .select({ count: count() })
+            .from(series)
+            .where(eq(series.workspaceId, workspace.id)),
         ]);
 
         return {
@@ -63,7 +79,7 @@ export async function GET(request: NextRequest) {
             series: seriesCount[0]?.count || 0,
           },
         };
-      })
+      }),
     );
 
     const response: ApiResponse = {
@@ -86,11 +102,14 @@ export async function POST(request: NextRequest) {
     const body: CreateWorkspaceData & { ownerId: string } =
       await request.json();
 
-    const [insertedWorkspace] = await db.insert(workspaces).values({
-      name: body.name,
-      slug: body.slug,
-      description: body.description,
-    }).returning();
+    const [insertedWorkspace] = await db
+      .insert(workspaces)
+      .values({
+        name: body.name,
+        slug: body.slug,
+        description: body.description,
+      })
+      .returning();
 
     await db.insert(workspaceUsers).values({
       userId: body.ownerId,
