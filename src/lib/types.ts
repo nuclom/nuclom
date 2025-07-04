@@ -6,7 +6,7 @@ import type {
   Video,
   Workspace,
   WorkspaceUser,
-} from "@prisma/client";
+} from "./db/schema";
 
 export type VideoWithAuthor = Video & {
   author: User;
