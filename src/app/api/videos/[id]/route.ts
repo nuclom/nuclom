@@ -1,7 +1,14 @@
+import { asc, eq, isNull } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { videos, users, workspaces, channels, series, comments } from "@/lib/db/schema";
-import { eq, isNull, asc } from "drizzle-orm";
+import {
+  channels,
+  comments,
+  series,
+  users,
+  videos,
+  workspaces,
+} from "@/lib/db/schema";
 import type { ApiResponse, UpdateVideoData } from "@/lib/types";
 
 export async function GET(
@@ -62,9 +69,7 @@ export async function PUT(
     const resolvedParams = await params;
     const body: UpdateVideoData = await request.json();
 
-    await db.update(videos)
-      .set(body)
-      .where(eq(videos.id, resolvedParams.id));
+    await db.update(videos).set(body).where(eq(videos.id, resolvedParams.id));
 
     const video = await db.query.videos.findFirst({
       where: eq(videos.id, resolvedParams.id),
@@ -97,8 +102,7 @@ export async function DELETE(
 ) {
   try {
     const resolvedParams = await params;
-    await db.delete(videos)
-      .where(eq(videos.id, resolvedParams.id));
+    await db.delete(videos).where(eq(videos.id, resolvedParams.id));
 
     const response: ApiResponse = {
       success: true,

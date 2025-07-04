@@ -1,101 +1,149 @@
-import { relations } from 'drizzle-orm';
+import { relations } from "drizzle-orm";
 import {
+  boolean,
+  integer,
+  pgEnum,
   pgTable,
   text,
   timestamp,
-  pgEnum,
-  integer,
-  boolean,
   unique,
-} from 'drizzle-orm/pg-core';
+} from "drizzle-orm/pg-core";
 
-export const workspaceRoleEnum = pgEnum('WorkspaceRole', ['OWNER', 'ADMIN', 'MEMBER']);
+export const workspaceRoleEnum = pgEnum("WorkspaceRole", [
+  "OWNER",
+  "ADMIN",
+  "MEMBER",
+]);
 
-export const users = pgTable('users', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  email: text('email').unique().notNull(),
-  name: text('name'),
-  avatarUrl: text('avatar_url'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const users = pgTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  email: text("email").unique().notNull(),
+  name: text("name"),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const workspaces = pgTable('workspaces', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  slug: text('slug').unique().notNull(),
-  description: text('description'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const workspaces = pgTable("workspaces", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  slug: text("slug").unique().notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const workspaceUsers = pgTable('workspace_users', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  role: workspaceRoleEnum('role').default('MEMBER').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserWorkspace: unique().on(table.userId, table.workspaceId),
-}));
+export const workspaceUsers = pgTable(
+  "workspace_users",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    role: workspaceRoleEnum("role").default("MEMBER").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserWorkspace: unique().on(table.userId, table.workspaceId),
+  }),
+);
 
-export const channels = pgTable('channels', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  description: text('description'),
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  memberCount: integer('member_count').default(0).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const channels = pgTable("channels", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  memberCount: integer("member_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const series = pgTable('series', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  description: text('description'),
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const series = pgTable("series", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const videos = pgTable('videos', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  title: text('title').notNull(),
-  description: text('description'),
-  duration: text('duration').notNull(),
-  thumbnailUrl: text('thumbnail_url'),
-  videoUrl: text('video_url'),
-  authorId: text('author_id').notNull().references(() => users.id),
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  channelId: text('channel_id').references(() => channels.id),
-  seriesId: text('series_id').references(() => series.id),
-  transcript: text('transcript'),
-  aiSummary: text('ai_summary'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const videos = pgTable("videos", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description"),
+  duration: text("duration").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  videoUrl: text("video_url"),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => users.id),
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  channelId: text("channel_id").references(() => channels.id),
+  seriesId: text("series_id").references(() => series.id),
+  transcript: text("transcript"),
+  aiSummary: text("ai_summary"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const comments = pgTable('comments', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  content: text('content').notNull(),
-  timestamp: text('timestamp'),
-  authorId: text('author_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  videoId: text('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
-  parentId: text('parent_id'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+export const comments = pgTable("comments", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  content: text("content").notNull(),
+  timestamp: text("timestamp"),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  videoId: text("video_id")
+    .notNull()
+    .references(() => videos.id, { onDelete: "cascade" }),
+  parentId: text("parent_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const videoProgress = pgTable('video_progress', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  videoId: text('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
-  currentTime: text('current_time').notNull(),
-  completed: boolean('completed').default(false).notNull(),
-  lastWatchedAt: timestamp('last_watched_at').defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserVideo: unique().on(table.userId, table.videoId),
-}));
+export const videoProgress = pgTable(
+  "video_progress",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    currentTime: text("current_time").notNull(),
+    completed: boolean("completed").default(false).notNull(),
+    lastWatchedAt: timestamp("last_watched_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserVideo: unique().on(table.userId, table.videoId),
+  }),
+);
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -172,10 +220,10 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   parent: one(comments, {
     fields: [comments.parentId],
     references: [comments.id],
-    relationName: 'CommentThread',
+    relationName: "CommentThread",
   }),
   replies: many(comments, {
-    relationName: 'CommentThread',
+    relationName: "CommentThread",
   }),
 }));
 
