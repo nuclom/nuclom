@@ -214,6 +214,241 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-2">
+              Pricing
+            </Badge>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">
+              Simple, Transparent Pricing
+            </h3>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+              Choose the plan that fits your team's needs. Start free and scale as you grow.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Starter Plan */}
+            <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="text-center pb-8">
+                <CardTitle className="text-2xl mb-2">Starter</CardTitle>
+                <div className="text-4xl font-bold mb-2">
+                  Free
+                </div>
+                <CardDescription className="text-base">
+                  Perfect for small teams getting started
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pb-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Up to 5 team members</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>10 GB storage</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Basic collaboration tools</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Email support</span>
+                  </div>
+                </div>
+                <Button className="w-full mt-8" asChild>
+                  <Link href="/signup">Get Started Free</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="relative border-2 border-primary shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="px-4 py-1 bg-primary text-primary-foreground">
+                  Most Popular
+                </Badge>
+              </div>
+              <CardHeader className="text-center pb-8 pt-8">
+                <CardTitle className="text-2xl mb-2">Pro</CardTitle>
+                <div className="text-4xl font-bold mb-2">
+                  $29
+                  <span className="text-base font-normal text-muted-foreground">/month</span>
+                </div>
+                <CardDescription className="text-base">
+                  For growing teams that need more power
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pb-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Up to 25 team members</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>100 GB storage</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Advanced collaboration</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>AI-powered features</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Priority support</span>
+                  </div>
+                </div>
+                <Button className="w-full mt-8" asChild>
+                  <Link href="/signup">Start Free Trial</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Enterprise Plan */}
+            <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="text-center pb-8">
+                <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+                <div className="text-4xl font-bold mb-2">
+                  Custom
+                </div>
+                <CardDescription className="text-base">
+                  For large organizations with custom needs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pb-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Unlimited team members</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Unlimited storage</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Custom integrations</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>Dedicated support</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    </div>
+                    <span>SLA guarantee</span>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full mt-8" asChild>
+                  <Link href="/contact">Contact Sales</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-24 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-2">
+              About
+            </Badge>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">
+              Built for the Future of Video Collaboration
+            </h3>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+              We're reimagining how teams work with video content, making collaboration seamless and intuitive.
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
+            <div className="space-y-6">
+              <h4 className="text-3xl font-bold">Our Mission</h4>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                At Nuclom, we believe that video is the future of communication. Our platform removes the barriers 
+                that prevent teams from collaborating effectively on video content, enabling creativity and 
+                productivity like never before.
+              </p>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Whether you're a content creator, educator, or enterprise team, our tools adapt to your workflow 
+                and scale with your needs.
+              </p>
+            </div>
+            <div className="relative">
+              <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center">
+                <Play className="w-16 h-16 text-primary" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Users className="w-10 h-10 text-primary" />
+              </div>
+              <h5 className="text-xl font-bold mb-3">10,000+ Teams</h5>
+              <p className="text-muted-foreground">
+                Trusted by teams worldwide to collaborate on their video content
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Video className="w-10 h-10 text-primary" />
+              </div>
+              <h5 className="text-xl font-bold mb-3">1M+ Videos</h5>
+              <p className="text-muted-foreground">
+                Millions of videos organized and shared through our platform
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Globe className="w-10 h-10 text-primary" />
+              </div>
+              <h5 className="text-xl font-bold mb-3">50+ Countries</h5>
+              <p className="text-muted-foreground">
+                Supporting teams across the globe with reliable infrastructure
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="relative py-24 px-4 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10" />
