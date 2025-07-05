@@ -4,7 +4,7 @@ import { ClientEnv } from "@/lib/env/client";
 export const ServerEnv = z.object({
   ...ClientEnv.shape,
   DATABASE_URL: z.string(),
-  VERCEL_OIDC_TOKEN: z.string(),
+  VERCEL_OIDC_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string(),
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
