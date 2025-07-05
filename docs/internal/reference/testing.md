@@ -174,12 +174,7 @@ import { mockVideo } from "@/lib/mock-data";
 
 describe("VideoCard", () => {
   it("renders video information", () => {
-    render(
-      <VideoCard
-        video={mockVideo}
-        onClick={jest.fn()}
-      />
-    );
+    render(<VideoCard video={mockVideo} onClick={jest.fn()} />);
 
     expect(screen.getByText(mockVideo.title)).toBeInTheDocument();
     expect(screen.getByText(mockVideo.description)).toBeInTheDocument();
@@ -188,13 +183,8 @@ describe("VideoCard", () => {
 
   it("calls onClick when clicked", async () => {
     const mockOnClick = jest.fn();
-    
-    render(
-      <VideoCard
-        video={mockVideo}
-        onClick={mockOnClick}
-      />
-    );
+
+    render(<VideoCard video={mockVideo} onClick={mockOnClick} />);
 
     const card = screen.getByRole("button");
     await user.click(card);
@@ -214,7 +204,10 @@ describe("VideoCard", () => {
     );
 
     const thumbnail = screen.getByRole("img");
-    expect(thumbnail).toHaveAttribute("src", "https://example.com/thumbnail.jpg");
+    expect(thumbnail).toHaveAttribute(
+      "src",
+      "https://example.com/thumbnail.jpg"
+    );
   });
 
   it("shows placeholder when no thumbnail", () => {
@@ -244,9 +237,11 @@ import { rest } from "msw";
 
 describe("useVideos", () => {
   it("fetches videos successfully", async () => {
-    const { result } = renderHook(() => useVideos({
-      workspaceId: "workspace-1",
-    }));
+    const { result } = renderHook(() =>
+      useVideos({
+        organizationId: "organization-1",
+      })
+    );
 
     expect(result.current.loading).toBe(true);
 
@@ -265,9 +260,11 @@ describe("useVideos", () => {
       })
     );
 
-    const { result } = renderHook(() => useVideos({
-      workspaceId: "workspace-1",
-    }));
+    const { result } = renderHook(() =>
+      useVideos({
+        organizationId: "organization-1",
+      })
+    );
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -279,9 +276,9 @@ describe("useVideos", () => {
 
   it("refetches when parameters change", async () => {
     const { result, rerender } = renderHook(
-      ({ workspaceId }) => useVideos({ workspaceId }),
+      ({ organizationId }) => useVideos({ organizationId }),
       {
-        initialProps: { workspaceId: "workspace-1" },
+        initialProps: { organizationId: "organization-1" },
       }
     );
 
@@ -289,7 +286,7 @@ describe("useVideos", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    rerender({ workspaceId: "workspace-2" });
+    rerender({ organizationId: "organization-2" });
 
     expect(result.current.loading).toBe(true);
   });
@@ -344,12 +341,12 @@ describe("/api/videos", () => {
   });
 
   describe("GET", () => {
-    it("returns videos for workspace", async () => {
+    it("returns videos for organization", async () => {
       const mockVideos = [
         {
           id: "video-1",
           title: "Test Video",
-          workspaceId: "workspace-1",
+          organizationId: "organization-1",
         },
       ];
 
@@ -360,7 +357,7 @@ describe("/api/videos", () => {
       });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/videos?workspaceId=workspace-1"
+        "http://localhost:3000/api/videos?organizationId=organization-1"
       );
 
       const response = await GET(request);
@@ -371,7 +368,7 @@ describe("/api/videos", () => {
       expect(data.data).toEqual(mockVideos);
     });
 
-    it("returns 400 for missing workspaceId", async () => {
+    it("returns 400 for missing organizationId", async () => {
       const request = new NextRequest("http://localhost:3000/api/videos");
 
       const response = await GET(request);
@@ -379,7 +376,7 @@ describe("/api/videos", () => {
 
       expect(response.status).toBe(400);
       expect(data.success).toBe(false);
-      expect(data.error).toBe("Workspace ID is required");
+      expect(data.error).toBe("Organization ID is required");
     });
   });
 
@@ -388,7 +385,7 @@ describe("/api/videos", () => {
       const mockVideo = {
         id: "video-1",
         title: "New Video",
-        workspaceId: "workspace-1",
+        organizationId: "organization-1",
       };
 
       (db.insert as jest.Mock).mockReturnValue({
@@ -401,7 +398,7 @@ describe("/api/videos", () => {
         method: "POST",
         body: JSON.stringify({
           title: "New Video",
-          workspaceId: "workspace-1",
+          organizationId: "organization-1",
           duration: "10:30",
         }),
       });
@@ -438,7 +435,7 @@ describe("/api/videos", () => {
 ```typescript
 // src/lib/db/__tests__/operations.test.ts
 import { db } from "../index";
-import { users, videos, workspaces } from "../schema";
+import { users, videos, organizations } from "../schema";
 import { eq } from "drizzle-orm";
 import { setupTestDatabase, cleanupTestDatabase } from "@/lib/test-db";
 
@@ -454,7 +451,7 @@ describe("Database Operations", () => {
   afterEach(async () => {
     // Clean up test data
     await db.delete(videos);
-    await db.delete(workspaces);
+    await db.delete(organizations);
     await db.delete(users);
   });
 
@@ -473,28 +470,37 @@ describe("Database Operations", () => {
 
   it("creates video with relationships", async () => {
     // Create user
-    const [user] = await db.insert(users).values({
-      email: "author@example.com",
-      name: "Author",
-    }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: "author@example.com",
+        name: "Author",
+      })
+      .returning();
 
-    // Create workspace
-    const [workspace] = await db.insert(workspaces).values({
-      name: "Test Workspace",
-      slug: "test-workspace",
-    }).returning();
+    // Create organization
+    const [organization] = await db
+      .insert(organizations)
+      .values({
+        name: "Test Organization",
+        slug: "test-organization",
+      })
+      .returning();
 
     // Create video
-    const [video] = await db.insert(videos).values({
-      title: "Test Video",
-      duration: "10:30",
-      authorId: user.id,
-      workspaceId: workspace.id,
-    }).returning();
+    const [video] = await db
+      .insert(videos)
+      .values({
+        title: "Test Video",
+        duration: "10:30",
+        authorId: user.id,
+        organizationId: organization.id,
+      })
+      .returning();
 
     expect(video.id).toBeDefined();
     expect(video.authorId).toBe(user.id);
-    expect(video.workspaceId).toBe(workspace.id);
+    expect(video.organizationId).toBe(organization.id);
   });
 
   it("enforces foreign key constraints", async () => {
@@ -503,7 +509,7 @@ describe("Database Operations", () => {
         title: "Test Video",
         duration: "10:30",
         authorId: "non-existent-user",
-        workspaceId: "non-existent-workspace",
+        organizationId: "non-existent-organization",
       })
     ).rejects.toThrow();
   });
@@ -564,18 +570,18 @@ test.describe("Video Management", () => {
     await page.fill('[data-testid="email"]', "test@example.com");
     await page.fill('[data-testid="password"]', "password");
     await page.click('[data-testid="login-button"]');
-    await page.waitForURL("/workspace-1");
+    await page.waitForURL("/organization-1");
   });
 
-  test("displays videos in workspace", async ({ page }) => {
-    await page.goto("/workspace-1/videos");
+  test("displays videos in organization", async ({ page }) => {
+    await page.goto("/organization-1/videos");
 
     await expect(page.locator('[data-testid="video-card"]')).toBeVisible();
     await expect(page.locator("h1")).toContainText("Videos");
   });
 
   test("creates new video", async ({ page }) => {
-    await page.goto("/workspace-1/videos");
+    await page.goto("/organization-1/videos");
     await page.click('[data-testid="create-video-button"]');
 
     await page.fill('[data-testid="video-title"]', "Test Video");
@@ -589,7 +595,7 @@ test.describe("Video Management", () => {
   });
 
   test("edits existing video", async ({ page }) => {
-    await page.goto("/workspace-1/videos");
+    await page.goto("/organization-1/videos");
     await page.click('[data-testid="video-card"]:first-child');
     await page.click('[data-testid="edit-video-button"]');
 
@@ -600,7 +606,7 @@ test.describe("Video Management", () => {
   });
 
   test("deletes video", async ({ page }) => {
-    await page.goto("/workspace-1/videos");
+    await page.goto("/organization-1/videos");
     await page.click('[data-testid="video-card"]:first-child');
     await page.click('[data-testid="delete-video-button"]');
     await page.click('[data-testid="confirm-delete"]');
@@ -633,8 +639,8 @@ export class VideoPage {
     this.saveButton = page.locator('[data-testid="save-video-button"]');
   }
 
-  async goto(workspaceId: string) {
-    await this.page.goto(`/${workspaceId}/videos`);
+  async goto(organizationId: string) {
+    await this.page.goto(`/${organizationId}/videos`);
   }
 
   async createVideo(title: string, description: string, duration: string) {
@@ -668,21 +674,23 @@ export const server = setupServer(...handlers);
 ```typescript
 // src/mocks/handlers.ts
 import { rest } from "msw";
-import { mockVideos, mockWorkspaces } from "@/lib/mock-data";
+import { mockVideos, mockOrganizations } from "@/lib/mock-data";
 
 export const handlers = [
   rest.get("/api/videos", (req, res, ctx) => {
-    const workspaceId = req.url.searchParams.get("workspaceId");
-    
-    if (!workspaceId) {
+    const organizationId = req.url.searchParams.get("organizationId");
+
+    if (!organizationId) {
       return res(
         ctx.status(400),
-        ctx.json({ success: false, error: "Workspace ID is required" })
+        ctx.json({ success: false, error: "Organization ID is required" })
       );
     }
 
-    const videos = mockVideos.filter(v => v.workspaceId === workspaceId);
-    
+    const videos = mockVideos.filter(
+      (v) => v.organizationId === organizationId
+    );
+
     return res(
       ctx.json({
         success: true,
@@ -701,14 +709,14 @@ export const handlers = [
 
   rest.post("/api/videos", async (req, res, ctx) => {
     const body = await req.json();
-    
+
     const newVideo = {
       id: `video-${Date.now()}`,
       ...body,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    
+
     return res(
       ctx.status(201),
       ctx.json({
@@ -718,11 +726,11 @@ export const handlers = [
     );
   }),
 
-  rest.get("/api/workspaces", (req, res, ctx) => {
+  rest.get("/api/organizations", (req, res, ctx) => {
     return res(
       ctx.json({
         success: true,
-        data: mockWorkspaces,
+        data: mockOrganizations,
       })
     );
   }),
@@ -742,22 +750,23 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 let testDb: ReturnType<typeof drizzle>;
 
 export async function setupTestDatabase() {
-  const connectionString = process.env.TEST_DATABASE_URL || 
+  const connectionString =
+    process.env.TEST_DATABASE_URL ||
     "postgresql://test:test@localhost:5432/nuclom_test";
-  
+
   const client = postgres(connectionString);
   testDb = drizzle(client);
-  
+
   // Run migrations
   await migrate(testDb, { migrationsFolder: "./drizzle" });
-  
+
   return testDb;
 }
 
 export async function cleanupTestDatabase() {
   // Clean up test data
   await testDb.delete(videos);
-  await testDb.delete(workspaces);
+  await testDb.delete(organizations);
   await testDb.delete(users);
 }
 
@@ -771,7 +780,7 @@ export function getTestDb() {
 ```typescript
 // src/lib/test-factories.ts
 import { faker } from "@faker-js/faker";
-import type { User, Video, Workspace } from "@/lib/db/schema";
+import type { User, Video, Organization } from "@/lib/db/schema";
 
 export function createUserFactory(overrides: Partial<User> = {}): User {
   return {
@@ -794,7 +803,7 @@ export function createVideoFactory(overrides: Partial<Video> = {}): Video {
     thumbnailUrl: faker.image.url(),
     videoUrl: faker.internet.url(),
     authorId: faker.string.uuid(),
-    workspaceId: faker.string.uuid(),
+    organizationId: faker.string.uuid(),
     channelId: null,
     seriesId: null,
     transcript: null,
@@ -805,7 +814,9 @@ export function createVideoFactory(overrides: Partial<Video> = {}): Video {
   };
 }
 
-export function createWorkspaceFactory(overrides: Partial<Workspace> = {}): Workspace {
+export function createOrganizationFactory(
+  overrides: Partial<Organization> = {}
+): Organization {
   return {
     id: faker.string.uuid(),
     name: faker.company.name(),
@@ -858,7 +869,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -873,24 +884,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "18"
           cache: "pnpm"
-          
+
       - name: Install dependencies
         run: pnpm install
-        
+
       - name: Run unit tests
         run: pnpm test
         env:
           TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/nuclom_test
-          
+
       - name: Run E2E tests
         run: pnpm test:e2e
-        
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```

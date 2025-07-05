@@ -12,25 +12,25 @@ graph TB
         C[Tailwind CSS + shadcn/ui]
         D[TypeScript]
     end
-    
+
     subgraph "API Layer"
         E[Next.js API Routes]
         F[Better-Auth]
         G[AI Integration]
     end
-    
+
     subgraph "Data Layer"
         H[PostgreSQL Database]
         I[Drizzle ORM]
         J[Cloudflare R2]
     end
-    
+
     subgraph "External Services"
         K[GitHub OAuth]
         L[Google OAuth]
         M[OpenAI API]
     end
-    
+
     A --> E
     B --> E
     E --> F
@@ -46,6 +46,7 @@ graph TB
 ## Core Components
 
 ### 1. Frontend Architecture
+
 - **Framework**: Next.js 15 with App Router
 - **Styling**: Tailwind CSS with shadcn/ui component library
 - **State Management**: React hooks and context
@@ -53,6 +54,7 @@ graph TB
 - **Theme**: Dark-first design with next-themes
 
 ### 2. Backend Architecture
+
 - **API**: Next.js API Routes with RESTful design
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Better-Auth with OAuth providers
@@ -60,6 +62,7 @@ graph TB
 - **AI Integration**: OpenAI for video analysis and summaries
 
 ### 3. Data Architecture
+
 - **Database**: PostgreSQL hosted on cloud provider
 - **ORM**: Drizzle with type-safe queries
 - **Migrations**: Automated schema migrations
@@ -68,20 +71,23 @@ graph TB
 ## Key Features
 
 ### Video Collaboration
+
 - Video upload and streaming
 - Real-time comments with timestamps
 - AI-powered summaries and action items
 - Video progress tracking
-- Workspace-based organization
+- Organization-based organization
 
 ### User Management
-- Multi-workspace support
+
+- Multi-organization support
 - Role-based access control (Owner, Admin, Member)
 - OAuth authentication (GitHub, Google)
 - Session management
 
 ### Content Organization
-- Workspaces for team collaboration
+
+- Organizations for team collaboration
 - Channels for categorization
 - Series for sequential content
 - Search and filtering capabilities
@@ -89,6 +95,7 @@ graph TB
 ## Technology Stack
 
 ### Frontend
+
 - **Next.js 15**: React framework with App Router
 - **React 19**: UI library with Server Components
 - **TypeScript**: Type safety and developer experience
@@ -97,6 +104,7 @@ graph TB
 - **Lucide React**: Icon library
 
 ### Backend
+
 - **Next.js API Routes**: Server-side API endpoints
 - **Better-Auth**: Authentication and session management
 - **Drizzle ORM**: Type-safe database queries
@@ -104,6 +112,7 @@ graph TB
 - **Cloudflare R2**: Object storage for videos
 
 ### DevOps & Tools
+
 - **Vercel**: Deployment platform
 - **Biome**: Code formatting and linting
 - **Drizzle Kit**: Database migrations
@@ -112,18 +121,21 @@ graph TB
 ## Security Considerations
 
 ### Authentication
+
 - OAuth 2.0 with GitHub and Google
 - Session-based authentication
 - CSRF protection
 - Email verification (configurable)
 
 ### Data Protection
+
 - Input validation and sanitization
 - SQL injection prevention through ORM
 - Role-based access control
 - Secure file upload handling
 
 ### Infrastructure
+
 - HTTPS everywhere
 - Environment variable management
 - Database connection pooling
@@ -132,12 +144,14 @@ graph TB
 ## Performance Optimizations
 
 ### Frontend
+
 - Server-side rendering with App Router
 - Component-level code splitting
 - Image optimization
 - Responsive design
 
 ### Backend
+
 - Database query optimization
 - Connection pooling
 - Caching strategies (to be implemented)
@@ -146,12 +160,14 @@ graph TB
 ## Scalability Considerations
 
 ### Database
+
 - Indexed queries for performance
 - Normalized schema design
 - Connection pooling
 - Read replicas (future)
 
 ### File Storage
+
 - CDN distribution via Cloudflare R2
 - Streaming video delivery
 - Thumbnail generation
@@ -160,6 +176,7 @@ graph TB
 ## Development Workflow
 
 ### Local Development
+
 1. Clone repository
 2. Install dependencies with `pnpm install`
 3. Set up environment variables
@@ -167,6 +184,7 @@ graph TB
 5. Start development server
 
 ### Deployment
+
 1. Database migrations in production
 2. Environment configuration
 3. Vercel deployment
@@ -175,12 +193,14 @@ graph TB
 ## Monitoring & Observability
 
 ### Application Monitoring
+
 - Error tracking (to be implemented)
 - Performance monitoring
 - User analytics
 - API metrics
 
 ### Database Monitoring
+
 - Query performance
 - Connection pool status
 - Storage utilization
@@ -189,12 +209,14 @@ graph TB
 ## Future Enhancements
 
 ### Technical Improvements
+
 - Real-time collaboration features
 - Advanced caching strategies
 - Mobile application
 - Offline capabilities
 
 ### Feature Enhancements
+
 - Video transcription
 - Advanced search capabilities
 - Integration with external tools

@@ -22,6 +22,7 @@ Welcome to the Nuclom developer reference documentation. This guide provides com
 ## Tech Stack Overview
 
 ### Frontend
+
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
 - **UI Library**: Radix UI + shadcn/ui
@@ -29,12 +30,14 @@ Welcome to the Nuclom developer reference documentation. This guide provides com
 - **State Management**: React hooks + custom API hooks
 
 ### Backend
+
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: better-auth
 - **API**: Next.js API routes
 - **File Storage**: Cloudflare R2 (configured)
 
 ### Development Tools
+
 - **Code Quality**: Biome (linting & formatting)
 - **Package Manager**: pnpm
 - **Database Tools**: Drizzle Kit
@@ -42,9 +45,10 @@ Welcome to the Nuclom developer reference documentation. This guide provides com
 
 ## Architecture
 
-Nuclom follows a workspace-based architecture where:
-- Users belong to multiple workspaces
-- Each workspace contains videos, channels, and series
+Nuclom follows a organization-based architecture where:
+
+- Users belong to multiple organizations
+- Each organization contains videos, channels, and series
 - Videos can be organized into channels and series
 - Users can comment on videos and track viewing progress
 
@@ -74,7 +78,7 @@ nuclom/
 ├── src/
 │   ├── app/                # Next.js app router pages
 │   │   ├── (main)/        # Main application routes
-│   │   │   └── [workspace]/  # Workspace-scoped routes
+│   │   │   └── [organization]/  # Organization-scoped routes
 │   │   ├── api/           # API routes
 │   │   └── globals.css    # Global styles
 │   ├── components/        # React components

@@ -6,13 +6,13 @@ export default async function SettingsLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ workspace: string }>;
+  params: Promise<{ organization: string }>;
 }) {
-  const { workspace } = await params;
+  const { organization } = await params;
 
   return (
     <div className="flex flex-col md:flex-row gap-10">
-      <SettingsSidebar workspace={workspace} />
+      <SettingsSidebar organization={organization} />
       <div className="flex-1">{children}</div>
     </div>
   );

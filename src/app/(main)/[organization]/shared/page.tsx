@@ -11,8 +11,12 @@ const sharedVideoData = [
   },
 ];
 
-export default async function SharedWithMePage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace } = await params;
+export default async function SharedWithMePage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization } = await params;
 
   return (
     <div className="space-y-8">
@@ -39,7 +43,9 @@ export default async function SharedWithMePage({ params }: { params: Promise<{ w
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -50,7 +56,7 @@ export default async function SharedWithMePage({ params }: { params: Promise<{ w
                 banExpires: null,
               },
             }}
-            workspace={workspace}
+            organization={organization}
           />
         ))}
       </div>

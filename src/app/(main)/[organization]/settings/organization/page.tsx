@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useParams, useRouter } from "next/navigation";
@@ -27,7 +34,7 @@ type Organization = {
   logo?: string | null;
 };
 
-export default function WorkspaceSettingsPage() {
+export default function OrganizationSettingsPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -42,13 +49,13 @@ export default function WorkspaceSettingsPage() {
 
   useEffect(() => {
     loadOrganization();
-  }, [params.workspace]);
+  }, [params.organization]);
 
   const loadOrganization = async () => {
     try {
       setLoading(true);
       const { data } = await authClient.organization.list();
-      const currentOrg = data?.find((org) => org.slug === params.workspace);
+      const currentOrg = data?.find((org) => org.slug === params.organization);
 
       if (currentOrg) {
         setOrganization(currentOrg);
@@ -88,7 +95,7 @@ export default function WorkspaceSettingsPage() {
 
       // If slug changed, redirect to new URL
       if (formData.slug !== organization.slug) {
-        router.push(`/${formData.slug}/settings/workspace`);
+        router.push(`/${formData.slug}/settings/organization`);
       }
     } catch (error) {
       console.error("Error updating organization:", error);
@@ -157,7 +164,8 @@ export default function WorkspaceSettingsPage() {
         <CardHeader>
           <CardTitle>Organization Not Found</CardTitle>
           <CardDescription>
-            The organization you're looking for doesn't exist or you don't have access to it.
+            The organization you're looking for doesn't exist or you don't have
+            access to it.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -176,7 +184,9 @@ export default function WorkspaceSettingsPage() {
           <Input
             id="organization-name"
             value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             placeholder="Enter organization name"
           />
         </div>
@@ -185,14 +195,21 @@ export default function WorkspaceSettingsPage() {
           <Input
             id="organization-slug"
             value={formData.slug}
-            onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, slug: e.target.value }))
+            }
             placeholder="organization-slug"
           />
-          <p className="text-sm text-muted-foreground">This will be used in your organization URL: /{formData.slug}</p>
+          <p className="text-sm text-muted-foreground">
+            This will be used in your organization URL: /{formData.slug}
+          </p>
         </div>
       </CardContent>
       <CardFooter className="bg-muted/50 border-t px-6 py-4 flex justify-between">
-        <Button onClick={handleSave} disabled={saving || !formData.name.trim() || !formData.slug.trim()}>
+        <Button
+          onClick={handleSave}
+          disabled={saving || !formData.name.trim() || !formData.slug.trim()}
+        >
           {saving ? "Saving..." : "Save Changes"}
         </Button>
         <AlertDialog>
@@ -205,8 +222,9 @@ export default function WorkspaceSettingsPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the organization "{organization.name}" and
-                all its data including videos, channels, and member access.
+                This action cannot be undone. This will permanently delete the
+                organization "{organization.name}" and all its data including
+                videos, channels, and member access.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

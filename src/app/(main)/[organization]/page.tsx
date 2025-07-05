@@ -33,13 +33,13 @@ function VideoSectionSkeleton() {
 function VideoSection({
   title,
   videos,
-  workspace,
+  organization,
   loading,
   error,
 }: {
   title: string;
   videos: VideoWithAuthor[];
-  workspace: string;
+  organization: string;
   loading: boolean;
   error: string | null;
 }) {
@@ -54,7 +54,7 @@ function VideoSection({
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button asChild>
-            <Link href={`/${workspace}/upload`}>
+            <Link href={`/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
               Upload first video
             </Link>
@@ -69,9 +69,11 @@ function VideoSection({
       <section>
         <h2 className="text-2xl font-bold mb-6">{title}</h2>
         <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">No videos found. Upload your first video to get started.</p>
+          <p className="text-muted-foreground mb-4">
+            No videos found. Upload your first video to get started.
+          </p>
           <Button asChild>
-            <Link href={`/${workspace}/upload`}>
+            <Link href={`/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
               Upload first video
             </Link>
@@ -86,15 +88,19 @@ function VideoSection({
       <h2 className="text-2xl font-bold mb-6">{title}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {videos.map((video) => (
-          <VideoCard key={video.id} video={video} workspace={workspace} />
+          <VideoCard key={video.id} video={video} organization={organization} />
         ))}
       </div>
     </section>
   );
 }
 
-export default async function WorkspacePage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace: workspaceSlug } = await params;
+export default async function OrganizationPage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization: organizationSlug } = await params;
 
   // Get session and user
   const session = await auth.api.getSession({
@@ -106,7 +112,11 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
   }
 
   // Get organization by slug
-  const organization = await db.select().from(organizations).where(eq(organizations.slug, workspaceSlug)).limit(1);
+  const organization = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.slug, organizationSlug))
+    .limit(1);
 
   if (!organization.length) {
     redirect("/");
@@ -130,15 +140,21 @@ export default async function WorkspacePage({ params }: { params: Promise<{ work
       <VideoSection
         title="Continue watching"
         videos={videos.slice(0, 2)}
-        workspace={workspaceSlug}
+        organization={organizationSlug}
         loading={false}
         error={error}
       />
-      <VideoSection title="New this week" videos={videos} workspace={workspaceSlug} loading={false} error={error} />
+      <VideoSection
+        title="New this week"
+        videos={videos}
+        organization={organizationSlug}
+        loading={false}
+        error={error}
+      />
       <VideoSection
         title="From your channels"
         videos={videos.slice(1, 4)}
-        workspace={workspaceSlug}
+        organization={organizationSlug}
         loading={false}
         error={error}
       />

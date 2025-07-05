@@ -5,6 +5,7 @@ This document describes the backend API integration implemented for the Nuclom v
 ## Overview
 
 The backend integration includes:
+
 - Database schema and models using Prisma + PostgreSQL
 - API routes for CRUD operations
 - Authentication with better-auth
@@ -14,8 +15,9 @@ The backend integration includes:
 ## Database Schema
 
 ### Core Models
+
 - **User**: User accounts and profiles
-- **Workspace**: Team workspaces for collaboration
+- **Organization**: Team organizations for collaboration
 - **Video**: Video content with metadata
 - **Channel**: Organized video channels
 - **Series**: Video series/playlists
@@ -23,39 +25,46 @@ The backend integration includes:
 - **VideoProgress**: User viewing progress tracking
 
 ### Relationships
-- Users belong to multiple workspaces
-- Videos belong to workspaces, channels, and series
+
+- Users belong to multiple organizations
+- Videos belong to organizations, channels, and series
 - Comments are threaded and belong to videos
 - Progress tracking per user per video
 
 ## API Endpoints
 
 ### Videos
+
 - `GET /api/videos` - List videos with filtering
 - `GET /api/videos/[id]` - Get video with details
 - `POST /api/videos` - Create new video
 - `PUT /api/videos/[id]` - Update video
 - `DELETE /api/videos/[id]` - Delete video
 
-### Workspaces
-- `GET /api/workspaces` - List user workspaces
-- `POST /api/workspaces` - Create workspace
+### Organizations
+
+- `GET /api/organizations` - List user organizations
+- `POST /api/organizations` - Create organization
 
 ### Authentication
+
 - `POST /api/auth/[...better-auth]` - Authentication endpoints
 - Email/password and OAuth (GitHub, Google) support
 
 ### AI Services
+
 - `POST /api/ai/analyze` - Generate summaries and extract action items
 
 ## Data Fetching
 
 ### React Hooks
+
 - `useVideos()` - Fetch videos with filtering
 - `useVideo(id)` - Fetch single video with details
-- `useWorkspaces()` - Fetch user workspaces
+- `useOrganizations()` - Fetch user organizations
 
 ### API Client
+
 - Type-safe API client with error handling
 - Automatic loading and error states
 - Mock data fallback during development
@@ -63,19 +72,21 @@ The backend integration includes:
 ## Development Setup
 
 1. **Database Setup**
+
    ```bash
    # Copy environment variables
    cp .env.example .env.local
-   
+
    # Add your database URL
    DATABASE_URL="postgresql://..."
-   
+
    # Run Prisma migrations
    npx prisma migrate dev
    npx prisma generate
    ```
 
 2. **Authentication Setup**
+
    ```bash
    # Add auth secrets to .env.local
    BETTER_AUTH_SECRET="your-secret"
@@ -92,15 +103,18 @@ The backend integration includes:
 ## Production Deployment
 
 ### Database
+
 - Use Xata, Supabase, or PlanetScale for PostgreSQL hosting
 - Set DATABASE_URL environment variable
 - Run migrations: `npx prisma migrate deploy`
 
 ### File Storage
+
 - Configure Cloudflare R2 credentials
 - Update file upload endpoints to use R2
 
 ### Authentication
+
 - Set production OAuth app credentials
 - Enable email verification for production
 
@@ -113,10 +127,11 @@ The current implementation uses mock data with a fallback mechanism:
 const result = await mockVideoApi.getVideos();
 
 // Production (when database is ready)
-const result = await videoApi.getVideos({ workspaceId });
+const result = await videoApi.getVideos({ organizationId });
 ```
 
 To migrate:
+
 1. Set up database with Prisma migrations
 2. Seed initial data
 3. Update components to use `useVideos()` hook
@@ -125,6 +140,7 @@ To migrate:
 ## Type Safety
 
 All API responses and database models are fully typed:
+
 - Prisma generates database types
 - API responses use `ApiResponse<T>` wrapper
 - React hooks provide typed data and loading states

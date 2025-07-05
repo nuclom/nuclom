@@ -22,8 +22,12 @@ const searchResults = [
   },
 ];
 
-export default async function SearchPage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace } = await params;
+export default async function SearchPage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization } = await params;
   const searchParams = useSearchParams();
   const query = searchParams.get("q");
 
@@ -54,7 +58,9 @@ export default async function SearchPage({ params }: { params: Promise<{ workspa
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -65,7 +71,7 @@ export default async function SearchPage({ params }: { params: Promise<{ workspa
                 banExpires: null,
               },
             }}
-            workspace={workspace}
+            organization={organization}
           />
         ))}
       </div>

@@ -14,7 +14,7 @@ src/components/
 │   ├── dialog.tsx         # Modal dialogs
 │   └── ...                # Other UI primitives
 ├── video-card.tsx         # Custom video card
-├── workspace-switcher.tsx # Workspace selector
+├── organization-switcher.tsx # Organization selector
 ├── top-nav.tsx           # Top navigation
 ├── settings-sidebar.tsx   # Settings sidebar
 ├── command-bar.tsx       # Command palette
@@ -61,7 +61,14 @@ import { Button } from "@/components/ui/button";
 ### Card
 
 ```typescript
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 <Card>
   <CardHeader>
@@ -74,13 +81,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
   <CardFooter>
     <Button>Action</Button>
   </CardFooter>
-</Card>
+</Card>;
 ```
 
 ### Dialog
 
 ```typescript
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 <Dialog>
   <DialogTrigger asChild>
@@ -93,17 +107,31 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
     </DialogHeader>
     <div>Dialog content</div>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Form Components
 
 ```typescript
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Form with validation
 <Form {...form}>
@@ -126,13 +154,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     />
     <Button type="submit">Submit</Button>
   </form>
-</Form>
+</Form>;
 ```
 
 ### Navigation
 
 ```typescript
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 <NavigationMenu>
   <NavigationMenuList>
@@ -143,7 +178,7 @@ import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMe
       </NavigationMenuContent>
     </NavigationMenuItem>
   </NavigationMenuList>
-</NavigationMenu>
+</NavigationMenu>;
 ```
 
 ### Data Display
@@ -198,21 +233,21 @@ import { VideoCard } from "@/components/video-card";
     createdAt: new Date(),
   }}
   onClick={() => console.log("Video clicked")}
-/>
+/>;
 ```
 
-### WorkspaceSwitcher
+### OrganizationSwitcher
 
 ```typescript
-import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 
-<WorkspaceSwitcher
-  currentWorkspace={currentWorkspace}
-  workspaces={workspaces}
-  onWorkspaceChange={(workspace) => {
-    // Handle workspace change
+<OrganizationSwitcher
+  currentOrganization={currentOrganization}
+  organizations={organizations}
+  onOrganizationChange={(organization) => {
+    // Handle organization change
   }}
-/>
+/>;
 ```
 
 ### TopNav
@@ -222,11 +257,11 @@ import { TopNav } from "@/components/top-nav";
 
 <TopNav
   user={user}
-  currentWorkspace={currentWorkspace}
+  currentOrganization={currentOrganization}
   onSearch={(query) => {
     // Handle search
   }}
-/>
+/>;
 ```
 
 ### CommandBar
@@ -247,7 +282,7 @@ import { CommandBar } from "@/components/command-bar";
       },
     },
   ]}
-/>
+/>;
 ```
 
 ## Component Patterns
@@ -296,7 +331,7 @@ import { CommandBar } from "@/components/command-bar";
 function useVideoPlayer(videoId: string) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  
+
   return {
     isPlaying,
     currentTime,
@@ -306,7 +341,13 @@ function useVideoPlayer(videoId: string) {
 }
 
 // Usage
-function VideoPlayer({ videoId, children }: { videoId: string; children: (props: ReturnType<typeof useVideoPlayer>) => React.ReactNode }) {
+function VideoPlayer({
+  videoId,
+  children,
+}: {
+  videoId: string;
+  children: (props: ReturnType<typeof useVideoPlayer>) => React.ReactNode;
+}) {
   const playerProps = useVideoPlayer(videoId);
   return <div>{children(playerProps)}</div>;
 }
@@ -537,7 +578,7 @@ function handleKeyDown(event: React.KeyboardEvent) {
   className="cursor-pointer"
 >
   Clickable content
-</div>
+</div>;
 ```
 
 ### Focus Management
@@ -557,7 +598,7 @@ useEffect(() => {
   className="focus:outline-none focus:ring-2 focus:ring-primary"
 >
   Focusable button
-</button>
+</button>;
 ```
 
 ## Performance Optimization
@@ -580,12 +621,12 @@ import { memo, useMemo } from "react";
 // Memoized component
 const ExpensiveComponent = memo(function ExpensiveComponent({ data, filter }) {
   const filteredData = useMemo(() => {
-    return data.filter(item => item.category === filter);
+    return data.filter((item) => item.category === filter);
   }, [data, filter]);
 
   return (
     <div>
-      {filteredData.map(item => (
+      {filteredData.map((item) => (
         <div key={item.id}>{item.name}</div>
       ))}
     </div>
@@ -601,18 +642,11 @@ import { FixedSizeList as List } from "react-window";
 
 function VirtualList({ items }: { items: any[] }) {
   const Row = ({ index, style }) => (
-    <div style={style}>
-      {items[index].name}
-    </div>
+    <div style={style}>{items[index].name}</div>
   );
 
   return (
-    <List
-      height={600}
-      itemCount={items.length}
-      itemSize={50}
-      width="100%"
-    >
+    <List height={600} itemCount={items.length} itemSize={50} width="100%">
       {Row}
     </List>
   );

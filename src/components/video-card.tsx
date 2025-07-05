@@ -6,14 +6,14 @@ import type { VideoWithAuthor } from "@/lib/types";
 
 interface VideoCardProps {
   video: VideoWithAuthor;
-  workspace?: string;
+  organization?: string;
 }
 
-export function VideoCard({ video, workspace }: VideoCardProps) {
-  const workspaceSlug = workspace || "default";
+export function VideoCard({ video, organization }: VideoCardProps) {
+  const organizationSlug = organization || "default";
 
   return (
-    <Link href={`/${workspaceSlug}/videos/${video.id}`} className="group">
+    <Link href={`/${organizationSlug}/videos/${video.id}`} className="group">
       <Card className="bg-transparent border-0 shadow-none rounded-lg overflow-hidden">
         <CardContent className="p-0">
           <div className="relative aspect-video overflow-hidden rounded-lg border group-hover:border-primary transition-colors">
@@ -29,12 +29,21 @@ export function VideoCard({ video, workspace }: VideoCardProps) {
           </div>
           <div className="flex items-start gap-3 mt-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
-              <AvatarFallback>{video.author.name ? video.author.name.charAt(0) : "A"}</AvatarFallback>
+              <AvatarImage
+                src={video.author.image || "/placeholder.svg"}
+                alt={video.author.name || "Author"}
+              />
+              <AvatarFallback>
+                {video.author.name ? video.author.name.charAt(0) : "A"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h4 className="font-medium leading-tight text-foreground">{video.title}</h4>
-              <p className="text-sm text-muted-foreground">{video.author.name}</p>
+              <h4 className="font-medium leading-tight text-foreground">
+                {video.title}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                {video.author.name}
+              </p>
             </div>
           </div>
         </CardContent>

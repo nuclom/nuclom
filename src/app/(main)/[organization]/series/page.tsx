@@ -23,15 +23,19 @@ const seriesData = [
   },
 ];
 
-export default async function SeriesListPage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace } = await params;
+export default async function SeriesListPage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization } = await params;
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Series</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {seriesData.map((series) => (
-          <Link key={series.id} href={`/${workspace}/series/${series.id}`}>
+          <Link key={series.id} href={`/${organization}/series/${series.id}`}>
             <Card className="group hover:border-primary transition-colors">
               <CardHeader className="p-0">
                 <div className="relative aspect-video overflow-hidden rounded-t-lg">
@@ -45,7 +49,9 @@ export default async function SeriesListPage({ params }: { params: Promise<{ wor
               </CardHeader>
               <CardContent className="p-4">
                 <CardTitle className="text-lg">{series.name}</CardTitle>
-                <p className="text-sm text-gray-400">{series.videoCount} videos</p>
+                <p className="text-sm text-gray-400">
+                  {series.videoCount} videos
+                </p>
               </CardContent>
             </Card>
           </Link>

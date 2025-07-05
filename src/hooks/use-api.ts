@@ -12,7 +12,7 @@ interface UseApiState<T> {
 
 // Custom hook for fetching videos
 export function useVideos(
-  params: { workspaceId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
+  params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
 ) {
   const [state, setState] = useState<UseApiState<PaginatedResponse<VideoWithAuthor>>>({
     data: null,
@@ -103,8 +103,8 @@ export function useVideo(id: string | null) {
   return state;
 }
 
-// Custom hook for fetching workspaces
-export function useWorkspaces(userId?: string) {
+// Custom hook for fetching organizations
+export function useOrganizations(userId?: string) {
   const [state, setState] = useState<UseApiState<any>>({
     data: null,
     loading: true,
@@ -114,7 +114,7 @@ export function useWorkspaces(userId?: string) {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchWorkspaces = async () => {
+    const fetchOrganizations = async () => {
       try {
         setState((prev) => ({ ...prev, loading: true, error: null }));
         const data = await organizationApi.getOrganizations(userId);
@@ -126,7 +126,7 @@ export function useWorkspaces(userId?: string) {
         if (isMounted) {
           const errorMessage =
             error instanceof ApiError
-              ? `Failed to fetch workspaces (${error.status})`
+              ? `Failed to fetch organizations (${error.status})`
               : error instanceof Error
                 ? error.message
                 : "An unknown error occurred";
@@ -136,7 +136,7 @@ export function useWorkspaces(userId?: string) {
       }
     };
 
-    fetchWorkspaces();
+    fetchOrganizations();
 
     return () => {
       isMounted = false;

@@ -14,7 +14,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +30,11 @@ type Organization = {
   logo?: string | null;
 };
 
-export function OrganizationSwitcher({ currentWorkspace }: { currentWorkspace: string }) {
+export function OrganizationSwitcher({
+  currentOrganization,
+}: {
+  currentOrganization: string;
+}) {
   const [open, setOpen] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +53,7 @@ export function OrganizationSwitcher({ currentWorkspace }: { currentWorkspace: s
       setOrganizations(data || []);
 
       // Find current active organization
-      const current = data?.find((org) => org.slug === currentWorkspace);
+      const current = data?.find((org) => org.slug === currentOrganization);
       setActiveOrg(current || null);
     } catch (error) {
       console.error("Error loading organizations:", error);
@@ -139,10 +147,17 @@ export function OrganizationSwitcher({ currentWorkspace }: { currentWorkspace: s
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={activeOrg?.logo || "/placeholder.svg"} alt={activeOrg?.name} />
-              <AvatarFallback>{activeOrg?.name?.charAt(0) || "?"}</AvatarFallback>
+              <AvatarImage
+                src={activeOrg?.logo || "/placeholder.svg"}
+                alt={activeOrg?.name}
+              />
+              <AvatarFallback>
+                {activeOrg?.name?.charAt(0) || "?"}
+              </AvatarFallback>
             </Avatar>
-            <span className="font-semibold truncate">{activeOrg?.name || "Select Organization"}</span>
+            <span className="font-semibold truncate">
+              {activeOrg?.name || "Select Organization"}
+            </span>
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -160,12 +175,22 @@ export function OrganizationSwitcher({ currentWorkspace }: { currentWorkspace: s
                   className="text-sm"
                 >
                   <Avatar className="mr-2 h-5 w-5">
-                    <AvatarImage src={organization.logo || "/placeholder.svg"} alt={organization.name} />
-                    <AvatarFallback>{organization.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage
+                      src={organization.logo || "/placeholder.svg"}
+                      alt={organization.name}
+                    />
+                    <AvatarFallback>
+                      {organization.name.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   {organization.name}
                   <Check
-                    className={cn("ml-auto h-4 w-4", activeOrg?.id === organization.id ? "opacity-100" : "opacity-0")}
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      activeOrg?.id === organization.id
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
                   />
                 </CommandItem>
               ))}

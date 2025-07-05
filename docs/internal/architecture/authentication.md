@@ -11,11 +11,11 @@ sequenceDiagram
     participant BetterAuth
     participant Database
     participant OAuth Provider
-    
+
     User->>Frontend: Access protected route
     Frontend->>BetterAuth: Check session
     BetterAuth->>Database: Verify session token
-    
+
     alt Session Valid
         Database-->>BetterAuth: Session data
         BetterAuth-->>Frontend: User authenticated
@@ -23,7 +23,7 @@ sequenceDiagram
     else Session Invalid
         BetterAuth-->>Frontend: Authentication required
         Frontend-->>User: Redirect to login
-        
+
         alt Email/Password Login
             User->>Frontend: Submit credentials
             Frontend->>BetterAuth: Authenticate
@@ -50,6 +50,7 @@ sequenceDiagram
 ## Better-Auth Configuration
 
 ### Core Configuration
+
 ```typescript
 // src/lib/auth.ts
 import { betterAuth } from "better-auth";
@@ -82,6 +83,7 @@ export const auth = betterAuth({
 ```
 
 ### Database Schema for Authentication
+
 Better-Auth automatically creates and manages these tables:
 
 ```sql
@@ -124,6 +126,7 @@ CREATE TABLE account (
 ## API Routes
 
 ### Authentication Endpoints
+
 ```typescript
 // src/app/api/auth/[...better-auth]/route.ts
 import { auth } from "@/lib/auth";
@@ -135,6 +138,7 @@ export { GET, POST };
 ```
 
 ### Available Endpoints
+
 Better-Auth provides these endpoints automatically:
 
 ```
@@ -151,10 +155,11 @@ GET  /api/auth/oauth/google         # Google OAuth
 ## Client-Side Authentication
 
 ### React Hook for Authentication
+
 ```typescript
 // src/hooks/use-auth.ts
-import { useEffect, useState } from 'react';
-import type { User } from 'better-auth';
+import { useEffect, useState } from "react";
+import type { User } from "better-auth";
 
 interface AuthState {
   user: User | null;
@@ -172,7 +177,7 @@ export function useAuth(): AuthState {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const response = await fetch('/api/auth/session');
+        const response = await fetch("/api/auth/session");
         if (response.ok) {
           const { user } = await response.json();
           setAuthState({
@@ -204,6 +209,7 @@ export function useAuth(): AuthState {
 ```
 
 ### Authentication Functions
+
 ```typescript
 // src/lib/auth-client.ts
 interface SignInData {
@@ -219,52 +225,52 @@ interface SignUpData {
 
 export const authClient = {
   async signIn(data: SignInData) {
-    const response = await fetch('/api/auth/sign-in', {
-      method: 'POST',
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error('Sign in failed');
+      throw new Error("Sign in failed");
     }
 
     return response.json();
   },
 
   async signUp(data: SignUpData) {
-    const response = await fetch('/api/auth/sign-up', {
-      method: 'POST',
+    const response = await fetch("/api/auth/sign-up", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error('Sign up failed');
+      throw new Error("Sign up failed");
     }
 
     return response.json();
   },
 
   async signOut() {
-    const response = await fetch('/api/auth/sign-out', {
-      method: 'POST',
+    const response = await fetch("/api/auth/sign-out", {
+      method: "POST",
     });
 
     if (!response.ok) {
-      throw new Error('Sign out failed');
+      throw new Error("Sign out failed");
     }
 
     return response.json();
   },
 
   async getSession() {
-    const response = await fetch('/api/auth/session');
-    
+    const response = await fetch("/api/auth/session");
+
     if (!response.ok) {
       return null;
     }
@@ -278,35 +284,36 @@ export const authClient = {
 ## Authentication Components
 
 ### Login Form
+
 ```typescript
 // src/components/auth/login-form.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { authClient } from '@/lib/auth-client';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await authClient.signIn({ email, password });
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err) {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -339,14 +346,12 @@ export function LoginForm() {
               required
             />
           </div>
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
-        
+
         <div className="mt-6 space-y-2">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -358,17 +363,13 @@ export function LoginForm() {
               </span>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" asChild>
-              <a href="/api/auth/oauth/github">
-                GitHub
-              </a>
+              <a href="/api/auth/oauth/github">GitHub</a>
             </Button>
             <Button variant="outline" asChild>
-              <a href="/api/auth/oauth/google">
-                Google
-              </a>
+              <a href="/api/auth/oauth/google">Google</a>
             </Button>
           </div>
         </div>
@@ -379,13 +380,14 @@ export function LoginForm() {
 ```
 
 ### Auth Provider Component
+
 ```typescript
 // src/components/auth/auth-provider.tsx
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { User } from 'better-auth';
-import { authClient } from '@/lib/auth-client';
+import { createContext, useContext, useEffect, useState } from "react";
+import type { User } from "better-auth";
+import { authClient } from "@/lib/auth-client";
 
 interface AuthContextType {
   user: User | null;
@@ -417,7 +419,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await authClient.signOut();
       setUser(null);
     } catch (error) {
-      console.error('Sign out failed:', error);
+      console.error("Sign out failed:", error);
     }
   };
 
@@ -443,7 +445,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
@@ -452,10 +454,11 @@ export function useAuth() {
 ## Route Protection
 
 ### Server-Side Route Protection
+
 ```typescript
 // src/lib/auth-server.ts
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export async function getServerSession() {
   const session = await auth.api.getSession({
@@ -469,36 +472,40 @@ export async function getServerSession() {
 
 export async function requireAuth() {
   const session = await getServerSession();
-  
+
   if (!session) {
-    redirect('/login');
+    redirect("/login");
   }
-  
+
   return session;
 }
 
-export async function requireWorkspaceAccess(workspaceId: string) {
+export async function requireOrganizationAccess(organizationId: string) {
   const session = await requireAuth();
-  
-  // Check if user has access to the workspace
-  const hasAccess = await checkWorkspaceAccess(session.user.id, workspaceId);
-  
+
+  // Check if user has access to the organization
+  const hasAccess = await checkOrganizationAccess(
+    session.user.id,
+    organizationId
+  );
+
   if (!hasAccess) {
-    redirect('/unauthorized');
+    redirect("/unauthorized");
   }
-  
+
   return session;
 }
 ```
 
 ### Client-Side Route Protection
+
 ```typescript
 // src/components/auth/protected-route.tsx
-'use client';
+"use client";
 
-import { useAuth } from '@/components/auth/auth-provider';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -506,10 +513,10 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requireAuth = true, 
-  redirectTo = '/login' 
+export function ProtectedRoute({
+  children,
+  requireAuth = true,
+  redirectTo = "/login",
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -532,28 +539,29 @@ export function ProtectedRoute({
 }
 ```
 
-## Workspace Authorization
+## Organization Authorization
 
 ### Role-Based Access Control
+
 ```typescript
-// src/lib/workspace-auth.ts
-import { db } from '@/lib/db';
-import { workspaceUsers } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+// src/lib/organization-auth.ts
+import { db } from "@/lib/db";
+import { organizationUsers } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
-export type WorkspaceRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type OrganizationRole = "OWNER" | "ADMIN" | "MEMBER";
 
-export async function getUserWorkspaceRole(
+export async function getUserOrganizationRole(
   userId: string,
-  workspaceId: string
-): Promise<WorkspaceRole | null> {
+  organizationId: string
+): Promise<OrganizationRole | null> {
   const result = await db
-    .select({ role: workspaceUsers.role })
-    .from(workspaceUsers)
+    .select({ role: organizationUsers.role })
+    .from(organizationUsers)
     .where(
       and(
-        eq(workspaceUsers.userId, userId),
-        eq(workspaceUsers.workspaceId, workspaceId)
+        eq(organizationUsers.userId, userId),
+        eq(organizationUsers.organizationId, organizationId)
       )
     )
     .limit(1);
@@ -561,32 +569,32 @@ export async function getUserWorkspaceRole(
   return result[0]?.role || null;
 }
 
-export async function checkWorkspacePermission(
+export async function checkOrganizationPermission(
   userId: string,
-  workspaceId: string,
-  requiredRole: WorkspaceRole
+  organizationId: string,
+  requiredRole: OrganizationRole
 ): Promise<boolean> {
-  const userRole = await getUserWorkspaceRole(userId, workspaceId);
-  
+  const userRole = await getUserOrganizationRole(userId, organizationId);
+
   if (!userRole) return false;
-  
+
   const roleHierarchy = {
     OWNER: 3,
     ADMIN: 2,
     MEMBER: 1,
   };
-  
+
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 }
 
-export function requireWorkspaceRole(requiredRole: WorkspaceRole) {
-  return async (userId: string, workspaceId: string) => {
-    const hasPermission = await checkWorkspacePermission(
+export function requireOrganizationRole(requiredRole: OrganizationRole) {
+  return async (userId: string, organizationId: string) => {
+    const hasPermission = await checkOrganizationPermission(
       userId,
-      workspaceId,
+      organizationId,
       requiredRole
     );
-    
+
     if (!hasPermission) {
       throw new Error(`Insufficient permissions. Required: ${requiredRole}`);
     }
@@ -594,49 +602,50 @@ export function requireWorkspaceRole(requiredRole: WorkspaceRole) {
 }
 ```
 
-### Workspace Access Middleware
-```typescript
-// src/middleware/workspace-auth.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth-server';
-import { checkWorkspacePermission } from '@/lib/workspace-auth';
+### Organization Access Middleware
 
-export async function withWorkspaceAuth(
+```typescript
+// src/middleware/organization-auth.ts
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "@/lib/auth-server";
+import { checkOrganizationPermission } from "@/lib/organization-auth";
+
+export async function withOrganizationAuth(
   request: NextRequest,
   handler: (request: NextRequest) => Promise<NextResponse>,
-  requiredRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER'
+  requiredRole: "OWNER" | "ADMIN" | "MEMBER" = "MEMBER"
 ) {
   const session = await getServerSession();
-  
+
   if (!session) {
     return NextResponse.json(
-      { error: 'Authentication required' },
+      { error: "Authentication required" },
       { status: 401 }
     );
   }
-  
-  const workspaceId = request.nextUrl.searchParams.get('workspaceId');
-  
-  if (!workspaceId) {
+
+  const organizationId = request.nextUrl.searchParams.get("organizationId");
+
+  if (!organizationId) {
     return NextResponse.json(
-      { error: 'Workspace ID required' },
+      { error: "Organization ID required" },
       { status: 400 }
     );
   }
-  
-  const hasPermission = await checkWorkspacePermission(
+
+  const hasPermission = await checkOrganizationPermission(
     session.user.id,
-    workspaceId,
+    organizationId,
     requiredRole
   );
-  
+
   if (!hasPermission) {
     return NextResponse.json(
-      { error: 'Insufficient permissions' },
+      { error: "Insufficient permissions" },
       { status: 403 }
     );
   }
-  
+
   return handler(request);
 }
 ```
@@ -644,19 +653,22 @@ export async function withWorkspaceAuth(
 ## Security Features
 
 ### CSRF Protection
+
 Better-Auth includes built-in CSRF protection:
+
 ```typescript
 // Automatic CSRF token validation
 export const auth = betterAuth({
   // ... other config
   csrf: {
     enabled: true,
-    sameSite: 'strict',
+    sameSite: "strict",
   },
 });
 ```
 
 ### Session Security
+
 ```typescript
 // Secure session configuration
 export const auth = betterAuth({
@@ -665,15 +677,16 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // Update session every 24 hours
     cookieOptions: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: "strict",
     },
   },
 });
 ```
 
 ### Password Security
+
 ```typescript
 // Password hashing (handled by Better-Auth)
 export const auth = betterAuth({
@@ -690,6 +703,7 @@ export const auth = betterAuth({
 ## OAuth Configuration
 
 ### GitHub OAuth Setup
+
 ```typescript
 // Environment variables
 GITHUB_CLIENT_ID=your_github_client_id
@@ -706,6 +720,7 @@ socialProviders: {
 ```
 
 ### Google OAuth Setup
+
 ```typescript
 // Environment variables
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -724,6 +739,7 @@ socialProviders: {
 ## Error Handling
 
 ### Authentication Errors
+
 ```typescript
 // src/lib/auth-errors.ts
 export class AuthError extends Error {
@@ -733,47 +749,44 @@ export class AuthError extends Error {
     public status: number = 400
   ) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 }
 
 export const AUTH_ERRORS = {
   INVALID_CREDENTIALS: new AuthError(
-    'Invalid email or password',
-    'INVALID_CREDENTIALS',
+    "Invalid email or password",
+    "INVALID_CREDENTIALS",
     401
   ),
   EMAIL_ALREADY_EXISTS: new AuthError(
-    'Email already exists',
-    'EMAIL_ALREADY_EXISTS',
+    "Email already exists",
+    "EMAIL_ALREADY_EXISTS",
     409
   ),
   EMAIL_NOT_VERIFIED: new AuthError(
-    'Email not verified',
-    'EMAIL_NOT_VERIFIED',
+    "Email not verified",
+    "EMAIL_NOT_VERIFIED",
     403
   ),
-  SESSION_EXPIRED: new AuthError(
-    'Session expired',
-    'SESSION_EXPIRED',
-    401
-  ),
+  SESSION_EXPIRED: new AuthError("Session expired", "SESSION_EXPIRED", 401),
   INSUFFICIENT_PERMISSIONS: new AuthError(
-    'Insufficient permissions',
-    'INSUFFICIENT_PERMISSIONS',
+    "Insufficient permissions",
+    "INSUFFICIENT_PERMISSIONS",
     403
   ),
 };
 ```
 
 ### Error Handling in Components
+
 ```typescript
 // src/components/auth/error-boundary.tsx
-'use client';
+"use client";
 
-import { Component, type ReactNode } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Component, type ReactNode } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface AuthErrorBoundaryState {
   hasError: boolean;
@@ -818,33 +831,38 @@ export class AuthErrorBoundary extends Component<
 ## Testing Authentication
 
 ### Unit Tests
+
 ```typescript
 // src/lib/__tests__/auth.test.ts
-import { authClient } from '@/lib/auth-client';
+import { authClient } from "@/lib/auth-client";
 
-describe('Authentication', () => {
-  it('should sign in with valid credentials', async () => {
+describe("Authentication", () => {
+  it("should sign in with valid credentials", async () => {
     const mockFetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ user: { id: '1', email: 'test@example.com' } }),
+      json: () =>
+        Promise.resolve({ user: { id: "1", email: "test@example.com" } }),
     });
 
     global.fetch = mockFetch;
 
     const result = await authClient.signIn({
-      email: 'test@example.com',
-      password: 'password123',
+      email: "test@example.com",
+      password: "password123",
     });
 
     expect(result).toBeDefined();
-    expect(mockFetch).toHaveBeenCalledWith('/api/auth/sign-in', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'test@example.com', password: 'password123' }),
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "test@example.com",
+        password: "password123",
+      }),
     });
   });
 
-  it('should handle sign in errors', async () => {
+  it("should handle sign in errors", async () => {
     const mockFetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 401,
@@ -854,40 +872,41 @@ describe('Authentication', () => {
 
     await expect(
       authClient.signIn({
-        email: 'test@example.com',
-        password: 'wrongpassword',
+        email: "test@example.com",
+        password: "wrongpassword",
       })
-    ).rejects.toThrow('Sign in failed');
+    ).rejects.toThrow("Sign in failed");
   });
 });
 ```
 
 ### Integration Tests
+
 ```typescript
 // src/app/api/auth/__tests__/auth.test.ts
-import { GET, POST } from '@/app/api/auth/[...better-auth]/route';
-import { NextRequest } from 'next/server';
+import { GET, POST } from "@/app/api/auth/[...better-auth]/route";
+import { NextRequest } from "next/server";
 
-describe('/api/auth', () => {
-  it('should return 401 for unauthenticated session request', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/session');
+describe("/api/auth", () => {
+  it("should return 401 for unauthenticated session request", async () => {
+    const request = new NextRequest("http://localhost:3000/api/auth/session");
     const response = await GET(request);
 
     expect(response.status).toBe(401);
   });
 
-  it('should handle sign in requests', async () => {
-    const request = new NextRequest('http://localhost:3000/api/auth/sign-in', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+  it("should handle sign in requests", async () => {
+    const request = new NextRequest("http://localhost:3000/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'password123',
+        email: "test@example.com",
+        password: "password123",
       }),
     });
 
     const response = await POST(request);
-    
+
     // Response depends on whether user exists in test database
     expect([200, 401]).toContain(response.status);
   });
@@ -897,6 +916,7 @@ describe('/api/auth', () => {
 ## Monitoring and Logging
 
 ### Authentication Events
+
 ```typescript
 // src/lib/auth-logger.ts
 export const authLogger = {
@@ -913,18 +933,19 @@ export const authLogger = {
   },
 
   authError: (error: Error, context: Record<string, any>) => {
-    console.error('Authentication error:', error.message, context);
+    console.error("Authentication error:", error.message, context);
   },
 };
 ```
 
 ### Session Monitoring
+
 ```typescript
 // src/lib/session-monitor.ts
 export async function monitorSession(userId: string) {
   // Track active sessions
   console.log(`Monitoring session for user ${userId}`);
-  
+
   // Could integrate with analytics service
   // analytics.track('session_started', { userId });
 }
@@ -933,6 +954,7 @@ export async function monitorSession(userId: string) {
 ## Production Considerations
 
 ### Environment Variables
+
 ```bash
 # Required for production
 BETTER_AUTH_SECRET=your-secret-key-here
@@ -947,11 +969,13 @@ BETTER_AUTH_URL=https://your-domain.com
 ```
 
 ### SSL/TLS Requirements
+
 - HTTPS required for production
 - Secure cookies enabled
 - Proper redirect URLs for OAuth providers
 
 ### Rate Limiting
+
 ```typescript
 // Add rate limiting for authentication endpoints
 export const auth = betterAuth({
@@ -964,6 +988,7 @@ export const auth = betterAuth({
 ```
 
 ### Email Verification
+
 ```typescript
 // Enable email verification in production
 export const auth = betterAuth({
