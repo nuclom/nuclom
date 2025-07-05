@@ -264,6 +264,30 @@ export const organizationRelations = relations(organizations, ({ many }) => ({
   videos: many(videos),
   channels: many(channels),
   collections: many(collections),
+  members: many(members),
+  invitations: many(invitations),
+}));
+
+export const memberRelations = relations(members, ({ one }) => ({
+  user: one(users, {
+    fields: [members.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [members.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const invitationRelations = relations(invitations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invitations.organizationId],
+    references: [organizations.id],
+  }),
+  inviter: one(users, {
+    fields: [invitations.inviterId],
+    references: [users.id],
+  }),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -339,6 +363,8 @@ export type Organization = typeof organizations.$inferSelect;
 export type NewOrganization = typeof organizations.$inferInsert;
 export type Member = typeof members.$inferSelect;
 export type NewMember = typeof members.$inferInsert;
+export type Invitation = typeof invitations.$inferSelect;
+export type NewInvitation = typeof invitations.$inferInsert;
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
 export type Channel = typeof channels.$inferSelect;

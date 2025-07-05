@@ -258,9 +258,7 @@ export default function MembersSettingsPage() {
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={inviteData.role}
-                  onValueChange={(value: "member" | "owner") =>
-                    setInviteData((prev) => ({ ...prev, role: value }))
-                  }
+                  onValueChange={(value: "member" | "owner") => setInviteData((prev) => ({ ...prev, role: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
