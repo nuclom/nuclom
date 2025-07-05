@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!title || !duration || !organizationId) {
-      return NextResponse.json({ error: "Title, duration, and workspace ID are required" }, { status: 400 });
+      return NextResponse.json({ error: "Title, duration, and organization ID are required" }, { status: 400 });
     }
 
     const video = await createVideo({

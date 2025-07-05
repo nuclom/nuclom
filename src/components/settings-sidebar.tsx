@@ -5,20 +5,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export function SettingsSidebar({ workspace }: { workspace: string }) {
+export function SettingsSidebar({ organization }: { organization: string }) {
   const pathname = usePathname();
   const navItems = [
     {
-      href: `/${workspace}/settings/profile`,
+      href: `/${organization}/settings/profile`,
       label: "Your Profile",
       icon: User,
     },
     {
-      href: `/${workspace}/settings/workspace`,
-      label: "Workspace",
+      href: `/${organization}/settings/organization`,
+      label: "Organization",
       icon: Building,
     },
-    { href: `/${workspace}/settings/members`, label: "Members", icon: Users },
+    {
+      href: `/${organization}/settings/members`,
+      label: "Members",
+      icon: Users,
+    },
   ];
 
   return (
@@ -34,7 +38,7 @@ export function SettingsSidebar({ workspace }: { workspace: string }) {
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   pathname === item.href
                     ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 )}
               >
                 <item.icon className="h-5 w-5" />

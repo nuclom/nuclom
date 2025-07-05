@@ -48,7 +48,7 @@ export class VideoProcessor {
   static async processVideo(
     buffer: Buffer,
     filename: string,
-    workspaceId: string,
+    organizationId: string,
     onProgress?: (progress: ProcessingProgress) => void,
   ): Promise<ProcessingResult> {
     const videoId = uuidv4();
@@ -61,7 +61,7 @@ export class VideoProcessor {
         message: "Uploading video file...",
       });
 
-      const videoKey = StorageService.generateFileKey(workspaceId, `${videoId}-${filename}`, "video");
+      const videoKey = StorageService.generateFileKey(organizationId, `${videoId}-${filename}`, "video");
       const contentType = this.getContentType(filename);
 
       const uploadResult = await StorageService.uploadLargeFile(
@@ -72,7 +72,7 @@ export class VideoProcessor {
           metadata: {
             originalFilename: filename,
             videoId,
-            workspaceId,
+            organizationId,
           },
         },
         (uploadProgress) => {
@@ -102,13 +102,13 @@ export class VideoProcessor {
 
       // Stage 3: Generate thumbnail
       const thumbnailBuffer = await this.generateThumbnail(buffer, filename);
-      const thumbnailKey = StorageService.generateFileKey(workspaceId, `${videoId}-thumbnail.jpg`, "thumbnail");
+      const thumbnailKey = StorageService.generateFileKey(organizationId, `${videoId}-thumbnail.jpg`, "thumbnail");
 
       const thumbnailResult = await StorageService.uploadFile(thumbnailBuffer, thumbnailKey, {
         contentType: "image/jpeg",
         metadata: {
           videoId,
-          workspaceId,
+          organizationId,
           type: "thumbnail",
         },
       });

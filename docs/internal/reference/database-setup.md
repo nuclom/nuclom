@@ -5,6 +5,7 @@ This guide covers setting up and managing the PostgreSQL database for Nuclom usi
 ## Overview
 
 Nuclom uses:
+
 - **PostgreSQL** as the primary database
 - **Drizzle ORM** for database operations and migrations
 - **Drizzle Kit** for schema generation and migrations
@@ -14,6 +15,7 @@ Nuclom uses:
 ### Core Tables
 
 #### Users
+
 ```sql
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
@@ -25,9 +27,10 @@ CREATE TABLE users (
 );
 ```
 
-#### Workspaces
+#### Organizations
+
 ```sql
-CREATE TABLE workspaces (
+CREATE TABLE organizations (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -38,6 +41,7 @@ CREATE TABLE workspaces (
 ```
 
 #### Videos
+
 ```sql
 CREATE TABLE videos (
   id TEXT PRIMARY KEY,
@@ -47,7 +51,7 @@ CREATE TABLE videos (
   thumbnail_url TEXT,
   video_url TEXT,
   author_id TEXT REFERENCES users(id),
-  workspace_id TEXT REFERENCES workspaces(id),
+  organization_id TEXT REFERENCES organizations(id),
   channel_id TEXT REFERENCES channels(id),
   series_id TEXT REFERENCES series(id),
   transcript TEXT,
@@ -64,12 +68,14 @@ See [schema.ts](../../../src/lib/db/schema.ts) for complete schema definition.
 ### 1. Install PostgreSQL
 
 #### macOS
+
 ```bash
 brew install postgresql
 brew services start postgresql
 ```
 
 #### Ubuntu/Debian
+
 ```bash
 sudo apt update
 sudo apt install postgresql postgresql-contrib
@@ -78,6 +84,7 @@ sudo systemctl enable postgresql
 ```
 
 #### Windows
+
 Download and install from [PostgreSQL.org](https://www.postgresql.org/download/windows/)
 
 ### 2. Create Database
@@ -162,20 +169,26 @@ export const db = drizzle(client);
 
 ```typescript
 import { db } from "@/lib/db";
-import { users, workspaces } from "@/lib/db/schema";
+import { users, organizations } from "@/lib/db/schema";
 
 // Create user
-const newUser = await db.insert(users).values({
-  email: "user@example.com",
-  name: "John Doe",
-}).returning();
+const newUser = await db
+  .insert(users)
+  .values({
+    email: "user@example.com",
+    name: "John Doe",
+  })
+  .returning();
 
-// Create workspace
-const newWorkspace = await db.insert(workspaces).values({
-  name: "My Workspace",
-  slug: "my-workspace",
-  description: "Team collaboration space",
-}).returning();
+// Create organization
+const newOrganization = await db
+  .insert(organizations)
+  .values({
+    name: "My Organization",
+    slug: "my-organization",
+    description: "Team collaboration space",
+  })
+  .returning();
 ```
 
 #### Read Operations
@@ -184,34 +197,38 @@ const newWorkspace = await db.insert(workspaces).values({
 import { eq, and, desc } from "drizzle-orm";
 
 // Get user by email
-const user = await db.select()
+const user = await db
+  .select()
   .from(users)
   .where(eq(users.email, "user@example.com"))
   .limit(1);
 
-// Get workspace videos with author
-const videos = await db.select({
-  id: videos.id,
-  title: videos.title,
-  authorName: users.name,
-})
-.from(videos)
-.innerJoin(users, eq(videos.authorId, users.id))
-.where(eq(videos.workspaceId, workspaceId))
-.orderBy(desc(videos.createdAt));
+// Get organization videos with author
+const videos = await db
+  .select({
+    id: videos.id,
+    title: videos.title,
+    authorName: users.name,
+  })
+  .from(videos)
+  .innerJoin(users, eq(videos.authorId, users.id))
+  .where(eq(videos.organizationId, organizationId))
+  .orderBy(desc(videos.createdAt));
 ```
 
 #### Update Operations
 
 ```typescript
 // Update user profile
-await db.update(users)
+await db
+  .update(users)
   .set({ name: "Updated Name" })
   .where(eq(users.id, userId));
 
 // Update video details
-await db.update(videos)
-  .set({ 
+await db
+  .update(videos)
+  .set({
     title: "New Title",
     description: "Updated description",
     updatedAt: new Date(),
@@ -223,12 +240,10 @@ await db.update(videos)
 
 ```typescript
 // Delete video
-await db.delete(videos)
-  .where(eq(videos.id, videoId));
+await db.delete(videos).where(eq(videos.id, videoId));
 
 // Delete user and cascade
-await db.delete(users)
-  .where(eq(users.id, userId));
+await db.delete(users).where(eq(users.id, userId));
 ```
 
 ### Relations and Joins
@@ -239,7 +254,7 @@ const videoWithDetails = await db.query.videos.findFirst({
   where: eq(videos.id, videoId),
   with: {
     author: true,
-    workspace: true,
+    organization: true,
     channel: true,
     series: true,
     comments: {
@@ -290,21 +305,27 @@ CREATE INDEX idx_video_tags_tag ON video_tags(tag);
 ```typescript
 // scripts/seed.ts
 import { db } from "@/lib/db";
-import { users, workspaces, videos } from "@/lib/db/schema";
+import { users, organizations, videos } from "@/lib/db/schema";
 
 async function seed() {
   // Create test user
-  const [user] = await db.insert(users).values({
-    email: "admin@example.com",
-    name: "Admin User",
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: "admin@example.com",
+      name: "Admin User",
+    })
+    .returning();
 
-  // Create test workspace
-  const [workspace] = await db.insert(workspaces).values({
-    name: "Demo Workspace",
-    slug: "demo",
-    description: "Demo workspace for testing",
-  }).returning();
+  // Create test organization
+  const [organization] = await db
+    .insert(organizations)
+    .values({
+      name: "Demo Organization",
+      slug: "demo",
+      description: "Demo organization for testing",
+    })
+    .returning();
 
   // Create test videos
   await db.insert(videos).values([
@@ -313,14 +334,14 @@ async function seed() {
       description: "Introduction to the platform",
       duration: "5:30",
       authorId: user.id,
-      workspaceId: workspace.id,
+      organizationId: organization.id,
     },
     {
       title: "Tutorial Video",
       description: "How to use the platform",
       duration: "12:45",
       authorId: user.id,
-      workspaceId: workspace.id,
+      organizationId: organization.id,
     },
   ]);
 }
@@ -384,33 +405,35 @@ DATABASE_URL="postgresql://nuclom:password@localhost:5432/nuclom"
 
 ```sql
 -- Common indexes for video queries
-CREATE INDEX idx_videos_workspace_id ON videos(workspace_id);
+CREATE INDEX idx_videos_organization_id ON videos(organization_id);
 CREATE INDEX idx_videos_author_id ON videos(author_id);
 CREATE INDEX idx_videos_created_at ON videos(created_at);
 CREATE INDEX idx_videos_channel_id ON videos(channel_id);
 CREATE INDEX idx_videos_series_id ON videos(series_id);
 
 -- Composite indexes for common queries
-CREATE INDEX idx_videos_workspace_created ON videos(workspace_id, created_at DESC);
+CREATE INDEX idx_videos_organization_created ON videos(organization_id, created_at DESC);
 ```
 
 ### Query Optimization
 
 ```typescript
 // Use select specific fields
-const videos = await db.select({
-  id: videos.id,
-  title: videos.title,
-  thumbnailUrl: videos.thumbnailUrl,
-})
-.from(videos)
-.where(eq(videos.workspaceId, workspaceId))
-.limit(20);
+const videos = await db
+  .select({
+    id: videos.id,
+    title: videos.title,
+    thumbnailUrl: videos.thumbnailUrl,
+  })
+  .from(videos)
+  .where(eq(videos.organizationId, organizationId))
+  .limit(20);
 
 // Use pagination
-const videos = await db.select()
+const videos = await db
+  .select()
   .from(videos)
-  .where(eq(videos.workspaceId, workspaceId))
+  .where(eq(videos.organizationId, organizationId))
   .offset(page * limit)
   .limit(limit);
 ```
@@ -423,7 +446,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 const client = postgres(process.env.DATABASE_URL!, {
-  max: 20,          // Maximum connections
+  max: 20, // Maximum connections
   idle_timeout: 30, // Idle timeout in seconds
   max_lifetime: 300, // Maximum connection lifetime
 });
@@ -487,11 +510,11 @@ echo "Backup created: $BACKUP_FILE"
 SELECT pg_database_size('nuclom') / 1024 / 1024 AS size_mb;
 
 -- Check table sizes
-SELECT 
+SELECT
   schemaname,
   tablename,
   pg_total_relation_size(schemaname||'.'||tablename) / 1024 / 1024 AS size_mb
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY size_mb DESC;
 
@@ -499,9 +522,9 @@ ORDER BY size_mb DESC;
 SELECT count(*) FROM pg_stat_activity;
 
 -- Check slow queries
-SELECT query, mean_time, calls 
-FROM pg_stat_statements 
-ORDER BY mean_time DESC 
+SELECT query, mean_time, calls
+FROM pg_stat_statements
+ORDER BY mean_time DESC
 LIMIT 10;
 ```
 

@@ -193,16 +193,16 @@ export class StorageService {
   }
 
   /**
-   * Generate a unique file key with workspace and timestamp
+   * Generate a unique file key with organization and timestamp
    */
   static generateFileKey(
-    workspaceId: string,
+    organizationId: string,
     filename: string,
     type: "video" | "thumbnail" | "processed" = "video",
   ): string {
     const timestamp = Date.now();
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-    return `${workspaceId}/${type}s/${timestamp}-${sanitizedFilename}`;
+    return `${organizationId}/${type}s/${timestamp}-${sanitizedFilename}`;
   }
 }
 

@@ -10,8 +10,12 @@ import { organizations } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 
-export default async function UploadPage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace: workspaceSlug } = await params;
+export default async function UploadPage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization: organizationSlug } = await params;
 
   // Get user from session
   const session = await auth.api.getSession({
@@ -23,7 +27,11 @@ export default async function UploadPage({ params }: { params: Promise<{ workspa
   }
 
   // Get organization by slug
-  const organization = await db.select().from(organizations).where(eq(organizations.slug, workspaceSlug)).limit(1);
+  const organization = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.slug, organizationSlug))
+    .limit(1);
 
   if (!organization.length) {
     redirect("/");
@@ -37,8 +45,13 @@ export default async function UploadPage({ params }: { params: Promise<{ workspa
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild className="flex items-center gap-2">
-            <Link href={`/${workspaceSlug}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="flex items-center gap-2"
+          >
+            <Link href={`/${organizationSlug}`}>
               <ArrowLeft className="h-4 w-4" />
               Back to Videos
             </Link>
@@ -47,7 +60,9 @@ export default async function UploadPage({ params }: { params: Promise<{ workspa
 
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Upload Video</h1>
-          <p className="text-muted-foreground">Upload a new video to your workspace</p>
+          <p className="text-muted-foreground">
+            Upload a new video to your organization
+          </p>
         </div>
 
         {/* Upload Component */}

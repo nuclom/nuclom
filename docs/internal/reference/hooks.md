@@ -15,7 +15,7 @@ import { useVideos } from "@/hooks/use-api";
 
 function VideoList() {
   const { data, loading, error } = useVideos({
-    workspaceId: "workspace-123",
+    organizationId: "organization-123",
     channelId: "channel-456", // optional
     seriesId: "series-789", // optional
     page: 1,
@@ -68,23 +68,23 @@ function VideoDetail({ videoId }: { videoId: string }) {
 }
 ```
 
-#### useWorkspaces
+#### useOrganizations
 
-Fetches user workspaces.
+Fetches user organizations.
 
 ```typescript
-import { useWorkspaces } from "@/hooks/use-api";
+import { useOrganizations } from "@/hooks/use-api";
 
-function WorkspaceList() {
-  const { data: workspaces, loading, error } = useWorkspaces();
+function OrganizationList() {
+  const { data: organizations, loading, error } = useOrganizations();
 
-  if (loading) return <div>Loading workspaces...</div>;
+  if (loading) return <div>Loading organizations...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
-      {workspaces?.map((workspace) => (
-        <WorkspaceCard key={workspace.id} workspace={workspace} />
+      {organizations?.map((organization) => (
+        <OrganizationCard key={organization.id} organization={organization} />
       ))}
     </div>
   );
@@ -417,7 +417,7 @@ export const videoSchema = z.object({
   videoUrl: z.string().url("Invalid video URL").optional(),
 });
 
-export const workspaceSchema = z.object({
+export const organizationSchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name too long"),
   slug: z
     .string()
@@ -430,8 +430,8 @@ export function validateVideo(data: unknown) {
   return videoSchema.safeParse(data);
 }
 
-export function validateWorkspace(data: unknown) {
-  return workspaceSchema.safeParse(data);
+export function validateOrganization(data: unknown) {
+  return organizationSchema.safeParse(data);
 }
 ```
 
@@ -700,16 +700,16 @@ export const mockVideo = {
   thumbnailUrl: "https://example.com/thumbnail.jpg",
   videoUrl: "https://example.com/video.mp4",
   authorId: "user-1",
-  workspaceId: "workspace-1",
+  organizationId: "organization-1",
   createdAt: new Date("2023-01-01"),
   updatedAt: new Date("2023-01-01"),
 };
 
-export const mockWorkspace = {
-  id: "workspace-1",
-  name: "Test Workspace",
-  slug: "test-workspace",
-  description: "Test workspace description",
+export const mockOrganization = {
+  id: "organization-1",
+  name: "Test Organization",
+  slug: "test-organization",
+  description: "Test organization description",
   createdAt: new Date("2023-01-01"),
   updatedAt: new Date("2023-01-01"),
 };

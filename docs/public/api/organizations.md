@@ -1,26 +1,29 @@
-# Workspaces API
+# Organizations API
 
-The Workspaces API provides endpoints for managing team workspaces, user roles, and organizational structure for video collaboration.
+The Organizations API provides endpoints for managing team organizations, user roles, and organizational structure for video collaboration.
 
 ## Endpoints
 
-### List Workspaces
+### List Organizations
 
-Retrieve workspaces for the authenticated user or all workspaces (admin only).
+Retrieve organizations for the authenticated user or all organizations (admin only).
 
 ```http
-GET /api/workspaces
+GET /api/organizations
 ```
 
 **Query Parameters:**
-- `userId` (string, optional): Filter by user ID to get user's workspaces
+
+- `userId` (string, optional): Filter by user ID to get user's organizations
 
 **Example Request:**
+
 ```http
-GET /api/workspaces?userId=user_123
+GET /api/organizations?userId=user_123
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -29,14 +32,14 @@ GET /api/workspaces?userId=user_123
       "id": "ws_123",
       "name": "Development Team",
       "slug": "dev-team",
-      "description": "Main development team workspace",
+      "description": "Main development team organization",
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2024-01-01T00:00:00Z",
       "users": [
         {
           "id": "wu_456",
           "userId": "user_123",
-          "workspaceId": "ws_123",
+          "organizationId": "ws_123",
           "role": "OWNER",
           "createdAt": "2024-01-01T00:00:00Z",
           "user": {
@@ -49,7 +52,7 @@ GET /api/workspaces?userId=user_123
         {
           "id": "wu_789",
           "userId": "user_456",
-          "workspaceId": "ws_123",
+          "organizationId": "ws_123",
           "role": "MEMBER",
           "createdAt": "2024-01-01T00:00:00Z",
           "user": {
@@ -70,26 +73,28 @@ GET /api/workspaces?userId=user_123
 }
 ```
 
-### Create Workspace
+### Create Organization
 
-Create a new workspace for team collaboration.
+Create a new organization for team collaboration.
 
 ```http
-POST /api/workspaces
+POST /api/organizations
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Marketing Team",
   "slug": "marketing-team",
-  "description": "Marketing team collaboration workspace",
+  "description": "Marketing team collaboration organization",
   "ownerId": "user_123"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -97,14 +102,14 @@ Content-Type: application/json
     "id": "ws_456",
     "name": "Marketing Team",
     "slug": "marketing-team",
-    "description": "Marketing team collaboration workspace",
+    "description": "Marketing team collaboration organization",
     "createdAt": "2024-01-01T12:00:00Z",
     "updatedAt": "2024-01-01T12:00:00Z",
     "users": [
       {
         "id": "wu_101",
         "userId": "user_123",
-        "workspaceId": "ws_456",
+        "organizationId": "ws_456",
         "role": "OWNER",
         "createdAt": "2024-01-01T12:00:00Z",
         "user": {
@@ -119,18 +124,20 @@ Content-Type: application/json
 }
 ```
 
-### Get Workspace
+### Get Organization
 
-Retrieve a specific workspace with details.
+Retrieve a specific organization with details.
 
 ```http
-GET /api/workspaces/{id}
+GET /api/organizations/{id}
 ```
 
 **Path Parameters:**
-- `id` (string, required): Workspace ID
+
+- `id` (string, required): Organization ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -138,14 +145,14 @@ GET /api/workspaces/{id}
     "id": "ws_123",
     "name": "Development Team",
     "slug": "dev-team",
-    "description": "Main development team workspace",
+    "description": "Main development team organization",
     "createdAt": "2024-01-01T00:00:00Z",
     "updatedAt": "2024-01-01T00:00:00Z",
     "users": [
       {
         "id": "wu_456",
         "userId": "user_123",
-        "workspaceId": "ws_123",
+        "organizationId": "ws_123",
         "role": "OWNER",
         "createdAt": "2024-01-01T00:00:00Z",
         "user": {
@@ -161,7 +168,7 @@ GET /api/workspaces/{id}
         "id": "ch_123",
         "name": "General",
         "description": "General team discussions",
-        "workspaceId": "ws_123",
+        "organizationId": "ws_123",
         "memberCount": 10,
         "createdAt": "2024-01-01T00:00:00Z",
         "updatedAt": "2024-01-01T00:00:00Z"
@@ -172,7 +179,7 @@ GET /api/workspaces/{id}
         "id": "series_123",
         "name": "Onboarding",
         "description": "New team member onboarding videos",
-        "workspaceId": "ws_123",
+        "organizationId": "ws_123",
         "createdAt": "2024-01-01T00:00:00Z",
         "updatedAt": "2024-01-01T00:00:00Z"
       }
@@ -186,27 +193,30 @@ GET /api/workspaces/{id}
 }
 ```
 
-### Update Workspace
+### Update Organization
 
-Update workspace information.
+Update organization information.
 
 ```http
-PUT /api/workspaces/{id}
+PUT /api/organizations/{id}
 Content-Type: application/json
 ```
 
 **Path Parameters:**
-- `id` (string, required): Workspace ID
+
+- `id` (string, required): Organization ID
 
 **Request Body:**
+
 ```json
 {
   "name": "Updated Development Team",
-  "description": "Updated description for the development team workspace"
+  "description": "Updated description for the development team organization"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -214,44 +224,47 @@ Content-Type: application/json
     "id": "ws_123",
     "name": "Updated Development Team",
     "slug": "dev-team",
-    "description": "Updated description for the development team workspace",
+    "description": "Updated description for the development team organization",
     "createdAt": "2024-01-01T00:00:00Z",
     "updatedAt": "2024-01-01T15:00:00Z"
   }
 }
 ```
 
-### Delete Workspace
+### Delete Organization
 
-Delete a workspace and all associated data.
+Delete a organization and all associated data.
 
 ```http
-DELETE /api/workspaces/{id}
+DELETE /api/organizations/{id}
 ```
 
 **Path Parameters:**
-- `id` (string, required): Workspace ID
+
+- `id` (string, required): Organization ID
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
-    "message": "Workspace deleted successfully"
+    "message": "Organization deleted successfully"
   }
 }
 ```
 
 ## User Management
 
-### Add User to Workspace
+### Add User to Organization
 
 ```http
-POST /api/workspaces/{id}/users
+POST /api/organizations/{id}/users
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "userId": "user_789",
@@ -260,13 +273,14 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
     "id": "wu_012",
     "userId": "user_789",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "role": "MEMBER",
     "createdAt": "2024-01-01T16:00:00Z",
     "user": {
@@ -282,11 +296,12 @@ Content-Type: application/json
 ### Update User Role
 
 ```http
-PUT /api/workspaces/{id}/users/{userId}
+PUT /api/organizations/{id}/users/{userId}
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "role": "ADMIN"
@@ -294,13 +309,14 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
     "id": "wu_012",
     "userId": "user_789",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "role": "ADMIN",
     "createdAt": "2024-01-01T16:00:00Z",
     "user": {
@@ -313,18 +329,19 @@ Content-Type: application/json
 }
 ```
 
-### Remove User from Workspace
+### Remove User from Organization
 
 ```http
-DELETE /api/workspaces/{id}/users/{userId}
+DELETE /api/organizations/{id}/users/{userId}
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "data": {
-    "message": "User removed from workspace"
+    "message": "User removed from organization"
   }
 }
 ```
@@ -334,10 +351,11 @@ DELETE /api/workspaces/{id}/users/{userId}
 ### List Channels
 
 ```http
-GET /api/workspaces/{id}/channels
+GET /api/organizations/{id}/channels
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -346,7 +364,7 @@ GET /api/workspaces/{id}/channels
       "id": "ch_123",
       "name": "General",
       "description": "General team discussions",
-      "workspaceId": "ws_123",
+      "organizationId": "ws_123",
       "memberCount": 10,
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2024-01-01T00:00:00Z"
@@ -358,11 +376,12 @@ GET /api/workspaces/{id}/channels
 ### Create Channel
 
 ```http
-POST /api/workspaces/{id}/channels
+POST /api/organizations/{id}/channels
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Development",
@@ -371,6 +390,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -378,7 +398,7 @@ Content-Type: application/json
     "id": "ch_456",
     "name": "Development",
     "description": "Development team discussions and demos",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "memberCount": 0,
     "createdAt": "2024-01-01T17:00:00Z",
     "updatedAt": "2024-01-01T17:00:00Z"
@@ -389,11 +409,12 @@ Content-Type: application/json
 ### Update Channel
 
 ```http
-PUT /api/workspaces/{id}/channels/{channelId}
+PUT /api/organizations/{id}/channels/{channelId}
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Updated Development",
@@ -404,7 +425,7 @@ Content-Type: application/json
 ### Delete Channel
 
 ```http
-DELETE /api/workspaces/{id}/channels/{channelId}
+DELETE /api/organizations/{id}/channels/{channelId}
 ```
 
 ## Series Management
@@ -412,10 +433,11 @@ DELETE /api/workspaces/{id}/channels/{channelId}
 ### List Series
 
 ```http
-GET /api/workspaces/{id}/series
+GET /api/organizations/{id}/series
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -424,7 +446,7 @@ GET /api/workspaces/{id}/series
       "id": "series_123",
       "name": "Onboarding",
       "description": "New team member onboarding videos",
-      "workspaceId": "ws_123",
+      "organizationId": "ws_123",
       "createdAt": "2024-01-01T00:00:00Z",
       "updatedAt": "2024-01-01T00:00:00Z"
     }
@@ -435,11 +457,12 @@ GET /api/workspaces/{id}/series
 ### Create Series
 
 ```http
-POST /api/workspaces/{id}/series
+POST /api/organizations/{id}/series
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "name": "Training Series",
@@ -448,6 +471,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -455,7 +479,7 @@ Content-Type: application/json
     "id": "series_456",
     "name": "Training Series",
     "description": "Comprehensive training videos for new features",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "createdAt": "2024-01-01T18:00:00Z",
     "updatedAt": "2024-01-01T18:00:00Z"
   }
@@ -465,22 +489,22 @@ Content-Type: application/json
 ### Update Series
 
 ```http
-PUT /api/workspaces/{id}/series/{seriesId}
+PUT /api/organizations/{id}/series/{seriesId}
 Content-Type: application/json
 ```
 
 ### Delete Series
 
 ```http
-DELETE /api/workspaces/{id}/series/{seriesId}
+DELETE /api/organizations/{id}/series/{seriesId}
 ```
 
 ## Data Models
 
-### Workspace
+### Organization
 
 ```typescript
-interface Workspace {
+interface Organization {
   id: string;
   name: string;
   slug: string;
@@ -490,22 +514,22 @@ interface Workspace {
 }
 ```
 
-### Workspace with Users
+### Organization with Users
 
 ```typescript
-interface WorkspaceWithUsers extends Workspace {
-  users: WorkspaceUser[];
+interface OrganizationWithUsers extends Organization {
+  users: OrganizationUser[];
 }
 ```
 
-### WorkspaceUser
+### OrganizationUser
 
 ```typescript
-interface WorkspaceUser {
+interface OrganizationUser {
   id: string;
   userId: string;
-  workspaceId: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  organizationId: string;
+  role: "OWNER" | "ADMIN" | "MEMBER";
   createdAt: string;
   user: User;
 }
@@ -518,7 +542,7 @@ interface Channel {
   id: string;
   name: string;
   description?: string;
-  workspaceId: string;
+  organizationId: string;
   memberCount: number;
   createdAt: string;
   updatedAt: string;
@@ -532,7 +556,7 @@ interface Series {
   id: string;
   name: string;
   description?: string;
-  workspaceId: string;
+  organizationId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -541,49 +565,55 @@ interface Series {
 ## User Roles
 
 ### OWNER
+
 - Full administrative access
-- Can delete workspace
+- Can delete organization
 - Can manage all users and roles
 - Can manage all content
 
 ### ADMIN
+
 - Can manage users (except owners)
 - Can manage channels and series
-- Can manage workspace settings
+- Can manage organization settings
 - Can moderate content
 
 ### MEMBER
+
 - Can view and create content
 - Can comment on videos
 - Can participate in discussions
-- Cannot manage users or workspace settings
+- Cannot manage users or organization settings
 
 ## Permissions
 
-### Workspace Actions
+### Organization Actions
+
 - **Create**: Any authenticated user
-- **View**: Workspace members only
-- **Update**: Workspace OWNER/ADMIN
-- **Delete**: Workspace OWNER only
+- **View**: Organization members only
+- **Update**: Organization OWNER/ADMIN
+- **Delete**: Organization OWNER only
 
 ### User Management
-- **Add User**: Workspace OWNER/ADMIN
-- **Remove User**: Workspace OWNER/ADMIN (cannot remove OWNER)
-- **Update Role**: Workspace OWNER/ADMIN (cannot modify OWNER)
+
+- **Add User**: Organization OWNER/ADMIN
+- **Remove User**: Organization OWNER/ADMIN (cannot remove OWNER)
+- **Update Role**: Organization OWNER/ADMIN (cannot modify OWNER)
 
 ### Channel/Series Management
-- **Create**: Workspace OWNER/ADMIN
-- **Update**: Workspace OWNER/ADMIN
-- **Delete**: Workspace OWNER/ADMIN
+
+- **Create**: Organization OWNER/ADMIN
+- **Update**: Organization OWNER/ADMIN
+- **Delete**: Organization OWNER/ADMIN
 
 ## Error Responses
 
-### Workspace Not Found
+### Organization Not Found
 
 ```json
 {
   "success": false,
-  "error": "Workspace not found"
+  "error": "Organization not found"
 }
 ```
 
@@ -610,20 +640,21 @@ interface Series {
 ```json
 {
   "success": false,
-  "error": "Workspace slug already exists"
+  "error": "Organization slug already exists"
 }
 ```
 
-## Workspace Invitations
+## Organization Invitations
 
 ### Create Invitation
 
 ```http
-POST /api/workspaces/{id}/invitations
+POST /api/organizations/{id}/invitations
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "newuser@example.com",
@@ -632,6 +663,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -649,11 +681,12 @@ Content-Type: application/json
 ### Accept Invitation
 
 ```http
-POST /api/workspaces/invitations/accept
+POST /api/organizations/invitations/accept
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "token": "invitation_token_abc123"
@@ -663,10 +696,11 @@ Content-Type: application/json
 ### List Invitations
 
 ```http
-GET /api/workspaces/{id}/invitations
+GET /api/organizations/{id}/invitations
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -685,13 +719,14 @@ GET /api/workspaces/{id}/invitations
 
 ## Analytics
 
-### Workspace Statistics
+### Organization Statistics
 
 ```http
-GET /api/workspaces/{id}/stats
+GET /api/organizations/{id}/stats
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -711,10 +746,11 @@ GET /api/workspaces/{id}/stats
 ### User Activity
 
 ```http
-GET /api/workspaces/{id}/activity?limit=20
+GET /api/organizations/{id}/activity?limit=20
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -739,11 +775,12 @@ GET /api/workspaces/{id}/activity?limit=20
 ### Bulk Add Users
 
 ```http
-POST /api/workspaces/{id}/users/bulk
+POST /api/organizations/{id}/users/bulk
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "users": [
@@ -762,11 +799,12 @@ Content-Type: application/json
 ### Bulk Update Roles
 
 ```http
-PUT /api/workspaces/{id}/users/bulk
+PUT /api/organizations/{id}/users/bulk
 Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "updates": [
@@ -787,44 +825,44 @@ Content-Type: application/json
 ### JavaScript/TypeScript
 
 ```typescript
-// Create workspace
-const workspace = await fetch('/api/workspaces', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+// Create organization
+const organization = await fetch("/api/organizations", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    name: 'My Team',
-    slug: 'my-team',
-    description: 'Team workspace',
-    ownerId: 'user_123'
-  })
+    name: "My Team",
+    slug: "my-team",
+    description: "Team organization",
+    ownerId: "user_123",
+  }),
 });
 
-// Add user to workspace
-await fetch(`/api/workspaces/${workspaceId}/users`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+// Add user to organization
+await fetch(`/api/organizations/${organizationId}/users`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    userId: 'user_456',
-    role: 'MEMBER'
-  })
+    userId: "user_456",
+    role: "MEMBER",
+  }),
 });
 ```
 
 ### React Hook
 
 ```typescript
-import { useWorkspaces } from '@/hooks/useWorkspaces';
+import { useOrganizations } from "@/hooks/useOrganizations";
 
-function WorkspaceList() {
-  const { workspaces, loading, error } = useWorkspaces();
+function OrganizationList() {
+  const { organizations, loading, error } = useOrganizations();
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
-      {workspaces.map(workspace => (
-        <WorkspaceCard key={workspace.id} workspace={workspace} />
+      {organizations.map((organization) => (
+        <OrganizationCard key={organization.id} organization={organization} />
       ))}
     </div>
   );
@@ -833,6 +871,6 @@ function WorkspaceList() {
 
 ## Rate Limits
 
-- **Workspace Creation**: 5 per hour per user
-- **User Invitations**: 50 per day per workspace
+- **Organization Creation**: 5 per hour per user
+- **User Invitations**: 50 per day per organization
 - **API Requests**: 100 per minute per user

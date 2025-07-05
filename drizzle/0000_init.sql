@@ -1,4 +1,6 @@
-CREATE TYPE "public"."WorkspaceRole" AS ENUM('OWNER', 'ADMIN', 'MEMBER');--> statement-breakpoint
+CREATE TYPE "public"."OrganizationRole" AS ENUM('OWNER', 'ADMIN', 'MEMBER');
+
+--> statement-breakpoint
 CREATE TABLE "accounts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
@@ -14,6 +16,7 @@ CREATE TABLE "accounts" (
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "apikeys" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -38,25 +41,28 @@ CREATE TABLE "apikeys" (
 	"permissions" text,
 	"metadata" text
 );
+
 --> statement-breakpoint
 CREATE TABLE "channels" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
-	"workspace_id" text NOT NULL,
+	"organization_id" text NOT NULL,
 	"member_count" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "collections" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
-	"workspace_id" text NOT NULL,
+	"organization_id" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "comments" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -68,6 +74,7 @@ CREATE TABLE "comments" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "invitations" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -78,6 +85,7 @@ CREATE TABLE "invitations" (
 	"expires_at" timestamp NOT NULL,
 	"inviter_id" text NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "members" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -86,6 +94,7 @@ CREATE TABLE "members" (
 	"role" text DEFAULT 'member' NOT NULL,
 	"created_at" timestamp NOT NULL
 );
+
 --> statement-breakpoint
 CREATE TABLE "oauth_access_tokens" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -101,6 +110,7 @@ CREATE TABLE "oauth_access_tokens" (
 	CONSTRAINT "oauth_access_tokens_access_token_unique" UNIQUE("access_token"),
 	CONSTRAINT "oauth_access_tokens_refresh_token_unique" UNIQUE("refresh_token")
 );
+
 --> statement-breakpoint
 CREATE TABLE "oauth_applications" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -117,6 +127,7 @@ CREATE TABLE "oauth_applications" (
 	"updated_at" timestamp,
 	CONSTRAINT "oauth_applications_client_id_unique" UNIQUE("client_id")
 );
+
 --> statement-breakpoint
 CREATE TABLE "oauth_consents" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -127,6 +138,7 @@ CREATE TABLE "oauth_consents" (
 	"updated_at" timestamp,
 	"consent_given" boolean
 );
+
 --> statement-breakpoint
 CREATE TABLE "organizations" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -137,6 +149,7 @@ CREATE TABLE "organizations" (
 	"metadata" text,
 	CONSTRAINT "organizations_slug_unique" UNIQUE("slug")
 );
+
 --> statement-breakpoint
 CREATE TABLE "sessions" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -151,6 +164,7 @@ CREATE TABLE "sessions" (
 	"impersonated_by" text,
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
+
 --> statement-breakpoint
 CREATE TABLE "users" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -166,6 +180,7 @@ CREATE TABLE "users" (
 	"ban_expires" timestamp,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
+
 --> statement-breakpoint
 CREATE TABLE "verifications" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -175,6 +190,7 @@ CREATE TABLE "verifications" (
 	"created_at" timestamp,
 	"updated_at" timestamp
 );
+
 --> statement-breakpoint
 CREATE TABLE "video_progresses" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -183,8 +199,9 @@ CREATE TABLE "video_progresses" (
 	"current_time" text NOT NULL,
 	"completed" boolean DEFAULT false NOT NULL,
 	"last_watched_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "video_progresses_user_id_video_id_unique" UNIQUE("user_id","video_id")
+	CONSTRAINT "video_progresses_user_id_video_id_unique" UNIQUE("user_id", "video_id")
 );
+
 --> statement-breakpoint
 CREATE TABLE "videos" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -194,7 +211,7 @@ CREATE TABLE "videos" (
 	"thumbnail_url" text,
 	"video_url" text,
 	"author_id" text NOT NULL,
-	"workspace_id" text NOT NULL,
+	"organization_id" text NOT NULL,
 	"channel_id" text,
 	"collection_id" text,
 	"transcript" text,
@@ -202,42 +219,138 @@ CREATE TABLE "videos" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
+
 --> statement-breakpoint
-CREATE TABLE "workspace_users" (
+CREATE TABLE "organization_users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
-	"workspace_id" text NOT NULL,
-	"role" "WorkspaceRole" DEFAULT 'MEMBER' NOT NULL,
+	"organization_id" text NOT NULL,
+	"role" "OrganizationRole" DEFAULT 'MEMBER' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "workspace_users_user_id_workspace_id_unique" UNIQUE("user_id","workspace_id")
+	CONSTRAINT "organization_users_user_id_organization_id_unique" UNIQUE("user_id", "organization_id")
 );
+
 --> statement-breakpoint
-CREATE TABLE "workspaces" (
+CREATE TABLE "organizations" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"slug" text NOT NULL,
 	"description" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "workspaces_slug_unique" UNIQUE("slug")
+	CONSTRAINT "organizations_slug_unique" UNIQUE("slug")
 );
+
 --> statement-breakpoint
-ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "apikeys" ADD CONSTRAINT "apikeys_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "channels" ADD CONSTRAINT "channels_workspace_id_workspaces_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "collections" ADD CONSTRAINT "collections_workspace_id_workspaces_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "comments" ADD CONSTRAINT "comments_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "invitations" ADD CONSTRAINT "invitations_inviter_id_users_id_fk" FOREIGN KEY ("inviter_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "members" ADD CONSTRAINT "members_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "members" ADD CONSTRAINT "members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "video_progresses" ADD CONSTRAINT "video_progresses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "video_progresses" ADD CONSTRAINT "video_progresses_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videos" ADD CONSTRAINT "videos_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videos" ADD CONSTRAINT "videos_workspace_id_workspaces_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videos" ADD CONSTRAINT "videos_channel_id_channels_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channels"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "videos" ADD CONSTRAINT "videos_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_users" ADD CONSTRAINT "workspace_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "workspace_users" ADD CONSTRAINT "workspace_users_workspace_id_workspaces_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."workspaces"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE
+	"accounts"
+ADD
+	CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"apikeys"
+ADD
+	CONSTRAINT "apikeys_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"channels"
+ADD
+	CONSTRAINT "channels_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"collections"
+ADD
+	CONSTRAINT "collections_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"comments"
+ADD
+	CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"comments"
+ADD
+	CONSTRAINT "comments_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"invitations"
+ADD
+	CONSTRAINT "invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"invitations"
+ADD
+	CONSTRAINT "invitations_inviter_id_users_id_fk" FOREIGN KEY ("inviter_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"members"
+ADD
+	CONSTRAINT "members_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"members"
+ADD
+	CONSTRAINT "members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"sessions"
+ADD
+	CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"video_progresses"
+ADD
+	CONSTRAINT "video_progresses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"video_progresses"
+ADD
+	CONSTRAINT "video_progresses_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"videos"
+ADD
+	CONSTRAINT "videos_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"videos"
+ADD
+	CONSTRAINT "videos_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"videos"
+ADD
+	CONSTRAINT "videos_channel_id_channels_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channels"("id") ON DELETE no action ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"videos"
+ADD
+	CONSTRAINT "videos_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE no action ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"organization_users"
+ADD
+	CONSTRAINT "organization_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+
+--> statement-breakpoint
+ALTER TABLE
+	"organization_users"
+ADD
+	CONSTRAINT "organization_users_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;

@@ -32,7 +32,7 @@ Use descriptive branch names that indicate the type of change:
 # Features
 feature/user-authentication
 feature/video-upload
-feature/workspace-management
+feature/organization-management
 
 # Bug fixes
 fix/video-player-controls
@@ -364,7 +364,7 @@ describe("/api/videos", () => {
       body: JSON.stringify({
         title: "Test Video",
         duration: "10:30",
-        workspaceId: "workspace-1",
+        organizationId: "organization-1",
       }),
     });
 
@@ -447,16 +447,16 @@ Reviewers will check for:
 ```typescript
 // ✅ Good: Clear JSDoc comments
 /**
- * Creates a new video in the specified workspace.
+ * Creates a new video in the specified organization.
  *
  * @param videoData - The video data to create
- * @param workspaceId - The ID of the workspace
+ * @param organizationId - The ID of the organization
  * @returns Promise resolving to the created video
- * @throws Error if workspace doesn't exist
+ * @throws Error if organization doesn't exist
  */
 export async function createVideo(
   videoData: CreateVideoData,
-  workspaceId: string
+  organizationId: string
 ): Promise<Video> {
   // Implementation
 }
@@ -502,7 +502,7 @@ const ExpensiveComponent = memo(function ExpensiveComponent({ data }) {
 ```typescript
 // ✅ Good: Efficient database queries
 const videos = await db.query.videos.findMany({
-  where: eq(videos.workspaceId, workspaceId),
+  where: eq(videos.organizationId, organizationId),
   with: {
     author: {
       columns: {
@@ -662,7 +662,7 @@ All changes are documented in [CHANGELOG.md](../CHANGELOG.md):
 ### Added
 
 - Video upload functionality
-- Workspace management
+- Organization management
 - User authentication
 
 ### Changed

@@ -36,8 +36,12 @@ const channelVideoData = [
   },
 ];
 
-export default async function ChannelPage({ params }: { params: Promise<{ workspace: string; id: string }> }) {
-  const { workspace, id } = await params;
+export default async function ChannelPage({
+  params,
+}: {
+  params: Promise<{ organization: string; id: string }>;
+}) {
+  const { organization, id } = await params;
   const channelName = id.replace("-", " ");
   return (
     <div className="space-y-8">
@@ -74,7 +78,9 @@ export default async function ChannelPage({ params }: { params: Promise<{ worksp
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -85,7 +91,7 @@ export default async function ChannelPage({ params }: { params: Promise<{ worksp
                 banExpires: null,
               },
             }}
-            workspace={workspace}
+            organization={organization}
           />
         ))}
       </div>

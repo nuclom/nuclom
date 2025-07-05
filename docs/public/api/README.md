@@ -4,7 +4,7 @@ Nuclom is a comprehensive video collaboration platform that enables teams to cre
 
 ## Overview
 
-The Nuclom API provides RESTful endpoints for managing video content, workspaces, user authentication, and AI-powered video analysis. All endpoints return JSON responses and follow consistent patterns for error handling and data formatting.
+The Nuclom API provides RESTful endpoints for managing video content, organizations, user authentication, and AI-powered video analysis. All endpoints return JSON responses and follow consistent patterns for error handling and data formatting.
 
 ## Base URL
 
@@ -15,6 +15,7 @@ https://yourdomain.com/api
 ## Authentication
 
 The API uses Better Auth for authentication with support for:
+
 - Email/password authentication
 - OAuth providers (GitHub, Google)
 - Session-based authentication
@@ -26,24 +27,28 @@ For detailed authentication documentation, see [Authentication](./authentication
 The API is organized into the following modules:
 
 ### [Authentication](./authentication.md)
+
 - User registration and login
 - OAuth provider integration
 - Session management
 - Password reset
 
 ### [Videos](./videos.md)
+
 - Video CRUD operations
 - Video metadata management
 - Comments and discussions
 - Progress tracking
 
-### [Workspaces](./workspaces.md)
-- Workspace management
+### [Organizations](./organizations.md)
+
+- Organization management
 - Team collaboration
 - User roles and permissions
 - Channel and series organization
 
 ### [AI Services](./ai.md)
+
 - Video transcript analysis
 - AI-powered summaries
 - Action item extraction
@@ -110,12 +115,14 @@ The API uses standard HTTP status codes:
 ## Rate Limiting
 
 API requests are rate-limited to ensure fair usage:
+
 - 100 requests per minute per IP address
 - 1000 requests per hour per authenticated user
 
 ## Data Models
 
 ### User
+
 ```typescript
 interface User {
   id: string;
@@ -127,9 +134,10 @@ interface User {
 }
 ```
 
-### Workspace
+### Organization
+
 ```typescript
-interface Workspace {
+interface Organization {
   id: string;
   name: string;
   slug: string;
@@ -140,6 +148,7 @@ interface Workspace {
 ```
 
 ### Video
+
 ```typescript
 interface Video {
   id: string;
@@ -149,7 +158,7 @@ interface Video {
   thumbnailUrl?: string;
   videoUrl?: string;
   authorId: string;
-  workspaceId: string;
+  organizationId: string;
   channelId?: string;
   seriesId?: string;
   transcript?: string;
@@ -160,6 +169,7 @@ interface Video {
 ```
 
 ### Comment
+
 ```typescript
 interface Comment {
   id: string;
@@ -176,6 +186,7 @@ interface Comment {
 ## SDKs and Libraries
 
 Official SDKs are available for:
+
 - JavaScript/TypeScript
 - Python
 - React hooks for frontend integration
@@ -183,6 +194,7 @@ Official SDKs are available for:
 ## Support
 
 For API support and questions:
+
 - Documentation: [docs.nuclom.com](https://docs.nuclom.com)
 - Email: api-support@nuclom.com
 - GitHub Issues: [github.com/nuclom/api-issues](https://github.com/nuclom/api-issues)

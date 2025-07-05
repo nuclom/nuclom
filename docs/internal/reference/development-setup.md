@@ -67,13 +67,13 @@ The application will be available at `http://localhost:3000`.
 src/
 ├── app/                    # Next.js App Router
 │   ├── (main)/            # Main application routes
-│   │   └── [workspace]/   # Workspace-scoped routes
+│   │   └── [organization]/   # Organization-scoped routes
 │   │       ├── channels/  # Channel management
 │   │       ├── series/    # Series management
 │   │       ├── videos/    # Video management
 │   │       ├── search/    # Search functionality
 │   │       ├── shared/    # Shared content
-│   │       └── settings/  # Workspace settings
+│   │       └── settings/  # Organization settings
 │   └── api/               # API routes
 ├── components/            # React components
 │   ├── ui/               # shadcn/ui components
@@ -89,15 +89,18 @@ src/
 ### Code Organization
 
 #### Components
+
 - **UI Components**: Use shadcn/ui components in `src/components/ui/`
 - **Custom Components**: Create reusable components in `src/components/`
 - **Page Components**: Keep page-specific components close to their routes
 
 #### Hooks
+
 - **API Hooks**: Use custom hooks in `src/hooks/use-api.ts`
 - **Utility Hooks**: Create custom hooks for reusable logic
 
 #### Utilities
+
 - **Database**: Schema and types in `src/lib/db/`
 - **API Client**: Type-safe API client in `src/lib/api.ts`
 - **Utils**: Common utilities in `src/lib/utils.ts`
@@ -139,11 +142,7 @@ interface MyComponentProps {
 }
 
 export function MyComponent({ children, className }: MyComponentProps) {
-  return (
-    <div className={cn("my-component-styles", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("my-component-styles", className)}>{children}</div>;
 }
 ```
 
@@ -212,10 +211,12 @@ export function useMyData() {
 
 ```typescript
 // src/lib/db/schema.ts
-export const myTable = pgTable('my_table', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+export const myTable = pgTable("my_table", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export type MyModel = typeof myTable.$inferSelect;
@@ -289,7 +290,7 @@ import Image from "next/image";
   width={400}
   height={300}
   priority={false}
-/>
+/>;
 ```
 
 ### API Optimization

@@ -15,17 +15,20 @@ The Nuclom application uses [BetterAuth](https://better-auth.com/) for authentic
 ## Quick Setup
 
 1. **Install Dependencies** (already included)
+
    ```bash
    npm install better-auth
    ```
 
 2. **Set Environment Variables**
+
    ```bash
    cp .env.example .env.local
    # Fill in the required values
    ```
 
 3. **Database Setup**
+
    - Better Auth automatically creates the required tables
    - Ensure your PostgreSQL database is running
    - Set `DATABASE_URL` in your environment
@@ -44,10 +47,10 @@ import { useAuth } from "@/hooks/use-auth";
 
 function MyComponent() {
   const { user, isLoading } = useAuth();
-  
+
   if (isLoading) return <div>Loading...</div>;
   if (!user) return <div>Please sign in</div>;
-  
+
   return <div>Hello {user.name}!</div>;
 }
 ```
@@ -75,24 +78,27 @@ function ProtectedPage() {
 ## Available Routes
 
 - **Public Routes**: `/login`, `/register`
-- **Protected Routes**: All workspace routes (handled by client-side auth)
+- **Protected Routes**: All organization routes (handled by client-side auth)
 
 ## Database Schema
 
 Better Auth automatically manages these tables:
+
 - `user` - User accounts
-- `session` - User sessions  
+- `session` - User sessions
 - `account` - OAuth account linking
 - `verification` - Email verification tokens
 
 ## Production Considerations
 
 1. **Set Strong Secret**
+
    ```bash
    BETTER_AUTH_SECRET=$(openssl rand -base64 32)
    ```
 
 2. **Enable Email Verification**
+
    ```ts
    // In src/lib/auth.ts
    emailAndPassword: {

@@ -22,14 +22,18 @@ const myVideoData = [
   },
 ];
 
-export default async function MyVideosPage({ params }: { params: Promise<{ workspace: string }> }) {
-  const { workspace } = await params;
+export default async function MyVideosPage({
+  params,
+}: {
+  params: Promise<{ organization: string }>;
+}) {
+  const { organization } = await params;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">My Videos</h1>
-        <Link href={`/${workspace}/upload`}>
+        <Link href={`/${organization}/upload`}>
           <Button className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
             Upload Video
@@ -58,7 +62,9 @@ export default async function MyVideosPage({ params }: { params: Promise<{ works
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
+                email: `${video.author
+                  .toLowerCase()
+                  .replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -69,7 +75,7 @@ export default async function MyVideosPage({ params }: { params: Promise<{ works
                 banExpires: null,
               },
             }}
-            workspace={workspace}
+            organization={organization}
           />
         ))}
       </div>

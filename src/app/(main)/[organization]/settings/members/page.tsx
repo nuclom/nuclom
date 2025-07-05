@@ -3,8 +3,21 @@
 import { MoreHorizontal, Plus, Mail, UserMinus, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +33,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +72,7 @@ export default function MembersSettingsPage() {
 
   useEffect(() => {
     loadOrganizationAndMembers();
-  }, [params.workspace]);
+  }, [params.organization]);
 
   const loadOrganizationAndMembers = async () => {
     try {
@@ -61,7 +80,7 @@ export default function MembersSettingsPage() {
 
       // Get organization
       const { data: orgs } = await authClient.organization.list();
-      const currentOrg = orgs?.find((org) => org.slug === params.workspace);
+      const currentOrg = orgs?.find((org) => org.slug === params.organization);
 
       if (!currentOrg) {
         toast({
@@ -81,7 +100,9 @@ export default function MembersSettingsPage() {
 
       // For now, we'll need to fetch members via a custom API since BetterAuth
       // doesn't expose a direct client method for listing members
-      const response = await fetch(`/api/organizations/${currentOrg.id}/members`);
+      const response = await fetch(
+        `/api/organizations/${currentOrg.id}/members`
+      );
       if (response.ok) {
         const data = await response.json();
         setMembers(data || []);
@@ -130,7 +151,10 @@ export default function MembersSettingsPage() {
     }
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: "member" | "owner") => {
+  const handleUpdateRole = async (
+    memberId: string,
+    newRole: "member" | "owner"
+  ) => {
     if (!organization) return;
 
     try {
@@ -159,7 +183,9 @@ export default function MembersSettingsPage() {
   const handleRemoveMember = async (memberId: string, memberName: string) => {
     if (!organization) return;
 
-    const confirmed = confirm(`Are you sure you want to remove ${memberName} from the organization?`);
+    const confirmed = confirm(
+      `Are you sure you want to remove ${memberName} from the organization?`
+    );
     if (!confirmed) return;
 
     try {
@@ -224,7 +250,9 @@ export default function MembersSettingsPage() {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Members</CardTitle>
-          <CardDescription>Manage who has access to this organization.</CardDescription>
+          <CardDescription>
+            Manage who has access to this organization.
+          </CardDescription>
         </div>
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogTrigger asChild>
@@ -236,7 +264,9 @@ export default function MembersSettingsPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite Member</DialogTitle>
-              <DialogDescription>Send an invitation to join {organization?.name}</DialogDescription>
+              <DialogDescription>
+                Send an invitation to join {organization?.name}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -273,7 +303,10 @@ export default function MembersSettingsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
+              <Button
+                onClick={handleInviteMember}
+                disabled={inviting || !inviteData.email.trim()}
+              >
                 {inviting ? "Sending..." : "Send Invitation"}
               </Button>
             </DialogFooter>
@@ -295,17 +328,25 @@ export default function MembersSettingsPage() {
                 <TableCell className="pl-6">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.user.image || "/placeholder.svg"} />
-                      <AvatarFallback>{member.user.name.slice(0, 2)}</AvatarFallback>
+                      <AvatarImage
+                        src={member.user.image || "/placeholder.svg"}
+                      />
+                      <AvatarFallback>
+                        {member.user.name.slice(0, 2)}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="font-medium">{member.user.name}</div>
-                      <div className="text-sm text-muted-foreground">{member.user.email}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {member.user.email}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getRoleBadgeVariant(member.role)}>{member.role}</Badge>
+                  <Badge variant={getRoleBadgeVariant(member.role)}>
+                    {member.role}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right pr-4">
                   <DropdownMenu>
@@ -318,13 +359,22 @@ export default function MembersSettingsPage() {
                       {member.role !== "owner" && (
                         <>
                           <DropdownMenuItem
-                            onClick={() => handleUpdateRole(member.id, member.role === "member" ? "owner" : "member")}
+                            onClick={() =>
+                              handleUpdateRole(
+                                member.id,
+                                member.role === "member" ? "owner" : "member"
+                              )
+                            }
                           >
                             <Shield className="h-4 w-4 mr-2" />
-                            {member.role === "member" ? "Make Owner" : "Make Member"}
+                            {member.role === "member"
+                              ? "Make Owner"
+                              : "Make Member"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleRemoveMember(member.id, member.user.name)}
+                            onClick={() =>
+                              handleRemoveMember(member.id, member.user.name)
+                            }
                             className="text-destructive"
                           >
                             <UserMinus className="h-4 w-4 mr-2" />

@@ -5,33 +5,38 @@ Welcome to Nuclom, a modern video collaboration platform designed for teams to u
 ## 🚀 Getting Started
 
 ### New to Nuclom?
+
 - **[Getting Started Guide](guides/getting-started.md)** - Complete onboarding for new users
 - **[Platform Overview](guides/README.md)** - Understand Nuclom's core features
 
 ### Quick Navigation
+
 - **[User Guides](guides/)** - Complete user documentation
 - **[API Documentation](api/)** - Developer API reference
 
 ## 📚 User Guides
 
 ### Essential Guides
+
 - **[Getting Started](guides/getting-started.md)** - Account setup and first steps
-- **[Workspace Management](guides/workspace-management.md)** - Create and organize workspaces
+- **[Organization Management](guides/organization-management.md)** - Create and organize organizations
 - **[Video Organization](guides/video-organization.md)** - Upload and structure your content
 - **[Collaboration Features](guides/collaboration.md)** - Work together with comments and sharing
 - **[Team Management](guides/team-management.md)** - Manage members and permissions
 
 ### Additional Resources
+
 - **[Settings & Preferences](guides/settings-preferences.md)** - Customize your experience
 - **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
 
 ## 🌐 API Documentation
 
 ### For Developers
+
 - **[API Overview](api/README.md)** - Introduction to the Nuclom API
 - **[Authentication](api/authentication.md)** - API authentication methods
 - **[Video Management](api/videos.md)** - Video CRUD operations and metadata
-- **[Workspace APIs](api/workspaces.md)** - Team and workspace management
+- **[Organization APIs](api/organizations.md)** - Team and organization management
 - **[AI Integration](api/ai.md)** - Video analysis and AI features
 
 ## 🎥 What is Nuclom?
@@ -48,18 +53,21 @@ Nuclom is a comprehensive video collaboration platform that enables teams to:
 ## 🛠️ Key Features
 
 ### Video Management
+
 - Drag-and-drop video uploads
 - Automatic processing and optimization
 - Metadata management and tagging
 - Channel and series organization
 
 ### Collaboration Tools
+
 - Time-stamped comments
 - Real-time discussions
 - Share videos with external users
-- Team workspaces with permissions
+- Team organizations with permissions
 
 ### Smart Features
+
 - AI-powered video summaries
 - Automatic transcription
 - Action item extraction

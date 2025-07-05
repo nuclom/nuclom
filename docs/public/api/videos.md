@@ -13,18 +13,21 @@ GET /api/videos
 ```
 
 **Query Parameters:**
-- `workspaceId` (string, optional): Filter by workspace ID
+
+- `organizationId` (string, optional): Filter by organization ID
 - `channelId` (string, optional): Filter by channel ID
 - `seriesId` (string, optional): Filter by series ID
 - `page` (integer, optional): Page number (default: 1)
 - `limit` (integer, optional): Items per page (default: 20, max: 100)
 
 **Example Request:**
+
 ```http
-GET /api/videos?workspaceId=ws_123&page=1&limit=10
+GET /api/videos?organizationId=ws_123&page=1&limit=10
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -38,7 +41,7 @@ GET /api/videos?workspaceId=ws_123&page=1&limit=10
         "thumbnailUrl": "https://example.com/thumbnail.jpg",
         "videoUrl": "https://example.com/video.mp4",
         "authorId": "user_456",
-        "workspaceId": "ws_123",
+        "organizationId": "ws_123",
         "channelId": "ch_789",
         "seriesId": "series_012",
         "transcript": "Meeting transcript...",
@@ -51,7 +54,7 @@ GET /api/videos?workspaceId=ws_123&page=1&limit=10
           "email": "john@example.com",
           "avatarUrl": "https://example.com/avatar.jpg"
         },
-        "workspace": {
+        "organization": {
           "id": "ws_123",
           "name": "Development Team",
           "slug": "dev-team"
@@ -87,14 +90,17 @@ GET /api/videos/{id}
 ```
 
 **Path Parameters:**
+
 - `id` (string, required): Video ID
 
 **Example Request:**
+
 ```http
 GET /api/videos/video_123
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -106,7 +112,7 @@ GET /api/videos/video_123
     "thumbnailUrl": "https://example.com/thumbnail.jpg",
     "videoUrl": "https://example.com/video.mp4",
     "authorId": "user_456",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "channelId": "ch_789",
     "seriesId": "series_012",
     "transcript": "Meeting transcript...",
@@ -119,7 +125,7 @@ GET /api/videos/video_123
       "email": "john@example.com",
       "avatarUrl": "https://example.com/avatar.jpg"
     },
-    "workspace": {
+    "organization": {
       "id": "ws_123",
       "name": "Development Team",
       "slug": "dev-team"
@@ -159,7 +165,7 @@ GET /api/videos/video_123
 
 ### Create Video
 
-Create a new video in a workspace.
+Create a new video in a organization.
 
 ```http
 POST /api/videos
@@ -167,6 +173,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "title": "Team Meeting - Q1 Planning",
@@ -175,13 +182,14 @@ Content-Type: application/json
   "thumbnailUrl": "https://example.com/thumbnail.jpg",
   "videoUrl": "https://example.com/video.mp4",
   "authorId": "user_456",
-  "workspaceId": "ws_123",
+  "organizationId": "ws_123",
   "channelId": "ch_789",
   "seriesId": "series_012"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -193,7 +201,7 @@ Content-Type: application/json
     "thumbnailUrl": "https://example.com/thumbnail.jpg",
     "videoUrl": "https://example.com/video.mp4",
     "authorId": "user_456",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "channelId": "ch_789",
     "seriesId": "series_012",
     "transcript": null,
@@ -206,7 +214,7 @@ Content-Type: application/json
       "email": "john@example.com",
       "avatarUrl": "https://example.com/avatar.jpg"
     },
-    "workspace": {
+    "organization": {
       "id": "ws_123",
       "name": "Development Team",
       "slug": "dev-team"
@@ -235,9 +243,11 @@ Content-Type: application/json
 ```
 
 **Path Parameters:**
+
 - `id` (string, required): Video ID
 
 **Request Body:**
+
 ```json
 {
   "title": "Updated Team Meeting - Q1 Planning",
@@ -248,6 +258,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -259,7 +270,7 @@ Content-Type: application/json
     "thumbnailUrl": "https://example.com/thumbnail.jpg",
     "videoUrl": "https://example.com/video.mp4",
     "authorId": "user_456",
-    "workspaceId": "ws_123",
+    "organizationId": "ws_123",
     "channelId": "ch_456",
     "seriesId": "series_789",
     "transcript": null,
@@ -272,7 +283,7 @@ Content-Type: application/json
       "email": "john@example.com",
       "avatarUrl": "https://example.com/avatar.jpg"
     },
-    "workspace": {
+    "organization": {
       "id": "ws_123",
       "name": "Development Team",
       "slug": "dev-team"
@@ -293,16 +304,18 @@ Content-Type: application/json
 
 ### Delete Video
 
-Delete a video from the workspace.
+Delete a video from the organization.
 
 ```http
 DELETE /api/videos/{id}
 ```
 
 **Path Parameters:**
+
 - `id` (string, required): Video ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -325,7 +338,7 @@ interface Video {
   thumbnailUrl?: string;
   videoUrl?: string;
   authorId: string;
-  workspaceId: string;
+  organizationId: string;
   channelId?: string;
   seriesId?: string;
   transcript?: string;
@@ -340,7 +353,7 @@ interface Video {
 ```typescript
 interface VideoWithDetails extends Video {
   author: User;
-  workspace: Workspace;
+  organization: Organization;
   channel?: Channel;
   series?: Series;
   comments: CommentWithReplies[];
@@ -410,10 +423,10 @@ Authorization: Bearer <session_token>
 
 ## Permissions
 
-- **Create Video**: User must be a member of the workspace
-- **Update Video**: User must be the video author or workspace admin
-- **Delete Video**: User must be the video author or workspace admin
-- **View Video**: User must have access to the workspace
+- **Create Video**: User must be a member of the organization
+- **Update Video**: User must be the video author or organization admin
+- **Delete Video**: User must be the video author or organization admin
+- **View Video**: User must have access to the organization
 
 ## Video Upload
 
@@ -425,7 +438,7 @@ Content-Type: multipart/form-data
 
 {
   "file": <video_file>,
-  "workspaceId": "ws_123",
+  "organizationId": "ws_123",
   "title": "Meeting Recording",
   "description": "Team meeting from today"
 }
@@ -503,19 +516,19 @@ DELETE /api/videos/{id}/comments/{commentId}
 ### Search Videos
 
 ```http
-GET /api/videos/search?q=meeting&workspaceId=ws_123
+GET /api/videos/search?q=meeting&organizationId=ws_123
 ```
 
 ### Filter by Tags
 
 ```http
-GET /api/videos?tags=meeting,planning&workspaceId=ws_123
+GET /api/videos?tags=meeting,planning&organizationId=ws_123
 ```
 
 ### Filter by Date Range
 
 ```http
-GET /api/videos?startDate=2024-01-01&endDate=2024-01-31&workspaceId=ws_123
+GET /api/videos?startDate=2024-01-01&endDate=2024-01-31&organizationId=ws_123
 ```
 
 ## Analytics
@@ -527,6 +540,7 @@ GET /api/videos/{id}/stats
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -563,36 +577,36 @@ Subscribe to video events:
 
 ```typescript
 // Fetch videos
-const response = await fetch('/api/videos?workspaceId=ws_123');
+const response = await fetch("/api/videos?organizationId=ws_123");
 const { data } = await response.json();
 
 // Create video
-const newVideo = await fetch('/api/videos', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const newVideo = await fetch("/api/videos", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    title: 'Team Meeting',
-    duration: '00:45:30',
-    workspaceId: 'ws_123',
-    authorId: 'user_456'
-  })
+    title: "Team Meeting",
+    duration: "00:45:30",
+    organizationId: "ws_123",
+    authorId: "user_456",
+  }),
 });
 ```
 
 ### React Hook
 
 ```typescript
-import { useVideos } from '@/hooks/useVideos';
+import { useVideos } from "@/hooks/useVideos";
 
-function VideoList({ workspaceId }: { workspaceId: string }) {
-  const { videos, loading, error } = useVideos({ workspaceId });
+function VideoList({ organizationId }: { organizationId: string }) {
+  const { videos, loading, error } = useVideos({ organizationId });
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
-      {videos.map(video => (
+      {videos.map((video) => (
         <VideoCard key={video.id} video={video} />
       ))}
     </div>
