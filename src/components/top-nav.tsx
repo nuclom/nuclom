@@ -49,9 +49,7 @@ export function TopNav({ organization }: { organization: string }) {
         <div className="flex items-center gap-4">
           <Link href={`/${organization}`} className="flex items-center gap-2.5">
             <Film className="h-7 w-7 text-[hsl(var(--brand-accent))]" />
-            <span className="text-lg font-semibold hidden sm:inline-block">
-              Nuclom
-            </span>
+            <span className="text-lg font-semibold hidden sm:inline-block">Nuclom</span>
           </Link>
           <div className="hidden md:block">
             <OrganizationSwitcher currentOrganization={organization} />
@@ -74,24 +72,15 @@ export function TopNav({ organization }: { organization: string }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer">
-                <AvatarImage
-                  src={user?.image || "/placeholder.svg?height=36&width=36"}
-                  alt="User Avatar"
-                />
-                <AvatarFallback>
-                  {isLoading ? "..." : getInitials(user?.name)}
-                </AvatarFallback>
+                <AvatarImage src={user?.image || "/placeholder.svg?height=36&width=36"} alt="User Avatar" />
+                <AvatarFallback>{isLoading ? "..." : getInitials(user?.name)}</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name || "Loading..."}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email || ""}
-                  </p>
+                  <p className="text-sm font-medium leading-none">{user?.name || "Loading..."}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

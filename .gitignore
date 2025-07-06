@@ -40,3 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# testing
+/test-results/
+/playwright-report/
+/coverage/
+
+# IDE
+.vscode/
+.idea/

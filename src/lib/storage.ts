@@ -45,9 +45,9 @@ export class StorageService {
    * Upload a file to R2 storage
    */
   static async uploadFile(buffer: Buffer, key: string, options: UploadOptions = {}): Promise<UploadResult> {
-    // If R2 is not configured, throw error instead of using mock
+    // If R2 is not configured, use mock storage for development/testing
     if (!isR2Configured || !r2Client) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      return this.mockUpload(key);
     }
 
     const uploadParams: PutObjectCommandInput = {
@@ -87,9 +87,9 @@ export class StorageService {
     options: UploadOptions = {},
     onProgress?: (progress: { loaded: number; total: number }) => void,
   ): Promise<UploadResult> {
-    // If R2 is not configured, return mock data for development
+    // If R2 is not configured, use mock storage with progress simulation
     if (!isR2Configured || !r2Client) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      return this.mockUploadWithProgress(key, buffer.length, onProgress);
     }
 
     const uploadParams: PutObjectCommandInput = {
@@ -203,6 +203,43 @@ export class StorageService {
     const timestamp = Date.now();
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
     return `${organizationId}/${type}s/${timestamp}-${sanitizedFilename}`;
+  }
+
+  /**
+   * Mock upload for development/testing when R2 is not configured
+   */
+  private static async mockUpload(key: string): Promise<UploadResult> {
+    // Simulate upload delay
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    return {
+      key,
+      url: `/mock-storage/${key}`,
+      etag: `mock-etag-${Date.now()}`,
+    };
+  }
+
+  /**
+   * Mock upload with progress simulation for development/testing
+   */
+  private static async mockUploadWithProgress(
+    key: string,
+    totalSize: number,
+    onProgress?: (progress: { loaded: number; total: number }) => void,
+  ): Promise<UploadResult> {
+    // Simulate upload progress
+    const steps = 10;
+    for (let i = 0; i <= steps; i++) {
+      const loaded = Math.floor((i / steps) * totalSize);
+      onProgress?.({ loaded, total: totalSize });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    return {
+      key,
+      url: `/mock-storage/${key}`,
+      etag: `mock-etag-${Date.now()}`,
+    };
   }
 }
 

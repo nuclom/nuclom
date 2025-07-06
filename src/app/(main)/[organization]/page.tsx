@@ -69,9 +69,7 @@ function VideoSection({
       <section>
         <h2 className="text-2xl font-bold mb-6">{title}</h2>
         <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">
-            No videos found. Upload your first video to get started.
-          </p>
+          <p className="text-muted-foreground mb-4">No videos found. Upload your first video to get started.</p>
           <Button asChild>
             <Link href={`/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
@@ -95,11 +93,7 @@ function VideoSection({
   );
 }
 
-export default async function OrganizationPage({
-  params,
-}: {
-  params: Promise<{ organization: string }>;
-}) {
+export default async function OrganizationPage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization: organizationSlug } = await params;
 
   // Get session and user
@@ -112,11 +106,7 @@ export default async function OrganizationPage({
   }
 
   // Get organization by slug
-  const organization = await db
-    .select()
-    .from(organizations)
-    .where(eq(organizations.slug, organizationSlug))
-    .limit(1);
+  const organization = await db.select().from(organizations).where(eq(organizations.slug, organizationSlug)).limit(1);
 
   if (!organization.length) {
     redirect("/");
