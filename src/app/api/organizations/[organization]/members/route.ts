@@ -14,9 +14,9 @@ const updateMemberSchema = z.object({
   role: z.enum(["owner", "member"]),
 });
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
 
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -65,9 +65,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
 
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -173,9 +173,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
     const url = new URL(request.url);
     const memberId = url.searchParams.get("memberId");
 
@@ -249,9 +249,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
     const url = new URL(request.url);
     const memberId = url.searchParams.get("memberId");
 

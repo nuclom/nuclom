@@ -106,6 +106,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
+                aria-label="Toggle password visibility"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>

@@ -138,7 +138,7 @@ test.describe("Video Comments System", () => {
     // Login and navigate to video page
     await page.goto("/login");
     await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password").fill("password123");
+    await page.getByLabel("Password").first().fill("password123");
     await page.getByRole("button", { name: "Sign in" }).click();
 
     await page.goto(`/${organizationId}/videos/${videoId}`);

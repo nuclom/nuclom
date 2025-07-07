@@ -12,9 +12,9 @@ const updateOrganizationSchema = z.object({
   description: z.string().max(500).optional().nullable(),
 });
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
 
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -49,9 +49,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
 
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -96,9 +96,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ organization: string }> }) {
   try {
-    const { id } = await params;
+    const { organization: id } = await params;
 
     const session = await auth.api.getSession({
       headers: request.headers,

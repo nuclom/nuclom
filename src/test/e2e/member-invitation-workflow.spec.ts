@@ -250,7 +250,7 @@ test.describe("Member Invitation Workflow", () => {
     // Login
     await page.goto("/login");
     await page.getByLabel("Email").fill("owner@example.com");
-    await page.getByLabel("Password").fill("password123");
+    await page.getByLabel("Password").first().fill("password123");
     await page.getByRole("button", { name: "Sign in" }).click();
   });
 

@@ -136,6 +136,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between bg-gray-800 border-gray-700 hover:bg-gray-700"
+          data-testid="organization-switcher"
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">

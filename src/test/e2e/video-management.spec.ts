@@ -25,7 +25,7 @@ test.describe("Video Management", () => {
 
     // Login and navigate
     await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password").fill("password123");
+    await page.getByLabel("Password").first().fill("password123");
     await page.getByRole("button", { name: "Sign in" }).click();
 
     // Should redirect to organization page

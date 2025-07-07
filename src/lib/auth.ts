@@ -14,8 +14,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
-    disableSignUp: true,
+    requireEmailVerification: false,
+    disableSignUp: false,
   },
   socialProviders: {
     github: {
@@ -60,7 +60,7 @@ export const auth = betterAuth({
     }),
     organization({
       allowUserToCreateOrganization: async () => {
-        return false;
+        return true;
       },
       organizationLimit: 5,
       creatorRole: "owner",

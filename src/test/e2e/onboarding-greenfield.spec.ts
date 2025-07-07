@@ -52,7 +52,7 @@ test.describe("Greenfield Onboarding Journey", () => {
       // Fill registration form
       await page.getByLabel("Name").fill("New User");
       await page.getByLabel("Email").fill("newuser@example.com");
-      await page.getByLabel("Password").fill("SecurePassword123!");
+      await page.getByLabel("Password").first().fill("SecurePassword123!");
       await page.getByRole("button", { name: /create account/i }).click();
 
       // Step 3: Organization Creation (First-time setup)

@@ -27,7 +27,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +86,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">Create account</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center" data-testid="register-title">Create account</CardTitle>
         <CardDescription className="text-center">Enter your details to create your account</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -135,6 +135,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
+                aria-label="Toggle password visibility"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
@@ -160,6 +161,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isLoading}
+                aria-label="Toggle password visibility"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>

@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Hash, Users, Settings, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 interface Channel {
@@ -23,7 +22,7 @@ interface Channel {
 }
 
 export default function ChannelsPage({ params }: { params: Promise<{ organization: string }> }) {
-  const [organization, setOrganization] = useState<string>("");
+  const [_organization, setOrganization] = useState<string>("");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,14 +30,7 @@ export default function ChannelsPage({ params }: { params: Promise<{ organizatio
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    params.then(({ organization }) => {
-      setOrganization(organization);
-      loadChannels(organization);
-    });
-  }, [params]);
-
-  const loadChannels = async (orgSlug: string) => {
+  const loadChannels = useCallback(async (orgSlug: string) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/organizations/${orgSlug}/channels`);
@@ -62,12 +54,19 @@ export default function ChannelsPage({ params }: { params: Promise<{ organizatio
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    params.then(({ organization }) => {
+      setOrganization(organization);
+      loadChannels(organization);
+    });
+  }, [params, loadChannels]);
 
   const filteredChannels = channels
     .filter(channel => 
       channel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (channel.description && channel.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      (channel.description?.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -136,7 +135,7 @@ export default function ChannelsPage({ params }: { params: Promise<{ organizatio
       {filteredChannels.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredChannels.map((channel) => (
-            <Card key={channel.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card key={channel.id} data-testid="channel-card" className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
