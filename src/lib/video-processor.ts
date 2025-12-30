@@ -22,6 +22,7 @@ export interface ProcessingProgress {
   message: string;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for video processing operations
 export class VideoProcessor {
   /**
    * Get video metadata without full processing

@@ -101,7 +101,7 @@ export const makeAuthService = (authInstance: AuthInstance) =>
         getSession(headers),
         Effect.flatMap((session) => {
           const roles = Array.isArray(role) ? role : [role];
-          const userRole = (session.user as any).role;
+          const userRole = (session.user as { role?: string }).role ?? "";
 
           if (!roles.includes(userRole)) {
             return Effect.fail(

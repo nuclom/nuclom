@@ -221,9 +221,10 @@ const makeVideoRepositoryService = Effect.gen(function* () {
 
       // Get channel if exists
       let channel = null;
-      if (videoData[0].channelId) {
+      const videoChannelId = videoData[0].channelId;
+      if (videoChannelId) {
         const channelData = yield* Effect.tryPromise({
-          try: () => db.select().from(channels).where(eq(channels.id, videoData[0].channelId!)).limit(1),
+          try: () => db.select().from(channels).where(eq(channels.id, videoChannelId)).limit(1),
           catch: (error) =>
             new DatabaseError({
               message: "Failed to fetch channel",
@@ -236,9 +237,10 @@ const makeVideoRepositoryService = Effect.gen(function* () {
 
       // Get collection if exists
       let collection = null;
-      if (videoData[0].collectionId) {
+      const videoCollectionId = videoData[0].collectionId;
+      if (videoCollectionId) {
         const collectionData = yield* Effect.tryPromise({
-          try: () => db.select().from(collections).where(eq(collections.id, videoData[0].collectionId!)).limit(1),
+          try: () => db.select().from(collections).where(eq(collections.id, videoCollectionId)).limit(1),
           catch: (error) =>
             new DatabaseError({
               message: "Failed to fetch collection",

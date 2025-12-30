@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { VideoCard } from "@/components/video-card";
 import { auth } from "@/lib/auth";
+import type { Organization } from "@/lib/db/schema";
 import { getCachedOrganizationBySlug, getCachedVideos } from "@/lib/effect";
 import type { VideoWithAuthor } from "@/lib/types";
 
@@ -19,6 +20,7 @@ function VideoSectionSkeleton() {
       <div className="h-8 w-48 bg-muted animate-pulse rounded mb-6" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
         {Array.from({ length: 4 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items never reorder
           <div key={`skeleton-${i}`} className="space-y-3">
             <div className="aspect-video bg-muted animate-pulse rounded-lg" />
             <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
@@ -110,7 +112,7 @@ export default async function OrganizationPage({ params }: { params: Promise<{ o
   }
 
   // Get organization by slug using cached Effect query
-  let organization;
+  let organization: Organization;
   try {
     organization = await getCachedOrganizationBySlug(organizationSlug);
   } catch {

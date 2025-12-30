@@ -18,13 +18,13 @@ if (!isR2Configured) {
 
 // Create S3 client configured for Cloudflare R2 (only if configured)
 let r2Client: S3Client | null = null;
-if (isR2Configured) {
+if (isR2Configured && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) {
   r2Client = new S3Client({
     region: "auto",
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID!,
-      secretAccessKey: R2_SECRET_ACCESS_KEY!,
+      accessKeyId: R2_ACCESS_KEY_ID,
+      secretAccessKey: R2_SECRET_ACCESS_KEY,
     },
   });
 }
@@ -40,6 +40,7 @@ export interface UploadOptions {
   metadata?: Record<string, string>;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for storage operations
 export class StorageService {
   /**
    * Upload a file to R2 storage

@@ -207,6 +207,7 @@ export function VideoUpload({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* File Upload Area */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
         <div
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
