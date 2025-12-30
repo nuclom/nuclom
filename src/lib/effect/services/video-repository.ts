@@ -48,6 +48,7 @@ export interface CreateVideoInput {
 export interface UpdateVideoInput {
   readonly title?: string;
   readonly description?: string | null;
+  readonly duration?: string;
   readonly thumbnailUrl?: string | null;
   readonly videoUrl?: string | null;
   readonly channelId?: string | null;

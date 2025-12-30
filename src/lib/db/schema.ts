@@ -468,4 +468,4 @@ export type VideoCodeSnippet = typeof videoCodeSnippets.$inferSelect;
 export type NewVideoCodeSnippet = typeof videoCodeSnippets.$inferInsert;
 
 // Processing status type
-export type ProcessingStatus = "pending" | "transcribing" | "analyzing" | "completed" | "failed";
+export type ProcessingStatus = (typeof processingStatusEnum.enumValues)[number];

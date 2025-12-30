@@ -16,6 +16,7 @@ import { type CommentRepository, CommentRepositoryLive } from "./services/commen
 import { type Database, DatabaseLive } from "./services/database";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
+import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type Storage, StorageLive } from "./services/storage";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
@@ -31,7 +32,7 @@ import { type VideoRepository, VideoRepositoryLive } from "./services/video-repo
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
@@ -63,6 +64,7 @@ export type AppServices =
   | Database
   | Storage
   | AI
+  | ReplicateAPI
   | VideoProcessor
   | VideoRepository
   | OrganizationRepository

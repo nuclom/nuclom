@@ -96,6 +96,21 @@ export {
   OrganizationRepository,
   OrganizationRepositoryLive,
 } from "./organization-repository";
+// Replicate API Service
+export type {
+  ReplicateService,
+  ThumbnailResult,
+  TranscriptionResult as ReplicateTranscriptionResult,
+  VideoMetadata as ReplicateVideoMetadata,
+} from "./replicate";
+export {
+  extractMetadata,
+  generateThumbnail,
+  generateThumbnails,
+  ReplicateAPI,
+  ReplicateLive,
+  transcribe,
+} from "./replicate";
 export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
 // Storage Service
 export {

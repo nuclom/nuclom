@@ -50,11 +50,24 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ### AI Integration
 
 ```env
-# OpenAI API key for AI features
+# XAI API key for AI features (Grok-3)
+XAI_API_KEY="xai-your-api-key"
+
+# OpenAI API key for AI features (optional alternative)
 OPENAI_API_KEY="sk-your-openai-api-key"
 
 # AI Gateway (optional)
 AI_GATEWAY_URL="https://gateway.ai.cloudflare.com/v1/account-id/gateway-id"
+```
+
+### Video Processing
+
+```env
+# Replicate API key for video processing (transcription, thumbnails)
+REPLICATE_API_TOKEN="r8_your-replicate-token"
+
+# Application URL (for workflow callbacks)
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### File Storage

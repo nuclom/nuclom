@@ -91,10 +91,15 @@ export type {
   OrganizationWithRole,
   ProcessingProgress,
   ProcessingResult,
+  // Replicate API
+  ReplicateService,
+  ReplicateVideoMetadata,
   SaveProgressInput,
   StorageConfig,
   // Storage
   StorageService,
+  ThumbnailResult,
+  ReplicateTranscriptionResult as TranscriptionResult,
   UpdateCommentInput,
   UploadOptions,
   UploadProgress,
@@ -202,6 +207,13 @@ export {
   VideoRepository,
   VideoRepositoryLive,
   validateVideo,
+  // Replicate API
+  ReplicateAPI,
+  ReplicateLive,
+  transcribe,
+  generateThumbnail,
+  generateThumbnails,
+  extractMetadata,
 } from "./services";
 
 export type { StreamChunk } from "./streaming";

@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     if (!isSupportedVideoFormat(file.name)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
+          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV, M4V, 3GP",
         }),
       );
     }
@@ -144,17 +144,18 @@ export async function POST(request: NextRequest) {
         }),
     });
 
-    // Process video using VideoProcessor service
+    // Process video using VideoProcessor service (uploads to R2)
     const processor = yield* VideoProcessor;
     const processingResult = yield* processor.processVideo(buffer, file.name, organizationId);
 
     // Save video metadata to database using VideoRepository
+    // Set initial status to 'pending' - workflow will update it
     const videoRepo = yield* VideoRepository;
     const insertedVideo = yield* videoRepo.createVideo({
       title,
       description,
       duration: processingResult.duration,
-      thumbnailUrl: processingResult.thumbnailUrl,
+      thumbnailUrl: processingResult.thumbnailUrl || undefined,
       videoUrl: processingResult.videoUrl,
       authorId,
       organizationId,
