@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { auth } from "@/lib/auth";
+import { env } from "@/lib/env/server";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   cookieStore.set("zoom_oauth_state", state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 600, // 10 minutes
     path: "/",
