@@ -68,7 +68,12 @@ export default async function ChannelPage({ params }: { params: Promise<{ organi
               channelId: null,
               collectionId: null,
               transcript: null,
+              transcriptSegments: null,
+              processingStatus: "completed",
+              processingError: null,
               aiSummary: null,
+              aiTags: null,
+              aiActionItems: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {

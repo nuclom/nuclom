@@ -48,7 +48,12 @@ export default async function SearchPage({ params }: { params: Promise<{ organiz
               channelId: null,
               collectionId: null,
               transcript: null,
+              transcriptSegments: null,
+              processingStatus: "completed",
+              processingError: null,
               aiSummary: null,
+              aiTags: null,
+              aiActionItems: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {

@@ -4,16 +4,44 @@
  * All Effect-TS services are exported from this file.
  */
 
-export type { AIServiceInterface, VideoSummary } from "./ai";
+export type { AIServiceInterface, VideoSummary, ChapterResult, CodeSnippetResult, ActionItemResult } from "./ai";
 // AI Service
 export {
   AI,
   AILive,
   createSummaryStream,
   extractActionItems,
+  extractActionItemsWithTimestamps,
+  detectCodeSnippets,
+  generateChapters,
   generateVideoSummary,
   generateVideoTags,
 } from "./ai";
+
+// Transcription Service
+export {
+  Transcription,
+  TranscriptionLive,
+  transcribeFromUrl,
+  transcribeAudio,
+  isTranscriptionAvailable,
+  TranscriptionError,
+  AudioExtractionError,
+} from "./transcription";
+export type { TranscriptionResult, TranscriptionServiceInterface } from "./transcription";
+
+// Video AI Processor Service
+export {
+  VideoAIProcessor,
+  VideoAIProcessorLive,
+  processVideoAI,
+  processFromTranscript,
+  updateVideoProcessingStatus,
+  getVideoProcessingStatus,
+  VideoAIProcessingError,
+} from "./video-ai-processor";
+export type { AIProcessingResult, VideoAIProcessorServiceInterface } from "./video-ai-processor";
+
 export type { AuthServiceInterface, UserSession } from "./auth";
 // Auth Service
 export {
@@ -99,13 +127,16 @@ export {
   VideoProgressRepository,
   VideoProgressRepositoryLive,
 } from "./video-progress-repository";
-export type { VideoRepositoryService } from "./video-repository";
+export type { VideoRepositoryService, CreateVideoInput, UpdateVideoInput } from "./video-repository";
 // Video Repository
 export {
   createVideo,
-  deleteVideo as deleteVideoRecord,
+  deleteVideo,
+  deleteVideoRecord,
   getVideo,
   getVideos,
+  getVideoChapters,
+  getVideoCodeSnippets,
   updateVideo,
   VideoRepository,
   VideoRepositoryLive,

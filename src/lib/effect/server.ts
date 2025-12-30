@@ -171,9 +171,9 @@ export const getOrganizationBySlug = async (slug: string) => {
  * Revalidate video-related caches
  */
 export const revalidateVideos = (organizationId?: string) => {
-  revalidateTag("videos", {});
+  revalidateTag("videos", "max");
   if (organizationId) {
-    revalidateTag(`videos:${organizationId}`, {});
+    revalidateTag(`videos:${organizationId}`, "max");
   }
 };
 
@@ -181,16 +181,16 @@ export const revalidateVideos = (organizationId?: string) => {
  * Revalidate a specific video cache
  */
 export const revalidateVideo = (videoId: string) => {
-  revalidateTag(`video:${videoId}`, {});
+  revalidateTag(`video:${videoId}`, "max");
 };
 
 /**
  * Revalidate organization-related caches
  */
 export const revalidateOrganizations = (userId?: string) => {
-  revalidateTag("organizations", {});
+  revalidateTag("organizations", "max");
   if (userId) {
-    revalidateTag(`organizations:user:${userId}`, {});
+    revalidateTag(`organizations:user:${userId}`, "max");
   }
 };
 
@@ -198,7 +198,7 @@ export const revalidateOrganizations = (userId?: string) => {
  * Revalidate a specific organization cache
  */
 export const revalidateOrganization = (slug: string) => {
-  revalidateTag(`organization:${slug}`, {});
+  revalidateTag(`organization:${slug}`, "max");
 };
 
 // =============================================================================
@@ -319,8 +319,8 @@ export const getUserVideoProgress = async (userId: string, limit: number = 10): 
  * Revalidate video progress caches
  */
 export const revalidateVideoProgress = (videoId: string, userId: string) => {
-  revalidateTag(`video-progress:${videoId}:${userId}`, {});
-  revalidateTag(`video-progress:user:${userId}`, {});
+  revalidateTag(`video-progress:${videoId}:${userId}`, "max");
+  revalidateTag(`video-progress:user:${userId}`, "max");
 };
 
 // =============================================================================

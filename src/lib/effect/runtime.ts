@@ -129,6 +129,9 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "UploadError":
       case "VideoProcessingError":
       case "AIServiceError":
+      case "TranscriptionError":
+      case "AudioExtractionError":
+      case "VideoAIProcessingError":
         console.error(`[${taggedError._tag}]`, taggedError);
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 
