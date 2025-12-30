@@ -89,6 +89,26 @@ export {
   getOrganizationBySlug,
   isMember,
   getUserRole,
+  // CommentRepository
+  CommentRepository,
+  CommentRepositoryLive,
+  getComments,
+  getComment,
+  createComment,
+  updateComment,
+  deleteComment,
+  getCommentsByTimestamp,
+  // NotificationRepository
+  NotificationRepository,
+  NotificationRepositoryLive,
+  getNotifications,
+  getUnreadCount,
+  createNotification,
+  notifyCommentReply,
+  notifyNewCommentOnVideo,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
 } from "./services";
 
 export type {
@@ -118,6 +138,18 @@ export type {
   OrganizationRepositoryService,
   OrganizationWithRole,
   CreateOrganizationInput,
+  // CommentRepository
+  CommentRepositoryService,
+  CommentWithAuthor,
+  CommentWithReplies,
+  CreateCommentInput,
+  UpdateCommentInput,
+  CommentEvent,
+  // NotificationRepository
+  NotificationRepositoryService,
+  NotificationWithActor,
+  NotificationType,
+  CreateNotificationInput,
 } from "./services";
 
 // Runtime and layers

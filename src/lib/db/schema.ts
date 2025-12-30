@@ -333,6 +333,44 @@ export const videoProgressRelations = relations(videoProgresses, ({ one }) => ({
   }),
 }));
 
+// Notification types enum
+export const notificationTypeEnum = pgEnum("NotificationType", [
+  "comment_reply",
+  "comment_mention",
+  "new_comment_on_video",
+  "video_shared",
+]);
+
+export const notifications = pgTable("notifications", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  body: text("body"),
+  resourceType: text("resource_type"), // 'video', 'comment', etc.
+  resourceId: text("resource_id"),
+  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+    relationName: "NotificationRecipient",
+  }),
+  actor: one(users, {
+    fields: [notifications.actorId],
+    references: [users.id],
+    relationName: "NotificationActor",
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;
@@ -349,3 +387,5 @@ export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
 export type VideoProgress = typeof videoProgresses.$inferSelect;
 export type NewVideoProgress = typeof videoProgresses.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;

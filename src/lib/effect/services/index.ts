@@ -100,3 +100,43 @@ export type {
   OrganizationWithRole,
   CreateOrganizationInput,
 } from "./organization-repository";
+
+// Comment Repository
+export {
+  CommentRepository,
+  CommentRepositoryLive,
+  getComments,
+  getComment,
+  createComment,
+  updateComment,
+  deleteComment,
+  getCommentsByTimestamp,
+} from "./comment-repository";
+export type {
+  CommentRepositoryService,
+  CommentWithAuthor,
+  CommentWithReplies,
+  CreateCommentInput,
+  UpdateCommentInput,
+  CommentEvent,
+} from "./comment-repository";
+
+// Notification Repository
+export {
+  NotificationRepository,
+  NotificationRepositoryLive,
+  getNotifications,
+  getUnreadCount,
+  createNotification,
+  notifyCommentReply,
+  notifyNewCommentOnVideo,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+} from "./notification-repository";
+export type {
+  NotificationRepositoryService,
+  NotificationWithActor,
+  NotificationType,
+  CreateNotificationInput,
+} from "./notification-repository";

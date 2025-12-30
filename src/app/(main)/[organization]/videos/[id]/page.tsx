@@ -1,13 +1,16 @@
 import { Suspense } from "react";
 import { Bookmark, Code, ListTodo, MessageSquarePlus, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCachedVideo } from "@/lib/effect";
+import { auth } from "@/lib/auth";
+import { CommentList } from "@/components/comments";
 import type { VideoWithDetails } from "@/lib/types";
+import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
 
 // =============================================================================
 // Loading Skeletons
@@ -20,6 +23,7 @@ function VideoDetailSkeleton() {
         <div className="h-10 bg-muted animate-pulse rounded w-3/4" />
         <div className="h-6 bg-muted animate-pulse rounded w-1/4" />
         <div className="h-64 bg-muted animate-pulse rounded-lg" />
+        <div className="h-48 bg-muted animate-pulse rounded-lg" />
       </div>
       <aside className="w-full lg:col-span-1 space-y-6">
         <div className="aspect-video bg-muted animate-pulse rounded-lg" />
@@ -58,14 +62,48 @@ function TranscriptLine({ time, text, hasComment }: TranscriptLineProps) {
 }
 
 // =============================================================================
+// Transform comments to CommentWithReplies format
+// =============================================================================
+
+function transformCommentsToThreaded(comments: VideoWithDetails["comments"]): CommentWithReplies[] {
+  const commentMap = new Map<string, CommentWithReplies>();
+  const topLevelComments: CommentWithReplies[] = [];
+
+  // First pass: create all comment objects with empty replies
+  for (const comment of comments) {
+    commentMap.set(comment.id, {
+      ...comment,
+      replies: [],
+    });
+  }
+
+  // Second pass: build the tree structure
+  for (const comment of comments) {
+    const commentObj = commentMap.get(comment.id)!;
+    if (comment.parentId && commentMap.has(comment.parentId)) {
+      commentMap.get(comment.parentId)!.replies.push(commentObj);
+    } else if (!comment.parentId) {
+      topLevelComments.push(commentObj);
+    }
+  }
+
+  return topLevelComments;
+}
+
+// =============================================================================
 // Video Detail Component (Server Component)
 // =============================================================================
 
 interface VideoDetailProps {
   video: VideoWithDetails;
+  currentUser?: {
+    id: string;
+    name?: string | null;
+    image?: string | null;
+  };
 }
 
-function VideoDetail({ video }: VideoDetailProps) {
+function VideoDetail({ video, currentUser }: VideoDetailProps) {
   // Parse transcript if available
   const transcriptLines = video.transcript
     ? video.transcript
@@ -84,6 +122,9 @@ function VideoDetail({ video }: VideoDetailProps) {
         .filter((line) => line.startsWith("-") || line.startsWith("•"))
         .map((line) => line.replace(/^[-•]\s*/, ""))
     : [];
+
+  // Transform flat comments to threaded structure
+  const threadedComments = transformCommentsToThreaded(video.comments);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -121,33 +162,13 @@ function VideoDetail({ video }: VideoDetailProps) {
           </CardContent>
         </Card>
 
-        {/* Comments Section */}
-        {video.comments && video.comments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Comments ({video.comments.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {video.comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.author.image || undefined} />
-                    <AvatarFallback>{comment.author.name?.[0] || "U"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-sm">{comment.author.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <p className="text-sm mt-1">{comment.content}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {/* Comments Section with Real-time Updates */}
+        <CommentList
+          videoId={video.id}
+          videoAuthorId={video.authorId}
+          initialComments={threadedComments}
+          currentUser={currentUser}
+        />
       </div>
 
       {/* Sidebar: Video Player and AI Insights */}
@@ -245,9 +266,18 @@ function VideoDetail({ video }: VideoDetailProps) {
 // Async Video Loader Component
 // =============================================================================
 
-async function VideoLoader({ videoId }: { videoId: string }) {
+interface VideoLoaderProps {
+  videoId: string;
+  currentUser?: {
+    id: string;
+    name?: string | null;
+    image?: string | null;
+  };
+}
+
+async function VideoLoader({ videoId, currentUser }: VideoLoaderProps) {
   const video = await getCachedVideo(videoId);
-  return <VideoDetail video={video} />;
+  return <VideoDetail video={video} currentUser={currentUser} />;
 }
 
 // =============================================================================
@@ -257,9 +287,22 @@ async function VideoLoader({ videoId }: { videoId: string }) {
 export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   const { id } = await params;
 
+  // Get current user session (optional - allows anonymous viewing)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const currentUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image,
+      }
+    : undefined;
+
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} />
+      <VideoLoader videoId={id} currentUser={currentUser} />
     </Suspense>
   );
 }
