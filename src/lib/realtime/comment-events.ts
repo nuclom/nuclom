@@ -19,7 +19,7 @@ class CommentEventEmitter {
     if (!this.subscribers.has(videoId)) {
       this.subscribers.set(videoId, new Set());
     }
-    this.subscribers.get(videoId)!.add(callback);
+    this.subscribers.get(videoId)?.add(callback);
 
     // Return unsubscribe function
     return () => {

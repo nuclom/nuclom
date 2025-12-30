@@ -5,12 +5,12 @@
  * threaded replies, real-time updates, and timestamped comments.
  */
 
-import { Effect, Context, Layer } from "effect";
-import { eq, desc, and, isNull, asc } from "drizzle-orm";
-import { Database } from "./database";
-import { comments, users, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ForbiddenError } from "../errors";
+import { asc, eq } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
 import type { Comment, User } from "@/lib/db/schema";
+import { comments, users, videos } from "@/lib/db/schema";
+import { DatabaseError, ForbiddenError, NotFoundError } from "../errors";
+import { Database } from "./database";
 
 // =============================================================================
 // Types
@@ -152,9 +152,10 @@ const makeCommentRepositoryService = Effect.gen(function* () {
 
         // Second pass: build the tree structure
         for (const comment of allComments) {
-          const commentObj = commentMap.get(comment.id)!;
+          const commentObj = commentMap.get(comment.id);
+          if (!commentObj) continue;
           if (comment.parentId && commentMap.has(comment.parentId)) {
-            commentMap.get(comment.parentId)!.replies.push(commentObj);
+            commentMap.get(comment.parentId)?.replies.push(commentObj);
           } else {
             topLevelComments.push(commentObj);
           }
@@ -229,9 +230,10 @@ const makeCommentRepositoryService = Effect.gen(function* () {
 
       // If parentId is provided, verify it exists
       if (data.parentId) {
+        const parentId = data.parentId;
         const parentExists = yield* Effect.tryPromise({
           try: async () => {
-            return await db.select({ id: comments.id }).from(comments).where(eq(comments.id, data.parentId!)).limit(1);
+            return await db.select({ id: comments.id }).from(comments).where(eq(comments.id, parentId)).limit(1);
           },
           catch: (error) =>
             new DatabaseError({

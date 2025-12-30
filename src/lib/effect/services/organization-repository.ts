@@ -4,11 +4,11 @@
  * Provides type-safe database operations for organizations.
  */
 
-import { Effect, Context, Layer, Option } from "effect";
 import { eq } from "drizzle-orm";
+import { Context, Effect, Layer, Option } from "effect";
+import { members, organizations } from "@/lib/db/schema";
+import { DatabaseError, NotFoundError, TransactionError } from "../errors";
 import { Database } from "./database";
-import { organizations, members } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, TransactionError, type DbError } from "../errors";
 
 // =============================================================================
 // Types
@@ -253,7 +253,7 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
 
   const getUserRole = (
     userId: string,
-    organizationId: string,
+    _organizationId: string,
   ): Effect.Effect<Option.Option<"owner" | "member">, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
@@ -263,7 +263,7 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
           .where(eq(members.userId, userId))
           .limit(1);
 
-        const orgMember = membership.find((m) => true); // Will be filtered by org in a proper query
+        const orgMember = membership.find((_m) => true); // Will be filtered by org in a proper query
         return orgMember ? Option.some(orgMember.role) : Option.none();
       },
       catch: (error) =>

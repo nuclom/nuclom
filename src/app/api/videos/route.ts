@@ -1,15 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, pipe, Exit, Cause } from "effect";
+import { Cause, Effect, Exit, Layer } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import {
-  AppLive,
-  VideoRepository,
-  MissingFieldError,
-  UnauthorizedError,
-  DatabaseError,
-  NotFoundError,
-} from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { AppLive, MissingFieldError, VideoRepository } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // Error Response Handler
@@ -52,8 +45,8 @@ export async function GET(request: NextRequest) {
     // Parse query params
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
 
     if (!organizationId) {
       return yield* Effect.fail(

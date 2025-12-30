@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, type FormEvent } from "react";
+import { Clock, Loader2, Send, X } from "lucide-react";
+import { type FormEvent, useCallback, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Clock, X, Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface CommentFormProps {
@@ -25,7 +25,7 @@ interface CommentFormProps {
 }
 
 export function CommentForm({
-  videoId,
+  videoId: _videoId,
   parentId,
   onSubmit,
   onCancel,

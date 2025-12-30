@@ -1,8 +1,15 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("UserRole", ["user", "admin"]);
 export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member"]);
+export const processingStatusEnum = pgEnum("ProcessingStatus", [
+  "pending",
+  "transcribing",
+  "analyzing",
+  "completed",
+  "failed",
+]);
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -192,6 +199,20 @@ export const collections = pgTable("collections", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Types for JSONB columns
+export type TranscriptSegment = {
+  readonly startTime: number; // seconds
+  readonly endTime: number; // seconds
+  readonly text: string;
+  readonly confidence?: number;
+};
+
+export type ActionItem = {
+  readonly text: string;
+  readonly timestamp?: number; // seconds in video
+  readonly priority?: "high" | "medium" | "low";
+};
+
 export const videos = pgTable("videos", {
   id: text("id")
     .primaryKey()
@@ -209,8 +230,15 @@ export const videos = pgTable("videos", {
     .references(() => organizations.id, { onDelete: "cascade" }),
   channelId: text("channel_id").references(() => channels.id),
   collectionId: text("collection_id").references(() => collections.id),
+  // Transcription fields
   transcript: text("transcript"),
+  transcriptSegments: jsonb("transcript_segments").$type<TranscriptSegment[]>(),
+  // AI Analysis fields
+  processingStatus: processingStatusEnum("processing_status").default("pending").notNull(),
+  processingError: text("processing_error"),
   aiSummary: text("ai_summary"),
+  aiTags: jsonb("ai_tags").$type<string[]>(),
+  aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -253,6 +281,60 @@ export const videoProgresses = pgTable(
   }),
 );
 
+export const videoChapters = pgTable("video_chapters", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  videoId: text("video_id")
+    .notNull()
+    .references(() => videos.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  summary: text("summary"),
+  startTime: integer("start_time").notNull(), // seconds
+  endTime: integer("end_time"), // seconds
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const videoCodeSnippets = pgTable("video_code_snippets", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  videoId: text("video_id")
+    .notNull()
+    .references(() => videos.id, { onDelete: "cascade" }),
+  language: text("language"),
+  code: text("code").notNull(),
+  title: text("title"),
+  description: text("description"),
+  timestamp: integer("timestamp"), // seconds in video
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Notification types enum
+export const notificationTypeEnum = pgEnum("NotificationType", [
+  "comment_reply",
+  "comment_mention",
+  "new_comment_on_video",
+  "video_shared",
+]);
+
+export const notifications = pgTable("notifications", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  body: text("body"),
+  resourceType: text("resource_type"), // 'video', 'comment', etc.
+  resourceId: text("resource_id"),
+  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const userRelations = relations(users, ({ many }) => ({
   videos: many(videos),
@@ -285,6 +367,22 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   }),
   comments: many(comments),
   videoProgresses: many(videoProgresses),
+  chapters: many(videoChapters),
+  codeSnippets: many(videoCodeSnippets),
+}));
+
+export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoChapters.videoId],
+    references: [videos.id],
+  }),
+}));
+
+export const videoCodeSnippetsRelations = relations(videoCodeSnippets, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoCodeSnippets.videoId],
+    references: [videos.id],
+  }),
 }));
 
 export const channelRelations = relations(channels, ({ one, many }) => ({
@@ -333,31 +431,6 @@ export const videoProgressRelations = relations(videoProgresses, ({ one }) => ({
   }),
 }));
 
-// Notification types enum
-export const notificationTypeEnum = pgEnum("NotificationType", [
-  "comment_reply",
-  "comment_mention",
-  "new_comment_on_video",
-  "video_shared",
-]);
-
-export const notifications = pgTable("notifications", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  type: notificationTypeEnum("type").notNull(),
-  title: text("title").notNull(),
-  body: text("body"),
-  resourceType: text("resource_type"), // 'video', 'comment', etc.
-  resourceId: text("resource_id"),
-  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
-  read: boolean("read").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const notificationRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
     fields: [notifications.userId],
@@ -389,3 +462,10 @@ export type VideoProgress = typeof videoProgresses.$inferSelect;
 export type NewVideoProgress = typeof videoProgresses.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+export type VideoChapter = typeof videoChapters.$inferSelect;
+export type NewVideoChapter = typeof videoChapters.$inferInsert;
+export type VideoCodeSnippet = typeof videoCodeSnippets.$inferSelect;
+export type NewVideoCodeSnippet = typeof videoCodeSnippets.$inferInsert;
+
+// Processing status type
+export type ProcessingStatus = "pending" | "transcribing" | "analyzing" | "completed" | "failed";

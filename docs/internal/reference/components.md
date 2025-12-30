@@ -285,6 +285,49 @@ import { CommandBar } from "@/components/command-bar";
 />;
 ```
 
+### VideoPlayer
+
+A full-featured video player component with controls, keyboard shortcuts, and progress tracking.
+
+```typescript
+import { VideoPlayer, VideoPlayerWithProgress } from "@/components/video";
+
+// Basic video player
+<VideoPlayer
+  url="https://example.com/video.mp4"
+  title="My Video"
+  thumbnailUrl="/thumbnail.jpg"
+  initialProgress={0.5} // Start at 50%
+  onProgress={(progress) => {
+    console.log("Current time:", progress.currentTime);
+    console.log("Duration:", progress.duration);
+    console.log("Progress fraction:", progress.played);
+    console.log("Completed:", progress.completed);
+  }}
+  onEnded={() => console.log("Video ended")}
+  onError={(error) => console.error("Playback error:", error)}
+/>;
+
+// Video player with automatic progress persistence
+<VideoPlayerWithProgress
+  videoId="video-123"
+  url="https://example.com/video.mp4"
+  title="My Video"
+  thumbnailUrl="/thumbnail.jpg"
+  duration="10:30"
+  onEnded={() => console.log("Video ended")}
+/>;
+```
+
+**Features:**
+- Standard controls (play/pause, seek, volume, fullscreen)
+- Keyboard shortcuts (Space/K for play, J/L for seek, M for mute, F for fullscreen)
+- Responsive design for mobile and desktop
+- Loading states and error handling
+- Playback speed control (0.5x to 2x)
+- Progress tracking and persistence
+- Resume from last position
+
 ## Component Patterns
 
 ### Compound Components

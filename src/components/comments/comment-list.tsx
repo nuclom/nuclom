@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useCallback, useOptimistic, startTransition } from "react";
+import { MessageSquare, Radio } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { CommentThread } from "./comment-thread";
-import { CommentForm } from "./comment-form";
-import { useRealtimeComments } from "@/hooks/use-realtime-comments";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { startTransition, useCallback, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Radio } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRealtimeComments } from "@/hooks/use-realtime-comments";
 import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
+import { cn } from "@/lib/utils";
+import { CommentForm } from "./comment-form";
+import { CommentThread } from "./comment-thread";
 
 interface CommentListProps {
   videoId: string;
@@ -31,10 +31,11 @@ export function CommentList({
   onTimestampClick,
 }: CommentListProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
 
   // Real-time comments with optimistic updates
-  const { comments, isConnected, addComment, updateComment, removeComment } = useRealtimeComments({
+  // Note: addComment, updateComment, removeComment are available for optimistic updates
+  const { comments, isConnected } = useRealtimeComments({
     videoId,
     initialComments,
   });

@@ -7,193 +7,209 @@
 
 // Common Effect exports
 export * from "./common";
-
-// Custom error types
-export * from "./errors";
+export type { DatabaseConfig as DatabaseConfigType } from "./config";
 
 // Configuration - explicitly export to avoid conflicts
 export {
-  DatabaseConfig,
-  GitHubOAuthConfig,
-  GoogleOAuthConfig,
-  EmailConfig,
   AppConfig,
-  ServerConfig,
   ConfigService,
   ConfigServiceLive,
-  OptionalStorageConfig,
-  isStorageConfigured,
+  DatabaseConfig,
+  EmailConfig,
+  GitHubOAuthConfig,
+  GoogleOAuthConfig,
   getStorageConfig,
+  isStorageConfigured,
+  OptionalStorageConfig,
+  ServerConfig,
 } from "./config";
-export type { DatabaseConfig as DatabaseConfigType } from "./config";
 
-// Services - explicitly export to avoid conflicts
-export {
-  // Database
-  Database,
-  DatabaseLive,
-  DrizzleLive,
-  query,
-  transaction,
-  findOneOrFail,
-  insertUnique,
-  getDb,
-  // Storage
-  Storage,
-  StorageLive,
-  uploadFile,
-  uploadLargeFile,
-  deleteFile,
-  generatePresignedUploadUrl,
-  getPublicUrl,
-  generateFileKey,
-  // Auth
-  Auth,
-  makeAuthLayer,
-  makeAuthService,
-  getSession,
-  getSessionOption,
-  requireAuth,
-  requireRole,
-  requireAdmin,
-  // AI
-  AI,
-  AILive,
-  generateVideoSummary,
-  generateVideoTags,
-  extractActionItems,
-  createSummaryStream,
-  // VideoProcessor
-  VideoProcessor,
-  VideoProcessorLive,
-  processVideo,
-  validateVideo,
-  getVideoInfo,
-  isSupportedVideoFormat,
-  getMaxFileSize,
-  // VideoRepository
-  VideoRepository,
-  VideoRepositoryLive,
-  getVideos,
-  getVideo,
-  createVideo,
-  updateVideo,
-  deleteVideoRecord,
-  // OrganizationRepository
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-  createOrganization,
-  getUserOrganizations,
-  getActiveOrganization,
-  getOrganization,
-  getOrganizationBySlug,
-  isMember,
-  getUserRole,
-  // CommentRepository
-  CommentRepository,
-  CommentRepositoryLive,
-  getComments,
-  getComment,
-  createComment,
-  updateComment,
-  deleteComment,
-  getCommentsByTimestamp,
-  // NotificationRepository
-  NotificationRepository,
-  NotificationRepositoryLive,
-  getNotifications,
-  getUnreadCount,
-  createNotification,
-  notifyCommentReply,
-  notifyNewCommentOnVideo,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-} from "./services";
-
-export type {
-  // Database
-  DrizzleDB,
-  DatabaseService,
-  // Storage
-  StorageService,
-  StorageConfig,
-  UploadResult,
-  UploadOptions,
-  UploadProgress,
-  // Auth
-  AuthServiceInterface,
-  UserSession,
-  // AI
-  AIServiceInterface,
-  VideoSummary,
-  // VideoProcessor
-  VideoProcessorService,
-  VideoInfo,
-  ProcessingResult,
-  ProcessingProgress,
-  // VideoRepository
-  VideoRepositoryService,
-  // OrganizationRepository
-  OrganizationRepositoryService,
-  OrganizationWithRole,
-  CreateOrganizationInput,
-  // CommentRepository
-  CommentRepositoryService,
-  CommentWithAuthor,
-  CommentWithReplies,
-  CreateCommentInput,
-  UpdateCommentInput,
-  CommentEvent,
-  // NotificationRepository
-  NotificationRepositoryService,
-  NotificationWithActor,
-  NotificationType,
-  CreateNotificationInput,
-} from "./services";
+// Custom error types
+export * from "./errors";
+export type { AppServices } from "./runtime";
 
 // Runtime and layers
 export {
   AppLive,
   AppRuntime,
+  createAuthenticatedHandler,
+  createHandler,
+  DevLoggerLive,
+  effectToResponse,
+  effectWithLayersToResponse,
+  LoggingLive,
+  LogLevelLive,
+  mapErrorToResponse,
   runEffect,
   runEffectExit,
   runEffectSync,
-  createHandler,
-  createAuthenticatedHandler,
-  effectToResponse,
-  effectWithLayersToResponse,
-  mapErrorToResponse,
-  DevLoggerLive,
-  LogLevelLive,
-  LoggingLive,
 } from "./runtime";
-export type { AppServices } from "./runtime";
 
 // Server utilities (for RSC)
 export {
+  createCachedQuery,
+  createVideo as serverCreateVideo,
+  deleteVideo as serverDeleteVideo,
+  getOrganizationBySlug as getCachedOrganizationBySlug,
+  getOrganizations as getCachedOrganizations,
+  getUserVideoProgress as getCachedUserVideoProgress,
+  getVideo as getCachedVideo,
+  getVideoProgress as getCachedVideoProgress,
+  getVideos as getCachedVideos,
+  revalidateOrganization,
+  revalidateOrganizations,
+  revalidateVideo,
+  revalidateVideoProgress,
+  revalidateVideos,
   runServerEffect,
   runServerEffectSafe,
-  createCachedQuery,
-  getVideos as getCachedVideos,
-  getVideo as getCachedVideo,
-  getOrganizations as getCachedOrganizations,
-  getOrganizationBySlug as getCachedOrganizationBySlug,
-  revalidateVideos,
-  revalidateVideo,
-  revalidateOrganizations,
-  revalidateOrganization,
-  createVideo as serverCreateVideo,
   updateVideo as serverUpdateVideo,
-  deleteVideo as serverDeleteVideo,
 } from "./server";
 
+export type {
+  // AI
+  AIServiceInterface,
+  // Auth
+  AuthServiceInterface,
+  CommentEvent,
+  // CommentRepository
+  CommentRepositoryService,
+  CommentWithAuthor,
+  CommentWithReplies,
+  CreateCommentInput,
+  CreateNotificationInput,
+  CreateOrganizationInput,
+  DatabaseService,
+  // Database
+  DrizzleDB,
+  // NotificationRepository
+  NotificationRepositoryService,
+  NotificationType,
+  NotificationWithActor,
+  // OrganizationRepository
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+  ProcessingProgress,
+  ProcessingResult,
+  SaveProgressInput,
+  StorageConfig,
+  // Storage
+  StorageService,
+  UpdateCommentInput,
+  UploadOptions,
+  UploadProgress,
+  UploadResult,
+  UserSession,
+  VideoInfo,
+  // VideoProcessor
+  VideoProcessorService,
+  VideoProgressData,
+  // VideoProgressRepository
+  VideoProgressRepositoryService,
+  // VideoRepository
+  VideoRepositoryService,
+  VideoSummary,
+} from "./services";
+
+// Services - explicitly export to avoid conflicts
+export {
+  // AI
+  AI,
+  AILive,
+  // Auth
+  Auth,
+  // CommentRepository
+  CommentRepository,
+  CommentRepositoryLive,
+  createComment,
+  createNotification,
+  createOrganization,
+  createSummaryStream,
+  createVideo,
+  // Database
+  Database,
+  DatabaseLive,
+  DrizzleLive,
+  deleteComment,
+  deleteFile,
+  deleteNotification,
+  deleteVideoProgress,
+  deleteVideoRecord,
+  extractActionItems,
+  findOneOrFail,
+  generateFileKey,
+  generatePresignedUploadUrl,
+  generateVideoSummary,
+  generateVideoTags,
+  getActiveOrganization,
+  getComment,
+  getComments,
+  getCommentsByTimestamp,
+  getDb,
+  getMaxFileSize,
+  getNotifications,
+  getOrganization,
+  getOrganizationBySlug,
+  getPublicUrl,
+  getSession,
+  getSessionOption,
+  getUnreadCount,
+  getUserOrganizations,
+  getUserRole,
+  getUserVideoProgress,
+  getVideo,
+  getVideoInfo,
+  getVideoProgress,
+  getVideos,
+  hasWatchedVideo,
+  insertUnique,
+  isMember,
+  isSupportedVideoFormat,
+  makeAuthLayer,
+  makeAuthService,
+  markAllAsRead,
+  markAsRead,
+  markVideoCompleted,
+  // NotificationRepository
+  NotificationRepository,
+  NotificationRepositoryLive,
+  notifyCommentReply,
+  notifyNewCommentOnVideo,
+  // OrganizationRepository
+  OrganizationRepository,
+  OrganizationRepositoryLive,
+  processVideo,
+  query,
+  requireAdmin,
+  requireAuth,
+  requireRole,
+  // Storage
+  Storage,
+  StorageLive,
+  saveVideoProgress,
+  transaction,
+  updateComment,
+  updateVideo,
+  uploadFile,
+  uploadLargeFile,
+  // VideoProcessor
+  VideoProcessor,
+  VideoProcessorLive,
+  // VideoProgressRepository
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+  // VideoRepository
+  VideoRepository,
+  VideoRepositoryLive,
+  validateVideo,
+} from "./services";
+
+export type { StreamChunk } from "./streaming";
 // Streaming utilities
 export {
-  streamToAsyncIterable,
-  runStream,
   createDeferredLoader,
   createParallelLoaders,
+  runStream,
+  streamToAsyncIterable,
   streamVideoSummary,
 } from "./streaming";
-export type { StreamChunk } from "./streaming";

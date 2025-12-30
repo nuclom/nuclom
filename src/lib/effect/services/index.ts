@@ -4,139 +4,175 @@
  * All Effect-TS services are exported from this file.
  */
 
-// Database Service
-export {
-  Database,
-  DatabaseLive,
-  DrizzleLive,
-  query,
-  transaction,
-  findOneOrFail,
-  insertUnique,
-  getDb,
-} from "./database";
-export type { DrizzleDB, DatabaseService } from "./database";
-
-// Storage Service
-export {
-  Storage,
-  StorageLive,
-  uploadFile,
-  uploadLargeFile,
-  deleteFile,
-  generatePresignedUploadUrl,
-  getPublicUrl,
-  generateFileKey,
-} from "./storage";
-export type { StorageService, StorageConfig, UploadResult, UploadOptions, UploadProgress } from "./storage";
-
-// Auth Service
-export {
-  Auth,
-  makeAuthLayer,
-  makeAuthService,
-  getSession,
-  getSessionOption,
-  requireAuth,
-  requireRole,
-  requireAdmin,
-} from "./auth";
-export type { AuthServiceInterface, UserSession } from "./auth";
-
+export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
 // AI Service
 export {
   AI,
   AILive,
+  createSummaryStream,
+  detectCodeSnippets,
+  extractActionItems,
+  extractActionItemsWithTimestamps,
+  generateChapters,
   generateVideoSummary,
   generateVideoTags,
-  extractActionItems,
-  createSummaryStream,
 } from "./ai";
-export type { AIServiceInterface, VideoSummary } from "./ai";
-
-// Video Processor Service
+export type { AuthServiceInterface, UserSession } from "./auth";
+// Auth Service
 export {
-  VideoProcessor,
-  VideoProcessorLive,
-  processVideo,
-  validateVideo,
-  getVideoInfo,
-  isSupportedVideoFormat,
-  getMaxFileSize,
-} from "./video-processor";
+  Auth,
+  getSession,
+  getSessionOption,
+  makeAuthLayer,
+  makeAuthService,
+  requireAdmin,
+  requireAuth,
+  requireRole,
+} from "./auth";
 export type {
-  VideoProcessorService,
-  VideoInfo,
-  ProcessingResult,
-  ProcessingProgress,
-} from "./video-processor";
-
-// Video Repository
-export {
-  VideoRepository,
-  VideoRepositoryLive,
-  getVideos,
-  getVideo,
-  createVideo,
-  updateVideo,
-  deleteVideo as deleteVideoRecord,
-} from "./video-repository";
-export type { VideoRepositoryService } from "./video-repository";
-
-// Organization Repository
-export {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-  createOrganization,
-  getUserOrganizations,
-  getActiveOrganization,
-  getOrganization,
-  getOrganizationBySlug,
-  isMember,
-  getUserRole,
-} from "./organization-repository";
-export type {
-  OrganizationRepositoryService,
-  OrganizationWithRole,
-  CreateOrganizationInput,
-} from "./organization-repository";
-
-// Comment Repository
-export {
-  CommentRepository,
-  CommentRepositoryLive,
-  getComments,
-  getComment,
-  createComment,
-  updateComment,
-  deleteComment,
-  getCommentsByTimestamp,
-} from "./comment-repository";
-export type {
+  CommentEvent,
   CommentRepositoryService,
   CommentWithAuthor,
   CommentWithReplies,
   CreateCommentInput,
   UpdateCommentInput,
-  CommentEvent,
 } from "./comment-repository";
-
+// Comment Repository
+export {
+  CommentRepository,
+  CommentRepositoryLive,
+  createComment,
+  deleteComment,
+  getComment,
+  getComments,
+  getCommentsByTimestamp,
+  updateComment,
+} from "./comment-repository";
+export type { DatabaseService, DrizzleDB } from "./database";
+// Database Service
+export {
+  Database,
+  DatabaseLive,
+  DrizzleLive,
+  findOneOrFail,
+  getDb,
+  insertUnique,
+  query,
+  transaction,
+} from "./database";
+export type {
+  CreateNotificationInput,
+  NotificationRepositoryService,
+  NotificationType,
+  NotificationWithActor,
+} from "./notification-repository";
 // Notification Repository
 export {
-  NotificationRepository,
-  NotificationRepositoryLive,
+  createNotification,
+  deleteNotification,
   getNotifications,
   getUnreadCount,
-  createNotification,
+  markAllAsRead,
+  markAsRead,
+  NotificationRepository,
+  NotificationRepositoryLive,
   notifyCommentReply,
   notifyNewCommentOnVideo,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
 } from "./notification-repository";
 export type {
-  NotificationRepositoryService,
-  NotificationWithActor,
-  NotificationType,
-  CreateNotificationInput,
-} from "./notification-repository";
+  CreateOrganizationInput,
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+} from "./organization-repository";
+// Organization Repository
+export {
+  createOrganization,
+  getActiveOrganization,
+  getOrganization,
+  getOrganizationBySlug,
+  getUserOrganizations,
+  getUserRole,
+  isMember,
+  OrganizationRepository,
+  OrganizationRepositoryLive,
+} from "./organization-repository";
+export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
+// Storage Service
+export {
+  deleteFile,
+  generateFileKey,
+  generatePresignedUploadUrl,
+  getPublicUrl,
+  Storage,
+  StorageLive,
+  uploadFile,
+  uploadLargeFile,
+} from "./storage";
+export type { TranscriptionResult, TranscriptionServiceInterface } from "./transcription";
+// Transcription Service
+export {
+  AudioExtractionError,
+  isTranscriptionAvailable,
+  Transcription,
+  TranscriptionError,
+  TranscriptionLive,
+  transcribeAudio,
+  transcribeFromUrl,
+} from "./transcription";
+export type { AIProcessingResult, VideoAIProcessorServiceInterface } from "./video-ai-processor";
+// Video AI Processor Service
+export {
+  getVideoProcessingStatus,
+  processFromTranscript,
+  processVideoAI,
+  updateVideoProcessingStatus,
+  VideoAIProcessingError,
+  VideoAIProcessor,
+  VideoAIProcessorLive,
+} from "./video-ai-processor";
+export type {
+  ProcessingProgress,
+  ProcessingResult,
+  VideoInfo,
+  VideoProcessorService,
+} from "./video-processor";
+// Video Processor Service
+export {
+  getMaxFileSize,
+  getVideoInfo,
+  isSupportedVideoFormat,
+  processVideo,
+  VideoProcessor,
+  VideoProcessorLive,
+  validateVideo,
+} from "./video-processor";
+export type {
+  SaveProgressInput,
+  VideoProgressData,
+  VideoProgressRepositoryService,
+} from "./video-progress-repository";
+// Video Progress Repository
+export {
+  deleteVideoProgress,
+  getUserVideoProgress,
+  getVideoProgress,
+  hasWatchedVideo,
+  markVideoCompleted,
+  saveVideoProgress,
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+} from "./video-progress-repository";
+export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from "./video-repository";
+// Video Repository
+export {
+  createVideo,
+  deleteVideo,
+  deleteVideoRecord,
+  getVideo,
+  getVideoChapters,
+  getVideoCodeSnippets,
+  getVideos,
+  updateVideo,
+  VideoRepository,
+  VideoRepositoryLive,
+} from "./video-repository";

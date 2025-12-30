@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Check, Clock, Edit2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
+import { useCallback, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +13,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Reply, Edit2, Trash2, Clock, Check, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
+import { cn } from "@/lib/utils";
 
 interface CommentItemProps {
   comment: CommentWithAuthor;
@@ -112,16 +112,19 @@ export function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm">{comment.author.name}</span>
-            {comment.timestamp && (
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
-                onClick={() => onTimestampClick?.(comment.timestamp!)}
-              >
-                <Clock className="h-3 w-3" />
-                {comment.timestamp}
-              </button>
-            )}
+            {comment.timestamp && (() => {
+              const timestamp = comment.timestamp;
+              return (
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
+                  onClick={() => onTimestampClick?.(timestamp)}
+                >
+                  <Clock className="h-3 w-3" />
+                  {timestamp}
+                </button>
+              );
+            })()}
             <span className="text-xs text-muted-foreground">
               {formattedDate}
               {wasEdited && " (edited)"}

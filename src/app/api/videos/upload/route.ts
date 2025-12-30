@@ -1,14 +1,16 @@
+import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, Exit, Cause } from "effect";
 import {
   AppLive,
-  VideoProcessor,
-  VideoRepository,
+  getMaxFileSize,
+  isSupportedVideoFormat,
   MissingFieldError,
   ValidationError,
-  isSupportedVideoFormat,
-  getMaxFileSize,
+  VideoProcessor,
+  VideoRepository,
 } from "@/lib/effect";
+import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
 
 // Handle file upload size limit
@@ -24,6 +26,7 @@ interface UploadResponse {
   videoUrl: string;
   thumbnailUrl: string;
   duration: string;
+  processingStatus: string;
 }
 
 // =============================================================================
@@ -55,6 +58,11 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
   console.error("[Error]", error);
   return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 };
+
+// Build the layer with all required dependencies for AI processing
+const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
+
+const FullProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProcessorWithDeps);
 
 // =============================================================================
 // POST /api/videos/upload - Upload a video file
@@ -88,6 +96,7 @@ export async function POST(request: NextRequest) {
     const authorId = formData.get("authorId") as string;
     const channelId = formData.get("channelId") as string;
     const collectionId = formData.get("collectionId") as string;
+    const skipAIProcessing = formData.get("skipAIProcessing") === "true";
 
     // Validate required fields
     if (!file) {
@@ -151,6 +160,7 @@ export async function POST(request: NextRequest) {
       organizationId,
       channelId: channelId || undefined,
       collectionId: collectionId || undefined,
+      processingStatus: skipAIProcessing ? "completed" : "pending",
     });
 
     return {
@@ -158,7 +168,10 @@ export async function POST(request: NextRequest) {
       videoUrl: processingResult.videoUrl,
       thumbnailUrl: processingResult.thumbnailUrl,
       duration: processingResult.duration,
-    } as UploadResponse;
+      processingStatus: insertedVideo.processingStatus,
+      skipAIProcessing,
+      videoTitle: title,
+    };
   });
 
   const runnable = Effect.provide(effect, AppLive);
@@ -173,9 +186,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
     onSuccess: (data) => {
+      // Trigger AI processing in the background (fire and forget)
+      if (!data.skipAIProcessing && data.videoUrl) {
+        // Run AI processing asynchronously - don't await
+        const aiEffect = Effect.gen(function* () {
+          const aiProcessor = yield* VideoAIProcessor;
+          yield* aiProcessor.processVideo(data.videoId, data.videoUrl!, data.videoTitle);
+        });
+
+        const aiRunnable = Effect.provide(aiEffect, FullProcessingLayer);
+
+        // Fire and forget - run in background
+        Effect.runPromise(aiRunnable).catch((err) => {
+          console.error("[AI Processing Error]", err);
+        });
+      }
+
       const response: ApiResponse<UploadResponse> = {
         success: true,
-        data,
+        data: {
+          videoId: data.videoId,
+          videoUrl: data.videoUrl,
+          thumbnailUrl: data.thumbnailUrl,
+          duration: data.duration,
+          processingStatus: data.processingStatus,
+        },
       };
       return NextResponse.json(response, { status: 201 });
     },

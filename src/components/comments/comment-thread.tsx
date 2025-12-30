@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { CommentItem } from "./comment-item";
-import { CommentForm } from "./comment-form";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
 import { cn } from "@/lib/utils";
-import type { CommentWithReplies, CommentWithAuthor } from "@/lib/effect/services/comment-repository";
+import { CommentForm } from "./comment-form";
+import { CommentItem } from "./comment-item";
 
 interface CommentThreadProps {
   comment: CommentWithReplies;

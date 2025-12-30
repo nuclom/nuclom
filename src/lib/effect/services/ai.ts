@@ -5,9 +5,10 @@
  * Uses Vercel AI SDK with XAI Grok-3 model.
  */
 
-import { Effect, Context, Layer, Stream, Chunk, pipe } from "effect";
 import { gateway } from "@ai-sdk/gateway";
 import { generateText, streamText } from "ai";
+import { Context, Effect, Layer, pipe, Stream } from "effect";
+import type { TranscriptSegment } from "@/lib/db/schema";
 import { AIServiceError } from "../errors";
 
 // =============================================================================
@@ -18,6 +19,27 @@ export interface VideoSummary {
   readonly summary: string;
   readonly keyPoints: ReadonlyArray<string>;
   readonly actionItems: ReadonlyArray<string>;
+}
+
+export interface ChapterResult {
+  readonly title: string;
+  readonly summary?: string;
+  readonly startTime: number;
+  readonly endTime?: number;
+}
+
+export interface CodeSnippetResult {
+  readonly language: string | null;
+  readonly code: string;
+  readonly title?: string;
+  readonly description?: string;
+  readonly timestamp?: number;
+}
+
+export interface ActionItemResult {
+  readonly text: string;
+  readonly timestamp?: number;
+  readonly priority?: "high" | "medium" | "low";
 }
 
 export interface AIServiceInterface {
@@ -35,9 +57,32 @@ export interface AIServiceInterface {
   ) => Effect.Effect<ReadonlyArray<string>, AIServiceError>;
 
   /**
-   * Extract action items from transcript
+   * Extract action items from transcript with timestamps
    */
   readonly extractActionItems: (transcript: string) => Effect.Effect<ReadonlyArray<string>, AIServiceError>;
+
+  /**
+   * Extract structured action items from transcript segments
+   */
+  readonly extractActionItemsWithTimestamps: (
+    segments: ReadonlyArray<TranscriptSegment>,
+  ) => Effect.Effect<ReadonlyArray<ActionItemResult>, AIServiceError>;
+
+  /**
+   * Detect and extract code snippets from transcript
+   */
+  readonly detectCodeSnippets: (
+    transcript: string,
+    segments?: ReadonlyArray<TranscriptSegment>,
+  ) => Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError>;
+
+  /**
+   * Generate chapters/key moments from transcript segments
+   */
+  readonly generateChapters: (
+    segments: ReadonlyArray<TranscriptSegment>,
+    videoTitle?: string,
+  ) => Effect.Effect<ReadonlyArray<ChapterResult>, AIServiceError>;
 
   /**
    * Create a streaming summary (returns Effect Stream)
@@ -180,13 +225,210 @@ ${transcript}`,
       run();
     });
 
+  const extractActionItemsWithTimestamps = (
+    segments: ReadonlyArray<TranscriptSegment>,
+  ): Effect.Effect<ReadonlyArray<ActionItemResult>, AIServiceError> =>
+    pipe(
+      Effect.tryPromise({
+        try: async () => {
+          // Format segments with timestamps for context
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+
+          const { text } = await generateText({
+            model,
+            prompt: `Analyze this timestamped transcript and extract action items, tasks, or to-dos.
+For each action item, include the approximate timestamp where it was mentioned.
+
+Transcript:
+${formattedTranscript}
+
+Return the response as JSON array with this format:
+[
+  { "text": "Action item description", "timestamp": 120, "priority": "high" },
+  { "text": "Another action item", "timestamp": 300, "priority": "medium" }
+]
+
+Priority should be "high", "medium", or "low" based on urgency.
+If no action items are found, return an empty array: []`,
+          });
+
+          try {
+            // Extract JSON from response (handle potential markdown code blocks)
+            const jsonMatch = text.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              return JSON.parse(jsonMatch[0]) as ActionItemResult[];
+            }
+            return [];
+          } catch {
+            return [];
+          }
+        },
+        catch: (error) =>
+          new AIServiceError({
+            message: "Failed to extract action items with timestamps",
+            operation: "extractActionItemsWithTimestamps",
+            cause: error,
+          }),
+      }),
+      Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<ActionItemResult>)),
+    );
+
+  const detectCodeSnippets = (
+    transcript: string,
+    segments?: ReadonlyArray<TranscriptSegment>,
+  ): Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError> =>
+    pipe(
+      Effect.tryPromise({
+        try: async () => {
+          const formattedTranscript = segments
+            ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n")
+            : transcript;
+
+          const { text } = await generateText({
+            model,
+            prompt: `Analyze this transcript and detect any code snippets, commands, or technical code that was mentioned or dictated.
+
+Transcript:
+${formattedTranscript}
+
+For each code snippet found:
+1. Reconstruct the actual code from what was spoken
+2. Identify the programming language
+3. Provide a brief title and description
+4. Include the timestamp if available
+
+Return as JSON array:
+[
+  {
+    "language": "javascript",
+    "code": "function example() { return true; }",
+    "title": "Example function",
+    "description": "A simple example function",
+    "timestamp": 120
+  }
+]
+
+Common patterns to look for:
+- "npm install", "pip install", "cargo add" (package manager commands)
+- Function definitions, class declarations
+- Variable assignments
+- API calls, imports
+- Configuration snippets
+- Shell commands
+
+If no code snippets are detected, return an empty array: []`,
+          });
+
+          try {
+            const jsonMatch = text.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              return JSON.parse(jsonMatch[0]) as CodeSnippetResult[];
+            }
+            return [];
+          } catch {
+            return [];
+          }
+        },
+        catch: (error) =>
+          new AIServiceError({
+            message: "Failed to detect code snippets",
+            operation: "detectCodeSnippets",
+            cause: error,
+          }),
+      }),
+      Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<CodeSnippetResult>)),
+    );
+
+  const generateChapters = (
+    segments: ReadonlyArray<TranscriptSegment>,
+    videoTitle?: string,
+  ): Effect.Effect<ReadonlyArray<ChapterResult>, AIServiceError> =>
+    pipe(
+      Effect.tryPromise({
+        try: async () => {
+          if (segments.length === 0) {
+            return [];
+          }
+
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+
+          const totalDuration = Math.max(...segments.map((s) => s.endTime));
+
+          const { text } = await generateText({
+            model,
+            prompt: `Analyze this timestamped transcript and generate chapters (key moments) for the video.
+${videoTitle ? `Video title: "${videoTitle}"` : ""}
+
+Transcript (total duration: ${formatTime(totalDuration)}):
+${formattedTranscript}
+
+Create 3-8 logical chapters based on topic changes, key moments, or natural section breaks.
+Each chapter should:
+- Have a concise, descriptive title
+- Include a brief summary (1-2 sentences)
+- Have accurate start/end timestamps
+
+Return as JSON array:
+[
+  {
+    "title": "Introduction",
+    "summary": "Overview of what the video covers",
+    "startTime": 0,
+    "endTime": 120
+  },
+  {
+    "title": "Main Topic",
+    "summary": "Deep dive into the core content",
+    "startTime": 120,
+    "endTime": 360
+  }
+]
+
+Ensure chapters cover the entire video duration without gaps.`,
+          });
+
+          try {
+            const jsonMatch = text.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              return JSON.parse(jsonMatch[0]) as ChapterResult[];
+            }
+            return [];
+          } catch {
+            return [];
+          }
+        },
+        catch: (error) =>
+          new AIServiceError({
+            message: "Failed to generate chapters",
+            operation: "generateChapters",
+            cause: error,
+          }),
+      }),
+      Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<ChapterResult>)),
+    );
+
   return {
     generateVideoSummary,
     generateVideoTags,
     extractActionItems,
+    extractActionItemsWithTimestamps,
+    detectCodeSnippets,
+    generateChapters,
     createSummaryStream,
   } satisfies AIServiceInterface;
 });
+
+// Helper function to format seconds to MM:SS or HH:MM:SS
+const formatTime = (seconds: number): string => {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
 
 // =============================================================================
 // AI Layer
@@ -237,4 +479,39 @@ export const createSummaryStream = (
   Effect.gen(function* () {
     const ai = yield* AI;
     return ai.createSummaryStream(transcript);
+  });
+
+/**
+ * Extract action items with timestamps from transcript segments
+ */
+export const extractActionItemsWithTimestamps = (
+  segments: ReadonlyArray<TranscriptSegment>,
+): Effect.Effect<ReadonlyArray<ActionItemResult>, AIServiceError, AI> =>
+  Effect.gen(function* () {
+    const ai = yield* AI;
+    return yield* ai.extractActionItemsWithTimestamps(segments);
+  });
+
+/**
+ * Detect code snippets from transcript
+ */
+export const detectCodeSnippets = (
+  transcript: string,
+  segments?: ReadonlyArray<TranscriptSegment>,
+): Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError, AI> =>
+  Effect.gen(function* () {
+    const ai = yield* AI;
+    return yield* ai.detectCodeSnippets(transcript, segments);
+  });
+
+/**
+ * Generate chapters from transcript segments
+ */
+export const generateChapters = (
+  segments: ReadonlyArray<TranscriptSegment>,
+  videoTitle?: string,
+): Effect.Effect<ReadonlyArray<ChapterResult>, AIServiceError, AI> =>
+  Effect.gen(function* () {
+    const ai = yield* AI;
+    return yield* ai.generateChapters(segments, videoTitle);
   });

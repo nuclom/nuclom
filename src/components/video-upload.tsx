@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback, type ChangeEvent, type FormEvent } from "react";
-import { Upload, Video, X, CheckCircle, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Upload, Video, X } from "lucide-react";
+import { type ChangeEvent, type FormEvent, useCallback, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface VideoUploadProps {
@@ -207,6 +207,7 @@ export function VideoUpload({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* File Upload Area */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
         <div
           className={cn(
             "border-2 border-dashed rounded-lg p-8 text-center transition-colors",

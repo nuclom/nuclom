@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import type { CommentWithReplies, CommentWithAuthor, CommentEvent } from "@/lib/effect/services/comment-repository";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CommentEvent, CommentWithAuthor, CommentWithReplies } from "@/lib/effect/services/comment-repository";
 
 interface UseRealtimeCommentsOptions {
   videoId: string;
@@ -162,7 +162,7 @@ export function useRealtimeComments({
 
         // Reconnect with exponential backoff
         if (reconnectAttempts.current < 5) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+          const delay = Math.min(1000 * 2 ** reconnectAttempts.current, 30000);
           reconnectAttempts.current++;
           reconnectTimeoutRef.current = setTimeout(connect, delay);
         } else {

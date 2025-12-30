@@ -1,6 +1,6 @@
-import { type NextRequest } from "next/server";
-import { commentEventEmitter } from "@/lib/realtime/comment-events";
+import type { NextRequest } from "next/server";
 import type { CommentEvent } from "@/lib/effect/services/comment-repository";
+import { commentEventEmitter } from "@/lib/realtime/comment-events";
 
 // =============================================================================
 // GET /api/videos/[id]/comments/stream - SSE endpoint for real-time comments

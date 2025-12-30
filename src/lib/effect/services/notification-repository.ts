@@ -4,12 +4,12 @@
  * Provides type-safe database operations for notifications.
  */
 
-import { Effect, Context, Layer } from "effect";
-import { eq, desc, and, sql } from "drizzle-orm";
-import { Database } from "./database";
-import { notifications, users, videos, comments } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
 import type { Notification, User } from "@/lib/db/schema";
+import { comments, notifications, users, videos } from "@/lib/db/schema";
+import { DatabaseError, NotFoundError } from "../errors";
+import { Database } from "./database";
 
 // =============================================================================
 // Types
@@ -173,7 +173,7 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
 
   const notifyCommentReply = (
     parentCommentId: string,
-    replyCommentId: string,
+    _replyCommentId: string,
     actorId: string,
     videoId: string,
   ): Effect.Effect<Notification | null, DatabaseError> =>
@@ -222,7 +222,7 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
 
   const notifyNewCommentOnVideo = (
     videoId: string,
-    commentId: string,
+    _commentId: string,
     actorId: string,
   ): Effect.Effect<Notification | null, DatabaseError> =>
     Effect.tryPromise({

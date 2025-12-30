@@ -1,8 +1,8 @@
+import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Exit, Cause, Layer } from "effect";
 import { auth } from "@/lib/auth";
 import { AppLive, NotificationRepository } from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
 
     // Fetch notifications
     const notificationRepo = yield* NotificationRepository;

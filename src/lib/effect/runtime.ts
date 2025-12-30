@@ -5,20 +5,21 @@
  * Following Effect-TS + Next.js best practices for managing stateful services.
  */
 
-import { Effect, Layer, ManagedRuntime, Logger, LogLevel, Exit, Cause, Option } from "effect";
+import process from "node:process";
+import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from "effect";
 import { globalValue } from "effect/GlobalValue";
 import { NextResponse } from "next/server";
-
 // Services
-import { Database, DatabaseLive } from "./services/database";
-import { Storage, StorageLive } from "./services/storage";
-import { AI, AILive } from "./services/ai";
-import { VideoProcessor, VideoProcessorLive } from "./services/video-processor";
-import { VideoRepository, VideoRepositoryLive } from "./services/video-repository";
-import { OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
-import { CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
-import { NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
-import { Auth, makeAuthLayer } from "./services/auth";
+import { type AI, AILive } from "./services/ai";
+import { makeAuthLayer } from "./services/auth";
+import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
+import { type Database, DatabaseLive } from "./services/database";
+import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
+import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
+import { type Storage, StorageLive } from "./services/storage";
+import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
+import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
+import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
 
 // =============================================================================
 // Layer Composition
@@ -38,6 +39,7 @@ const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive
 // Repositories depend on Database - provide their dependencies
 const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
@@ -46,6 +48,7 @@ const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
   VideoRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
+  VideoProgressRepositoryWithDeps,
   CommentRepositoryWithDeps,
   NotificationRepositoryWithDeps,
 );
@@ -63,6 +66,7 @@ export type AppServices =
   | VideoProcessor
   | VideoRepository
   | OrganizationRepository
+  | VideoProgressRepository
   | CommentRepository
   | NotificationRepository;
 
@@ -133,6 +137,9 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "UploadError":
       case "VideoProcessingError":
       case "AIServiceError":
+      case "TranscriptionError":
+      case "AudioExtractionError":
+      case "VideoAIProcessingError":
         console.error(`[${taggedError._tag}]`, taggedError);
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 

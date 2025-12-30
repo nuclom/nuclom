@@ -1,7 +1,6 @@
-import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { members, organizations } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function getActiveOrganization(userId: string) {
   const userMembership = await db

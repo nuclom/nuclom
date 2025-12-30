@@ -1,6 +1,6 @@
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { videos, users, organizations, channels, collections, comments } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { channels, collections, comments, organizations, users, videos } from "@/lib/db/schema";
 import type { VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {
@@ -19,7 +19,12 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
       channelId: videos.channelId,
       collectionId: videos.collectionId,
       transcript: videos.transcript,
+      transcriptSegments: videos.transcriptSegments,
+      processingStatus: videos.processingStatus,
+      processingError: videos.processingError,
       aiSummary: videos.aiSummary,
+      aiTags: videos.aiTags,
+      aiActionItems: videos.aiActionItems,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       author: {
@@ -70,7 +75,12 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       channelId: videos.channelId,
       collectionId: videos.collectionId,
       transcript: videos.transcript,
+      transcriptSegments: videos.transcriptSegments,
+      processingStatus: videos.processingStatus,
+      processingError: videos.processingError,
       aiSummary: videos.aiSummary,
+      aiTags: videos.aiTags,
+      aiActionItems: videos.aiActionItems,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       author: {

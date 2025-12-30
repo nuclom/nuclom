@@ -1,10 +1,10 @@
+import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Exit, Cause, Layer } from "effect";
 import { auth } from "@/lib/auth";
-import { AppLive, CommentRepository, NotFoundError, MissingFieldError, ForbiddenError } from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
+import { AppLive, CommentRepository, MissingFieldError } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { commentEventEmitter } from "@/lib/realtime/comment-events";
+import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // Error Response Handler
@@ -37,7 +37,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // GET /api/comments/[id] - Get a single comment
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 
