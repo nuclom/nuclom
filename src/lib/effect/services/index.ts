@@ -90,5 +90,13 @@ export {
   createOrganization,
   getUserOrganizations,
   getActiveOrganization,
+  getOrganization,
+  getOrganizationBySlug,
+  isMember,
+  getUserRole,
 } from "./organization-repository";
-export type { OrganizationRepositoryService, OrganizationWithRole } from "./organization-repository";
+export type {
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+  CreateOrganizationInput,
+} from "./organization-repository";

@@ -390,6 +390,150 @@ const makeMyService = Effect.gen(function* () {
 export const MyServiceLive = Layer.effect(MyService, makeMyService);
 ```
 
+## React Server Components
+
+### Server-side Effect Utilities
+
+The `server.ts` module provides utilities for using Effect in Server Components:
+
+```typescript
+import { getCachedVideos, getCachedOrganizationBySlug } from "@/lib/effect";
+
+// Server Component
+export default async function VideosPage({ params }) {
+  const organization = await getCachedOrganizationBySlug(params.slug);
+  const videos = await getCachedVideos(organization.id);
+
+  return <VideoList videos={videos.data} />;
+}
+```
+
+### Cached Queries
+
+Queries are automatically cached using Next.js `unstable_cache`:
+
+```typescript
+import { createCachedQuery } from "@/lib/effect/server";
+
+export const getVideos = async (organizationId: string, page = 1, limit = 20) => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* VideoRepository;
+        return yield* repo.getVideos(organizationId, page, limit);
+      });
+      return runServerEffect(effect);
+    },
+    [`videos`, `videos:${organizationId}`],
+    { tags: [`videos`, `videos:${organizationId}`], revalidate: 60 }
+  );
+
+  return cachedFn();
+};
+```
+
+### Revalidation
+
+Use the revalidation helpers to invalidate cached data:
+
+```typescript
+import { revalidateVideos, revalidateVideo } from "@/lib/effect";
+
+// After creating a video
+await serverCreateVideo(data);
+revalidateVideos(organizationId);
+
+// After updating a specific video
+await serverUpdateVideo(id, data);
+revalidateVideo(id);
+```
+
+### Suspense Integration
+
+Use Suspense boundaries with async Server Components for streaming:
+
+```typescript
+import { Suspense } from "react";
+
+function LoadingSkeleton() {
+  return <div className="animate-pulse bg-muted h-64 rounded-lg" />;
+}
+
+async function VideoList({ organizationId }: { organizationId: string }) {
+  const videos = await getCachedVideos(organizationId);
+  return <VideoGrid videos={videos.data} />;
+}
+
+export default async function Page({ params }) {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <VideoList organizationId={params.organizationId} />
+    </Suspense>
+  );
+}
+```
+
+### Server Actions
+
+Server actions use Effect for type-safe mutations:
+
+```typescript
+import { serverCreateVideo, serverUpdateVideo, serverDeleteVideo } from "@/lib/effect";
+
+// In a client component
+async function handleSubmit(formData: FormData) {
+  const result = await serverCreateVideo({
+    title: formData.get("title"),
+    organizationId,
+    // ...
+  });
+
+  if (result.success) {
+    // Handle success
+  } else {
+    // Handle error
+  }
+}
+```
+
+### Data Flow Pattern
+
+1. **Server Components** fetch data using cached Effect queries
+2. **Client Components** receive data as props (no useEffect needed)
+3. **Mutations** use server actions that revalidate caches
+4. **Suspense** provides loading states and enables streaming
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Server Component                        │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ const data = await getCachedVideos(orgId);          │   │
+│  │ return <ClientComponent videos={data} />;           │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Client Component                         │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ // No useEffect needed - data comes via props        │   │
+│  │ function VideoGrid({ videos }) {                     │   │
+│  │   return videos.map(video => <VideoCard ... />);    │   │
+│  │ }                                                    │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼ (on mutation)
+┌─────────────────────────────────────────────────────────────┐
+│                     Server Action                            │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ await serverCreateVideo(data);                       │   │
+│  │ revalidateVideos(organizationId);                   │   │
+│  │ // Cache is invalidated, components re-render       │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ## Related Documentation
 
 - [Effect-TS Official Docs](https://effect.website/docs)

@@ -85,6 +85,10 @@ export {
   createOrganization,
   getUserOrganizations,
   getActiveOrganization,
+  getOrganization,
+  getOrganizationBySlug,
+  isMember,
+  getUserRole,
 } from "./services";
 
 export type {
@@ -113,6 +117,7 @@ export type {
   // OrganizationRepository
   OrganizationRepositoryService,
   OrganizationWithRole,
+  CreateOrganizationInput,
 } from "./services";
 
 // Runtime and layers
@@ -132,3 +137,31 @@ export {
   LoggingLive,
 } from "./runtime";
 export type { AppServices } from "./runtime";
+
+// Server utilities (for RSC)
+export {
+  runServerEffect,
+  runServerEffectSafe,
+  createCachedQuery,
+  getVideos as getCachedVideos,
+  getVideo as getCachedVideo,
+  getOrganizations as getCachedOrganizations,
+  getOrganizationBySlug as getCachedOrganizationBySlug,
+  revalidateVideos,
+  revalidateVideo,
+  revalidateOrganizations,
+  revalidateOrganization,
+  createVideo as serverCreateVideo,
+  updateVideo as serverUpdateVideo,
+  deleteVideo as serverDeleteVideo,
+} from "./server";
+
+// Streaming utilities
+export {
+  streamToAsyncIterable,
+  runStream,
+  createDeferredLoader,
+  createParallelLoaders,
+  streamVideoSummary,
+} from "./streaming";
+export type { StreamChunk } from "./streaming";
