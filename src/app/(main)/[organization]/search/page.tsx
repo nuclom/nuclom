@@ -54,6 +54,8 @@ export default async function SearchPage({ params }: { params: Promise<{ organiz
               aiSummary: null,
               aiTags: null,
               aiActionItems: null,
+              deletedAt: null,
+              retentionUntil: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {

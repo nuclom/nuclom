@@ -74,6 +74,8 @@ export default async function ChannelPage({ params }: { params: Promise<{ organi
               aiSummary: null,
               aiTags: null,
               aiActionItems: null,
+              deletedAt: null,
+              retentionUntil: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {

@@ -286,6 +286,9 @@ export const videos = pgTable("videos", {
   aiSummary: text("ai_summary"),
   aiTags: jsonb("ai_tags").$type<string[]>(),
   aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
+  // Soft-delete fields
+  deletedAt: timestamp("deleted_at"),
+  retentionUntil: timestamp("retention_until"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

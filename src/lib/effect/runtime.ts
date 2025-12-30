@@ -14,6 +14,7 @@ import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
 import { type Billing, BillingLive } from "./services/billing";
 import { type BillingRepository, BillingRepositoryLive } from "./services/billing-repository";
+import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
@@ -44,7 +45,10 @@ const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, Repli
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
 
 // Repositories depend on Database - provide their dependencies
-const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(DatabaseLive));
+// VideoRepository depends on both Database and Storage
+const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)),
+);
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -52,6 +56,7 @@ const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.pro
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
 const BillingWithDeps = BillingLive.pipe(
@@ -70,6 +75,7 @@ const AppServicesLive = Layer.mergeAll(
   BillingRepositoryWithDeps,
   BillingWithDeps,
   SeriesRepositoryWithDeps,
+  ChannelRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -94,6 +100,7 @@ export type AppServices =
   | BillingRepository
   | Billing
   | SeriesRepository
+  | ChannelRepository
   | StripeServiceTag;
 
 // =============================================================================

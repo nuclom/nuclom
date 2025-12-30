@@ -4,10 +4,10 @@
  * Provides type-safe database operations for organizations.
  */
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
-import { members, organizations } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, TransactionError } from "../errors";
+import { members, organizations, users } from "@/lib/db/schema";
+import { DatabaseError, ForbiddenError, NotFoundError, TransactionError, ValidationError } from "../errors";
 import { Database } from "./database";
 
 // =============================================================================
@@ -21,6 +21,13 @@ export interface CreateOrganizationInput {
   readonly userId: string;
 }
 
+export interface UpdateOrganizationInput {
+  readonly name?: string;
+  readonly slug?: string;
+  readonly logo?: string | null;
+  readonly metadata?: string;
+}
+
 export interface OrganizationWithRole {
   readonly id: string;
   readonly name: string;
@@ -30,6 +37,20 @@ export interface OrganizationWithRole {
   readonly role: "owner" | "member";
 }
 
+export interface OrganizationMember {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly userId: string;
+  readonly role: "owner" | "member";
+  readonly createdAt: Date;
+  readonly user: {
+    readonly id: string;
+    readonly name: string;
+    readonly email: string;
+    readonly image: string | null;
+  };
+}
+
 export interface OrganizationRepositoryService {
   /**
    * Create a new organization with the user as owner
@@ -37,6 +58,14 @@ export interface OrganizationRepositoryService {
   readonly createOrganization: (
     data: CreateOrganizationInput,
   ) => Effect.Effect<typeof organizations.$inferSelect, TransactionError>;
+
+  /**
+   * Update an organization
+   */
+  readonly updateOrganization: (
+    id: string,
+    data: UpdateOrganizationInput,
+  ) => Effect.Effect<typeof organizations.$inferSelect, DatabaseError | NotFoundError | ValidationError>;
 
   /**
    * Get all organizations for a user with their roles
@@ -74,6 +103,32 @@ export interface OrganizationRepositoryService {
     userId: string,
     organizationId: string,
   ) => Effect.Effect<Option.Option<"owner" | "member">, DatabaseError>;
+
+  /**
+   * Get all members of an organization
+   */
+  readonly getOrganizationMembers: (
+    organizationId: string,
+  ) => Effect.Effect<ReadonlyArray<OrganizationMember>, DatabaseError>;
+
+  /**
+   * Remove a member from an organization
+   */
+  readonly removeMember: (
+    organizationId: string,
+    userId: string,
+    requesterId: string,
+  ) => Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError>;
+
+  /**
+   * Update a member's role in an organization
+   */
+  readonly updateMemberRole: (
+    organizationId: string,
+    userId: string,
+    newRole: "owner" | "member",
+    requesterId: string,
+  ) => Effect.Effect<typeof members.$inferSelect, DatabaseError | NotFoundError | ForbiddenError>;
 }
 
 // =============================================================================
@@ -253,18 +308,17 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
 
   const getUserRole = (
     userId: string,
-    _organizationId: string,
+    organizationId: string,
   ): Effect.Effect<Option.Option<"owner" | "member">, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const membership = await db
           .select({ role: members.role })
           .from(members)
-          .where(eq(members.userId, userId))
+          .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId)))
           .limit(1);
 
-        const orgMember = membership.find((_m) => true); // Will be filtered by org in a proper query
-        return orgMember ? Option.some(orgMember.role) : Option.none();
+        return membership[0] ? Option.some(membership[0].role) : Option.none();
       },
       catch: (error) =>
         new DatabaseError({
@@ -274,14 +328,284 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
         }),
     });
 
+  const updateOrganization = (
+    id: string,
+    data: UpdateOrganizationInput,
+  ): Effect.Effect<typeof organizations.$inferSelect, DatabaseError | NotFoundError | ValidationError> =>
+    Effect.gen(function* () {
+      // Check if slug is being updated and if it's unique
+      if (data.slug) {
+        const newSlug = data.slug;
+        const existingOrg = yield* Effect.tryPromise({
+          try: () =>
+            db
+              .select()
+              .from(organizations)
+              .where(and(eq(organizations.slug, newSlug), ne(organizations.id, id)))
+              .limit(1),
+          catch: (error) =>
+            new DatabaseError({
+              message: "Failed to check slug uniqueness",
+              operation: "updateOrganization.checkSlug",
+              cause: error,
+            }),
+        });
+
+        if (existingOrg.length > 0) {
+          return yield* Effect.fail(
+            new ValidationError({
+              message: "Organization slug already exists",
+              field: "slug",
+            }),
+          );
+        }
+      }
+
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          return await db.update(organizations).set(data).where(eq(organizations.id, id)).returning();
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to update organization",
+            operation: "updateOrganization",
+            cause: error,
+          }),
+      });
+
+      if (!result.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: "Organization not found",
+            entity: "Organization",
+            id,
+          }),
+        );
+      }
+
+      return result[0];
+    });
+
+  const getOrganizationMembers = (
+    organizationId: string,
+  ): Effect.Effect<ReadonlyArray<OrganizationMember>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const orgMembers = await db
+          .select({
+            id: members.id,
+            organizationId: members.organizationId,
+            userId: members.userId,
+            role: members.role,
+            createdAt: members.createdAt,
+            user: {
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              image: users.image,
+            },
+          })
+          .from(members)
+          .innerJoin(users, eq(members.userId, users.id))
+          .where(eq(members.organizationId, organizationId));
+
+        return orgMembers as ReadonlyArray<OrganizationMember>;
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch organization members",
+          operation: "getOrganizationMembers",
+          cause: error,
+        }),
+    });
+
+  const removeMember = (
+    organizationId: string,
+    userId: string,
+    requesterId: string,
+  ): Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError> =>
+    Effect.gen(function* () {
+      // Check requester's role
+      const requesterRole = yield* getUserRole(requesterId, organizationId);
+
+      if (Option.isNone(requesterRole) || requesterRole.value !== "owner") {
+        return yield* Effect.fail(
+          new ForbiddenError({
+            message: "Only organization owners can remove members",
+            resource: "Organization",
+          }),
+        );
+      }
+
+      // Check if user to remove exists
+      const memberToRemove = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select()
+            .from(members)
+            .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId)))
+            .limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to fetch member",
+            operation: "removeMember.fetch",
+            cause: error,
+          }),
+      });
+
+      if (!memberToRemove.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: "Member not found in organization",
+            entity: "Member",
+            id: userId,
+          }),
+        );
+      }
+
+      // Prevent removing the last owner
+      if (memberToRemove[0].role === "owner") {
+        const ownerCount = yield* Effect.tryPromise({
+          try: () =>
+            db
+              .select()
+              .from(members)
+              .where(and(eq(members.organizationId, organizationId), eq(members.role, "owner"))),
+          catch: (error) =>
+            new DatabaseError({
+              message: "Failed to count owners",
+              operation: "removeMember.countOwners",
+              cause: error,
+            }),
+        });
+
+        if (ownerCount.length <= 1) {
+          return yield* Effect.fail(
+            new ForbiddenError({
+              message: "Cannot remove the last owner of an organization",
+              resource: "Organization",
+            }),
+          );
+        }
+      }
+
+      // Remove member
+      yield* Effect.tryPromise({
+        try: () =>
+          db
+            .delete(members)
+            .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId))),
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to remove member",
+            operation: "removeMember",
+            cause: error,
+          }),
+      });
+    });
+
+  const updateMemberRole = (
+    organizationId: string,
+    userId: string,
+    newRole: "owner" | "member",
+    requesterId: string,
+  ): Effect.Effect<typeof members.$inferSelect, DatabaseError | NotFoundError | ForbiddenError> =>
+    Effect.gen(function* () {
+      // Check requester's role
+      const requesterRole = yield* getUserRole(requesterId, organizationId);
+
+      if (Option.isNone(requesterRole) || requesterRole.value !== "owner") {
+        return yield* Effect.fail(
+          new ForbiddenError({
+            message: "Only organization owners can change member roles",
+            resource: "Organization",
+          }),
+        );
+      }
+
+      // Check if user exists in organization
+      const memberToUpdate = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select()
+            .from(members)
+            .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId)))
+            .limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to fetch member",
+            operation: "updateMemberRole.fetch",
+            cause: error,
+          }),
+      });
+
+      if (!memberToUpdate.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: "Member not found in organization",
+            entity: "Member",
+            id: userId,
+          }),
+        );
+      }
+
+      // Prevent demoting the last owner
+      if (memberToUpdate[0].role === "owner" && newRole === "member") {
+        const ownerCount = yield* Effect.tryPromise({
+          try: () =>
+            db
+              .select()
+              .from(members)
+              .where(and(eq(members.organizationId, organizationId), eq(members.role, "owner"))),
+          catch: (error) =>
+            new DatabaseError({
+              message: "Failed to count owners",
+              operation: "updateMemberRole.countOwners",
+              cause: error,
+            }),
+        });
+
+        if (ownerCount.length <= 1) {
+          return yield* Effect.fail(
+            new ForbiddenError({
+              message: "Cannot demote the last owner of an organization",
+              resource: "Organization",
+            }),
+          );
+        }
+      }
+
+      // Update role
+      const result = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .update(members)
+            .set({ role: newRole })
+            .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId)))
+            .returning(),
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to update member role",
+            operation: "updateMemberRole",
+            cause: error,
+          }),
+      });
+
+      return result[0];
+    });
+
   return {
     createOrganization,
+    updateOrganization,
     getUserOrganizations,
     getActiveOrganization,
     getOrganization,
     getOrganizationBySlug,
     isMember,
     getUserRole,
+    getOrganizationMembers,
+    removeMember,
+    updateMemberRole,
   } satisfies OrganizationRepositoryService;
 });
 
@@ -351,4 +675,46 @@ export const getUserRole = (
   Effect.gen(function* () {
     const repo = yield* OrganizationRepository;
     return yield* repo.getUserRole(userId, organizationId);
+  });
+
+export const updateOrganization = (
+  id: string,
+  data: UpdateOrganizationInput,
+): Effect.Effect<
+  typeof organizations.$inferSelect,
+  DatabaseError | NotFoundError | ValidationError,
+  OrganizationRepository
+> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.updateOrganization(id, data);
+  });
+
+export const getOrganizationMembers = (
+  organizationId: string,
+): Effect.Effect<ReadonlyArray<OrganizationMember>, DatabaseError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.getOrganizationMembers(organizationId);
+  });
+
+export const removeMember = (
+  organizationId: string,
+  userId: string,
+  requesterId: string,
+): Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.removeMember(organizationId, userId, requesterId);
+  });
+
+export const updateMemberRole = (
+  organizationId: string,
+  userId: string,
+  newRole: "owner" | "member",
+  requesterId: string,
+): Effect.Effect<typeof members.$inferSelect, DatabaseError | NotFoundError | ForbiddenError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.updateMemberRole(organizationId, userId, newRole, requesterId);
   });
