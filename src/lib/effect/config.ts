@@ -70,6 +70,17 @@ export const AppConfig = Config.all({
   betterAuthUrl: Config.string("NEXT_PUBLIC_BETTER_AUTH_URL").pipe(Config.withDefault("http://localhost:3000")),
 });
 
+/**
+ * Stripe configuration
+ */
+export const StripeConfig = Config.all({
+  secretKey: Config.redacted("STRIPE_SECRET_KEY"),
+  webhookSecret: Config.redacted("STRIPE_WEBHOOK_SECRET"),
+  publishableKey: Config.string("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY").pipe(Config.option),
+});
+
+export type StripeConfig = typeof StripeConfig extends Config.Config<infer A> ? A : never;
+
 export type AppConfig = typeof AppConfig extends Config.Config<infer A> ? A : never;
 
 /**
@@ -82,6 +93,7 @@ export const ServerConfig = Config.all({
   google: GoogleOAuthConfig,
   email: EmailConfig,
   app: AppConfig,
+  stripe: StripeConfig,
 });
 
 export type ServerConfig = typeof ServerConfig extends Config.Config<infer A> ? A : never;

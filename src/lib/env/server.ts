@@ -16,6 +16,8 @@ export const ServerEnv = z.object({
   R2_SECRET_ACCESS_KEY: z.string(),
   R2_BUCKET_NAME: z.string(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
 });
 
 export const env = ServerEnv.parse(process.env);

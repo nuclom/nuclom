@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { bigint, boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("UserRole", ["user", "admin"]);
 export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member"]);
@@ -318,6 +318,25 @@ export const notificationTypeEnum = pgEnum("NotificationType", [
   "video_shared",
 ]);
 
+// Billing enums
+export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
+  "active",
+  "canceled",
+  "past_due",
+  "trialing",
+  "incomplete",
+  "incomplete_expired",
+  "unpaid",
+]);
+
+export const invoiceStatusEnum = pgEnum("InvoiceStatus", [
+  "draft",
+  "open",
+  "paid",
+  "void",
+  "uncollectible",
+]);
+
 export const notifications = pgTable("notifications", {
   id: text("id")
     .primaryKey()
@@ -335,6 +354,129 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// =====================
+// Billing Tables
+// =====================
+
+// Types for JSONB columns in billing
+export type PlanLimits = {
+  readonly storage: number; // bytes, -1 for unlimited
+  readonly videos: number; // count, -1 for unlimited
+  readonly members: number; // count, -1 for unlimited
+  readonly bandwidth: number; // bytes per month, -1 for unlimited
+};
+
+export type PlanFeatures = {
+  readonly aiInsights: boolean;
+  readonly customBranding: boolean;
+  readonly sso: boolean;
+  readonly prioritySupport: boolean;
+  readonly apiAccess: boolean;
+};
+
+export const plans = pgTable("plans", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  stripePriceIdMonthly: text("stripe_price_id_monthly"),
+  stripePriceIdYearly: text("stripe_price_id_yearly"),
+  priceMonthly: integer("price_monthly").notNull().default(0), // cents
+  priceYearly: integer("price_yearly"), // cents
+  limits: jsonb("limits").$type<PlanLimits>().notNull(),
+  features: jsonb("features").$type<PlanFeatures>().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const subscriptions = pgTable("subscriptions", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" })
+    .unique(),
+  planId: text("plan_id")
+    .notNull()
+    .references(() => plans.id),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  stripeCustomerId: text("stripe_customer_id"),
+  status: subscriptionStatusEnum("status").notNull().default("active"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+  canceledAt: timestamp("canceled_at"),
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const usage = pgTable(
+  "usage",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    periodStart: timestamp("period_start").notNull(),
+    periodEnd: timestamp("period_end").notNull(),
+    storageUsed: bigint("storage_used", { mode: "number" }).default(0).notNull(), // bytes
+    videosUploaded: integer("videos_uploaded").default(0).notNull(),
+    bandwidthUsed: bigint("bandwidth_used", { mode: "number" }).default(0).notNull(), // bytes
+    aiRequests: integer("ai_requests").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueOrgPeriod: unique().on(table.organizationId, table.periodStart),
+  }),
+);
+
+export const invoices = pgTable("invoices", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  stripeInvoiceId: text("stripe_invoice_id").unique(),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  amount: integer("amount").notNull(), // cents
+  amountPaid: integer("amount_paid").default(0).notNull(), // cents
+  currency: text("currency").default("usd").notNull(),
+  status: invoiceStatusEnum("status").notNull(),
+  pdfUrl: text("pdf_url"),
+  hostedInvoiceUrl: text("hosted_invoice_url"),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  dueDate: timestamp("due_date"),
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const paymentMethods = pgTable("payment_methods", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  stripePaymentMethodId: text("stripe_payment_method_id").notNull().unique(),
+  type: text("type").notNull(), // 'card', 'bank_account', etc.
+  brand: text("brand"), // 'visa', 'mastercard', etc.
+  last4: text("last4"),
+  expMonth: integer("exp_month"),
+  expYear: integer("exp_year"),
+  isDefault: boolean("is_default").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const userRelations = relations(users, ({ many }) => ({
   videos: many(videos),
@@ -342,10 +484,14 @@ export const userRelations = relations(users, ({ many }) => ({
   videoProgresses: many(videoProgresses),
 }));
 
-export const organizationRelations = relations(organizations, ({ many }) => ({
+export const organizationRelations = relations(organizations, ({ one, many }) => ({
   videos: many(videos),
   channels: many(channels),
   collections: many(collections),
+  subscription: one(subscriptions),
+  usageRecords: many(usage),
+  invoices: many(invoices),
+  paymentMethods: many(paymentMethods),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -444,6 +590,43 @@ export const notificationRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
+// Billing relations
+export const plansRelations = relations(plans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [subscriptions.organizationId],
+    references: [organizations.id],
+  }),
+  plan: one(plans, {
+    fields: [subscriptions.planId],
+    references: [plans.id],
+  }),
+}));
+
+export const usageRelations = relations(usage, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [usage.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invoices.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [paymentMethods.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;
@@ -469,3 +652,17 @@ export type NewVideoCodeSnippet = typeof videoCodeSnippets.$inferInsert;
 
 // Processing status type
 export type ProcessingStatus = (typeof processingStatusEnum.enumValues)[number];
+
+// Billing types
+export type Plan = typeof plans.$inferSelect;
+export type NewPlan = typeof plans.$inferInsert;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
+export type Usage = typeof usage.$inferSelect;
+export type NewUsage = typeof usage.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
+export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
+export type InvoiceStatus = (typeof invoiceStatusEnum.enumValues)[number];

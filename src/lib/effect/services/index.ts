@@ -4,6 +4,65 @@
  * All Effect-TS services are exported from this file.
  */
 
+// Billing Services
+export type {
+  BillingRepositoryService,
+  OrganizationBillingInfo,
+  SubscriptionWithPlan,
+  UsageSummary,
+} from "./billing-repository";
+export {
+  BillingRepository,
+  BillingRepositoryLive,
+  getBillingInfo,
+  getCurrentUsage,
+  getInvoices,
+  getMemberCount,
+  getPlan,
+  getPlans,
+  getSubscription,
+  getSubscriptionOption,
+  getUsageSummary,
+  getVideoCount,
+  incrementUsage,
+  decrementUsage,
+} from "./billing-repository";
+
+export type { BillingServiceInterface, CreateCheckoutParams, LimitResource } from "./billing";
+export {
+  Billing,
+  BillingLive,
+  cancelSubscription,
+  changePlan,
+  checkLimit,
+  createCheckoutSession,
+  createPortalSession,
+  enforceLimit,
+  getFeatureAccess,
+  resumeSubscription,
+} from "./billing";
+
+export type { StripeService } from "./stripe";
+export { getStripe, StripeServiceLive, StripeServiceTag } from "./stripe";
+
+// Billing Middleware
+export type { LimitCheckResult } from "./billing-middleware";
+export {
+  checkFeatureAccess,
+  checkResourceLimit,
+  enforceResourceLimit,
+  getPlanFeatures,
+  getPlanLimits,
+  releaseStorageUsage,
+  releaseVideoCount,
+  requireActiveSubscription,
+  requireFeature,
+  trackAIRequest,
+  trackBandwidthUsage,
+  trackStorageUsage,
+  trackVideoUpload,
+} from "./billing-middleware";
+
 export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
 // AI Service
 export {
