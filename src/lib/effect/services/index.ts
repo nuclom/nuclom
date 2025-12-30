@@ -250,3 +250,69 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from "./video-repository";
+
+// Zoom Service
+export type {
+  ZoomConfig,
+  ZoomTokenResponse,
+  ZoomUserInfo,
+  ZoomRecording,
+  ZoomRecordingsResponse,
+  ZoomMeeting,
+  ZoomServiceInterface,
+} from "./zoom";
+export {
+  Zoom,
+  ZoomLive,
+  getZoomAuthorizationUrl,
+  exchangeZoomCodeForToken,
+  refreshZoomAccessToken,
+  getZoomUserInfo,
+  listZoomRecordings,
+  getZoomMeetingRecordings,
+} from "./zoom";
+
+// Google Meet Service
+export type {
+  GoogleConfig,
+  GoogleTokenResponse,
+  GoogleUserInfo,
+  GoogleMeetRecording,
+  GoogleDriveFilesResponse,
+  GoogleMeetServiceInterface,
+} from "./google-meet";
+export {
+  GoogleMeet,
+  GoogleMeetLive,
+  getGoogleAuthorizationUrl,
+  exchangeGoogleCodeForToken,
+  refreshGoogleAccessToken,
+  getGoogleUserInfo,
+  listGoogleMeetRecordings,
+  downloadGoogleFile,
+} from "./google-meet";
+
+// Integration Repository
+export type {
+  CreateIntegrationInput,
+  UpdateIntegrationInput,
+  CreateImportedMeetingInput,
+  UpdateImportedMeetingInput,
+  IntegrationWithUser,
+  ImportedMeetingWithVideo,
+  IntegrationRepositoryService,
+} from "./integration-repository";
+export {
+  IntegrationRepository,
+  IntegrationRepositoryLive,
+  getIntegrations,
+  getUserIntegrations,
+  getIntegration,
+  getIntegrationByProvider,
+  createIntegration,
+  updateIntegration,
+  deleteIntegration,
+  getImportedMeetings,
+  createImportedMeeting,
+  updateImportedMeeting,
+} from "./integration-repository";
