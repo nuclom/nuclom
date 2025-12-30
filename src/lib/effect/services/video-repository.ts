@@ -7,17 +7,17 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import {
+  type ActionItem,
   channels,
   collections,
   comments,
   organizations,
+  type ProcessingStatus,
+  type TranscriptSegment,
   users,
   videoChapters,
   videoCodeSnippets,
   videos,
-  type ActionItem,
-  type ProcessingStatus,
-  type TranscriptSegment,
 } from "@/lib/db/schema";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 import { DatabaseError, NotFoundError } from "../errors";
@@ -97,16 +97,14 @@ export interface VideoRepositoryService {
   /**
    * Get video chapters
    */
-  readonly getVideoChapters: (
-    videoId: string,
-  ) => Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError>;
+  readonly getVideoChapters: (videoId: string) => Effect.Effect<(typeof videoChapters.$inferSelect)[], DatabaseError>;
 
   /**
    * Get video code snippets
    */
   readonly getVideoCodeSnippets: (
     videoId: string,
-  ) => Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError>;
+  ) => Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError>;
 }
 
 // =============================================================================
@@ -416,9 +414,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       }
     });
 
-  const getVideoChapters = (
-    videoId: string,
-  ): Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError> =>
+  const getVideoChapters = (videoId: string): Effect.Effect<(typeof videoChapters.$inferSelect)[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         return await db
@@ -437,7 +433,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
 
   const getVideoCodeSnippets = (
     videoId: string,
-  ): Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError> =>
+  ): Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         return await db
@@ -519,7 +515,7 @@ export const deleteVideoRecord = deleteVideo;
 
 export const getVideoChapters = (
   videoId: string,
-): Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError, VideoRepository> =>
+): Effect.Effect<(typeof videoChapters.$inferSelect)[], DatabaseError, VideoRepository> =>
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideoChapters(videoId);
@@ -527,7 +523,7 @@ export const getVideoChapters = (
 
 export const getVideoCodeSnippets = (
   videoId: string,
-): Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError, VideoRepository> =>
+): Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError, VideoRepository> =>
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideoCodeSnippets(videoId);

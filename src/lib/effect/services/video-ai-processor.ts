@@ -9,20 +9,19 @@
  * 5. Database storage of results
  */
 
-import { Effect, Context, Layer, pipe } from "effect";
-import { Data } from "effect";
 import { eq } from "drizzle-orm";
-import { Database } from "./database";
-import { AI, type ChapterResult, type CodeSnippetResult, type ActionItemResult } from "./ai";
-import { Transcription, type TranscriptionResult } from "./transcription";
+import { Context, Data, Effect, Layer, pipe } from "effect";
 import {
-  videos,
-  videoChapters,
-  videoCodeSnippets,
+  type ActionItem,
   type ProcessingStatus,
   type TranscriptSegment,
-  type ActionItem,
+  videoChapters,
+  videoCodeSnippets,
+  videos,
 } from "@/lib/db/schema";
+import { type ActionItemResult, AI, type ChapterResult, type CodeSnippetResult } from "./ai";
+import { Database } from "./database";
+import { Transcription } from "./transcription";
 
 // =============================================================================
 // Error Types

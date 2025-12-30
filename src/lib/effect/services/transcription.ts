@@ -5,7 +5,7 @@
  * Handles audio extraction and transcription with timestamp segments.
  */
 
-import { Effect, Context, Layer, pipe } from "effect";
+import { Context, Effect, Layer } from "effect";
 import OpenAI from "openai";
 import type { TranscriptSegment } from "@/lib/db/schema";
 
@@ -13,6 +13,7 @@ import type { TranscriptSegment } from "@/lib/db/schema";
 // Error Types
 // =============================================================================
 
+import process from "node:process";
 import { Data } from "effect";
 
 export class TranscriptionError extends Data.TaggedError("TranscriptionError")<{

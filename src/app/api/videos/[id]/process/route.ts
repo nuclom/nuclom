@@ -1,18 +1,18 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Exit, Cause, Layer } from "effect";
 import { eq } from "drizzle-orm";
+import { Cause, Effect, Exit, Layer } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import type { ApiResponse } from "@/lib/types";
-import { AppLive, NotFoundError, DatabaseError } from "@/lib/effect";
-import { auth } from "@/lib/auth";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { AppLive, DatabaseError, NotFoundError } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import {
+  VideoAIProcessingError,
   VideoAIProcessor,
   VideoAIProcessorLive,
-  VideoAIProcessingError,
 } from "@/lib/effect/services/video-ai-processor";
-import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // Error Response Handler
@@ -41,9 +41,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 };
 
 // Build the layer with all required dependencies
-const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(
-  Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)),
-);
+const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
 
 const ProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProcessorWithDeps);
 
@@ -168,7 +166,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // GET /api/videos/[id]/process - Get processing status
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;

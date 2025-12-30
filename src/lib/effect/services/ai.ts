@@ -8,8 +8,8 @@
 import { gateway } from "@ai-sdk/gateway";
 import { generateText, streamText } from "ai";
 import { Context, Effect, Layer, pipe, Stream } from "effect";
+import type { TranscriptSegment } from "@/lib/db/schema";
 import { AIServiceError } from "../errors";
-import type { TranscriptSegment, ActionItem } from "@/lib/db/schema";
 
 // =============================================================================
 // Types
@@ -232,9 +232,7 @@ ${transcript}`,
       Effect.tryPromise({
         try: async () => {
           // Format segments with timestamps for context
-          const formattedTranscript = segments
-            .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-            .join("\n");
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
           const { text } = await generateText({
             model,
@@ -352,9 +350,7 @@ If no code snippets are detected, return an empty array: []`,
             return [];
           }
 
-          const formattedTranscript = segments
-            .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-            .join("\n");
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
           const totalDuration = Math.max(...segments.map((s) => s.endTime));
 

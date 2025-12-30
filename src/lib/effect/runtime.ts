@@ -9,10 +9,12 @@ import process from "node:process";
 import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from "effect";
 import { globalValue } from "effect/GlobalValue";
 import { NextResponse } from "next/server";
+// Services
 import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
-// Services
+import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
+import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type Storage, StorageLive } from "./services/storage";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
@@ -38,6 +40,8 @@ const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive
 const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -45,6 +49,8 @@ const AppServicesLive = Layer.mergeAll(
   VideoRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
+  CommentRepositoryWithDeps,
+  NotificationRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -60,7 +66,9 @@ export type AppServices =
   | VideoProcessor
   | VideoRepository
   | OrganizationRepository
-  | VideoProgressRepository;
+  | VideoProgressRepository
+  | CommentRepository
+  | NotificationRepository;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

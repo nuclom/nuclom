@@ -1,10 +1,10 @@
+import { asc, eq } from "drizzle-orm";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Exit, Cause } from "effect";
-import { eq, asc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { videos, videoCodeSnippets } from "@/lib/db/schema";
+import { videoCodeSnippets, videos } from "@/lib/db/schema";
+import { AppLive, DatabaseError, NotFoundError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
-import { AppLive, NotFoundError, DatabaseError } from "@/lib/effect";
 
 // =============================================================================
 // Error Response Handler
@@ -30,7 +30,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // GET /api/videos/[id]/code-snippets - Get video code snippets
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;

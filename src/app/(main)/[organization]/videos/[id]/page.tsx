@@ -1,28 +1,39 @@
-import { Bookmark, Code, ListTodo, MessageSquarePlus, Play, Share2, Sparkles, ThumbsUp } from "lucide-react";
+import { asc, eq } from "drizzle-orm";
 import {
+  Bookmark,
   CheckCircle2,
   ChevronRight,
   Clock,
+  Code,
   FileText,
   Layers,
+  ListTodo,
   Loader2,
+  MessageSquarePlus,
+  Play,
+  Share2,
+  Sparkles,
   Tag,
+  ThumbsUp,
   XCircle,
 } from "lucide-react";
+import { headers } from "next/headers";
 import Image from "next/image";
 import { Suspense } from "react";
+import { CommentList } from "@/components/comments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VideoPlayerWithProgress } from "@/components/video";
-import { getCachedVideo } from "@/lib/effect";
-import type { VideoWithDetails } from "@/lib/types";
-import type { VideoChapter, VideoCodeSnippet, TranscriptSegment, ActionItem } from "@/lib/db/schema";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema";
 import { videoChapters, videoCodeSnippets } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { getCachedVideo } from "@/lib/effect";
+import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
+import type { VideoWithDetails } from "@/lib/types";
 
 // =============================================================================
 // Helper Functions
@@ -50,6 +61,7 @@ function VideoDetailSkeleton() {
         <div className="h-10 bg-muted animate-pulse rounded w-3/4" />
         <div className="h-6 bg-muted animate-pulse rounded w-1/4" />
         <div className="h-64 bg-muted animate-pulse rounded-lg" />
+        <div className="h-48 bg-muted animate-pulse rounded-lg" />
       </div>
       <aside className="w-full lg:col-span-1 space-y-6">
         <div className="aspect-video bg-muted animate-pulse rounded-lg" />
@@ -117,6 +129,36 @@ function TranscriptLine({ time, text, hasComment }: TranscriptLineProps) {
       )}
     </div>
   );
+}
+
+// =============================================================================
+// Transform comments to CommentWithReplies format
+// =============================================================================
+
+function transformCommentsToThreaded(comments: VideoWithDetails["comments"]): CommentWithReplies[] {
+  const commentMap = new Map<string, CommentWithReplies>();
+  const topLevelComments: CommentWithReplies[] = [];
+
+  // First pass: create all comment objects with empty replies
+  for (const comment of comments) {
+    commentMap.set(comment.id, {
+      ...comment,
+      replies: [],
+    });
+  }
+
+  // Second pass: build the tree structure
+  for (const comment of comments) {
+    const commentObj = commentMap.get(comment.id);
+    if (!commentObj) continue;
+    if (comment.parentId && commentMap.has(comment.parentId)) {
+      commentMap.get(comment.parentId)?.replies.push(commentObj);
+    } else if (!comment.parentId) {
+      topLevelComments.push(commentObj);
+    }
+  }
+
+  return topLevelComments;
 }
 
 // =============================================================================
@@ -253,9 +295,14 @@ interface VideoDetailProps {
   video: VideoWithDetails;
   chapters: VideoChapter[];
   codeSnippets: VideoCodeSnippet[];
+  currentUser?: {
+    id: string;
+    name?: string | null;
+    image?: string | null;
+  };
 }
 
-function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
+function VideoDetail({ video, chapters, codeSnippets, currentUser }: VideoDetailProps) {
   // Use transcript segments if available, otherwise fall back to simple line parsing
   const transcriptLines =
     video.transcriptSegments && video.transcriptSegments.length > 0
@@ -278,6 +325,9 @@ function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
 
   // Use AI tags
   const tags: string[] = video.aiTags || [];
+
+  // Transform flat comments to threaded structure
+  const threadedComments = transformCommentsToThreaded(video.comments);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -377,33 +427,13 @@ function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
           </Card>
         )}
 
-        {/* Comments Section */}
-        {video.comments && video.comments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Comments ({video.comments.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {video.comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.author.image || undefined} />
-                    <AvatarFallback>{comment.author.name?.[0] || "U"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-sm">{comment.author.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <p className="text-sm mt-1">{comment.content}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {/* Comments Section with Real-time Updates */}
+        <CommentList
+          videoId={video.id}
+          videoAuthorId={video.authorId}
+          initialComments={threadedComments}
+          currentUser={currentUser}
+        />
       </div>
 
       {/* Sidebar: Video Player and AI Insights */}
@@ -536,7 +566,16 @@ function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
 // Async Video Loader Component
 // =============================================================================
 
-async function VideoLoader({ videoId }: { videoId: string }) {
+interface VideoLoaderProps {
+  videoId: string;
+  currentUser?: {
+    id: string;
+    name?: string | null;
+    image?: string | null;
+  };
+}
+
+async function VideoLoader({ videoId, currentUser }: VideoLoaderProps) {
   // Fetch video details and related data in parallel
   const [video, chapters, codeSnippets] = await Promise.all([
     getCachedVideo(videoId),
@@ -548,7 +587,7 @@ async function VideoLoader({ videoId }: { videoId: string }) {
       .orderBy(asc(videoCodeSnippets.timestamp)),
   ]);
 
-  return <VideoDetail video={video} chapters={chapters} codeSnippets={codeSnippets} />;
+  return <VideoDetail video={video} chapters={chapters} codeSnippets={codeSnippets} currentUser={currentUser} />;
 }
 
 // =============================================================================
@@ -558,9 +597,22 @@ async function VideoLoader({ videoId }: { videoId: string }) {
 export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   const { id } = await params;
 
+  // Get current user session (optional - allows anonymous viewing)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const currentUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image,
+      }
+    : undefined;
+
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} />
+      <VideoLoader videoId={id} currentUser={currentUser} />
     </Suspense>
   );
 }

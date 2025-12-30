@@ -9,11 +9,8 @@ import {
   VideoProcessor,
   VideoRepository,
 } from "@/lib/effect";
-import {
-  VideoAIProcessor,
-  VideoAIProcessorLive,
-} from "@/lib/effect/services/video-ai-processor";
 import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
 
 // Handle file upload size limit
@@ -63,9 +60,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 };
 
 // Build the layer with all required dependencies for AI processing
-const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(
-  Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)),
-);
+const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
 
 const FullProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProcessorWithDeps);
 

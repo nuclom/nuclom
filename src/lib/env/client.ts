@@ -1,3 +1,4 @@
+import process from "node:process";
 import { z } from "zod/v4";
 
 export const ClientEnv = z.object({

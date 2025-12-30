@@ -352,7 +352,7 @@ export function VideoPlayer({
         case "8":
         case "9":
           e.preventDefault();
-          seek((Number.parseInt(e.key) / 10) * duration);
+          seek((Number.parseInt(e.key, 10) / 10) * duration);
           break;
         case "home":
           e.preventDefault();
