@@ -125,6 +125,22 @@ export type {
   // VideoRepository
   VideoRepositoryService,
   VideoSummary,
+  // Zoom
+  ZoomServiceInterface,
+  ZoomRecording,
+  ZoomRecordingsResponse,
+  // Google Meet
+  GoogleMeetServiceInterface,
+  GoogleMeetRecording,
+  GoogleDriveFilesResponse,
+  // Integration Repository
+  IntegrationRepositoryService,
+  IntegrationWithUser,
+  ImportedMeetingWithVideo,
+  CreateIntegrationInput,
+  UpdateIntegrationInput,
+  CreateImportedMeetingInput,
+  UpdateImportedMeetingInput,
 } from "./services";
 
 // Services - explicitly export to avoid conflicts
@@ -241,6 +257,37 @@ export {
   VideoRepository,
   VideoRepositoryLive,
   validateVideo,
+  // Zoom
+  Zoom,
+  ZoomLive,
+  getZoomAuthorizationUrl,
+  exchangeZoomCodeForToken,
+  refreshZoomAccessToken,
+  getZoomUserInfo,
+  listZoomRecordings,
+  getZoomMeetingRecordings,
+  // Google Meet
+  GoogleMeet,
+  GoogleMeetLive,
+  getGoogleAuthorizationUrl,
+  exchangeGoogleCodeForToken,
+  refreshGoogleAccessToken,
+  getGoogleUserInfo,
+  listGoogleMeetRecordings,
+  downloadGoogleFile,
+  // Integration Repository
+  IntegrationRepository,
+  IntegrationRepositoryLive,
+  getIntegrations,
+  getUserIntegrations,
+  getIntegration,
+  getIntegrationByProvider,
+  createIntegration as createIntegrationRecord,
+  updateIntegration as updateIntegrationRecord,
+  deleteIntegration,
+  getImportedMeetings,
+  createImportedMeeting,
+  updateImportedMeeting,
 } from "./services";
 
 export type { StreamChunk } from "./streaming";

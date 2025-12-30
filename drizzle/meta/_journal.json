@@ -8,6 +8,20 @@
       "when": 1751617003376,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751617003377,
+      "tag": "0001_add_video_processing",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751617003378,
+      "tag": "0002_add_integrations",
+      "breakpoints": true
     }
   ]
 }
