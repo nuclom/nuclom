@@ -333,6 +333,28 @@ export {
   updateImportedMeeting,
 } from "./integration-repository";
 
+// Translation Service
+export type {
+  TranslationServiceInterface,
+  TranslationOptions,
+  TranslationResult,
+  TranslatedTranscript,
+  LanguageInfo,
+  SupportedLanguage,
+} from "./translation";
+export {
+  Translation,
+  TranslationLive,
+  TranslationNotConfiguredError,
+  TranslationApiError,
+  UnsupportedLanguageError,
+  translateText,
+  translateTranscript,
+  isTranslationAvailable,
+  getSupportedLanguages,
+  SUPPORTED_LANGUAGES,
+} from "./translation";
+
 // Search Repository
 export type {
   SearchParams,

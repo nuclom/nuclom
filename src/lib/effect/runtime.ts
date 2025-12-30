@@ -29,6 +29,7 @@ import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
+import { type Translation, TranslationLive } from "./services/translation";
 
 // =============================================================================
 // Layer Composition
@@ -40,7 +41,7 @@ import { type VideoRepository, VideoRepositoryLive } from "./services/video-repo
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, EmailNotificationsLive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, TranslationLive, EmailNotificationsLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
@@ -105,7 +106,8 @@ export type AppServices =
   | SearchRepository
   | SeriesRepository
   | ChannelRepository
-  | StripeServiceTag;
+  | StripeServiceTag
+  | Translation;
 
 // =============================================================================
 // Global Runtime (for stateful layers)
@@ -184,6 +186,13 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "WebhookSignatureError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
+      case "TranslationNotConfiguredError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
+
+      case "SubtitleError":
+      case "UnsupportedLanguageError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
+
       case "DatabaseError":
       case "TransactionError":
       case "UploadError":
@@ -194,6 +203,7 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "VideoAIProcessingError":
       case "StripeApiError":
       case "UsageTrackingError":
+      case "TranslationApiError":
         console.error(`[${taggedError._tag}]`, taggedError);
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 

@@ -565,11 +565,166 @@ Subscribe to video events:
 - `video.processed`: Video processing completed
 - `comment.created`: New comment added
 
+## Subtitles and Transcripts
+
+### List Subtitle Languages
+
+Get available subtitle languages for a video.
+
+```http
+GET /api/videos/{id}/subtitles
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "videoId": "video_123",
+    "hasTranscript": true,
+    "processingStatus": "completed",
+    "languages": [
+      {
+        "code": "en",
+        "name": "English",
+        "nativeName": "English",
+        "isOriginal": true,
+        "available": true,
+        "url": "/api/videos/video_123/subtitles/en.vtt"
+      },
+      {
+        "code": "es",
+        "name": "Spanish",
+        "nativeName": "Español",
+        "isOriginal": false,
+        "available": true,
+        "url": "/api/videos/video_123/subtitles/es.vtt"
+      }
+    ]
+  }
+}
+```
+
+### Get Subtitle File
+
+Get WebVTT or SRT subtitle file for a specific language.
+
+```http
+GET /api/videos/{id}/subtitles/{lang}.vtt
+GET /api/videos/{id}/subtitles/{lang}.srt
+```
+
+**Path Parameters:**
+
+- `id` (string, required): Video ID
+- `lang` (string, required): Language code (e.g., `en`, `es`, `fr`)
+
+**Response:** WebVTT file content
+
+```
+WEBVTT
+Kind: captions
+Language: en
+
+1
+00:00:00.000 --> 00:00:05.230
+Welcome to this video tutorial.
+
+2
+00:00:05.230 --> 00:00:10.450
+Today we'll be discussing the new features.
+```
+
+**Supported Languages:**
+
+English (en), Spanish (es), French (fr), German (de), Portuguese (pt), Italian (it), Dutch (nl), Polish (pl), Russian (ru), Japanese (ja), Chinese (zh), Korean (ko), Arabic (ar), Turkish (tr), Swedish (sv), Danish (da), Finnish (fi), Norwegian (nb), Greek (el), Czech (cs), Romanian (ro), Hungarian (hu), Ukrainian (uk), Indonesian (id), Vietnamese (vi), Thai (th)
+
+### Get Transcript
+
+Get transcript data for a video.
+
+```http
+GET /api/videos/{id}/transcript
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "videoId": "video_123",
+    "title": "Team Meeting",
+    "transcript": "Full transcript text...",
+    "segments": [
+      {
+        "startTime": 0,
+        "endTime": 5.23,
+        "text": "Welcome to this video tutorial.",
+        "confidence": 0.95
+      },
+      {
+        "startTime": 5.23,
+        "endTime": 10.45,
+        "text": "Today we'll be discussing the new features.",
+        "confidence": 0.92
+      }
+    ],
+    "processingStatus": "completed"
+  }
+}
+```
+
+### Update Transcript
+
+Update transcript segments (for corrections).
+
+```http
+PUT /api/videos/{id}/transcript
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "segments": [
+    {
+      "startTime": 0,
+      "endTime": 5.23,
+      "text": "Corrected transcript text.",
+      "confidence": 1.0
+    }
+  ]
+}
+```
+
+**Validation Rules:**
+
+- Segments must be in chronological order
+- Start time must be before end time
+- Text cannot be empty
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "videoId": "video_123",
+    "segments": [...],
+    "message": "Transcript updated successfully"
+  }
+}
+```
+
 ## Rate Limits
 
 - **Video Upload**: 10 uploads per hour per user
 - **API Requests**: 100 requests per minute per user
 - **Comment Creation**: 30 comments per minute per user
+- **Translation Requests**: 100 per hour (requires DeepL API key)
 
 ## Examples
 
