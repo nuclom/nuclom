@@ -18,6 +18,7 @@ import { type CommentRepository, CommentRepositoryLive } from "./services/commen
 import { type Database, DatabaseLive } from "./services/database";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
+import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
@@ -38,7 +39,7 @@ import { type VideoRepository, VideoRepositoryLive } from "./services/video-repo
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, EmailNotificationsLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
@@ -54,8 +55,10 @@ const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(Datab
 const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
-// Billing service depends on BillingRepository and StripeService
-const BillingWithDeps = BillingLive.pipe(Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)));
+// Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
+const BillingWithDeps = BillingLive.pipe(
+  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive, DatabaseLive, EmailNotificationsLive)),
+);
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -89,6 +92,7 @@ export type AppServices =
   | VideoProgressRepository
   | CommentRepository
   | NotificationRepository
+  | EmailNotifications
   | IntegrationRepository
   | BillingRepository
   | Billing

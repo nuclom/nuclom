@@ -355,3 +355,23 @@ export {
   deleteSavedSearch,
   quickSearch,
 } from "./search-repository";
+
+// Email Notifications Service
+export type {
+  EmailNotificationServiceInterface,
+  CommentNotificationData,
+  InvitationNotificationData,
+  VideoProcessingNotificationData,
+  TrialEndingNotificationData,
+  SubscriptionNotificationData,
+  EmailError,
+} from "./email-notifications";
+export {
+  EmailNotifications,
+  EmailNotificationsLive,
+  sendCommentNotification,
+  sendInvitationNotification,
+  sendVideoProcessingNotification,
+  sendTrialEndingNotification,
+  sendSubscriptionNotification,
+} from "./email-notifications";

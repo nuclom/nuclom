@@ -8,6 +8,7 @@ export const ServerEnv = z.object({
   DATABASE_URL: z.string(),
   VERCEL_OIDC_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string(),
+  RESEND_FROM_EMAIL: z.string().optional(),
   GITHUB_CLIENT_ID: z.string(),
   GITHUB_CLIENT_SECRET: z.string(),
   GOOGLE_CLIENT_ID: z.string(),

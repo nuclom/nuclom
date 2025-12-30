@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Film, LogOut, Plus, Settings, Users } from "lucide-react";
+import { Film, LogOut, Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
 import { CommandBar } from "./command-bar";
+import { NotificationBell } from "./notifications/notification-bell";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -70,10 +71,7 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
             New
           </Button>
           <ThemeToggle />
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <NotificationBell organization={organization} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer">

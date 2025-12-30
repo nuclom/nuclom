@@ -13,14 +13,18 @@ import { eq } from "drizzle-orm";
 import { Context, Data, Effect, Layer, pipe } from "effect";
 import {
   type ActionItem,
+  notifications,
   type ProcessingStatus,
   type TranscriptSegment,
+  users,
   videoChapters,
   videoCodeSnippets,
   videos,
 } from "@/lib/db/schema";
+import { env } from "@/lib/env/client";
 import { type ActionItemResult, AI, type ChapterResult, type CodeSnippetResult } from "./ai";
 import { Database } from "./database";
+import { EmailNotifications } from "./email-notifications";
 import { Transcription } from "./transcription";
 
 // =============================================================================
@@ -109,6 +113,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
   const { db } = yield* Database;
   const ai = yield* AI;
   const transcription = yield* Transcription;
+  const emailService = yield* EmailNotifications;
 
   const updateProcessingStatus = (
     videoId: string,
@@ -281,6 +286,88 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
         }),
     });
 
+  const sendVideoProcessingNotification = (
+    videoId: string,
+    status: "completed" | "failed",
+    errorMessage?: string,
+  ): Effect.Effect<void, never> =>
+    Effect.gen(function* () {
+
+      // Get video details and owner info
+      const video = yield* Effect.tryPromise({
+        try: () =>
+          db.query.videos.findFirst({
+            where: eq(videos.id, videoId),
+          }),
+        catch: () =>
+          new VideoAIProcessingError({
+            message: "Failed to get video for notification",
+            videoId,
+          }),
+      });
+
+      if (!video) return;
+
+      const videoOwner = yield* Effect.tryPromise({
+        try: () =>
+          db.query.users.findFirst({
+            where: eq(users.id, video.authorId),
+          }),
+        catch: () =>
+          new VideoAIProcessingError({
+            message: "Failed to get video owner for notification",
+            videoId,
+          }),
+      });
+
+      if (!videoOwner?.email) return;
+
+      const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+      // Create in-app notification
+      yield* Effect.tryPromise({
+        try: () =>
+          db.insert(notifications).values({
+            userId: videoOwner.id,
+            type: status === "completed" ? "video_processing_complete" : "video_processing_failed",
+            title: status === "completed" ? "Video processing complete" : "Video processing failed",
+            body:
+              status === "completed"
+                ? `"${video.title}" has finished processing and is now ready to view with AI insights.`
+                : `"${video.title}" failed to process. ${errorMessage || "Please try again."}`,
+            resourceType: "video",
+            resourceId: videoId,
+          }),
+        catch: () =>
+          new VideoAIProcessingError({
+            message: "Failed to create notification",
+            videoId,
+          }),
+      });
+
+      // Send email notification (non-critical, catch and log errors)
+      yield* emailService
+        .sendVideoProcessingNotification({
+          recipientEmail: videoOwner.email,
+          recipientName: videoOwner.name || "there",
+          videoTitle: video.title,
+          videoUrl: `${baseUrl}/videos/${videoId}`,
+          status,
+          errorMessage,
+        })
+        .pipe(
+          Effect.catchAll((error) => {
+            console.error("Failed to send video processing notification email:", error);
+            return Effect.succeed(undefined);
+          }),
+        );
+    }).pipe(
+      Effect.catchAll((error) => {
+        console.error("Failed to send video processing notification:", error);
+        return Effect.succeed(undefined);
+      }),
+    );
+
   const processFromTranscript = (
     videoId: string,
     transcript: string,
@@ -341,6 +428,11 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
       // Update status to completed
       yield* updateProcessingStatus(videoId, "completed");
 
+      // Send success notification
+      yield* sendVideoProcessingNotification(videoId, "completed").pipe(
+        Effect.catchAll(() => Effect.succeed(undefined)),
+      );
+
       return {
         videoId,
         transcript,
@@ -357,6 +449,12 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
           // Update status to failed
           const errorMessage = error instanceof VideoAIProcessingError ? error.message : String(error);
           yield* updateProcessingStatus(videoId, "failed", errorMessage);
+
+          // Send failure notification
+          yield* sendVideoProcessingNotification(videoId, "failed", errorMessage).pipe(
+            Effect.catchAll(() => Effect.succeed(undefined)),
+          );
+
           return yield* Effect.fail(
             error instanceof VideoAIProcessingError
               ? error
