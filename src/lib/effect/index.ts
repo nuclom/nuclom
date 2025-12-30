@@ -89,6 +89,15 @@ export {
   getOrganizationBySlug,
   isMember,
   getUserRole,
+  // VideoProgressRepository
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+  getVideoProgress,
+  saveVideoProgress,
+  getUserVideoProgress,
+  deleteVideoProgress,
+  hasWatchedVideo,
+  markVideoCompleted,
 } from "./services";
 
 export type {
@@ -118,6 +127,10 @@ export type {
   OrganizationRepositoryService,
   OrganizationWithRole,
   CreateOrganizationInput,
+  // VideoProgressRepository
+  VideoProgressRepositoryService,
+  VideoProgressData,
+  SaveProgressInput,
 } from "./services";
 
 // Runtime and layers
@@ -147,10 +160,13 @@ export {
   getVideo as getCachedVideo,
   getOrganizations as getCachedOrganizations,
   getOrganizationBySlug as getCachedOrganizationBySlug,
+  getVideoProgress as getCachedVideoProgress,
+  getUserVideoProgress as getCachedUserVideoProgress,
   revalidateVideos,
   revalidateVideo,
   revalidateOrganizations,
   revalidateOrganization,
+  revalidateVideoProgress,
   createVideo as serverCreateVideo,
   updateVideo as serverUpdateVideo,
   deleteVideo as serverDeleteVideo,

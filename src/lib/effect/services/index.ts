@@ -100,3 +100,20 @@ export type {
   OrganizationWithRole,
   CreateOrganizationInput,
 } from "./organization-repository";
+
+// Video Progress Repository
+export {
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+  getVideoProgress,
+  saveVideoProgress,
+  getUserVideoProgress,
+  deleteVideoProgress,
+  hasWatchedVideo,
+  markVideoCompleted,
+} from "./video-progress-repository";
+export type {
+  VideoProgressRepositoryService,
+  VideoProgressData,
+  SaveProgressInput,
+} from "./video-progress-repository";

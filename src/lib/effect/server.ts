@@ -11,6 +11,7 @@ import { revalidateTag } from "next/cache";
 import { AppLive, type AppServices } from "./runtime";
 import { VideoRepository } from "./services/video-repository";
 import { OrganizationRepository } from "./services/organization-repository";
+import { VideoProgressRepository, type VideoProgressData } from "./services/video-progress-repository";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 import type { CreateVideoInput, UpdateVideoInput } from "./services/video-repository";
 
@@ -264,6 +265,63 @@ export const deleteVideo = async (id: string, organizationId?: string) => {
   }
 
   return result;
+};
+
+// =============================================================================
+// Video Progress Queries
+// =============================================================================
+
+/**
+ * Get video progress for a user (short-lived cache)
+ * Uses a short revalidation time since progress changes frequently
+ */
+export const getVideoProgress = async (videoId: string, userId: string): Promise<VideoProgressData | null> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* VideoProgressRepository;
+        return yield* repo.getProgress(videoId, userId);
+      });
+      return runServerEffect(effect);
+    },
+    [`video-progress:${videoId}:${userId}`],
+    {
+      tags: [`video-progress:${videoId}:${userId}`, `video-progress:user:${userId}`],
+      revalidate: 10, // Short cache - progress updates frequently
+    },
+  );
+
+  return cachedFn();
+};
+
+/**
+ * Get all video progress for a user (for "Continue Watching")
+ */
+export const getUserVideoProgress = async (userId: string, limit: number = 10): Promise<VideoProgressData[]> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* VideoProgressRepository;
+        return yield* repo.getUserProgress(userId, limit);
+      });
+      return runServerEffect(effect);
+    },
+    [`video-progress:user:${userId}`, `limit:${limit}`],
+    {
+      tags: [`video-progress:user:${userId}`],
+      revalidate: 30,
+    },
+  );
+
+  return cachedFn();
+};
+
+/**
+ * Revalidate video progress caches
+ */
+export const revalidateVideoProgress = (videoId: string, userId: string) => {
+  revalidateTag(`video-progress:${videoId}:${userId}`);
+  revalidateTag(`video-progress:user:${userId}`);
 };
 
 // =============================================================================

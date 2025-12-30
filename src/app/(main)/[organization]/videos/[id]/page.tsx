@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { Bookmark, Code, ListTodo, MessageSquarePlus, Share2, Sparkles, ThumbsUp } from "lucide-react";
+import { Bookmark, Code, ListTodo, MessageSquarePlus, Play, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VideoPlayerWithProgress } from "@/components/video";
 import { getCachedVideo } from "@/lib/effect";
 import type { VideoWithDetails } from "@/lib/types";
 
@@ -152,21 +152,40 @@ function VideoDetail({ video }: VideoDetailProps) {
 
       {/* Sidebar: Video Player and AI Insights */}
       <aside className="w-full lg:col-span-1 xl:col-span-1 space-y-6 lg:sticky top-20 self-start">
-        <div className="aspect-video bg-card rounded-lg overflow-hidden border">
-          {video.thumbnailUrl ? (
-            <Image
-              src={video.thumbnailUrl}
-              alt={video.title}
-              width={640}
-              height={360}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No thumbnail</span>
-            </div>
-          )}
-        </div>
+        {/* Video Player */}
+        {video.videoUrl ? (
+          <VideoPlayerWithProgress
+            videoId={video.id}
+            url={video.videoUrl}
+            title={video.title}
+            thumbnailUrl={video.thumbnailUrl || undefined}
+            duration={video.duration}
+          />
+        ) : (
+          <div className="aspect-video bg-card rounded-lg overflow-hidden border">
+            {video.thumbnailUrl ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={video.thumbnailUrl}
+                  alt={video.title}
+                  width={640}
+                  height={360}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <div className="flex flex-col items-center gap-2 text-white">
+                    <Play className="h-12 w-12" />
+                    <span className="text-sm">Video not available</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground">No video available</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">

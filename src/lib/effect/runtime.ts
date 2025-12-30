@@ -16,6 +16,7 @@ import { AI, AILive } from "./services/ai";
 import { VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { VideoRepository, VideoRepositoryLive } from "./services/video-repository";
 import { OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
+import { VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { Auth, makeAuthLayer } from "./services/auth";
 
 // =============================================================================
@@ -36,9 +37,15 @@ const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive
 // Repositories depend on Database - provide their dependencies
 const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Combine application services that have their dependencies resolved
-const AppServicesLive = Layer.mergeAll(VideoProcessorWithDeps, VideoRepositoryWithDeps, OrganizationRepositoryWithDeps);
+const AppServicesLive = Layer.mergeAll(
+  VideoProcessorWithDeps,
+  VideoRepositoryWithDeps,
+  OrganizationRepositoryWithDeps,
+  VideoProgressRepositoryWithDeps,
+);
 
 // Full application layer - merge base and app services
 export const AppLive = Layer.mergeAll(BaseServicesLive, AppServicesLive);
@@ -46,7 +53,14 @@ export const AppLive = Layer.mergeAll(BaseServicesLive, AppServicesLive);
 /**
  * Full application layer type
  */
-export type AppServices = Database | Storage | AI | VideoProcessor | VideoRepository | OrganizationRepository;
+export type AppServices =
+  | Database
+  | Storage
+  | AI
+  | VideoProcessor
+  | VideoRepository
+  | OrganizationRepository
+  | VideoProgressRepository;
 
 // =============================================================================
 // Global Runtime (for stateful layers)
