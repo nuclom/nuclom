@@ -6,12 +6,7 @@
 
 import { Effect, Layer, Option } from "effect";
 import type { PlanFeatures, PlanLimits } from "@/lib/db/schema";
-import {
-  DatabaseError,
-  ForbiddenError,
-  NoSubscriptionError,
-  PlanLimitExceededError,
-} from "../errors";
+import { DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from "../errors";
 import { Billing, type LimitResource } from "./billing";
 import { BillingRepository, type SubscriptionWithPlan } from "./billing-repository";
 

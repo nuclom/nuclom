@@ -111,9 +111,7 @@ export function SubscriptionCard({
           </div>
         </CardContent>
         <CardFooter>
-          <p className="text-sm text-muted-foreground">
-            Upgrade to a paid plan to unlock more features and storage.
-          </p>
+          <p className="text-sm text-muted-foreground">Upgrade to a paid plan to unlock more features and storage.</p>
         </CardFooter>
       </Card>
     );
@@ -163,9 +161,7 @@ export function SubscriptionCard({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Plan</p>
             <p className="text-2xl font-bold">{subscription.plan.name}</p>
-            <p className="text-lg text-muted-foreground">
-              {formatPrice(subscription.plan.priceMonthly)}/month
-            </p>
+            <p className="text-lg text-muted-foreground">{formatPrice(subscription.plan.priceMonthly)}/month</p>
           </div>
 
           <div>
@@ -187,21 +183,13 @@ export function SubscriptionCard({
 
         <div className="flex flex-wrap gap-2 pt-4">
           <Button variant="outline" onClick={handleManageBilling} disabled={isManaging || isLoading}>
-            {isManaging ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <CreditCard className="mr-2 h-4 w-4" />
-            )}
+            {isManaging ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
             Manage Billing
           </Button>
 
           {isCanceled ? (
             <Button variant="outline" onClick={handleResumeSubscription} disabled={isResuming || isLoading}>
-              {isResuming ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
+              {isResuming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
               Resume Subscription
             </Button>
           ) : (
@@ -215,8 +203,8 @@ export function SubscriptionCard({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to cancel your subscription? You will retain access until the end
-                    of your current billing period on{" "}
+                    Are you sure you want to cancel your subscription? You will retain access until the end of your
+                    current billing period on{" "}
                     {subscription.currentPeriodEnd
                       ? format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")
                       : "the end of this period"}

@@ -121,9 +121,7 @@ export function BillingDashboard({ organizationId, billingInfo, plans, usageSumm
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Billing</h2>
-        <p className="text-muted-foreground">
-          Manage your subscription, view usage, and download invoices.
-        </p>
+        <p className="text-muted-foreground">Manage your subscription, view usage, and download invoices.</p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">

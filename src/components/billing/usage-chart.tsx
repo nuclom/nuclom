@@ -61,10 +61,7 @@ function UsageItem({ icon: Icon, label, current, limit, percentage, unit }: Usag
         </span>
       </div>
       {!isUnlimited && (
-        <Progress
-          value={percentage}
-          className={cn("h-2", percentage >= 90 && "[&>div]:bg-destructive")}
-        />
+        <Progress value={percentage} className={cn("h-2", percentage >= 90 && "[&>div]:bg-destructive")} />
       )}
       {isUnlimited && (
         <div className="h-2 flex items-center">
