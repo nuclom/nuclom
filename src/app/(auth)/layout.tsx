@@ -1,6 +1,6 @@
-import type React from "react";
 import { Film } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

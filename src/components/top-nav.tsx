@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Film, Plus, Settings, Users, LogOut } from "lucide-react";
+import { Bell, Film, LogOut, Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,11 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CommandBar } from "./command-bar";
-import { ThemeToggle } from "./theme-toggle";
-import { OrganizationSwitcher } from "./organization-switcher";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
+import { CommandBar } from "./command-bar";
+import { OrganizationSwitcher } from "./organization-switcher";
+import { ThemeToggle } from "./theme-toggle";
 
 export function TopNav({ organization }: { organization: string }) {
   const { user, isLoading } = useAuth();

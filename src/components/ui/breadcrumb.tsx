@@ -47,6 +47,7 @@ BreadcrumbLink.displayName = "BreadcrumbLink";
 
 const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<"span">>(
   ({ className, ...props }, ref) => (
+    // biome-ignore lint/a11y/useFocusableInteractive: Current page indicator is intentionally non-focusable
     <span
       ref={ref}
       role="link"

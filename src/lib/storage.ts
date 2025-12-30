@@ -1,6 +1,6 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, type PutObjectCommandInput } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/lib/env/server";
 
 // Cloudflare R2 configuration
@@ -18,13 +18,13 @@ if (!isR2Configured) {
 
 // Create S3 client configured for Cloudflare R2 (only if configured)
 let r2Client: S3Client | null = null;
-if (isR2Configured) {
+if (isR2Configured && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) {
   r2Client = new S3Client({
     region: "auto",
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID!,
-      secretAccessKey: R2_SECRET_ACCESS_KEY!,
+      accessKeyId: R2_ACCESS_KEY_ID,
+      secretAccessKey: R2_SECRET_ACCESS_KEY,
     },
   });
 }
@@ -40,6 +40,7 @@ export interface UploadOptions {
   metadata?: Record<string, string>;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for storage operations
 export class StorageService {
   /**
    * Upload a file to R2 storage

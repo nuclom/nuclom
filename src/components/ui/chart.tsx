@@ -69,6 +69,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   return (
     <style
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: CSS injection for dynamic theme colors is safe and intentional
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
@@ -100,9 +101,13 @@ const ChartTooltipContent = React.forwardRef<
       indicator?: "line" | "dot" | "dashed";
       nameKey?: string;
       labelKey?: string;
+      // biome-ignore lint/suspicious/noExplicitAny: Recharts tooltip payload type
       payload?: any;
+      // biome-ignore lint/suspicious/noExplicitAny: Recharts label type
       label?: any;
+      // biome-ignore lint/suspicious/noExplicitAny: Recharts labelFormatter type
       labelFormatter?: any;
+      // biome-ignore lint/suspicious/noExplicitAny: Recharts formatter type
       formatter?: any;
     }
 >(
@@ -166,6 +171,7 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
+          {/* biome-ignore lint/suspicious/noExplicitAny: Recharts payload item type */}
           {payload?.map((item: any, index: number) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
@@ -236,6 +242,7 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
+    // biome-ignore lint/suspicious/noExplicitAny: Recharts legend payload type
     payload?: any;
     verticalAlign?: "top" | "bottom" | "middle";
     hideIcon?: boolean;
@@ -253,6 +260,7 @@ const ChartLegendContent = React.forwardRef<
       ref={ref}
       className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-3" : "pt-3", className)}
     >
+      {/* biome-ignore lint/suspicious/noExplicitAny: Recharts payload item type */}
       {payload?.map((item: any) => {
         const key = `${nameKey || item.dataKey || "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);

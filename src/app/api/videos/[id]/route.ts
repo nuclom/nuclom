@@ -1,11 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Exit, Cause } from "effect";
-import { db } from "@/lib/db";
-import { comments, videos } from "@/lib/db/schema";
-import type { ApiResponse } from "@/lib/types";
-import type { NewVideo } from "@/lib/db/schema";
 import { asc, eq, isNull } from "drizzle-orm";
-import { AppLive, VideoRepository, NotFoundError, ValidationError, DatabaseError } from "@/lib/effect";
+import { Cause, Effect, Exit } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import type { NewVideo } from "@/lib/db/schema";
+import { comments, videos } from "@/lib/db/schema";
+import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
+import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // Error Response Handler
@@ -34,7 +34,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // GET /api/videos/[id] - Get video details
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // DELETE /api/videos/[id] - Delete video
 // =============================================================================
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
