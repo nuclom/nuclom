@@ -4,65 +4,6 @@
  * All Effect-TS services are exported from this file.
  */
 
-// Billing Services
-export type {
-  BillingRepositoryService,
-  OrganizationBillingInfo,
-  SubscriptionWithPlan,
-  UsageSummary,
-} from "./billing-repository";
-export {
-  BillingRepository,
-  BillingRepositoryLive,
-  getBillingInfo,
-  getCurrentUsage,
-  getInvoices,
-  getMemberCount,
-  getPlan,
-  getPlans,
-  getSubscription,
-  getSubscriptionOption,
-  getUsageSummary,
-  getVideoCount,
-  incrementUsage,
-  decrementUsage,
-} from "./billing-repository";
-
-export type { BillingServiceInterface, CreateCheckoutParams, LimitResource } from "./billing";
-export {
-  Billing,
-  BillingLive,
-  cancelSubscription,
-  changePlan,
-  checkLimit,
-  createCheckoutSession,
-  createPortalSession,
-  enforceLimit,
-  getFeatureAccess,
-  resumeSubscription,
-} from "./billing";
-
-export type { StripeService } from "./stripe";
-export { getStripe, StripeServiceLive, StripeServiceTag } from "./stripe";
-
-// Billing Middleware
-export type { LimitCheckResult } from "./billing-middleware";
-export {
-  checkFeatureAccess,
-  checkResourceLimit,
-  enforceResourceLimit,
-  getPlanFeatures,
-  getPlanLimits,
-  releaseStorageUsage,
-  releaseVideoCount,
-  requireActiveSubscription,
-  requireFeature,
-  trackAIRequest,
-  trackBandwidthUsage,
-  trackStorageUsage,
-  trackVideoUpload,
-} from "./billing-middleware";
-
 export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
 // AI Service
 export {
@@ -88,6 +29,60 @@ export {
   requireAuth,
   requireRole,
 } from "./auth";
+export type { BillingServiceInterface, CreateCheckoutParams, LimitResource } from "./billing";
+export {
+  Billing,
+  BillingLive,
+  cancelSubscription,
+  changePlan,
+  checkLimit,
+  createCheckoutSession,
+  createPortalSession,
+  enforceLimit,
+  getFeatureAccess,
+  resumeSubscription,
+} from "./billing";
+
+// Billing Middleware
+export type { LimitCheckResult } from "./billing-middleware";
+export {
+  checkFeatureAccess,
+  checkResourceLimit,
+  enforceResourceLimit,
+  getPlanFeatures,
+  getPlanLimits,
+  releaseStorageUsage,
+  releaseVideoCount,
+  requireActiveSubscription,
+  requireFeature,
+  trackAIRequest,
+  trackBandwidthUsage,
+  trackStorageUsage,
+  trackVideoUpload,
+} from "./billing-middleware";
+// Billing Services
+export type {
+  BillingRepositoryService,
+  OrganizationBillingInfo,
+  SubscriptionWithPlan,
+  UsageSummary,
+} from "./billing-repository";
+export {
+  BillingRepository,
+  BillingRepositoryLive,
+  decrementUsage,
+  getBillingInfo,
+  getCurrentUsage,
+  getInvoices,
+  getMemberCount,
+  getPlan,
+  getPlans,
+  getSubscription,
+  getSubscriptionOption,
+  getUsageSummary,
+  getVideoCount,
+  incrementUsage,
+} from "./billing-repository";
 export type {
   CommentEvent,
   CommentRepositoryService,
@@ -170,6 +165,25 @@ export {
   ReplicateLive,
   transcribe,
 } from "./replicate";
+export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from "./series-repository";
+// Series Repository
+export {
+  addVideoToSeries,
+  createSeries,
+  deleteSeries,
+  getAvailableVideosForSeries,
+  getSeries,
+  getSeriesProgress,
+  getSeriesWithProgress,
+  getSeriesWithVideos,
+  markSeriesVideoCompleted,
+  removeVideoFromSeries,
+  reorderSeriesVideos,
+  SeriesRepository,
+  SeriesRepositoryLive,
+  updateSeries,
+  updateSeriesProgress,
+} from "./series-repository";
 export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
 // Storage Service
 export {
@@ -182,6 +196,8 @@ export {
   uploadFile,
   uploadLargeFile,
 } from "./storage";
+export type { StripeService } from "./stripe";
+export { getStripe, StripeServiceLive, StripeServiceTag } from "./stripe";
 export type { TranscriptionResult, TranscriptionServiceInterface } from "./transcription";
 // Transcription Service
 export {

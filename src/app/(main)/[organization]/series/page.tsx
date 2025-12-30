@@ -1,56 +1,51 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const seriesData = [
-  {
-    id: "nextjs-conf",
-    name: "Next.js Conf 2025",
-    videoCount: 12,
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-  },
-  {
-    id: "design-talks",
-    name: "Design Talks",
-    videoCount: 8,
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-  },
-  {
-    id: "onboarding",
-    name: "New Hire Onboarding",
-    videoCount: 5,
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-  },
-];
+import process from "node:process";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from "@/lib/effect";
+import { SeriesListClient } from "./series-list-client";
 
 export default async function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization } = await params;
 
-  return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Series</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {seriesData.map((series) => (
-          <Link key={series.id} href={`/${organization}/series/${series.id}`}>
-            <Card className="group hover:border-primary transition-colors">
-              <CardHeader className="p-0">
-                <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                  <Image
-                    src={series.thumbnailUrl || "/placeholder.svg"}
-                    alt={series.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CardTitle className="text-lg">{series.name}</CardTitle>
-                <p className="text-sm text-gray-400">{series.videoCount} videos</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+  // Get the current user session
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+
+  // Get organization by slug
+  let organizationData: Awaited<ReturnType<typeof getCachedOrganizationBySlug>>;
+  try {
+    organizationData = await getCachedOrganizationBySlug(organization);
+  } catch {
+    return (
+      <div className="space-y-8">
+        <h1 className="text-3xl font-bold">Series</h1>
+        <div className="text-center py-12 text-muted-foreground">Organization not found</div>
       </div>
-    </div>
+    );
+  }
+
+  // Fetch series data with progress if user is logged in
+  let seriesData: Awaited<ReturnType<typeof getCachedSeriesWithProgress>> = [];
+  try {
+    if (session?.user) {
+      seriesData = await getCachedSeriesWithProgress(organizationData.id, session.user.id);
+    } else {
+      const result = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || ""}/api/series?organizationId=${organizationData.id}`,
+        {
+          cache: "no-store",
+        },
+      );
+      if (result.ok) {
+        const data = await result.json();
+        seriesData = data.data || [];
+      }
+    }
+  } catch {
+    // Continue with empty array
+  }
+
+  return (
+    <SeriesListClient organization={organization} organizationId={organizationData.id} initialSeries={seriesData} />
   );
 }

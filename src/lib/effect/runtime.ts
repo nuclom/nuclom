@@ -21,8 +21,9 @@ import { type NotificationRepository, NotificationRepositoryLive } from "./servi
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
+import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
 import { type Storage, StorageLive } from "./services/storage";
-import { type StripeServiceTag, StripeServiceLive } from "./services/stripe";
+import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
@@ -51,6 +52,7 @@ const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.pro
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository and StripeService
 const BillingWithDeps = BillingLive.pipe(Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)));
@@ -67,6 +69,7 @@ const AppServicesLive = Layer.mergeAll(
   BillingRepositoryWithDeps,
   BillingWithDeps,
   SearchRepositoryWithDeps,
+  SeriesRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -89,8 +92,9 @@ export type AppServices =
   | IntegrationRepository
   | BillingRepository
   | Billing
-  | StripeServiceTag
-  | SearchRepository;
+  | SearchRepository
+  | SeriesRepository
+  | StripeServiceTag;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

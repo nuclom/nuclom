@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Plan, PlanFeatures, PlanLimits } from "@/lib/db/schema";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type { Plan, PlanFeatures, PlanLimits } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
 
 interface PlanSelectorProps {
   plans: Plan[];

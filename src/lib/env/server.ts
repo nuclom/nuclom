@@ -4,6 +4,7 @@ import { ClientEnv } from "@/lib/env/client";
 
 export const ServerEnv = z.object({
   ...ClientEnv.shape,
+  APP_URL: z.string().url().default("http://localhost:3000"),
   DATABASE_URL: z.string(),
   VERCEL_OIDC_TOKEN: z.string().optional(),
   RESEND_API_KEY: z.string(),

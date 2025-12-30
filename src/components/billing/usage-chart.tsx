@@ -1,10 +1,10 @@
 "use client";
 
-import { Progress } from "@/components/ui/progress";
+import { HardDrive, Sparkles, Users, Video, Wifi } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HardDrive, Video, Users, Wifi, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 import type { UsageSummary } from "@/lib/effect/services/billing-repository";
+import { cn } from "@/lib/utils";
 
 interface UsageChartProps {
   usage: UsageSummary;

@@ -23,7 +23,7 @@ import {
   PaymentFailedError,
   PlanLimitExceededError,
   PlanNotFoundError,
-  StripeApiError,
+  type StripeApiError,
   SubscriptionError,
 } from "../errors";
 import {

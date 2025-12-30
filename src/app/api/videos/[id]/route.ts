@@ -1,12 +1,13 @@
 import { asc, eq, isNull } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { db } from "@/lib/db";
 import type { NewVideo } from "@/lib/db/schema";
 import { comments, videos } from "@/lib/db/schema";
 import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
+import { releaseStorageUsage, releaseVideoCount } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { releaseVideoCount, releaseStorageUsage } from "@/lib/effect/services/billing-middleware";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -101,7 +102,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         success: true,
         data,
       };
-      return NextResponse.json(response);
+      // Use short cache with stale-while-revalidate for video details
+      // AI analysis data is included, so it benefits from caching
+      return NextResponse.json(response, {
+        headers: {
+          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+        },
+      });
     },
   });
 }

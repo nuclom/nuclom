@@ -2,11 +2,11 @@
 
 import { format } from "date-fns";
 import { Download, ExternalLink, FileText } from "lucide-react";
-import type { Invoice } from "@/lib/db/schema";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import type { Invoice } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
 interface InvoiceListProps {

@@ -7,6 +7,8 @@ import type {
   SavedSearch,
   SearchFilters,
   SearchHistory,
+  SeriesProgress,
+  SeriesVideo,
   User,
   Video,
 } from "./db/schema";
@@ -72,6 +74,30 @@ export type SavedSearchWithUser = SavedSearch & {
   user: User;
 };
 
+// Series types
+export type SeriesWithVideoCount = Collection & {
+  videoCount: number;
+  createdBy?: User | null;
+};
+
+export type SeriesVideoWithDetails = SeriesVideo & {
+  video: VideoWithAuthor;
+};
+
+export type SeriesWithVideos = Collection & {
+  createdBy?: User | null;
+  videos: SeriesVideoWithDetails[];
+  videoCount: number;
+};
+
+export type SeriesProgressWithDetails = SeriesProgress & {
+  series: Collection;
+  lastVideo?: Video | null;
+  completedCount: number;
+  totalCount: number;
+  progressPercentage: number;
+};
+
 // API Response types
 export type ApiResponse<T = unknown> = {
   success: boolean;
@@ -88,3 +114,27 @@ export type PaginatedResponse<T> = {
     totalPages: number;
   };
 };
+
+/**
+ * Cursor-based pagination response for large datasets
+ * More efficient than offset-based pagination for large tables
+ */
+export type CursorPaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    limit: number;
+    /** Cursor for next page (null if no more pages) */
+    nextCursor: string | null;
+    /** Cursor for previous page (null if on first page) */
+    prevCursor: string | null;
+    /** Whether there are more results */
+    hasMore: boolean;
+  };
+};
+
+/**
+ * Unified pagination parameters
+ */
+export type PaginationParams =
+  | { type: "offset"; page: number; limit: number }
+  | { type: "cursor"; cursor?: string; limit: number; direction?: "forward" | "backward" };
