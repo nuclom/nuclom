@@ -1,12 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { VideoProcessor } from "@/lib/video-processor";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
+import { Effect, Layer, Exit, Cause } from "effect";
+import {
+  AppLive,
+  VideoProcessor,
+  VideoRepository,
+  MissingFieldError,
+  ValidationError,
+  isSupportedVideoFormat,
+  getMaxFileSize,
+} from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
 export const dynamic = "force-dynamic";
+
+// =============================================================================
+// Types
+// =============================================================================
 
 interface UploadResponse {
   videoId: string;
@@ -15,23 +26,62 @@ interface UploadResponse {
   duration: string;
 }
 
+// =============================================================================
+// Error Response Handler
+// =============================================================================
+
+const mapErrorToResponse = (error: unknown): NextResponse => {
+  if (error && typeof error === "object" && "_tag" in error) {
+    const taggedError = error as { _tag: string; message: string };
+
+    switch (taggedError._tag) {
+      case "MissingFieldError":
+      case "ValidationError":
+      case "UnsupportedFormatError":
+      case "FileSizeExceededError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
+      case "StorageNotConfiguredError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
+      case "VideoProcessingError":
+      case "UploadError":
+      case "DatabaseError":
+        console.error(`[${taggedError._tag}]`, taggedError);
+        return NextResponse.json({ success: false, error: "Failed to upload video" }, { status: 500 });
+      default:
+        console.error(`[${taggedError._tag}]`, taggedError);
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    }
+  }
+  console.error("[Error]", error);
+  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+};
+
+// =============================================================================
+// POST /api/videos/upload - Upload a video file
+// =============================================================================
+
 export async function POST(request: NextRequest) {
-  try {
+  const effect = Effect.gen(function* () {
     // Check content type
     const contentType = request.headers.get("content-type");
     if (!contentType?.includes("multipart/form-data")) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Content-Type must be multipart/form-data",
-        },
-        { status: 400 },
+      return yield* Effect.fail(
+        new ValidationError({
+          message: "Content-Type must be multipart/form-data",
+        }),
       );
     }
 
     // Parse form data
-    const formData = await request.formData();
-    const file = formData.get("video") as File;
+    const formData = yield* Effect.tryPromise({
+      try: () => request.formData(),
+      catch: () =>
+        new ValidationError({
+          message: "Invalid form data",
+        }),
+    });
+
+    const file = formData.get("video") as File | null;
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const organizationId = formData.get("organizationId") as string;
@@ -40,85 +90,94 @@ export async function POST(request: NextRequest) {
     const collectionId = formData.get("collectionId") as string;
 
     // Validate required fields
-    if (!file || !title || !organizationId || !authorId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Missing required fields: video, title, organizationId, authorId",
-        },
-        { status: 400 },
+    if (!file) {
+      return yield* Effect.fail(new MissingFieldError({ field: "video", message: "Video file is required" }));
+    }
+
+    if (!title) {
+      return yield* Effect.fail(new MissingFieldError({ field: "title", message: "Title is required" }));
+    }
+
+    if (!organizationId) {
+      return yield* Effect.fail(
+        new MissingFieldError({ field: "organizationId", message: "Organization ID is required" }),
       );
     }
 
-    // Validate file type
-    if (!VideoProcessor.isSupportedVideoFormat(file.name)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
-        },
-        { status: 400 },
+    if (!authorId) {
+      return yield* Effect.fail(new MissingFieldError({ field: "authorId", message: "Author ID is required" }));
+    }
+
+    // Validate file type (using pure function)
+    if (!isSupportedVideoFormat(file.name)) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
+        }),
       );
     }
 
-    // Validate file size
-    if (file.size > VideoProcessor.getMaxFileSize()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `File size exceeds maximum limit of ${VideoProcessor.getMaxFileSize() / (1024 * 1024)}MB`,
-        },
-        { status: 400 },
+    // Validate file size (using pure function)
+    if (file.size > getMaxFileSize()) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: `File size exceeds maximum limit of ${getMaxFileSize() / (1024 * 1024)}MB`,
+        }),
       );
     }
 
     // Convert file to buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = yield* Effect.tryPromise({
+      try: async () => Buffer.from(await file.arrayBuffer()),
+      catch: () =>
+        new ValidationError({
+          message: "Failed to read file",
+        }),
+    });
 
-    // Process video (upload, generate thumbnail, etc.)
-    const processingResult = await VideoProcessor.processVideo(
-      buffer,
-      file.name,
+    // Process video using VideoProcessor service
+    const processor = yield* VideoProcessor;
+    const processingResult = yield* processor.processVideo(buffer, file.name, organizationId);
+
+    // Save video metadata to database using VideoRepository
+    const videoRepo = yield* VideoRepository;
+    const insertedVideo = yield* videoRepo.createVideo({
+      title,
+      description,
+      duration: processingResult.duration,
+      thumbnailUrl: processingResult.thumbnailUrl,
+      videoUrl: processingResult.videoUrl,
+      authorId,
       organizationId,
-      // Progress callback could be used with WebSockets in the future
-    );
+      channelId: channelId || undefined,
+      collectionId: collectionId || undefined,
+    });
 
-    // Save video metadata to database
-    const [insertedVideo] = await db
-      .insert(videos)
-      .values({
-        title,
-        description,
-        duration: processingResult.duration,
-        thumbnailUrl: processingResult.thumbnailUrl,
-        videoUrl: processingResult.videoUrl,
-        authorId,
-        organizationId,
-        channelId: channelId || null,
-        collectionId: collectionId || null,
-      })
-      .returning();
+    return {
+      videoId: insertedVideo.id,
+      videoUrl: processingResult.videoUrl,
+      thumbnailUrl: processingResult.thumbnailUrl,
+      duration: processingResult.duration,
+    } as UploadResponse;
+  });
 
-    const response: ApiResponse<UploadResponse> = {
-      success: true,
-      data: {
-        videoId: insertedVideo.id,
-        videoUrl: processingResult.videoUrl,
-        thumbnailUrl: processingResult.thumbnailUrl,
-        duration: processingResult.duration,
-      },
-    };
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
 
-    return NextResponse.json(response, { status: 201 });
-  } catch (error) {
-    console.error("Error uploading video:", error);
-
-    // Return appropriate error message
-    let errorMessage = "Failed to upload video";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
-  }
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse<UploadResponse> = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response, { status: 201 });
+    },
+  });
 }

@@ -29,21 +29,12 @@ export function VideoCard({ video, organization }: VideoCardProps) {
           </div>
           <div className="flex items-start gap-3 mt-3">
             <Avatar className="h-9 w-9">
-              <AvatarImage
-                src={video.author.image || "/placeholder.svg"}
-                alt={video.author.name || "Author"}
-              />
-              <AvatarFallback>
-                {video.author.name ? video.author.name.charAt(0) : "A"}
-              </AvatarFallback>
+              <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
+              <AvatarFallback>{video.author.name ? video.author.name.charAt(0) : "A"}</AvatarFallback>
             </Avatar>
             <div>
-              <h4 className="font-medium leading-tight text-foreground">
-                {video.title}
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                {video.author.name}
-              </p>
+              <h4 className="font-medium leading-tight text-foreground">{video.title}</h4>
+              <p className="text-sm text-muted-foreground">{video.author.name}</p>
             </div>
           </div>
         </CardContent>

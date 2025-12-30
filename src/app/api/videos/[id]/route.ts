@@ -1,93 +1,205 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { Effect, Exit, Cause } from "effect";
 import { db } from "@/lib/db";
 import { comments, videos } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
 import type { NewVideo } from "@/lib/db/schema";
 import { asc, eq, isNull } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
+import { AppLive, VideoRepository, NotFoundError, ValidationError, DatabaseError } from "@/lib/effect";
+
+// =============================================================================
+// Error Response Handler
+// =============================================================================
+
+const mapErrorToResponse = (error: unknown): NextResponse => {
+  if (error && typeof error === "object" && "_tag" in error) {
+    const taggedError = error as { _tag: string; message: string };
+
+    switch (taggedError._tag) {
+      case "NotFoundError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
+      case "ValidationError":
+      case "MissingFieldError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
+      default:
+        console.error(`[${taggedError._tag}]`, taggedError);
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    }
+  }
+  console.error("[Error]", error);
+  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+};
+
+// =============================================================================
+// GET /api/videos/[id] - Get video details
+// =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
-    const videoData = await db.query.videos.findFirst({
-      where: eq(videos.id, resolvedParams.id),
-      with: {
-        author: true,
-        organization: true,
-        channel: true,
-        collection: true,
-        comments: {
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
+
+    // Use Drizzle query builder for nested relations
+    const videoData = yield* Effect.tryPromise({
+      try: () =>
+        db.query.videos.findFirst({
+          where: eq(videos.id, resolvedParams.id),
           with: {
             author: true,
-            replies: {
+            organization: true,
+            channel: true,
+            collection: true,
+            comments: {
               with: {
                 author: true,
+                replies: {
+                  with: {
+                    author: true,
+                  },
+                },
               },
+              where: isNull(comments.parentId),
+              orderBy: asc(comments.createdAt),
             },
           },
-          where: isNull(comments.parentId),
-          orderBy: asc(comments.createdAt),
-        },
-      },
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch video",
+          operation: "getVideo",
+          cause: error,
+        }),
     });
 
     if (!videoData) {
-      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
+      return yield* Effect.fail(
+        new NotFoundError({
+          message: "Video not found",
+          entity: "Video",
+          id: resolvedParams.id,
+        }),
+      );
     }
 
-    const response: ApiResponse = {
-      success: true,
-      data: videoData,
-    };
+    return videoData;
+  });
 
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Error fetching video:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch video" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
 }
+
+// =============================================================================
+// PUT /api/videos/[id] - Update video
+// =============================================================================
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
-    const body: Partial<NewVideo> = await request.json();
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
 
-    await db.update(videos).set(body).where(eq(videos.id, resolvedParams.id));
-
-    const videoData = await db.query.videos.findFirst({
-      where: eq(videos.id, resolvedParams.id),
-      with: {
-        author: true,
-        organization: true,
-        channel: true,
-        collection: true,
-      },
+    const body = yield* Effect.tryPromise({
+      try: () => request.json() as Promise<Partial<NewVideo>>,
+      catch: () =>
+        new ValidationError({
+          message: "Invalid request body",
+        }),
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: videoData,
-    };
+    // Update video using repository
+    const videoRepo = yield* VideoRepository;
+    yield* videoRepo.updateVideo(resolvedParams.id, body);
 
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Error updating video:", error);
-    return NextResponse.json({ success: false, error: "Failed to update video" }, { status: 500 });
-  }
+    // Fetch updated video with relations
+    const videoData = yield* Effect.tryPromise({
+      try: () =>
+        db.query.videos.findFirst({
+          where: eq(videos.id, resolvedParams.id),
+          with: {
+            author: true,
+            organization: true,
+            channel: true,
+            collection: true,
+          },
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch updated video",
+          operation: "updateVideo",
+          cause: error,
+        }),
+    });
+
+    return videoData;
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
 }
 
+// =============================================================================
+// DELETE /api/videos/[id] - Delete video
+// =============================================================================
+
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
-    await db.delete(videos).where(eq(videos.id, resolvedParams.id));
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
 
-    const response: ApiResponse = {
-      success: true,
-      data: { message: "Video deleted successfully" },
-    };
+    // Delete video using repository
+    const videoRepo = yield* VideoRepository;
+    yield* videoRepo.deleteVideo(resolvedParams.id);
 
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Error deleting video:", error);
-    return NextResponse.json({ success: false, error: "Failed to delete video" }, { status: 500 });
-  }
+    return { message: "Video deleted successfully" };
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
 }
