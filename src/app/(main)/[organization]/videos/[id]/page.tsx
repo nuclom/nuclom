@@ -446,6 +446,13 @@ function VideoDetail({ video, chapters, codeSnippets, currentUser }: VideoDetail
             title={video.title}
             thumbnailUrl={video.thumbnailUrl || undefined}
             duration={video.duration}
+            chapters={chapters.map((c) => ({
+              id: c.id,
+              title: c.title,
+              startTime: c.startTime,
+              endTime: c.endTime ?? undefined,
+              summary: c.summary ?? undefined,
+            }))}
           />
         ) : (
           <div className="aspect-video bg-card rounded-lg overflow-hidden border">

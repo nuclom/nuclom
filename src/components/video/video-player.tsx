@@ -2,31 +2,51 @@
 
 import {
   AlertCircle,
+  Keyboard,
   Loader2,
   Maximize,
   Minimize,
   Pause,
+  PictureInPicture2,
   Play,
+  Repeat,
   Settings,
   SkipBack,
   SkipForward,
+  Volume1,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
 // Types
 // =============================================================================
+
+export interface VideoChapter {
+  /** Chapter ID */
+  id: string;
+  /** Chapter title */
+  title: string;
+  /** Start time in seconds */
+  startTime: number;
+  /** End time in seconds */
+  endTime?: number;
+  /** Optional chapter summary */
+  summary?: string;
+}
 
 export interface VideoPlayerProps {
   /** The video URL to play */
@@ -37,12 +57,16 @@ export interface VideoPlayerProps {
   thumbnailUrl?: string;
   /** Initial playback position (0-1 fraction) */
   initialProgress?: number;
+  /** Optional video chapters for timeline markers and navigation */
+  chapters?: VideoChapter[];
   /** Called when playback progress changes */
   onProgress?: (progress: VideoProgress) => void;
   /** Called when video playback ends */
   onEnded?: () => void;
   /** Called when an error occurs */
   onError?: (error: string) => void;
+  /** Called when time is updated (for syncing with other components) */
+  onTimeUpdate?: (currentTime: number) => void;
   /** Optional className for the container */
   className?: string;
 }
@@ -65,6 +89,20 @@ const SKIP_SECONDS = 10;
 const PROGRESS_SAVE_INTERVAL = 5000; // Save progress every 5 seconds
 const COMPLETION_THRESHOLD = 0.9; // 90% watched = completed
 
+// Keyboard shortcuts documentation
+const KEYBOARD_SHORTCUTS = [
+  { key: "Space / K", action: "Play / Pause" },
+  { key: "J / ←", action: "Skip back 10s" },
+  { key: "L / →", action: "Skip forward 10s" },
+  { key: "↑ / ↓", action: "Volume up / down" },
+  { key: "M", action: "Mute / Unmute" },
+  { key: "F", action: "Fullscreen" },
+  { key: "P", action: "Picture-in-Picture" },
+  { key: "C", action: "Toggle loop" },
+  { key: "0-9", action: "Jump to 0-90%" },
+  { key: "Home / End", action: "Start / End" },
+] as const;
+
 // =============================================================================
 // Video Player Component
 // =============================================================================
@@ -74,32 +112,53 @@ export function VideoPlayer({
   title,
   thumbnailUrl,
   initialProgress = 0,
+  chapters = [],
   onProgress,
   onEnded,
   onError,
+  onTimeUpdate,
   className,
 }: VideoPlayerProps) {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const progressCallbackRef = useRef(onProgress);
   const lastProgressSaveRef = useRef<number>(0);
+  const lastClickRef = useRef<number>(0);
 
   // State
   const [videoState, setVideoState] = useState<VideoState>("idle");
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [buffered, setBuffered] = useState(0);
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
+  const [isLooping, setIsLooping] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<number>(0);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [pipSupported, setPipSupported] = useState(false);
 
   // Keep callback ref up to date
   progressCallbackRef.current = onProgress;
+
+  // Find current chapter based on current time
+  const currentChapter = useMemo(() => {
+    if (!chapters.length || !duration) return null;
+    return chapters.find((chapter, index) => {
+      const nextChapter = chapters[index + 1];
+      const endTime = chapter.endTime || nextChapter?.startTime || duration;
+      return currentTime >= chapter.startTime && currentTime < endTime;
+    });
+  }, [chapters, currentTime, duration]);
 
   // =============================================================================
   // Video Control Functions
@@ -181,6 +240,89 @@ export function VideoPlayer({
     }
   }, []);
 
+  const togglePictureInPicture = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else if (document.pictureInPictureEnabled) {
+        await video.requestPictureInPicture();
+        setIsPiP(true);
+      }
+    } catch (err) {
+      console.error("Picture-in-Picture error:", err);
+    }
+  }, []);
+
+  const toggleLoop = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const newLoopState = !isLooping;
+    video.loop = newLoopState;
+    setIsLooping(newLoopState);
+  }, [isLooping]);
+
+  const seekToChapter = useCallback(
+    (chapter: VideoChapter) => {
+      seek(chapter.startTime);
+    },
+    [seek],
+  );
+
+  // Handle double-click for fullscreen
+  const handleVideoClick = useCallback(() => {
+    const now = Date.now();
+    const timeDiff = now - lastClickRef.current;
+
+    if (timeDiff < 300) {
+      // Double click detected
+      toggleFullscreen();
+      lastClickRef.current = 0;
+    } else {
+      // Single click - toggle play
+      togglePlay();
+      lastClickRef.current = now;
+    }
+  }, [toggleFullscreen, togglePlay]);
+
+  // Handle progress bar hover for time preview
+  const handleProgressHover = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const progressBar = progressBarRef.current;
+      if (!progressBar || !duration) return;
+
+      const rect = progressBar.getBoundingClientRect();
+      const position = (e.clientX - rect.left) / rect.width;
+      const time = position * duration;
+
+      setHoverTime(Math.max(0, Math.min(time, duration)));
+      setHoverPosition(e.clientX - rect.left);
+    },
+    [duration],
+  );
+
+  const handleProgressLeave = useCallback(() => {
+    setHoverTime(null);
+  }, []);
+
+  const handleProgressClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const progressBar = progressBarRef.current;
+      if (!progressBar || !duration) return;
+
+      const rect = progressBar.getBoundingClientRect();
+      const position = (e.clientX - rect.left) / rect.width;
+      const newTime = position * duration;
+
+      seek(Math.max(0, Math.min(newTime, duration)));
+    },
+    [duration, seek],
+  );
+
   // =============================================================================
   // Progress Reporting
   // =============================================================================
@@ -235,8 +377,15 @@ export function VideoPlayer({
     if (!video) return;
 
     setCurrentTime(video.currentTime);
+    onTimeUpdate?.(video.currentTime);
     reportProgress();
-  }, [reportProgress]);
+
+    // Update buffered amount
+    if (video.buffered.length > 0) {
+      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+      setBuffered((bufferedEnd / video.duration) * 100);
+    }
+  }, [reportProgress, onTimeUpdate]);
 
   const handlePlay = useCallback(() => {
     setPlaying(true);
@@ -341,6 +490,18 @@ export function VideoPlayer({
           e.preventDefault();
           toggleMute();
           break;
+        case "p":
+          e.preventDefault();
+          togglePictureInPicture();
+          break;
+        case "c":
+          e.preventDefault();
+          toggleLoop();
+          break;
+        case "?":
+          e.preventDefault();
+          setShowKeyboardHelp((prev) => !prev);
+          break;
         case "0":
         case "1":
         case "2":
@@ -367,7 +528,19 @@ export function VideoPlayer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [togglePlay, seekBackward, seekForward, handleVolumeChange, toggleFullscreen, toggleMute, seek, volume, duration]);
+  }, [
+    togglePlay,
+    seekBackward,
+    seekForward,
+    handleVolumeChange,
+    toggleFullscreen,
+    toggleMute,
+    togglePictureInPicture,
+    toggleLoop,
+    seek,
+    volume,
+    duration,
+  ]);
 
   // =============================================================================
   // Auto-hide controls
@@ -420,17 +593,47 @@ export function VideoPlayer({
   }, []);
 
   // =============================================================================
+  // Picture-in-Picture listeners
+  // =============================================================================
+
+  useEffect(() => {
+    // Check PiP support on client side
+    setPipSupported(document.pictureInPictureEnabled ?? false);
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnterPiP = () => setIsPiP(true);
+    const handleLeavePiP = () => setIsPiP(false);
+
+    video.addEventListener("enterpictureinpicture", handleEnterPiP);
+    video.addEventListener("leavepictureinpicture", handleLeavePiP);
+
+    return () => {
+      video.removeEventListener("enterpictureinpicture", handleEnterPiP);
+      video.removeEventListener("leavepictureinpicture", handleLeavePiP);
+    };
+  }, []);
+
+  // =============================================================================
   // Render Helpers
   // =============================================================================
 
   const formatTime = (seconds: number): string => {
     if (!Number.isFinite(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Get volume icon based on level
+  const VolumeIcon = muted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   // =============================================================================
   // Render
@@ -457,7 +660,7 @@ export function VideoPlayer({
         className="w-full h-full object-contain"
         preload="metadata"
         playsInline
-        onClick={togglePlay}
+        onClick={handleVideoClick}
         onLoadStart={handleLoadStart}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
@@ -511,6 +714,48 @@ export function VideoPlayer({
         </button>
       )}
 
+      {/* Current Chapter Display */}
+      {currentChapter && showControls && (
+        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-md">
+          <p className="text-white text-sm font-medium">{currentChapter.title}</p>
+        </div>
+      )}
+
+      {/* Loop Indicator */}
+      {isLooping && (
+        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md">
+          <Repeat className="h-4 w-4 text-white" />
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts Help Modal */}
+      {showKeyboardHelp && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
+          <div className="bg-background rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Keyboard className="h-5 w-5" />
+                Keyboard Shortcuts
+              </h3>
+              <Button variant="ghost" size="icon" onClick={() => setShowKeyboardHelp(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {KEYBOARD_SHORTCUTS.map((shortcut) => (
+                <div key={shortcut.key} className="flex justify-between text-sm">
+                  <kbd className="px-2 py-0.5 bg-muted rounded text-muted-foreground font-mono text-xs">
+                    {shortcut.key}
+                  </kbd>
+                  <span className="text-muted-foreground">{shortcut.action}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-4 text-center">Press ? to toggle this menu</p>
+          </div>
+        </div>
+      )}
+
       {/* Controls Overlay */}
       <div
         className={cn(
@@ -520,20 +765,76 @@ export function VideoPlayer({
           showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
-        {/* Progress Bar */}
-        <div className="mb-3 group/progress">
-          <Slider
-            value={[progress]}
-            min={0}
-            max={100}
-            step={0.1}
-            onValueChange={([value]) => {
-              const newTime = (value / 100) * duration;
-              seek(newTime);
-            }}
-            className="cursor-pointer"
-            aria-label="Video progress"
+        {/* Custom Progress Bar with chapters, buffered, and hover preview */}
+        {/* biome-ignore lint/a11y/useFocusableInteractive: Progress bar keyboard handled by parent container */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard navigation handled at video player level */}
+        <div
+          ref={progressBarRef}
+          className="relative mb-3 h-1.5 bg-white/30 rounded-full cursor-pointer group/progress hover:h-2.5 transition-all"
+          onClick={handleProgressClick}
+          onMouseMove={handleProgressHover}
+          onMouseLeave={handleProgressLeave}
+          role="slider"
+          aria-label="Video progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          {/* Buffered Progress */}
+          <div
+            className="absolute top-0 left-0 h-full bg-white/40 rounded-full transition-all"
+            style={{ width: `${buffered}%` }}
           />
+
+          {/* Played Progress */}
+          <div
+            className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
+
+          {/* Progress Handle */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-md opacity-0 group-hover/progress:opacity-100 transition-opacity"
+            style={{ left: `calc(${progress}% - 6px)` }}
+          />
+
+          {/* Chapter Markers */}
+          {chapters.map((chapter) => {
+            const chapterPosition = duration > 0 ? (chapter.startTime / duration) * 100 : 0;
+            return (
+              <button
+                key={chapter.id}
+                type="button"
+                className="absolute top-1/2 -translate-y-1/2 w-1 h-3 bg-white/80 rounded-sm hover:bg-white hover:scale-125 transition-transform z-10"
+                style={{ left: `${chapterPosition}%` }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  seekToChapter(chapter);
+                }}
+                title={chapter.title}
+                aria-label={`Jump to chapter: ${chapter.title}`}
+              />
+            );
+          })}
+
+          {/* Hover Time Preview */}
+          {hoverTime !== null && (
+            <div
+              className="absolute -top-10 px-2 py-1 bg-black/90 text-white text-xs rounded pointer-events-none whitespace-nowrap transform -translate-x-1/2"
+              style={{ left: hoverPosition }}
+            >
+              {formatTime(hoverTime)}
+              {chapters.length > 0 && (
+                <span className="block text-white/60 text-[10px]">
+                  {chapters.find((c, i) => {
+                    const nextChapter = chapters[i + 1];
+                    const endTime = c.endTime || nextChapter?.startTime || duration;
+                    return hoverTime >= c.startTime && hoverTime < endTime;
+                  })?.title || ""}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Controls Row */}
@@ -579,18 +880,25 @@ export function VideoPlayer({
                 className="text-white hover:bg-white/20"
                 aria-label={muted ? "Unmute" : "Mute"}
               >
-                {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                <VolumeIcon className="h-4 w-4" />
               </Button>
               <div className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-200">
-                <Slider
-                  value={[muted ? 0 : volume]}
-                  min={0}
-                  max={1}
-                  step={0.01}
-                  onValueChange={handleVolumeChange}
-                  className="cursor-pointer"
-                  aria-label="Volume"
-                />
+                <div className="relative h-1.5 bg-white/30 rounded-full">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-white rounded-full"
+                    style={{ width: `${(muted ? 0 : volume) * 100}%` }}
+                  />
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={muted ? 0 : volume}
+                    onChange={(e) => handleVolumeChange([Number.parseFloat(e.target.value)])}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    aria-label="Volume"
+                  />
+                </div>
               </div>
             </div>
 
@@ -602,7 +910,19 @@ export function VideoPlayer({
 
           {/* Right Controls */}
           <div className="flex items-center gap-1">
-            {/* Playback Speed */}
+            {/* Loop Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleLoop}
+              className={cn("text-white hover:bg-white/20", isLooping && "bg-white/20")}
+              aria-label={isLooping ? "Disable loop" : "Enable loop"}
+              title="Toggle loop (C)"
+            >
+              <Repeat className="h-4 w-4" />
+            </Button>
+
+            {/* Settings Menu (Playback Speed + Chapters) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 text-xs px-2">
@@ -610,7 +930,8 @@ export function VideoPlayer({
                   {playbackRate}x
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Playback Speed</DropdownMenuLabel>
                 {PLAYBACK_RATES.map((rate) => (
                   <DropdownMenuItem
                     key={rate}
@@ -620,8 +941,72 @@ export function VideoPlayer({
                     {rate}x
                   </DropdownMenuItem>
                 ))}
+                {chapters.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Chapters</DropdownMenuLabel>
+                    {chapters.map((chapter) => (
+                      <DropdownMenuItem
+                        key={chapter.id}
+                        onClick={() => seekToChapter(chapter)}
+                        className={cn(currentChapter?.id === chapter.id && "bg-accent")}
+                      >
+                        <span className="flex-1 truncate">{chapter.title}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{formatTime(chapter.startTime)}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Keyboard Shortcuts Help */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  aria-label="Keyboard shortcuts"
+                  title="Keyboard shortcuts (?)"
+                >
+                  <Keyboard className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64">
+                <h4 className="font-medium mb-2">Keyboard Shortcuts</h4>
+                <div className="space-y-1 text-sm">
+                  {KEYBOARD_SHORTCUTS.slice(0, 6).map((shortcut) => (
+                    <div key={shortcut.key} className="flex justify-between">
+                      <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">{shortcut.key}</kbd>
+                      <span className="text-muted-foreground text-xs">{shortcut.action}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="w-full mt-2 text-xs"
+                  onClick={() => setShowKeyboardHelp(true)}
+                >
+                  View all shortcuts
+                </Button>
+              </PopoverContent>
+            </Popover>
+
+            {/* Picture-in-Picture */}
+            {pipSupported && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={togglePictureInPicture}
+                className={cn("text-white hover:bg-white/20", isPiP && "bg-white/20")}
+                aria-label={isPiP ? "Exit Picture-in-Picture" : "Enter Picture-in-Picture"}
+                title="Picture-in-Picture (P)"
+              >
+                <PictureInPicture2 className="h-4 w-4" />
+              </Button>
+            )}
 
             {/* Fullscreen */}
             <Button
@@ -630,6 +1015,7 @@ export function VideoPlayer({
               onClick={toggleFullscreen}
               className="text-white hover:bg-white/20"
               aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              title="Fullscreen (F)"
             >
               {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </Button>
