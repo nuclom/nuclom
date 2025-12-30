@@ -148,6 +148,51 @@ function VideoUpload() {
 }
 ```
 
+#### useVideoProgress
+
+Manages video playback progress with automatic debounced persistence.
+
+```typescript
+import { useVideoProgress, useProgressFraction } from "@/hooks/use-video-progress";
+
+function VideoPlayerContainer({ videoId }: { videoId: string }) {
+  const {
+    initialProgress,    // Saved position in seconds
+    loading,            // Whether progress data is loading
+    error,              // Error message if fetch failed
+    wasCompleted,       // Whether video was previously completed
+    saveProgress,       // Debounced save function
+    saveProgressNow,    // Immediate save function
+    markCompleted,      // Mark video as completed
+  } = useVideoProgress({
+    videoId,
+    saveInterval: 5000,  // Save every 5 seconds
+    enabled: true,       // Enable progress tracking
+  });
+
+  // Convert seconds to progress fraction for the player
+  const progressFraction = useProgressFraction(initialProgress, videoDuration);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <VideoPlayer
+      initialProgress={progressFraction}
+      onProgress={(progress) => {
+        saveProgress(progress);
+      }}
+      onEnded={() => markCompleted()}
+    />
+  );
+}
+```
+
+**Features:**
+- Automatic progress persistence with debouncing
+- Resume from last position
+- Track completed videos
+- Graceful error handling (doesn't interrupt playback)
+
 ## Custom Hook Patterns
 
 ### Data Fetching Hook

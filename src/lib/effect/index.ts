@@ -23,9 +23,11 @@ export {
   OptionalStorageConfig,
   ServerConfig,
 } from "./config";
+
 // Custom error types
 export * from "./errors";
 export type { AppServices } from "./runtime";
+
 // Runtime and layers
 export {
   AppLive,
@@ -42,6 +44,7 @@ export {
   runEffectExit,
   runEffectSync,
 } from "./runtime";
+
 // Server utilities (for RSC)
 export {
   createCachedQuery,
@@ -49,16 +52,20 @@ export {
   deleteVideo as serverDeleteVideo,
   getOrganizationBySlug as getCachedOrganizationBySlug,
   getOrganizations as getCachedOrganizations,
+  getUserVideoProgress as getCachedUserVideoProgress,
   getVideo as getCachedVideo,
+  getVideoProgress as getCachedVideoProgress,
   getVideos as getCachedVideos,
   revalidateOrganization,
   revalidateOrganizations,
   revalidateVideo,
+  revalidateVideoProgress,
   revalidateVideos,
   runServerEffect,
   runServerEffectSafe,
   updateVideo as serverUpdateVideo,
 } from "./server";
+
 export type {
   // AI
   AIServiceInterface,
@@ -73,6 +80,7 @@ export type {
   OrganizationWithRole,
   ProcessingProgress,
   ProcessingResult,
+  SaveProgressInput,
   StorageConfig,
   // Storage
   StorageService,
@@ -83,10 +91,14 @@ export type {
   VideoInfo,
   // VideoProcessor
   VideoProcessorService,
+  VideoProgressData,
+  // VideoProgressRepository
+  VideoProgressRepositoryService,
   // VideoRepository
   VideoRepositoryService,
   VideoSummary,
 } from "./services";
+
 // Services - explicitly export to avoid conflicts
 export {
   // AI
@@ -102,6 +114,7 @@ export {
   DatabaseLive,
   DrizzleLive,
   deleteFile,
+  deleteVideoProgress,
   deleteVideoRecord,
   extractActionItems,
   findOneOrFail,
@@ -119,14 +132,18 @@ export {
   getSessionOption,
   getUserOrganizations,
   getUserRole,
+  getUserVideoProgress,
   getVideo,
   getVideoInfo,
+  getVideoProgress,
   getVideos,
+  hasWatchedVideo,
   insertUnique,
   isMember,
   isSupportedVideoFormat,
   makeAuthLayer,
   makeAuthService,
+  markVideoCompleted,
   // OrganizationRepository
   OrganizationRepository,
   OrganizationRepositoryLive,
@@ -138,6 +155,7 @@ export {
   // Storage
   Storage,
   StorageLive,
+  saveVideoProgress,
   transaction,
   updateVideo,
   uploadFile,
@@ -145,11 +163,15 @@ export {
   // VideoProcessor
   VideoProcessor,
   VideoProcessorLive,
+  // VideoProgressRepository
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
   // VideoRepository
   VideoRepository,
   VideoRepositoryLive,
   validateVideo,
 } from "./services";
+
 export type { StreamChunk } from "./streaming";
 // Streaming utilities
 export {

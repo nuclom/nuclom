@@ -83,6 +83,22 @@ export {
   VideoProcessorLive,
   validateVideo,
 } from "./video-processor";
+export type {
+  SaveProgressInput,
+  VideoProgressData,
+  VideoProgressRepositoryService,
+} from "./video-progress-repository";
+// Video Progress Repository
+export {
+  deleteVideoProgress,
+  getUserVideoProgress,
+  getVideoProgress,
+  hasWatchedVideo,
+  markVideoCompleted,
+  saveVideoProgress,
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+} from "./video-progress-repository";
 export type { VideoRepositoryService } from "./video-repository";
 // Video Repository
 export {
