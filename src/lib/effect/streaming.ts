@@ -5,7 +5,7 @@
  * using React Suspense and Effect Streams.
  */
 
-import { Effect, Stream, Chunk } from "effect";
+import { Effect, Stream } from "effect";
 import { AppLive } from "./runtime";
 
 // =============================================================================

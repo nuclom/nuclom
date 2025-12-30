@@ -1,7 +1,7 @@
-import { VideoCard } from "@/components/video-card";
-import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { VideoCard } from "@/components/video-card";
 
 const myVideoData = [
   {

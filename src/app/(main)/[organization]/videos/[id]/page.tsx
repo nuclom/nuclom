@@ -1,28 +1,22 @@
-import { Suspense } from "react";
+import { Bookmark, Code, ListTodo, MessageSquarePlus, Play, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import {
-  Bookmark,
   CheckCircle2,
   ChevronRight,
   Clock,
-  Code,
   FileText,
   Layers,
-  ListTodo,
   Loader2,
-  MessageSquarePlus,
-  Play,
-  Share2,
-  Sparkles,
   Tag,
-  ThumbsUp,
   XCircle,
 } from "lucide-react";
 import Image from "next/image";
+import { Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VideoPlayerWithProgress } from "@/components/video";
 import { getCachedVideo } from "@/lib/effect";
 import type { VideoWithDetails } from "@/lib/types";
 import type { VideoChapter, VideoCodeSnippet, TranscriptSegment, ActionItem } from "@/lib/db/schema";
@@ -353,6 +347,7 @@ function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
             {transcriptLines.length > 0 ? (
               <div className="space-y-1 font-mono max-h-96 overflow-y-auto">
                 {transcriptLines.map((line, index) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Transcript lines are ordered and don't change
                   <TranscriptLine key={index} time={line.time} text={line.text} />
                 ))}
               </div>
@@ -413,28 +408,40 @@ function VideoDetail({ video, chapters, codeSnippets }: VideoDetailProps) {
 
       {/* Sidebar: Video Player and AI Insights */}
       <aside className="w-full lg:col-span-1 xl:col-span-1 space-y-6 lg:sticky top-20 self-start">
-        <div className="aspect-video bg-card rounded-lg overflow-hidden border relative group">
-          {video.thumbnailUrl ? (
-            <>
-              <Image
-                src={video.thumbnailUrl}
-                alt={video.title}
-                width={640}
-                height={360}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="lg" className="rounded-full h-14 w-14">
-                  <Play className="h-6 w-6" />
-                </Button>
+        {/* Video Player */}
+        {video.videoUrl ? (
+          <VideoPlayerWithProgress
+            videoId={video.id}
+            url={video.videoUrl}
+            title={video.title}
+            thumbnailUrl={video.thumbnailUrl || undefined}
+            duration={video.duration}
+          />
+        ) : (
+          <div className="aspect-video bg-card rounded-lg overflow-hidden border">
+            {video.thumbnailUrl ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={video.thumbnailUrl}
+                  alt={video.title}
+                  width={640}
+                  height={360}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <div className="flex flex-col items-center gap-2 text-white">
+                    <Play className="h-12 w-12" />
+                    <span className="text-sm">Video not available</span>
+                  </div>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No thumbnail</span>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground">No video available</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">

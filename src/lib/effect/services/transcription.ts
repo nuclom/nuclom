@@ -91,8 +91,8 @@ const makeTranscriptionService = Effect.gen(function* () {
         );
       }
 
-      // Convert buffer to File for OpenAI API
-      const file = new File([audioBuffer], filename, {
+      // Convert buffer to File for OpenAI API (use Uint8Array for broader compatibility)
+      const file = new File([new Uint8Array(audioBuffer)], filename, {
         type: filename.endsWith(".mp3") ? "audio/mpeg" : "audio/wav",
       });
 

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Transcript is required" }, { status: 400 });
     }
 
-    let result: any;
+    let result: string | string[];
 
     switch (type) {
       case "summary":

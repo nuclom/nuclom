@@ -116,6 +116,7 @@ const Carousel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
           canScrollNext,
         }}
       >
+        {/* biome-ignore lint/a11y/useSemanticElements: role="region" with aria-roledescription is correct pattern for carousels */}
         <div
           ref={ref}
           onKeyDownCapture={handleKeyDown}
