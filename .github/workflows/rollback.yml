@@ -1,0 +1,61 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Deployment URL to rollback to (e.g., https://nuclom-xxx.vercel.app)"
+        required: true
+        type: string
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Promote Deployment to Production
+        run: |
+          echo "Rolling back to deployment: ${{ inputs.deployment_url }}"
+          vercel promote ${{ inputs.deployment_url }} --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+      - name: Health Check
+        run: |
+          echo "Waiting for rollback to complete..."
+          sleep 30
+
+          max_attempts=5
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt $attempt of $max_attempts..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" "${{ inputs.deployment_url }}/api/health")
+
+            if [ "$response" = "200" ]; then
+              echo "Health check passed! Rollback successful."
+              exit 0
+            fi
+
+            echo "Health check returned status $response, retrying..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+
+          echo "Health check failed after $max_attempts attempts"
+          exit 1
