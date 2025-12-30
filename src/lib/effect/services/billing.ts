@@ -23,7 +23,7 @@ import {
   PaymentFailedError,
   PlanLimitExceededError,
   PlanNotFoundError,
-  StripeApiError,
+  type StripeApiError,
   SubscriptionError,
 } from "../errors";
 import {
@@ -95,7 +95,10 @@ export interface BillingServiceInterface {
     organizationId: string,
     newPlanId: string,
     billingPeriod: "monthly" | "yearly",
-  ) => Effect.Effect<Subscription, NoSubscriptionError | PlanNotFoundError | StripeApiError | SubscriptionError | DatabaseError>;
+  ) => Effect.Effect<
+    Subscription,
+    NoSubscriptionError | PlanNotFoundError | StripeApiError | SubscriptionError | DatabaseError
+  >;
 
   // Billing Info
   readonly getBillingInfo: (organizationId: string) => Effect.Effect<OrganizationBillingInfo, DatabaseError>;
@@ -137,9 +140,7 @@ export interface BillingServiceInterface {
     stripeSubscription: Stripe.Subscription,
   ) => Effect.Effect<Subscription, DatabaseError>;
 
-  readonly handleSubscriptionDeleted: (
-    stripeSubscription: Stripe.Subscription,
-  ) => Effect.Effect<void, DatabaseError>;
+  readonly handleSubscriptionDeleted: (stripeSubscription: Stripe.Subscription) => Effect.Effect<void, DatabaseError>;
 
   readonly handleInvoicePaid: (stripeInvoice: Stripe.Invoice) => Effect.Effect<void, DatabaseError>;
 
@@ -213,8 +214,7 @@ const makeBillingService = Effect.gen(function* () {
           customerId = customer.id;
         }
 
-        const priceId =
-          params.billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
+        const priceId = params.billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
 
         if (!priceId) {
           return yield* Effect.fail(
@@ -477,9 +477,7 @@ const makeBillingService = Effect.gen(function* () {
           currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
           currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-          trialStart: stripeSubscription.trial_start
-            ? new Date(stripeSubscription.trial_start * 1000)
-            : null,
+          trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
         };
 
@@ -495,9 +493,9 @@ const makeBillingService = Effect.gen(function* () {
 
     handleSubscriptionUpdated: (stripeSubscription) =>
       Effect.gen(function* () {
-        const subscription = yield* billingRepo.getSubscriptionByStripeId(stripeSubscription.id).pipe(
-          Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })),
-        );
+        const subscription = yield* billingRepo
+          .getSubscriptionByStripeId(stripeSubscription.id)
+          .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
 
         const priceId = stripeSubscription.items.data[0]?.price.id;
         let planId = subscription.planId;
@@ -515,17 +513,15 @@ const makeBillingService = Effect.gen(function* () {
           currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
           currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-          canceledAt: stripeSubscription.canceled_at
-            ? new Date(stripeSubscription.canceled_at * 1000)
-            : null,
+          canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
         });
       }),
 
     handleSubscriptionDeleted: (stripeSubscription) =>
       Effect.gen(function* () {
-        const subscription = yield* billingRepo.getSubscriptionByStripeId(stripeSubscription.id).pipe(
-          Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })),
-        );
+        const subscription = yield* billingRepo
+          .getSubscriptionByStripeId(stripeSubscription.id)
+          .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
 
         // Instead of deleting, downgrade to free plan
         yield* billingRepo.updateSubscription(subscription.organizationId, {
@@ -556,9 +552,7 @@ const makeBillingService = Effect.gen(function* () {
           status: mapStripeInvoiceStatus(stripeInvoice.status),
           pdfUrl: stripeInvoice.invoice_pdf ?? undefined,
           hostedInvoiceUrl: stripeInvoice.hosted_invoice_url ?? undefined,
-          periodStart: stripeInvoice.period_start
-            ? new Date(stripeInvoice.period_start * 1000)
-            : undefined,
+          periodStart: stripeInvoice.period_start ? new Date(stripeInvoice.period_start * 1000) : undefined,
           periodEnd: stripeInvoice.period_end ? new Date(stripeInvoice.period_end * 1000) : undefined,
           paidAt: new Date(),
         };

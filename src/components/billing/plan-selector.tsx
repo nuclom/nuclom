@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Plan, PlanFeatures, PlanLimits } from "@/lib/db/schema";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type { Plan, PlanFeatures, PlanLimits } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
 
 interface PlanSelectorProps {
   plans: Plan[];
@@ -103,9 +103,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
                 plan.id === "pro" && "border-primary/50",
               )}
             >
-              {isCurrentPlan && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Current Plan</Badge>
-              )}
+              {isCurrentPlan && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Current Plan</Badge>}
               {plan.id === "pro" && !isCurrentPlan && (
                 <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Most Popular
@@ -156,10 +154,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
                     {Object.entries(plan.features).map(([key, enabled]) => (
                       <li
                         key={key}
-                        className={cn(
-                          "flex items-center gap-2",
-                          !enabled && "text-muted-foreground/50 line-through",
-                        )}
+                        className={cn("flex items-center gap-2", !enabled && "text-muted-foreground/50 line-through")}
                       >
                         <Check className={cn("h-4 w-4", enabled ? "text-primary" : "text-muted-foreground/50")} />
                         {featureLabels[key as keyof PlanFeatures]}

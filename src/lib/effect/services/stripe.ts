@@ -65,7 +65,9 @@ export interface StripeService {
   /**
    * Cancel a subscription at period end
    */
-  readonly cancelSubscriptionAtPeriodEnd: (subscriptionId: string) => Effect.Effect<Stripe.Subscription, StripeApiError>;
+  readonly cancelSubscriptionAtPeriodEnd: (
+    subscriptionId: string,
+  ) => Effect.Effect<Stripe.Subscription, StripeApiError>;
 
   /**
    * Resume a canceled subscription
@@ -197,9 +199,7 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
           success_url: params.successUrl,
           cancel_url: params.cancelUrl,
           metadata: params.metadata,
-          subscription_data: params.trialPeriodDays
-            ? { trial_period_days: params.trialPeriodDays }
-            : undefined,
+          subscription_data: params.trialPeriodDays ? { trial_period_days: params.trialPeriodDays } : undefined,
         }),
       catch: (error) =>
         new StripeApiError({

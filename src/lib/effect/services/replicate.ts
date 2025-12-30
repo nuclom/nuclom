@@ -5,7 +5,7 @@
  * Uses Replicate's cloud-based AI models for transcription and video analysis.
  */
 
-import { Effect, Context, Layer, Config, Option, pipe } from "effect";
+import { Config, Context, Effect, Layer, Option, pipe } from "effect";
 import Replicate from "replicate";
 import { AIServiceError } from "../errors";
 
@@ -51,17 +51,12 @@ export interface ReplicateService {
   /**
    * Transcribe audio/video using Whisper
    */
-  readonly transcribe: (
-    videoUrl: string,
-  ) => Effect.Effect<TranscriptionResult, AIServiceError>;
+  readonly transcribe: (videoUrl: string) => Effect.Effect<TranscriptionResult, AIServiceError>;
 
   /**
    * Generate thumbnail from video at specific timestamp
    */
-  readonly generateThumbnail: (
-    videoUrl: string,
-    timestamp: number,
-  ) => Effect.Effect<ThumbnailResult, AIServiceError>;
+  readonly generateThumbnail: (videoUrl: string, timestamp: number) => Effect.Effect<ThumbnailResult, AIServiceError>;
 
   /**
    * Generate multiple thumbnails at different timestamps
@@ -74,36 +69,25 @@ export interface ReplicateService {
   /**
    * Extract video metadata using video analysis
    */
-  readonly extractMetadata: (
-    videoUrl: string,
-    fileSize: number,
-  ) => Effect.Effect<VideoMetadata, AIServiceError>;
+  readonly extractMetadata: (videoUrl: string, fileSize: number) => Effect.Effect<VideoMetadata, AIServiceError>;
 
   /**
    * Run a custom Replicate model
    */
-  readonly run: <T>(
-    model: string,
-    input: Record<string, unknown>,
-  ) => Effect.Effect<T, AIServiceError>;
+  readonly run: <T>(model: string, input: Record<string, unknown>) => Effect.Effect<T, AIServiceError>;
 }
 
 // =============================================================================
 // Replicate Service Tag
 // =============================================================================
 
-export class ReplicateAPI extends Context.Tag("ReplicateAPI")<
-  ReplicateAPI,
-  ReplicateService
->() {}
+export class ReplicateAPI extends Context.Tag("ReplicateAPI")<ReplicateAPI, ReplicateService>() {}
 
 // =============================================================================
 // Replicate Configuration
 // =============================================================================
 
-const ReplicateConfigEffect = Config.string("REPLICATE_API_TOKEN").pipe(
-  Config.option,
-);
+const ReplicateConfigEffect = Config.string("REPLICATE_API_TOKEN").pipe(Config.option);
 
 // =============================================================================
 // Model Identifiers
@@ -140,10 +124,7 @@ const makeReplicateService = Effect.gen(function* () {
     return Effect.succeed(client);
   };
 
-  const run = <T>(
-    model: string,
-    input: Record<string, unknown>,
-  ): Effect.Effect<T, AIServiceError> =>
+  const run = <T>(model: string, input: Record<string, unknown>): Effect.Effect<T, AIServiceError> =>
     pipe(
       ensureConfigured(),
       Effect.flatMap((replicate) =>
@@ -162,15 +143,13 @@ const makeReplicateService = Effect.gen(function* () {
       ),
     );
 
-  const transcribe = (
-    videoUrl: string,
-  ): Effect.Effect<TranscriptionResult, AIServiceError> =>
+  const transcribe = (videoUrl: string): Effect.Effect<TranscriptionResult, AIServiceError> =>
     pipe(
       ensureConfigured(),
       Effect.flatMap((replicate) =>
         Effect.tryPromise({
           try: async () => {
-            const output = await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
+            const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
               input: {
                 audio: videoUrl,
                 model: "large-v3",
@@ -183,7 +162,7 @@ const makeReplicateService = Effect.gen(function* () {
                 condition_on_previous_text: true,
                 compression_ratio_threshold: 2.4,
               },
-            }) as {
+            })) as {
               transcription?: string;
               segments?: Array<{ start: number; end: number; text: string }>;
               detected_language?: string;
@@ -209,10 +188,7 @@ const makeReplicateService = Effect.gen(function* () {
       ),
     );
 
-  const generateThumbnail = (
-    videoUrl: string,
-    timestamp: number,
-  ): Effect.Effect<ThumbnailResult, AIServiceError> =>
+  const generateThumbnail = (videoUrl: string, timestamp: number): Effect.Effect<ThumbnailResult, AIServiceError> =>
     pipe(
       ensureConfigured(),
       Effect.flatMap((replicate) =>
@@ -231,11 +207,8 @@ const makeReplicateService = Effect.gen(function* () {
             });
 
             // The output is typically a URL to the generated content
-            const url = typeof output === "string"
-              ? output
-              : Array.isArray(output) && output.length > 0
-                ? String(output[0])
-                : "";
+            const url =
+              typeof output === "string" ? output : Array.isArray(output) && output.length > 0 ? String(output[0]) : "";
 
             return {
               url,
@@ -261,10 +234,7 @@ const makeReplicateService = Effect.gen(function* () {
       { concurrency: 3 },
     );
 
-  const extractMetadata = (
-    videoUrl: string,
-    fileSize: number,
-  ): Effect.Effect<VideoMetadata, AIServiceError> =>
+  const extractMetadata = (videoUrl: string, fileSize: number): Effect.Effect<VideoMetadata, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
         // For now, we'll use a heuristic-based approach since Replicate
@@ -316,9 +286,7 @@ export const ReplicateLive = Layer.effect(ReplicateAPI, makeReplicateService);
 /**
  * Transcribe audio/video using Whisper
  */
-export const transcribe = (
-  videoUrl: string,
-): Effect.Effect<TranscriptionResult, AIServiceError, ReplicateAPI> =>
+export const transcribe = (videoUrl: string): Effect.Effect<TranscriptionResult, AIServiceError, ReplicateAPI> =>
   Effect.gen(function* () {
     const replicate = yield* ReplicateAPI;
     return yield* replicate.transcribe(videoUrl);

@@ -2,11 +2,11 @@ import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AppLive, MissingFieldError } from "@/lib/effect";
+import { mapErrorToResponse } from "@/lib/effect/runtime";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { mapErrorToResponse } from "@/lib/effect/runtime";
 
 // =============================================================================
 // GET /api/billing/usage - Get usage summary

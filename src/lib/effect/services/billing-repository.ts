@@ -9,6 +9,8 @@ import { Context, Effect, Layer, Option } from "effect";
 import * as schema from "@/lib/db/schema";
 import {
   type Invoice,
+  invoices,
+  members,
   type NewInvoice,
   type NewPaymentMethod,
   type NewSubscription,
@@ -17,23 +19,15 @@ import {
   type Plan,
   type PlanFeatures,
   type PlanLimits,
-  type Subscription,
-  type Usage,
-  invoices,
-  members,
   paymentMethods,
   plans,
+  type Subscription,
   subscriptions,
+  type Usage,
   usage,
   videos,
 } from "@/lib/db/schema";
-import {
-  DatabaseError,
-  NoSubscriptionError,
-  NotFoundError,
-  PlanNotFoundError,
-  UsageTrackingError,
-} from "../errors";
+import { DatabaseError, NoSubscriptionError, NotFoundError, PlanNotFoundError, UsageTrackingError } from "../errors";
 import { Database, type DrizzleDB } from "./database";
 
 // =============================================================================
@@ -107,21 +101,12 @@ export interface BillingRepositoryService {
   readonly getUsageSummary: (
     organizationId: string,
   ) => Effect.Effect<UsageSummary, NoSubscriptionError | DatabaseError>;
-  readonly getUsageHistory: (
-    organizationId: string,
-    months: number,
-  ) => Effect.Effect<Usage[], DatabaseError>;
+  readonly getUsageHistory: (organizationId: string, months: number) => Effect.Effect<Usage[], DatabaseError>;
 
   // Invoices
   readonly createInvoice: (data: NewInvoice) => Effect.Effect<Invoice, DatabaseError>;
-  readonly updateInvoice: (
-    stripeInvoiceId: string,
-    data: Partial<NewInvoice>,
-  ) => Effect.Effect<Invoice, DatabaseError>;
-  readonly getInvoices: (
-    organizationId: string,
-    limit?: number,
-  ) => Effect.Effect<Invoice[], DatabaseError>;
+  readonly updateInvoice: (stripeInvoiceId: string, data: Partial<NewInvoice>) => Effect.Effect<Invoice, DatabaseError>;
+  readonly getInvoices: (organizationId: string, limit?: number) => Effect.Effect<Invoice[], DatabaseError>;
   readonly getInvoice: (invoiceId: string) => Effect.Effect<Invoice, NotFoundError | DatabaseError>;
   readonly getInvoiceByStripeId: (stripeInvoiceId: string) => Effect.Effect<Invoice, NotFoundError | DatabaseError>;
 
@@ -408,10 +393,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       const existingUsage = yield* Effect.tryPromise({
         try: () =>
           db.query.usage.findFirst({
-            where: and(
-              eq(usage.organizationId, organizationId),
-              eq(usage.periodStart, periodStart),
-            ),
+            where: and(eq(usage.organizationId, organizationId), eq(usage.periodStart, periodStart)),
           }),
         catch: (error) =>
           new DatabaseError({
@@ -453,16 +435,18 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
 
   incrementUsage: (organizationId, field, amount) =>
     Effect.gen(function* () {
-      const currentUsage = yield* makeBillingRepository(db).getOrCreateCurrentUsage(organizationId).pipe(
-        Effect.mapError(
-          (error) =>
-            new UsageTrackingError({
-              message: "Failed to get current usage",
-              organizationId,
-              cause: error,
-            }),
-        ),
-      );
+      const currentUsage = yield* makeBillingRepository(db)
+        .getOrCreateCurrentUsage(organizationId)
+        .pipe(
+          Effect.mapError(
+            (error) =>
+              new UsageTrackingError({
+                message: "Failed to get current usage",
+                organizationId,
+                cause: error,
+              }),
+          ),
+        );
 
       const [updatedUsage] = yield* Effect.tryPromise({
         try: () =>
@@ -487,16 +471,18 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
 
   decrementUsage: (organizationId, field, amount) =>
     Effect.gen(function* () {
-      const currentUsage = yield* makeBillingRepository(db).getOrCreateCurrentUsage(organizationId).pipe(
-        Effect.mapError(
-          (error) =>
-            new UsageTrackingError({
-              message: "Failed to get current usage",
-              organizationId,
-              cause: error,
-            }),
-        ),
-      );
+      const currentUsage = yield* makeBillingRepository(db)
+        .getOrCreateCurrentUsage(organizationId)
+        .pipe(
+          Effect.mapError(
+            (error) =>
+              new UsageTrackingError({
+                message: "Failed to get current usage",
+                organizationId,
+                cause: error,
+              }),
+          ),
+        );
 
       const [updatedUsage] = yield* Effect.tryPromise({
         try: () =>
@@ -833,11 +819,8 @@ export const incrementUsage = (
   amount: number,
 ) => Effect.flatMap(BillingRepository, (repo) => repo.incrementUsage(organizationId, field, amount));
 
-export const decrementUsage = (
-  organizationId: string,
-  field: "storageUsed" | "videosUploaded",
-  amount: number,
-) => Effect.flatMap(BillingRepository, (repo) => repo.decrementUsage(organizationId, field, amount));
+export const decrementUsage = (organizationId: string, field: "storageUsed" | "videosUploaded", amount: number) =>
+  Effect.flatMap(BillingRepository, (repo) => repo.decrementUsage(organizationId, field, amount));
 
 export const getBillingInfo = (organizationId: string) =>
   Effect.flatMap(BillingRepository, (repo) => repo.getBillingInfo(organizationId));
