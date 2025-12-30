@@ -1,10 +1,18 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { CachePresets, getCacheControlHeader, parsePaginationParams } from "@/lib/api-utils";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { AppLive, MissingFieldError, VideoRepository } from "@/lib/effect";
+import { AppLive, VideoRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import {
+  validateQueryParams,
+  validateRequestBody,
+  getVideosSchema,
+  createVideoSchema,
+  sanitizeTitle,
+  sanitizeDescription,
+} from "@/lib/validation";
 
 // =============================================================================
 // GET /api/videos - Fetch paginated videos for an organization
@@ -19,19 +27,8 @@ export async function GET(request: NextRequest) {
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Parse query params with validation
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
-    const { page, limit } = parsePaginationParams(searchParams);
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
+    // Validate query params with Zod schema
+    const { organizationId, page, limit } = yield* validateQueryParams(getVideosSchema, request.url);
 
     // Fetch videos using repository
     const videoRepo = yield* VideoRepository;
@@ -71,58 +68,29 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    // Validate request body with Zod schema
+    const validatedData = yield* validateRequestBody(createVideoSchema, request);
 
-    const {
-      title,
-      description,
-      duration,
-      thumbnailUrl,
-      videoUrl,
-      organizationId,
-      channelId,
-      collectionId,
-      transcript,
-      aiSummary,
-    } = body;
-
-    // Validate required fields
-    if (!title) {
-      return yield* Effect.fail(new MissingFieldError({ field: "title", message: "Title is required" }));
-    }
-
-    if (!duration) {
-      return yield* Effect.fail(new MissingFieldError({ field: "duration", message: "Duration is required" }));
-    }
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({ field: "organizationId", message: "Organization ID is required" }),
-      );
-    }
+    // Sanitize user-provided content to prevent XSS
+    const sanitizedTitle = sanitizeTitle(validatedData.title);
+    const sanitizedDescription = validatedData.description
+      ? sanitizeDescription(validatedData.description)
+      : undefined;
 
     // Create video using repository
     const videoRepo = yield* VideoRepository;
     return yield* videoRepo.createVideo({
-      title,
-      description,
-      duration,
-      thumbnailUrl,
-      videoUrl,
+      title: sanitizedTitle,
+      description: sanitizedDescription,
+      duration: validatedData.duration,
+      thumbnailUrl: validatedData.thumbnailUrl ?? undefined,
+      videoUrl: validatedData.videoUrl ?? undefined,
       authorId: user.id,
-      organizationId,
-      channelId,
-      collectionId,
-      transcript,
-      aiSummary,
+      organizationId: validatedData.organizationId,
+      channelId: validatedData.channelId ?? undefined,
+      collectionId: validatedData.collectionId ?? undefined,
+      transcript: validatedData.transcript ?? undefined,
+      aiSummary: validatedData.aiSummary ?? undefined,
     });
   });
 

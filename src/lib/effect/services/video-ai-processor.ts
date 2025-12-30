@@ -306,12 +306,13 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
           }),
       });
 
-      if (!video) return;
+      // Skip notification if video not found or has no author (deleted user)
+      if (!video || !video.authorId) return;
 
       const videoOwner = yield* Effect.tryPromise({
         try: () =>
           db.query.users.findFirst({
-            where: eq(users.id, video.authorId),
+            where: eq(users.id, video.authorId!),
           }),
         catch: () =>
           new VideoAIProcessingError({

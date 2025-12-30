@@ -245,8 +245,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
           where: eq(videos.id, videoId),
         });
 
-        if (!video || video.authorId === actorId) {
-          // Don't notify if commenting on own video
+        // Don't notify if video has no author (deleted user) or commenting on own video
+        if (!video || !video.authorId || video.authorId === actorId) {
           return null;
         }
 

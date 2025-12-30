@@ -197,7 +197,8 @@ export const collections = pgTable("collections", {
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
   isPublic: boolean("is_public").default(false).notNull(),
-  createdById: text("created_by_id").references(() => users.id),
+  // Collections remain if creator is deleted, just clear the reference
+  createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -236,7 +237,8 @@ export const seriesProgress = pgTable(
     seriesId: text("series_id")
       .notNull()
       .references(() => collections.id, { onDelete: "cascade" }),
-    lastVideoId: text("last_video_id").references(() => videos.id),
+    // If the video is deleted, clear the last watched reference
+    lastVideoId: text("last_video_id").references(() => videos.id, { onDelete: "set null" }),
     lastPosition: integer("last_position").default(0).notNull(),
     completedVideoIds: jsonb("completed_video_ids").$type<string[]>().default([]).notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -271,14 +273,14 @@ export const videos = pgTable(
     duration: text("duration").notNull(),
     thumbnailUrl: text("thumbnail_url"),
     videoUrl: text("video_url"),
-    authorId: text("author_id")
-      .notNull()
-      .references(() => users.id),
+    // authorId is nullable to support SET NULL on user deletion
+    // Videos remain in org even if author is deleted
+    authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    channelId: text("channel_id").references(() => channels.id),
-    collectionId: text("collection_id").references(() => collections.id),
+    channelId: text("channel_id").references(() => channels.id, { onDelete: "set null" }),
+    collectionId: text("collection_id").references(() => collections.id, { onDelete: "set null" }),
     // Transcription fields
     transcript: text("transcript"),
     transcriptSegments: jsonb("transcript_segments").$type<TranscriptSegment[]>(),
