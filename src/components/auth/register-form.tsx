@@ -56,8 +56,8 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       if (result.error) {
         setError(result.error.message || "Failed to create account");
       } else {
-        router.push(finalRedirectTo);
-        router.refresh();
+        // Redirect to verification pending page with email
+        router.push(`/verification-pending?email=${encodeURIComponent(email)}`);
       }
     } catch (err) {
       setError("An unexpected error occurred");
