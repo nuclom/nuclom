@@ -1,14 +1,15 @@
 name: E2E Tests
 
 on:
-  # Trigger on Vercel deployment success
-  deployment_status:
-  # Allow manual triggering with custom URL
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
     inputs:
       deployment_url:
-        description: "Deployment URL to test against"
-        required: true
+        description: "Deployment URL to test against (optional - will wait for Vercel if not provided)"
+        required: false
         type: string
 
 env:
@@ -19,26 +20,29 @@ jobs:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Only run on successful Vercel deployments or manual trigger
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'deployment_status' &&
-       github.event.deployment_status.state == 'success' &&
-       github.event.deployment.environment != 'Production – nuclom')
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Get deployment URL
+      - name: Wait for Vercel deployment
+        if: github.event.inputs.deployment_url == ''
+        uses: tj-actions/vercel-wait@v2
+        id: vercel-wait
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max-timeout: 600
+
+      - name: Set deployment URL
         id: deployment
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ -n "${{ github.event.inputs.deployment_url }}" ]; then
             echo "url=${{ github.event.inputs.deployment_url }}" >> $GITHUB_OUTPUT
+            echo "Using manual URL: ${{ github.event.inputs.deployment_url }}"
           else
-            echo "url=${{ github.event.deployment_status.target_url }}" >> $GITHUB_OUTPUT
+            echo "url=${{ steps.vercel-wait.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "Using Vercel URL: ${{ steps.vercel-wait.outputs.url }}"
           fi
-          echo "Deployment URL: ${{ steps.deployment.outputs.url || github.event.deployment_status.target_url || github.event.inputs.deployment_url }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -99,83 +103,3 @@ jobs:
         uses: vercel/repository-dispatch/actions/status@v1
         with:
           name: Vercel - nuclom: e2e
-
-  # Production E2E tests - run after production deployment
-  e2e-tests-production:
-    name: Production E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: |
-      github.event_name == 'deployment_status' &&
-      github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Production – nuclom'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Get deployment URL
-        id: deployment
-        run: |
-          echo "url=${{ github.event.deployment_status.target_url }}" >> $GITHUB_OUTPUT
-          echo "Production Deployment URL: ${{ github.event.deployment_status.target_url }}"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install chromium --with-deps
-
-      - name: Wait for deployment to be ready
-        run: |
-          URL="${{ steps.deployment.outputs.url }}"
-          echo "Waiting for $URL to be ready..."
-          for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" "$URL" | grep -q "200\|301\|302"; then
-              echo "Deployment is ready!"
-              exit 0
-            fi
-            echo "Attempt $i: Deployment not ready yet, waiting 10s..."
-            sleep 10
-          done
-          echo "Deployment did not become ready in time"
-          exit 1
-
-      - name: Run E2E tests
-        run: pnpm test:e2e
-        env:
-          PLAYWRIGHT_BASE_URL: ${{ steps.deployment.outputs.url }}
-          SKIP_AUTH_SETUP: true
-
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-production-${{ github.run_id }}
-          path: playwright-report/
-          retention-days: 14
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-production-${{ github.run_id }}
-          path: test-results/
-          retention-days: 14
-
-      - name: Notify Vercel of E2E status
-        if: always()
-        uses: vercel/repository-dispatch/actions/status@v1
-        with:
-          name: Vercel - nuclom: e2e-production
