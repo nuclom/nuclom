@@ -12,6 +12,8 @@ import { NextResponse } from "next/server";
 // Services
 import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
+import { type Billing, BillingLive } from "./services/billing";
+import { type BillingRepository, BillingRepositoryLive } from "./services/billing-repository";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
@@ -19,6 +21,7 @@ import { type NotificationRepository, NotificationRepositoryLive } from "./servi
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type Storage, StorageLive } from "./services/storage";
+import { type StripeServiceTag, StripeServiceLive } from "./services/stripe";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
@@ -33,7 +36,7 @@ import { type VideoRepository, VideoRepositoryLive } from "./services/video-repo
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
@@ -45,6 +48,12 @@ const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.p
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
+
+// Billing service depends on BillingRepository and StripeService
+const BillingWithDeps = BillingLive.pipe(
+  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)),
+);
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -55,6 +64,8 @@ const AppServicesLive = Layer.mergeAll(
   CommentRepositoryWithDeps,
   NotificationRepositoryWithDeps,
   IntegrationRepositoryWithDeps,
+  BillingRepositoryWithDeps,
+  BillingWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -74,7 +85,10 @@ export type AppServices =
   | VideoProgressRepository
   | CommentRepository
   | NotificationRepository
-  | IntegrationRepository;
+  | IntegrationRepository
+  | BillingRepository
+  | Billing
+  | StripeServiceTag;
 
 // =============================================================================
 // Global Runtime (for stateful layers)
@@ -136,7 +150,22 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
       case "StorageNotConfiguredError":
+      case "StripeNotConfiguredError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
+
+      case "PlanLimitExceededError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
+
+      case "NoSubscriptionError":
+      case "PlanNotFoundError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
+
+      case "PaymentFailedError":
+      case "SubscriptionError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
+
+      case "WebhookSignatureError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
       case "DatabaseError":
       case "TransactionError":
@@ -146,6 +175,8 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "TranscriptionError":
       case "AudioExtractionError":
       case "VideoAIProcessingError":
+      case "StripeApiError":
+      case "UsageTrackingError":
         console.error(`[${taggedError._tag}]`, taggedError);
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 

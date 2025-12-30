@@ -83,6 +83,8 @@
     "recharts": "^3.6.0",
     "replicate": "^1.4.0",
     "resend": "6.6.0",
+    "stripe": "17.7.0",
+    "@stripe/stripe-js": "5.8.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "3.4.0",
     "tailwindcss-animate": "1.0.7",

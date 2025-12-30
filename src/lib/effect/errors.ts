@@ -249,3 +249,101 @@ export type AuthError = UnauthorizedError | ForbiddenError | SessionError;
  * All possible validation errors
  */
 export type InputError = ValidationError | MissingFieldError;
+
+// =============================================================================
+// Billing Errors
+// =============================================================================
+
+/**
+ * Error when Stripe service is not configured
+ */
+export class StripeNotConfiguredError extends Data.TaggedError("StripeNotConfiguredError")<{
+  readonly message: string;
+}> {
+  static readonly default = new StripeNotConfiguredError({
+    message: "Stripe is not configured. Please set up Stripe credentials.",
+  });
+}
+
+/**
+ * Error when a Stripe API call fails
+ */
+export class StripeApiError extends Data.TaggedError("StripeApiError")<{
+  readonly message: string;
+  readonly code?: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when webhook signature verification fails
+ */
+export class WebhookSignatureError extends Data.TaggedError("WebhookSignatureError")<{
+  readonly message: string;
+}> {}
+
+/**
+ * Error when subscription operation fails
+ */
+export class SubscriptionError extends Data.TaggedError("SubscriptionError")<{
+  readonly message: string;
+  readonly subscriptionId?: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when plan limit is exceeded
+ */
+export class PlanLimitExceededError extends Data.TaggedError("PlanLimitExceededError")<{
+  readonly message: string;
+  readonly resource: "storage" | "videos" | "members" | "bandwidth" | "ai_requests";
+  readonly currentUsage: number;
+  readonly limit: number;
+}> {}
+
+/**
+ * Error when payment fails
+ */
+export class PaymentFailedError extends Data.TaggedError("PaymentFailedError")<{
+  readonly message: string;
+  readonly invoiceId?: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when plan is not found
+ */
+export class PlanNotFoundError extends Data.TaggedError("PlanNotFoundError")<{
+  readonly message: string;
+  readonly planId: string;
+}> {}
+
+/**
+ * Error when organization has no subscription
+ */
+export class NoSubscriptionError extends Data.TaggedError("NoSubscriptionError")<{
+  readonly message: string;
+  readonly organizationId: string;
+}> {}
+
+/**
+ * Error when usage tracking fails
+ */
+export class UsageTrackingError extends Data.TaggedError("UsageTrackingError")<{
+  readonly message: string;
+  readonly organizationId: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * All possible billing errors
+ */
+export type BillingError =
+  | StripeNotConfiguredError
+  | StripeApiError
+  | WebhookSignatureError
+  | SubscriptionError
+  | PlanLimitExceededError
+  | PaymentFailedError
+  | PlanNotFoundError
+  | NoSubscriptionError
+  | UsageTrackingError;

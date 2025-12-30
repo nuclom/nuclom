@@ -287,10 +287,17 @@ import { CommandBar } from "@/components/command-bar";
 
 ### VideoPlayer
 
-A full-featured video player component with controls, keyboard shortcuts, and progress tracking.
+A full-featured video player component with professional controls, keyboard shortcuts, chapter navigation, and progress tracking.
 
 ```typescript
-import { VideoPlayer, VideoPlayerWithProgress } from "@/components/video";
+import { VideoPlayer, VideoPlayerWithProgress, type VideoChapter } from "@/components/video";
+
+// Define chapters (optional)
+const chapters: VideoChapter[] = [
+  { id: "1", title: "Introduction", startTime: 0 },
+  { id: "2", title: "Main Content", startTime: 120 },
+  { id: "3", title: "Conclusion", startTime: 540 },
+];
 
 // Basic video player
 <VideoPlayer
@@ -298,12 +305,14 @@ import { VideoPlayer, VideoPlayerWithProgress } from "@/components/video";
   title="My Video"
   thumbnailUrl="/thumbnail.jpg"
   initialProgress={0.5} // Start at 50%
+  chapters={chapters} // Optional chapter markers
   onProgress={(progress) => {
     console.log("Current time:", progress.currentTime);
     console.log("Duration:", progress.duration);
     console.log("Progress fraction:", progress.played);
     console.log("Completed:", progress.completed);
   }}
+  onTimeUpdate={(time) => console.log("Time:", time)} // For syncing with transcript
   onEnded={() => console.log("Video ended")}
   onError={(error) => console.error("Playback error:", error)}
 />;
@@ -315,18 +324,41 @@ import { VideoPlayer, VideoPlayerWithProgress } from "@/components/video";
   title="My Video"
   thumbnailUrl="/thumbnail.jpg"
   duration="10:30"
+  chapters={chapters}
+  onTimeUpdate={(time) => console.log("Time:", time)}
   onEnded={() => console.log("Video ended")}
 />;
 ```
 
 **Features:**
 - Standard controls (play/pause, seek, volume, fullscreen)
-- Keyboard shortcuts (Space/K for play, J/L for seek, M for mute, F for fullscreen)
-- Responsive design for mobile and desktop
-- Loading states and error handling
+- Picture-in-Picture (PiP) mode for multitasking
+- Loop mode toggle for repeat playback
+- Chapter markers on the progress bar with click-to-seek
+- Hover time preview on progress bar
+- Buffered progress visualization
+- Double-click to toggle fullscreen
 - Playback speed control (0.5x to 2x)
 - Progress tracking and persistence
 - Resume from last position
+- Loading states and error handling
+- Responsive design for mobile and desktop
+- Current chapter display overlay
+
+**Keyboard Shortcuts:**
+| Key | Action |
+|-----|--------|
+| Space / K | Play / Pause |
+| J / ← | Skip back 10 seconds |
+| L / → | Skip forward 10 seconds |
+| ↑ / ↓ | Volume up / down |
+| M | Mute / Unmute |
+| F | Toggle fullscreen |
+| P | Toggle Picture-in-Picture |
+| C | Toggle loop mode |
+| 0-9 | Jump to 0-90% of video |
+| Home / End | Jump to start / end |
+| ? | Show keyboard shortcuts help |
 
 ## Component Patterns
 

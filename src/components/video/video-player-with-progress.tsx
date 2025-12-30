@@ -11,7 +11,7 @@ import { CheckCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProgressFraction, useVideoProgress } from "@/hooks/use-video-progress";
-import { VideoPlayer, type VideoProgress } from "./video-player";
+import { type VideoChapter, VideoPlayer, type VideoProgress } from "./video-player";
 
 // =============================================================================
 // Types
@@ -28,8 +28,12 @@ export interface VideoPlayerWithProgressProps {
   thumbnailUrl?: string;
   /** Video duration in format "HH:MM:SS" or "MM:SS" */
   duration: string;
+  /** Optional video chapters for timeline markers */
+  chapters?: VideoChapter[];
   /** Optional callback when playback ends */
   onEnded?: () => void;
+  /** Optional callback when time updates (for syncing with transcript) */
+  onTimeUpdate?: (currentTime: number) => void;
   /** Optional className */
   className?: string;
 }
@@ -63,7 +67,9 @@ export function VideoPlayerWithProgress({
   title,
   thumbnailUrl,
   duration,
+  chapters,
   onEnded,
+  onTimeUpdate,
   className,
 }: VideoPlayerWithProgressProps) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
@@ -134,9 +140,11 @@ export function VideoPlayerWithProgress({
         title={title}
         thumbnailUrl={thumbnailUrl}
         initialProgress={initialProgressFraction}
+        chapters={chapters}
         onProgress={handleProgress}
         onEnded={handleEnded}
         onError={handleError}
+        onTimeUpdate={onTimeUpdate}
       />
 
       {/* Resume message */}

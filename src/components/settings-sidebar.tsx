@@ -1,6 +1,6 @@
 "use client";
 
-import { Building, Plug, User, Users } from "lucide-react";
+import { Building, CreditCard, Plug, User, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,11 @@ export function SettingsSidebar({ organization }: { organization: string }) {
       href: `/${organization}/settings/integrations`,
       label: "Integrations",
       icon: Plug,
+    },
+    {
+      href: `/${organization}/settings/billing`,
+      label: "Billing",
+      icon: CreditCard,
     },
   ];
 
