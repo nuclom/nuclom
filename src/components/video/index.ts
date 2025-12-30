@@ -4,7 +4,7 @@
  * Export all video-related components from this file.
  */
 
-export { VideoPlayer, type VideoPlayerProps, type VideoProgress } from "./video-player";
+export { type VideoChapter, VideoPlayer, type VideoPlayerProps, type VideoProgress } from "./video-player";
 export {
   SimpleVideoPlayer,
   type SimpleVideoPlayerProps,
