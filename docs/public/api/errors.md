@@ -1,0 +1,242 @@
+# API Error Codes
+
+This document describes the standardized error response format and error codes used by the Nuclom API.
+
+## Error Response Format
+
+All API errors follow a consistent JSON structure:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {
+      // Optional additional context
+    }
+  }
+}
+```
+
+## Error Code Categories
+
+Error codes follow the format `CATEGORY_SPECIFIC_ERROR`:
+
+| Category     | Description                          |
+| ------------ | ------------------------------------ |
+| `AUTH`       | Authentication & authorization       |
+| `VALIDATION` | Input validation                     |
+| `NOT_FOUND`  | Resource not found                   |
+| `CONFLICT`   | Duplicate/conflict errors            |
+| `STORAGE`    | File storage                         |
+| `VIDEO`      | Video processing                     |
+| `BILLING`    | Payment & subscription               |
+| `DATABASE`   | Database operations                  |
+| `INTERNAL`   | Internal server errors               |
+
+## Authentication Errors (401, 403)
+
+| Code                    | HTTP Status | Description                          |
+| ----------------------- | ----------- | ------------------------------------ |
+| `AUTH_UNAUTHORIZED`     | 401         | User is not authenticated            |
+| `AUTH_FORBIDDEN`        | 403         | User lacks permission                |
+| `AUTH_SESSION_EXPIRED`  | 401         | Session has expired                  |
+| `AUTH_SESSION_INVALID`  | 401         | Session is invalid or corrupted      |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "AUTH_UNAUTHORIZED",
+    "message": "Authentication required"
+  }
+}
+```
+
+## Validation Errors (400)
+
+| Code                       | HTTP Status | Description                | Details                    |
+| -------------------------- | ----------- | -------------------------- | -------------------------- |
+| `VALIDATION_FAILED`        | 400         | General validation failure | `fields`: Array of errors  |
+| `VALIDATION_MISSING_FIELD` | 400         | Required field is missing  | `field`: Field name        |
+| `VALIDATION_INVALID_FORMAT`| 400         | Invalid input format       | -                          |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_MISSING_FIELD",
+    "message": "Title is required",
+    "details": {
+      "field": "title"
+    }
+  }
+}
+```
+
+## Not Found Errors (404)
+
+| Code                     | HTTP Status | Description               | Details                         |
+| ------------------------ | ----------- | ------------------------- | ------------------------------- |
+| `NOT_FOUND_RESOURCE`     | 404         | Generic resource not found| `entity`, `id`                  |
+| `NOT_FOUND_VIDEO`        | 404         | Video not found           | `entity`: "video", `id`         |
+| `NOT_FOUND_USER`         | 404         | User not found            | `entity`: "user", `id`          |
+| `NOT_FOUND_ORGANIZATION` | 404         | Organization not found    | `entity`: "organization", `id`  |
+| `NOT_FOUND_SERIES`       | 404         | Series not found          | `entity`: "series", `id`        |
+| `NOT_FOUND_PLAN`         | 404         | Billing plan not found    | `entity`: "plan", `id`          |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND_VIDEO",
+    "message": "Video not found",
+    "details": {
+      "entity": "video",
+      "id": "video_123"
+    }
+  }
+}
+```
+
+## Conflict Errors (409)
+
+| Code                    | HTTP Status | Description                | Details              |
+| ----------------------- | ----------- | -------------------------- | -------------------- |
+| `CONFLICT_DUPLICATE`    | 409         | Duplicate entry            | `entity`, `field`    |
+| `CONFLICT_ALREADY_EXISTS`| 409        | Resource already exists    | -                    |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "CONFLICT_DUPLICATE",
+    "message": "A video with this title already exists",
+    "details": {
+      "entity": "video",
+      "field": "title"
+    }
+  }
+}
+```
+
+## Storage Errors (500, 503)
+
+| Code                          | HTTP Status | Description              |
+| ----------------------------- | ----------- | ------------------------ |
+| `STORAGE_NOT_CONFIGURED`      | 503         | Storage service unavailable |
+| `STORAGE_UPLOAD_FAILED`       | 500         | File upload failed       |
+| `STORAGE_DELETE_FAILED`       | 500         | File deletion failed     |
+| `STORAGE_URL_GENERATION_FAILED`| 500        | Failed to generate URL   |
+
+## Video Processing Errors (400, 500)
+
+| Code                      | HTTP Status | Description                    | Details                           |
+| ------------------------- | ----------- | ------------------------------ | --------------------------------- |
+| `VIDEO_UNSUPPORTED_FORMAT`| 400         | Unsupported video format       | `format`, `supportedFormats`      |
+| `VIDEO_FILE_TOO_LARGE`    | 400         | File exceeds size limit        | `fileSize`, `maxSize`             |
+| `VIDEO_PROCESSING_FAILED` | 500         | Processing failed              | `stage`: processing stage         |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "VIDEO_FILE_TOO_LARGE",
+    "message": "File size exceeds the maximum limit of 500MB",
+    "details": {
+      "fileSize": 536870912,
+      "maxSize": 524288000
+    }
+  }
+}
+```
+
+## Billing Errors (400, 402, 403)
+
+| Code                       | HTTP Status | Description                    | Details                             |
+| -------------------------- | ----------- | ------------------------------ | ----------------------------------- |
+| `BILLING_NOT_CONFIGURED`   | 503         | Billing service unavailable    | -                                   |
+| `BILLING_PAYMENT_FAILED`   | 402         | Payment failed                 | -                                   |
+| `BILLING_PLAN_LIMIT_EXCEEDED`| 403       | Plan limit reached             | `resource`, `currentUsage`, `limit` |
+| `BILLING_NO_SUBSCRIPTION`  | 403         | No active subscription         | -                                   |
+| `BILLING_WEBHOOK_INVALID`  | 400         | Invalid webhook signature      | -                                   |
+| `BILLING_STRIPE_ERROR`     | 500         | Stripe API error               | -                                   |
+
+### Example Response
+
+```json
+{
+  "error": {
+    "code": "BILLING_PLAN_LIMIT_EXCEEDED",
+    "message": "You have reached your storage limit",
+    "details": {
+      "resource": "storage",
+      "currentUsage": 10737418240,
+      "limit": 10737418240
+    }
+  }
+}
+```
+
+## Database Errors (500)
+
+| Code                         | HTTP Status | Description              |
+| ---------------------------- | ----------- | ------------------------ |
+| `DATABASE_ERROR`             | 500         | Database query failed    |
+| `DATABASE_TRANSACTION_FAILED`| 500         | Transaction failed       |
+
+## Internal Errors (500)
+
+| Code                          | HTTP Status | Description                  |
+| ----------------------------- | ----------- | ---------------------------- |
+| `INTERNAL_ERROR`              | 500         | Unexpected internal error    |
+| `INTERNAL_CONFIGURATION_ERROR`| 500         | Configuration error          |
+| `INTERNAL_AI_SERVICE_ERROR`   | 500         | AI service error             |
+
+## Client-Side Error Handling
+
+When handling errors in the client, use the error code to provide appropriate user feedback:
+
+```typescript
+import { type ApiErrorResponse, getErrorMessage, ErrorCodes } from "@/lib/api-errors";
+
+async function handleApiResponse(response: Response) {
+  if (!response.ok) {
+    const data: ApiErrorResponse = await response.json();
+    const code = data.error.code;
+
+    // Handle specific errors
+    switch (code) {
+      case ErrorCodes.AUTH_UNAUTHORIZED:
+        // Redirect to login
+        window.location.href = "/login";
+        break;
+      case ErrorCodes.BILLING_PLAN_LIMIT_EXCEEDED:
+        // Show upgrade modal
+        showUpgradeModal(data.error.details);
+        break;
+      default:
+        // Show generic error message
+        toast.error(getErrorMessage(code));
+    }
+  }
+}
+```
+
+## HTTP Status Code Summary
+
+| Status | Meaning               | Common Error Codes                        |
+| ------ | --------------------- | ----------------------------------------- |
+| 400    | Bad Request           | VALIDATION_*, VIDEO_UNSUPPORTED_FORMAT    |
+| 401    | Unauthorized          | AUTH_UNAUTHORIZED, AUTH_SESSION_*         |
+| 402    | Payment Required      | BILLING_PAYMENT_FAILED                    |
+| 403    | Forbidden             | AUTH_FORBIDDEN, BILLING_PLAN_LIMIT_*      |
+| 404    | Not Found             | NOT_FOUND_*                               |
+| 409    | Conflict              | CONFLICT_*                                |
+| 500    | Internal Server Error | DATABASE_*, INTERNAL_*, STORAGE_*         |
+| 503    | Service Unavailable   | *_NOT_CONFIGURED                          |

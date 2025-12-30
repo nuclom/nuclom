@@ -13,8 +13,5 @@ export async function GET() {
 
   const healthy = Object.values(checks).every(Boolean);
 
-  return Response.json(
-    { status: healthy ? "healthy" : "unhealthy", checks },
-    { status: healthy ? 200 : 503 },
-  );
+  return Response.json({ status: healthy ? "healthy" : "unhealthy", checks }, { status: healthy ? 200 : 503 });
 }
