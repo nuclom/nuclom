@@ -3,8 +3,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, organization } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { env } from "@/lib/env/server";
+import { env as clientEnv } from "@/lib/env/client";
 import { db } from "./db";
-import { members } from "./db/schema";
+import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
 
 export const auth = betterAuth({
@@ -67,17 +68,73 @@ export const auth = betterAuth({
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
       async sendInvitationEmail(data) {
-        const inviteLink = `https://nuclom.com/accept-invitation/${data.id}`;
+        const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
+        const inviteLink = `${baseUrl}/accept-invitation/${data.id}`;
+        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+        const inviterName = data.inviter.user.name || "Someone";
+
+        // Create in-app notification if user already exists
+        const existingUser = await db.query.users.findFirst({
+          where: eq(users.email, data.email),
+        });
+
+        if (existingUser) {
+          await db.insert(notifications).values({
+            userId: existingUser.id,
+            type: "invitation_received",
+            title: `You've been invited to ${data.organization.name}`,
+            body: `${inviterName} has invited you to join ${data.organization.name} as a ${data.role}.`,
+            resourceType: "organization",
+            resourceId: data.organization.id,
+            actorId: data.inviter.user.id,
+          });
+        }
+
+        // Send styled email invitation
+        const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
+  .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .header { background-color: #6366f1; padding: 24px; text-align: center; }
+  .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+  .content { padding: 32px 24px; }
+  .button { display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 16px 0; }
+  .footer { padding: 24px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; }
+  .highlight { background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #6366f1; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Nuclom</h1>
+    </div>
+    <div class="content">
+      <h2>You've been invited!</h2>
+      <p><strong>${inviterName}</strong> has invited you to join <strong>${data.organization.name}</strong> as a <strong>${data.role}</strong>.</p>
+      <div class="highlight">
+        <p style="margin: 0;">Join the team to collaborate on videos, share feedback, and work together seamlessly.</p>
+      </div>
+      <p style="text-align: center;">
+        <a href="${inviteLink}" class="button">Accept Invitation</a>
+      </p>
+      <p style="color: #666; font-size: 14px;">This invitation will expire in 48 hours.</p>
+    </div>
+    <div class="footer">
+      <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
+      <p>&copy; ${new Date().getFullYear()} Nuclom. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
         await resend.emails.send({
-          from: "no-reply@nuclom.com",
+          from: fromEmail,
           to: data.email,
-          subject: `You're invited to join ${data.organization.name}`,
-          html: `<p>Hi there,</p>
-                 <p>${data.inviter.user.name} has invited you to join the organization ${data.organization.name}.</p>
-                 <p>Please click the link below to accept the invitation:</p>
-                 <p><a href="${inviteLink}">Accept Invitation</a></p>
-                 <p>Thank you!</p>`,
+          subject: `${inviterName} invited you to join ${data.organization.name} on Nuclom`,
+          html,
         });
       },
     }),

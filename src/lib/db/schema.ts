@@ -363,6 +363,15 @@ export const notificationTypeEnum = pgEnum("NotificationType", [
   "comment_mention",
   "new_comment_on_video",
   "video_shared",
+  "video_processing_complete",
+  "video_processing_failed",
+  "invitation_received",
+  "trial_ending",
+  "subscription_created",
+  "subscription_updated",
+  "subscription_canceled",
+  "payment_failed",
+  "payment_succeeded",
 ]);
 
 // Integration provider enum
