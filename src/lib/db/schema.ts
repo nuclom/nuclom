@@ -192,6 +192,18 @@ export const collections = pgTable("collections", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const processingStatusEnum = pgEnum("ProcessingStatus", [
+  "pending",
+  "uploading",
+  "processing",
+  "extracting_metadata",
+  "generating_thumbnails",
+  "transcribing",
+  "analyzing",
+  "completed",
+  "failed",
+]);
+
 export const videos = pgTable("videos", {
   id: text("id")
     .primaryKey()
@@ -211,6 +223,22 @@ export const videos = pgTable("videos", {
   collectionId: text("collection_id").references(() => collections.id),
   transcript: text("transcript"),
   aiSummary: text("ai_summary"),
+  // Video processing fields
+  processingStatus: processingStatusEnum("processing_status").default("pending").notNull(),
+  processingProgress: integer("processing_progress").default(0).notNull(),
+  processingError: text("processing_error"),
+  // Video metadata
+  width: integer("width"),
+  height: integer("height"),
+  codec: text("codec"),
+  fps: integer("fps"),
+  bitrate: integer("bitrate"),
+  fileSize: integer("file_size"),
+  // Additional thumbnails
+  thumbnailAlternates: text("thumbnail_alternates"), // JSON array of URLs
+  // Workflow tracking
+  workflowRunId: text("workflow_run_id"),
+  processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -349,3 +377,4 @@ export type Comment = typeof comments.$inferSelect;
 export type NewComment = typeof comments.$inferInsert;
 export type VideoProgress = typeof videoProgresses.$inferSelect;
 export type NewVideoProgress = typeof videoProgresses.$inferInsert;
+export type ProcessingStatus = (typeof processingStatusEnum.enumValues)[number];

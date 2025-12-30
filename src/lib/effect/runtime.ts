@@ -16,6 +16,7 @@ import { AI, AILive } from "./services/ai";
 import { VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { VideoRepository, VideoRepositoryLive } from "./services/video-repository";
 import { OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
+import { ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { Auth, makeAuthLayer } from "./services/auth";
 
 // =============================================================================
@@ -28,7 +29,7 @@ import { Auth, makeAuthLayer } from "./services/auth";
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
@@ -46,7 +47,7 @@ export const AppLive = Layer.mergeAll(BaseServicesLive, AppServicesLive);
 /**
  * Full application layer type
  */
-export type AppServices = Database | Storage | AI | VideoProcessor | VideoRepository | OrganizationRepository;
+export type AppServices = Database | Storage | AI | ReplicateAPI | VideoProcessor | VideoRepository | OrganizationRepository;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

@@ -89,6 +89,13 @@ export {
   getOrganizationBySlug,
   isMember,
   getUserRole,
+  // Replicate API
+  ReplicateAPI,
+  ReplicateLive,
+  transcribe,
+  generateThumbnail,
+  generateThumbnails,
+  extractMetadata,
 } from "./services";
 
 export type {
@@ -118,6 +125,11 @@ export type {
   OrganizationRepositoryService,
   OrganizationWithRole,
   CreateOrganizationInput,
+  // Replicate API
+  ReplicateService,
+  ReplicateVideoMetadata,
+  TranscriptionResult,
+  ThumbnailResult,
 } from "./services";
 
 // Runtime and layers

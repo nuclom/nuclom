@@ -78,12 +78,14 @@
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "recharts": "latest",
+    "replicate": "^1.4.0",
     "resend": "^4.6.0",
     "sonner": "latest",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "latest",
+    "workflow": "4.0.1-beta.39",
     "zod": "^3.25.72"
   },
   "devDependencies": {

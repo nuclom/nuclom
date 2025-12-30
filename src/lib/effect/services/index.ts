@@ -100,3 +100,19 @@ export type {
   OrganizationWithRole,
   CreateOrganizationInput,
 } from "./organization-repository";
+
+// Replicate API Service
+export {
+  ReplicateAPI,
+  ReplicateLive,
+  transcribe,
+  generateThumbnail,
+  generateThumbnails,
+  extractMetadata,
+} from "./replicate";
+export type {
+  ReplicateService,
+  VideoMetadata as ReplicateVideoMetadata,
+  TranscriptionResult,
+  ThumbnailResult,
+} from "./replicate";

@@ -27,17 +27,54 @@ export interface CreateVideoInput {
   readonly collectionId?: string;
   readonly transcript?: string;
   readonly aiSummary?: string;
+  // Processing fields
+  readonly processingStatus?:
+    | "pending"
+    | "uploading"
+    | "processing"
+    | "extracting_metadata"
+    | "generating_thumbnails"
+    | "transcribing"
+    | "analyzing"
+    | "completed"
+    | "failed";
+  readonly fileSize?: number;
+  readonly workflowRunId?: string;
 }
 
 export interface UpdateVideoInput {
   readonly title?: string;
   readonly description?: string | null;
+  readonly duration?: string;
   readonly thumbnailUrl?: string | null;
   readonly videoUrl?: string | null;
   readonly channelId?: string | null;
   readonly collectionId?: string | null;
   readonly transcript?: string | null;
   readonly aiSummary?: string | null;
+  // Processing fields
+  readonly processingStatus?:
+    | "pending"
+    | "uploading"
+    | "processing"
+    | "extracting_metadata"
+    | "generating_thumbnails"
+    | "transcribing"
+    | "analyzing"
+    | "completed"
+    | "failed";
+  readonly processingProgress?: number;
+  readonly processingError?: string | null;
+  // Video metadata
+  readonly width?: number | null;
+  readonly height?: number | null;
+  readonly codec?: string | null;
+  readonly fps?: number | null;
+  readonly bitrate?: number | null;
+  readonly fileSize?: number | null;
+  readonly thumbnailAlternates?: string | null;
+  readonly workflowRunId?: string | null;
+  readonly processedAt?: Date | null;
 }
 
 export interface VideoRepositoryService {

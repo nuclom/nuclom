@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, Exit, Cause } from "effect";
+import { Effect, Exit, Cause } from "effect";
 import {
   AppLive,
   VideoProcessor,
@@ -10,6 +10,7 @@ import {
   getMaxFileSize,
 } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
+import { triggerVideoProcessing } from "@/workflows/video-processing";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
@@ -24,6 +25,7 @@ interface UploadResponse {
   videoUrl: string;
   thumbnailUrl: string;
   duration: string;
+  processingStatus: string;
 }
 
 // =============================================================================
@@ -112,7 +114,7 @@ export async function POST(request: NextRequest) {
     if (!isSupportedVideoFormat(file.name)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV",
+          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV, M4V, 3GP",
         }),
       );
     }
@@ -135,22 +137,45 @@ export async function POST(request: NextRequest) {
         }),
     });
 
-    // Process video using VideoProcessor service
+    // Process video using VideoProcessor service (uploads to R2)
     const processor = yield* VideoProcessor;
     const processingResult = yield* processor.processVideo(buffer, file.name, organizationId);
 
     // Save video metadata to database using VideoRepository
+    // Set initial status to 'pending' - workflow will update it
     const videoRepo = yield* VideoRepository;
     const insertedVideo = yield* videoRepo.createVideo({
       title,
       description,
       duration: processingResult.duration,
-      thumbnailUrl: processingResult.thumbnailUrl,
+      thumbnailUrl: processingResult.thumbnailUrl || undefined,
       videoUrl: processingResult.videoUrl,
       authorId,
       organizationId,
       channelId: channelId || undefined,
       collectionId: collectionId || undefined,
+      processingStatus: "pending",
+      fileSize: processingResult.fileSize,
+    });
+
+    // Trigger async video processing workflow
+    // This runs in the background and updates the video record as it progresses
+    yield* Effect.tryPromise({
+      try: async () => {
+        await triggerVideoProcessing({
+          videoId: insertedVideo.id,
+          videoUrl: processingResult.videoUrl,
+          organizationId,
+          title,
+          description,
+          fileSize: processingResult.fileSize,
+        });
+      },
+      catch: (error) => {
+        // Log but don't fail the request - video is uploaded, processing can be retried
+        console.error("Failed to trigger video processing workflow:", error);
+        return null;
+      },
     });
 
     return {
@@ -158,6 +183,7 @@ export async function POST(request: NextRequest) {
       videoUrl: processingResult.videoUrl,
       thumbnailUrl: processingResult.thumbnailUrl,
       duration: processingResult.duration,
+      processingStatus: "pending",
     } as UploadResponse;
   });
 

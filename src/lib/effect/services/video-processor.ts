@@ -2,7 +2,8 @@
  * Video Processor Service using Effect-TS
  *
  * Handles video upload, processing, and thumbnail generation.
- * Integrates with Storage service for file operations.
+ * Integrates with Storage service for file operations and
+ * triggers async processing workflow for metadata extraction.
  */
 
 import { Effect, Context, Layer, pipe } from "effect";
@@ -23,10 +24,12 @@ export interface VideoInfo {
 }
 
 export interface ProcessingResult {
+  readonly videoId: string;
   readonly videoUrl: string;
   readonly thumbnailUrl: string;
   readonly duration: string;
   readonly info: VideoInfo;
+  readonly fileSize: number;
 }
 
 export interface ProcessingProgress {
@@ -37,7 +40,8 @@ export interface ProcessingProgress {
 
 export interface VideoProcessorService {
   /**
-   * Process a video file
+   * Process a video file - uploads to storage and returns immediately.
+   * Actual processing (metadata, thumbnails, transcription) happens async.
    */
   readonly processVideo: (
     buffer: Buffer,
@@ -47,9 +51,9 @@ export interface VideoProcessorService {
   ) => Effect.Effect<ProcessingResult, VideoError>;
 
   /**
-   * Get video metadata
+   * Get estimated video metadata (before async processing completes)
    */
-  readonly getVideoInfo: (buffer: Buffer) => Effect.Effect<VideoInfo, never>;
+  readonly getVideoInfo: (buffer: Buffer, filename: string) => Effect.Effect<VideoInfo, never>;
 
   /**
    * Check if format is supported
@@ -74,7 +78,7 @@ export interface VideoProcessorService {
 // Constants
 // =============================================================================
 
-const SUPPORTED_FORMATS = ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv"] as const;
+const SUPPORTED_FORMATS = ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v", "3gp"] as const;
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -85,6 +89,8 @@ const CONTENT_TYPES: Record<string, string> = {
   webm: "video/webm",
   flv: "video/x-flv",
   wmv: "video/x-ms-wmv",
+  m4v: "video/x-m4v",
+  "3gp": "video/3gpp",
 };
 
 // =============================================================================
@@ -109,7 +115,7 @@ const getContentType = (filename: string): string => {
 const formatDuration = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+  const secs = Math.floor(seconds % 60);
 
   if (hours > 0) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
@@ -117,11 +123,14 @@ const formatDuration = (seconds: number): string => {
   return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 };
 
-// Placeholder thumbnail - in production, use ffmpeg
-const createPlaceholderThumbnail = (): Buffer => {
-  const base64Jpeg =
-    "/9j/4AAQSkZJRgABAQEAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=";
-  return Buffer.from(base64Jpeg, "base64");
+/**
+ * Estimate video duration from file size
+ * This is a rough estimate - actual duration will be extracted async
+ */
+const estimateDuration = (fileSize: number): number => {
+  // Assume ~1MB per 10 seconds of HD video as a rough estimate
+  // Actual duration will be updated after async processing
+  return Math.max(10, Math.floor(fileSize / (100 * 1024)));
 };
 
 // =============================================================================
@@ -165,17 +174,16 @@ const makeVideoProcessorService = Effect.gen(function* () {
     return Effect.void;
   };
 
-  const getVideoInfo = (buffer: Buffer): Effect.Effect<VideoInfo, never> =>
+  const getVideoInfo = (buffer: Buffer, filename: string): Effect.Effect<VideoInfo, never> =>
     Effect.sync(() => {
-      // Mock implementation - in production use ffmpeg or similar
       const size = buffer.length;
-      const estimatedDuration = Math.max(10, Math.floor(size / (1024 * 1024)) * 60);
+      const estimatedDuration = estimateDuration(size);
 
       return {
         duration: formatDuration(estimatedDuration),
-        width: 1920,
+        width: 1920, // Default HD, will be updated by async processing
         height: 1080,
-        format: "mp4",
+        format: getExtension(filename) || "mp4",
         size,
       };
     });
@@ -208,7 +216,7 @@ const makeVideoProcessorService = Effect.gen(function* () {
           videoKey,
           { contentType, metadata: { originalFilename: filename, videoId, organizationId } },
           (uploadProgress: UploadProgress) => {
-            const progressPercent = Math.floor((uploadProgress.loaded / uploadProgress.total) * 30) + 10;
+            const progressPercent = Math.floor((uploadProgress.loaded / uploadProgress.total) * 60) + 10;
             onProgress?.({
               stage: "uploading",
               progress: progressPercent,
@@ -226,51 +234,29 @@ const makeVideoProcessorService = Effect.gen(function* () {
         ),
       );
 
-      // Stage 2: Get video info
+      // Stage 2: Get initial video info (estimated)
       onProgress?.({
         stage: "processing",
-        progress: 50,
+        progress: 75,
         message: "Processing video metadata...",
       });
 
-      const videoInfo = yield* getVideoInfo(buffer);
+      const videoInfo = yield* getVideoInfo(buffer, filename);
 
-      // Stage 3: Generate thumbnail
-      onProgress?.({
-        stage: "generating_thumbnail",
-        progress: 70,
-        message: "Generating thumbnail...",
-      });
-
-      const thumbnailBuffer = createPlaceholderThumbnail();
-      const thumbnailKey = storage.generateFileKey(organizationId, `${videoId}-thumbnail.jpg`, "thumbnail");
-
-      const thumbnailResult = yield* pipe(
-        storage.uploadFile(thumbnailBuffer, thumbnailKey, {
-          contentType: "image/jpeg",
-          metadata: { videoId, organizationId, type: "thumbnail" },
-        }),
-        Effect.mapError(
-          (error) =>
-            new VideoProcessingError({
-              message: error.message,
-              stage: "generating_thumbnail",
-              cause: error,
-            }),
-        ),
-      );
-
+      // Stage 3: Mark as complete (async processing will continue in background)
       onProgress?.({
         stage: "complete",
         progress: 100,
-        message: "Video processing complete!",
+        message: "Video uploaded! Processing will continue in background.",
       });
 
       return {
+        videoId,
         videoUrl: uploadResult.url,
-        thumbnailUrl: thumbnailResult.url,
+        thumbnailUrl: "", // Will be generated by async processing
         duration: videoInfo.duration,
         info: videoInfo,
+        fileSize: buffer.length,
       };
     });
 
@@ -322,10 +308,13 @@ export const validateVideo = (
 /**
  * Get video info
  */
-export const getVideoInfo = (buffer: Buffer): Effect.Effect<VideoInfo, never, VideoProcessor> =>
+export const getVideoInfo = (
+  buffer: Buffer,
+  filename: string,
+): Effect.Effect<VideoInfo, never, VideoProcessor> =>
   Effect.gen(function* () {
     const processor = yield* VideoProcessor;
-    return yield* processor.getVideoInfo(buffer);
+    return yield* processor.getVideoInfo(buffer, filename);
   });
 
 /**
