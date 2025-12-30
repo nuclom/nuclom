@@ -13,8 +13,8 @@ import type {
   Video,
 } from "./db/schema";
 
-// Omit searchVector from video types as it's only used for internal database queries
-type VideoBase = Omit<Video, "searchVector">;
+// Omit internal fields from video types (searchVector, soft-delete fields)
+type VideoBase = Omit<Video, "searchVector" | "deletedAt" | "retentionUntil">;
 
 export type VideoWithAuthor = VideoBase & {
   author: User;

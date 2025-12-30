@@ -4,7 +4,7 @@
  * Provides type-safe database operations for videos.
  */
 
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import {
   type ActionItem,
@@ -20,8 +20,9 @@ import {
   videos,
 } from "@/lib/db/schema";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
+import { DatabaseError, DeleteError, NotFoundError } from "../errors";
 import { Database } from "./database";
+import { Storage } from "./storage";
 
 // =============================================================================
 // Types
@@ -60,13 +61,40 @@ export interface UpdateVideoInput {
   readonly aiSummary?: string | null;
   readonly aiTags?: string[] | null;
   readonly aiActionItems?: ActionItem[] | null;
+  readonly deletedAt?: Date | null;
+  readonly retentionUntil?: Date | null;
+}
+
+export interface SoftDeleteOptions {
+  /** Number of days to retain the video before permanent deletion. Default is 30 days. */
+  readonly retentionDays?: number;
+}
+
+export interface VideoSearchInput {
+  readonly query: string;
+  readonly organizationId: string;
+  readonly channelId?: string;
+  readonly authorId?: string;
+  readonly dateFrom?: Date;
+  readonly dateTo?: Date;
+  readonly page?: number;
+  readonly limit?: number;
 }
 
 export interface VideoRepositoryService {
   /**
-   * Get paginated videos for an organization
+   * Get paginated videos for an organization (excludes soft-deleted videos)
    */
   readonly getVideos: (
+    organizationId: string,
+    page?: number,
+    limit?: number,
+  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
+
+  /**
+   * Get paginated deleted videos for an organization (only soft-deleted videos)
+   */
+  readonly getDeletedVideos: (
     organizationId: string,
     page?: number,
     limit?: number,
@@ -91,9 +119,27 @@ export interface VideoRepositoryService {
   ) => Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError>;
 
   /**
-   * Delete a video
+   * Soft delete a video (marks as deleted with retention period)
    */
-  readonly deleteVideo: (id: string) => Effect.Effect<void, DatabaseError | NotFoundError>;
+  readonly softDeleteVideo: (
+    id: string,
+    options?: SoftDeleteOptions,
+  ) => Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError>;
+
+  /**
+   * Restore a soft-deleted video
+   */
+  readonly restoreVideo: (id: string) => Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError>;
+
+  /**
+   * Permanently delete a video and clean up R2 storage
+   */
+  readonly deleteVideo: (id: string) => Effect.Effect<void, DatabaseError | NotFoundError | DeleteError>;
+
+  /**
+   * Permanently delete all videos past their retention period
+   */
+  readonly cleanupExpiredVideos: () => Effect.Effect<number, DatabaseError | DeleteError>;
 
   /**
    * Get video chapters
@@ -106,6 +152,11 @@ export interface VideoRepositoryService {
   readonly getVideoCodeSnippets: (
     videoId: string,
   ) => Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError>;
+
+  /**
+   * Search videos with full-text search and filters
+   */
+  readonly searchVideos: (input: VideoSearchInput) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
 }
 
 // =============================================================================
@@ -120,6 +171,44 @@ export class VideoRepository extends Context.Tag("VideoRepository")<VideoReposit
 
 const makeVideoRepositoryService = Effect.gen(function* () {
   const { db } = yield* Database;
+  const storage = yield* Storage;
+
+  // Helper function to extract file key from URL
+  const extractFileKeyFromUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    try {
+      const urlObj = new URL(url);
+      // Remove leading slash from pathname
+      return urlObj.pathname.slice(1);
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper to delete R2 files for a video
+  const deleteVideoFiles = (video: { videoUrl: string | null; thumbnailUrl: string | null }) =>
+    Effect.gen(function* () {
+      const videoKey = extractFileKeyFromUrl(video.videoUrl);
+      const thumbnailKey = extractFileKeyFromUrl(video.thumbnailUrl);
+
+      if (videoKey) {
+        yield* storage.deleteFile(videoKey).pipe(
+          Effect.catchAll((error) => {
+            console.error(`Failed to delete video file ${videoKey}:`, error);
+            return Effect.void;
+          }),
+        );
+      }
+
+      if (thumbnailKey) {
+        yield* storage.deleteFile(thumbnailKey).pipe(
+          Effect.catchAll((error) => {
+            console.error(`Failed to delete thumbnail file ${thumbnailKey}:`, error);
+            return Effect.void;
+          }),
+        );
+      }
+    });
 
   const getVideos = (
     organizationId: string,
@@ -130,6 +219,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       try: async () => {
         const offset = (page - 1) * limit;
 
+        // Exclude soft-deleted videos
         const videosData = await db
           .select({
             id: videos.id,
@@ -149,6 +239,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
             updatedAt: videos.updatedAt,
             author: {
@@ -167,12 +259,15 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           })
           .from(videos)
           .innerJoin(users, eq(videos.authorId, users.id))
-          .where(eq(videos.organizationId, organizationId))
+          .where(and(eq(videos.organizationId, organizationId), isNull(videos.deletedAt)))
           .orderBy(desc(videos.createdAt))
           .offset(offset)
           .limit(limit);
 
-        const totalCount = await db.select().from(videos).where(eq(videos.organizationId, organizationId));
+        const totalCount = await db
+          .select()
+          .from(videos)
+          .where(and(eq(videos.organizationId, organizationId), isNull(videos.deletedAt)));
 
         return {
           data: videosData as VideoWithAuthor[],
@@ -188,6 +283,83 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         new DatabaseError({
           message: "Failed to fetch videos",
           operation: "getVideos",
+          cause: error,
+        }),
+    });
+
+  const getDeletedVideos = (
+    organizationId: string,
+    page = 1,
+    limit = 20,
+  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const offset = (page - 1) * limit;
+
+        // Only get soft-deleted videos
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            channelId: videos.channelId,
+            collectionId: videos.collectionId,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(and(eq(videos.organizationId, organizationId), isNotNull(videos.deletedAt)))
+          .orderBy(desc(videos.deletedAt))
+          .offset(offset)
+          .limit(limit);
+
+        const totalCount = await db
+          .select()
+          .from(videos)
+          .where(and(eq(videos.organizationId, organizationId), isNotNull(videos.deletedAt)));
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit,
+            total: totalCount.length,
+            totalPages: Math.ceil(totalCount.length / limit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch deleted videos",
+          operation: "getDeletedVideos",
           cause: error,
         }),
     });
@@ -390,16 +562,27 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       return result[0];
     });
 
-  const deleteVideo = (id: string): Effect.Effect<void, DatabaseError | NotFoundError> =>
+  const softDeleteVideo = (
+    id: string,
+    options: SoftDeleteOptions = {},
+  ): Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError> =>
     Effect.gen(function* () {
+      const retentionDays = options.retentionDays ?? 30;
+      const deletedAt = new Date();
+      const retentionUntil = new Date(deletedAt.getTime() + retentionDays * 24 * 60 * 60 * 1000);
+
       const result = yield* Effect.tryPromise({
         try: async () => {
-          return await db.delete(videos).where(eq(videos.id, id)).returning();
+          return await db
+            .update(videos)
+            .set({ deletedAt, retentionUntil, updatedAt: new Date() })
+            .where(eq(videos.id, id))
+            .returning();
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete video",
-            operation: "deleteVideo",
+            message: "Failed to soft delete video",
+            operation: "softDeleteVideo",
             cause: error,
           }),
       });
@@ -413,6 +596,236 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           }),
         );
       }
+
+      return result[0];
+    });
+
+  const restoreVideo = (id: string): Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError> =>
+    Effect.gen(function* () {
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          return await db
+            .update(videos)
+            .set({ deletedAt: null, retentionUntil: null, updatedAt: new Date() })
+            .where(eq(videos.id, id))
+            .returning();
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to restore video",
+            operation: "restoreVideo",
+            cause: error,
+          }),
+      });
+
+      if (!result.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: "Video not found",
+            entity: "Video",
+            id,
+          }),
+        );
+      }
+
+      return result[0];
+    });
+
+  const deleteVideo = (id: string): Effect.Effect<void, DatabaseError | NotFoundError | DeleteError> =>
+    Effect.gen(function* () {
+      // First, get the video to retrieve file URLs for cleanup
+      const videoData = yield* Effect.tryPromise({
+        try: async () => {
+          return await db.select().from(videos).where(eq(videos.id, id)).limit(1);
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to fetch video for deletion",
+            operation: "deleteVideo.fetch",
+            cause: error,
+          }),
+      });
+
+      if (!videoData.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: "Video not found",
+            entity: "Video",
+            id,
+          }),
+        );
+      }
+
+      const video = videoData[0];
+
+      // Delete files from R2 storage
+      yield* deleteVideoFiles(video);
+
+      // Delete the database record
+      yield* Effect.tryPromise({
+        try: async () => {
+          return await db.delete(videos).where(eq(videos.id, id)).returning();
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to delete video",
+            operation: "deleteVideo",
+            cause: error,
+          }),
+      });
+    });
+
+  const cleanupExpiredVideos = (): Effect.Effect<number, DatabaseError | DeleteError> =>
+    Effect.gen(function* () {
+      const now = new Date();
+
+      // Find all videos past their retention period
+      const expiredVideos = yield* Effect.tryPromise({
+        try: async () => {
+          return await db
+            .select()
+            .from(videos)
+            .where(and(isNotNull(videos.deletedAt), lt(videos.retentionUntil, now)));
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: "Failed to fetch expired videos",
+            operation: "cleanupExpiredVideos.fetch",
+            cause: error,
+          }),
+      });
+
+      let deletedCount = 0;
+
+      for (const video of expiredVideos) {
+        // Delete files from R2 storage
+        yield* deleteVideoFiles(video);
+
+        // Delete the database record
+        yield* Effect.tryPromise({
+          try: async () => {
+            await db.delete(videos).where(eq(videos.id, video.id));
+          },
+          catch: (error) =>
+            new DatabaseError({
+              message: `Failed to delete expired video ${video.id}`,
+              operation: "cleanupExpiredVideos.delete",
+              cause: error,
+            }),
+        });
+
+        deletedCount++;
+      }
+
+      return deletedCount;
+    });
+
+  const searchVideos = (input: VideoSearchInput): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const page = input.page ?? 1;
+        const limit = input.limit ?? 20;
+        const offset = (page - 1) * limit;
+        const searchPattern = `%${input.query}%`;
+
+        // Build conditions array
+        const conditions = [
+          eq(videos.organizationId, input.organizationId),
+          isNull(videos.deletedAt),
+          or(
+            ilike(videos.title, searchPattern),
+            ilike(videos.description, searchPattern),
+            ilike(videos.transcript, searchPattern),
+            sql`${videos.aiTags}::text ILIKE ${searchPattern}`,
+          ),
+        ];
+
+        if (input.channelId) {
+          conditions.push(eq(videos.channelId, input.channelId));
+        }
+
+        if (input.authorId) {
+          conditions.push(eq(videos.authorId, input.authorId));
+        }
+
+        if (input.dateFrom) {
+          conditions.push(gte(videos.createdAt, input.dateFrom));
+        }
+
+        if (input.dateTo) {
+          conditions.push(lte(videos.createdAt, input.dateTo));
+        }
+
+        const whereClause = and(...conditions);
+
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            channelId: videos.channelId,
+            collectionId: videos.collectionId,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(whereClause)
+          .orderBy(desc(videos.createdAt))
+          .offset(offset)
+          .limit(limit);
+
+        // Get total count for pagination
+        const totalCountResult = await db
+          .select({ count: sql`count(*)::int` })
+          .from(videos)
+          .where(whereClause);
+
+        const total = totalCountResult[0]?.count ?? 0;
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit,
+            total: Number(total),
+            totalPages: Math.ceil(Number(total) / limit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to search videos",
+          operation: "searchVideos",
+          cause: error,
+        }),
     });
 
   const getVideoChapters = (videoId: string): Effect.Effect<(typeof videoChapters.$inferSelect)[], DatabaseError> =>
@@ -453,12 +866,17 @@ const makeVideoRepositoryService = Effect.gen(function* () {
 
   return {
     getVideos,
+    getDeletedVideos,
     getVideo,
     createVideo,
     updateVideo,
+    softDeleteVideo,
+    restoreVideo,
     deleteVideo,
+    cleanupExpiredVideos,
     getVideoChapters,
     getVideoCodeSnippets,
+    searchVideos,
   } satisfies VideoRepositoryService;
 });
 
@@ -480,6 +898,16 @@ export const getVideos = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideos(organizationId, page, limit);
+  });
+
+export const getDeletedVideos = (
+  organizationId: string,
+  page?: number,
+  limit?: number,
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getDeletedVideos(organizationId, page, limit);
   });
 
 export const getVideo = (id: string): Effect.Effect<VideoWithDetails, DatabaseError | NotFoundError, VideoRepository> =>
@@ -505,7 +933,26 @@ export const updateVideo = (
     return yield* repo.updateVideo(id, data);
   });
 
-export const deleteVideo = (id: string): Effect.Effect<void, DatabaseError | NotFoundError, VideoRepository> =>
+export const softDeleteVideo = (
+  id: string,
+  options?: SoftDeleteOptions,
+): Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.softDeleteVideo(id, options);
+  });
+
+export const restoreVideo = (
+  id: string,
+): Effect.Effect<typeof videos.$inferSelect, DatabaseError | NotFoundError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.restoreVideo(id);
+  });
+
+export const deleteVideo = (
+  id: string,
+): Effect.Effect<void, DatabaseError | NotFoundError | DeleteError, VideoRepository> =>
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.deleteVideo(id);
@@ -513,6 +960,12 @@ export const deleteVideo = (id: string): Effect.Effect<void, DatabaseError | Not
 
 // For backwards compatibility - renamed export
 export const deleteVideoRecord = deleteVideo;
+
+export const cleanupExpiredVideos = (): Effect.Effect<number, DatabaseError | DeleteError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.cleanupExpiredVideos();
+  });
 
 export const getVideoChapters = (
   videoId: string,
@@ -528,4 +981,12 @@ export const getVideoCodeSnippets = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideoCodeSnippets(videoId);
+  });
+
+export const searchVideos = (
+  input: VideoSearchInput,
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.searchVideos(input);
   });

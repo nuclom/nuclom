@@ -292,6 +292,9 @@ export const videos = pgTable(
     // Note: This column is of type tsvector in the database, but we use text() here
     // to avoid TypeScript inference issues. The actual column type is handled by the migration.
     searchVector: text("search_vector"),
+    // Soft-delete fields
+    deletedAt: timestamp("deleted_at"),
+    retentionUntil: timestamp("retention_until"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
