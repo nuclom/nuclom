@@ -1,11 +1,9 @@
-import { and, eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members, users } from "@/lib/db/schema";
-import { AppLive } from "@/lib/effect";
+import { AppLive, ForbiddenError } from "@/lib/effect";
+import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
 
@@ -37,63 +35,10 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 };
 
 // =============================================================================
-// GET /api/organizations/[id]/members - Get organization members
+// GET /api/channels/[id] - Get channel details
 // =============================================================================
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id: organizationId } = await params;
-
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user has access to this organization
-    const userMembership = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.organizationId, organizationId), eq(members.userId, session.user.id)))
-      .limit(1);
-
-    if (userMembership.length === 0) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    // Get all members of the organization
-    const organizationMembers = await db
-      .select({
-        id: members.id,
-        organizationId: members.organizationId,
-        userId: members.userId,
-        role: members.role,
-        createdAt: members.createdAt,
-        user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(members)
-      .innerJoin(users, eq(members.userId, users.id))
-      .where(eq(members.organizationId, organizationId));
-
-    return NextResponse.json(organizationMembers);
-  } catch (error) {
-    console.error("Error fetching organization members:", error);
-    return NextResponse.json({ error: "Failed to fetch organization members" }, { status: 500 });
-  }
-}
-
-// =============================================================================
-// DELETE /api/organizations/[id]/members - Remove a member
-// =============================================================================
-
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -102,20 +47,25 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const url = new URL(request.url);
-  const userIdToRemove = url.searchParams.get("userId");
-
-  if (!userIdToRemove) {
-    return NextResponse.json({ success: false, error: "userId query parameter is required" }, { status: 400 });
-  }
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
+    const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
 
-    yield* orgRepo.removeMember(resolvedParams.id, userIdToRemove, session.user.id);
+    const channel = yield* channelRepo.getChannel(resolvedParams.id);
 
-    return { message: "Member removed successfully" };
+    // Verify user has access to this channel's organization
+    const isMemberResult = yield* orgRepo.isMember(session.user.id, channel.organizationId);
+    if (!isMemberResult) {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: "Access denied",
+          resource: "Channel",
+        }),
+      );
+    }
+
+    return channel;
   });
 
   const runnable = Effect.provide(effect, AppLive);
@@ -140,7 +90,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 }
 
 // =============================================================================
-// PATCH /api/organizations/[id]/members - Update member role
+// PATCH /api/channels/[id] - Update channel
 // =============================================================================
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -153,23 +103,90 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const body = await request.json();
-  const { userId, role } = body;
+  const { name, description } = body;
 
-  if (!userId) {
-    return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
-  }
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
+    const channelRepo = yield* ChannelRepository;
+    const orgRepo = yield* OrganizationRepository;
 
-  if (!role || (role !== "owner" && role !== "member")) {
-    return NextResponse.json({ success: false, error: "role must be 'owner' or 'member'" }, { status: 400 });
+    // Get channel to verify access
+    const channel = yield* channelRepo.getChannel(resolvedParams.id);
+
+    // Verify user has access to this channel's organization
+    const isMemberResult = yield* orgRepo.isMember(session.user.id, channel.organizationId);
+    if (!isMemberResult) {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: "Access denied",
+          resource: "Channel",
+        }),
+      );
+    }
+
+    const updateData: { name?: string; description?: string | null } = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description?.trim() ?? null;
+
+    const updatedChannel = yield* channelRepo.updateChannel(resolvedParams.id, updateData);
+    return updatedChannel;
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
+}
+
+// =============================================================================
+// DELETE /api/channels/[id] - Delete channel
+// =============================================================================
+
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
+    const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
 
-    const updatedMember = yield* orgRepo.updateMemberRole(resolvedParams.id, userId, role, session.user.id);
+    // Get channel to verify access
+    const channel = yield* channelRepo.getChannel(resolvedParams.id);
 
-    return { message: "Member role updated successfully", member: updatedMember };
+    // Verify user is an owner of this channel's organization
+    const userRole = yield* orgRepo.getUserRole(session.user.id, channel.organizationId);
+    if (Option.isNone(userRole) || userRole.value !== "owner") {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: "Only organization owners can delete channels",
+          resource: "Channel",
+        }),
+      );
+    }
+
+    yield* channelRepo.deleteChannel(resolvedParams.id);
+    return { message: "Channel deleted successfully" };
   });
 
   const runnable = Effect.provide(effect, AppLive);

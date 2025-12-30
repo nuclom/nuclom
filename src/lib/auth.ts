@@ -60,7 +60,8 @@ export const auth = betterAuth({
     }),
     organization({
       allowUserToCreateOrganization: async () => {
-        return false;
+        // Allow all authenticated users to create organizations
+        return true;
       },
       organizationLimit: 5,
       creatorRole: "owner",

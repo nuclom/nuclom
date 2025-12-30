@@ -1,10 +1,7 @@
-import { and, eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members, users } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
@@ -25,7 +22,6 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
       case "NotFoundError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
       case "ValidationError":
-      case "MissingFieldError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
       default:
         console.error(`[${taggedError._tag}]`, taggedError);
@@ -37,63 +33,10 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 };
 
 // =============================================================================
-// GET /api/organizations/[id]/members - Get organization members
+// GET /api/organizations/[id]/settings - Get organization settings
 // =============================================================================
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id: organizationId } = await params;
-
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user has access to this organization
-    const userMembership = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.organizationId, organizationId), eq(members.userId, session.user.id)))
-      .limit(1);
-
-    if (userMembership.length === 0) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    // Get all members of the organization
-    const organizationMembers = await db
-      .select({
-        id: members.id,
-        organizationId: members.organizationId,
-        userId: members.userId,
-        role: members.role,
-        createdAt: members.createdAt,
-        user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(members)
-      .innerJoin(users, eq(members.userId, users.id))
-      .where(eq(members.organizationId, organizationId));
-
-    return NextResponse.json(organizationMembers);
-  } catch (error) {
-    console.error("Error fetching organization members:", error);
-    return NextResponse.json({ error: "Failed to fetch organization members" }, { status: 500 });
-  }
-}
-
-// =============================================================================
-// DELETE /api/organizations/[id]/members - Remove a member
-// =============================================================================
-
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -102,20 +45,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const url = new URL(request.url);
-  const userIdToRemove = url.searchParams.get("userId");
-
-  if (!userIdToRemove) {
-    return NextResponse.json({ success: false, error: "userId query parameter is required" }, { status: 400 });
-  }
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const orgRepo = yield* OrganizationRepository;
 
-    yield* orgRepo.removeMember(resolvedParams.id, userIdToRemove, session.user.id);
+    // Check if user is a member
+    const isMemberResult = yield* orgRepo.isMember(session.user.id, resolvedParams.id);
+    if (!isMemberResult) {
+      return yield* Effect.fail({ _tag: "ForbiddenError", message: "Access denied" });
+    }
 
-    return { message: "Member removed successfully" };
+    const organization = yield* orgRepo.getOrganization(resolvedParams.id);
+    return organization;
   });
 
   const runnable = Effect.provide(effect, AppLive);
@@ -140,7 +81,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 }
 
 // =============================================================================
-// PATCH /api/organizations/[id]/members - Update member role
+// PATCH /api/organizations/[id]/settings - Update organization settings
 // =============================================================================
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -153,23 +94,38 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const body = await request.json();
-  const { userId, role } = body;
-
-  if (!userId) {
-    return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
-  }
-
-  if (!role || (role !== "owner" && role !== "member")) {
-    return NextResponse.json({ success: false, error: "role must be 'owner' or 'member'" }, { status: 400 });
-  }
+  const { name, slug, logo, metadata } = body;
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const orgRepo = yield* OrganizationRepository;
 
-    const updatedMember = yield* orgRepo.updateMemberRole(resolvedParams.id, userId, role, session.user.id);
+    // Check if user is an owner
+    const userRole = yield* orgRepo.getUserRole(session.user.id, resolvedParams.id);
+    if (Option.isNone(userRole) || userRole.value !== "owner") {
+      return yield* Effect.fail({
+        _tag: "ForbiddenError",
+        message: "Only organization owners can update settings",
+      });
+    }
 
-    return { message: "Member role updated successfully", member: updatedMember };
+    // Validate slug format if provided
+    if (slug && !/^[a-z0-9-]+$/.test(slug)) {
+      return yield* Effect.fail({
+        _tag: "ValidationError",
+        message: "Slug can only contain lowercase letters, numbers, and hyphens",
+      });
+    }
+
+    const updateData: { name?: string; slug?: string; logo?: string | null; metadata?: string } = {};
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug;
+    if (logo !== undefined) updateData.logo = logo;
+    if (metadata !== undefined) updateData.metadata = metadata;
+
+    const updatedOrg = yield* orgRepo.updateOrganization(resolvedParams.id, updateData);
+
+    return { message: "Organization settings updated successfully", organization: updatedOrg };
   });
 
   const runnable = Effect.provide(effect, AppLive);

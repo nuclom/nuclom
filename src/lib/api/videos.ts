@@ -81,6 +81,8 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       aiSummary: videos.aiSummary,
       aiTags: videos.aiTags,
       aiActionItems: videos.aiActionItems,
+      deletedAt: videos.deletedAt,
+      retentionUntil: videos.retentionUntil,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       author: {
