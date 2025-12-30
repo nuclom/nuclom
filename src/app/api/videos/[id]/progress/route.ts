@@ -1,5 +1,6 @@
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
 import { AppLive, MissingFieldError, ValidationError, VideoProgressRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
@@ -74,7 +75,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         success: true,
         data,
       };
-      return NextResponse.json(response);
+      // Progress changes frequently, use very short cache
+      return NextResponse.json(response, {
+        headers: {
+          "Cache-Control": getCacheControlHeader(CachePresets.progress()),
+        },
+      });
     },
   });
 }

@@ -1,5 +1,6 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { CachePresets, getCacheControlHeader, parsePaginationParams } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
 import { AppLive, MissingFieldError, SeriesRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
@@ -42,11 +43,10 @@ export async function GET(request: NextRequest) {
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Parse query params
+    // Parse query params with validation
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const { page, limit } = parsePaginationParams(searchParams);
 
     if (!organizationId) {
       return yield* Effect.fail(
@@ -73,7 +73,12 @@ export async function GET(request: NextRequest) {
       }
       return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     },
-    onSuccess: (data) => NextResponse.json(data),
+    onSuccess: (data) =>
+      NextResponse.json(data, {
+        headers: {
+          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+        },
+      }),
   });
 }
 
