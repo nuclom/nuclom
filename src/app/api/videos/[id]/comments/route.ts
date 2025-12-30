@@ -1,10 +1,11 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { AppLive, CommentRepository, MissingFieldError, NotificationRepository } from "@/lib/effect";
+import { AppLive, CommentRepository, NotificationRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { commentEventEmitter } from "@/lib/realtime/comment-events";
 import type { ApiResponse } from "@/lib/types";
+import { validateRequestBody, createCommentSchema, sanitizeComment } from "@/lib/validation";
 
 // =============================================================================
 // Error Response Handler
@@ -82,34 +83,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { id: videoId } = yield* Effect.promise(() => params);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<{ content: string; timestamp?: string; parentId?: string }>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    // Validate request body with Zod schema
+    const validatedData = yield* validateRequestBody(createCommentSchema, request);
 
-    // Validate required fields
-    if (!body.content || body.content.trim().length === 0) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "content",
-          message: "Comment content is required",
-        }),
-      );
-    }
+    // Sanitize comment content to prevent XSS
+    const sanitizedContent = sanitizeComment(validatedData.content);
 
     // Create comment using repository
     const commentRepo = yield* CommentRepository;
     const newComment = yield* commentRepo.createComment({
-      content: body.content.trim(),
-      timestamp: body.timestamp,
+      content: sanitizedContent,
+      timestamp: validatedData.timestamp ?? undefined,
       authorId: user.id,
       videoId,
-      parentId: body.parentId,
+      parentId: validatedData.parentId ?? undefined,
     });
 
     // Emit real-time event
@@ -121,9 +108,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Create notifications (fire and forget - don't block response)
     const notificationRepo = yield* NotificationRepository;
-    if (body.parentId) {
+    if (validatedData.parentId) {
       // Notify parent comment author of reply
-      yield* Effect.catchAll(notificationRepo.notifyCommentReply(body.parentId, newComment.id, user.id, videoId), () =>
+      yield* Effect.catchAll(notificationRepo.notifyCommentReply(validatedData.parentId, newComment.id, user.id, videoId), () =>
         Effect.succeed(null),
       );
     } else {

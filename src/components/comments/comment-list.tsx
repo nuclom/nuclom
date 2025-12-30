@@ -13,7 +13,7 @@ import { CommentThread } from "./comment-thread";
 
 interface CommentListProps {
   videoId: string;
-  videoAuthorId: string;
+  videoAuthorId: string | null; // Can be null if video author was deleted
   initialComments: CommentWithReplies[];
   currentUser?: {
     id: string;
@@ -168,7 +168,7 @@ export function CommentList({
                 key={comment.id}
                 comment={comment}
                 currentUserId={currentUser?.id}
-                videoAuthorId={videoAuthorId}
+                videoAuthorId={videoAuthorId ?? undefined}
                 videoId={videoId}
                 onCreateComment={handleCreateComment}
                 onEditComment={handleEditComment}

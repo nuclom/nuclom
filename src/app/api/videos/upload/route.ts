@@ -2,8 +2,6 @@ import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import {
   AppLive,
-  getMaxFileSize,
-  isSupportedVideoFormat,
   MissingFieldError,
   ValidationError,
   VideoProcessor,
@@ -15,6 +13,15 @@ import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
+import {
+  validateFormData,
+  videoUploadSchema,
+  validateVideoFile,
+  sanitizeTitle,
+  sanitizeDescription,
+  MAX_FILE_SIZES,
+  SUPPORTED_VIDEO_EXTENSIONS,
+} from "@/lib/validation";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
@@ -97,88 +104,70 @@ export async function POST(request: NextRequest) {
         }),
     });
 
-    const file = formData.get("video") as File | null;
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-    const organizationId = formData.get("organizationId") as string;
-    const authorId = formData.get("authorId") as string;
-    const channelId = formData.get("channelId") as string;
-    const collectionId = formData.get("collectionId") as string;
-    const skipAIProcessing = formData.get("skipAIProcessing") === "true";
+    // Validate form fields with Zod schema
+    const validatedData = yield* validateFormData(videoUploadSchema, formData);
 
-    // Validate required fields
+    // Get the video file
+    const file = formData.get("video") as File | null;
     if (!file) {
       return yield* Effect.fail(new MissingFieldError({ field: "video", message: "Video file is required" }));
     }
 
-    if (!title) {
-      return yield* Effect.fail(new MissingFieldError({ field: "title", message: "Title is required" }));
-    }
+    // Sanitize user-provided content to prevent XSS
+    const sanitizedTitle = sanitizeTitle(validatedData.title);
+    const sanitizedDescription = validatedData.description
+      ? sanitizeDescription(validatedData.description)
+      : undefined;
 
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({ field: "organizationId", message: "Organization ID is required" }),
-      );
-    }
+    const skipAIProcessing = validatedData.skipAIProcessing === "true";
 
-    if (!authorId) {
-      return yield* Effect.fail(new MissingFieldError({ field: "authorId", message: "Author ID is required" }));
-    }
-
-    // Validate file type (using pure function)
-    if (!isSupportedVideoFormat(file.name)) {
-      return yield* Effect.fail(
-        new ValidationError({
-          message: "Unsupported video format. Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV, M4V, 3GP",
-        }),
-      );
-    }
-
-    // Validate file size (using pure function)
-    if (file.size > getMaxFileSize()) {
-      return yield* Effect.fail(
-        new ValidationError({
-          message: `File size exceeds maximum limit of ${getMaxFileSize() / (1024 * 1024)}MB`,
-        }),
-      );
-    }
-
-    // Convert file to buffer
-    const buffer = yield* Effect.tryPromise({
-      try: async () => Buffer.from(await file.arrayBuffer()),
+    // Read file into buffer for validation
+    const arrayBuffer = yield* Effect.tryPromise({
+      try: () => file.arrayBuffer(),
       catch: () =>
         new ValidationError({
           message: "Failed to read file",
         }),
     });
 
+    // Validate video file with magic bytes detection
+    // This prevents uploading malicious files disguised as videos
+    yield* validateVideoFile({
+      buffer: arrayBuffer,
+      name: file.name,
+      size: file.size,
+    });
+
+    // Convert to buffer for processing
+    const buffer = Buffer.from(arrayBuffer);
+
     // Process video using VideoProcessor service (uploads to R2)
     const processor = yield* VideoProcessor;
-    const processingResult = yield* processor.processVideo(buffer, file.name, organizationId);
+    const processingResult = yield* processor.processVideo(buffer, file.name, validatedData.organizationId);
 
     // Check plan limits and track usage before proceeding
     // This checks both storage and video count limits
     const billingRepo = yield* BillingRepository;
-    const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
+    const subscriptionOption = yield* billingRepo.getSubscriptionOption(validatedData.organizationId);
 
     // If organization has a subscription, check and track usage
     if (Option.isSome(subscriptionOption)) {
-      yield* trackVideoUpload(organizationId, file.size);
+      yield* trackVideoUpload(validatedData.organizationId, file.size);
     }
 
     // Save video metadata to database using VideoRepository
     // Set initial status to 'pending' - workflow will update it
     const videoRepo = yield* VideoRepository;
     const insertedVideo = yield* videoRepo.createVideo({
-      title,
-      description,
+      title: sanitizedTitle,
+      description: sanitizedDescription,
       duration: processingResult.duration,
       thumbnailUrl: processingResult.thumbnailUrl || undefined,
       videoUrl: processingResult.videoUrl,
-      authorId,
-      organizationId,
-      channelId: channelId || undefined,
-      collectionId: collectionId || undefined,
+      authorId: validatedData.authorId,
+      organizationId: validatedData.organizationId,
+      channelId: validatedData.channelId || undefined,
+      collectionId: validatedData.collectionId || undefined,
       processingStatus: skipAIProcessing ? "completed" : "pending",
     });
 
@@ -189,7 +178,7 @@ export async function POST(request: NextRequest) {
       duration: processingResult.duration,
       processingStatus: insertedVideo.processingStatus,
       skipAIProcessing,
-      videoTitle: title,
+      videoTitle: sanitizedTitle,
       fileSize: file.size,
     };
   });
