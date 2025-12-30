@@ -316,3 +316,26 @@ export {
   createImportedMeeting,
   updateImportedMeeting,
 } from "./integration-repository";
+
+// Search Repository
+export type {
+  SearchParams,
+  CreateSearchHistoryInput,
+  CreateSavedSearchInput,
+  UpdateSavedSearchInput,
+  SearchRepositoryService,
+} from "./search-repository";
+export {
+  SearchRepository,
+  SearchRepositoryLive,
+  search,
+  getSuggestions,
+  getRecentSearches,
+  saveSearchHistory,
+  clearSearchHistory,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
+  quickSearch,
+} from "./search-repository";

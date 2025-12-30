@@ -20,6 +20,7 @@ import { type IntegrationRepository, IntegrationRepositoryLive } from "./service
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
+import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
 import { type Storage, StorageLive } from "./services/storage";
 import { type StripeServiceTag, StripeServiceLive } from "./services/stripe";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
@@ -49,11 +50,10 @@ const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(Datab
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository and StripeService
-const BillingWithDeps = BillingLive.pipe(
-  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)),
-);
+const BillingWithDeps = BillingLive.pipe(Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)));
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -66,6 +66,7 @@ const AppServicesLive = Layer.mergeAll(
   IntegrationRepositoryWithDeps,
   BillingRepositoryWithDeps,
   BillingWithDeps,
+  SearchRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -88,7 +89,8 @@ export type AppServices =
   | IntegrationRepository
   | BillingRepository
   | Billing
-  | StripeServiceTag;
+  | StripeServiceTag
+  | SearchRepository;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

@@ -19,7 +19,12 @@ import { CommandBar } from "./command-bar";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { ThemeToggle } from "./theme-toggle";
 
-export function TopNav({ organization }: { organization: string }) {
+interface TopNavProps {
+  organization: string;
+  organizationId?: string;
+}
+
+export function TopNav({ organization, organizationId }: TopNavProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -58,7 +63,7 @@ export function TopNav({ organization }: { organization: string }) {
 
         <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <CommandBar organization={organization} />
+            <CommandBar organization={organization} organizationId={organizationId} />
           </div>
           <Button className="hidden sm:inline-flex bg-[hsl(var(--brand-accent))] hover:bg-[hsl(var(--brand-accent))] hover:opacity-90 text-white">
             <Plus className="h-4 w-4 mr-2" />

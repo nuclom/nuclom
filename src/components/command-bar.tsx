@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderKanban, Home, Plus, SearchIcon, Settings, Users, Video } from "lucide-react";
+import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,18 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import type { VideoWithAuthor } from "@/lib/types";
 
-export function CommandBar({ organization }: { organization: string }) {
+interface CommandBarProps {
+  organization: string;
+  organizationId?: string;
+}
+
+export function CommandBar({ organization, organizationId }: CommandBarProps) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const [searchResults, setSearchResults] = React.useState<VideoWithAuthor[]>([]);
+  const [isSearching, setIsSearching] = React.useState(false);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -31,10 +40,46 @@ export function CommandBar({ organization }: { organization: string }) {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  // Search for videos when query changes
+  React.useEffect(() => {
+    if (!query.trim() || !organizationId) {
+      setSearchResults([]);
+      return;
+    }
+
+    const searchVideos = async () => {
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `/api/search/quick?q=${encodeURIComponent(query)}&organizationId=${organizationId}&limit=5`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setSearchResults(data);
+        }
+      } catch (error) {
+        console.error("Search failed:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchVideos, 200);
+    return () => clearTimeout(timeoutId);
+  }, [query, organizationId]);
+
   const runCommand = React.useCallback((command: () => unknown) => {
     setOpen(false);
+    setQuery("");
+    setSearchResults([]);
     command();
   }, []);
+
+  const handleSearchSubmit = React.useCallback(() => {
+    if (query.trim()) {
+      runCommand(() => router.push(`/${organization}/search?q=${encodeURIComponent(query.trim())}`));
+    }
+  }, [query, router, organization, runCommand]);
 
   return (
     <>
@@ -53,9 +98,78 @@ export function CommandBar({ organization }: { organization: string }) {
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
+        <CommandInput
+          placeholder="Search videos or type a command..."
+          value={query}
+          onValueChange={setQuery}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim()) {
+              e.preventDefault();
+              handleSearchSubmit();
+            }
+          }}
+        />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>
+            {isSearching ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Searching...
+              </div>
+            ) : query.trim() ? (
+              <div className="text-center py-6">
+                <p>No results found for "{query}"</p>
+                <Button variant="link" className="mt-2" onClick={handleSearchSubmit}>
+                  Search in all videos
+                </Button>
+              </div>
+            ) : (
+              "Type to search or select a command..."
+            )}
+          </CommandEmpty>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <>
+              <CommandGroup heading="Videos">
+                {searchResults.map((video) => (
+                  <CommandItem
+                    key={video.id}
+                    onSelect={() => runCommand(() => router.push(`/${organization}/videos/${video.id}`))}
+                  >
+                    <Video className="mr-2 h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span className="truncate">{video.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        by {video.author.name} • {video.duration}
+                      </span>
+                    </div>
+                  </CommandItem>
+                ))}
+                {query.trim() && (
+                  <CommandItem onSelect={handleSearchSubmit}>
+                    <Search className="mr-2 h-4 w-4" />
+                    <span>Search for "{query}"...</span>
+                  </CommandItem>
+                )}
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
+          {/* Show search option if query exists but no results yet */}
+          {query.trim() && searchResults.length === 0 && !isSearching && (
+            <>
+              <CommandGroup heading="Search">
+                <CommandItem onSelect={handleSearchSubmit}>
+                  <Search className="mr-2 h-4 w-4" />
+                  <span>Search for "{query}"</span>
+                </CommandItem>
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          )}
+
           <CommandGroup heading="Navigation">
             <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}`))}>
               <Home className="mr-2 h-4 w-4" />
@@ -68,6 +182,10 @@ export function CommandBar({ organization }: { organization: string }) {
             <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/notebooks`))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>Notebooks</span>
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/search`))}>
+              <Search className="mr-2 h-4 w-4" />
+              <span>Advanced Search</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />

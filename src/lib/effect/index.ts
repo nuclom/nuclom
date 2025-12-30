@@ -130,6 +130,12 @@ export type {
   UpdateIntegrationInput,
   CreateImportedMeetingInput,
   UpdateImportedMeetingInput,
+  // Search Repository
+  SearchRepositoryService,
+  SearchParams,
+  CreateSearchHistoryInput,
+  CreateSavedSearchInput,
+  UpdateSavedSearchInput,
 } from "./services";
 
 // Services - explicitly export to avoid conflicts
@@ -261,6 +267,19 @@ export {
   getImportedMeetings,
   createImportedMeeting,
   updateImportedMeeting,
+  // Search Repository
+  SearchRepository,
+  SearchRepositoryLive,
+  search,
+  getSuggestions,
+  getRecentSearches,
+  saveSearchHistory,
+  clearSearchHistory,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
+  quickSearch,
 } from "./services";
 
 export type { StreamChunk } from "./streaming";
