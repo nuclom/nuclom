@@ -62,7 +62,26 @@ export {
   generateVideoSummary,
   generateVideoTags,
   extractActionItems,
+  extractActionItemsWithTimestamps,
+  detectCodeSnippets,
+  generateChapters,
   createSummaryStream,
+  // Transcription
+  Transcription,
+  TranscriptionLive,
+  transcribeFromUrl,
+  transcribeAudio,
+  isTranscriptionAvailable,
+  TranscriptionError,
+  AudioExtractionError,
+  // VideoAIProcessor
+  VideoAIProcessor,
+  VideoAIProcessorLive,
+  processVideoAI,
+  processFromTranscript,
+  updateVideoProcessingStatus,
+  getVideoProcessingStatus,
+  VideoAIProcessingError,
   // VideoProcessor
   VideoProcessor,
   VideoProcessorLive,
@@ -78,7 +97,10 @@ export {
   getVideo,
   createVideo,
   updateVideo,
+  deleteVideo,
   deleteVideoRecord,
+  getVideoChapters,
+  getVideoCodeSnippets,
   // OrganizationRepository
   OrganizationRepository,
   OrganizationRepositoryLive,
@@ -107,6 +129,15 @@ export type {
   // AI
   AIServiceInterface,
   VideoSummary,
+  ChapterResult,
+  CodeSnippetResult,
+  ActionItemResult,
+  // Transcription
+  TranscriptionResult,
+  TranscriptionServiceInterface,
+  // VideoAIProcessor
+  AIProcessingResult,
+  VideoAIProcessorServiceInterface,
   // VideoProcessor
   VideoProcessorService,
   VideoInfo,
@@ -114,6 +145,8 @@ export type {
   ProcessingProgress,
   // VideoRepository
   VideoRepositoryService,
+  CreateVideoInput,
+  UpdateVideoInput,
   // OrganizationRepository
   OrganizationRepositoryService,
   OrganizationWithRole,

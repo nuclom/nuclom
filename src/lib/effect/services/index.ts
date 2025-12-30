@@ -50,9 +50,42 @@ export {
   generateVideoSummary,
   generateVideoTags,
   extractActionItems,
+  extractActionItemsWithTimestamps,
+  detectCodeSnippets,
+  generateChapters,
   createSummaryStream,
 } from "./ai";
-export type { AIServiceInterface, VideoSummary } from "./ai";
+export type {
+  AIServiceInterface,
+  VideoSummary,
+  ChapterResult,
+  CodeSnippetResult,
+  ActionItemResult,
+} from "./ai";
+
+// Transcription Service
+export {
+  Transcription,
+  TranscriptionLive,
+  transcribeFromUrl,
+  transcribeAudio,
+  isTranscriptionAvailable,
+  TranscriptionError,
+  AudioExtractionError,
+} from "./transcription";
+export type { TranscriptionResult, TranscriptionServiceInterface } from "./transcription";
+
+// Video AI Processor Service
+export {
+  VideoAIProcessor,
+  VideoAIProcessorLive,
+  processVideoAI,
+  processFromTranscript,
+  updateVideoProcessingStatus,
+  getVideoProcessingStatus,
+  VideoAIProcessingError,
+} from "./video-ai-processor";
+export type { AIProcessingResult, VideoAIProcessorServiceInterface } from "./video-ai-processor";
 
 // Video Processor Service
 export {
@@ -79,9 +112,12 @@ export {
   getVideo,
   createVideo,
   updateVideo,
-  deleteVideo as deleteVideoRecord,
+  deleteVideo,
+  deleteVideoRecord,
+  getVideoChapters,
+  getVideoCodeSnippets,
 } from "./video-repository";
-export type { VideoRepositoryService } from "./video-repository";
+export type { VideoRepositoryService, CreateVideoInput, UpdateVideoInput } from "./video-repository";
 
 // Organization Repository
 export {

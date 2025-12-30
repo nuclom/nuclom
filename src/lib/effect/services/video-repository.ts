@@ -5,9 +5,21 @@
  */
 
 import { Effect, Context, Layer, pipe } from "effect";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 import { Database } from "./database";
-import { videos, users, organizations, channels, collections, comments } from "@/lib/db/schema";
+import {
+  videos,
+  users,
+  organizations,
+  channels,
+  collections,
+  comments,
+  videoChapters,
+  videoCodeSnippets,
+  type ProcessingStatus,
+  type TranscriptSegment,
+  type ActionItem,
+} from "@/lib/db/schema";
 import type { VideoWithAuthor, VideoWithDetails, PaginatedResponse } from "@/lib/types";
 import { DatabaseError, NotFoundError, type DbError } from "../errors";
 
@@ -26,7 +38,11 @@ export interface CreateVideoInput {
   readonly channelId?: string;
   readonly collectionId?: string;
   readonly transcript?: string;
+  readonly transcriptSegments?: TranscriptSegment[];
+  readonly processingStatus?: ProcessingStatus;
   readonly aiSummary?: string;
+  readonly aiTags?: string[];
+  readonly aiActionItems?: ActionItem[];
 }
 
 export interface UpdateVideoInput {
@@ -37,7 +53,12 @@ export interface UpdateVideoInput {
   readonly channelId?: string | null;
   readonly collectionId?: string | null;
   readonly transcript?: string | null;
+  readonly transcriptSegments?: TranscriptSegment[] | null;
+  readonly processingStatus?: ProcessingStatus;
+  readonly processingError?: string | null;
   readonly aiSummary?: string | null;
+  readonly aiTags?: string[] | null;
+  readonly aiActionItems?: ActionItem[] | null;
 }
 
 export interface VideoRepositoryService {
@@ -72,6 +93,20 @@ export interface VideoRepositoryService {
    * Delete a video
    */
   readonly deleteVideo: (id: string) => Effect.Effect<void, DatabaseError | NotFoundError>;
+
+  /**
+   * Get video chapters
+   */
+  readonly getVideoChapters: (
+    videoId: string,
+  ) => Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError>;
+
+  /**
+   * Get video code snippets
+   */
+  readonly getVideoCodeSnippets: (
+    videoId: string,
+  ) => Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError>;
 }
 
 // =============================================================================
@@ -109,7 +144,12 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             channelId: videos.channelId,
             collectionId: videos.collectionId,
             transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
             aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
             createdAt: videos.createdAt,
             updatedAt: videos.updatedAt,
             author: {
@@ -170,7 +210,12 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               channelId: videos.channelId,
               collectionId: videos.collectionId,
               transcript: videos.transcript,
+              transcriptSegments: videos.transcriptSegments,
+              processingStatus: videos.processingStatus,
+              processingError: videos.processingError,
               aiSummary: videos.aiSummary,
+              aiTags: videos.aiTags,
+              aiActionItems: videos.aiActionItems,
               createdAt: videos.createdAt,
               updatedAt: videos.updatedAt,
               author: {
@@ -369,12 +414,52 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       }
     });
 
+  const getVideoChapters = (
+    videoId: string,
+  ): Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        return await db
+          .select()
+          .from(videoChapters)
+          .where(eq(videoChapters.videoId, videoId))
+          .orderBy(asc(videoChapters.startTime));
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch video chapters",
+          operation: "getVideoChapters",
+          cause: error,
+        }),
+    });
+
+  const getVideoCodeSnippets = (
+    videoId: string,
+  ): Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        return await db
+          .select()
+          .from(videoCodeSnippets)
+          .where(eq(videoCodeSnippets.videoId, videoId))
+          .orderBy(asc(videoCodeSnippets.timestamp));
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch video code snippets",
+          operation: "getVideoCodeSnippets",
+          cause: error,
+        }),
+    });
+
   return {
     getVideos,
     getVideo,
     createVideo,
     updateVideo,
     deleteVideo,
+    getVideoChapters,
+    getVideoCodeSnippets,
   } satisfies VideoRepositoryService;
 });
 
@@ -425,4 +510,23 @@ export const deleteVideo = (id: string): Effect.Effect<void, DatabaseError | Not
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.deleteVideo(id);
+  });
+
+// For backwards compatibility - renamed export
+export const deleteVideoRecord = deleteVideo;
+
+export const getVideoChapters = (
+  videoId: string,
+): Effect.Effect<typeof videoChapters.$inferSelect[], DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getVideoChapters(videoId);
+  });
+
+export const getVideoCodeSnippets = (
+  videoId: string,
+): Effect.Effect<typeof videoCodeSnippets.$inferSelect[], DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getVideoCodeSnippets(videoId);
   });

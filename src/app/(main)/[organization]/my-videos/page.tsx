@@ -52,7 +52,12 @@ export default async function MyVideosPage({ params }: { params: Promise<{ organ
               channelId: null,
               collectionId: null,
               transcript: null,
+              transcriptSegments: null,
+              processingStatus: "completed",
+              processingError: null,
               aiSummary: null,
+              aiTags: null,
+              aiActionItems: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {
