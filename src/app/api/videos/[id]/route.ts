@@ -1,10 +1,12 @@
 import { asc, eq, isNull } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import type { NewVideo } from "@/lib/db/schema";
 import { comments, videos } from "@/lib/db/schema";
 import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
+import { BillingRepository } from "@/lib/effect/services/billing-repository";
+import { releaseVideoCount, releaseStorageUsage } from "@/lib/effect/services/billing-middleware";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -176,9 +178,21 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
-    // Delete video using repository
+    // First, get the video to know its organization
     const videoRepo = yield* VideoRepository;
+    const video = yield* videoRepo.getVideo(resolvedParams.id);
+
+    // Delete video using repository (this also removes from storage)
     yield* videoRepo.deleteVideo(resolvedParams.id);
+
+    // Release usage tracking for the organization
+    const billingRepo = yield* BillingRepository;
+    const subscriptionOption = yield* billingRepo.getSubscriptionOption(video.organizationId);
+
+    if (Option.isSome(subscriptionOption)) {
+      // Release video count (we don't track individual file sizes, so just release the count)
+      yield* releaseVideoCount(video.organizationId).pipe(Effect.catchAll(() => Effect.void));
+    }
 
     return { message: "Video deleted successfully" };
   });

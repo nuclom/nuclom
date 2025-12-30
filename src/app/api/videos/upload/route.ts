@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import {
   AppLive,
@@ -9,6 +9,9 @@ import {
   VideoProcessor,
   VideoRepository,
 } from "@/lib/effect";
+import { BillingRepository } from "@/lib/effect/services/billing-repository";
+import { trackVideoUpload, requireActiveSubscription } from "@/lib/effect/services/billing-middleware";
+import { PlanLimitExceededError } from "@/lib/effect/errors";
 import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
@@ -45,9 +48,14 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
       case "StorageNotConfiguredError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
+      case "PlanLimitExceededError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
+      case "NoSubscriptionError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
       case "VideoProcessingError":
       case "UploadError":
       case "DatabaseError":
+      case "UsageTrackingError":
         console.error(`[${taggedError._tag}]`, taggedError);
         return NextResponse.json({ success: false, error: "Failed to upload video" }, { status: 500 });
       default:
@@ -148,6 +156,16 @@ export async function POST(request: NextRequest) {
     const processor = yield* VideoProcessor;
     const processingResult = yield* processor.processVideo(buffer, file.name, organizationId);
 
+    // Check plan limits and track usage before proceeding
+    // This checks both storage and video count limits
+    const billingRepo = yield* BillingRepository;
+    const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
+
+    // If organization has a subscription, check and track usage
+    if (Option.isSome(subscriptionOption)) {
+      yield* trackVideoUpload(organizationId, file.size);
+    }
+
     // Save video metadata to database using VideoRepository
     // Set initial status to 'pending' - workflow will update it
     const videoRepo = yield* VideoRepository;
@@ -172,6 +190,7 @@ export async function POST(request: NextRequest) {
       processingStatus: insertedVideo.processingStatus,
       skipAIProcessing,
       videoTitle: title,
+      fileSize: file.size,
     };
   });
 
