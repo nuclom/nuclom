@@ -4,11 +4,32 @@ The Notifications API provides endpoints for managing user notifications, includ
 
 ## Overview
 
-Notifications are automatically created when:
+Nuclom has a comprehensive notification system that supports both in-app notifications and email notifications. Notifications are automatically created when:
+
+### Comment Events
 - Someone replies to your comment
 - Someone comments on your video
 - You are @mentioned in a comment
+
+### Video Events
 - A video is shared with you
+- Your video processing is complete
+- Your video processing fails
+
+### Organization Events
+- You receive an invitation to join an organization
+
+### Billing Events
+- Your trial is ending soon
+- Your subscription is created
+- Your subscription is updated
+- Your subscription is canceled
+- A payment succeeds
+- A payment fails
+
+## Email Notifications
+
+Email notifications are automatically sent alongside in-app notifications for important events. Emails include styled HTML templates with action buttons. You can configure the sender email address using the `RESEND_FROM_EMAIL` environment variable.
 
 ## Endpoints
 
@@ -130,12 +151,21 @@ Authorization: Bearer {token}
 
 ## Notification Types
 
-| Type | Description |
-|------|-------------|
-| `comment_reply` | Someone replied to your comment |
-| `comment_mention` | You were @mentioned in a comment |
-| `new_comment_on_video` | Someone commented on your video |
-| `video_shared` | A video was shared with you |
+| Type | Description | Email Sent |
+|------|-------------|------------|
+| `comment_reply` | Someone replied to your comment | Yes |
+| `comment_mention` | You were @mentioned in a comment | No |
+| `new_comment_on_video` | Someone commented on your video | Yes |
+| `video_shared` | A video was shared with you | No |
+| `video_processing_complete` | Your video has finished processing | Yes |
+| `video_processing_failed` | Your video failed to process | Yes |
+| `invitation_received` | You received an organization invitation | Yes |
+| `trial_ending` | Your trial subscription is ending soon | Yes |
+| `subscription_created` | Your subscription was activated | Yes |
+| `subscription_updated` | Your subscription was updated | Yes |
+| `subscription_canceled` | Your subscription was canceled | Yes |
+| `payment_failed` | Your payment failed | Yes |
+| `payment_succeeded` | Your payment succeeded | Yes |
 
 ## Notification Object
 
