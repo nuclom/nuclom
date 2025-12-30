@@ -22,6 +22,7 @@ export interface ProcessingProgress {
   message: string;
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for video processing operations
 export class VideoProcessor {
   /**
    * Get video metadata without full processing
@@ -34,7 +35,7 @@ export class VideoProcessor {
     const estimatedDuration = Math.max(10, Math.floor(size / (1024 * 1024)) * 60); // Rough estimate
 
     return {
-      duration: this.formatDuration(estimatedDuration),
+      duration: VideoProcessor.formatDuration(estimatedDuration),
       width: 1920,
       height: 1080,
       format: "mp4",
@@ -62,7 +63,7 @@ export class VideoProcessor {
       });
 
       const videoKey = StorageService.generateFileKey(organizationId, `${videoId}-${filename}`, "video");
-      const contentType = this.getContentType(filename);
+      const contentType = VideoProcessor.getContentType(filename);
 
       const uploadResult = await StorageService.uploadLargeFile(
         buffer,
@@ -92,7 +93,7 @@ export class VideoProcessor {
       });
 
       // Stage 2: Get video information
-      const videoInfo = await this.getVideoInfo(buffer);
+      const videoInfo = await VideoProcessor.getVideoInfo(buffer);
 
       onProgress?.({
         stage: "generating_thumbnail",
@@ -101,7 +102,7 @@ export class VideoProcessor {
       });
 
       // Stage 3: Generate thumbnail
-      const thumbnailBuffer = await this.generateThumbnail(buffer, filename);
+      const thumbnailBuffer = await VideoProcessor.generateThumbnail(buffer, filename);
       const thumbnailKey = StorageService.generateFileKey(organizationId, `${videoId}-thumbnail.jpg`, "thumbnail");
 
       const thumbnailResult = await StorageService.uploadFile(thumbnailBuffer, thumbnailKey, {
@@ -135,7 +136,7 @@ export class VideoProcessor {
    * Generate a thumbnail from video
    * This is a mock implementation - in production you'd use ffmpeg
    */
-  private static async generateThumbnail(buffer: Buffer, filename: string): Promise<Buffer> {
+  private static async generateThumbnail(_buffer: Buffer, filename: string): Promise<Buffer> {
     // Mock thumbnail generation - create a simple colored rectangle
     // In production, you'd use ffmpeg to extract a frame from the video
 
@@ -144,14 +145,14 @@ export class VideoProcessor {
     const height = 180;
 
     // This is a very basic placeholder - you'd use a proper image library or ffmpeg
-    const placeholder = this.createPlaceholderImage(width, height, filename);
+    const placeholder = VideoProcessor.createPlaceholderImage(width, height, filename);
     return placeholder;
   }
 
   /**
    * Create a placeholder thumbnail image
    */
-  private static createPlaceholderImage(width: number, height: number, filename: string): Buffer {
+  private static createPlaceholderImage(_width: number, _height: number, _filename: string): Buffer {
     // Create a minimal JPEG-like buffer for a placeholder
     // In production, you'd use a proper image library like Sharp or Canvas
 

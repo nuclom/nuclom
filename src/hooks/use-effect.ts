@@ -7,10 +7,10 @@
  * with built-in error handling and loading states.
  */
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { Effect, Either, Option, Exit, Cause, pipe } from "effect";
-import { HttpError, ParseError } from "@/lib/effect/errors";
+import { type Effect, Either } from "effect";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { runClientEffect } from "@/lib/effect/client";
+import { HttpError, ParseError } from "@/lib/effect/errors";
 
 // =============================================================================
 // Types

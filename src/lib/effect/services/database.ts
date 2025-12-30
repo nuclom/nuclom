@@ -5,13 +5,13 @@
  * which integrates Drizzle ORM with Effect's execution model.
  */
 
-import { Effect, Context, Layer, Config, Redacted, pipe } from "effect";
+import { layer as pgDrizzleLayer } from "@effect/sql-drizzle/Pg";
 import { PgClient } from "@effect/sql-pg";
-import { PgDrizzle, layer as pgDrizzleLayer } from "@effect/sql-drizzle/Pg";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { Config, Context, Effect, Layer, pipe, Redacted } from "effect";
 import postgres from "postgres";
 import * as schema from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, TransactionError, DuplicateError } from "../errors";
+import { DatabaseError, DuplicateError, NotFoundError, TransactionError } from "../errors";
 
 // =============================================================================
 // Types

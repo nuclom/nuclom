@@ -4,99 +4,93 @@
  * All Effect-TS services are exported from this file.
  */
 
+export type { AIServiceInterface, VideoSummary } from "./ai";
+// AI Service
+export {
+  AI,
+  AILive,
+  createSummaryStream,
+  extractActionItems,
+  generateVideoSummary,
+  generateVideoTags,
+} from "./ai";
+export type { AuthServiceInterface, UserSession } from "./auth";
+// Auth Service
+export {
+  Auth,
+  getSession,
+  getSessionOption,
+  makeAuthLayer,
+  makeAuthService,
+  requireAdmin,
+  requireAuth,
+  requireRole,
+} from "./auth";
+export type { DatabaseService, DrizzleDB } from "./database";
 // Database Service
 export {
   Database,
   DatabaseLive,
   DrizzleLive,
+  findOneOrFail,
+  getDb,
+  insertUnique,
   query,
   transaction,
-  findOneOrFail,
-  insertUnique,
-  getDb,
 } from "./database";
-export type { DrizzleDB, DatabaseService } from "./database";
-
+export type {
+  CreateOrganizationInput,
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+} from "./organization-repository";
+// Organization Repository
+export {
+  createOrganization,
+  getActiveOrganization,
+  getOrganization,
+  getOrganizationBySlug,
+  getUserOrganizations,
+  getUserRole,
+  isMember,
+  OrganizationRepository,
+  OrganizationRepositoryLive,
+} from "./organization-repository";
+export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
 // Storage Service
 export {
+  deleteFile,
+  generateFileKey,
+  generatePresignedUploadUrl,
+  getPublicUrl,
   Storage,
   StorageLive,
   uploadFile,
   uploadLargeFile,
-  deleteFile,
-  generatePresignedUploadUrl,
-  getPublicUrl,
-  generateFileKey,
 } from "./storage";
-export type { StorageService, StorageConfig, UploadResult, UploadOptions, UploadProgress } from "./storage";
-
-// Auth Service
-export {
-  Auth,
-  makeAuthLayer,
-  makeAuthService,
-  getSession,
-  getSessionOption,
-  requireAuth,
-  requireRole,
-  requireAdmin,
-} from "./auth";
-export type { AuthServiceInterface, UserSession } from "./auth";
-
-// AI Service
-export {
-  AI,
-  AILive,
-  generateVideoSummary,
-  generateVideoTags,
-  extractActionItems,
-  createSummaryStream,
-} from "./ai";
-export type { AIServiceInterface, VideoSummary } from "./ai";
-
+export type {
+  ProcessingProgress,
+  ProcessingResult,
+  VideoInfo,
+  VideoProcessorService,
+} from "./video-processor";
 // Video Processor Service
 export {
-  VideoProcessor,
-  VideoProcessorLive,
-  processVideo,
-  validateVideo,
+  getMaxFileSize,
   getVideoInfo,
   isSupportedVideoFormat,
-  getMaxFileSize,
+  processVideo,
+  VideoProcessor,
+  VideoProcessorLive,
+  validateVideo,
 } from "./video-processor";
-export type {
-  VideoProcessorService,
-  VideoInfo,
-  ProcessingResult,
-  ProcessingProgress,
-} from "./video-processor";
-
+export type { VideoRepositoryService } from "./video-repository";
 // Video Repository
 export {
+  createVideo,
+  deleteVideo as deleteVideoRecord,
+  getVideo,
+  getVideos,
+  updateVideo,
   VideoRepository,
   VideoRepositoryLive,
-  getVideos,
-  getVideo,
-  createVideo,
-  updateVideo,
-  deleteVideo as deleteVideoRecord,
 } from "./video-repository";
-export type { VideoRepositoryService } from "./video-repository";
-
-// Organization Repository
-export {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-  createOrganization,
-  getUserOrganizations,
-  getActiveOrganization,
-  getOrganization,
-  getOrganizationBySlug,
-  isMember,
-  getUserRole,
-} from "./organization-repository";
-export type {
-  OrganizationRepositoryService,
-  OrganizationWithRole,
-  CreateOrganizationInput,
-} from "./organization-repository";

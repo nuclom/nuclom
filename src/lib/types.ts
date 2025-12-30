@@ -1,4 +1,4 @@
-import type { Channel, Collection, Comment, User, Video, Organization, Member } from "./db/schema";
+import type { Channel, Collection, Comment, Member, Organization, User, Video } from "./db/schema";
 
 export type VideoWithAuthor = Video & {
   author: User;

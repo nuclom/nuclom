@@ -1,7 +1,6 @@
-import { Suspense } from "react";
 import { Bookmark, Code, ListTodo, MessageSquarePlus, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,6 +111,7 @@ function VideoDetail({ video }: VideoDetailProps) {
             {transcriptLines.length > 0 ? (
               <div className="space-y-1 font-mono">
                 {transcriptLines.map((line, index) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Transcript lines are ordered and don't change
                   <TranscriptLine key={index} time={line.time} text={line.text} />
                 ))}
               </div>
@@ -213,6 +213,7 @@ function VideoDetail({ video }: VideoDetailProps) {
                         </h4>
                         <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                           {actionItems.map((item, index) => (
+                            // biome-ignore lint/suspicious/noArrayIndexKey: Action items list is static
                             <li key={index}>{item}</li>
                           ))}
                         </ul>
