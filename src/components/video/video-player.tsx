@@ -2,6 +2,8 @@
 
 import {
   AlertCircle,
+  Captions,
+  CaptionsOff,
   Keyboard,
   Loader2,
   Maximize,
@@ -48,17 +50,32 @@ export interface VideoChapter {
   summary?: string;
 }
 
+export interface CaptionTrack {
+  /** Language code (e.g., "en", "es") */
+  code: string;
+  /** Language display name */
+  label: string;
+  /** URL to the subtitle file */
+  src: string;
+  /** Whether this is the default track */
+  default?: boolean;
+}
+
 export interface VideoPlayerProps {
   /** The video URL to play */
   url: string;
   /** Video title for accessibility */
   title: string;
+  /** Optional video ID for loading captions from API */
+  videoId?: string;
   /** Optional thumbnail URL to show before playing */
   thumbnailUrl?: string;
   /** Initial playback position (0-1 fraction) */
   initialProgress?: number;
   /** Optional video chapters for timeline markers and navigation */
   chapters?: VideoChapter[];
+  /** Optional custom caption tracks (if not using videoId for auto-loading) */
+  captionTracks?: CaptionTrack[];
   /** Called when playback progress changes */
   onProgress?: (progress: VideoProgress) => void;
   /** Called when video playback ends */
@@ -98,7 +115,8 @@ const KEYBOARD_SHORTCUTS = [
   { key: "M", action: "Mute / Unmute" },
   { key: "F", action: "Fullscreen" },
   { key: "P", action: "Picture-in-Picture" },
-  { key: "C", action: "Toggle loop" },
+  { key: "C", action: "Toggle captions" },
+  { key: "R", action: "Toggle loop" },
   { key: "0-9", action: "Jump to 0-90%" },
   { key: "Home / End", action: "Start / End" },
 ] as const;
@@ -110,9 +128,11 @@ const KEYBOARD_SHORTCUTS = [
 export function VideoPlayer({
   url,
   title,
+  videoId,
   thumbnailUrl,
   initialProgress = 0,
   chapters = [],
+  captionTracks: customCaptionTracks,
   onProgress,
   onEnded,
   onError,
@@ -146,6 +166,42 @@ export function VideoPlayer({
   const [hoverPosition, setHoverPosition] = useState<number>(0);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [pipSupported, setPipSupported] = useState(false);
+
+  // Caption state
+  const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const [selectedCaptionTrack, setSelectedCaptionTrack] = useState<string | null>(null);
+  const [availableCaptionTracks, setAvailableCaptionTracks] = useState<CaptionTrack[]>([]);
+
+  // Load caption tracks from API or use custom tracks
+  useEffect(() => {
+    if (customCaptionTracks && customCaptionTracks.length > 0) {
+      setAvailableCaptionTracks(customCaptionTracks);
+      const defaultTrack = customCaptionTracks.find((t) => t.default);
+      if (defaultTrack) {
+        setSelectedCaptionTrack(defaultTrack.code);
+      }
+    } else if (videoId) {
+      // Fetch available captions from API
+      fetch(`/api/videos/${videoId}/subtitles`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data?.languages) {
+            const tracks: CaptionTrack[] = data.data.languages
+              .filter((lang: { available: boolean }) => lang.available)
+              .map((lang: { code: string; name: string; isOriginal: boolean; url: string }) => ({
+                code: lang.code,
+                label: lang.name,
+                src: lang.url,
+                default: lang.isOriginal,
+              }));
+            setAvailableCaptionTracks(tracks);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load caption tracks:", err);
+        });
+    }
+  }, [videoId, customCaptionTracks]);
 
   // Keep callback ref up to date
   progressCallbackRef.current = onProgress;
@@ -265,6 +321,59 @@ export function VideoPlayer({
     video.loop = newLoopState;
     setIsLooping(newLoopState);
   }, [isLooping]);
+
+  // Caption functions
+  const toggleCaptions = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || availableCaptionTracks.length === 0) return;
+
+    if (captionsEnabled) {
+      // Disable all tracks
+      Array.from(video.textTracks).forEach((track) => {
+        track.mode = "disabled";
+      });
+      setCaptionsEnabled(false);
+    } else {
+      // Enable selected track (or first available)
+      const trackToEnable = selectedCaptionTrack || availableCaptionTracks[0]?.code;
+      if (trackToEnable) {
+        setSelectedCaptionTrack(trackToEnable);
+        Array.from(video.textTracks).forEach((track) => {
+          if (track.language === trackToEnable) {
+            track.mode = "showing";
+          } else {
+            track.mode = "disabled";
+          }
+        });
+        setCaptionsEnabled(true);
+      }
+    }
+  }, [captionsEnabled, selectedCaptionTrack, availableCaptionTracks]);
+
+  const selectCaptionTrack = useCallback((trackCode: string | null) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (trackCode === null) {
+      // Disable all tracks
+      Array.from(video.textTracks).forEach((track) => {
+        track.mode = "disabled";
+      });
+      setCaptionsEnabled(false);
+      setSelectedCaptionTrack(null);
+    } else {
+      setSelectedCaptionTrack(trackCode);
+      setCaptionsEnabled(true);
+      // Enable the selected track, disable others
+      Array.from(video.textTracks).forEach((track) => {
+        if (track.language === trackCode) {
+          track.mode = "showing";
+        } else {
+          track.mode = "disabled";
+        }
+      });
+    }
+  }, []);
 
   const seekToChapter = useCallback(
     (chapter: VideoChapter) => {
@@ -496,6 +605,10 @@ export function VideoPlayer({
           break;
         case "c":
           e.preventDefault();
+          toggleCaptions();
+          break;
+        case "r":
+          e.preventDefault();
           toggleLoop();
           break;
         case "?":
@@ -537,6 +650,7 @@ export function VideoPlayer({
     toggleMute,
     togglePictureInPicture,
     toggleLoop,
+    toggleCaptions,
     seek,
     volume,
     duration,
@@ -660,6 +774,7 @@ export function VideoPlayer({
         className="w-full h-full object-contain"
         preload="metadata"
         playsInline
+        crossOrigin="anonymous"
         onClick={handleVideoClick}
         onLoadStart={handleLoadStart}
         onLoadedMetadata={handleLoadedMetadata}
@@ -671,7 +786,17 @@ export function VideoPlayer({
         onWaiting={handleWaiting}
         onCanPlay={handleCanPlay}
       >
-        <track kind="captions" src="" label="Captions" />
+        {/* Caption Tracks */}
+        {availableCaptionTracks.map((track) => (
+          <track
+            key={track.code}
+            kind="captions"
+            src={track.src}
+            srcLang={track.code}
+            label={track.label}
+            default={track.default && captionsEnabled}
+          />
+        ))}
       </video>
 
       {/* Loading Overlay */}
@@ -993,6 +1118,42 @@ export function VideoPlayer({
                 </Button>
               </PopoverContent>
             </Popover>
+
+            {/* Captions */}
+            {availableCaptionTracks.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("text-white hover:bg-white/20", captionsEnabled && "bg-white/20")}
+                    aria-label={captionsEnabled ? "Captions on" : "Captions off"}
+                    title="Captions (C)"
+                  >
+                    {captionsEnabled ? <Captions className="h-4 w-4" /> : <CaptionsOff className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Subtitles</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => selectCaptionTrack(null)}
+                    className={cn(!captionsEnabled && "bg-accent")}
+                  >
+                    Off
+                  </DropdownMenuItem>
+                  {availableCaptionTracks.map((track) => (
+                    <DropdownMenuItem
+                      key={track.code}
+                      onClick={() => selectCaptionTrack(track.code)}
+                      className={cn(captionsEnabled && selectedCaptionTrack === track.code && "bg-accent")}
+                    >
+                      {track.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* Picture-in-Picture */}
             {pipSupported && (

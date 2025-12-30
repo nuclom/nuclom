@@ -138,6 +138,7 @@ export function VideoPlayerWithProgress({
       <VideoPlayer
         url={url}
         title={title}
+        videoId={videoId}
         thumbnailUrl={thumbnailUrl}
         initialProgress={initialProgressFraction}
         chapters={chapters}
