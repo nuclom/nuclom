@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm";
-import { bigint, boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("UserRole", ["user", "admin"]);
 export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member"]);
@@ -260,38 +260,53 @@ export type ActionItem = {
   readonly priority?: "high" | "medium" | "low";
 };
 
-export const videos = pgTable("videos", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  title: text("title").notNull(),
-  description: text("description"),
-  duration: text("duration").notNull(),
-  thumbnailUrl: text("thumbnail_url"),
-  videoUrl: text("video_url"),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => users.id),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  channelId: text("channel_id").references(() => channels.id),
-  collectionId: text("collection_id").references(() => collections.id),
-  // Transcription fields
-  transcript: text("transcript"),
-  transcriptSegments: jsonb("transcript_segments").$type<TranscriptSegment[]>(),
-  // AI Analysis fields
-  processingStatus: processingStatusEnum("processing_status").default("pending").notNull(),
-  processingError: text("processing_error"),
-  aiSummary: text("ai_summary"),
-  aiTags: jsonb("ai_tags").$type<string[]>(),
-  aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
-  // Soft-delete fields
-  deletedAt: timestamp("deleted_at"),
-  retentionUntil: timestamp("retention_until"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const videos = pgTable(
+  "videos",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    title: text("title").notNull(),
+    description: text("description"),
+    duration: text("duration").notNull(),
+    thumbnailUrl: text("thumbnail_url"),
+    videoUrl: text("video_url"),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").references(() => channels.id),
+    collectionId: text("collection_id").references(() => collections.id),
+    // Transcription fields
+    transcript: text("transcript"),
+    transcriptSegments: jsonb("transcript_segments").$type<TranscriptSegment[]>(),
+    // AI Analysis fields
+    processingStatus: processingStatusEnum("processing_status").default("pending").notNull(),
+    processingError: text("processing_error"),
+    aiSummary: text("ai_summary"),
+    aiTags: jsonb("ai_tags").$type<string[]>(),
+    aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
+    // Full-text search vector (managed by PostgreSQL trigger)
+    // Note: This column is of type tsvector in the database, but we use text() here
+    // to avoid TypeScript inference issues. The actual column type is handled by the migration.
+    searchVector: text("search_vector"),
+    // Soft-delete fields
+    deletedAt: timestamp("deleted_at"),
+    retentionUntil: timestamp("retention_until"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Note: searchVectorIdx is defined in the migration with GIN index on the actual tsvector column
+    organizationCreatedIdx: index("videos_organization_created_idx").on(table.organizationId, table.createdAt),
+    authorIdx: index("videos_author_id_idx").on(table.authorId),
+    channelIdx: index("videos_channel_id_idx").on(table.channelId),
+    collectionIdx: index("videos_collection_id_idx").on(table.collectionId),
+    processingStatusIdx: index("videos_processing_status_idx").on(table.processingStatus),
+  }),
+);
 
 export const comments = pgTable("comments", {
   id: text("id")
@@ -612,6 +627,72 @@ export const paymentMethods = pgTable("payment_methods", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// =====================
+// Search Tables
+// =====================
+
+// Types for search filters
+export type SearchFilters = {
+  readonly types?: ReadonlyArray<"video" | "series" | "channel">;
+  readonly authorId?: string;
+  readonly channelId?: string;
+  readonly collectionId?: string;
+  readonly dateFrom?: string;
+  readonly dateTo?: string;
+  readonly hasTranscript?: boolean;
+  readonly hasAiSummary?: boolean;
+  readonly processingStatus?: string;
+  readonly tags?: ReadonlyArray<string>;
+  readonly sortBy?: "relevance" | "date" | "title";
+  readonly sortOrder?: "asc" | "desc";
+};
+
+export const searchHistory = pgTable(
+  "search_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    query: text("query").notNull(),
+    filters: jsonb("filters").$type<SearchFilters>(),
+    resultsCount: integer("results_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userOrgIdx: index("search_history_user_org_idx").on(table.userId, table.organizationId, table.createdAt),
+  }),
+);
+
+export const savedSearches = pgTable(
+  "saved_searches",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    query: text("query").notNull(),
+    filters: jsonb("filters").$type<SearchFilters>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userOrgIdx: index("saved_searches_user_org_idx").on(table.userId, table.organizationId),
+    uniqueUserName: unique("saved_searches_user_name_unique").on(table.userId, table.organizationId, table.name),
+  }),
+);
+
 // Relations
 export const userRelations = relations(users, ({ many }) => ({
   videos: many(videos),
@@ -817,6 +898,29 @@ export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
   }),
 }));
 
+// Search relations
+export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [searchHistory.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [searchHistory.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
+  user: one(users, {
+    fields: [savedSearches.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [savedSearches.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;
@@ -868,3 +972,9 @@ export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
 export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
 export type InvoiceStatus = (typeof invoiceStatusEnum.enumValues)[number];
+
+// Search types
+export type SearchHistory = typeof searchHistory.$inferSelect;
+export type NewSearchHistory = typeof searchHistory.$inferInsert;
+export type SavedSearch = typeof savedSearches.$inferSelect;
+export type NewSavedSearch = typeof savedSearches.$inferInsert;

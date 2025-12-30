@@ -58,8 +58,6 @@ export default async function MyVideosPage({ params }: { params: Promise<{ organ
               aiSummary: null,
               aiTags: null,
               aiActionItems: null,
-              deletedAt: null,
-              retentionUntil: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {

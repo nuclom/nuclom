@@ -1,81 +1,114 @@
-"use client";
+import { Suspense } from "react";
+import { headers } from "next/headers";
+import { Loader2 } from "lucide-react";
+import { SearchPageContent } from "@/components/search";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { channels, collections, members, organizations, users, videos } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
-import { useSearchParams } from "next/navigation";
-import { VideoCard } from "@/components/video-card";
+interface SearchPageProps {
+  params: Promise<{ organization: string }>;
+  searchParams: Promise<{ q?: string }>;
+}
 
-const searchResults = [
-  {
-    id: "1",
-    title: "Introducing the Frontend Cloud",
-    author: "Vercel",
-    duration: "12:34",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "4",
-    title: "AI-Powered Development with v0",
-    author: "Vercel",
-    duration: "18:21",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-];
+export default async function SearchPage({ params, searchParams }: SearchPageProps) {
+  const { organization: organizationSlug } = await params;
+  const { q } = await searchParams;
+  const headersList = await headers();
 
-export default async function SearchPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization } = await params;
-  const searchParams = useSearchParams();
-  const query = searchParams.get("q");
+  // Get current session
+  const session = await auth.api.getSession({
+    headers: headersList,
+  });
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  // Get organization
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.slug, organizationSlug),
+  });
+
+  if (!org) {
+    redirect("/");
+  }
+
+  // Verify user is a member of the organization
+  const membership = await db.query.members.findFirst({
+    where: and(eq(members.organizationId, org.id), eq(members.userId, session.user.id)),
+  });
+
+  if (!membership) {
+    redirect("/");
+  }
+
+  // Fetch filter options in parallel
+  const [orgChannels, orgCollections, orgAuthors] = await Promise.all([
+    // Get channels for this organization
+    db
+      .select()
+      .from(channels)
+      .where(eq(channels.organizationId, org.id)),
+
+    // Get collections for this organization
+    db
+      .select()
+      .from(collections)
+      .where(eq(collections.organizationId, org.id)),
+
+    // Get unique authors (users who have videos in this organization)
+    db
+      .selectDistinct({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        image: users.image,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        emailVerified: users.emailVerified,
+        role: users.role,
+        banned: users.banned,
+        banReason: users.banReason,
+        banExpires: users.banExpires,
+      })
+      .from(users)
+      .innerJoin(videos, eq(videos.authorId, users.id))
+      .where(eq(videos.organizationId, org.id)),
+  ]);
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">
-        Search results for <span className="text-primary">"{query}"</span>
-      </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-        {searchResults.map((video) => (
-          <VideoCard
-            key={video.id}
-            video={{
-              id: video.id,
-              title: video.title,
-              description: null,
-              duration: video.duration,
-              thumbnailUrl: video.thumbnailUrl,
-              videoUrl: null,
-              authorId: `author-${video.id}`,
-              organizationId: "organization",
-              channelId: null,
-              collectionId: null,
-              transcript: null,
-              transcriptSegments: null,
-              processingStatus: "completed",
-              processingError: null,
-              aiSummary: null,
-              aiTags: null,
-              aiActionItems: null,
-              deletedAt: null,
-              retentionUntil: null,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              author: {
-                id: `author-${video.id}`,
-                name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
-                image: video.authorImageUrl,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                emailVerified: true,
-                role: "user",
-                banned: null,
-                banReason: null,
-                banExpires: null,
-              },
-            }}
-            organization={organization}
-          />
-        ))}
+      <div>
+        <h1 className="text-3xl font-bold">
+          {q ? (
+            <>
+              Search results for <span className="text-primary">"{q}"</span>
+            </>
+          ) : (
+            "Search"
+          )}
+        </h1>
+        <p className="text-muted-foreground mt-1">Search across videos, transcripts, and AI summaries</p>
       </div>
+
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        }
+      >
+        <SearchPageContent
+          organizationId={org.id}
+          organization={organizationSlug}
+          authors={orgAuthors}
+          channels={orgChannels}
+          collections={orgCollections}
+        />
+      </Suspense>
     </div>
   );
 }

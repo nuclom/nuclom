@@ -39,8 +39,6 @@ export default async function SharedWithMePage({ params }: { params: Promise<{ o
               aiSummary: null,
               aiTags: null,
               aiActionItems: null,
-              deletedAt: null,
-              retentionUntil: null,
               createdAt: new Date(),
               updatedAt: new Date(),
               author: {
