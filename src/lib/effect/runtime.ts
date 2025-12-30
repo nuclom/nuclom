@@ -14,6 +14,7 @@ import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
+import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
@@ -43,6 +44,7 @@ const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.pro
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -52,6 +54,7 @@ const AppServicesLive = Layer.mergeAll(
   VideoProgressRepositoryWithDeps,
   CommentRepositoryWithDeps,
   NotificationRepositoryWithDeps,
+  IntegrationRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -70,7 +73,8 @@ export type AppServices =
   | OrganizationRepository
   | VideoProgressRepository
   | CommentRepository
-  | NotificationRepository;
+  | NotificationRepository
+  | IntegrationRepository;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

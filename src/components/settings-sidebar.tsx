@@ -1,6 +1,6 @@
 "use client";
 
-import { Building, User, Users } from "lucide-react";
+import { Building, Plug, User, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,11 @@ export function SettingsSidebar({ organization }: { organization: string }) {
       href: `/${organization}/settings/members`,
       label: "Members",
       icon: Users,
+    },
+    {
+      href: `/${organization}/settings/integrations`,
+      label: "Integrations",
+      icon: Plug,
     },
   ];
 

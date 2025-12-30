@@ -112,19 +112,20 @@ export function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm">{comment.author.name}</span>
-            {comment.timestamp && (() => {
-              const timestamp = comment.timestamp;
-              return (
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
-                  onClick={() => onTimestampClick?.(timestamp)}
-                >
-                  <Clock className="h-3 w-3" />
-                  {timestamp}
-                </button>
-              );
-            })()}
+            {comment.timestamp &&
+              (() => {
+                const timestamp = comment.timestamp;
+                return (
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
+                    onClick={() => onTimestampClick?.(timestamp)}
+                  >
+                    <Clock className="h-3 w-3" />
+                    {timestamp}
+                  </button>
+                );
+              })()}
             <span className="text-xs text-muted-foreground">
               {formattedDate}
               {wasEdited && " (edited)"}

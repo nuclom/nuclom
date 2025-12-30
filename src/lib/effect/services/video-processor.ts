@@ -308,10 +308,7 @@ export const validateVideo = (
 /**
  * Get video info
  */
-export const getVideoInfo = (
-  buffer: Buffer,
-  filename: string,
-): Effect.Effect<VideoInfo, never, VideoProcessor> =>
+export const getVideoInfo = (buffer: Buffer, filename: string): Effect.Effect<VideoInfo, never, VideoProcessor> =>
   Effect.gen(function* () {
     const processor = yield* VideoProcessor;
     return yield* processor.getVideoInfo(buffer, filename);
