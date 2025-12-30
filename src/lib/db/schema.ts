@@ -192,12 +192,59 @@ export const collections = pgTable("collections", {
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   description: text("description"),
+  thumbnailUrl: text("thumbnail_url"),
   organizationId: text("organization_id")
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
+  isPublic: boolean("is_public").default(false).notNull(),
+  createdById: text("created_by_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Junction table for videos in series with ordering
+export const seriesVideos = pgTable(
+  "series_videos",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    seriesId: text("series_id")
+      .notNull()
+      .references(() => collections.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueSeriesVideo: unique().on(table.seriesId, table.videoId),
+  }),
+);
+
+// Track user progress through series
+export const seriesProgress = pgTable(
+  "series_progress",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    seriesId: text("series_id")
+      .notNull()
+      .references(() => collections.id, { onDelete: "cascade" }),
+    lastVideoId: text("last_video_id").references(() => videos.id),
+    lastPosition: integer("last_position").default(0).notNull(),
+    completedVideoIds: jsonb("completed_video_ids").$type<string[]>().default([]).notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserSeries: unique().on(table.userId, table.seriesId),
+  }),
+);
 
 // Types for JSONB columns
 export type TranscriptSegment = {
@@ -335,13 +382,7 @@ export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
   "unpaid",
 ]);
 
-export const invoiceStatusEnum = pgEnum("InvoiceStatus", [
-  "draft",
-  "open",
-  "paid",
-  "void",
-  "uncollectible",
-]);
+export const invoiceStatusEnum = pgEnum("InvoiceStatus", ["draft", "open", "paid", "void", "uncollectible"]);
 
 export const notifications = pgTable("notifications", {
   id: text("id")
@@ -626,7 +667,39 @@ export const collectionRelations = relations(collections, ({ one, many }) => ({
     fields: [collections.organizationId],
     references: [organizations.id],
   }),
+  createdBy: one(users, {
+    fields: [collections.createdById],
+    references: [users.id],
+  }),
   videos: many(videos),
+  seriesVideos: many(seriesVideos),
+  seriesProgress: many(seriesProgress),
+}));
+
+export const seriesVideosRelations = relations(seriesVideos, ({ one }) => ({
+  series: one(collections, {
+    fields: [seriesVideos.seriesId],
+    references: [collections.id],
+  }),
+  video: one(videos, {
+    fields: [seriesVideos.videoId],
+    references: [videos.id],
+  }),
+}));
+
+export const seriesProgressRelations = relations(seriesProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [seriesProgress.userId],
+    references: [users.id],
+  }),
+  series: one(collections, {
+    fields: [seriesProgress.seriesId],
+    references: [collections.id],
+  }),
+  lastVideo: one(videos, {
+    fields: [seriesProgress.lastVideoId],
+    references: [videos.id],
+  }),
 }));
 
 export const commentRelations = relations(comments, ({ one, many }) => ({
@@ -754,6 +827,10 @@ export type VideoChapter = typeof videoChapters.$inferSelect;
 export type NewVideoChapter = typeof videoChapters.$inferInsert;
 export type VideoCodeSnippet = typeof videoCodeSnippets.$inferSelect;
 export type NewVideoCodeSnippet = typeof videoCodeSnippets.$inferInsert;
+export type SeriesVideo = typeof seriesVideos.$inferSelect;
+export type NewSeriesVideo = typeof seriesVideos.$inferInsert;
+export type SeriesProgress = typeof seriesProgress.$inferSelect;
+export type NewSeriesProgress = typeof seriesProgress.$inferInsert;
 
 // Processing status type
 export type ProcessingStatus = (typeof processingStatusEnum.enumValues)[number];

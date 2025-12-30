@@ -2,11 +2,11 @@
 
 import { format } from "date-fns";
 import { Download, ExternalLink, FileText } from "lucide-react";
-import type { Invoice } from "@/lib/db/schema";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import type { Invoice } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
 interface InvoiceListProps {
@@ -21,7 +21,10 @@ const formatCurrency = (amount: number, currency: string): string => {
 };
 
 const getStatusBadge = (status: Invoice["status"]) => {
-  const variants: Record<Invoice["status"], { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+  const variants: Record<
+    Invoice["status"],
+    { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+  > = {
     paid: { variant: "default", label: "Paid" },
     open: { variant: "secondary", label: "Open" },
     draft: { variant: "outline", label: "Draft" },
@@ -72,9 +75,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
           <TableBody>
             {invoices.map((invoice) => (
               <TableRow key={invoice.id}>
-                <TableCell>
-                  {invoice.createdAt ? format(new Date(invoice.createdAt), "MMM d, yyyy") : "—"}
-                </TableCell>
+                <TableCell>{invoice.createdAt ? format(new Date(invoice.createdAt), "MMM d, yyyy") : "—"}</TableCell>
                 <TableCell>
                   {invoice.periodStart && invoice.periodEnd ? (
                     <>
@@ -85,9 +86,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                     "—"
                   )}
                 </TableCell>
-                <TableCell className="font-medium">
-                  {formatCurrency(invoice.amount, invoice.currency)}
-                </TableCell>
+                <TableCell className="font-medium">{formatCurrency(invoice.amount, invoice.currency)}</TableCell>
                 <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -135,9 +134,7 @@ export function InvoiceCard({ invoice }: InvoiceCardProps) {
             <p className="font-medium">
               {invoice.createdAt ? format(new Date(invoice.createdAt), "MMMM d, yyyy") : "Invoice"}
             </p>
-            <p className="text-sm text-muted-foreground">
-              {formatCurrency(invoice.amount, invoice.currency)}
-            </p>
+            <p className="text-sm text-muted-foreground">{formatCurrency(invoice.amount, invoice.currency)}</p>
           </div>
         </div>
         <div className="flex items-center gap-4">

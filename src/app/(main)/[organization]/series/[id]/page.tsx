@@ -1,90 +1,54 @@
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { VideoCard } from "@/components/video-card";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { getCachedOrganizationBySlug, getCachedSeriesProgress, getCachedSeriesWithVideos } from "@/lib/effect";
+import type { SeriesProgressWithDetails, SeriesWithVideos } from "@/lib/types";
+import { SeriesDetailClient } from "./series-detail-client";
 
-const seriesVideoData = [
-  {
-    id: "s1-v1",
-    title: "Part 1: The Foundation",
-    author: "Series Creator",
-    duration: "22:10",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "s1-v2",
-    title: "Part 2: Building Blocks",
-    author: "Series Creator",
-    duration: "19:45",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "s1-v3",
-    title: "Part 3: Advanced Techniques",
-    author: "Series Creator",
-    duration: "31:02",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-];
-
-export default async function SeriesPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
+export default async function SeriesDetailPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   const { organization, id } = await params;
 
+  // Get the current user session
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+
+  // Get organization by slug
+  let organizationData: Awaited<ReturnType<typeof getCachedOrganizationBySlug>>;
+  try {
+    organizationData = await getCachedOrganizationBySlug(organization);
+  } catch {
+    notFound();
+  }
+
+  // Fetch series with videos
+  let seriesData: SeriesWithVideos;
+  try {
+    seriesData = await getCachedSeriesWithVideos(id);
+  } catch {
+    notFound();
+  }
+
+  // Verify series belongs to this organization
+  if (seriesData.organizationId !== organizationData.id) {
+    notFound();
+  }
+
+  // Get user's progress for this series if logged in
+  let progressData: SeriesProgressWithDetails | null = null;
+  if (session?.user) {
+    try {
+      progressData = await getCachedSeriesProgress(session.user.id, id);
+    } catch {
+      // Continue without progress
+    }
+  }
+
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-4xl font-bold capitalize">{id.replace("-", " ")} Series</h1>
-        <p className="text-gray-400 mt-2 max-w-2xl">
-          A collection of videos exploring a specific topic in depth. Follow along to master new skills.
-        </p>
-        <Button className="mt-4">
-          <Plus className="mr-2 h-4 w-4" /> Add to my videos
-        </Button>
-      </header>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-        {seriesVideoData.map((video) => (
-          <VideoCard
-            key={video.id}
-            video={{
-              id: video.id,
-              title: video.title,
-              description: null,
-              duration: video.duration,
-              thumbnailUrl: video.thumbnailUrl,
-              videoUrl: null,
-              authorId: `author-${video.id}`,
-              organizationId: "organization",
-              channelId: null,
-              collectionId: null,
-              transcript: null,
-              transcriptSegments: null,
-              processingStatus: "completed",
-              processingError: null,
-              aiSummary: null,
-              aiTags: null,
-              aiActionItems: null,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              author: {
-                id: `author-${video.id}`,
-                name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
-                image: video.authorImageUrl,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                emailVerified: true,
-                role: "user",
-                banned: null,
-                banReason: null,
-                banExpires: null,
-              },
-            }}
-            organization={organization}
-          />
-        ))}
-      </div>
-    </div>
+    <SeriesDetailClient
+      organization={organization}
+      organizationId={organizationData.id}
+      series={seriesData}
+      progress={progressData}
+    />
   );
 }

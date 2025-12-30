@@ -2,9 +2,9 @@ import { Cause, Effect, Exit, Layer } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AppLive } from "@/lib/effect";
+import { mapErrorToResponse } from "@/lib/effect/runtime";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
-import { mapErrorToResponse } from "@/lib/effect/runtime";
 
 // =============================================================================
 // GET /api/billing/plans - Get all available plans

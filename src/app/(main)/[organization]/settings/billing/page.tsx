@@ -1,13 +1,13 @@
 import { Effect, Exit, Layer, Option } from "effect";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { BillingDashboard } from "@/components/billing";
 import { auth } from "@/lib/auth";
 import { AppLive } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Billing } from "@/lib/effect/services/billing";
+import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { BillingDashboard } from "@/components/billing";
 
 interface BillingPageProps {
   params: Promise<{ organization: string }>;

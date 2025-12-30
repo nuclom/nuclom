@@ -5,7 +5,7 @@
  * Uses Replicate's cloud-based AI models for transcription and video analysis.
  */
 
-import { Effect, Context, Layer, Config, Option, pipe } from "effect";
+import { Config, Context, Effect, Layer, Option, pipe } from "effect";
 import Replicate from "replicate";
 import { AIServiceError } from "../errors";
 
