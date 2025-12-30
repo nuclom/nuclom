@@ -6,8 +6,8 @@
 
 export { VideoPlayer, type VideoPlayerProps, type VideoProgress } from "./video-player";
 export {
-  VideoPlayerWithProgress,
   SimpleVideoPlayer,
-  type VideoPlayerWithProgressProps,
   type SimpleVideoPlayerProps,
+  VideoPlayerWithProgress,
+  type VideoPlayerWithProgressProps,
 } from "./video-player-with-progress";

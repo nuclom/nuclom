@@ -1,27 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
+  AlertCircle,
+  Loader2,
   Maximize,
   Minimize,
+  Pause,
+  Play,
+  Settings,
   SkipBack,
   SkipForward,
-  Settings,
-  Loader2,
-  AlertCircle,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -444,6 +444,7 @@ export function VideoPlayer({
         "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: Video player needs tabIndex for keyboard controls
       tabIndex={0}
       role="application"
       aria-label={`Video player: ${title}`}

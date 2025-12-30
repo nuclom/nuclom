@@ -52,15 +52,15 @@ export {
   deleteVideo as serverDeleteVideo,
   getOrganizationBySlug as getCachedOrganizationBySlug,
   getOrganizations as getCachedOrganizations,
-  getVideo as getCachedVideo,
-  getVideos as getCachedVideos,
-  getVideoProgress as getCachedVideoProgress,
   getUserVideoProgress as getCachedUserVideoProgress,
+  getVideo as getCachedVideo,
+  getVideoProgress as getCachedVideoProgress,
+  getVideos as getCachedVideos,
   revalidateOrganization,
   revalidateOrganizations,
   revalidateVideo,
-  revalidateVideos,
   revalidateVideoProgress,
+  revalidateVideos,
   runServerEffect,
   runServerEffectSafe,
   updateVideo as serverUpdateVideo,
@@ -80,6 +80,7 @@ export type {
   OrganizationWithRole,
   ProcessingProgress,
   ProcessingResult,
+  SaveProgressInput,
   StorageConfig,
   // Storage
   StorageService,
@@ -90,13 +91,12 @@ export type {
   VideoInfo,
   // VideoProcessor
   VideoProcessorService,
+  VideoProgressData,
+  // VideoProgressRepository
+  VideoProgressRepositoryService,
   // VideoRepository
   VideoRepositoryService,
   VideoSummary,
-  // VideoProgressRepository
-  VideoProgressRepositoryService,
-  VideoProgressData,
-  SaveProgressInput,
 } from "./services";
 
 // Services - explicitly export to avoid conflicts
@@ -114,6 +114,7 @@ export {
   DatabaseLive,
   DrizzleLive,
   deleteFile,
+  deleteVideoProgress,
   deleteVideoRecord,
   extractActionItems,
   findOneOrFail,
@@ -131,14 +132,18 @@ export {
   getSessionOption,
   getUserOrganizations,
   getUserRole,
+  getUserVideoProgress,
   getVideo,
   getVideoInfo,
+  getVideoProgress,
   getVideos,
+  hasWatchedVideo,
   insertUnique,
   isMember,
   isSupportedVideoFormat,
   makeAuthLayer,
   makeAuthService,
+  markVideoCompleted,
   // OrganizationRepository
   OrganizationRepository,
   OrganizationRepositoryLive,
@@ -150,6 +155,7 @@ export {
   // Storage
   Storage,
   StorageLive,
+  saveVideoProgress,
   transaction,
   updateVideo,
   uploadFile,
@@ -157,19 +163,13 @@ export {
   // VideoProcessor
   VideoProcessor,
   VideoProcessorLive,
+  // VideoProgressRepository
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
   // VideoRepository
   VideoRepository,
   VideoRepositoryLive,
   validateVideo,
-  // VideoProgressRepository
-  VideoProgressRepository,
-  VideoProgressRepositoryLive,
-  getVideoProgress,
-  saveVideoProgress,
-  getUserVideoProgress,
-  deleteVideoProgress,
-  hasWatchedVideo,
-  markVideoCompleted,
 } from "./services";
 
 export type { StreamChunk } from "./streaming";

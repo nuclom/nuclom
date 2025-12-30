@@ -5,11 +5,11 @@
  * Enables "resume where you left off" functionality for users.
  */
 
-import { Effect, Context, Layer } from "effect";
-import { eq, and } from "drizzle-orm";
-import { Database } from "./database";
-import { videoProgresses, type VideoProgress, type NewVideoProgress } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
+import { type VideoProgress, videoProgresses } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
+import { Database } from "./database";
 
 // =============================================================================
 // Types

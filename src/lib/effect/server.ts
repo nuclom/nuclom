@@ -10,9 +10,9 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 import { AppLive, type AppServices } from "./runtime";
 import { OrganizationRepository } from "./services/organization-repository";
+import { type VideoProgressData, VideoProgressRepository } from "./services/video-progress-repository";
 import type { CreateVideoInput, UpdateVideoInput } from "./services/video-repository";
 import { VideoRepository } from "./services/video-repository";
-import { VideoProgressRepository, type VideoProgressData } from "./services/video-progress-repository";
 
 // =============================================================================
 // Server Effect Runner

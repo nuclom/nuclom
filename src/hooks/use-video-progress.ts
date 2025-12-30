@@ -7,11 +7,10 @@
  * Automatically saves progress to the server and restores position on mount.
  */
 
+import { Either } from "effect";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Effect, Either } from "effect";
-import { runClientEffect } from "@/lib/effect/client";
-import { videoProgressApiEffect, type VideoProgressResponse } from "@/lib/effect/client";
 import type { VideoProgress } from "@/components/video/video-player";
+import { runClientEffect, videoProgressApiEffect } from "@/lib/effect/client";
 
 // =============================================================================
 // Types
@@ -69,7 +68,7 @@ function useDebouncedCallback<T extends (...args: unknown[]) => void>(callback: 
         callbackRef.current(...args);
       }, delay);
     }) as T,
-    [delay],
+    [],
   );
 }
 

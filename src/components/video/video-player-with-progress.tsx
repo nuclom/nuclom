@@ -7,11 +7,11 @@
  * Handles loading saved progress and saving playback position.
  */
 
+import { CheckCircle } from "lucide-react";
 import { useCallback, useState } from "react";
-import { VideoPlayer, type VideoProgress } from "./video-player";
-import { useVideoProgress, useProgressFraction } from "@/hooks/use-video-progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { useProgressFraction, useVideoProgress } from "@/hooks/use-video-progress";
+import { VideoPlayer, type VideoProgress } from "./video-player";
 
 // =============================================================================
 // Types

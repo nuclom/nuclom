@@ -1,8 +1,8 @@
+import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, Exit, Cause, Option } from "effect";
 import { auth } from "@/lib/auth";
-import { AppLive, VideoProgressRepository, MissingFieldError, ValidationError } from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { AppLive, MissingFieldError, ValidationError, VideoProgressRepository } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
