@@ -6,7 +6,7 @@
  */
 
 import { Effect, Layer, ManagedRuntime, Logger, LogLevel, Exit, Cause, Option } from "effect";
-import GlobalValue from "effect/GlobalValue";
+import { globalValue } from "effect/GlobalValue";
 import { NextResponse } from "next/server";
 
 // Services
@@ -56,7 +56,7 @@ export type AppServices = Database | Storage | AI | VideoProcessor | VideoReposi
  * Global managed runtime for the application
  * Using GlobalValue to ensure single instance across HMR in development
  */
-export const AppRuntime = GlobalValue.globalValue("@nuclom/effect-runtime", () => ManagedRuntime.make(AppLive));
+export const AppRuntime = globalValue("@nuclom/effect-runtime", () => ManagedRuntime.make(AppLive));
 
 // =============================================================================
 // Runtime Helpers
