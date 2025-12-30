@@ -5,7 +5,7 @@
  * These utilities are designed to work in browser environments.
  */
 
-import { Effect, Exit, Cause, Option, Either, pipe } from "effect";
+import { Effect, type Either, pipe } from "effect";
 import { HttpError, ParseError } from "./errors";
 
 // =============================================================================

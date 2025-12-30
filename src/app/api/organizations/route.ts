@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, Exit, Cause } from "effect";
+import { Cause, Effect, Exit, Layer } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { AppLive, OrganizationRepository, MissingFieldError } from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { AppLive, MissingFieldError, OrganizationRepository } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // Error Response Handler

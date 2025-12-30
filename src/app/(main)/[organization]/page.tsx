@@ -1,12 +1,12 @@
-import { Suspense } from "react";
-import { VideoCard } from "@/components/video-card";
-import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
-import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { redirect, notFound } from "next/navigation";
-import { getCachedVideos, getCachedOrganizationBySlug } from "@/lib/effect";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { VideoCard } from "@/components/video-card";
+import { auth } from "@/lib/auth";
+import { getCachedOrganizationBySlug, getCachedVideos } from "@/lib/effect";
 import type { VideoWithAuthor } from "@/lib/types";
 
 // =============================================================================

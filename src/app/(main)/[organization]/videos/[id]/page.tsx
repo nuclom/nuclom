@@ -1,7 +1,6 @@
-import { Suspense } from "react";
 import { Bookmark, Code, ListTodo, MessageSquarePlus, Share2, Sparkles, ThumbsUp } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

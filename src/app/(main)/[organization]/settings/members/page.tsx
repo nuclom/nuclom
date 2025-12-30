@@ -1,10 +1,12 @@
 "use client";
 
-import { MoreHorizontal, Plus, Mail, UserMinus, Shield } from "lucide-react";
+import { MoreHorizontal, Plus, Shield, UserMinus } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -20,16 +22,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
 
-import type { Member, User, Organization } from "@/lib/db/schema";
+import type { Member, Organization, User } from "@/lib/db/schema";
 
 type MemberWithUser = Member & {
   user: User;
@@ -51,11 +51,7 @@ export default function MembersSettingsPage() {
   });
   const [inviting, setInviting] = useState(false);
 
-  useEffect(() => {
-    loadOrganizationAndMembers();
-  }, [params.organization]);
-
-  const loadOrganizationAndMembers = async () => {
+  const loadOrganizationAndMembers = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -96,7 +92,11 @@ export default function MembersSettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.organization, toast]);
+
+  useEffect(() => {
+    loadOrganizationAndMembers();
+  }, [loadOrganizationAndMembers]);
 
   const handleInviteMember = async () => {
     if (!organization || !inviteData.email.trim()) return;

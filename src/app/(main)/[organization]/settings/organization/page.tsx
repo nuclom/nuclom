@@ -1,13 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
-import { useToast } from "@/hooks/use-toast";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +13,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
 
 type Organization = {
   id: string;
@@ -40,11 +40,7 @@ export default function OrganizationSettingsPage() {
     slug: "",
   });
 
-  useEffect(() => {
-    loadOrganization();
-  }, [params.organization]);
-
-  const loadOrganization = async () => {
+  const loadOrganization = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await authClient.organization.list();
@@ -67,7 +63,11 @@ export default function OrganizationSettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.organization, toast]);
+
+  useEffect(() => {
+    loadOrganization();
+  }, [loadOrganization]);
 
   const handleSave = async () => {
     if (!organization) return;

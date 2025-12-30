@@ -5,7 +5,7 @@
  * This replaces the Zod-based validation with Effect's built-in Config system.
  */
 
-import { Config, ConfigError, Effect, Layer, Redacted } from "effect";
+import { Config, ConfigError, Effect, Layer, type Redacted } from "effect";
 
 // =============================================================================
 // Configuration Definitions

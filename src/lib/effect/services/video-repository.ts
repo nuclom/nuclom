@@ -4,12 +4,12 @@
  * Provides type-safe database operations for videos.
  */
 
-import { Effect, Context, Layer, pipe } from "effect";
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
+import { channels, collections, comments, organizations, users, videos } from "@/lib/db/schema";
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
-import { videos, users, organizations, channels, collections, comments } from "@/lib/db/schema";
-import type { VideoWithAuthor, VideoWithDetails, PaginatedResponse } from "@/lib/types";
-import { DatabaseError, NotFoundError, type DbError } from "../errors";
 
 // =============================================================================
 // Types

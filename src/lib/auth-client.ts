@@ -1,7 +1,7 @@
 "use client";
 
+import { adminClient, apiKeyClient, organizationClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
-import { organizationClient, adminClient, apiKeyClient } from "better-auth/client/plugins";
 import { env } from "@/lib/env/client";
 
 export const authClient = createAuthClient({

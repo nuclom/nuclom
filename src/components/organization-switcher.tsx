@@ -2,7 +2,7 @@
 
 import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +15,9 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 type Organization = {
   id: string;
@@ -34,11 +34,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadOrganizations();
-  }, []);
-
-  const loadOrganizations = async () => {
+  const loadOrganizations = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await authClient.organization.list();
@@ -57,7 +53,11 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentOrganization, toast]);
+
+  useEffect(() => {
+    loadOrganizations();
+  }, [loadOrganizations]);
 
   const handleCreateOrganization = async () => {
     try {

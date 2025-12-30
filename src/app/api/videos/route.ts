@@ -1,15 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Effect, Layer, pipe, Exit, Cause } from "effect";
+import { Cause, Effect, Exit, Layer } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import {
-  AppLive,
-  VideoRepository,
-  MissingFieldError,
-  UnauthorizedError,
-  DatabaseError,
-  NotFoundError,
-} from "@/lib/effect";
-import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+import { AppLive, MissingFieldError, VideoRepository } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // Error Response Handler

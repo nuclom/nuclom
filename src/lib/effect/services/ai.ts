@@ -5,9 +5,9 @@
  * Uses Vercel AI SDK with XAI Grok-3 model.
  */
 
-import { Effect, Context, Layer, Stream, Chunk, pipe } from "effect";
 import { gateway } from "@ai-sdk/gateway";
 import { generateText, streamText } from "ai";
+import { Context, Effect, Layer, pipe, Stream } from "effect";
 import { AIServiceError } from "../errors";
 
 // =============================================================================
