@@ -11,11 +11,7 @@ const sharedVideoData = [
   },
 ];
 
-export default async function SharedWithMePage({
-  params,
-}: {
-  params: Promise<{ organization: string }>;
-}) {
+export default async function SharedWithMePage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization } = await params;
 
   return (
@@ -43,9 +39,7 @@ export default async function SharedWithMePage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author
-                  .toLowerCase()
-                  .replace(" ", ".")}@example.com`,
+                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),

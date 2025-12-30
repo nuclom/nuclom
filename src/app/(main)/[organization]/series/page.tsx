@@ -23,11 +23,7 @@ const seriesData = [
   },
 ];
 
-export default async function SeriesListPage({
-  params,
-}: {
-  params: Promise<{ organization: string }>;
-}) {
+export default async function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization } = await params;
 
   return (
@@ -49,9 +45,7 @@ export default async function SeriesListPage({
               </CardHeader>
               <CardContent className="p-4">
                 <CardTitle className="text-lg">{series.name}</CardTitle>
-                <p className="text-sm text-gray-400">
-                  {series.videoCount} videos
-                </p>
+                <p className="text-sm text-gray-400">{series.videoCount} videos</p>
               </CardContent>
             </Card>
           </Link>

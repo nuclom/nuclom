@@ -1,6 +1,26 @@
+/**
+ * API Client
+ *
+ * Client-side API utilities for fetching data from the backend.
+ * Uses Effect-TS internally while maintaining a Promise-based interface
+ * for backwards compatibility with existing React components.
+ */
+
+import { Effect, Either, pipe } from "effect";
+import {
+  fetchEffect,
+  runClientEffect,
+  videoApiEffect,
+  organizationApiEffect,
+  uploadVideoEffect,
+  type UploadResult,
+} from "@/lib/effect/client";
+import { HttpError, ParseError } from "@/lib/effect/errors";
 import type { ApiResponse, PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
-const API_BASE_URL = "/api";
+// =============================================================================
+// Error Class (Backwards Compatible)
+// =============================================================================
 
 class ApiError extends Error {
   constructor(
@@ -12,46 +32,52 @@ class ApiError extends Error {
   }
 }
 
-async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
+// =============================================================================
+// Effect to Promise Conversion Utility
+// =============================================================================
+
+const effectToPromise = async <T>(effect: Effect.Effect<T, HttpError | ParseError, never>): Promise<T> => {
+  const result = await runClientEffect(effect);
+
+  return Either.match(result, {
+    onLeft: (error) => {
+      if (error instanceof HttpError) {
+        throw new ApiError(error.status, error.message);
+      }
+      throw new Error(error.message);
     },
+    onRight: (value) => value,
+  });
+};
+
+// =============================================================================
+// Legacy API Functions (Promise-based, uses Effect internally)
+// =============================================================================
+
+const API_BASE_URL = "/api";
+
+async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const effect = fetchEffect<T>(endpoint, {
     ...options,
+    body: options?.body ? JSON.parse(options.body as string) : undefined,
   });
 
-  if (!response.ok) {
-    throw new ApiError(response.status, `HTTP error! status: ${response.status}`);
-  }
-
-  const data: ApiResponse<T> = await response.json();
-
-  if (!data.success) {
-    throw new Error(data.error || "API request failed");
-  }
-
-  return data.data as T;
+  return effectToPromise(effect);
 }
 
-// Video API functions
+// =============================================================================
+// Video API Functions
+// =============================================================================
+
 export const videoApi = {
   async getVideos(
     params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
   ): Promise<PaginatedResponse<VideoWithAuthor>> {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
-      }
-    });
-
-    return fetchApi(`/videos?${searchParams.toString()}`);
+    return effectToPromise(videoApiEffect.getVideos(params));
   },
 
   async getVideo(id: string): Promise<VideoWithDetails> {
-    return fetchApi(`/videos/${id}`);
+    return effectToPromise(videoApiEffect.getVideo(id));
   },
 
   async createVideo(data: {
@@ -65,10 +91,7 @@ export const videoApi = {
     channelId?: string;
     seriesId?: string;
   }): Promise<VideoWithDetails> {
-    return fetchApi("/videos", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return effectToPromise(videoApiEffect.createVideo(data));
   },
 
   async updateVideo(
@@ -83,16 +106,11 @@ export const videoApi = {
       seriesId: string;
     }>,
   ): Promise<VideoWithDetails> {
-    return fetchApi(`/videos/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    return effectToPromise(videoApiEffect.updateVideo(id, data));
   },
 
   async deleteVideo(id: string): Promise<void> {
-    return fetchApi(`/videos/${id}`, {
-      method: "DELETE",
-    });
+    return effectToPromise(videoApiEffect.deleteVideo(id));
   },
 
   async uploadVideo(
@@ -106,93 +124,42 @@ export const videoApi = {
       seriesId?: string;
     },
     onProgress?: (progress: number) => void,
-  ): Promise<{
-    videoId: string;
-    videoUrl: string;
-    thumbnailUrl: string;
-    duration: string;
-  }> {
-    const formData = new FormData();
-    formData.append("video", file);
-    formData.append("title", metadata.title);
-    if (metadata.description) formData.append("description", metadata.description);
-    formData.append("organizationId", metadata.organizationId);
-    formData.append("authorId", metadata.authorId);
-    if (metadata.channelId) formData.append("channelId", metadata.channelId);
-    if (metadata.seriesId) formData.append("seriesId", metadata.seriesId);
+  ): Promise<UploadResult> {
+    const effect = uploadVideoEffect(file, metadata, onProgress);
+    const result = await runClientEffect(effect);
 
-    const xhr = new XMLHttpRequest();
-
-    return new Promise((resolve, reject) => {
-      // Track upload progress
-      if (onProgress) {
-        xhr.upload.addEventListener("progress", (event) => {
-          if (event.lengthComputable) {
-            const progress = Math.round((event.loaded / event.total) * 100);
-            onProgress(progress);
-          }
-        });
-      }
-
-      xhr.addEventListener("load", async () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            if (response.success) {
-              resolve(response.data);
-            } else {
-              reject(new Error(response.error || "Upload failed"));
-            }
-          } catch (error) {
-            reject(new Error("Invalid response format"));
-          }
-        } else {
-          try {
-            const errorResponse = JSON.parse(xhr.responseText);
-            reject(new Error(errorResponse.error || `HTTP ${xhr.status}`));
-          } catch {
-            reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
-          }
-        }
-      });
-
-      xhr.addEventListener("error", () => {
-        reject(new Error("Network error occurred"));
-      });
-
-      xhr.addEventListener("timeout", () => {
-        reject(new Error("Upload timeout"));
-      });
-
-      xhr.open("POST", `${API_BASE_URL}/videos/upload`);
-      xhr.timeout = 300000; // 5 minutes timeout
-      xhr.send(formData);
+    return Either.match(result, {
+      onLeft: (error) => {
+        throw new ApiError(error.status, error.message);
+      },
+      onRight: (value) => value,
     });
   },
 };
 
-// Organization API functions
+// =============================================================================
+// Organization API Functions
+// =============================================================================
+
 export const organizationApi = {
   async getOrganizations(userId?: string) {
-    const searchParams = new URLSearchParams();
-    if (userId) {
-      searchParams.append("userId", userId);
-    }
-
-    return fetchApi(`/organizations?${searchParams.toString()}`);
+    return effectToPromise(organizationApiEffect.getOrganizations(userId));
   },
 
   async getOrganization(id: string) {
-    return fetchApi(`/organizations/${id}`);
+    return effectToPromise(organizationApiEffect.getOrganization(id));
   },
 
   async createOrganization(data: { name: string; slug: string; description?: string; ownerId: string }) {
-    return fetchApi("/organizations", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return effectToPromise(organizationApiEffect.createOrganization(data));
   },
 };
 
-// Error handling utility
+// =============================================================================
+// Exports
+// =============================================================================
+
 export { ApiError };
+
+// Re-export Effect-based API for direct Effect usage
+export { videoApiEffect, organizationApiEffect, uploadVideoEffect } from "@/lib/effect/client";

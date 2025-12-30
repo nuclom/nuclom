@@ -14,9 +14,7 @@ export default async function MainLayout({
     <div className="flex flex-col min-h-screen">
       <TopNav organization={organization} />
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">
-          {children}
-        </div>
+        <div className="flex-1 w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

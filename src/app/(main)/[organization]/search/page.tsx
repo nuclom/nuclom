@@ -22,11 +22,7 @@ const searchResults = [
   },
 ];
 
-export default async function SearchPage({
-  params,
-}: {
-  params: Promise<{ organization: string }>;
-}) {
+export default async function SearchPage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization } = await params;
   const searchParams = useSearchParams();
   const query = searchParams.get("q");
@@ -58,9 +54,7 @@ export default async function SearchPage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author
-                  .toLowerCase()
-                  .replace(" ", ".")}@example.com`,
+                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),

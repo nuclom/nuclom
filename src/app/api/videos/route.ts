@@ -1,46 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Effect, Layer, pipe, Exit, Cause } from "effect";
 import { auth } from "@/lib/auth";
-import { getVideos, createVideo } from "@/lib/api/videos";
+import {
+  AppLive,
+  VideoRepository,
+  MissingFieldError,
+  UnauthorizedError,
+  DatabaseError,
+  NotFoundError,
+} from "@/lib/effect";
+import { makeAuthLayer, Auth } from "@/lib/effect/services/auth";
+
+// =============================================================================
+// Error Response Handler
+// =============================================================================
+
+const mapErrorToResponse = (error: unknown): NextResponse => {
+  if (error && typeof error === "object" && "_tag" in error) {
+    const taggedError = error as { _tag: string; message: string };
+
+    switch (taggedError._tag) {
+      case "UnauthorizedError":
+        return NextResponse.json({ error: taggedError.message }, { status: 401 });
+      case "MissingFieldError":
+      case "ValidationError":
+        return NextResponse.json({ error: taggedError.message }, { status: 400 });
+      case "NotFoundError":
+        return NextResponse.json({ error: taggedError.message }, { status: 404 });
+      default:
+        console.error(`[${taggedError._tag}]`, taggedError);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+  }
+  console.error("[Error]", error);
+  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+};
+
+// =============================================================================
+// GET /api/videos - Fetch paginated videos for an organization
+// =============================================================================
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    yield* authService.getSession(request.headers);
 
+    // Parse query params
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organizationId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
     if (!organizationId) {
-      return NextResponse.json({ error: "Organization ID is required" }, { status: 400 });
+      return yield* Effect.fail(
+        new MissingFieldError({
+          field: "organizationId",
+          message: "Organization ID is required",
+        }),
+      );
     }
 
-    const result = await getVideos(organizationId, page, limit);
+    // Fetch videos using repository
+    const videoRepo = yield* VideoRepository;
+    return yield* videoRepo.getVideos(organizationId, page, limit);
+  });
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Error fetching videos:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, FullLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => NextResponse.json(data),
+  });
 }
 
+// =============================================================================
+// POST /api/videos - Create a new video
+// =============================================================================
+
 export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(AppLive, AuthLayer);
+
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Parse request body
+    const body = yield* Effect.tryPromise({
+      try: () => request.json(),
+      catch: () =>
+        new MissingFieldError({
+          field: "body",
+          message: "Invalid request body",
+        }),
     });
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
     const {
       title,
       description,
@@ -54,27 +120,49 @@ export async function POST(request: NextRequest) {
       aiSummary,
     } = body;
 
-    if (!title || !duration || !organizationId) {
-      return NextResponse.json({ error: "Title, duration, and organization ID are required" }, { status: 400 });
+    // Validate required fields
+    if (!title) {
+      return yield* Effect.fail(new MissingFieldError({ field: "title", message: "Title is required" }));
     }
 
-    const video = await createVideo({
+    if (!duration) {
+      return yield* Effect.fail(new MissingFieldError({ field: "duration", message: "Duration is required" }));
+    }
+
+    if (!organizationId) {
+      return yield* Effect.fail(
+        new MissingFieldError({ field: "organizationId", message: "Organization ID is required" }),
+      );
+    }
+
+    // Create video using repository
+    const videoRepo = yield* VideoRepository;
+    return yield* videoRepo.createVideo({
       title,
       description,
       duration,
       thumbnailUrl,
       videoUrl,
-      authorId: session.user.id,
+      authorId: user.id,
       organizationId,
       channelId,
       collectionId,
       transcript,
       aiSummary,
     });
+  });
 
-    return NextResponse.json(video);
-  } catch (error) {
-    console.error("Error creating video:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, FullLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => NextResponse.json(data, { status: 201 }),
+  });
 }

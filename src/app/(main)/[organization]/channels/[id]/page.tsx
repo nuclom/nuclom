@@ -36,11 +36,7 @@ const channelVideoData = [
   },
 ];
 
-export default async function ChannelPage({
-  params,
-}: {
-  params: Promise<{ organization: string; id: string }>;
-}) {
+export default async function ChannelPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   const { organization, id } = await params;
   const channelName = id.replace("-", " ");
   return (
@@ -78,9 +74,7 @@ export default async function ChannelPage({
               author: {
                 id: `author-${video.id}`,
                 name: video.author,
-                email: `${video.author
-                  .toLowerCase()
-                  .replace(" ", ".")}@example.com`,
+                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
                 image: video.authorImageUrl,
                 createdAt: new Date(),
                 updatedAt: new Date(),

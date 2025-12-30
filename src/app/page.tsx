@@ -1,23 +1,8 @@
-import {
-  ArrowRight,
-  Globe,
-  Play,
-  Shield,
-  Star,
-  Users,
-  Video,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Globe, Play, Shield, Star, Users, Video, Zap } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LandingPage() {
   return (
@@ -34,22 +19,13 @@ export default function LandingPage() {
             </h1>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="#features"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
               Features
             </Link>
-            <Link
-              href="#pricing"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
               Pricing
             </Link>
-            <Link
-              href="#about"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <Link href="#about" className="text-sm font-medium hover:text-primary transition-colors">
               About
             </Link>
           </nav>
@@ -72,10 +48,7 @@ export default function LandingPage() {
 
         <div className="w-full max-w-7xl mx-auto relative z-10">
           <div className="flex items-center justify-center mb-6">
-            <Badge
-              variant="secondary"
-              className="mb-4 px-4 py-2 text-sm font-medium"
-            >
+            <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
               <Star className="w-4 h-4 mr-2" />
               Video Collaboration Platform
             </Badge>
@@ -87,28 +60,18 @@ export default function LandingPage() {
           </h2>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Streamline your video workflow with real-time collaboration,
-            powerful editing tools, and seamless sharing across teams and
-            organizations.
+            Streamline your video workflow with real-time collaboration, powerful editing tools, and seamless sharing
+            across teams and organizations.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-            <Button
-              size="lg"
-              asChild
-              className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-            >
+            <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
               <Link href="/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="px-8 py-6 text-lg"
-            >
+            <Button size="lg" variant="outline" asChild className="px-8 py-6 text-lg">
               <Link href="#demo">Watch Demo</Link>
             </Button>
           </div>
@@ -122,9 +85,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4 px-4 py-2">
               Features
             </Badge>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">
-              Everything You Need
-            </h3>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Everything You Need</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
               Powerful features to transform your video collaboration workflow
             </p>
@@ -135,12 +96,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Video className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">
-                  Smart Video Management
-                </CardTitle>
+                <CardTitle className="text-xl mb-3">Smart Video Management</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Organize your videos with channels, series, and intelligent
-                  categorization
+                  Organize your videos with channels, series, and intelligent categorization
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -149,12 +107,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Users className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">
-                  Team Collaboration
-                </CardTitle>
+                <CardTitle className="text-xl mb-3">Team Collaboration</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Work together in real-time with comments, annotations, and
-                  shared organizations
+                  Work together in real-time with comments, annotations, and shared organizations
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -163,12 +118,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Shield className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">
-                  Enterprise Security
-                </CardTitle>
+                <CardTitle className="text-xl mb-3">Enterprise Security</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Advanced permissions, secure sharing, and compliance-ready
-                  infrastructure
+                  Advanced permissions, secure sharing, and compliance-ready infrastructure
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -179,8 +131,7 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Lightning Fast</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Optimized performance with instant previews and seamless
-                  streaming
+                  Optimized performance with instant previews and seamless streaming
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -191,8 +142,7 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Global Access</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Access your content anywhere with our global CDN and offline
-                  sync
+                  Access your content anywhere with our global CDN and offline sync
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -201,12 +151,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Play className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">
-                  Advanced Playback
-                </CardTitle>
+                <CardTitle className="text-xl mb-3">Advanced Playback</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Professional-grade video player with custom controls and
-                  analytics
+                  Professional-grade video player with custom controls and analytics
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -221,12 +168,9 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4 px-4 py-2">
               Pricing
             </Badge>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">
-              Simple, Transparent Pricing
-            </h3>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Simple, Transparent Pricing</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Choose the plan that fits your team's needs. Start free and scale
-              as you grow.
+              Choose the plan that fits your team's needs. Start free and scale as you grow.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -235,9 +179,7 @@ export default function LandingPage() {
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">Starter</CardTitle>
                 <div className="text-4xl font-bold mb-2">Free</div>
-                <CardDescription className="text-base">
-                  Perfect for small teams getting started
-                </CardDescription>
+                <CardDescription className="text-base">Perfect for small teams getting started</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <div className="space-y-3">
@@ -275,21 +217,15 @@ export default function LandingPage() {
             {/* Pro Plan */}
             <Card className="relative border-2 border-primary shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="px-4 py-1 bg-primary text-primary-foreground">
-                  Most Popular
-                </Badge>
+                <Badge className="px-4 py-1 bg-primary text-primary-foreground">Most Popular</Badge>
               </div>
               <CardHeader className="text-center pb-8 pt-8">
                 <CardTitle className="text-2xl mb-2">Pro</CardTitle>
                 <div className="text-4xl font-bold mb-2">
                   $29
-                  <span className="text-base font-normal text-muted-foreground">
-                    /month
-                  </span>
+                  <span className="text-base font-normal text-muted-foreground">/month</span>
                 </div>
-                <CardDescription className="text-base">
-                  For growing teams that need more power
-                </CardDescription>
+                <CardDescription className="text-base">For growing teams that need more power</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <div className="space-y-3">
@@ -335,9 +271,7 @@ export default function LandingPage() {
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
                 <div className="text-4xl font-bold mb-2">Custom</div>
-                <CardDescription className="text-base">
-                  For large organizations with custom needs
-                </CardDescription>
+                <CardDescription className="text-base">For large organizations with custom needs</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <div className="space-y-3">
@@ -388,12 +322,9 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4 px-4 py-2">
               About
             </Badge>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">
-              Built for the Future of Video Collaboration
-            </h3>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Built for the Future of Video Collaboration</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              We're reimagining how teams work with video content, making
-              collaboration seamless and intuitive.
+              We're reimagining how teams work with video content, making collaboration seamless and intuitive.
             </p>
           </div>
 
@@ -401,14 +332,13 @@ export default function LandingPage() {
             <div className="space-y-6">
               <h4 className="text-3xl font-bold">Our Mission</h4>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                At Nuclom, we believe that video is the future of communication.
-                Our platform removes the barriers that prevent teams from
-                collaborating effectively on video content, enabling creativity
-                and productivity like never before.
+                At Nuclom, we believe that video is the future of communication. Our platform removes the barriers that
+                prevent teams from collaborating effectively on video content, enabling creativity and productivity like
+                never before.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Whether you're a content creator, educator, or enterprise team,
-                our tools adapt to your workflow and scale with your needs.
+                Whether you're a content creator, educator, or enterprise team, our tools adapt to your workflow and
+                scale with your needs.
               </p>
             </div>
             <div className="relative">
@@ -424,27 +354,21 @@ export default function LandingPage() {
                 <Users className="w-10 h-10 text-primary" />
               </div>
               <h5 className="text-xl font-bold mb-3">10,000+ Teams</h5>
-              <p className="text-muted-foreground">
-                Trusted by teams worldwide to collaborate on their video content
-              </p>
+              <p className="text-muted-foreground">Trusted by teams worldwide to collaborate on their video content</p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Video className="w-10 h-10 text-primary" />
               </div>
               <h5 className="text-xl font-bold mb-3">1M+ Videos</h5>
-              <p className="text-muted-foreground">
-                Millions of videos organized and shared through our platform
-              </p>
+              <p className="text-muted-foreground">Millions of videos organized and shared through our platform</p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Globe className="w-10 h-10 text-primary" />
               </div>
               <h5 className="text-xl font-bold mb-3">50+ Countries</h5>
-              <p className="text-muted-foreground">
-                Supporting teams across the globe with reliable infrastructure
-              </p>
+              <p className="text-muted-foreground">Supporting teams across the globe with reliable infrastructure</p>
             </div>
           </div>
         </div>
@@ -457,30 +381,18 @@ export default function LandingPage() {
           <Badge variant="outline" className="mb-6 px-4 py-2">
             Ready to start?
           </Badge>
-          <h3 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your Video Workflow?
-          </h3>
+          <h3 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Video Workflow?</h3>
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-            Join thousands of teams already using Nuclom to collaborate more
-            effectively
+            Join thousands of teams already using Nuclom to collaborate more effectively
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button
-              size="lg"
-              asChild
-              className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-            >
+            <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
               <Link href="/signup">
                 Get Started Free
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="px-8 py-6 text-lg"
-            >
+            <Button size="lg" variant="outline" asChild className="px-8 py-6 text-lg">
               <Link href="/contact">Contact Sales</Link>
             </Button>
           </div>
@@ -498,22 +410,13 @@ export default function LandingPage() {
               <span className="text-xl font-bold">Nuclom</span>
             </div>
             <div className="flex items-center space-x-8 text-sm text-muted-foreground">
-              <Link
-                href="/privacy"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Link
-                href="/terms"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/terms" className="hover:text-foreground transition-colors">
                 Terms of Service
               </Link>
-              <Link
-                href="/support"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/support" className="hover:text-foreground transition-colors">
                 Support
               </Link>
             </div>

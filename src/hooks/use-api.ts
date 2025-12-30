@@ -1,8 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/**
+ * API Hooks
+ *
+ * React hooks for fetching data from the API.
+ * Uses Effect-TS internally for type-safe error handling.
+ */
+
+import { useEffect, useState, useCallback } from "react";
+import { Either } from "effect";
 import { ApiError, videoApi, organizationApi } from "@/lib/api";
+import { videoApiEffect, organizationApiEffect, runClientEffect } from "@/lib/effect/client";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+
+// =============================================================================
+// Types
+// =============================================================================
 
 interface UseApiState<T> {
   data: T | null;
@@ -10,7 +23,36 @@ interface UseApiState<T> {
   error: string | null;
 }
 
-// Custom hook for fetching videos
+// =============================================================================
+// Helper: Effect Error to Message
+// =============================================================================
+
+const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === "object" && "_tag" in error) {
+    const taggedError = error as { _tag: string; message: string; status?: number };
+
+    if (taggedError._tag === "HttpError" && taggedError.status) {
+      return `Failed to fetch data (${taggedError.status})`;
+    }
+
+    return taggedError.message;
+  }
+
+  if (error instanceof ApiError) {
+    return `Failed to fetch data (${error.status})`;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "An unknown error occurred";
+};
+
+// =============================================================================
+// useVideos Hook
+// =============================================================================
+
 export function useVideos(
   params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
 ) {
@@ -24,25 +66,28 @@ export function useVideos(
     let isMounted = true;
 
     const fetchVideos = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-        const data = await videoApi.getVideos(params);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
-        if (isMounted) {
-          setState({ data, loading: false, error: null });
-        }
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage =
-            error instanceof ApiError
-              ? `Failed to fetch videos (${error.status})`
-              : error instanceof Error
-                ? error.message
-                : "An unknown error occurred";
+      const result = await runClientEffect(videoApiEffect.getVideos(params));
 
-          setState({ data: null, loading: false, error: errorMessage });
-        }
-      }
+      if (!isMounted) return;
+
+      Either.match(result, {
+        onLeft: (error) => {
+          setState({
+            data: null,
+            loading: false,
+            error: getErrorMessage(error),
+          });
+        },
+        onRight: (data) => {
+          setState({
+            data,
+            loading: false,
+            error: null,
+          });
+        },
+      });
     };
 
     fetchVideos();
@@ -55,7 +100,10 @@ export function useVideos(
   return state;
 }
 
-// Custom hook for fetching a single video
+// =============================================================================
+// useVideo Hook
+// =============================================================================
+
 export function useVideo(id: string | null) {
   const [state, setState] = useState<UseApiState<VideoWithDetails>>({
     data: null,
@@ -72,25 +120,28 @@ export function useVideo(id: string | null) {
     let isMounted = true;
 
     const fetchVideo = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-        const data = await videoApi.getVideo(id);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
-        if (isMounted) {
-          setState({ data, loading: false, error: null });
-        }
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage =
-            error instanceof ApiError
-              ? `Failed to fetch video (${error.status})`
-              : error instanceof Error
-                ? error.message
-                : "An unknown error occurred";
+      const result = await runClientEffect(videoApiEffect.getVideo(id));
 
-          setState({ data: null, loading: false, error: errorMessage });
-        }
-      }
+      if (!isMounted) return;
+
+      Either.match(result, {
+        onLeft: (error) => {
+          setState({
+            data: null,
+            loading: false,
+            error: getErrorMessage(error),
+          });
+        },
+        onRight: (data) => {
+          setState({
+            data,
+            loading: false,
+            error: null,
+          });
+        },
+      });
     };
 
     fetchVideo();
@@ -103,9 +154,12 @@ export function useVideo(id: string | null) {
   return state;
 }
 
-// Custom hook for fetching organizations
+// =============================================================================
+// useOrganizations Hook
+// =============================================================================
+
 export function useOrganizations(userId?: string) {
-  const [state, setState] = useState<UseApiState<any>>({
+  const [state, setState] = useState<UseApiState<unknown[]>>({
     data: null,
     loading: true,
     error: null,
@@ -115,25 +169,28 @@ export function useOrganizations(userId?: string) {
     let isMounted = true;
 
     const fetchOrganizations = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-        const data = await organizationApi.getOrganizations(userId);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
-        if (isMounted) {
-          setState({ data, loading: false, error: null });
-        }
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage =
-            error instanceof ApiError
-              ? `Failed to fetch organizations (${error.status})`
-              : error instanceof Error
-                ? error.message
-                : "An unknown error occurred";
+      const result = await runClientEffect(organizationApiEffect.getOrganizations(userId));
 
-          setState({ data: null, loading: false, error: errorMessage });
-        }
-      }
+      if (!isMounted) return;
+
+      Either.match(result, {
+        onLeft: (error) => {
+          setState({
+            data: null,
+            loading: false,
+            error: getErrorMessage(error),
+          });
+        },
+        onRight: (data) => {
+          setState({
+            data,
+            loading: false,
+            error: null,
+          });
+        },
+      });
     };
 
     fetchOrganizations();
@@ -145,3 +202,9 @@ export function useOrganizations(userId?: string) {
 
   return state;
 }
+
+// =============================================================================
+// Re-export Effect-based hooks for more advanced usage
+// =============================================================================
+
+export { useEffectQuery, useEffectMutation, useErrorMessage } from "./use-effect";

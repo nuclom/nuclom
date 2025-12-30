@@ -1,22 +1,9 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ArrowLeft,
-  Play,
-  Mail,
-  MessageCircle,
-  Book,
-  HelpCircle,
-} from "lucide-react";
+import { ArrowLeft, Play, Mail, MessageCircle, Book, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function SupportPage() {
@@ -46,12 +33,9 @@ export default function SupportPage() {
       <main className="flex-1 py-16 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Support Center
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Support Center</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Get help with Nuclom. We're here to answer your questions and help
-              you succeed.
+              Get help with Nuclom. We're here to answer your questions and help you succeed.
             </p>
           </div>
 
@@ -63,9 +47,7 @@ export default function SupportPage() {
                   <Book className="w-8 h-8 text-blue-500" />
                 </div>
                 <CardTitle className="text-lg">Documentation</CardTitle>
-                <CardDescription>
-                  Comprehensive guides and tutorials
-                </CardDescription>
+                <CardDescription>Comprehensive guides and tutorials</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button variant="outline" className="w-full" asChild>
@@ -126,10 +108,7 @@ export default function SupportPage() {
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-2xl">Contact Support</CardTitle>
-                  <CardDescription>
-                    Send us a message and we'll get back to you as soon as
-                    possible.
-                  </CardDescription>
+                  <CardDescription>Send us a message and we'll get back to you as soon as possible.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -144,11 +123,7 @@ export default function SupportPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                    />
+                    <Input id="email" type="email" placeholder="john@example.com" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subject</Label>
@@ -156,11 +131,7 @@ export default function SupportPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      placeholder="Please describe your issue or question in detail..."
-                      rows={6}
-                    />
+                    <Textarea id="message" placeholder="Please describe your issue or question in detail..." rows={6} />
                   </div>
                   <Button className="w-full">Send Message</Button>
                 </CardContent>
@@ -169,80 +140,64 @@ export default function SupportPage() {
 
             {/* FAQ Section */}
             <div id="faq">
-              <h2 className="text-2xl font-bold mb-6">
-                Frequently Asked Questions
-              </h2>
+              <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
               <div className="space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      How do I upload videos to Nuclom?
-                    </CardTitle>
+                    <CardTitle className="text-lg">How do I upload videos to Nuclom?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      You can upload videos by clicking the "Upload" button in
-                      your organization, then drag and drop your video files or
-                      browse to select them.
+                      You can upload videos by clicking the "Upload" button in your organization, then drag and drop
+                      your video files or browse to select them.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      What video formats are supported?
-                    </CardTitle>
+                    <CardTitle className="text-lg">What video formats are supported?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      We support most common video formats including MP4, MOV,
-                      AVI, MKV, and more. Maximum file size is 5GB for Pro plans
-                      and 1GB for free accounts.
+                      We support most common video formats including MP4, MOV, AVI, MKV, and more. Maximum file size is
+                      5GB for Pro plans and 1GB for free accounts.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      How do I invite team members?
-                    </CardTitle>
+                    <CardTitle className="text-lg">How do I invite team members?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      Go to your organization settings, click on "Members," then
-                      click "Invite Member" and enter their email address.
+                      Go to your organization settings, click on "Members," then click "Invite Member" and enter their
+                      email address.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      Can I use Nuclom for free?
-                    </CardTitle>
+                    <CardTitle className="text-lg">Can I use Nuclom for free?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      Yes! Our Starter plan is completely free and includes up
-                      to 5 team members, 10GB storage, and basic collaboration
-                      features.
+                      Yes! Our Starter plan is completely free and includes up to 5 team members, 10GB storage, and
+                      basic collaboration features.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      How secure is my content?
-                    </CardTitle>
+                    <CardTitle className="text-lg">How secure is my content?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      We use enterprise-grade security with end-to-end
-                      encryption, secure data centers, and strict access
-                      controls to protect your content.
+                      We use enterprise-grade security with end-to-end encryption, secure data centers, and strict
+                      access controls to protect your content.
                     </p>
                   </CardContent>
                 </Card>
@@ -263,16 +218,10 @@ export default function SupportPage() {
               <span className="text-xl font-bold">Nuclom</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <Link
-                href="/privacy"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Link
-                href="/terms"
-                className="hover:text-foreground transition-colors"
-              >
+              <Link href="/terms" className="hover:text-foreground transition-colors">
                 Terms of Service
               </Link>
             </div>
