@@ -7,9 +7,18 @@
 
 import { Cause, Effect, Exit, Option } from "effect";
 import { revalidateTag, unstable_cache } from "next/cache";
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import type {
+  PaginatedResponse,
+  PaginatedResponse as PaginatedResponseType,
+  SeriesProgressWithDetails,
+  SeriesWithVideoCount,
+  SeriesWithVideos,
+  VideoWithAuthor,
+  VideoWithDetails,
+} from "@/lib/types";
 import { AppLive, type AppServices } from "./runtime";
 import { OrganizationRepository } from "./services/organization-repository";
+import { SeriesRepository } from "./services/series-repository";
 import { type VideoProgressData, VideoProgressRepository } from "./services/video-progress-repository";
 import type { CreateVideoInput, UpdateVideoInput } from "./services/video-repository";
 import { VideoRepository } from "./services/video-repository";
@@ -355,4 +364,135 @@ export const createCachedQuery = <TArgs extends unknown[], TResult>(
 
     return cachedFn();
   };
+};
+
+// =============================================================================
+// Series Queries (Cached)
+// =============================================================================
+
+/**
+ * Get series for an organization (cached)
+ */
+export const getSeries = async (
+  organizationId: string,
+  page: number = 1,
+  limit: number = 20,
+): Promise<PaginatedResponseType<SeriesWithVideoCount>> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* SeriesRepository;
+        return yield* repo.getSeries(organizationId, page, limit);
+      });
+      return runServerEffect(effect);
+    },
+    [`series`, `series:${organizationId}`, `page:${page}`, `limit:${limit}`],
+    {
+      tags: [`series`, `series:${organizationId}`],
+      revalidate: 60,
+    },
+  );
+
+  return cachedFn();
+};
+
+/**
+ * Get a series with its videos (cached)
+ */
+export const getSeriesWithVideos = async (id: string): Promise<SeriesWithVideos> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* SeriesRepository;
+        return yield* repo.getSeriesWithVideos(id);
+      });
+      return runServerEffect(effect);
+    },
+    [`series:${id}`],
+    {
+      tags: [`series:${id}`],
+      revalidate: 60,
+    },
+  );
+
+  return cachedFn();
+};
+
+/**
+ * Get series with user progress (cached)
+ */
+export const getSeriesWithProgress = async (
+  organizationId: string,
+  userId: string,
+): Promise<(SeriesWithVideoCount & { progress?: SeriesProgressWithDetails })[]> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* SeriesRepository;
+        return yield* repo.getSeriesWithProgress(organizationId, userId);
+      });
+      return runServerEffect(effect);
+    },
+    [`series:${organizationId}:progress:${userId}`],
+    {
+      tags: [`series:${organizationId}`, `series-progress:user:${userId}`],
+      revalidate: 30,
+    },
+  );
+
+  return cachedFn();
+};
+
+/**
+ * Get user's progress for a specific series (cached)
+ */
+export const getSeriesProgress = async (
+  userId: string,
+  seriesId: string,
+): Promise<SeriesProgressWithDetails | null> => {
+  const cachedFn = unstable_cache(
+    async () => {
+      const effect = Effect.gen(function* () {
+        const repo = yield* SeriesRepository;
+        return yield* repo.getSeriesProgress(userId, seriesId);
+      });
+      return runServerEffect(effect);
+    },
+    [`series-progress:${seriesId}:${userId}`],
+    {
+      tags: [`series-progress:${seriesId}:${userId}`, `series-progress:user:${userId}`],
+      revalidate: 30,
+    },
+  );
+
+  return cachedFn();
+};
+
+// =============================================================================
+// Series Revalidation Helpers
+// =============================================================================
+
+/**
+ * Revalidate series-related caches
+ */
+export const revalidateSeries = (organizationId?: string) => {
+  revalidateTag("series", "max");
+  if (organizationId) {
+    revalidateTag(`series:${organizationId}`, "max");
+  }
+};
+
+/**
+ * Revalidate a specific series cache
+ */
+export const revalidateSeriesById = (seriesId: string) => {
+  revalidateTag(`series:${seriesId}`, "max");
+};
+
+/**
+ * Revalidate series progress caches
+ */
+export const revalidateSeriesProgress = (seriesId: string, userId: string) => {
+  revalidateTag(`series-progress:${seriesId}:${userId}`, "max");
+  revalidateTag(`series-progress:user:${userId}`, "max");
 };

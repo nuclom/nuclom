@@ -1,4 +1,14 @@
-import type { Channel, Collection, Comment, Member, Organization, User, Video } from "./db/schema";
+import type {
+  Channel,
+  Collection,
+  Comment,
+  Member,
+  Organization,
+  SeriesProgress,
+  SeriesVideo,
+  User,
+  Video,
+} from "./db/schema";
 
 export type VideoWithAuthor = Video & {
   author: User;
@@ -18,6 +28,30 @@ export type OrganizationWithMembers = Organization & {
 
 export type ChannelWithVideos = Channel & {
   videos: VideoWithAuthor[];
+};
+
+// Series types
+export type SeriesWithVideoCount = Collection & {
+  videoCount: number;
+  createdBy?: User | null;
+};
+
+export type SeriesVideoWithDetails = SeriesVideo & {
+  video: VideoWithAuthor;
+};
+
+export type SeriesWithVideos = Collection & {
+  createdBy?: User | null;
+  videos: SeriesVideoWithDetails[];
+  videoCount: number;
+};
+
+export type SeriesProgressWithDetails = SeriesProgress & {
+  series: Collection;
+  lastVideo?: Video | null;
+  completedCount: number;
+  totalCount: number;
+  progressPercentage: number;
 };
 
 // API Response types

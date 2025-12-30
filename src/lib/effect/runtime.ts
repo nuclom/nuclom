@@ -19,8 +19,9 @@ import { type Database, DatabaseLive } from "./services/database";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
+import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
 import { type Storage, StorageLive } from "./services/storage";
-import { type StripeServiceTag, StripeServiceLive } from "./services/stripe";
+import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
@@ -47,11 +48,10 @@ const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.p
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository and StripeService
-const BillingWithDeps = BillingLive.pipe(
-  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)),
-);
+const BillingWithDeps = BillingLive.pipe(Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)));
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -63,6 +63,7 @@ const AppServicesLive = Layer.mergeAll(
   NotificationRepositoryWithDeps,
   BillingRepositoryWithDeps,
   BillingWithDeps,
+  SeriesRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -84,6 +85,7 @@ export type AppServices =
   | NotificationRepository
   | BillingRepository
   | Billing
+  | SeriesRepository
   | StripeServiceTag;
 
 // =============================================================================
