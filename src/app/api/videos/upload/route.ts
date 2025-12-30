@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import {
   AppLive,
@@ -9,8 +9,9 @@ import {
   VideoProcessor,
   VideoRepository,
 } from "@/lib/effect";
+import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
-import { triggerVideoProcessing } from "@/workflows/video-processing";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
@@ -58,6 +59,11 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
   return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 };
 
+// Build the layer with all required dependencies for AI processing
+const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
+
+const FullProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProcessorWithDeps);
+
 // =============================================================================
 // POST /api/videos/upload - Upload a video file
 // =============================================================================
@@ -90,6 +96,7 @@ export async function POST(request: NextRequest) {
     const authorId = formData.get("authorId") as string;
     const channelId = formData.get("channelId") as string;
     const collectionId = formData.get("collectionId") as string;
+    const skipAIProcessing = formData.get("skipAIProcessing") === "true";
 
     // Validate required fields
     if (!file) {
@@ -154,28 +161,7 @@ export async function POST(request: NextRequest) {
       organizationId,
       channelId: channelId || undefined,
       collectionId: collectionId || undefined,
-      processingStatus: "pending",
-      fileSize: processingResult.fileSize,
-    });
-
-    // Trigger async video processing workflow
-    // This runs in the background and updates the video record as it progresses
-    yield* Effect.tryPromise({
-      try: async () => {
-        await triggerVideoProcessing({
-          videoId: insertedVideo.id,
-          videoUrl: processingResult.videoUrl,
-          organizationId,
-          title,
-          description,
-          fileSize: processingResult.fileSize,
-        });
-      },
-      catch: (error) => {
-        // Log but don't fail the request - video is uploaded, processing can be retried
-        console.error("Failed to trigger video processing workflow:", error);
-        return null;
-      },
+      processingStatus: skipAIProcessing ? "completed" : "pending",
     });
 
     return {
@@ -183,8 +169,10 @@ export async function POST(request: NextRequest) {
       videoUrl: processingResult.videoUrl,
       thumbnailUrl: processingResult.thumbnailUrl,
       duration: processingResult.duration,
-      processingStatus: "pending",
-    } as UploadResponse;
+      processingStatus: insertedVideo.processingStatus,
+      skipAIProcessing,
+      videoTitle: title,
+    };
   });
 
   const runnable = Effect.provide(effect, AppLive);
@@ -199,9 +187,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
     onSuccess: (data) => {
+      // Trigger AI processing in the background (fire and forget)
+      if (!data.skipAIProcessing && data.videoUrl) {
+        // Run AI processing asynchronously - don't await
+        const aiEffect = Effect.gen(function* () {
+          const aiProcessor = yield* VideoAIProcessor;
+          yield* aiProcessor.processVideo(data.videoId, data.videoUrl!, data.videoTitle);
+        });
+
+        const aiRunnable = Effect.provide(aiEffect, FullProcessingLayer);
+
+        // Fire and forget - run in background
+        Effect.runPromise(aiRunnable).catch((err) => {
+          console.error("[AI Processing Error]", err);
+        });
+      }
+
       const response: ApiResponse<UploadResponse> = {
         success: true,
-        data,
+        data: {
+          videoId: data.videoId,
+          videoUrl: data.videoUrl,
+          thumbnailUrl: data.thumbnailUrl,
+          duration: data.duration,
+          processingStatus: data.processingStatus,
+        },
       };
       return NextResponse.json(response, { status: 201 });
     },

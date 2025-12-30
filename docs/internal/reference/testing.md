@@ -15,11 +15,41 @@ This guide covers testing strategies, patterns, and best practices for the Nuclo
 
 ### Current Status
 
-**Note**: Nuclom currently has no tests configured. This guide provides the foundation for implementing a comprehensive testing strategy.
+**E2E Tests**: Configured with Playwright. Tests are located in the `e2e/` directory and run via GitHub Actions on every push/PR.
 
-## Test Setup
+**Unit/Integration Tests**: Not yet configured. See below for setup instructions.
 
-### Installing Testing Dependencies
+## Running E2E Tests
+
+```bash
+# Run all E2E tests
+pnpm test:e2e
+
+# Run tests with UI mode (interactive)
+pnpm test:e2e:ui
+
+# Run tests in headed mode (see browser)
+pnpm test:e2e:headed
+
+# View test report
+pnpm test:e2e:report
+```
+
+### E2E Test Coverage
+
+The E2E test suite covers:
+- **Landing Page**: Hero section, features, pricing, about, footer, navigation
+- **Authentication**: Login form, registration form, OAuth buttons, validation, redirects
+- **Organization Dashboard**: Video sections, empty states, navigation
+- **Video Upload**: Upload page layout, drag-and-drop area, back navigation
+- **Video Management**: Video list, detail pages, search, my-videos, shared, channels, series
+- **Settings**: Profile, organization, members settings pages
+- **Public Pages**: Privacy policy, terms of service, support, contact, 404 handling
+- **Performance**: Page load times
+
+## Test Setup (for Unit/Integration Tests)
+
+### Installing Additional Testing Dependencies
 
 ```bash
 # Testing framework and utilities
@@ -32,9 +62,6 @@ pnpm add -D @next/env jest-environment-jsdom
 
 # Database testing
 pnpm add -D @testcontainers/postgresql
-
-# E2E testing
-pnpm add -D playwright @playwright/test
 ```
 
 ### Jest Configuration
@@ -520,41 +547,60 @@ describe("Database Operations", () => {
 
 ### Playwright Configuration
 
+The project uses Playwright for E2E testing. Configuration is in `playwright.config.ts`:
+
 ```typescript
 // playwright.config.ts
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "html",
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "on-first-retry",
   },
   projects: [
+    { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
     },
     {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 5"] },
+      dependencies: ["setup"],
     },
   ],
-  webServer: {
+  webServer: process.env.CI ? undefined : {
     command: "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });
+```
+
+### Test File Structure
+
+```
+e2e/
+├── auth.setup.ts       # Authentication setup for tests
+├── fixtures.ts         # Test fixtures and utilities
+├── landing.spec.ts     # Landing page tests
+├── auth.spec.ts        # Authentication flow tests
+├── organization.spec.ts # Organization dashboard tests
+├── upload.spec.ts      # Video upload tests
+├── videos.spec.ts      # Video management tests
+├── settings.spec.ts    # Settings pages tests
+└── public-pages.spec.ts # Public pages tests
 ```
 
 ### E2E Test Examples
