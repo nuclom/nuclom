@@ -1,11 +1,16 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { AppLive } from "@/lib/effect";
 import { WebhookSignatureError } from "@/lib/effect/errors";
 import { Billing } from "@/lib/effect/services/billing";
+import { BillingRepository } from "@/lib/effect/services/billing-repository";
+import { Database } from "@/lib/effect/services/database";
+import { EmailNotifications } from "@/lib/effect/services/email-notifications";
+import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
+import { env } from "@/lib/env/client";
 
 // =============================================================================
 // POST /api/webhooks/stripe - Handle Stripe webhooks
@@ -139,8 +144,8 @@ const handleWebhookEvent = (event: Stripe.Event) =>
 
       case "customer.subscription.trial_will_end": {
         const subscription = event.data.object as Stripe.Subscription;
-        // TODO: Send notification to customer about trial ending
-        console.log(`[Webhook] Trial ending for subscription ${subscription.id}`);
+        yield* handleTrialEnding(subscription);
+        console.log(`[Webhook] Trial ending notification sent for subscription ${subscription.id}`);
         break;
       }
 
@@ -148,6 +153,90 @@ const handleWebhookEvent = (event: Stripe.Event) =>
         console.log(`[Webhook] Unhandled event type: ${event.type}`);
     }
   });
+
+// =============================================================================
+// Helper Functions for Notifications
+// =============================================================================
+
+const handleTrialEnding = (subscription: Stripe.Subscription) =>
+  Effect.gen(function* () {
+    const billingRepo = yield* BillingRepository;
+    const emailService = yield* EmailNotifications;
+    const notificationRepo = yield* NotificationRepository;
+    const { db } = yield* Database;
+
+    // Get subscription from database
+    const dbSubscription = yield* billingRepo.getSubscriptionByStripeId(subscription.id).pipe(Effect.option);
+
+    if (Option.isNone(dbSubscription)) {
+      console.log(`[Webhook] No subscription found for trial ending: ${subscription.id}`);
+      return;
+    }
+
+    const sub = dbSubscription.value;
+    const organizationId = sub.organizationId;
+
+    // Get organization and members to notify
+    const org = yield* Effect.tryPromise({
+      try: () =>
+        db.query.organizations.findFirst({
+          where: (orgs, { eq }) => eq(orgs.id, organizationId),
+        }),
+      catch: () => new Error("Failed to get organization"),
+    });
+
+    if (!org) return;
+
+    // Get organization owner(s)
+    const members = yield* Effect.tryPromise({
+      try: () =>
+        db.query.members.findMany({
+          where: (m, { and, eq }) => and(eq(m.organizationId, organizationId), eq(m.role, "owner")),
+          with: { user: true },
+        }),
+      catch: () => new Error("Failed to get members"),
+    });
+
+    const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    // Send notifications to all owners
+    for (const member of members) {
+      const user = (member as { user: { id: string; email: string; name: string } }).user;
+      if (!user?.email) continue;
+
+      // Create in-app notification
+      yield* notificationRepo.createNotification({
+        userId: user.id,
+        type: "trial_ending",
+        title: "Your trial is ending soon",
+        body: `Your trial for ${org.name} ends on ${trialEndsAt.toLocaleDateString()}. Upgrade now to keep access to all features.`,
+        resourceType: "subscription",
+        resourceId: sub.id,
+      });
+
+      // Send email notification
+      yield* emailService
+        .sendTrialEndingNotification({
+          recipientEmail: user.email,
+          recipientName: user.name || "there",
+          organizationName: org.name,
+          trialEndsAt,
+          upgradeUrl: `${baseUrl}/${org.slug}/settings/billing`,
+        })
+        .pipe(
+          Effect.catchAll((error) => {
+            console.error(`[Webhook] Failed to send trial ending email to ${user.email}:`, error);
+            return Effect.succeed(undefined);
+          }),
+        );
+    }
+  }).pipe(
+    Effect.catchAll((error) => {
+      console.error("[Webhook] Error handling trial ending:", error);
+      return Effect.succeed(undefined);
+    }),
+  );
 
 // Disable body parsing so we can access the raw body for signature verification
 export const runtime = "nodejs";

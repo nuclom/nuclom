@@ -4,18 +4,24 @@
  * High-level billing operations that coordinate between Stripe and the database.
  */
 
+import { eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type Stripe from "stripe";
-import type {
-  InvoiceStatus,
-  NewInvoice,
-  NewPaymentMethod,
-  NewSubscription,
-  Plan,
-  PlanLimits,
-  Subscription,
-  SubscriptionStatus,
+import {
+  type InvoiceStatus,
+  members,
+  type NewInvoice,
+  type NewPaymentMethod,
+  type NewSubscription,
+  notifications,
+  organizations,
+  type Plan,
+  type PlanLimits,
+  type Subscription,
+  type SubscriptionStatus,
+  users,
 } from "@/lib/db/schema";
+import { env } from "@/lib/env/client";
 import {
   type BillingError,
   DatabaseError,
@@ -33,6 +39,7 @@ import {
   type UsageSummary,
 } from "./billing-repository";
 import { Database } from "./database";
+import { EmailNotifications } from "./email-notifications";
 import { StripeServiceTag } from "./stripe";
 
 // =============================================================================
@@ -167,6 +174,96 @@ export class Billing extends Context.Tag("Billing")<Billing, BillingServiceInter
 const makeBillingService = Effect.gen(function* () {
   const stripe = yield* StripeServiceTag;
   const billingRepo = yield* BillingRepository;
+  const { db } = yield* Database;
+  const emailService = yield* EmailNotifications;
+
+  const sendSubscriptionNotifications = (
+    organizationId: string,
+    eventType: "created" | "updated" | "canceled" | "payment_failed" | "payment_succeeded",
+    planName?: string,
+  ) =>
+    Effect.gen(function* () {
+      const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+      // Get organization
+      const org = yield* Effect.tryPromise({
+        try: () =>
+          db.query.organizations.findFirst({
+            where: eq(organizations.id, organizationId),
+          }),
+        catch: () => new Error("Failed to get organization"),
+      });
+
+      if (!org) return;
+
+      // Get organization owners
+      const ownerMembers = yield* Effect.tryPromise({
+        try: () =>
+          db.query.members.findMany({
+            where: (m, { and, eq: colEq }) => and(colEq(m.organizationId, organizationId), colEq(m.role, "owner")),
+            with: { user: true },
+          }),
+        catch: () => new Error("Failed to get organization members"),
+      });
+
+      const notificationTitles = {
+        created: "Subscription activated",
+        updated: "Subscription updated",
+        canceled: "Subscription canceled",
+        payment_failed: "Payment failed",
+        payment_succeeded: "Payment successful",
+      };
+
+      const notificationBodies = {
+        created: `Your subscription to ${planName || "Nuclom Pro"} is now active.`,
+        updated: `Your subscription has been updated${planName ? ` to ${planName}` : ""}.`,
+        canceled: `Your subscription for ${org.name} has been canceled and will remain active until the end of the billing period.`,
+        payment_failed: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
+        payment_succeeded: `Your payment for ${org.name} was processed successfully.`,
+      };
+
+      const notificationType =
+        eventType === "payment_failed"
+          ? "payment_failed"
+          : eventType === "payment_succeeded"
+            ? "payment_succeeded"
+            : eventType === "canceled"
+              ? "subscription_canceled"
+              : eventType === "updated"
+                ? "subscription_updated"
+                : "subscription_created";
+
+      for (const member of ownerMembers) {
+        const user = (member as { user: { id: string; email: string; name: string } }).user;
+        if (!user?.email) continue;
+
+        // Create in-app notification
+        yield* Effect.tryPromise({
+          try: () =>
+            db.insert(notifications).values({
+              userId: user.id,
+              type: notificationType,
+              title: notificationTitles[eventType],
+              body: notificationBodies[eventType],
+              resourceType: "subscription",
+              resourceId: organizationId,
+            }),
+          catch: () => new Error("Failed to create notification"),
+        }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+
+        // Send email notification
+        yield* emailService
+          .sendSubscriptionNotification({
+            recipientEmail: user.email,
+            recipientName: user.name || "there",
+            organizationName: org.name,
+            eventType,
+            planName,
+            billingUrl: `${baseUrl}/${org.slug}/settings/billing`,
+          })
+          .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+      }
+    }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
   const mapStripeStatus = (status: Stripe.Subscription.Status): SubscriptionStatus => {
     const statusMap: Record<Stripe.Subscription.Status, SubscriptionStatus> = {
@@ -484,11 +581,17 @@ const makeBillingService = Effect.gen(function* () {
         // Check if subscription exists
         const existingSubscription = yield* billingRepo.getSubscriptionOption(organizationId);
 
+        let result: Subscription;
         if (Option.isSome(existingSubscription)) {
-          return yield* billingRepo.updateSubscription(organizationId, subscriptionData);
+          result = yield* billingRepo.updateSubscription(organizationId, subscriptionData);
+        } else {
+          result = yield* billingRepo.createSubscription(subscriptionData);
         }
 
-        return yield* billingRepo.createSubscription(subscriptionData);
+        // Send subscription created notification
+        yield* sendSubscriptionNotifications(organizationId, "created", plan.name);
+
+        return result;
       }),
 
     handleSubscriptionUpdated: (stripeSubscription) =>
@@ -507,7 +610,7 @@ const makeBillingService = Effect.gen(function* () {
           }
         }
 
-        return yield* billingRepo.updateSubscription(subscription.organizationId, {
+        const result = yield* billingRepo.updateSubscription(subscription.organizationId, {
           planId,
           status: mapStripeStatus(stripeSubscription.status),
           currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
@@ -515,6 +618,15 @@ const makeBillingService = Effect.gen(function* () {
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
           canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
         });
+
+        // Get plan name for notification
+        const planResult = yield* billingRepo.getPlan(planId).pipe(Effect.option);
+        const planName = Option.isSome(planResult) ? planResult.value.name : undefined;
+
+        // Send subscription updated notification
+        yield* sendSubscriptionNotifications(subscription.organizationId, "updated", planName);
+
+        return result;
       }),
 
     handleSubscriptionDeleted: (stripeSubscription) =>
@@ -530,6 +642,9 @@ const makeBillingService = Effect.gen(function* () {
           stripeSubscriptionId: null,
           canceledAt: new Date(),
         });
+
+        // Send subscription canceled notification
+        yield* sendSubscriptionNotifications(subscription.organizationId, "canceled");
       }),
 
     handleInvoicePaid: (stripeInvoice) =>
@@ -570,6 +685,9 @@ const makeBillingService = Effect.gen(function* () {
         yield* billingRepo.updateSubscription(subscription.value.organizationId, {
           status: "active",
         });
+
+        // Send payment succeeded notification
+        yield* sendSubscriptionNotifications(subscription.value.organizationId, "payment_succeeded");
       }),
 
     handleInvoiceFailed: (stripeInvoice) =>
@@ -586,6 +704,9 @@ const makeBillingService = Effect.gen(function* () {
         yield* billingRepo.updateSubscription(subscription.value.organizationId, {
           status: "past_due",
         });
+
+        // Send payment failed notification
+        yield* sendSubscriptionNotifications(subscription.value.organizationId, "payment_failed");
       }),
 
     handlePaymentMethodAttached: (paymentMethod, organizationId) =>

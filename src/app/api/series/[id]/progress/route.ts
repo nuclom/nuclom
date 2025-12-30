@@ -1,5 +1,6 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
 import { AppLive, MissingFieldError, SeriesRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
@@ -59,7 +60,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
       return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     },
-    onSuccess: (data) => NextResponse.json(data),
+    onSuccess: (data) =>
+      NextResponse.json(data, {
+        headers: {
+          // Progress changes frequently, use very short cache
+          "Cache-Control": getCacheControlHeader(CachePresets.progress()),
+        },
+      }),
   });
 }
 

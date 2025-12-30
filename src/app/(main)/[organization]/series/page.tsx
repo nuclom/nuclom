@@ -12,7 +12,7 @@ export default async function SeriesListPage({ params }: { params: Promise<{ org
   const session = await auth.api.getSession({ headers: headersList });
 
   // Get organization by slug
-  let organizationData;
+  let organizationData: Awaited<ReturnType<typeof getCachedOrganizationBySlug>>;
   try {
     organizationData = await getCachedOrganizationBySlug(organization);
   } catch {

@@ -14,12 +14,15 @@ import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
 import { type Billing, BillingLive } from "./services/billing";
 import { type BillingRepository, BillingRepositoryLive } from "./services/billing-repository";
+import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
+import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
+import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
 import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
 import { type Storage, StorageLive } from "./services/storage";
 import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
@@ -38,23 +41,30 @@ import { type Translation, TranslationLive } from "./services/translation";
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, TranslationLive);
+const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, TranslationLive, EmailNotificationsLive);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
 
 // Repositories depend on Database - provide their dependencies
-const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(DatabaseLive));
+// VideoRepository depends on both Database and Storage
+const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)),
+);
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
-// Billing service depends on BillingRepository and StripeService
-const BillingWithDeps = BillingLive.pipe(Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive)));
+// Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
+const BillingWithDeps = BillingLive.pipe(
+  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive, DatabaseLive, EmailNotificationsLive)),
+);
 
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
@@ -67,7 +77,9 @@ const AppServicesLive = Layer.mergeAll(
   IntegrationRepositoryWithDeps,
   BillingRepositoryWithDeps,
   BillingWithDeps,
+  SearchRepositoryWithDeps,
   SeriesRepositoryWithDeps,
+  ChannelRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -87,10 +99,13 @@ export type AppServices =
   | VideoProgressRepository
   | CommentRepository
   | NotificationRepository
+  | EmailNotifications
   | IntegrationRepository
   | BillingRepository
   | Billing
+  | SearchRepository
   | SeriesRepository
+  | ChannelRepository
   | StripeServiceTag
   | Translation;
 

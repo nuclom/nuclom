@@ -63,7 +63,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Set to true in production
+    requireEmailVerification: true,
+    // sendVerificationEmail handler is configured in src/lib/auth.ts
   },
   socialProviders: {
     github: {
@@ -951,6 +952,63 @@ export async function monitorSession(userId: string) {
 }
 ```
 
+## Email Verification Flow
+
+Nuclom requires email verification for all new accounts. The flow is as follows:
+
+### Registration Flow
+
+1. User submits registration form with name, email, and password
+2. Better-Auth creates user account with `emailVerified: false`
+3. `sendVerificationEmail` handler is triggered automatically
+4. User is redirected to `/verification-pending?email=...`
+5. Verification email is sent via Resend
+
+### Verification Pages
+
+| Route | Purpose |
+|-------|---------|
+| `/verification-pending` | Shows after signup, allows resending verification email |
+| `/verify-email?token=...` | Handles verification token from email link |
+
+### Email Template
+
+The verification email is sent via Resend with:
+- From: `Nuclom <no-reply@nuclom.com>`
+- Subject: `Verify your email address`
+- Contains a verification button/link
+- Expires after 24 hours
+
+### Configuration
+
+```typescript
+// src/lib/auth.ts
+emailAndPassword: {
+  enabled: true,
+  requireEmailVerification: true,
+  async sendVerificationEmail({ user, url, token }) {
+    const verificationLink = `${env.APP_URL}/verify-email?token=${token}`;
+
+    await resend.emails.send({
+      from: "Nuclom <no-reply@nuclom.com>",
+      to: user.email,
+      subject: "Verify your email address",
+      html: `...email template...`,
+    });
+  },
+},
+```
+
+### Client-Side Verification
+
+```typescript
+// Verify email with token
+await authClient.verifyEmail({ token });
+
+// Resend verification email
+await authClient.sendVerificationEmail({ email });
+```
+
 ## Production Considerations
 
 ### Environment Variables
@@ -959,6 +1017,8 @@ export async function monitorSession(userId: string) {
 # Required for production
 BETTER_AUTH_SECRET=your-secret-key-here
 DATABASE_URL=postgresql://...
+APP_URL=https://your-domain.com
+RESEND_API_KEY=your-resend-api-key
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 GOOGLE_CLIENT_ID=your-google-client-id
@@ -987,21 +1047,11 @@ export const auth = betterAuth({
 });
 ```
 
-### Email Verification
+### Resend Email Configuration
 
-```typescript
-// Enable email verification in production
-export const auth = betterAuth({
-  // ... other config
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
-  },
-  emailVerification: {
-    sendEmailVerification: async (email, token) => {
-      // Implement email sending logic
-      await sendVerificationEmail(email, token);
-    },
-  },
-});
-```
+To enable email verification in production:
+
+1. Create a Resend account at https://resend.com
+2. Add your domain to Resend and verify DNS records
+3. Set `RESEND_API_KEY` environment variable
+4. Configure sender address (e.g., `no-reply@nuclom.com`)
