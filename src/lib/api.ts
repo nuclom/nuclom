@@ -6,17 +6,17 @@
  * for backwards compatibility with existing React components.
  */
 
-import { Effect, Either, pipe } from "effect";
+import { type Effect, Either } from "effect";
 import {
   fetchEffect,
-  runClientEffect,
-  videoApiEffect,
   organizationApiEffect,
-  uploadVideoEffect,
+  runClientEffect,
   type UploadResult,
+  uploadVideoEffect,
+  videoApiEffect,
 } from "@/lib/effect/client";
-import { HttpError, ParseError } from "@/lib/effect/errors";
-import type { ApiResponse, PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import { HttpError, type ParseError } from "@/lib/effect/errors";
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 // =============================================================================
 // Error Class (Backwards Compatible)
@@ -54,9 +54,9 @@ const effectToPromise = async <T>(effect: Effect.Effect<T, HttpError | ParseErro
 // Legacy API Functions (Promise-based, uses Effect internally)
 // =============================================================================
 
-const API_BASE_URL = "/api";
+const _API_BASE_URL = "/api";
 
-async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function _fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const effect = fetchEffect<T>(endpoint, {
     ...options,
     body: options?.body ? JSON.parse(options.body as string) : undefined,
@@ -162,4 +162,4 @@ export const organizationApi = {
 export { ApiError };
 
 // Re-export Effect-based API for direct Effect usage
-export { videoApiEffect, organizationApiEffect, uploadVideoEffect } from "@/lib/effect/client";
+export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from "@/lib/effect/client";

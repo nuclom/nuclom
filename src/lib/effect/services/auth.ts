@@ -4,9 +4,9 @@
  * Provides Effect wrappers around Better-Auth for type-safe authentication.
  */
 
-import { Effect, Context, Layer, Option, pipe } from "effect";
 import type { Session, User } from "better-auth";
-import { UnauthorizedError, SessionError, ForbiddenError, type AuthError } from "../errors";
+import { Context, Effect, Layer, Option, pipe } from "effect";
+import { ForbiddenError, UnauthorizedError } from "../errors";
 
 // =============================================================================
 // Types
@@ -101,7 +101,7 @@ export const makeAuthService = (authInstance: AuthInstance) =>
         getSession(headers),
         Effect.flatMap((session) => {
           const roles = Array.isArray(role) ? role : [role];
-          const userRole = (session.user as any).role;
+          const userRole = (session.user as { role?: string }).role ?? "";
 
           if (!roles.includes(userRole)) {
             return Effect.fail(

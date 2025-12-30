@@ -7,88 +7,174 @@
 
 // Common Effect exports
 export * from "./common";
-
-// Custom error types
-export * from "./errors";
+export type { DatabaseConfig as DatabaseConfigType } from "./config";
 
 // Configuration - explicitly export to avoid conflicts
 export {
-  DatabaseConfig,
-  GitHubOAuthConfig,
-  GoogleOAuthConfig,
-  EmailConfig,
   AppConfig,
-  ServerConfig,
   ConfigService,
   ConfigServiceLive,
-  OptionalStorageConfig,
-  isStorageConfigured,
+  DatabaseConfig,
+  EmailConfig,
+  GitHubOAuthConfig,
+  GoogleOAuthConfig,
   getStorageConfig,
+  isStorageConfigured,
+  OptionalStorageConfig,
+  ServerConfig,
 } from "./config";
-export type { DatabaseConfig as DatabaseConfigType } from "./config";
+
+// Custom error types
+export * from "./errors";
+export type { AppServices } from "./runtime";
+
+// Runtime and layers
+export {
+  AppLive,
+  AppRuntime,
+  createAuthenticatedHandler,
+  createHandler,
+  DevLoggerLive,
+  effectToResponse,
+  effectWithLayersToResponse,
+  LoggingLive,
+  LogLevelLive,
+  mapErrorToResponse,
+  runEffect,
+  runEffectExit,
+  runEffectSync,
+} from "./runtime";
+
+// Server utilities (for RSC)
+export {
+  createCachedQuery,
+  createVideo as serverCreateVideo,
+  deleteVideo as serverDeleteVideo,
+  getOrganizationBySlug as getCachedOrganizationBySlug,
+  getOrganizations as getCachedOrganizations,
+  getUserVideoProgress as getCachedUserVideoProgress,
+  getVideo as getCachedVideo,
+  getVideoProgress as getCachedVideoProgress,
+  getVideos as getCachedVideos,
+  revalidateOrganization,
+  revalidateOrganizations,
+  revalidateVideo,
+  revalidateVideoProgress,
+  revalidateVideos,
+  runServerEffect,
+  runServerEffectSafe,
+  updateVideo as serverUpdateVideo,
+} from "./server";
+
+export type {
+  // AI
+  AIServiceInterface,
+  // Auth
+  AuthServiceInterface,
+  CreateOrganizationInput,
+  DatabaseService,
+  // Database
+  DrizzleDB,
+  // OrganizationRepository
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+  ProcessingProgress,
+  ProcessingResult,
+  // Replicate API
+  ReplicateService,
+  ReplicateVideoMetadata,
+  SaveProgressInput,
+  StorageConfig,
+  // Storage
+  StorageService,
+  ThumbnailResult,
+  TranscriptionResult,
+  UploadOptions,
+  UploadProgress,
+  UploadResult,
+  UserSession,
+  VideoInfo,
+  // VideoProcessor
+  VideoProcessorService,
+  VideoProgressData,
+  // VideoProgressRepository
+  VideoProgressRepositoryService,
+  // VideoRepository
+  VideoRepositoryService,
+  VideoSummary,
+} from "./services";
 
 // Services - explicitly export to avoid conflicts
 export {
+  // AI
+  AI,
+  AILive,
+  // Auth
+  Auth,
+  createOrganization,
+  createSummaryStream,
+  createVideo,
   // Database
   Database,
   DatabaseLive,
   DrizzleLive,
-  query,
-  transaction,
-  findOneOrFail,
-  insertUnique,
-  getDb,
-  // Storage
-  Storage,
-  StorageLive,
-  uploadFile,
-  uploadLargeFile,
   deleteFile,
-  generatePresignedUploadUrl,
-  getPublicUrl,
+  deleteVideoProgress,
+  deleteVideoRecord,
+  extractActionItems,
+  findOneOrFail,
   generateFileKey,
-  // Auth
-  Auth,
-  makeAuthLayer,
-  makeAuthService,
-  getSession,
-  getSessionOption,
-  requireAuth,
-  requireRole,
-  requireAdmin,
-  // AI
-  AI,
-  AILive,
+  generatePresignedUploadUrl,
   generateVideoSummary,
   generateVideoTags,
-  extractActionItems,
-  createSummaryStream,
-  // VideoProcessor
-  VideoProcessor,
-  VideoProcessorLive,
-  processVideo,
-  validateVideo,
-  getVideoInfo,
-  isSupportedVideoFormat,
+  getActiveOrganization,
+  getDb,
   getMaxFileSize,
-  // VideoRepository
-  VideoRepository,
-  VideoRepositoryLive,
-  getVideos,
+  getOrganization,
+  getOrganizationBySlug,
+  getPublicUrl,
+  getSession,
+  getSessionOption,
+  getUserOrganizations,
+  getUserRole,
+  getUserVideoProgress,
   getVideo,
-  createVideo,
-  updateVideo,
-  deleteVideoRecord,
+  getVideoInfo,
+  getVideoProgress,
+  getVideos,
+  hasWatchedVideo,
+  insertUnique,
+  isMember,
+  isSupportedVideoFormat,
+  makeAuthLayer,
+  makeAuthService,
+  markVideoCompleted,
   // OrganizationRepository
   OrganizationRepository,
   OrganizationRepositoryLive,
-  createOrganization,
-  getUserOrganizations,
-  getActiveOrganization,
-  getOrganization,
-  getOrganizationBySlug,
-  isMember,
-  getUserRole,
+  processVideo,
+  query,
+  requireAdmin,
+  requireAuth,
+  requireRole,
+  // Storage
+  Storage,
+  StorageLive,
+  saveVideoProgress,
+  transaction,
+  updateVideo,
+  uploadFile,
+  uploadLargeFile,
+  // VideoProcessor
+  VideoProcessor,
+  VideoProcessorLive,
+  // VideoProgressRepository
+  VideoProgressRepository,
+  VideoProgressRepositoryLive,
+  // VideoRepository
+  VideoRepository,
+  VideoRepositoryLive,
+  validateVideo,
   // Replicate API
   ReplicateAPI,
   ReplicateLive,
@@ -98,82 +184,12 @@ export {
   extractMetadata,
 } from "./services";
 
-export type {
-  // Database
-  DrizzleDB,
-  DatabaseService,
-  // Storage
-  StorageService,
-  StorageConfig,
-  UploadResult,
-  UploadOptions,
-  UploadProgress,
-  // Auth
-  AuthServiceInterface,
-  UserSession,
-  // AI
-  AIServiceInterface,
-  VideoSummary,
-  // VideoProcessor
-  VideoProcessorService,
-  VideoInfo,
-  ProcessingResult,
-  ProcessingProgress,
-  // VideoRepository
-  VideoRepositoryService,
-  // OrganizationRepository
-  OrganizationRepositoryService,
-  OrganizationWithRole,
-  CreateOrganizationInput,
-  // Replicate API
-  ReplicateService,
-  ReplicateVideoMetadata,
-  TranscriptionResult,
-  ThumbnailResult,
-} from "./services";
-
-// Runtime and layers
-export {
-  AppLive,
-  AppRuntime,
-  runEffect,
-  runEffectExit,
-  runEffectSync,
-  createHandler,
-  createAuthenticatedHandler,
-  effectToResponse,
-  effectWithLayersToResponse,
-  mapErrorToResponse,
-  DevLoggerLive,
-  LogLevelLive,
-  LoggingLive,
-} from "./runtime";
-export type { AppServices } from "./runtime";
-
-// Server utilities (for RSC)
-export {
-  runServerEffect,
-  runServerEffectSafe,
-  createCachedQuery,
-  getVideos as getCachedVideos,
-  getVideo as getCachedVideo,
-  getOrganizations as getCachedOrganizations,
-  getOrganizationBySlug as getCachedOrganizationBySlug,
-  revalidateVideos,
-  revalidateVideo,
-  revalidateOrganizations,
-  revalidateOrganization,
-  createVideo as serverCreateVideo,
-  updateVideo as serverUpdateVideo,
-  deleteVideo as serverDeleteVideo,
-} from "./server";
-
+export type { StreamChunk } from "./streaming";
 // Streaming utilities
 export {
-  streamToAsyncIterable,
-  runStream,
   createDeferredLoader,
   createParallelLoaders,
+  runStream,
+  streamToAsyncIterable,
   streamVideoSummary,
 } from "./streaming";
-export type { StreamChunk } from "./streaming";

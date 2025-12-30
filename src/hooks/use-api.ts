@@ -7,10 +7,10 @@
  * Uses Effect-TS internally for type-safe error handling.
  */
 
-import { useEffect, useState, useCallback } from "react";
 import { Either } from "effect";
-import { ApiError, videoApi, organizationApi } from "@/lib/api";
-import { videoApiEffect, organizationApiEffect, runClientEffect } from "@/lib/effect/client";
+import { useEffect, useState } from "react";
+import { ApiError } from "@/lib/api";
+import { organizationApiEffect, runClientEffect, videoApiEffect } from "@/lib/effect/client";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 // =============================================================================
@@ -95,7 +95,7 @@ export function useVideos(
     return () => {
       isMounted = false;
     };
-  }, [JSON.stringify(params)]);
+  }, [params]);
 
   return state;
 }
@@ -207,4 +207,4 @@ export function useOrganizations(userId?: string) {
 // Re-export Effect-based hooks for more advanced usage
 // =============================================================================
 
-export { useEffectQuery, useEffectMutation, useErrorMessage } from "./use-effect";
+export { useEffectMutation, useEffectQuery, useErrorMessage } from "./use-effect";

@@ -5,7 +5,7 @@
  * These utilities are designed to work in browser environments.
  */
 
-import { Effect, Exit, Cause, Option, Either, pipe } from "effect";
+import { Effect, type Either, pipe } from "effect";
 import { HttpError, ParseError } from "./errors";
 
 // =============================================================================
@@ -323,3 +323,43 @@ export const uploadVideoEffect = (
     xhr.timeout = 300000; // 5 minutes timeout
     xhr.send(formData);
   });
+
+// =============================================================================
+// Video Progress API Client (Effect-based)
+// =============================================================================
+
+export interface VideoProgressResponse {
+  videoId: string;
+  userId: string;
+  currentTime: string;
+  completed: boolean;
+  lastWatchedAt: string;
+}
+
+export const videoProgressApiEffect = {
+  /**
+   * Get the current user's progress for a video
+   */
+  getProgress: (videoId: string): Effect.Effect<VideoProgressResponse | null, HttpError | ParseError> =>
+    fetchEffect(`/videos/${videoId}/progress`),
+
+  /**
+   * Save or update progress for a video
+   */
+  saveProgress: (
+    videoId: string,
+    data: { currentTime: number; completed?: boolean },
+  ): Effect.Effect<VideoProgressResponse, HttpError | ParseError> =>
+    fetchEffect(`/videos/${videoId}/progress`, {
+      method: "PATCH",
+      body: data,
+    }),
+
+  /**
+   * Delete progress for a video
+   */
+  deleteProgress: (videoId: string): Effect.Effect<void, HttpError | ParseError> =>
+    fetchEffect(`/videos/${videoId}/progress`, {
+      method: "DELETE",
+    }),
+};

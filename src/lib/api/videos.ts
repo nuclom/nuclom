@@ -1,6 +1,6 @@
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { videos, users, organizations, channels, collections, comments } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { channels, collections, comments, organizations, users, videos } from "@/lib/db/schema";
 import type { VideoWithAuthor, VideoWithDetails } from "@/lib/types";
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {

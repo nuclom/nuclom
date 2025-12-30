@@ -1,14 +1,13 @@
-import React from "react";
-import { VideoUpload } from "@/components/video-upload";
-import { Button } from "@/components/ui/button";
+import { eq } from "drizzle-orm";
 import { ArrowLeft } from "lucide-react";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { VideoUpload } from "@/components/video-upload";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import Link from "next/link";
 
 export default async function UploadPage({ params }: { params: Promise<{ organization: string }> }) {
   const { organization: organizationSlug } = await params;

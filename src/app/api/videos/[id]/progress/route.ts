@@ -1,10 +1,8 @@
-import { asc, eq, isNull } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import type { NewVideo } from "@/lib/db/schema";
-import { comments, videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
+import { auth } from "@/lib/auth";
+import { AppLive, MissingFieldError, ValidationError, VideoProgressRepository } from "@/lib/effect";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -16,10 +14,12 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
     const taggedError = error as { _tag: string; message: string };
 
     switch (taggedError._tag) {
+      case "UnauthorizedError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
       case "NotFoundError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
       case "MissingFieldError":
+      case "ValidationError":
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
       default:
         console.error(`[${taggedError._tag}]`, taggedError);
@@ -31,59 +31,34 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 };
 
 // =============================================================================
-// GET /api/videos/[id] - Get video details
+// GET /api/videos/[id]/progress - Get video progress for current user
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(AppLive, AuthLayer);
+
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
+    const videoId = resolvedParams.id;
 
-    // Use Drizzle query builder for nested relations
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, resolvedParams.id),
-          with: {
-            author: true,
-            organization: true,
-            channel: true,
-            collection: true,
-            comments: {
-              with: {
-                author: true,
-                replies: {
-                  with: {
-                    author: true,
-                  },
-                },
-              },
-              where: isNull(comments.parentId),
-              orderBy: asc(comments.createdAt),
-            },
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
-          cause: error,
-        }),
-    });
+    // Try to get session (optional - return null progress if not authenticated)
+    const authService = yield* Auth;
+    const sessionOption = yield* authService.getSessionOption(request.headers);
 
-    if (!videoData) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
-          id: resolvedParams.id,
-        }),
-      );
+    // If not authenticated, return null progress
+    if (Option.isNone(sessionOption)) {
+      return null;
     }
 
-    return videoData;
+    const { user } = sessionOption.value;
+
+    // Get progress using repository
+    const progressRepo = yield* VideoProgressRepository;
+    return yield* progressRepo.getProgress(videoId, user.id);
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
@@ -105,49 +80,56 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 }
 
 // =============================================================================
-// PUT /api/videos/[id] - Update video
+// PATCH /api/videos/[id]/progress - Update video progress for current user
 // =============================================================================
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+interface UpdateProgressBody {
+  currentTime: number;
+  completed?: boolean;
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(AppLive, AuthLayer);
+
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
+    const videoId = resolvedParams.id;
 
+    // Authenticate - required for saving progress
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Parse request body
     const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<Partial<NewVideo>>,
+      try: () => request.json() as Promise<UpdateProgressBody>,
       catch: () =>
-        new ValidationError({
+        new MissingFieldError({
+          field: "body",
           message: "Invalid request body",
         }),
     });
 
-    // Update video using repository
-    const videoRepo = yield* VideoRepository;
-    yield* videoRepo.updateVideo(resolvedParams.id, body);
+    // Validate currentTime
+    if (typeof body.currentTime !== "number" || body.currentTime < 0) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: "currentTime must be a non-negative number",
+        }),
+      );
+    }
 
-    // Fetch updated video with relations
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, resolvedParams.id),
-          with: {
-            author: true,
-            organization: true,
-            channel: true,
-            collection: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: "Failed to fetch updated video",
-          operation: "updateVideo",
-          cause: error,
-        }),
+    // Save progress using repository
+    const progressRepo = yield* VideoProgressRepository;
+    return yield* progressRepo.saveProgress({
+      videoId,
+      userId: user.id,
+      currentTime: body.currentTime,
+      completed: body.completed ?? false,
     });
-
-    return videoData;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
@@ -169,21 +151,29 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // =============================================================================
-// DELETE /api/videos/[id] - Delete video
+// DELETE /api/videos/[id]/progress - Delete video progress for current user
 // =============================================================================
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(AppLive, AuthLayer);
+
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
+    const videoId = resolvedParams.id;
 
-    // Delete video using repository
-    const videoRepo = yield* VideoRepository;
-    yield* videoRepo.deleteVideo(resolvedParams.id);
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-    return { message: "Video deleted successfully" };
+    // Delete progress using repository
+    const progressRepo = yield* VideoProgressRepository;
+    yield* progressRepo.deleteProgress(videoId, user.id);
+
+    return { message: "Progress deleted successfully" };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {

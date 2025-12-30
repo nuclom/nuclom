@@ -5,7 +5,9 @@
  * Uses Vercel Workflow DevKit for reliable, resumable processing.
  */
 
-import { sleep, FatalError } from "workflow";
+import { gateway } from "@ai-sdk/gateway";
+import { generateText } from "ai";
+import { FatalError } from "workflow";
 import Replicate from "replicate";
 
 // =============================================================================
@@ -234,24 +236,13 @@ async function generateAISummary(
   }
 
   try {
-    // Use the AI SDK or OpenAI to generate summary
-    const response = await fetch("https://api.x.ai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.XAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "grok-3",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a helpful assistant that summarizes video content. Provide concise, informative summaries.",
-          },
-          {
-            role: "user",
-            content: `Please summarize this video transcript. Title: "${title}"${description ? `. Description: "${description}"` : ""}
+    // Use Vercel AI SDK with AI Gateway
+    const model = gateway("xai/grok-3");
+
+    const { text } = await generateText({
+      model,
+      system: "You are a helpful assistant that summarizes video content. Provide concise, informative summaries.",
+      prompt: `Please summarize this video transcript. Title: "${title}"${description ? `. Description: "${description}"` : ""}
 
 Transcript:
 ${transcript.substring(0, 4000)}
@@ -260,19 +251,9 @@ Provide:
 1. A brief summary (2-3 sentences)
 2. Key points (3-5 bullet points)
 3. Any action items mentioned`,
-          },
-        ],
-        max_tokens: 1000,
-      }),
     });
 
-    if (!response.ok) {
-      console.error("AI summary generation failed:", response.statusText);
-      return "";
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "";
+    return text;
   } catch (error) {
     console.error("AI summary generation failed:", error);
     return "";
