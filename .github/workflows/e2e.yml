@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Deployment URL to test against (optional - will wait for Vercel if not provided)"
+        required: false
+        type: string
 
 env:
   CI: true
@@ -19,6 +24,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Wait for Vercel Preview
+        if: github.event.inputs.deployment_url == ''
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        id: vercel-preview
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 600
+          check_interval: 10
+
+      - name: Set deployment URL
+        id: deployment
+        run: |
+          if [ -n "${{ github.event.inputs.deployment_url }}" ]; then
+            echo "url=${{ github.event.inputs.deployment_url }}" >> $GITHUB_OUTPUT
+            echo "Using manual URL: ${{ github.event.inputs.deployment_url }}"
+          else
+            echo "url=${{ steps.vercel-preview.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "Using Vercel URL: ${{ steps.vercel-preview.outputs.url }}"
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -37,25 +62,17 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Build application
-        run: pnpm build
-        env:
-          # Add any required build-time environment variables
-          SKIP_ENV_VALIDATION: true
-
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
-          # Test configuration
-          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          PLAYWRIGHT_BASE_URL: ${{ steps.deployment.outputs.url }}
           SKIP_AUTH_SETUP: true
-          # Add any other required environment variables for tests
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_id }}
           path: playwright-report/
           retention-days: 14
 
@@ -63,6 +80,12 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
+          name: test-results-${{ github.run_id }}
           path: test-results/
           retention-days: 14
+
+      - name: Notify Vercel of E2E status
+        if: always()
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: Vercel - nuclom: e2e

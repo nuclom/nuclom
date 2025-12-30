@@ -1,9 +1,44 @@
 import { and, eq } from "drizzle-orm";
+import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members, users } from "@/lib/db/schema";
+import { AppLive } from "@/lib/effect";
+import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import type { ApiResponse } from "@/lib/types";
+
+// =============================================================================
+// Error Response Handler
+// =============================================================================
+
+const mapErrorToResponse = (error: unknown): NextResponse => {
+  if (error && typeof error === "object" && "_tag" in error) {
+    const taggedError = error as { _tag: string; message: string };
+
+    switch (taggedError._tag) {
+      case "UnauthorizedError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
+      case "ForbiddenError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
+      case "NotFoundError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
+      case "ValidationError":
+      case "MissingFieldError":
+        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
+      default:
+        console.error(`[${taggedError._tag}]`, taggedError);
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    }
+  }
+  console.error("[Error]", error);
+  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+};
+
+// =============================================================================
+// GET /api/organizations/[id]/members - Get organization members
+// =============================================================================
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -52,4 +87,108 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     console.error("Error fetching organization members:", error);
     return NextResponse.json({ error: "Failed to fetch organization members" }, { status: 500 });
   }
+}
+
+// =============================================================================
+// DELETE /api/organizations/[id]/members - Remove a member
+// =============================================================================
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const url = new URL(request.url);
+  const userIdToRemove = url.searchParams.get("userId");
+
+  if (!userIdToRemove) {
+    return NextResponse.json({ success: false, error: "userId query parameter is required" }, { status: 400 });
+  }
+
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
+    const orgRepo = yield* OrganizationRepository;
+
+    yield* orgRepo.removeMember(resolvedParams.id, userIdToRemove, session.user.id);
+
+    return { message: "Member removed successfully" };
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
+}
+
+// =============================================================================
+// PATCH /api/organizations/[id]/members - Update member role
+// =============================================================================
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { userId, role } = body;
+
+  if (!userId) {
+    return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
+  }
+
+  if (!role || (role !== "owner" && role !== "member")) {
+    return NextResponse.json({ success: false, error: "role must be 'owner' or 'member'" }, { status: 400 });
+  }
+
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
+    const orgRepo = yield* OrganizationRepository;
+
+    const updatedMember = yield* orgRepo.updateMemberRole(resolvedParams.id, userId, role, session.user.id);
+
+    return { message: "Member role updated successfully", member: updatedMember };
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      const response: ApiResponse = {
+        success: true,
+        data,
+      };
+      return NextResponse.json(response);
+    },
+  });
 }

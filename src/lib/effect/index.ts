@@ -141,6 +141,19 @@ export type {
   UpdateIntegrationInput,
   CreateImportedMeetingInput,
   UpdateImportedMeetingInput,
+  // Translation
+  TranslationServiceInterface,
+  TranslationOptions,
+  TranslationResult as TranslationResultType,
+  TranslatedTranscript,
+  LanguageInfo,
+  SupportedLanguage,
+  // Search Repository
+  SearchRepositoryService,
+  SearchParams,
+  CreateSearchHistoryInput,
+  CreateSavedSearchInput,
+  UpdateSavedSearchInput,
 } from "./services";
 
 // Services - explicitly export to avoid conflicts
@@ -288,6 +301,30 @@ export {
   getImportedMeetings,
   createImportedMeeting,
   updateImportedMeeting,
+  // Translation
+  Translation,
+  TranslationLive,
+  TranslationNotConfiguredError,
+  TranslationApiError,
+  UnsupportedLanguageError,
+  translateText,
+  translateTranscript,
+  isTranslationAvailable,
+  getSupportedLanguages,
+  SUPPORTED_LANGUAGES,
+  // Search Repository
+  SearchRepository,
+  SearchRepositoryLive,
+  search,
+  getSuggestions,
+  getRecentSearches,
+  saveSearchHistory,
+  clearSearchHistory,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
+  quickSearch,
 } from "./services";
 
 export type { StreamChunk } from "./streaming";

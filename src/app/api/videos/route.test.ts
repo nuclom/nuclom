@@ -1,0 +1,311 @@
+import { NextRequest } from "next/server";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { createMockSession, createMockVideo } from "@/test/mocks";
+
+// Mock Effect-TS and services
+vi.mock("@/lib/auth", () => ({
+  auth: {
+    api: {
+      getSession: vi.fn(),
+    },
+  },
+}));
+
+vi.mock("@/lib/effect", () => ({
+  AppLive: {},
+  MissingFieldError: class MissingFieldError extends Error {
+    _tag = "MissingFieldError";
+    field: string;
+    constructor({ field, message }: { field: string; message: string }) {
+      super(message);
+      this.field = field;
+    }
+  },
+  VideoRepository: {
+    _tag: "VideoRepository",
+  },
+}));
+
+vi.mock("@/lib/effect/services/auth", () => ({
+  Auth: {
+    _tag: "Auth",
+  },
+  makeAuthLayer: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock("effect", () => {
+  const mockGetVideos = vi.fn();
+  const mockCreateVideo = vi.fn();
+
+  return {
+    Effect: {
+      gen: vi.fn((fn) => ({
+        _fn: fn,
+        _mockGetVideos: mockGetVideos,
+        _mockCreateVideo: mockCreateVideo,
+      })),
+      tryPromise: vi.fn(({ try: tryFn }) => tryFn()),
+      fail: vi.fn((error) => ({ _tag: "Fail", error })),
+      provide: vi.fn((effect, _layer) => effect),
+      runPromiseExit: vi.fn(),
+    },
+    Exit: {
+      match: vi.fn((exit, { onSuccess, onFailure }) => {
+        if (exit._tag === "Success") {
+          return onSuccess(exit.value);
+        }
+        return onFailure(exit.cause);
+      }),
+    },
+    Cause: {
+      failureOption: vi.fn((cause) => cause),
+    },
+    Layer: {
+      merge: vi.fn((_a, _b) => ({})),
+    },
+  };
+});
+
+import { GET, POST } from "./route";
+import { Effect, Exit, Cause } from "effect";
+
+describe("Videos API Route", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  describe("GET /api/videos", () => {
+    it("should return 400 when organizationId is missing", async () => {
+      const mockSession = createMockSession();
+
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Failure",
+        cause: {
+          _tag: "Some",
+          value: {
+            _tag: "MissingFieldError",
+            message: "Organization ID is required",
+          },
+        },
+      });
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce({
+        _tag: "Some",
+        value: {
+          _tag: "MissingFieldError",
+          message: "Organization ID is required",
+        },
+      });
+
+      const request = new NextRequest("http://localhost:3000/api/videos", {
+        method: "GET",
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Organization ID is required");
+    });
+
+    it("should return 401 when user is not authenticated", async () => {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Failure",
+        cause: {
+          _tag: "Some",
+          value: {
+            _tag: "UnauthorizedError",
+            message: "Unauthorized",
+          },
+        },
+      });
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce({
+        _tag: "Some",
+        value: {
+          _tag: "UnauthorizedError",
+          message: "Unauthorized",
+        },
+      });
+
+      const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
+        method: "GET",
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should return paginated videos on success", async () => {
+      const mockVideos = {
+        data: [createMockVideo()],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 1,
+          totalPages: 1,
+        },
+      };
+
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Success",
+        value: mockVideos,
+      });
+
+      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(mockVideos));
+
+      const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
+        method: "GET",
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.data).toHaveLength(1);
+      expect(data.pagination.page).toBe(1);
+    });
+  });
+
+  describe("POST /api/videos", () => {
+    it("should return 400 when title is missing", async () => {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Failure",
+        cause: {
+          _tag: "Some",
+          value: {
+            _tag: "MissingFieldError",
+            message: "Title is required",
+          },
+        },
+      });
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce({
+        _tag: "Some",
+        value: {
+          _tag: "MissingFieldError",
+          message: "Title is required",
+        },
+      });
+
+      const request = new NextRequest("http://localhost:3000/api/videos", {
+        method: "POST",
+        body: JSON.stringify({
+          duration: "10:30",
+          organizationId: "org-123",
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Title is required");
+    });
+
+    it("should return 400 when duration is missing", async () => {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Failure",
+        cause: {
+          _tag: "Some",
+          value: {
+            _tag: "MissingFieldError",
+            message: "Duration is required",
+          },
+        },
+      });
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce({
+        _tag: "Some",
+        value: {
+          _tag: "MissingFieldError",
+          message: "Duration is required",
+        },
+      });
+
+      const request = new NextRequest("http://localhost:3000/api/videos", {
+        method: "POST",
+        body: JSON.stringify({
+          title: "Test Video",
+          organizationId: "org-123",
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Duration is required");
+    });
+
+    it("should return 401 when user is not authenticated", async () => {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Failure",
+        cause: {
+          _tag: "Some",
+          value: {
+            _tag: "UnauthorizedError",
+            message: "Unauthorized",
+          },
+        },
+      });
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce({
+        _tag: "Some",
+        value: {
+          _tag: "UnauthorizedError",
+          message: "Unauthorized",
+        },
+      });
+
+      const request = new NextRequest("http://localhost:3000/api/videos", {
+        method: "POST",
+        body: JSON.stringify({
+          title: "Test Video",
+          duration: "10:30",
+          organizationId: "org-123",
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should create video and return 201 on success", async () => {
+      const newVideo = createMockVideo();
+
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
+        _tag: "Success",
+        value: newVideo,
+      });
+
+      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newVideo));
+
+      const request = new NextRequest("http://localhost:3000/api/videos", {
+        method: "POST",
+        body: JSON.stringify({
+          title: "Test Video",
+          duration: "10:30",
+          organizationId: "org-123",
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.id).toBe("video-123");
+      expect(data.title).toBe("Test Video");
+    });
+  });
+});

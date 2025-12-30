@@ -23,6 +23,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { SeriesVideoWithDetails } from "@/lib/types";
 
 interface SortableVideoItemProps {
@@ -64,6 +65,9 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
           src={video.thumbnailUrl || "/placeholder.svg"}
           alt={video.title}
           fill
+          sizes={IMAGE_SIZES.thumbnail}
+          placeholder="blur"
+          blurDataURL={VIDEO_THUMBNAIL_BLUR_DATA_URL}
           className="object-cover group-hover:scale-105 transition-transform"
         />
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

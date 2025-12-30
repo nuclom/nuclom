@@ -155,27 +155,35 @@ storage:
 
 ```mermaid
 graph LR
-    A[Code Commit] --> B[GitHub Actions]
-    B --> C[Run Tests]
-    C --> D[Build Application]
-    D --> E[Deploy to Vercel]
-    E --> F[Run Migrations]
-    F --> G[Health Check]
+    A[Code Commit] --> B[GitHub Actions CI]
+    B --> C[Lint & Type Check]
+    C --> D[Vercel Build & Deploy]
+    D --> E[Deployment Ready]
+    E --> F[E2E Tests on Deployment]
+    F --> G[Notify Vercel Status]
     G --> H[Route Traffic]
 
-    C --> I[Test Failure]
+    C --> I[CI Failure]
     I --> J[Notify Team]
 
-    G --> K[Deploy Failure]
-    K --> L[Rollback]
-    L --> J
+    F --> K[E2E Failure]
+    K --> J
 ```
 
-### 2. GitHub Actions Workflow
+The pipeline separates concerns:
+1. **CI Workflow**: Runs lint and type checking on every push/PR
+2. **Vercel**: Automatically builds and deploys on push/PR
+3. **E2E Workflow**: Triggered by Vercel deployment success, tests against the deployment URL
+4. **Status Notification**: Reports E2E results back to Vercel for deployment gates
+
+### 2. GitHub Actions Workflows
+
+#### CI Workflow (`.github/workflows/ci.yml`)
+
+Runs on every push and PR to validate code quality:
 
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy to Vercel
+name: CI
 
 on:
   push:
@@ -184,45 +192,75 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  lint-and-typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
           cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run linter
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
         run: pnpm lint
-
-      - name: Run type check
-        run: pnpm build
-
-      - name: Run tests
-        run: pnpm test
-        env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+      - name: Type Check
+        run: pnpm tsc --noEmit
+      - name: Notify Vercel
+        if: always()
+        uses: vercel/repository-dispatch/actions/status@v1
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-args: "--prod"
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          name: Vercel - nuclom: ci
 ```
+
+#### E2E Workflow (`.github/workflows/e2e.yml`)
+
+Runs Playwright tests against Vercel deployments:
+
+```yaml
+name: E2E Tests
+
+on:
+  # Triggered automatically when Vercel deployment succeeds
+  deployment_status:
+  # Manual trigger with custom URL
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Deployment URL to test against"
+        required: true
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    # Only run on successful deployments
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install chromium --with-deps
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
+      - name: Notify Vercel of E2E status
+        if: always()
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: Vercel - nuclom: e2e
+```
+
+**Key Features:**
+- **No local build required**: Tests run against Vercel's deployment URL
+- **Automatic triggering**: Uses `deployment_status` event from Vercel
+- **Manual override**: Can trigger with `workflow_dispatch` for custom URLs
+- **Vercel integration**: Reports test status back to Vercel for deployment gates
 
 ### 3. Database Migrations
 

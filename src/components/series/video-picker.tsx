@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { Video } from "@/lib/db/schema";
 
 interface VideoPickerProps {
@@ -159,6 +160,9 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
                           src={video.thumbnailUrl || "/placeholder.svg"}
                           alt={video.title}
                           fill
+                          sizes={IMAGE_SIZES.thumbnail}
+                          placeholder="blur"
+                          blurDataURL={VIDEO_THUMBNAIL_BLUR_DATA_URL}
                           className="object-cover"
                         />
                         <div className="absolute bottom-0.5 right-0.5 bg-black/70 text-white text-[10px] px-1 rounded">

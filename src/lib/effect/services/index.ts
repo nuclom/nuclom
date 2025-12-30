@@ -332,3 +332,68 @@ export {
   createImportedMeeting,
   updateImportedMeeting,
 } from "./integration-repository";
+
+// Translation Service
+export type {
+  TranslationServiceInterface,
+  TranslationOptions,
+  TranslationResult,
+  TranslatedTranscript,
+  LanguageInfo,
+  SupportedLanguage,
+} from "./translation";
+export {
+  Translation,
+  TranslationLive,
+  TranslationNotConfiguredError,
+  TranslationApiError,
+  UnsupportedLanguageError,
+  translateText,
+  translateTranscript,
+  isTranslationAvailable,
+  getSupportedLanguages,
+  SUPPORTED_LANGUAGES,
+} from "./translation";
+
+// Search Repository
+export type {
+  SearchParams,
+  CreateSearchHistoryInput,
+  CreateSavedSearchInput,
+  UpdateSavedSearchInput,
+  SearchRepositoryService,
+} from "./search-repository";
+export {
+  SearchRepository,
+  SearchRepositoryLive,
+  search,
+  getSuggestions,
+  getRecentSearches,
+  saveSearchHistory,
+  clearSearchHistory,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
+  quickSearch,
+} from "./search-repository";
+
+// Email Notifications Service
+export type {
+  EmailNotificationServiceInterface,
+  CommentNotificationData,
+  InvitationNotificationData,
+  VideoProcessingNotificationData,
+  TrialEndingNotificationData,
+  SubscriptionNotificationData,
+  EmailError,
+} from "./email-notifications";
+export {
+  EmailNotifications,
+  EmailNotificationsLive,
+  sendCommentNotification,
+  sendInvitationNotification,
+  sendVideoProcessingNotification,
+  sendTrialEndingNotification,
+  sendSubscriptionNotification,
+} from "./email-notifications";

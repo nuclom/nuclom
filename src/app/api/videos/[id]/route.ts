@@ -1,11 +1,12 @@
 import { asc, eq, isNull } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { db } from "@/lib/db";
 import type { NewVideo } from "@/lib/db/schema";
 import { comments, videos } from "@/lib/db/schema";
 import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
-import { releaseStorageUsage, releaseVideoCount } from "@/lib/effect/services/billing-middleware";
+import { releaseVideoCount } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import type { ApiResponse } from "@/lib/types";
 
@@ -101,7 +102,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         success: true,
         data,
       };
-      return NextResponse.json(response);
+      // Use short cache with stale-while-revalidate for video details
+      // AI analysis data is included, so it benefits from caching
+      return NextResponse.json(response, {
+        headers: {
+          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+        },
+      });
     },
   });
 }
@@ -174,27 +181,47 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // DELETE /api/videos/[id] - Delete video
 // =============================================================================
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+/**
+ * DELETE /api/videos/[id]
+ *
+ * By default, performs a soft delete with a 30-day retention period.
+ * Query parameters:
+ * - permanent=true: Permanently delete the video and clean up R2 storage
+ * - retentionDays=N: Override the default retention period (only for soft delete)
+ */
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const url = new URL(request.url);
+  const permanent = url.searchParams.get("permanent") === "true";
+  const retentionDaysParam = url.searchParams.get("retentionDays");
+  const retentionDays = retentionDaysParam ? Number.parseInt(retentionDaysParam, 10) : undefined;
+
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
-    // First, get the video to know its organization
     const videoRepo = yield* VideoRepository;
     const video = yield* videoRepo.getVideo(resolvedParams.id);
 
-    // Delete video using repository (this also removes from storage)
-    yield* videoRepo.deleteVideo(resolvedParams.id);
+    if (permanent) {
+      // Permanently delete video and clean up R2 storage
+      yield* videoRepo.deleteVideo(resolvedParams.id);
 
-    // Release usage tracking for the organization
-    const billingRepo = yield* BillingRepository;
-    const subscriptionOption = yield* billingRepo.getSubscriptionOption(video.organizationId);
+      // Release usage tracking for the organization
+      const billingRepo = yield* BillingRepository;
+      const subscriptionOption = yield* billingRepo.getSubscriptionOption(video.organizationId);
 
-    if (Option.isSome(subscriptionOption)) {
-      // Release video count (we don't track individual file sizes, so just release the count)
-      yield* releaseVideoCount(video.organizationId).pipe(Effect.catchAll(() => Effect.void));
+      if (Option.isSome(subscriptionOption)) {
+        yield* releaseVideoCount(video.organizationId).pipe(Effect.catchAll(() => Effect.void));
+      }
+
+      return { message: "Video permanently deleted" };
     }
-
-    return { message: "Video deleted successfully" };
+    // Soft delete with retention period
+    const deletedVideo = yield* videoRepo.softDeleteVideo(resolvedParams.id, { retentionDays });
+    return {
+      message: "Video moved to trash",
+      deletedAt: deletedVideo.deletedAt,
+      retentionUntil: deletedVideo.retentionUntil,
+    };
   });
 
   const runnable = Effect.provide(effect, AppLive);

@@ -19,7 +19,20 @@ export type NotificationWithActor = Notification & {
   actor: User | null;
 };
 
-export type NotificationType = "comment_reply" | "comment_mention" | "new_comment_on_video" | "video_shared";
+export type NotificationType =
+  | "comment_reply"
+  | "comment_mention"
+  | "new_comment_on_video"
+  | "video_shared"
+  | "video_processing_complete"
+  | "video_processing_failed"
+  | "invitation_received"
+  | "trial_ending"
+  | "subscription_created"
+  | "subscription_updated"
+  | "subscription_canceled"
+  | "payment_failed"
+  | "payment_succeeded";
 
 export interface CreateNotificationInput {
   readonly userId: string;
