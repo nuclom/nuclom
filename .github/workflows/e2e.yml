@@ -25,13 +25,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Wait for Vercel deployment
+      - name: Wait for Vercel Preview
         if: github.event.inputs.deployment_url == ''
-        uses: tj-actions/vercel-wait@v2
-        id: vercel-wait
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
+        id: vercel-preview
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          max-timeout: 600
+          max_timeout: 600
+          check_interval: 10
 
       - name: Set deployment URL
         id: deployment
@@ -40,8 +41,8 @@ jobs:
             echo "url=${{ github.event.inputs.deployment_url }}" >> $GITHUB_OUTPUT
             echo "Using manual URL: ${{ github.event.inputs.deployment_url }}"
           else
-            echo "url=${{ steps.vercel-wait.outputs.url }}" >> $GITHUB_OUTPUT
-            echo "Using Vercel URL: ${{ steps.vercel-wait.outputs.url }}"
+            echo "url=${{ steps.vercel-preview.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "Using Vercel URL: ${{ steps.vercel-preview.outputs.url }}"
           fi
 
       - name: Setup pnpm
@@ -60,21 +61,6 @@ jobs:
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium --with-deps
-
-      - name: Wait for deployment to be ready
-        run: |
-          URL="${{ steps.deployment.outputs.url }}"
-          echo "Waiting for $URL to be ready..."
-          for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" "$URL" | grep -q "200\|301\|302"; then
-              echo "Deployment is ready!"
-              exit 0
-            fi
-            echo "Attempt $i: Deployment not ready yet, waiting 10s..."
-            sleep 10
-          done
-          echo "Deployment did not become ready in time"
-          exit 1
 
       - name: Run E2E tests
         run: pnpm test:e2e
