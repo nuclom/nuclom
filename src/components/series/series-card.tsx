@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { SeriesProgressWithDetails, SeriesWithVideoCount } from "@/lib/types";
 
 interface SeriesCardProps {
@@ -21,9 +22,11 @@ interface SeriesCardProps {
   organization: string;
   onEdit?: (series: SeriesWithVideoCount) => void;
   onDelete?: (seriesId: string) => void;
+  /** Mark as priority for above-the-fold images */
+  priority?: boolean;
 }
 
-export function SeriesCard({ series, organization, onEdit, onDelete }: SeriesCardProps) {
+export function SeriesCard({ series, organization, onEdit, onDelete, priority = false }: SeriesCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -48,6 +51,10 @@ export function SeriesCard({ series, organization, onEdit, onDelete }: SeriesCar
               src={series.thumbnailUrl || "/placeholder.svg"}
               alt={series.name}
               fill
+              sizes={IMAGE_SIZES.seriesCard}
+              priority={priority}
+              placeholder="blur"
+              blurDataURL={VIDEO_THUMBNAIL_BLUR_DATA_URL}
               className="object-cover group-hover:scale-105 transition-transform"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

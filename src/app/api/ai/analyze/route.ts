@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { aiService } from "@/lib/ai";
+import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import type { ApiResponse } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -28,7 +29,12 @@ export async function POST(request: NextRequest) {
       data: { result, type },
     };
 
-    return NextResponse.json(response);
+    // AI analysis results don't change - use long cache with stale-while-revalidate
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": getCacheControlHeader(CachePresets.aiAnalysis()),
+      },
+    });
   } catch (error) {
     console.error("Error in AI analysis:", error);
     return NextResponse.json({ success: false, error: "Failed to analyze content" }, { status: 500 });

@@ -2,14 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 
 interface VideoCardProps {
   video: VideoWithAuthor;
   organization?: string;
+  /** Mark as priority for above-the-fold images */
+  priority?: boolean;
 }
 
-export function VideoCard({ video, organization }: VideoCardProps) {
+export function VideoCard({ video, organization, priority = false }: VideoCardProps) {
   const organizationSlug = organization || "default";
 
   return (
@@ -21,6 +24,10 @@ export function VideoCard({ video, organization }: VideoCardProps) {
               src={video.thumbnailUrl || "/placeholder.svg"}
               alt={video.title}
               fill
+              sizes={IMAGE_SIZES.videoCard}
+              priority={priority}
+              placeholder="blur"
+              blurDataURL={VIDEO_THUMBNAIL_BLUR_DATA_URL}
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded-sm font-mono">

@@ -70,3 +70,27 @@ export type PaginatedResponse<T> = {
     totalPages: number;
   };
 };
+
+/**
+ * Cursor-based pagination response for large datasets
+ * More efficient than offset-based pagination for large tables
+ */
+export type CursorPaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    limit: number;
+    /** Cursor for next page (null if no more pages) */
+    nextCursor: string | null;
+    /** Cursor for previous page (null if on first page) */
+    prevCursor: string | null;
+    /** Whether there are more results */
+    hasMore: boolean;
+  };
+};
+
+/**
+ * Unified pagination parameters
+ */
+export type PaginationParams =
+  | { type: "offset"; page: number; limit: number }
+  | { type: "cursor"; cursor?: string; limit: number; direction?: "forward" | "backward" };
