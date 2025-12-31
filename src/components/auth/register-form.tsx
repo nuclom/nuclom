@@ -1,38 +1,52 @@
 "use client";
 
 import { Eye, EyeOff, Github } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
+
+// Current version of legal documents - update when ToS/Privacy Policy changes
+const LEGAL_VERSION = "2025-01-01";
 
 interface RegisterFormProps {
   readonly redirectTo?: string;
 }
 
 export function RegisterForm({ redirectTo }: RegisterFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL and prefilled email from search params
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
+  const prefilledEmail = searchParams.get("email") || "";
+
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (!termsAccepted) {
+      setError("You must accept the Terms of Service and Privacy Policy to create an account");
+      setIsLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -56,8 +70,9 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       if (result.error) {
         setError(result.error.message || "Failed to create account");
       } else {
-        // Redirect to verification pending page with email
-        router.push(`/verification-pending?email=${encodeURIComponent(email)}`);
+        // Redirect to verification pending page with email and redirect URL
+        const verificationUrl = `/verification-pending?email=${encodeURIComponent(email)}${finalRedirectTo !== "/onboarding" ? `&redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`;
+        router.push(verificationUrl);
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -165,8 +180,40 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
               </Button>
             </div>
           </div>
+
+          {/* Terms and Privacy Policy Consent */}
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="terms"
+              checked={termsAccepted}
+              onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+              disabled={isLoading}
+              className="mt-1"
+            />
+            <Label htmlFor="terms" className="text-sm font-normal leading-relaxed cursor-pointer">
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="text-primary hover:underline font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="text-primary hover:underline font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Privacy Policy
+              </Link>
+            </Label>
+          </div>
+
           {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted}>
             {isLoading ? "Creating account..." : "Create account"}
           </Button>
         </form>
@@ -184,6 +231,16 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
           <Github className="mr-2 h-4 w-4" />
           GitHub
         </Button>
+        <p className="text-xs text-center text-muted-foreground">
+          By signing up with GitHub, you agree to our{" "}
+          <Link href="/terms" target="_blank" className="text-primary hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" target="_blank" className="text-primary hover:underline">
+            Privacy Policy
+          </Link>
+        </p>
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}

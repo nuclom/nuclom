@@ -2,6 +2,13 @@
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
+import type {
+  Payload as RechartsPayload,
+  NameType,
+  ValueType,
+  Formatter as RechartsFormatter,
+} from "recharts/types/component/DefaultTooltipContent";
+import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
 
 import { cn } from "@/lib/utils";
 
@@ -92,6 +99,8 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+type TooltipPayloadItem = RechartsPayload<ValueType, NameType>;
+
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
@@ -101,14 +110,10 @@ const ChartTooltipContent = React.forwardRef<
       indicator?: "line" | "dot" | "dashed";
       nameKey?: string;
       labelKey?: string;
-      // biome-ignore lint/suspicious/noExplicitAny: Recharts tooltip payload type
-      payload?: any;
-      // biome-ignore lint/suspicious/noExplicitAny: Recharts label type
-      label?: any;
-      // biome-ignore lint/suspicious/noExplicitAny: Recharts labelFormatter type
-      labelFormatter?: any;
-      // biome-ignore lint/suspicious/noExplicitAny: Recharts formatter type
-      formatter?: any;
+      payload?: ReadonlyArray<TooltipPayloadItem>;
+      label?: string | number;
+      labelFormatter?: (label: string | number, payload: ReadonlyArray<TooltipPayloadItem>) => React.ReactNode;
+      formatter?: RechartsFormatter<ValueType, NameType>;
     }
 >(
   (
@@ -171,15 +176,14 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {/* biome-ignore lint/suspicious/noExplicitAny: Recharts payload item type */}
-          {payload?.map((item: any, index: number) => {
+          {payload?.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor = color || item.payload.fill || item.color;
 
             return (
               <div
-                key={item.dataKey}
+                key={typeof item.dataKey === "function" ? index : (item.dataKey ?? index)}
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center",
@@ -242,8 +246,7 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    // biome-ignore lint/suspicious/noExplicitAny: Recharts legend payload type
-    payload?: any;
+    payload?: ReadonlyArray<LegendPayload>;
     verticalAlign?: "top" | "bottom" | "middle";
     hideIcon?: boolean;
     nameKey?: string;
@@ -260,8 +263,7 @@ const ChartLegendContent = React.forwardRef<
       ref={ref}
       className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-3" : "pt-3", className)}
     >
-      {/* biome-ignore lint/suspicious/noExplicitAny: Recharts payload item type */}
-      {payload?.map((item: any) => {
+      {payload?.map((item) => {
         const key = `${nameKey || item.dataKey || "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 

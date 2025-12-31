@@ -43,6 +43,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TranscriptSegment } from "@/lib/db/schema";
+import { formatTimePrecise } from "@/lib/format-utils";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -263,18 +264,6 @@ function editReducer(state: EditState, action: EditAction): EditState {
 // Helper Functions
 // =============================================================================
 
-function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return "00:00.000";
-  }
-
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  const ms = Math.floor((seconds % 1) * 1000);
-
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
-}
-
 function parseTime(timeStr: string): number {
   const parts = timeStr.split(/[:.]/);
   if (parts.length === 3) {
@@ -301,14 +290,14 @@ interface SegmentEditorDialogProps {
 
 function SegmentEditorDialog({ segment, index, open, onOpenChange, onSave, onDelete }: SegmentEditorDialogProps) {
   const [text, setText] = useState(segment?.text || "");
-  const [startTime, setStartTime] = useState(formatTime(segment?.startTime || 0));
-  const [endTime, setEndTime] = useState(formatTime(segment?.endTime || 0));
+  const [startTime, setStartTime] = useState(formatTimePrecise(segment?.startTime || 0));
+  const [endTime, setEndTime] = useState(formatTimePrecise(segment?.endTime || 0));
 
   useEffect(() => {
     if (segment) {
       setText(segment.text);
-      setStartTime(formatTime(segment.startTime));
-      setEndTime(formatTime(segment.endTime));
+      setStartTime(formatTimePrecise(segment.startTime));
+      setEndTime(formatTimePrecise(segment.endTime));
     }
   }, [segment]);
 
@@ -434,7 +423,7 @@ function SegmentRow({
       <div className="flex-shrink-0 w-20 text-center">
         <div className="text-xs font-medium text-muted-foreground">#{index + 1}</div>
         <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
-          {formatTime(segment.startTime).slice(0, -4)}
+          {formatTimePrecise(segment.startTime).slice(0, -4)}
         </div>
       </div>
 

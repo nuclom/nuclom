@@ -32,6 +32,21 @@ export const users = pgTable("users", {
   twoFactorEnabled: boolean("two_factor_enabled"),
   // Better Auth Stripe integration
   stripeCustomerId: text("stripe_customer_id"),
+  // Legal consent fields
+  tosAcceptedAt: timestamp("tos_accepted_at"),
+  tosVersion: text("tos_version"),
+  privacyAcceptedAt: timestamp("privacy_accepted_at"),
+  privacyVersion: text("privacy_version"),
+  marketingConsentAt: timestamp("marketing_consent_at"),
+  marketingConsent: boolean("marketing_consent").default(false),
+  // Account deletion fields
+  deletionRequestedAt: timestamp("deletion_requested_at"),
+  deletionScheduledFor: timestamp("deletion_scheduled_for"),
+  // Moderation fields
+  warnedAt: timestamp("warned_at"),
+  warningReason: text("warning_reason"),
+  suspendedUntil: timestamp("suspended_until"),
+  suspensionReason: text("suspension_reason"),
 });
 
 export const sessions = pgTable("sessions", {
@@ -870,6 +885,134 @@ export const savedSearches = pgTable(
   }),
 );
 
+// =====================
+// Legal & Compliance Tables
+// =====================
+
+// Document type enum for legal consents
+export const legalDocumentTypeEnum = pgEnum("LegalDocumentType", ["terms_of_service", "privacy_policy"]);
+
+// Consent audit action enum
+export const consentActionEnum = pgEnum("ConsentAction", ["granted", "withdrawn", "updated"]);
+
+// Report category enum
+export const reportCategoryEnum = pgEnum("ReportCategory", [
+  "inappropriate",
+  "spam",
+  "copyright",
+  "harassment",
+  "other",
+]);
+
+// Report status enum
+export const reportStatusEnum = pgEnum("ReportStatus", ["pending", "reviewing", "resolved", "dismissed"]);
+
+// Report resolution enum
+export const reportResolutionEnum = pgEnum("ReportResolution", [
+  "content_removed",
+  "user_warned",
+  "user_suspended",
+  "no_action",
+]);
+
+// Resource type enum for reports
+export const reportResourceTypeEnum = pgEnum("ReportResourceType", ["video", "comment", "user"]);
+
+// Legal consents table - tracks each user's consent to legal documents
+export const legalConsents = pgTable(
+  "legal_consents",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    documentType: legalDocumentTypeEnum("document_type").notNull(),
+    version: text("version").notNull(), // e.g., "2025-01-01"
+    acceptedAt: timestamp("accepted_at").defaultNow().notNull(),
+    ipAddress: text("ip_address"),
+  },
+  (table) => ({
+    userDocIdx: index("legal_consents_user_doc_idx").on(table.userId, table.documentType),
+    uniqueUserDocVersion: unique().on(table.userId, table.documentType, table.version),
+  }),
+);
+
+// Consent audit log - tracks all consent changes for compliance
+export const consentAuditLog = pgTable(
+  "consent_audit_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: consentActionEnum("action").notNull(),
+    details: jsonb("details").$type<{
+      documentType?: string;
+      version?: string;
+      previousValue?: boolean;
+      newValue?: boolean;
+      consentType?: string;
+    }>(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("consent_audit_log_user_idx").on(table.userId, table.createdAt),
+  }),
+);
+
+// Reports table - tracks abuse reports
+export const reports = pgTable(
+  "reports",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    reporterId: text("reporter_id").references(() => users.id, { onDelete: "set null" }),
+    resourceType: reportResourceTypeEnum("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    category: reportCategoryEnum("category").notNull(),
+    description: text("description"),
+    status: reportStatusEnum("status").default("pending").notNull(),
+    resolution: reportResolutionEnum("resolution"),
+    resolvedById: text("resolved_by_id").references(() => users.id, { onDelete: "set null" }),
+    resolvedAt: timestamp("resolved_at"),
+    resolutionNotes: text("resolution_notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("reports_status_idx").on(table.status, table.createdAt),
+    resourceIdx: index("reports_resource_idx").on(table.resourceType, table.resourceId),
+    reporterIdx: index("reports_reporter_idx").on(table.reporterId),
+  }),
+);
+
+// Data export requests - tracks GDPR data export requests
+export const dataExportRequests = pgTable(
+  "data_export_requests",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").default("pending").notNull(), // pending, processing, completed, failed
+    downloadUrl: text("download_url"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => ({
+    userIdx: index("data_export_requests_user_idx").on(table.userId, table.createdAt),
+  }),
+);
+
 // Relations
 export const userRelations = relations(users, ({ one, many }) => ({
   videos: many(videos),
@@ -1160,6 +1303,104 @@ export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
   }),
 }));
 
+// =====================
+// Video Analytics Tables
+// =====================
+
+export const videoViewSourceEnum = pgEnum("VideoViewSource", ["direct", "share_link", "embed"]);
+
+export const videoViews = pgTable(
+  "video_views",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }), // null for anonymous
+    sessionId: text("session_id").notNull(), // browser session fingerprint
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    watchDuration: integer("watch_duration").default(0), // seconds watched
+    completionPercent: integer("completion_percent").default(0), // 0-100
+    source: videoViewSourceEnum("source").default("direct"),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("video_views_video_idx").on(table.videoId),
+    sessionVideoIdx: unique("video_views_session_video_idx").on(table.sessionId, table.videoId),
+    orgDateIdx: index("video_views_org_date_idx").on(table.organizationId, table.createdAt),
+  }),
+);
+
+// Aggregated daily stats for faster queries
+export const videoAnalyticsDaily = pgTable(
+  "video_analytics_daily",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    date: timestamp("date").notNull(),
+    viewCount: integer("view_count").default(0),
+    uniqueViewers: integer("unique_viewers").default(0),
+    totalWatchTime: integer("total_watch_time").default(0), // seconds
+    avgCompletionPercent: integer("avg_completion_percent").default(0),
+  },
+  (table) => ({
+    videoDateIdx: unique("video_analytics_video_date_idx").on(table.videoId, table.date),
+  }),
+);
+
+// =====================
+// Video Sharing Tables
+// =====================
+
+export const videoShareLinkStatusEnum = pgEnum("VideoShareLinkStatus", ["active", "expired", "revoked"]);
+
+export const videoShareLinkAccessEnum = pgEnum("VideoShareLinkAccess", ["view", "comment", "download"]);
+
+export const videoShareLinks = pgTable(
+  "video_share_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Access control
+    accessLevel: videoShareLinkAccessEnum("access_level").notNull().default("view"),
+    password: text("password"), // hashed, null = no password
+
+    // Limits
+    expiresAt: timestamp("expires_at"), // null = never expires
+    maxViews: integer("max_views"), // null = unlimited
+    viewCount: integer("view_count").default(0),
+
+    // Status
+    status: videoShareLinkStatusEnum("status").default("active"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastAccessedAt: timestamp("last_accessed_at"),
+  },
+  (table) => ({
+    videoIdx: index("video_share_links_video_idx").on(table.videoId),
+    statusIdx: index("video_share_links_status_idx").on(table.status),
+  }),
+);
+
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
   user: one(users, {
@@ -1180,6 +1421,77 @@ export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
   organization: one(organizations, {
     fields: [savedSearches.organizationId],
     references: [organizations.id],
+  }),
+}));
+
+// Video Views relations
+export const videoViewsRelations = relations(videoViews, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoViews.videoId],
+    references: [videos.id],
+  }),
+  user: one(users, {
+    fields: [videoViews.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [videoViews.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Video Analytics Daily relations
+export const videoAnalyticsDailyRelations = relations(videoAnalyticsDaily, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoAnalyticsDaily.videoId],
+    references: [videos.id],
+  }),
+}));
+
+// Video Share Links relations
+export const videoShareLinksRelations = relations(videoShareLinks, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoShareLinks.videoId],
+    references: [videos.id],
+  }),
+  creator: one(users, {
+    fields: [videoShareLinks.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// Legal relations
+export const legalConsentsRelations = relations(legalConsents, ({ one }) => ({
+  user: one(users, {
+    fields: [legalConsents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const consentAuditLogRelations = relations(consentAuditLog, ({ one }) => ({
+  user: one(users, {
+    fields: [consentAuditLog.userId],
+    references: [users.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [reports.reporterId],
+    references: [users.id],
+    relationName: "ReportReporter",
+  }),
+  resolvedBy: one(users, {
+    fields: [reports.resolvedById],
+    references: [users.id],
+    relationName: "ReportResolver",
+  }),
+}));
+
+export const dataExportRequestsRelations = relations(dataExportRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [dataExportRequests.userId],
+    references: [users.id],
   }),
 }));
 
@@ -1282,3 +1594,35 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 // Performance metrics types
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export type NewPerformanceMetric = typeof performanceMetrics.$inferInsert;
+
+// Video Views types
+export type VideoViewSource = (typeof videoViewSourceEnum.enumValues)[number];
+export type VideoView = typeof videoViews.$inferSelect;
+export type NewVideoView = typeof videoViews.$inferInsert;
+
+// Video Analytics Daily types
+export type VideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferSelect;
+export type NewVideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferInsert;
+
+// Video Share Links types
+export type VideoShareLinkStatus = (typeof videoShareLinkStatusEnum.enumValues)[number];
+export type VideoShareLinkAccess = (typeof videoShareLinkAccessEnum.enumValues)[number];
+export type VideoShareLink = typeof videoShareLinks.$inferSelect;
+export type NewVideoShareLink = typeof videoShareLinks.$inferInsert;
+
+// Legal compliance types
+export type LegalDocumentType = (typeof legalDocumentTypeEnum.enumValues)[number];
+export type ConsentAction = (typeof consentActionEnum.enumValues)[number];
+export type ReportCategory = (typeof reportCategoryEnum.enumValues)[number];
+export type ReportStatus = (typeof reportStatusEnum.enumValues)[number];
+export type ReportResolution = (typeof reportResolutionEnum.enumValues)[number];
+export type ReportResourceType = (typeof reportResourceTypeEnum.enumValues)[number];
+
+export type LegalConsent = typeof legalConsents.$inferSelect;
+export type NewLegalConsent = typeof legalConsents.$inferInsert;
+export type ConsentAuditLog = typeof consentAuditLog.$inferSelect;
+export type NewConsentAuditLog = typeof consentAuditLog.$inferInsert;
+export type Report = typeof reports.$inferSelect;
+export type NewReport = typeof reports.$inferInsert;
+export type DataExportRequest = typeof dataExportRequests.$inferSelect;
+export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
