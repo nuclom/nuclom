@@ -1,13 +1,10 @@
 import { allEndpoints, apiInfo, apiServers, apiTags } from "./endpoints";
 import { generateOpenApiSpec } from "./generator";
 
-// Legacy manual spec (for reference during migration)
-export { openApiSpec as legacyOpenApiSpec } from "./spec";
-
 /**
- * Generated OpenAPI spec from Effect Schema definitions
- * This is the new approach - schemas are automatically derived from the Effect Schemas
- * used for validation in the actual route handlers.
+ * OpenAPI spec automatically generated from Effect Schema definitions.
+ * Schemas are derived from the same Effect Schemas used for request/response
+ * validation in route handlers, ensuring documentation stays in sync.
  */
 export const openApiSpec = generateOpenApiSpec({
   info: apiInfo,
