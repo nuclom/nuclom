@@ -1145,6 +1145,104 @@ export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
   }),
 }));
 
+// =====================
+// Video Analytics Tables
+// =====================
+
+export const videoViewSourceEnum = pgEnum("VideoViewSource", ["direct", "share_link", "embed"]);
+
+export const videoViews = pgTable(
+  "video_views",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }), // null for anonymous
+    sessionId: text("session_id").notNull(), // browser session fingerprint
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    watchDuration: integer("watch_duration").default(0), // seconds watched
+    completionPercent: integer("completion_percent").default(0), // 0-100
+    source: videoViewSourceEnum("source").default("direct"),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("video_views_video_idx").on(table.videoId),
+    sessionVideoIdx: unique("video_views_session_video_idx").on(table.sessionId, table.videoId),
+    orgDateIdx: index("video_views_org_date_idx").on(table.organizationId, table.createdAt),
+  }),
+);
+
+// Aggregated daily stats for faster queries
+export const videoAnalyticsDaily = pgTable(
+  "video_analytics_daily",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    date: timestamp("date").notNull(),
+    viewCount: integer("view_count").default(0),
+    uniqueViewers: integer("unique_viewers").default(0),
+    totalWatchTime: integer("total_watch_time").default(0), // seconds
+    avgCompletionPercent: integer("avg_completion_percent").default(0),
+  },
+  (table) => ({
+    videoDateIdx: unique("video_analytics_video_date_idx").on(table.videoId, table.date),
+  }),
+);
+
+// =====================
+// Video Sharing Tables
+// =====================
+
+export const videoShareLinkStatusEnum = pgEnum("VideoShareLinkStatus", ["active", "expired", "revoked"]);
+
+export const videoShareLinkAccessEnum = pgEnum("VideoShareLinkAccess", ["view", "comment", "download"]);
+
+export const videoShareLinks = pgTable(
+  "video_share_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Access control
+    accessLevel: videoShareLinkAccessEnum("access_level").notNull().default("view"),
+    password: text("password"), // hashed, null = no password
+
+    // Limits
+    expiresAt: timestamp("expires_at"), // null = never expires
+    maxViews: integer("max_views"), // null = unlimited
+    viewCount: integer("view_count").default(0),
+
+    // Status
+    status: videoShareLinkStatusEnum("status").default("active"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastAccessedAt: timestamp("last_accessed_at"),
+  },
+  (table) => ({
+    videoIdx: index("video_share_links_video_idx").on(table.videoId),
+    statusIdx: index("video_share_links_status_idx").on(table.status),
+  }),
+);
+
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
   user: one(users, {
@@ -1165,6 +1263,42 @@ export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
   organization: one(organizations, {
     fields: [savedSearches.organizationId],
     references: [organizations.id],
+  }),
+}));
+
+// Video Views relations
+export const videoViewsRelations = relations(videoViews, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoViews.videoId],
+    references: [videos.id],
+  }),
+  user: one(users, {
+    fields: [videoViews.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [videoViews.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Video Analytics Daily relations
+export const videoAnalyticsDailyRelations = relations(videoAnalyticsDaily, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoAnalyticsDaily.videoId],
+    references: [videos.id],
+  }),
+}));
+
+// Video Share Links relations
+export const videoShareLinksRelations = relations(videoShareLinks, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoShareLinks.videoId],
+    references: [videos.id],
+  }),
+  creator: one(users, {
+    fields: [videoShareLinks.createdBy],
+    references: [users.id],
   }),
 }));
 
@@ -1258,3 +1392,18 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 // Performance metrics types
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export type NewPerformanceMetric = typeof performanceMetrics.$inferInsert;
+
+// Video Views types
+export type VideoViewSource = (typeof videoViewSourceEnum.enumValues)[number];
+export type VideoView = typeof videoViews.$inferSelect;
+export type NewVideoView = typeof videoViews.$inferInsert;
+
+// Video Analytics Daily types
+export type VideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferSelect;
+export type NewVideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferInsert;
+
+// Video Share Links types
+export type VideoShareLinkStatus = (typeof videoShareLinkStatusEnum.enumValues)[number];
+export type VideoShareLinkAccess = (typeof videoShareLinkAccessEnum.enumValues)[number];
+export type VideoShareLink = typeof videoShareLinks.$inferSelect;
+export type NewVideoShareLink = typeof videoShareLinks.$inferInsert;
