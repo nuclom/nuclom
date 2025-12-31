@@ -38,9 +38,7 @@ export default function PrivacyPolicyPage() {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
-            <p className="text-xl text-muted-foreground">
-              Last updated: January 2025 | Version: {PRIVACY_VERSION}
-            </p>
+            <p className="text-xl text-muted-foreground">Last updated: January 2025 | Version: {PRIVACY_VERSION}</p>
           </div>
 
           <Card className="shadow-lg">
@@ -50,10 +48,10 @@ export default function PrivacyPolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">Introduction</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Nuclom ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy
-                    explains how we collect, use, disclose, and safeguard your information when you use our
-                    video collaboration platform ("Service"). By using the Service, you consent to the data
-                    practices described in this policy.
+                    Nuclom ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains
+                    how we collect, use, disclose, and safeguard your information when you use our video collaboration
+                    platform ("Service"). By using the Service, you consent to the data practices described in this
+                    policy.
                   </p>
                 </section>
 
@@ -63,27 +61,54 @@ export default function PrivacyPolicyPage() {
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Information You Provide</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Account Information:</strong> Name, email address, password, and profile picture</li>
-                    <li><strong>Organization Data:</strong> Organization name, team member information</li>
-                    <li><strong>User Content:</strong> Videos, comments, and any other content you upload</li>
-                    <li><strong>Payment Information:</strong> Billing address, payment method details (processed by Stripe)</li>
-                    <li><strong>Communications:</strong> Messages you send to us for support or feedback</li>
+                    <li>
+                      <strong>Account Information:</strong> Name, email address, password, and profile picture
+                    </li>
+                    <li>
+                      <strong>Organization Data:</strong> Organization name, team member information
+                    </li>
+                    <li>
+                      <strong>User Content:</strong> Videos, comments, and any other content you upload
+                    </li>
+                    <li>
+                      <strong>Payment Information:</strong> Billing address, payment method details (processed by
+                      Stripe)
+                    </li>
+                    <li>
+                      <strong>Communications:</strong> Messages you send to us for support or feedback
+                    </li>
                   </ul>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Information Collected Automatically</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Usage Data:</strong> Pages viewed, features used, timestamps, and interaction patterns</li>
-                    <li><strong>Device Information:</strong> IP address, browser type, operating system, device identifiers</li>
-                    <li><strong>Video Analytics:</strong> Watch time, playback position, video engagement metrics</li>
-                    <li><strong>Cookies and Similar Technologies:</strong> See our{" "}
-                      <Link href="/cookies" className="text-primary hover:underline">Cookie Policy</Link>
+                    <li>
+                      <strong>Usage Data:</strong> Pages viewed, features used, timestamps, and interaction patterns
+                    </li>
+                    <li>
+                      <strong>Device Information:</strong> IP address, browser type, operating system, device
+                      identifiers
+                    </li>
+                    <li>
+                      <strong>Video Analytics:</strong> Watch time, playback position, video engagement metrics
+                    </li>
+                    <li>
+                      <strong>Cookies and Similar Technologies:</strong> See our{" "}
+                      <Link href="/cookies" className="text-primary hover:underline">
+                        Cookie Policy
+                      </Link>
                     </li>
                   </ul>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Information from Third Parties</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>OAuth Providers:</strong> When you sign in with GitHub or Google, we receive your public profile information</li>
-                    <li><strong>Integration Services:</strong> When you connect Zoom or Google Meet, we access meeting recordings you authorize</li>
+                    <li>
+                      <strong>OAuth Providers:</strong> When you sign in with GitHub or Google, we receive your public
+                      profile information
+                    </li>
+                    <li>
+                      <strong>Integration Services:</strong> When you connect Zoom or Google Meet, we access meeting
+                      recordings you authorize
+                    </li>
                   </ul>
                 </section>
 
@@ -134,29 +159,39 @@ export default function PrivacyPolicyPage() {
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Service Providers</h3>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Cloudflare R2:</strong> Video and file storage</li>
-                    <li><strong>Stripe:</strong> Payment processing</li>
-                    <li><strong>AI Providers (OpenAI/Anthropic):</strong> Video transcription and analysis</li>
-                    <li><strong>Resend:</strong> Email delivery</li>
-                    <li><strong>Analytics providers:</strong> Usage analysis (with consent)</li>
+                    <li>
+                      <strong>Cloudflare R2:</strong> Video and file storage
+                    </li>
+                    <li>
+                      <strong>Stripe:</strong> Payment processing
+                    </li>
+                    <li>
+                      <strong>AI Providers (OpenAI/Anthropic):</strong> Video transcription and analysis
+                    </li>
+                    <li>
+                      <strong>Resend:</strong> Email delivery
+                    </li>
+                    <li>
+                      <strong>Analytics providers:</strong> Usage analysis (with consent)
+                    </li>
                   </ul>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Organization Members</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Content you create may be visible to other members of your organization based on your
-                    organization's settings and your role.
+                    Content you create may be visible to other members of your organization based on your organization's
+                    settings and your role.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Legal Requirements</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    We may disclose information if required by law, legal process, or government request, or
-                    to protect our rights, property, or safety.
+                    We may disclose information if required by law, legal process, or government request, or to protect
+                    our rights, property, or safety.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Business Transfers</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    In the event of a merger, acquisition, or sale of assets, your information may be
-                    transferred. We will notify you before this occurs.
+                    In the event of a merger, acquisition, or sale of assets, your information may be transferred. We
+                    will notify you before this occurs.
                   </p>
                 </section>
 
@@ -164,16 +199,32 @@ export default function PrivacyPolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">4. Data Retention</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    We retain your data for as long as necessary to provide the Service and fulfill the
-                    purposes described in this policy:
+                    We retain your data for as long as necessary to provide the Service and fulfill the purposes
+                    described in this policy:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Account Data:</strong> Retained while your account is active, deleted 30 days after account deletion request</li>
-                    <li><strong>Video Content:</strong> Retained while your account is active, moved to trash for 30 days before permanent deletion</li>
-                    <li><strong>Usage Logs:</strong> Retained for up to 12 months for analytics and security purposes</li>
-                    <li><strong>Payment Records:</strong> Retained for 7 years to comply with tax and accounting requirements</li>
-                    <li><strong>Consent Records:</strong> Retained for the duration of your account plus 3 years for compliance</li>
-                    <li><strong>Support Communications:</strong> Retained for 3 years after resolution</li>
+                    <li>
+                      <strong>Account Data:</strong> Retained while your account is active, deleted 30 days after
+                      account deletion request
+                    </li>
+                    <li>
+                      <strong>Video Content:</strong> Retained while your account is active, moved to trash for 30 days
+                      before permanent deletion
+                    </li>
+                    <li>
+                      <strong>Usage Logs:</strong> Retained for up to 12 months for analytics and security purposes
+                    </li>
+                    <li>
+                      <strong>Payment Records:</strong> Retained for 7 years to comply with tax and accounting
+                      requirements
+                    </li>
+                    <li>
+                      <strong>Consent Records:</strong> Retained for the duration of your account plus 3 years for
+                      compliance
+                    </li>
+                    <li>
+                      <strong>Support Communications:</strong> Retained for 3 years after resolution
+                    </li>
                   </ul>
                 </section>
 
@@ -186,38 +237,38 @@ export default function PrivacyPolicyPage() {
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Access</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    You can request a copy of all personal data we hold about you. Use the "Download my data"
-                    feature in your account settings, or contact us directly.
+                    You can request a copy of all personal data we hold about you. Use the "Download my data" feature in
+                    your account settings, or contact us directly.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Rectification</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    You can update your account information at any time through your profile settings. For
-                    other corrections, contact us.
+                    You can update your account information at any time through your profile settings. For other
+                    corrections, contact us.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Erasure (Right to be Forgotten)</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    You can request deletion of your account and associated data. Use the "Delete my account"
-                    feature in settings. Deletion takes effect after a 30-day grace period.
+                    You can request deletion of your account and associated data. Use the "Delete my account" feature in
+                    settings. Deletion takes effect after a 30-day grace period.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Data Portability</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    You can export your data in a machine-readable format (JSON/ZIP) using our data export
-                    feature. Exports include your profile, videos, comments, and settings.
+                    You can export your data in a machine-readable format (JSON/ZIP) using our data export feature.
+                    Exports include your profile, videos, comments, and settings.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Object / Withdraw Consent</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    You can opt out of marketing communications and analytics cookies at any time. Essential
-                    cookies required for the Service to function cannot be disabled.
+                    You can opt out of marketing communications and analytics cookies at any time. Essential cookies
+                    required for the Service to function cannot be disabled.
                   </p>
 
                   <h3 className="text-xl font-semibold mt-6 mb-3">Right to Restrict Processing</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    In certain circumstances, you can request that we limit how we process your data. Contact
-                    us to make such a request.
+                    In certain circumstances, you can request that we limit how we process your data. Contact us to make
+                    such a request.
                   </p>
 
                   <p className="text-muted-foreground leading-relaxed mt-6">
@@ -243,8 +294,8 @@ export default function PrivacyPolicyPage() {
                     <li>Incident response procedures for data breaches</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    While we strive to protect your data, no method of transmission or storage is 100% secure.
-                    We cannot guarantee absolute security.
+                    While we strive to protect your data, no method of transmission or storage is 100% secure. We cannot
+                    guarantee absolute security.
                   </p>
                 </section>
 
@@ -252,9 +303,9 @@ export default function PrivacyPolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">7. International Data Transfers</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Your data may be transferred to and processed in countries outside your residence,
-                    including the United States. When we transfer data from the EU/EEA, we use appropriate
-                    safeguards such as Standard Contractual Clauses approved by the European Commission.
+                    Your data may be transferred to and processed in countries outside your residence, including the
+                    United States. When we transfer data from the EU/EEA, we use appropriate safeguards such as Standard
+                    Contractual Clauses approved by the European Commission.
                   </p>
                 </section>
 
@@ -262,9 +313,9 @@ export default function PrivacyPolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">8. Children's Privacy</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    The Service is not intended for individuals under 18 years of age. We do not knowingly
-                    collect personal information from children. If you believe a child has provided us with
-                    personal data, please contact us immediately.
+                    The Service is not intended for individuals under 18 years of age. We do not knowingly collect
+                    personal information from children. If you believe a child has provided us with personal data,
+                    please contact us immediately.
                   </p>
                 </section>
 
@@ -272,9 +323,9 @@ export default function PrivacyPolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">9. Changes to This Policy</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    We may update this Privacy Policy from time to time. We will notify you of material changes
-                    via email or through the Service at least 30 days before they take effect. Your continued
-                    use of the Service after the changes become effective constitutes acceptance.
+                    We may update this Privacy Policy from time to time. We will notify you of material changes via
+                    email or through the Service at least 30 days before they take effect. Your continued use of the
+                    Service after the changes become effective constitutes acceptance.
                   </p>
                 </section>
 
@@ -286,15 +337,16 @@ export default function PrivacyPolicyPage() {
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>Email: privacy@nuclom.com</li>
-                    <li>Support:{" "}
+                    <li>
+                      Support:{" "}
                       <Link href="/support" className="text-primary hover:underline">
                         nuclom.com/support
                       </Link>
                     </li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    If you are in the EU/EEA and have concerns about how we process your data, you have the
-                    right to lodge a complaint with your local Data Protection Authority.
+                    If you are in the EU/EEA and have concerns about how we process your data, you have the right to
+                    lodge a complaint with your local Data Protection Authority.
                   </p>
                 </section>
               </div>

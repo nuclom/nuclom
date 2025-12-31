@@ -274,7 +274,7 @@ export default function IntegrationsPage() {
   const getIntegration = (provider: string) => integrations.find((i) => i.provider === provider);
 
   const pendingImports = importedMeetings.filter(
-    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing"
+    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing",
   );
 
   if (loading) {
@@ -393,10 +393,7 @@ export default function IntegrationsPage() {
                           <div className="flex items-center gap-2">
                             <CardTitle className="text-lg">{config.name}</CardTitle>
                             {isConnected && (
-                              <Badge
-                                variant={isExpired ? "destructive" : "secondary"}
-                                className="text-xs font-normal"
-                              >
+                              <Badge variant={isExpired ? "destructive" : "secondary"} className="text-xs font-normal">
                                 {isExpired ? (
                                   <>
                                     <X className="h-3 w-3 mr-1" />
@@ -497,7 +494,11 @@ export default function IntegrationsPage() {
                       <div className="space-y-4">
                         <div className="flex flex-wrap gap-2">
                           {config.features.map((feature) => (
-                            <Badge key={feature} variant="outline" className="text-xs font-normal text-muted-foreground">
+                            <Badge
+                              key={feature}
+                              variant="outline"
+                              className="text-xs font-normal text-muted-foreground"
+                            >
                               {feature}
                             </Badge>
                           ))}

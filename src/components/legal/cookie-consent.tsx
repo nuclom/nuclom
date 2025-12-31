@@ -141,12 +141,12 @@ export function CookieConsentBanner() {
                   <div>
                     <h3 className="text-lg font-semibold">Cookie Preferences</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      We use cookies to enhance your experience. Essential cookies are required for the
-                      site to function. Analytics cookies help us understand how you use our service.
-                      Learn more in our{" "}
+                      We use cookies to enhance your experience. Essential cookies are required for the site to
+                      function. Analytics cookies help us understand how you use our service. Learn more in our{" "}
                       <Link href="/cookies" className="text-primary hover:underline">
                         Cookie Policy
-                      </Link>.
+                      </Link>
+                      .
                     </p>
                   </div>
 
@@ -154,18 +154,10 @@ export function CookieConsentBanner() {
                     <Button onClick={acceptAll} className="flex-1 sm:flex-none">
                       Accept All
                     </Button>
-                    <Button
-                      onClick={rejectNonEssential}
-                      variant="outline"
-                      className="flex-1 sm:flex-none"
-                    >
+                    <Button onClick={rejectNonEssential} variant="outline" className="flex-1 sm:flex-none">
                       Essential Only
                     </Button>
-                    <Button
-                      onClick={openSettings}
-                      variant="ghost"
-                      className="flex-1 sm:flex-none"
-                    >
+                    <Button onClick={openSettings} variant="ghost" className="flex-1 sm:flex-none">
                       <Settings className="h-4 w-4 mr-2" />
                       Customize
                     </Button>
@@ -183,8 +175,8 @@ export function CookieConsentBanner() {
           <DialogHeader>
             <DialogTitle>Cookie Settings</DialogTitle>
             <DialogDescription>
-              Manage your cookie preferences. Essential cookies cannot be disabled as they are
-              required for the site to function properly.
+              Manage your cookie preferences. Essential cookies cannot be disabled as they are required for the site to
+              function properly.
             </DialogDescription>
           </DialogHeader>
 
@@ -194,8 +186,8 @@ export function CookieConsentBanner() {
               <div className="space-y-1">
                 <Label className="text-base font-medium">Essential Cookies</Label>
                 <p className="text-sm text-muted-foreground">
-                  Required for the website to function. Includes authentication, security, and
-                  basic functionality cookies.
+                  Required for the website to function. Includes authentication, security, and basic functionality
+                  cookies.
                 </p>
               </div>
               <Switch checked={true} disabled aria-label="Essential cookies (always enabled)" />
@@ -206,15 +198,11 @@ export function CookieConsentBanner() {
               <div className="space-y-1">
                 <Label className="text-base font-medium">Analytics Cookies</Label>
                 <p className="text-sm text-muted-foreground">
-                  Help us understand how you use our service, which pages are popular, and how to
-                  improve your experience.
+                  Help us understand how you use our service, which pages are popular, and how to improve your
+                  experience.
                 </p>
               </div>
-              <Switch
-                checked={analyticsEnabled}
-                onCheckedChange={setAnalyticsEnabled}
-                aria-label="Analytics cookies"
-              />
+              <Switch checked={analyticsEnabled} onCheckedChange={setAnalyticsEnabled} aria-label="Analytics cookies" />
             </div>
           </div>
 
@@ -281,9 +269,7 @@ export function CookieSettingsButton() {
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Essential Cookies</Label>
-                <p className="text-sm text-muted-foreground">
-                  Required for the website to function.
-                </p>
+                <p className="text-sm text-muted-foreground">Required for the website to function.</p>
               </div>
               <Switch checked={true} disabled aria-label="Essential cookies (always enabled)" />
             </div>
@@ -291,15 +277,9 @@ export function CookieSettingsButton() {
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
                 <Label className="text-base font-medium">Analytics Cookies</Label>
-                <p className="text-sm text-muted-foreground">
-                  Help us improve our service.
-                </p>
+                <p className="text-sm text-muted-foreground">Help us improve our service.</p>
               </div>
-              <Switch
-                checked={analyticsEnabled}
-                onCheckedChange={setAnalyticsEnabled}
-                aria-label="Analytics cookies"
-              />
+              <Switch checked={analyticsEnabled} onCheckedChange={setAnalyticsEnabled} aria-label="Analytics cookies" />
             </div>
 
             <p className="text-xs text-muted-foreground">

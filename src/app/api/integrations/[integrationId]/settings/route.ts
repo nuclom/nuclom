@@ -51,7 +51,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return yield* Effect.fail(
         new UnauthorizedError({
           message: "You don't have permission to update this integration",
-        })
+        }),
       );
     }
 
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return yield* Effect.fail(
         new UnauthorizedError({
           message: "You don't have permission to view this integration",
-        })
+        }),
       );
     }
 

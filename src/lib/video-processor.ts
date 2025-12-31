@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { formatDuration } from "./format-utils";
 import StorageService from "./storage";
 
 export interface VideoInfo {
@@ -35,7 +36,7 @@ export class VideoProcessor {
     const estimatedDuration = Math.max(10, Math.floor(size / (1024 * 1024)) * 60); // Rough estimate
 
     return {
-      duration: VideoProcessor.formatDuration(estimatedDuration),
+      duration: formatDuration(estimatedDuration),
       width: 1920,
       height: 1080,
       format: "mp4",
@@ -163,20 +164,6 @@ export class VideoProcessor {
     // For a real implementation, you'd generate an actual thumbnail image
     // This is just a placeholder to demonstrate the structure
     return Buffer.from(base64Jpeg, "base64");
-  }
-
-  /**
-   * Format duration from seconds to HH:MM:SS or MM:SS
-   */
-  private static formatDuration(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
   /**

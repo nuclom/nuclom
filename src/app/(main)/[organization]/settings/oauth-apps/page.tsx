@@ -313,9 +313,7 @@ function OAuthAppsContent() {
               <Globe className="h-5 w-5" />
               Your OAuth Applications
             </CardTitle>
-            <CardDescription>
-              Create and manage OAuth applications to integrate with Nuclom
-            </CardDescription>
+            <CardDescription>Create and manage OAuth applications to integrate with Nuclom</CardDescription>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -338,42 +336,25 @@ function OAuthAppsContent() {
           ) : (
             <div className="space-y-4">
               {myApps.map((app) => (
-                <div
-                  key={app.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
+                <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={app.icon || undefined} />
-                      <AvatarFallback>
-                        {(app.name || "A").charAt(0).toUpperCase()}
-                      </AvatarFallback>
+                      <AvatarFallback>{(app.name || "A").charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{app.name || "Unnamed App"}</h3>
-                        {app.disabled && (
-                          <Badge variant="secondary">Disabled</Badge>
-                        )}
+                        {app.disabled && <Badge variant="secondary">Disabled</Badge>}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Client ID: {app.clientId || "N/A"}
-                      </p>
+                      <p className="text-sm text-muted-foreground">Client ID: {app.clientId || "N/A"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => openEditDialog(app)}
-                    >
+                    <Button variant="outline" size="icon" onClick={() => openEditDialog(app)}>
                       <Settings2 className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setAppToDelete(app)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => setAppToDelete(app)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
@@ -391,9 +372,7 @@ function OAuthAppsContent() {
             <ExternalLink className="h-5 w-5" />
             Authorized Applications
           </CardTitle>
-          <CardDescription>
-            Applications you&apos;ve granted access to your Nuclom account
-          </CardDescription>
+          <CardDescription>Applications you&apos;ve granted access to your Nuclom account</CardDescription>
         </CardHeader>
         <CardContent>
           {authorizedApps.length === 0 ? (
@@ -403,14 +382,9 @@ function OAuthAppsContent() {
           ) : (
             <div className="space-y-4">
               {authorizedApps.map((consent) => (
-                <div
-                  key={consent.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
+                <div key={consent.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-medium">
-                      App: {consent.clientId || "Unknown"}
-                    </h3>
+                    <h3 className="font-medium">App: {consent.clientId || "Unknown"}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       {parseScopes(consent.scopes).map((scope) => (
                         <Badge key={scope} variant="outline" className="text-xs">
@@ -422,11 +396,7 @@ function OAuthAppsContent() {
                       Authorized: {consent.createdAt ? new Date(consent.createdAt).toLocaleDateString() : "Unknown"}
                     </p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setRevokeApp(consent)}
-                  >
+                  <Button variant="destructive" size="sm" onClick={() => setRevokeApp(consent)}>
                     Revoke
                   </Button>
                 </div>
@@ -440,9 +410,7 @@ function OAuthAppsContent() {
       <Card>
         <CardHeader>
           <CardTitle>OAuth 2.0 / OpenID Connect</CardTitle>
-          <CardDescription>
-            Use OAuth 2.0 to build integrations with Nuclom
-          </CardDescription>
+          <CardDescription>Use OAuth 2.0 to build integrations with Nuclom</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -485,11 +453,7 @@ function OAuthAppsContent() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {newApp
-                ? "Application Created"
-                : editingApp
-                  ? "Edit Application"
-                  : "Create OAuth Application"}
+              {newApp ? "Application Created" : editingApp ? "Edit Application" : "Create OAuth Application"}
             </DialogTitle>
             <DialogDescription>
               {newApp
@@ -512,16 +476,8 @@ function OAuthAppsContent() {
                 <Label>Client ID</Label>
                 <div className="flex items-center gap-2">
                   <Input value={newApp.clientId || ""} readOnly className="font-mono" />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleCopy(newApp.clientId || "", "id")}
-                  >
-                    {copied === "id" ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
+                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientId || "", "id")}>
+                    {copied === "id" ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -535,27 +491,11 @@ function OAuthAppsContent() {
                     readOnly
                     className="font-mono"
                   />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowSecret(!showSecret)}
-                  >
-                    {showSecret ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                  <Button variant="outline" size="icon" onClick={() => setShowSecret(!showSecret)}>
+                    {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleCopy(newApp.clientSecret || "", "secret")}
-                  >
-                    {copied === "secret" ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
+                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientSecret || "", "secret")}>
+                    {copied === "secret" ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -596,9 +536,7 @@ function OAuthAppsContent() {
                   placeholder="https://example.com/callback&#10;https://localhost:3000/callback"
                   rows={3}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Enter one URL per line
-                </p>
+                <p className="text-xs text-muted-foreground">Enter one URL per line</p>
               </div>
 
               <DialogFooter>
@@ -612,15 +550,8 @@ function OAuthAppsContent() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={editingApp ? handleUpdateApp : handleCreateApp}
-                  disabled={saving}
-                >
-                  {saving
-                    ? "Saving..."
-                    : editingApp
-                      ? "Update"
-                      : "Create Application"}
+                <Button onClick={editingApp ? handleUpdateApp : handleCreateApp} disabled={saving}>
+                  {saving ? "Saving..." : editingApp ? "Update" : "Create Application"}
                 </Button>
               </DialogFooter>
             </div>
@@ -641,20 +572,14 @@ function OAuthAppsContent() {
             {appToDelete && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="font-medium">{appToDelete.name || "Unnamed App"}</p>
-                <p className="text-sm text-muted-foreground">
-                  Client ID: {appToDelete.clientId || "N/A"}
-                </p>
+                <p className="text-sm text-muted-foreground">Client ID: {appToDelete.clientId || "N/A"}</p>
               </div>
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setAppToDelete(null)}>
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteApp}
-                disabled={deleting}
-              >
+              <Button variant="destructive" onClick={handleDeleteApp} disabled={deleting}>
                 {deleting ? "Deleting..." : "Delete Application"}
               </Button>
             </DialogFooter>
@@ -675,11 +600,7 @@ function OAuthAppsContent() {
             <Button variant="outline" onClick={() => setRevokeApp(null)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRevokeConsent}
-              disabled={revoking}
-            >
+            <Button variant="destructive" onClick={handleRevokeConsent} disabled={revoking}>
               {revoking ? "Revoking..." : "Revoke Access"}
             </Button>
           </DialogFooter>

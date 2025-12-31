@@ -34,22 +34,8 @@ import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema
 import { videoChapters, videoCodeSnippets } from "@/lib/db/schema";
 import { getCachedVideo } from "@/lib/effect";
 import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
+import { formatTime } from "@/lib/format-utils";
 import type { VideoWithDetails } from "@/lib/types";
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-function formatTime(seconds: number): string {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hrs > 0) {
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
 
 // =============================================================================
 // Loading Skeletons

@@ -51,20 +51,14 @@ const categoryLabels: Record<ReportCategory, { label: string; description: strin
   },
 };
 
-export function ReportDialog({
-  resourceType,
-  resourceId,
-  trigger,
-  onReportSubmitted,
-}: ReportDialogProps) {
+export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmitted }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const resourceLabel =
-    resourceType === "video" ? "video" : resourceType === "comment" ? "comment" : "user";
+  const resourceLabel = resourceType === "video" ? "video" : resourceType === "comment" ? "comment" : "user";
 
   const handleSubmit = useCallback(async () => {
     if (!category) {
@@ -153,8 +147,8 @@ export function ReportDialog({
             Report {resourceLabel}
           </DialogTitle>
           <DialogDescription>
-            Help us understand the issue with this {resourceLabel}. False reports may result in
-            action against your account.
+            Help us understand the issue with this {resourceLabel}. False reports may result in action against your
+            account.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,10 +156,7 @@ export function ReportDialog({
           {/* Category Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">What's the issue?</Label>
-            <RadioGroup
-              value={category || ""}
-              onValueChange={(value) => setCategory(value as ReportCategory)}
-            >
+            <RadioGroup value={category || ""} onValueChange={(value) => setCategory(value as ReportCategory)}>
               {Object.entries(categoryLabels).map(([key, { label, description }]) => (
                 <div
                   key={key}
@@ -196,9 +187,7 @@ export function ReportDialog({
               className="resize-none"
               rows={3}
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {description.length}/2000
-            </p>
+            <p className="text-xs text-muted-foreground text-right">{description.length}/2000</p>
           </div>
 
           <p className="text-xs text-muted-foreground">

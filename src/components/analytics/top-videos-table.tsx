@@ -93,9 +93,7 @@ export function TopVideosTable({ videos, organizationSlug }: TopVideosTableProps
                     ) : (
                       <div className="w-16 h-9 rounded bg-muted flex-shrink-0" />
                     )}
-                    <span className="font-medium truncate max-w-[200px]">
-                      {item.video?.title || "Unknown Video"}
-                    </span>
+                    <span className="font-medium truncate max-w-[200px]">{item.video?.title || "Unknown Video"}</span>
                   </Link>
                 </TableCell>
                 <TableCell className="text-right">

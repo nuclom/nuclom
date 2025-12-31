@@ -9,10 +9,7 @@ import { oauthApplications } from "@/lib/db/schema";
 // GET /api/oauth/applications/[id] - Get a specific OAuth application
 // =============================================================================
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const session = await auth.api.getSession({
@@ -24,10 +21,7 @@ export async function GET(
     }
 
     const app = await db.query.oauthApplications?.findFirst({
-      where: and(
-        eq(oauthApplications.id, id),
-        eq(oauthApplications.userId, session.user.id)
-      ),
+      where: and(eq(oauthApplications.id, id), eq(oauthApplications.userId, session.user.id)),
     });
 
     if (!app) {
@@ -55,10 +49,7 @@ export async function GET(
 // PATCH /api/oauth/applications/[id] - Update an OAuth application
 // =============================================================================
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const session = await auth.api.getSession({
@@ -73,12 +64,7 @@ export async function PATCH(
     const existing = await db
       .select()
       .from(oauthApplications)
-      .where(
-        and(
-          eq(oauthApplications.id, id),
-          eq(oauthApplications.userId, session.user.id)
-        )
-      )
+      .where(and(eq(oauthApplications.id, id), eq(oauthApplications.userId, session.user.id)))
       .limit(1);
 
     if (existing.length === 0) {
@@ -95,16 +81,11 @@ export async function PATCH(
     if (name !== undefined) updateData.name = name;
     if (icon !== undefined) updateData.icon = icon;
     if (redirectURLs !== undefined) {
-      updateData.redirectURLs = Array.isArray(redirectURLs)
-        ? redirectURLs.join("\n")
-        : redirectURLs;
+      updateData.redirectURLs = Array.isArray(redirectURLs) ? redirectURLs.join("\n") : redirectURLs;
     }
     if (disabled !== undefined) updateData.disabled = disabled;
 
-    await db
-      .update(oauthApplications)
-      .set(updateData)
-      .where(eq(oauthApplications.id, id));
+    await db.update(oauthApplications).set(updateData).where(eq(oauthApplications.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -117,10 +98,7 @@ export async function PATCH(
 // DELETE /api/oauth/applications/[id] - Delete an OAuth application
 // =============================================================================
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const session = await auth.api.getSession({
@@ -135,12 +113,7 @@ export async function DELETE(
     const existing = await db
       .select()
       .from(oauthApplications)
-      .where(
-        and(
-          eq(oauthApplications.id, id),
-          eq(oauthApplications.userId, session.user.id)
-        )
-      )
+      .where(and(eq(oauthApplications.id, id), eq(oauthApplications.userId, session.user.id)))
       .limit(1);
 
     if (existing.length === 0) {

@@ -201,17 +201,14 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!userData?.deletionRequestedAt) {
-        return NextResponse.json(
-          { error: "No deletion request found" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "No deletion request found" }, { status: 400 });
       }
 
       // Check if still within grace period
       if (userData.deletionScheduledFor && userData.deletionScheduledFor < new Date()) {
         return NextResponse.json(
           { error: "Grace period has expired. Account deletion cannot be cancelled." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 

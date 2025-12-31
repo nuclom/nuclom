@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDurationHuman } from "@/lib/format-utils";
 
 interface ImportedMeeting {
   id: string;
@@ -47,7 +48,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
 
   // Auto-refresh when there are pending imports
   const hasPendingImports = importedMeetings.some(
-    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing"
+    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing",
   );
 
   useEffect(() => {
@@ -82,7 +83,10 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
   };
 
   const getStatusBadge = (status: ImportedMeeting["importStatus"]) => {
-    const variants: Record<ImportedMeeting["importStatus"], { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    const variants: Record<
+      ImportedMeeting["importStatus"],
+      { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+    > = {
       pending: { variant: "secondary", label: "Pending" },
       downloading: { variant: "default", label: "Downloading" },
       processing: { variant: "default", label: "Processing" },
@@ -145,14 +149,6 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return dateB - dateA;
   });
-
-  const formatDuration = (minutes: number | null) => {
-    if (!minutes) return "Unknown duration";
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  };
 
   return (
     <Card>
@@ -257,7 +253,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDuration(meeting.duration)}
+                          {formatDurationHuman(meeting.duration)}
                         </span>
                       </div>
 
