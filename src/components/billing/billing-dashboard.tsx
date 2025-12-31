@@ -1,121 +1,53 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Plan } from "@/lib/db/schema";
 import type { OrganizationBillingInfo, UsageSummary } from "@/lib/effect/services/billing-repository";
 import { InvoiceList } from "./invoice-list";
-import { PlanSelector } from "./plan-selector";
-import { SubscriptionCard } from "./subscription-card";
+import { PaymentMethodList } from "./payment-method-list";
+import { SubscriptionManager } from "./subscription-manager";
 import { UsageChart, UsageOverview } from "./usage-chart";
 
 interface BillingDashboardProps {
   organizationId: string;
+  organizationSlug: string;
   billingInfo: OrganizationBillingInfo;
   plans: Plan[];
   usageSummary: UsageSummary | null;
+  currentUserId: string;
+  isOwner: boolean;
 }
 
-export function BillingDashboard({ organizationId, billingInfo, plans, usageSummary }: BillingDashboardProps) {
+export function BillingDashboard({
+  organizationId,
+  organizationSlug,
+  billingInfo,
+  plans,
+  usageSummary,
+  currentUserId,
+  isOwner,
+}: BillingDashboardProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState("subscription");
 
-  const handleSelectPlan = async (planId: string, billingPeriod: "monthly" | "yearly") => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId, planId, billingPeriod }),
-      });
+  // Handle success/cancel query params from Stripe checkout
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to start checkout");
-    } finally {
-      setIsLoading(false);
+    if (success === "true") {
+      toast.success("Subscription activated successfully!");
+      // Remove query params
+      router.replace(`/${organizationSlug}/settings/billing`);
+    } else if (canceled === "true") {
+      toast.info("Checkout was canceled");
+      router.replace(`/${organizationSlug}/settings/billing`);
     }
-  };
-
-  const handleManageBilling = async () => {
-    try {
-      const response = await fetch("/api/billing/portal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to open billing portal");
-      }
-
-      // Redirect to Stripe Customer Portal
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Portal error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to open billing portal");
-    }
-  };
-
-  const handleCancelSubscription = async () => {
-    try {
-      const response = await fetch("/api/billing/subscription", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to cancel subscription");
-      }
-
-      toast.success("Subscription will be canceled at the end of the billing period");
-      router.refresh();
-    } catch (error) {
-      console.error("Cancel error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to cancel subscription");
-    }
-  };
-
-  const handleResumeSubscription = async () => {
-    try {
-      const response = await fetch("/api/billing/subscription", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ organizationId, action: "resume" }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to resume subscription");
-      }
-
-      toast.success("Subscription resumed successfully");
-      router.refresh();
-    } catch (error) {
-      console.error("Resume error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to resume subscription");
-    }
-  };
+  }, [searchParams, router, organizationSlug]);
 
   return (
     <div className="space-y-8">
@@ -124,41 +56,46 @@ export function BillingDashboard({ organizationId, billingInfo, plans, usageSumm
         <p className="text-muted-foreground">Manage your subscription, view usage, and download invoices.</p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="plans">Plans</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger value="usage">Usage</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="payment">Payment</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <SubscriptionCard
-            subscription={billingInfo.subscription}
-            onManageBilling={handleManageBilling}
-            onCancelSubscription={handleCancelSubscription}
-            onResumeSubscription={handleResumeSubscription}
-            isLoading={isLoading}
+        <TabsContent value="subscription" className="space-y-6">
+          {/* Better Auth Stripe Subscription Manager */}
+          <SubscriptionManager
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+            currentUserId={currentUserId}
+            isOwner={isOwner}
           />
+        </TabsContent>
 
-          {usageSummary && (
+        <TabsContent value="usage" className="space-y-6">
+          {usageSummary ? (
             <>
               <UsageOverview usage={usageSummary} />
               <UsageChart usage={usageSummary} />
             </>
+          ) : (
+            <div className="rounded-lg border p-6 text-center text-muted-foreground">No usage data available yet</div>
           )}
-        </TabsContent>
-
-        <TabsContent value="plans" className="space-y-6">
-          <PlanSelector
-            plans={plans}
-            currentPlanId={billingInfo.subscription?.planId}
-            onSelectPlan={handleSelectPlan}
-            isLoading={isLoading}
-          />
         </TabsContent>
 
         <TabsContent value="invoices" className="space-y-6">
           <InvoiceList invoices={billingInfo.invoices} />
+        </TabsContent>
+
+        <TabsContent value="payment" className="space-y-6">
+          <PaymentMethodList
+            paymentMethods={billingInfo.paymentMethods}
+            organizationId={organizationId}
+            organizationSlug={organizationSlug}
+            isOwner={isOwner}
+          />
         </TabsContent>
       </Tabs>
     </div>

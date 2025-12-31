@@ -1,13 +1,22 @@
+import process from "node:process";
+import { passkey } from "@better-auth/passkey";
+import { stripe } from "@better-auth/stripe";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey";
 import { eq } from "drizzle-orm";
+import Stripe from "stripe";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
+
+// Initialize Stripe client
+const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
+  apiVersion: "2025-12-15.clover",
+  typescript: true,
+});
 
 // Build trusted origins from environment
 const trustedOrigins = [env.APP_URL];
@@ -78,13 +87,7 @@ export const auth = betterAuth({
         `,
       });
     },
-    async sendResetPassword({
-      user,
-      url,
-    }: {
-      user: { email: string; name?: string | null };
-      url: string;
-    }) {
+    async sendResetPassword({ user, url }: { user: { email: string; name?: string | null }; url: string }) {
       await resend.emails.send({
         from: "Nuclom <no-reply@nuclom.com>",
         to: user.email,
@@ -245,6 +248,199 @@ export const auth = betterAuth({
         });
       },
     }),
+    // Better Auth Stripe Plugin for subscription management
+    stripe({
+      stripeClient,
+      stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
+      createCustomerOnSignUp: true,
+      subscription: {
+        enabled: true,
+        // Cancel at period end by default (not immediate cancellation)
+        cancelImmediately: false,
+        plans: [
+          {
+            name: "free",
+            limits: {
+              storage: 1024 * 1024 * 1024, // 1GB
+              videos: 10,
+              members: 3,
+              bandwidth: 5 * 1024 * 1024 * 1024, // 5GB/month
+            },
+          },
+          {
+            name: "pro",
+            priceId: process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
+            annualPriceId: process.env.STRIPE_PRICE_ID_PRO_YEARLY,
+            limits: {
+              storage: 100 * 1024 * 1024 * 1024, // 100GB
+              videos: -1, // unlimited
+              members: 25,
+              bandwidth: 100 * 1024 * 1024 * 1024, // 100GB/month
+            },
+            freeTrial: {
+              days: 14,
+            },
+          },
+          {
+            name: "enterprise",
+            priceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY,
+            annualPriceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
+            limits: {
+              storage: -1, // unlimited
+              videos: -1, // unlimited
+              members: -1, // unlimited
+              bandwidth: -1, // unlimited
+            },
+          },
+        ],
+        // Authorize organization-based subscriptions
+        authorizeReference: async ({ user, referenceId, action }) => {
+          // Check if user is owner of the organization
+          const membership = await db.query.members.findFirst({
+            where: (m, { and, eq: colEq }) =>
+              and(colEq(m.userId, user.id), colEq(m.organizationId, referenceId), colEq(m.role, "owner")),
+          });
+          return !!membership;
+        },
+        // Custom checkout params for additional features
+        getCheckoutSessionParams: async ({ user, plan }) => ({
+          params: {
+            allow_promotion_codes: true,
+            billing_address_collection: "auto",
+            tax_id_collection: { enabled: true },
+            customer_update: {
+              address: "auto",
+              name: "auto",
+            },
+          },
+        }),
+      },
+      // Lifecycle hooks for subscription events
+      onSubscriptionComplete: async ({ subscription, plan, user }) => {
+        const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
+        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+
+        // Create in-app notification
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "subscription_created",
+          title: "Subscription activated",
+          body: `Your ${plan.name} subscription is now active.`,
+          resourceType: "subscription",
+          resourceId: subscription.id,
+        });
+
+        // Send welcome email
+        await resend.emails.send({
+          from: fromEmail,
+          to: user.email,
+          subject: `Welcome to Nuclom ${plan.name}!`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #6366f1;">Welcome to Nuclom ${plan.name}!</h1>
+              <p>Hi ${user.name || "there"},</p>
+              <p>Your ${plan.name} subscription is now active. Here's what you can do:</p>
+              <ul>
+                <li>Unlimited video storage and collaboration</li>
+                <li>AI-powered video insights and transcription</li>
+                <li>Advanced team management</li>
+                <li>Priority support</li>
+              </ul>
+              <p><a href="${baseUrl}/dashboard" style="color: #6366f1;">Go to your dashboard</a></p>
+            </div>
+          `,
+        });
+      },
+      onSubscriptionUpdate: async ({ subscription, plan, user }) => {
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "subscription_updated",
+          title: "Subscription updated",
+          body: `Your subscription has been updated to ${plan?.name || "a new plan"}.`,
+          resourceType: "subscription",
+          resourceId: subscription.id,
+        });
+      },
+      onSubscriptionCancel: async ({ subscription, user }) => {
+        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "subscription_canceled",
+          title: "Subscription canceled",
+          body: subscription.cancelAtPeriodEnd
+            ? "Your subscription will end at the current billing period."
+            : "Your subscription has been canceled immediately.",
+          resourceType: "subscription",
+          resourceId: subscription.id,
+        });
+
+        // Send cancellation email
+        await resend.emails.send({
+          from: fromEmail,
+          to: user.email,
+          subject: "Your Nuclom subscription has been canceled",
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #333;">We're sorry to see you go</h1>
+              <p>Hi ${user.name || "there"},</p>
+              ${
+                subscription.cancelAtPeriodEnd
+                  ? `<p>Your subscription will remain active until ${subscription.periodEnd ? new Date(subscription.periodEnd).toLocaleDateString() : "the end of your billing period"}.</p>`
+                  : "<p>Your subscription has been canceled and you've been downgraded to the free plan.</p>"
+              }
+              <p>If you change your mind, you can always resubscribe from your account settings.</p>
+              <p>We'd love to hear your feedback on how we can improve.</p>
+            </div>
+          `,
+        });
+      },
+      onTrialEnd: async ({ subscription, user }) => {
+        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: "trial_ending",
+          title: "Your trial has ended",
+          body: "Your free trial has ended. Upgrade to continue enjoying all features.",
+          resourceType: "subscription",
+          resourceId: subscription.id,
+        });
+
+        await resend.emails.send({
+          from: fromEmail,
+          to: user.email,
+          subject: "Your Nuclom trial has ended",
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #6366f1;">Your trial has ended</h1>
+              <p>Hi ${user.name || "there"},</p>
+              <p>Your 14-day free trial has ended. We hope you enjoyed exploring Nuclom's features!</p>
+              <p>To continue using all the pro features, please upgrade your subscription.</p>
+              <p><a href="${clientEnv.NEXT_PUBLIC_APP_URL}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
+            </div>
+          `,
+        });
+      },
+      // Handle additional Stripe webhook events
+      onEvent: async (event) => {
+        switch (event.type) {
+          case "invoice.paid": {
+            const invoice = event.data.object as Stripe.Invoice;
+            console.log(`[Better Auth Stripe] Invoice paid: ${invoice.id}`);
+            break;
+          }
+          case "invoice.payment_failed": {
+            const invoice = event.data.object as Stripe.Invoice;
+            console.log(`[Better Auth Stripe] Invoice payment failed: ${invoice.id}`);
+            // Additional handling for failed payments
+            break;
+          }
+          default:
+            console.log(`[Better Auth Stripe] Unhandled event: ${event.type}`);
+        }
+      },
+    }),
     apiKey({
       apiKeyHeaders: ["x-api-key"],
       defaultKeyLength: 64,
@@ -283,9 +479,12 @@ export const auth = betterAuth({
     passkey({
       rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
       rpName: "Nuclom",
-      origin:
-        env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+      origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
     }),
     openAPI(),
   ],
 });
+
+// Export types for Better Auth Stripe
+export type AuthSession = typeof auth.$Infer.Session;
+export type AuthUser = typeof auth.$Infer.Session.user;

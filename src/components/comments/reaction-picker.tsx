@@ -68,7 +68,7 @@ export function ReactionPicker({ commentId, currentUserReaction, onReact, disabl
               disabled={isLoading}
               className={cn(
                 "p-2 text-lg rounded-md hover:bg-accent transition-colors",
-                currentUserReaction === reaction.type && "bg-accent ring-2 ring-primary"
+                currentUserReaction === reaction.type && "bg-accent ring-2 ring-primary",
               )}
               title={reaction.label}
             >

@@ -1,6 +1,7 @@
-import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 
 export interface MarkdownContent {
   title: string;

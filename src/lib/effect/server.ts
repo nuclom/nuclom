@@ -6,8 +6,8 @@
  */
 
 import { Cause, Effect, Exit, Option } from "effect";
-import { cache } from "react";
 import { revalidateTag } from "next/cache";
+import { cache } from "react";
 import type {
   PaginatedResponse,
   PaginatedResponse as PaginatedResponseType,
@@ -18,6 +18,7 @@ import type {
   VideoWithDetails,
 } from "@/lib/types";
 import { AppLive, type AppServices } from "./runtime";
+import { ChannelRepository } from "./services/channel-repository";
 import { OrganizationRepository } from "./services/organization-repository";
 import { SeriesRepository } from "./services/series-repository";
 import { type VideoProgressData, VideoProgressRepository } from "./services/video-progress-repository";
@@ -374,3 +375,67 @@ export const revalidateSeriesProgress = (seriesId: string, userId: string) => {
   revalidateTag(`series-progress:${seriesId}:${userId}`, "max");
   revalidateTag(`series-progress:user:${userId}`, "max");
 };
+
+// =============================================================================
+// User's Own Videos Queries (Cached)
+// =============================================================================
+
+/**
+ * Get videos created by a specific user within an organization (cached per request)
+ */
+export const getVideosByAuthor = cache(
+  async (
+    authorId: string,
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PaginatedResponse<VideoWithAuthor>> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* VideoRepository;
+      return yield* repo.getVideosByAuthor(authorId, organizationId, page, limit);
+    });
+    return runServerEffect(effect);
+  },
+);
+
+/**
+ * Get videos in a channel with author details (cached per request)
+ */
+export const getChannelVideosWithAuthor = cache(
+  async (channelId: string, page: number = 1, limit: number = 20): Promise<PaginatedResponse<VideoWithAuthor>> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* VideoRepository;
+      return yield* repo.getChannelVideosWithAuthor(channelId, page, limit);
+    });
+    return runServerEffect(effect);
+  },
+);
+
+/**
+ * Get channel with member count (cached per request)
+ */
+export const getChannel = cache(async (channelId: string) => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* ChannelRepository;
+    return yield* repo.getChannel(channelId);
+  });
+  return runServerEffect(effect);
+});
+
+/**
+ * Get videos shared by others in the organization (not authored by the user) (cached per request)
+ */
+export const getVideosSharedByOthers = cache(
+  async (
+    userId: string,
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PaginatedResponse<VideoWithAuthor>> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* VideoRepository;
+      return yield* repo.getVideosSharedByOthers(userId, organizationId, page, limit);
+    });
+    return runServerEffect(effect);
+  },
+);

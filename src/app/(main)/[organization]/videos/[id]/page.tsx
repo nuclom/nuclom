@@ -17,9 +17,9 @@ import {
   ThumbsUp,
   XCircle,
 } from "lucide-react";
-import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentList } from "@/components/comments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,22 +34,8 @@ import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema
 import { videoChapters, videoCodeSnippets } from "@/lib/db/schema";
 import { getCachedVideo } from "@/lib/effect";
 import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
+import { formatTime } from "@/lib/format-utils";
 import type { VideoWithDetails } from "@/lib/types";
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-function formatTime(seconds: number): string {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hrs > 0) {
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
 
 // =============================================================================
 // Loading Skeletons

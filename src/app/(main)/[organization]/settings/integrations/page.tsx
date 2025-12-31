@@ -1,6 +1,6 @@
 "use client";
 
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import {
   Calendar,
   Check,
@@ -139,7 +139,7 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<"zoom" | "google_meet" | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [_showCalendar, setShowCalendar] = useState(false);
   const [showSettings, setShowSettings] = useState<"zoom" | "google_meet" | null>(null);
   const [activeTab, setActiveTab] = useState("integrations");
   const [refreshing, setRefreshing] = useState(false);
@@ -274,7 +274,7 @@ export default function IntegrationsPage() {
   const getIntegration = (provider: string) => integrations.find((i) => i.provider === provider);
 
   const pendingImports = importedMeetings.filter(
-    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing"
+    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing",
   );
 
   if (loading) {
@@ -393,10 +393,7 @@ export default function IntegrationsPage() {
                           <div className="flex items-center gap-2">
                             <CardTitle className="text-lg">{config.name}</CardTitle>
                             {isConnected && (
-                              <Badge
-                                variant={isExpired ? "destructive" : "secondary"}
-                                className="text-xs font-normal"
-                              >
+                              <Badge variant={isExpired ? "destructive" : "secondary"} className="text-xs font-normal">
                                 {isExpired ? (
                                   <>
                                     <X className="h-3 w-3 mr-1" />
@@ -497,7 +494,11 @@ export default function IntegrationsPage() {
                       <div className="space-y-4">
                         <div className="flex flex-wrap gap-2">
                           {config.features.map((feature) => (
-                            <Badge key={feature} variant="outline" className="text-xs font-normal text-muted-foreground">
+                            <Badge
+                              key={feature}
+                              variant="outline"
+                              className="text-xs font-normal text-muted-foreground"
+                            >
                               {feature}
                             </Badge>
                           ))}

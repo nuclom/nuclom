@@ -398,9 +398,7 @@ function SecurityContent() {
           </p>
         </CardContent>
         <CardFooter className="bg-muted/50 border-t px-6 py-4">
-          <Button onClick={() => setPasswordDialogOpen(true)}>
-            Change Password
-          </Button>
+          <Button onClick={() => setPasswordDialogOpen(true)}>Change Password</Button>
         </CardFooter>
       </Card>
 
@@ -411,21 +409,15 @@ function SecurityContent() {
             <Shield className="h-5 w-5" />
             Two-Factor Authentication
           </CardTitle>
-          <CardDescription>
-            Add an extra layer of security to your account
-          </CardDescription>
+          <CardDescription>Add an extra layer of security to your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium">Authenticator App</p>
-              <p className="text-sm text-muted-foreground">
-                Use an authenticator app to generate one-time codes
-              </p>
+              <p className="text-sm text-muted-foreground">Use an authenticator app to generate one-time codes</p>
             </div>
-            <Badge variant={is2FAEnabled ? "default" : "outline"}>
-              {is2FAEnabled ? "Enabled" : "Disabled"}
-            </Badge>
+            <Badge variant={is2FAEnabled ? "default" : "outline"}>{is2FAEnabled ? "Enabled" : "Disabled"}</Badge>
           </div>
         </CardContent>
         <CardFooter className="bg-muted/50 border-t px-6 py-4">
@@ -434,9 +426,7 @@ function SecurityContent() {
               Disable 2FA
             </Button>
           ) : (
-            <Button onClick={handleStart2FASetup}>
-              Enable 2FA
-            </Button>
+            <Button onClick={handleStart2FASetup}>Enable 2FA</Button>
           )}
         </CardFooter>
       </Card>
@@ -448,9 +438,7 @@ function SecurityContent() {
             <KeyRound className="h-5 w-5" />
             Passkeys
           </CardTitle>
-          <CardDescription>
-            Use biometrics or hardware security keys for passwordless login
-          </CardDescription>
+          <CardDescription>Use biometrics or hardware security keys for passwordless login</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {passkeys.length === 0 ? (
@@ -460,29 +448,18 @@ function SecurityContent() {
           ) : (
             <div className="space-y-3">
               {passkeys.map((passkey) => (
-                <div
-                  key={passkey.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
+                <div key={passkey.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <KeyRound className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">
-                        {passkey.name || "Passkey"}
-                      </p>
+                      <p className="text-sm font-medium">{passkey.name || "Passkey"}</p>
                       <p className="text-xs text-muted-foreground">
                         {passkey.deviceType || "Security Key"} &bull; Added{" "}
-                        {passkey.createdAt
-                          ? new Date(passkey.createdAt).toLocaleDateString()
-                          : "recently"}
+                        {passkey.createdAt ? new Date(passkey.createdAt).toLocaleDateString() : "recently"}
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeletePasskey(passkey.id)}
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => handleDeletePasskey(passkey.id)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -506,9 +483,7 @@ function SecurityContent() {
               <Laptop className="h-5 w-5" />
               Active Sessions
             </CardTitle>
-            <CardDescription>
-              Manage your active sessions across devices
-            </CardDescription>
+            <CardDescription>Manage your active sessions across devices</CardDescription>
           </div>
           {sessions.length > 1 && (
             <Button variant="outline" size="sm" onClick={handleRevokeAllSessions}>
@@ -521,17 +496,12 @@ function SecurityContent() {
             const DeviceIcon = getDeviceIcon(session.userAgent);
             const isCurrent = session.token === currentSessionToken;
             return (
-              <div
-                key={session.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
+              <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   <DeviceIcon className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">
-                        {formatUserAgent(session.userAgent)}
-                      </p>
+                      <p className="text-sm font-medium">{formatUserAgent(session.userAgent)}</p>
                       {isCurrent && (
                         <Badge variant="secondary" className="text-xs">
                           Current
@@ -545,11 +515,7 @@ function SecurityContent() {
                   </div>
                 </div>
                 {!isCurrent && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRevokeSession(session.token)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleRevokeSession(session.token)}>
                     Sign out
                   </Button>
                 )}
@@ -564,9 +530,7 @@ function SecurityContent() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
-            <DialogDescription>
-              Enter your current password and a new password
-            </DialogDescription>
+            <DialogDescription>Enter your current password and a new password</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
@@ -634,18 +598,14 @@ function SecurityContent() {
                 </div>
               )}
               <DialogFooter>
-                <Button onClick={() => setSetupStep("verify")}>
-                  Continue
-                </Button>
+                <Button onClick={() => setSetupStep("verify")}>Continue</Button>
               </DialogFooter>
             </div>
           )}
 
           {setupStep === "verify" && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Enter the 6-digit code from your authenticator app
-              </p>
+              <p className="text-sm text-muted-foreground">Enter the 6-digit code from your authenticator app</p>
               <div className="space-y-2">
                 <Label htmlFor="verifyCode">Verification Code</Label>
                 <Input
@@ -685,11 +645,13 @@ function SecurityContent() {
                 ))}
               </div>
               <DialogFooter>
-                <Button onClick={() => {
-                  setSetup2FAOpen(false);
-                  setSetupStep("qr");
-                  setVerifyCode("");
-                }}>
+                <Button
+                  onClick={() => {
+                    setSetup2FAOpen(false);
+                    setSetupStep("qr");
+                    setVerifyCode("");
+                  }}
+                >
                   Done
                 </Button>
               </DialogFooter>
@@ -703,9 +665,7 @@ function SecurityContent() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
-            <DialogDescription>
-              Enter your password to disable 2FA
-            </DialogDescription>
+            <DialogDescription>Enter your password to disable 2FA</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -722,11 +682,7 @@ function SecurityContent() {
               <Button variant="outline" onClick={() => setDisable2FAOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDisable2FA}
-                disabled={disabling2FA || !disable2FAPassword}
-              >
+              <Button variant="destructive" onClick={handleDisable2FA} disabled={disabling2FA || !disable2FAPassword}>
                 {disabling2FA ? "Disabling..." : "Disable 2FA"}
               </Button>
             </DialogFooter>

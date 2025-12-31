@@ -31,6 +31,10 @@ async function getBillingData(organizationSlug: string) {
     // Verify user is member of organization
     yield* orgRepo.isMember(user.id, org.id);
 
+    // Get user's role in organization
+    const roleOption = yield* orgRepo.getUserRole(user.id, org.id);
+    const isOwner = Option.isSome(roleOption) && roleOption.value === "owner";
+
     // Get billing info
     const billingRepo = yield* BillingRepository;
     const billingInfo = yield* billingRepo.getBillingInfo(org.id);
@@ -48,6 +52,9 @@ async function getBillingData(organizationSlug: string) {
 
     return {
       organizationId: org.id,
+      organizationSlug: org.slug,
+      currentUserId: user.id,
+      isOwner,
       billingInfo,
       plans,
       usageSummary,
@@ -91,6 +98,9 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
 
       <BillingDashboard
         organizationId={data.organizationId}
+        organizationSlug={data.organizationSlug}
+        currentUserId={data.currentUserId}
+        isOwner={data.isOwner}
         billingInfo={data.billingInfo}
         plans={data.plans}
         usageSummary={data.usageSummary}

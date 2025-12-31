@@ -14,7 +14,6 @@ import {
   Loader2,
   RefreshCw,
   Search,
-  SortAsc,
   Video,
   X,
 } from "lucide-react";
@@ -32,7 +31,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -42,8 +40,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { formatDurationHuman, formatFileSize } from "@/lib/format-utils";
 
 interface Recording {
   id: string;
@@ -132,7 +130,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
         setLoading(false);
       }
     },
-    [provider, nextPageToken, toast, dateRange]
+    [provider, nextPageToken, toast, dateRange],
   );
 
   useEffect(() => {
@@ -265,21 +263,6 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "Unknown size";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
-  };
-
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  };
-
   const getTotalSelectedSize = () => {
     const selectedRecordings = recordings.filter((r) => selected.has(r.id));
     const totalBytes = selectedRecordings.reduce((sum, r) => sum + r.fileSize, 0);
@@ -289,7 +272,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
   const getTotalSelectedDuration = () => {
     const selectedRecordings = recordings.filter((r) => selected.has(r.id));
     const totalMinutes = selectedRecordings.reduce((sum, r) => sum + r.duration, 0);
-    return formatDuration(totalMinutes);
+    return formatDurationHuman(totalMinutes);
   };
 
   return (
@@ -505,7 +488,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
                             )}
                             <span className="flex items-center gap-1.5">
                               <Clock className="h-3.5 w-3.5" />
-                              {formatDuration(recording.duration)}
+                              {formatDurationHuman(recording.duration)}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <Download className="h-3.5 w-3.5" />

@@ -31,7 +31,7 @@ if (!STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2025-02-24.acacia",
+  apiVersion: "2025-12-15.clover",
   typescript: true,
 });
 
@@ -99,6 +99,46 @@ const PRODUCTS: ProductConfig[] = [
           refund_policy: "non_refundable",
           price_per_user: "19.00",
           yearly_savings: "24%",
+        },
+      },
+    ],
+  },
+  {
+    id: "prod_nuclom_enterprise",
+    name: "Nuclom Enterprise",
+    description:
+      "Enterprise video collaboration with unlimited storage, SSO integration, advanced AI, and dedicated support.",
+    metadata: {
+      plan_type: "enterprise",
+      trial_days: "14",
+      features: "unlimited_storage,sso,advanced_ai,dedicated_support,custom_branding,api_access",
+    },
+    prices: [
+      {
+        nickname: "Enterprise Monthly",
+        unit_amount: 9900, // $99.00
+        recurring: {
+          interval: "month",
+          interval_count: 1,
+        },
+        metadata: {
+          billing_period: "monthly",
+          refund_policy: "prorated_daily",
+          price_per_user: "99.00",
+        },
+      },
+      {
+        nickname: "Enterprise Yearly",
+        unit_amount: 99000, // $990.00/year = ~$82.50/month
+        recurring: {
+          interval: "year",
+          interval_count: 1,
+        },
+        metadata: {
+          billing_period: "yearly",
+          refund_policy: "non_refundable",
+          price_per_user: "82.50",
+          yearly_savings: "17%",
         },
       },
     ],
@@ -316,9 +356,13 @@ async function main() {
   }
 
   console.log("📋 Pricing Configuration:");
+  console.log("   Pro Plan:");
   console.log("   • Monthly: $25/user/month (prorated daily refund)");
   console.log("   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)");
-  console.log("   • Trial:   14 days (no credit card required)\n");
+  console.log("   Enterprise Plan:");
+  console.log("   • Monthly: $99/user/month (prorated daily refund)");
+  console.log("   • Yearly:  $82.50/user/month ($990/year, 17% off, non-refundable)");
+  console.log("   Trial:   14 days (no credit card required)\n");
   console.log("=".repeat(50) + "\n");
 
   const createdResources: {
@@ -367,11 +411,47 @@ async function main() {
       console.log(`  • ${price.nickname}: ${price.id} (${price.amount})`);
     }
 
-    console.log("\n📝 Next Steps:");
-    console.log("   1. Copy the price IDs to your database or environment variables");
-    console.log("   2. Update your plans table with the Stripe price IDs");
-    console.log("   3. Test the checkout flow in Stripe test mode");
-    console.log("   4. Configure webhook endpoints in Stripe Dashboard");
+    // Find price IDs for environment variables
+    const proMonthly = createdResources.prices.find((p) => p.nickname === "Pro Monthly");
+    const proYearly = createdResources.prices.find((p) => p.nickname === "Pro Yearly");
+    const enterpriseMonthly = createdResources.prices.find((p) => p.nickname === "Enterprise Monthly");
+    const enterpriseYearly = createdResources.prices.find((p) => p.nickname === "Enterprise Yearly");
+
+    console.log("\n" + "=".repeat(50));
+    console.log("🔐 Required Environment Variables\n");
+    console.log("Add these to your .env file:\n");
+    console.log("# Stripe Configuration");
+    console.log(`STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY?.substring(0, 10)}...`);
+    console.log("STRIPE_PUBLISHABLE_KEY=pk_...");
+    console.log("STRIPE_WEBHOOK_SECRET=whsec_...");
+    console.log("");
+    console.log("# Better Auth Stripe Price IDs");
+    console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || "price_xxx"}`);
+    console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || "price_xxx"}`);
+    console.log(`STRIPE_PRICE_ID_ENTERPRISE_MONTHLY=${enterpriseMonthly?.id || "price_xxx"}`);
+    console.log(`STRIPE_PRICE_ID_ENTERPRISE_YEARLY=${enterpriseYearly?.id || "price_xxx"}`);
+    console.log("");
+    console.log("# Application URLs");
+    console.log("NEXT_PUBLIC_APP_URL=https://your-app.com");
+    console.log("");
+
+    console.log("=".repeat(50));
+    console.log("🔗 Webhook Endpoints to Configure\n");
+    console.log("Configure these webhooks in Stripe Dashboard:\n");
+    console.log("1. Better Auth Stripe Webhook (handles subscriptions):");
+    console.log("   URL: https://your-app.com/api/auth/stripe/webhook");
+    console.log("   Events: customer.subscription.*, checkout.session.completed");
+    console.log("");
+    console.log("2. Custom Webhook (handles invoices, payments):");
+    console.log("   URL: https://your-app.com/api/webhooks/stripe");
+    console.log("   Events: invoice.*, payment_method.*, customer.subscription.trial_will_end");
+    console.log("");
+
+    console.log("📝 Next Steps:");
+    console.log("   1. Copy the environment variables above to your .env file");
+    console.log("   2. Run database migrations: pnpm drizzle-kit migrate");
+    console.log("   3. Configure webhook endpoints in Stripe Dashboard");
+    console.log("   4. Test the checkout flow in Stripe test mode");
   } else {
     console.log("No resources were created (dry run mode)");
   }

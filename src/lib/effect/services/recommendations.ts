@@ -10,7 +10,8 @@
 
 import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { videoProgresses, videos, users, type Video } from "@/lib/db/schema";
+import { users, videoProgresses, videos } from "@/lib/db/schema";
+import { formatDuration } from "@/lib/format-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError } from "../errors";
 import { Database } from "./database";
@@ -124,16 +125,6 @@ const parseDuration = (duration: string): number => {
   return parts[0] || 0;
 };
 
-const formatDuration = (seconds: number): string => {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
-
 // =============================================================================
 // Recommendations Service Implementation
 // =============================================================================
@@ -237,6 +228,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -324,6 +328,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
             currentTime: videoProgresses.currentTime,
             completed: videoProgresses.completed,
@@ -455,6 +472,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -552,6 +582,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -634,6 +677,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videoProgresses)
@@ -745,6 +801,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)

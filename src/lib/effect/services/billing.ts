@@ -17,7 +17,6 @@ import {
   type Plan,
   type PlanLimits,
   type Subscription,
-  type SubscriptionStatus,
 } from "@/lib/db/schema";
 import { env } from "@/lib/env/client";
 import {
@@ -261,8 +260,9 @@ const makeBillingService = Effect.gen(function* () {
       }
     }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
-  const mapStripeStatus = (status: Stripe.Subscription.Status): SubscriptionStatus => {
-    const statusMap: Record<Stripe.Subscription.Status, SubscriptionStatus> = {
+  // Better Auth Stripe compatible status mapping (using string instead of enum)
+  const mapStripeStatus = (status: Stripe.Subscription.Status): string => {
+    const statusMap: Record<Stripe.Subscription.Status, string> = {
       active: "active",
       canceled: "canceled",
       past_due: "past_due",
@@ -270,7 +270,7 @@ const makeBillingService = Effect.gen(function* () {
       incomplete: "incomplete",
       incomplete_expired: "incomplete_expired",
       unpaid: "unpaid",
-      paused: "active", // Treat paused as active for our purposes
+      paused: "paused",
     };
     return statusMap[status] ?? "active";
   };
@@ -546,7 +546,7 @@ const makeBillingService = Effect.gen(function* () {
 
     getPlan: (planId) => billingRepo.getPlan(planId),
 
-    // Webhook Handlers
+    // Webhook Handlers - Updated for Better Auth Stripe schema
     handleSubscriptionCreated: (stripeSubscription, organizationId) =>
       Effect.gen(function* () {
         const priceId = stripeSubscription.items.data[0]?.price.id;
@@ -559,19 +559,34 @@ const makeBillingService = Effect.gen(function* () {
           );
         }
 
-        const plan = yield* billingRepo.getPlanByStripePrice(priceId);
+        const localPlan = yield* billingRepo.getPlanByStripePrice(priceId);
 
+        // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
+        // We use start_date and billing_cycle_anchor as fallbacks
+        const periodStartDate = new Date(stripeSubscription.start_date * 1000);
+        const periodEndDate = new Date(
+          (stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000,
+        );
+
+        // Better Auth Stripe compatible subscription data
         const subscriptionData: NewSubscription = {
-          organizationId,
-          planId: plan.id,
-          stripeSubscriptionId: stripeSubscription.id,
+          // Better Auth Stripe required fields
+          plan: localPlan.name.toLowerCase(), // e.g., "pro", "enterprise"
+          referenceId: organizationId,
           stripeCustomerId: stripeSubscription.customer as string,
+          stripeSubscriptionId: stripeSubscription.id,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          periodStart: periodStartDate,
+          periodEnd: periodEndDate,
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+          cancelAt: stripeSubscription.cancel_at ? new Date(stripeSubscription.cancel_at * 1000) : null,
+          canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
           trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
+          seats: stripeSubscription.metadata?.seats ? Number.parseInt(stripeSubscription.metadata.seats) : null,
+          // Custom fields for our app
+          organizationId,
+          planId: localPlan.id,
         };
 
         // Check if subscription exists
@@ -585,7 +600,7 @@ const makeBillingService = Effect.gen(function* () {
         }
 
         // Send subscription created notification
-        yield* sendSubscriptionNotifications(organizationId, "created", plan.name);
+        yield* sendSubscriptionNotifications(organizationId, "created", localPlan.name);
 
         return result;
       }),
@@ -598,29 +613,38 @@ const makeBillingService = Effect.gen(function* () {
 
         const priceId = stripeSubscription.items.data[0]?.price.id;
         let planId = subscription.planId;
+        let planName = subscription.plan;
 
         if (priceId) {
           const planResult = yield* billingRepo.getPlanByStripePrice(priceId).pipe(Effect.option);
           if (Option.isSome(planResult)) {
             planId = planResult.value.id;
+            planName = planResult.value.name.toLowerCase();
           }
         }
 
-        const result = yield* billingRepo.updateSubscription(subscription.organizationId, {
+        // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
+        // We use start_date and billing_cycle_anchor as fallbacks
+        const periodStartDate = new Date(stripeSubscription.start_date * 1000);
+        const periodEndDate = new Date(
+          (stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000,
+        );
+
+        // Better Auth Stripe compatible update data
+        const result = yield* billingRepo.updateSubscription(subscription.referenceId, {
+          plan: planName,
           planId,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          periodStart: periodStartDate,
+          periodEnd: periodEndDate,
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+          cancelAt: stripeSubscription.cancel_at ? new Date(stripeSubscription.cancel_at * 1000) : null,
           canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
+          endedAt: stripeSubscription.ended_at ? new Date(stripeSubscription.ended_at * 1000) : null,
         });
 
-        // Get plan name for notification
-        const planResult = yield* billingRepo.getPlan(planId).pipe(Effect.option);
-        const planName = Option.isSome(planResult) ? planResult.value.name : undefined;
-
         // Send subscription updated notification
-        yield* sendSubscriptionNotifications(subscription.organizationId, "updated", planName);
+        yield* sendSubscriptionNotifications(subscription.referenceId, "updated", planName);
 
         return result;
       }),
@@ -631,32 +655,49 @@ const makeBillingService = Effect.gen(function* () {
           .getSubscriptionByStripeId(stripeSubscription.id)
           .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
 
-        // Instead of deleting, downgrade to free plan
-        yield* billingRepo.updateSubscription(subscription.organizationId, {
+        // Update to canceled status (Better Auth Stripe schema)
+        yield* billingRepo.updateSubscription(subscription.referenceId, {
+          plan: "free",
           planId: "free",
           status: "canceled",
           stripeSubscriptionId: null,
           canceledAt: new Date(),
+          endedAt: new Date(),
         });
 
         // Send subscription canceled notification
-        yield* sendSubscriptionNotifications(subscription.organizationId, "canceled");
+        yield* sendSubscriptionNotifications(subscription.referenceId, "canceled");
       }),
 
     handleInvoicePaid: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
+        const subscriptionId =
+          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+            ? stripeInvoice.parent.subscription_details.subscription
+            : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        if (!subscriptionId) return;
+
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
 
+        // Get organization ID from referenceId (Better Auth Stripe schema)
+        const organizationId = subscription.value.referenceId;
+
+        // In Stripe API 2025-12-15.clover, payment_intent is in the payments list
+        // Get the first/default payment intent ID
+        const defaultPayment = (stripeInvoice.payments?.data || []).find((p) => p.is_default);
+        const paymentIntentId =
+          typeof defaultPayment?.payment.payment_intent === "string"
+            ? defaultPayment.payment.payment_intent
+            : (defaultPayment?.payment.payment_intent as unknown as { id?: string })?.id;
+
         const invoiceData: NewInvoice = {
-          organizationId: subscription.value.organizationId,
+          organizationId,
           stripeInvoiceId: stripeInvoice.id,
-          stripePaymentIntentId: stripeInvoice.payment_intent as string,
+          stripePaymentIntentId: paymentIntentId || null,
           amount: stripeInvoice.amount_due,
           amountPaid: stripeInvoice.amount_paid,
           currency: stripeInvoice.currency,
@@ -678,31 +719,38 @@ const makeBillingService = Effect.gen(function* () {
         }
 
         // Update subscription status if needed
-        yield* billingRepo.updateSubscription(subscription.value.organizationId, {
+        yield* billingRepo.updateSubscription(organizationId, {
           status: "active",
         });
 
         // Send payment succeeded notification
-        yield* sendSubscriptionNotifications(subscription.value.organizationId, "payment_succeeded");
+        yield* sendSubscriptionNotifications(organizationId, "payment_succeeded");
       }),
 
     handleInvoiceFailed: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
+        const subscriptionId =
+          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+            ? stripeInvoice.parent.subscription_details.subscription
+            : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        if (!subscriptionId) return;
+
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
 
+        // Get organization ID from referenceId (Better Auth Stripe schema)
+        const organizationId = subscription.value.referenceId;
+
         // Update subscription status
-        yield* billingRepo.updateSubscription(subscription.value.organizationId, {
+        yield* billingRepo.updateSubscription(organizationId, {
           status: "past_due",
         });
 
         // Send payment failed notification
-        yield* sendSubscriptionNotifications(subscription.value.organizationId, "payment_failed");
+        yield* sendSubscriptionNotifications(organizationId, "payment_failed");
       }),
 
     handlePaymentMethodAttached: (paymentMethod, organizationId) =>

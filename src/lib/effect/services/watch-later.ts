@@ -7,9 +7,9 @@
  * - Notes and annotations
  */
 
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { watchLater, videos, users, type WatchLater } from "@/lib/db/schema";
+import { users, videos, type WatchLater, watchLater } from "@/lib/db/schema";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
@@ -157,6 +157,19 @@ const makeWatchLaterService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(watchLater)
