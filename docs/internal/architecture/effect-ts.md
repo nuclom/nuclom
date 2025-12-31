@@ -20,15 +20,23 @@ src/lib/effect/
 ├── config.ts           # Configuration with Effect Config
 ├── client.ts           # Client-side Effect utilities
 ├── runtime.ts          # Runtime and Layer configuration
+├── retry.ts            # Retry utilities with exponential backoff
 ├── index.ts            # Main export file
 └── services/
-    ├── index.ts        # Services export
-    ├── database.ts     # Database service (Drizzle)
-    ├── storage.ts      # Storage service (R2/S3)
-    ├── auth.ts         # Authentication service wrapper
-    ├── ai.ts           # AI service (Vercel AI SDK)
+    ├── index.ts              # Services export
+    ├── database.ts           # Database service (Drizzle)
+    ├── storage.ts            # Storage service (R2/S3)
+    ├── auth.ts               # Authentication service wrapper
+    ├── ai.ts                 # AI service (Vercel AI SDK)
+    ├── ai-structured.ts      # AI with Zod structured outputs
     ├── video-processor.ts    # Video processing service
     ├── video-repository.ts   # Video data access
+    ├── video-ai-processor.ts # AI video analysis pipeline
+    ├── recommendations.ts    # Personalized video recommendations
+    ├── presence.ts           # Real-time user presence
+    ├── watch-later.ts        # Watch later/bookmarks
+    ├── comment-reactions.ts  # Comment reactions
+    ├── performance-monitoring.ts  # Performance metrics
     └── organization-repository.ts  # Organization data access
 ```
 
@@ -529,6 +537,191 @@ async function handleSubmit(formData: FormData) {
 │  │ // Cache is invalidated, components re-render       │   │
 │  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
+```
+
+## New Services (v2.0)
+
+### AI Structured Service
+
+The `AIStructured` service uses Zod schemas for guaranteed structured outputs from AI:
+
+```typescript
+import { AIStructured, VideoSummarySchema } from "@/lib/effect/services";
+
+const summary = Effect.gen(function* () {
+  const ai = yield* AIStructured;
+  return yield* ai.generateVideoSummary(transcript);
+});
+
+// Returns typed VideoSummary with:
+// - summary: string
+// - keyPoints: string[]
+// - actionItems: string[]
+// - topics: string[]
+// - sentiment: "positive" | "neutral" | "negative" | "mixed"
+```
+
+Available Zod Schemas:
+- `VideoSummarySchema` - Video summary with key points
+- `ActionItemsSchema` - Extracted action items with priorities
+- `ChaptersSchema` - Video chapters with timestamps
+- `CodeSnippetsSchema` - Detected code snippets with languages
+- `VideoTagsSchema` - Generated tags and categories
+
+### Recommendations Service
+
+The `Recommendations` service provides personalized video recommendations:
+
+```typescript
+import { Recommendations, getContinueWatching, getTrending } from "@/lib/effect/services";
+
+// Get personalized recommendations
+const recommended = yield* Recommendations.pipe(
+  Effect.flatMap((r) => r.getRecommendations(userId, orgId, { limit: 10 }))
+);
+
+// Get continue watching list
+const continueWatching = yield* getContinueWatching(userId, orgId);
+
+// Get trending videos
+const trending = yield* getTrending(orgId, 10, "week");
+```
+
+Features:
+- Personalized recommendations based on watch history
+- Continue watching with progress tracking
+- Trending videos with configurable timeframes
+- Similar videos based on tags and content
+- From favorite channels suggestions
+
+### Presence Service
+
+The `Presence` service tracks real-time user presence for collaboration:
+
+```typescript
+import { Presence, updatePresence, getVideoPresence } from "@/lib/effect/services";
+
+// Update user presence
+yield* updatePresence(userId, orgId, {
+  videoId: "video-123",
+  status: "online",
+  currentTime: 120, // seconds
+  metadata: { isTyping: true }
+});
+
+// Get users watching a video
+const viewers = yield* getVideoPresence(videoId);
+// Returns: { userId, userName, userImage, status, currentTime, lastSeen }[]
+```
+
+Features:
+- Online/away/busy status tracking
+- Video viewing position synchronization
+- Typing indicators for comments
+- Organization-wide presence
+- Automatic stale presence cleanup
+
+### Watch Later Service
+
+The `WatchLaterService` manages user bookmarks:
+
+```typescript
+import { WatchLaterService, addToWatchLater, isInWatchLater } from "@/lib/effect/services";
+
+// Add video to watch later
+yield* addToWatchLater({
+  userId,
+  videoId,
+  priority: 1,
+  notes: "Review this for the meeting"
+});
+
+// Check if video is bookmarked
+const isBookmarked = yield* isInWatchLater(userId, videoId);
+
+// Get watch later list
+const list = yield* getWatchLaterList(userId, orgId, "priority");
+```
+
+### Comment Reactions Service
+
+The `CommentReactionsService` adds reactions to comments:
+
+```typescript
+import { CommentReactionsService, toggleReaction } from "@/lib/effect/services";
+
+// Toggle a reaction
+const { added } = yield* toggleReaction(commentId, userId, "like");
+
+// Get reaction counts
+const counts = yield* getReactionCounts(commentId);
+// Returns: [{ reactionType: "like", count: 5 }, { reactionType: "love", count: 2 }]
+
+// Get reactions for multiple comments (efficient batch query)
+const reactionsMap = yield* getReactionsForComments(commentIds, userId);
+```
+
+Reaction Types: `like`, `love`, `laugh`, `surprised`, `sad`, `angry`, `thinking`, `celebrate`
+
+### Performance Monitoring Service
+
+The `PerformanceMonitoring` service tracks application metrics:
+
+```typescript
+import { PerformanceMonitoring, recordMetric } from "@/lib/effect/services";
+
+// Record a metric
+yield* recordMetric({
+  organizationId,
+  metricType: "video_load",
+  metricName: "initial_load_time",
+  value: 1234, // milliseconds
+  videoId: "video-123"
+});
+
+// Get performance report
+const report = yield* getPerformanceReport(orgId, startDate, endDate);
+// Returns: { errorRate, avgVideoLoadTime, avgApiResponseTime, summary[] }
+```
+
+Metric Types:
+- `video_load` - Video loading performance
+- `video_buffer` - Buffering events
+- `api_response` - API response times
+- `upload_speed` - Upload performance
+- `ai_processing` - AI processing times
+- `error` - Error tracking
+
+## Retry Utilities
+
+The `retry.ts` module provides configurable retry strategies:
+
+```typescript
+import {
+  withRetry,
+  retryApiRequest,
+  retryExternalService,
+  apiRetryConfig,
+  networkRetryConfig
+} from "@/lib/effect/retry";
+
+// Simple retry with exponential backoff
+const result = withRetry(
+  myEffect,
+  { maxAttempts: 3, initialDelay: "500 millis", jitter: true }
+);
+
+// Preconfigured for API requests (3 attempts, 500ms-10s backoff)
+const apiResult = retryApiRequest(apiEffect);
+
+// For external services (4 attempts, 1s-60s backoff)
+const externalResult = retryExternalService(externalEffect);
+
+// With fallback value
+const withFallback = withRetryOrDefault(myEffect, defaultValue);
+
+// Filtered retry (only retry specific errors)
+const filtered = withFilteredRetry(myEffect, (error) => isRetryableError(error));
 ```
 
 ## Related Documentation

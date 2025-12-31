@@ -327,6 +327,115 @@ export const comments = pgTable("comments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Comment reactions for enhanced engagement
+export const reactionTypeEnum = pgEnum("ReactionType", [
+  "like",
+  "love",
+  "laugh",
+  "surprised",
+  "sad",
+  "angry",
+  "thinking",
+  "celebrate",
+]);
+
+export const commentReactions = pgTable(
+  "comment_reactions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    commentId: text("comment_id")
+      .notNull()
+      .references(() => comments.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reactionType: reactionTypeEnum("reaction_type").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserReaction: unique().on(table.commentId, table.userId, table.reactionType),
+    commentIdx: index("comment_reactions_comment_idx").on(table.commentId),
+  }),
+);
+
+// Watch later list for user bookmarks
+export const watchLater = pgTable(
+  "watch_later",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    addedAt: timestamp("added_at").defaultNow().notNull(),
+    priority: integer("priority").default(0).notNull(),
+    notes: text("notes"),
+  },
+  (table) => ({
+    uniqueUserVideo: unique().on(table.userId, table.videoId),
+    userIdx: index("watch_later_user_idx").on(table.userId, table.addedAt),
+  }),
+);
+
+// User presence for real-time collaboration
+export const userPresence = pgTable(
+  "user_presence",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    videoId: text("video_id").references(() => videos.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    status: text("status").default("online").notNull(), // online, away, busy
+    currentTime: integer("current_time"), // video timestamp in seconds
+    lastSeen: timestamp("last_seen").defaultNow().notNull(),
+    metadata: jsonb("metadata").$type<{ cursorPosition?: number; isTyping?: boolean }>(),
+  },
+  (table) => ({
+    userIdx: index("user_presence_user_idx").on(table.userId),
+    videoIdx: index("user_presence_video_idx").on(table.videoId),
+    lastSeenIdx: index("user_presence_last_seen_idx").on(table.lastSeen),
+  }),
+);
+
+// Performance metrics for monitoring
+export const performanceMetrics = pgTable(
+  "performance_metrics",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    metricType: text("metric_type").notNull(), // video_load, api_response, upload_speed, etc.
+    metricName: text("metric_name").notNull(),
+    value: integer("value").notNull(), // milliseconds or bytes
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    videoId: text("video_id").references(() => videos.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgTypeIdx: index("performance_metrics_org_type_idx").on(
+      table.organizationId,
+      table.metricType,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const videoProgresses = pgTable(
   "video_progresses",
   {
@@ -814,6 +923,59 @@ export const commentRelations = relations(comments, ({ one, many }) => ({
   replies: many(comments, {
     relationName: "CommentThread",
   }),
+  reactions: many(commentReactions),
+}));
+
+export const commentReactionsRelations = relations(commentReactions, ({ one }) => ({
+  comment: one(comments, {
+    fields: [commentReactions.commentId],
+    references: [comments.id],
+  }),
+  user: one(users, {
+    fields: [commentReactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const watchLaterRelations = relations(watchLater, ({ one }) => ({
+  user: one(users, {
+    fields: [watchLater.userId],
+    references: [users.id],
+  }),
+  video: one(videos, {
+    fields: [watchLater.videoId],
+    references: [videos.id],
+  }),
+}));
+
+export const userPresenceRelations = relations(userPresence, ({ one }) => ({
+  user: one(users, {
+    fields: [userPresence.userId],
+    references: [users.id],
+  }),
+  video: one(videos, {
+    fields: [userPresence.videoId],
+    references: [videos.id],
+  }),
+  organization: one(organizations, {
+    fields: [userPresence.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const performanceMetricsRelations = relations(performanceMetrics, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [performanceMetrics.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [performanceMetrics.userId],
+    references: [users.id],
+  }),
+  video: one(videos, {
+    fields: [performanceMetrics.videoId],
+    references: [videos.id],
+  }),
 }));
 
 export const videoProgressRelations = relations(videoProgresses, ({ one }) => ({
@@ -980,3 +1142,20 @@ export type SearchHistory = typeof searchHistory.$inferSelect;
 export type NewSearchHistory = typeof searchHistory.$inferInsert;
 export type SavedSearch = typeof savedSearches.$inferSelect;
 export type NewSavedSearch = typeof savedSearches.$inferInsert;
+
+// Comment reaction types
+export type ReactionType = (typeof reactionTypeEnum.enumValues)[number];
+export type CommentReaction = typeof commentReactions.$inferSelect;
+export type NewCommentReaction = typeof commentReactions.$inferInsert;
+
+// Watch later types
+export type WatchLater = typeof watchLater.$inferSelect;
+export type NewWatchLater = typeof watchLater.$inferInsert;
+
+// Presence types
+export type UserPresence = typeof userPresence.$inferSelect;
+export type NewUserPresence = typeof userPresence.$inferInsert;
+
+// Performance metrics types
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+export type NewPerformanceMetric = typeof performanceMetrics.$inferInsert;
