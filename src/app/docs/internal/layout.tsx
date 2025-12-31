@@ -47,11 +47,7 @@ const internalTree = {
   ],
 };
 
-export default function InternalDocsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function InternalDocsLayout({ children }: { children: React.ReactNode }) {
   return (
     <RootProvider>
       <DocsLayout

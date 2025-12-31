@@ -34,9 +34,7 @@ export function StepWelcome({ userName, onNext }: StepWelcomeProps) {
         <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
           <Rocket className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome{userName ? `, ${userName}` : ""}! 👋
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome{userName ? `, ${userName}` : ""}! 👋</h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
           Nuclom helps your team communicate better with async video. Let's get you set up in just a few minutes.
         </p>

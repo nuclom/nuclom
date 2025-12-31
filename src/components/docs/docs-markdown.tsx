@@ -73,7 +73,11 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
 
           if (isAnchor) {
             return (
-              <a href={href} className="font-medium text-primary underline underline-offset-4 hover:text-primary/80" {...props}>
+              <a
+                href={href}
+                className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+                {...props}
+              >
                 {children}
               </a>
             );
@@ -124,7 +128,10 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
 
           if (isInline) {
             return (
-              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold" {...props}>
+              <code
+                className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
+                {...props}
+              >
                 {children}
               </code>
             );
@@ -157,21 +164,25 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
             {children}
           </thead>
         ),
-        tbody: ({ children, ...props }) => (
-          <tbody {...props}>{children}</tbody>
-        ),
+        tbody: ({ children, ...props }) => <tbody {...props}>{children}</tbody>,
         tr: ({ children, ...props }) => (
           <tr className="m-0 border-t p-0 even:bg-muted" {...props}>
             {children}
           </tr>
         ),
         th: ({ children, ...props }) => (
-          <th className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right" {...props}>
+          <th
+            className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right"
+            {...props}
+          >
             {children}
           </th>
         ),
         td: ({ children, ...props }) => (
-          <td className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right" {...props}>
+          <td
+            className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
+            {...props}
+          >
             {children}
           </td>
         ),

@@ -109,7 +109,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent",
                 isActive(item.href)
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -126,9 +126,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
         <Separator className="my-4" />
 
         <div className="py-2">
-          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Library
-          </h3>
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Library</h3>
           <div className="space-y-1">
             {libraryNavItems.map((item) => (
               <Link
@@ -138,7 +136,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent",
                   isActive(item.href)
                     ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -152,16 +150,12 @@ export function SidebarNav({ organization }: SidebarNavProps) {
 
         <div className="py-2">
           <div className="flex items-center justify-between px-3 mb-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Collections
-            </h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Collections</h3>
             <Button variant="ghost" size="icon" className="h-6 w-6">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-          <p className="px-3 py-2 text-sm text-muted-foreground">
-            No collections yet
-          </p>
+          <p className="px-3 py-2 text-sm text-muted-foreground">No collections yet</p>
         </div>
       </ScrollArea>
 

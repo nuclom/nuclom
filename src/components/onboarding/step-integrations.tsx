@@ -107,10 +107,7 @@ export function StepIntegrations({ onNext, onBack, organizationSlug }: StepInteg
           return (
             <Card
               key={integration.id}
-              className={cn(
-                "transition-all",
-                isConnected && "border-emerald-500/50 bg-emerald-500/5"
-              )}
+              className={cn("transition-all", isConnected && "border-emerald-500/50 bg-emerald-500/5")}
             >
               <CardContent className="flex items-center gap-4 p-4">
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", integration.bgColor)}>

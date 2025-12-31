@@ -428,11 +428,7 @@ export const performanceMetrics = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => ({
-    orgTypeIdx: index("performance_metrics_org_type_idx").on(
-      table.organizationId,
-      table.metricType,
-      table.createdAt,
-    ),
+    orgTypeIdx: index("performance_metrics_org_type_idx").on(table.organizationId, table.metricType, table.createdAt),
   }),
 );
 

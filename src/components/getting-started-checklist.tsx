@@ -95,7 +95,7 @@ export function GettingStartedChecklist({
     <Card
       className={cn(
         "relative overflow-hidden transition-all duration-300 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background",
-        !isVisible && "opacity-0 scale-95"
+        !isVisible && "opacity-0 scale-95",
       )}
     >
       <Button
@@ -126,39 +126,24 @@ export function GettingStartedChecklist({
               href={item.href}
               className={cn(
                 "flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-muted/50",
-                item.completed && "opacity-60"
+                item.completed && "opacity-60",
               )}
             >
               <div
                 className={cn(
                   "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
-                  item.completed
-                    ? "bg-emerald-500/10 text-emerald-500"
-                    : "bg-primary/10 text-primary"
+                  item.completed ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary",
                 )}
               >
-                {item.completed ? (
-                  <Check className="w-5 h-5" />
-                ) : (
-                  <item.icon className="w-5 h-5" />
-                )}
+                {item.completed ? <Check className="w-5 h-5" /> : <item.icon className="w-5 h-5" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p
-                  className={cn(
-                    "font-medium text-sm",
-                    item.completed && "line-through text-muted-foreground"
-                  )}
-                >
+                <p className={cn("font-medium text-sm", item.completed && "line-through text-muted-foreground")}>
                   {item.title}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {item.description}
-                </p>
+                <p className="text-xs text-muted-foreground truncate">{item.description}</p>
               </div>
-              {!item.completed && (
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              )}
+              {!item.completed && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
             </Link>
           ))}
         </div>
