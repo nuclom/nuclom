@@ -8,3 +8,6 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx}"
       run: pnpm biome check --write {staged_files}
       stage_fixed: true
+    tsc:
+      glob: "*.{ts,tsx}"
+      run: pnpm tsc
