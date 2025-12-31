@@ -439,15 +439,18 @@ async function main() {
     console.log("");
 
     console.log("=".repeat(50));
-    console.log("🔗 Webhook Endpoints to Configure\n");
-    console.log("Configure these webhooks in Stripe Dashboard:\n");
-    console.log("1. Better Auth Stripe Webhook (handles subscriptions):");
-    console.log("   URL: https://your-app.com/api/auth/stripe/webhook");
-    console.log("   Events: customer.subscription.*, checkout.session.completed");
-    console.log("");
-    console.log("2. Custom Webhook (handles invoices, payments):");
+    console.log("🔗 Webhook Endpoint to Configure\n");
+    console.log("Configure this single webhook in Stripe Dashboard:\n");
     console.log("   URL: https://your-app.com/api/webhooks/stripe");
-    console.log("   Events: invoice.*, payment_method.*, customer.subscription.trial_will_end");
+    console.log("   Events:");
+    console.log("     - customer.subscription.* (all subscription events)");
+    console.log("     - checkout.session.completed");
+    console.log("     - invoice.* (all invoice events)");
+    console.log("     - payment_method.attached");
+    console.log("     - payment_method.detached");
+    console.log("");
+    console.log("   Note: This unified endpoint handles all events and forwards");
+    console.log("   subscription events to Better Auth internally.");
     console.log("");
 
     console.log("📝 Next Steps:");
