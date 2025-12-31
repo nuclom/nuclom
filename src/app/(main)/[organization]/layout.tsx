@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import type React from "react";
+import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { TopNav } from "@/components/top-nav";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
@@ -21,9 +22,12 @@ export default async function MainLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <TopNav organization={organization} organizationId={org?.id} />
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 w-full max-w-screen-2xl mx-auto p-4 md:p-6 lg:p-8">{children}</div>
-      </main>
+      <div className="flex-1 flex">
+        <SidebarNav organization={organization} />
+        <main className="flex-1 overflow-auto">
+          <div className="w-full max-w-screen-xl p-6 lg:p-8">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
