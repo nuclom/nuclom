@@ -52,7 +52,7 @@ async function getBillingData(organizationSlug: string) {
 
     return {
       organizationId: org.id,
-      organizationSlug: org.slug,
+      organizationSlug: org.slug ?? org.id,
       currentUserId: user.id,
       isOwner,
       billingInfo,
