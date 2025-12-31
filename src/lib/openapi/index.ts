@@ -1,4 +1,21 @@
-export { openApiSpec } from "./spec";
+import { allEndpoints, apiInfo, apiServers, apiTags } from "./endpoints";
+import { generateOpenApiSpec } from "./generator";
+
+/**
+ * OpenAPI spec automatically generated from Effect Schema definitions.
+ * Schemas are derived from the same Effect Schemas used for request/response
+ * validation in route handlers, ensuring documentation stays in sync.
+ */
+export const openApiSpec = generateOpenApiSpec({
+  info: apiInfo,
+  servers: apiServers,
+  tags: apiTags,
+  endpoints: allEndpoints,
+});
+
+// Re-export types and utilities
+export { allEndpoints, apiInfo, apiServers, apiTags } from "./endpoints";
+export { type ApiEndpoint, type ApiTag, generateOpenApiSpec } from "./generator";
 
 /**
  * Convert OpenAPI spec to YAML format
