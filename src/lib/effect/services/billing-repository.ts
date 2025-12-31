@@ -31,8 +31,9 @@ import { Database, type DrizzleDB } from "./database";
 // Types
 // =============================================================================
 
+// Better Auth Stripe compatible subscription with plan info
 export interface SubscriptionWithPlan extends Subscription {
-  plan: Plan;
+  planInfo: Plan | null; // The local plan record if linked
 }
 
 export interface OrganizationBillingInfo {
@@ -40,6 +41,7 @@ export interface OrganizationBillingInfo {
   usage: Usage | null;
   invoices: Invoice[];
   paymentMethods: PaymentMethod[];
+  planLimits: PlanLimits | null;
 }
 
 export interface UsageSummary {
@@ -55,6 +57,33 @@ export interface UsageSummary {
     aiRequests: number;
   };
 }
+
+// Default plan limits based on plan name (synced with auth.ts)
+const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
+  free: {
+    storage: 1024 * 1024 * 1024, // 1GB
+    videos: 10,
+    members: 3,
+    bandwidth: 5 * 1024 * 1024 * 1024, // 5GB/month
+  },
+  pro: {
+    storage: 100 * 1024 * 1024 * 1024, // 100GB
+    videos: -1, // unlimited
+    members: 25,
+    bandwidth: 100 * 1024 * 1024 * 1024, // 100GB/month
+  },
+  enterprise: {
+    storage: -1, // unlimited
+    videos: -1, // unlimited
+    members: -1, // unlimited
+    bandwidth: -1, // unlimited
+  },
+};
+
+// Get plan limits by plan name
+const getPlanLimitsByName = (planName: string): PlanLimits => {
+  return DEFAULT_PLAN_LIMITS[planName] || DEFAULT_PLAN_LIMITS.free;
+};
 
 // =============================================================================
 // Service Interface
@@ -227,13 +256,17 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       return plan;
     }),
 
-  // Subscriptions
+  // Subscriptions - Updated for Better Auth Stripe compatibility
+  // Query by referenceId (organization ID) for active/trialing subscriptions
   getSubscription: (organizationId) =>
     Effect.gen(function* () {
       const subscription = yield* Effect.tryPromise({
         try: () =>
           db.query.subscriptions.findFirst({
-            where: eq(subscriptions.organizationId, organizationId),
+            where: and(
+              eq(subscriptions.referenceId, organizationId),
+              sql`${subscriptions.status} IN ('active', 'trialing')`,
+            ),
             with: {
               plan: true,
             },
@@ -249,13 +282,19 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!subscription) {
         return yield* Effect.fail(
           new NoSubscriptionError({
-            message: "Organization has no subscription",
+            message: "Organization has no active subscription",
             organizationId,
           }),
         );
       }
 
-      return subscription as SubscriptionWithPlan;
+      // Add plan limits based on plan name
+      const subscriptionWithPlan: SubscriptionWithPlan = {
+        ...subscription,
+        planInfo: subscription.plan || null,
+      };
+
+      return subscriptionWithPlan;
     }),
 
   getSubscriptionOption: (organizationId) =>
@@ -263,7 +302,10 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       const subscription = yield* Effect.tryPromise({
         try: () =>
           db.query.subscriptions.findFirst({
-            where: eq(subscriptions.organizationId, organizationId),
+            where: and(
+              eq(subscriptions.referenceId, organizationId),
+              sql`${subscriptions.status} IN ('active', 'trialing')`,
+            ),
             with: {
               plan: true,
             },
@@ -276,7 +318,16 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
       });
 
-      return subscription ? Option.some(subscription as SubscriptionWithPlan) : Option.none();
+      if (!subscription) {
+        return Option.none();
+      }
+
+      const subscriptionWithPlan: SubscriptionWithPlan = {
+        ...subscription,
+        planInfo: subscription.plan || null,
+      };
+
+      return Option.some(subscriptionWithPlan);
     }),
 
   createSubscription: (data) =>
@@ -299,7 +350,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         const [subscription] = await db
           .update(subscriptions)
           .set({ ...data, updatedAt: new Date() })
-          .where(eq(subscriptions.organizationId, organizationId))
+          .where(eq(subscriptions.referenceId, organizationId))
           .returning();
         return subscription;
       },
@@ -339,7 +390,12 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         );
       }
 
-      return subscription as SubscriptionWithPlan;
+      const subscriptionWithPlan: SubscriptionWithPlan = {
+        ...subscription,
+        planInfo: subscription.plan || null,
+      };
+
+      return subscriptionWithPlan;
     }),
 
   // Usage
@@ -507,7 +563,9 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       const subscription = yield* makeBillingRepository(db).getSubscription(organizationId);
       const currentUsage = yield* makeBillingRepository(db).getCurrentUsage(organizationId);
 
-      const limits = subscription.plan.limits;
+      // Get limits from local plan or from plan name-based defaults
+      const limits =
+        subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
 
       return {
         storageUsed: currentUsage.storageUsed,
@@ -728,11 +786,17 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         repo.getPaymentMethods(organizationId),
       ]);
 
+      // Get plan limits from subscription
+      const planLimits = subscription
+        ? subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan)
+        : getPlanLimitsByName("free");
+
       return {
         subscription,
         usage: currentUsage.id ? currentUsage : null,
         invoices: invoiceList,
         paymentMethods: paymentMethodsList,
+        planLimits,
       };
     }),
 
