@@ -3,22 +3,17 @@
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
-  Check,
   CheckCircle,
   Clock,
-  Eye,
   Filter,
-  Flag,
   Loader2,
   MessageSquare,
-  Search,
   Shield,
   User,
   Video,
   X,
   XCircle,
 } from "lucide-react";
-import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/auth/auth-guard";
@@ -44,10 +39,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { ReportCategory, ReportResolution, ReportResourceType, ReportStatus } from "@/lib/db/schema";

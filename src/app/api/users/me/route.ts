@@ -9,7 +9,7 @@ import { type ConsentAction, consentAuditLog, users } from "@/lib/db/schema";
 const DELETION_GRACE_PERIOD_DAYS = 30;
 
 // GET /api/users/me - Get current user data
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
