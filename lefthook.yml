@@ -12,3 +12,5 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx}"
       run: pnpm lint:fix
       stage_fixed: true
+    build:
+      run: pnpm build
