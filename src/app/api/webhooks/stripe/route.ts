@@ -18,7 +18,7 @@ import type Stripe from "stripe";
 import type { InvoiceStatus, NewInvoice, NewPaymentMethod } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { Database } from "@/lib/effect/services/database";
+import { Database, type DrizzleDB } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
@@ -181,7 +181,7 @@ export async function POST(request: Request) {
 // =============================================================================
 
 type BillingRepoType = typeof BillingRepository.Service;
-type DbType = Awaited<ReturnType<typeof import("@/lib/db").db.query.organizations.findFirst>>;
+type DbType = DrizzleDB;
 
 // =============================================================================
 // Helper Functions
@@ -201,13 +201,14 @@ const mapStripeInvoiceStatus = (status: string | null): InvoiceStatus => {
 
 // Get metadata reference ID from invoice
 const getInvoiceReferenceId = (invoice: Stripe.Invoice): string | undefined => {
-  // Try subscription_details metadata first
-  if (invoice.subscription_details?.metadata?.referenceId) {
-    return invoice.subscription_details.metadata.referenceId;
+  // Try parent.subscription_details metadata first (Stripe API v2024+)
+  if (invoice.parent?.subscription_details?.metadata?.referenceId) {
+    return invoice.parent.subscription_details.metadata.referenceId;
   }
   // Fall back to checking the subscription metadata directly
-  if (typeof invoice.subscription === "object" && invoice.subscription?.metadata?.referenceId) {
-    return invoice.subscription.metadata.referenceId;
+  const subscription = invoice.parent?.subscription_details?.subscription;
+  if (typeof subscription === "object" && subscription?.metadata?.referenceId) {
+    return subscription.metadata.referenceId;
   }
   return undefined;
 };
@@ -216,13 +217,10 @@ const getInvoiceReferenceId = (invoice: Stripe.Invoice): string | undefined => {
 // Invoice Handlers
 // =============================================================================
 
-const handleInvoicePaid = (
-  stripeInvoice: Stripe.Invoice,
-  billingRepo: BillingRepoType,
-  db: typeof import("@/lib/db").db,
-) =>
+const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRepoType, db: DbType) =>
   Effect.gen(function* () {
-    if (!stripeInvoice.subscription) return;
+    const subscriptionDetails = stripeInvoice.parent?.subscription_details;
+    if (!subscriptionDetails?.subscription) return;
 
     const organizationId = getInvoiceReferenceId(stripeInvoice);
     if (!organizationId) {
@@ -230,10 +228,8 @@ const handleInvoicePaid = (
       return;
     }
 
-    const paymentIntentId =
-      typeof stripeInvoice.payment_intent === "string"
-        ? stripeInvoice.payment_intent
-        : stripeInvoice.payment_intent?.id;
+    const paymentIntent = (stripeInvoice as { payment_intent?: string | { id: string } | null }).payment_intent;
+    const paymentIntentId = typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id;
 
     const invoiceData: NewInvoice = {
       organizationId,
@@ -263,9 +259,10 @@ const handleInvoicePaid = (
     yield* sendPaymentNotification(organizationId, "payment_succeeded", db);
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
-const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: typeof import("@/lib/db").db) =>
+const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: DbType) =>
   Effect.gen(function* () {
-    if (!stripeInvoice.subscription) return;
+    const subscriptionDetails = stripeInvoice.parent?.subscription_details;
+    if (!subscriptionDetails?.subscription) return;
 
     const organizationId = getInvoiceReferenceId(stripeInvoice);
     if (!organizationId) return;
@@ -339,7 +336,7 @@ const handlePaymentMethodAttached = (paymentMethod: Stripe.PaymentMethod, billin
 const sendPaymentNotification = (
   organizationId: string,
   eventType: "payment_succeeded" | "payment_failed",
-  db: typeof import("@/lib/db").db,
+  db: DbType,
 ) =>
   Effect.gen(function* () {
     const notificationRepo = yield* NotificationRepository;
@@ -409,7 +406,7 @@ const sendPaymentNotification = (
 // Trial Ending Handler
 // =============================================================================
 
-const handleTrialEnding = (subscription: Stripe.Subscription, db: typeof import("@/lib/db").db) =>
+const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
   Effect.gen(function* () {
     const notificationRepo = yield* NotificationRepository;
     const emailService = yield* EmailNotifications;

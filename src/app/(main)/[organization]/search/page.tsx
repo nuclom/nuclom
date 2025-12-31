@@ -74,6 +74,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         banReason: users.banReason,
         banExpires: users.banExpires,
         twoFactorEnabled: users.twoFactorEnabled,
+        stripeCustomerId: users.stripeCustomerId,
         tosAcceptedAt: users.tosAcceptedAt,
         tosVersion: users.tosVersion,
         privacyAcceptedAt: users.privacyAcceptedAt,

@@ -1,25 +1,26 @@
 import { and, count, desc, eq } from "drizzle-orm";
-import { parse, Schema } from "effect/schema";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
 import { reports, users } from "@/lib/db/schema";
+import { safeParse } from "@/lib/validation";
 
 // Effect Schema for creating a report
-const CreateReportSchema = Schema.struct({
-  resourceType: Schema.enums(["video", "comment", "user"]),
-  resourceId: Schema.string,
-  category: Schema.enums(["inappropriate", "spam", "copyright", "harassment", "other"]),
-  description: Schema.optional(Schema.string),
+const CreateReportSchema = Schema.Struct({
+  resourceType: Schema.Literal("video", "comment", "user"),
+  resourceId: Schema.String,
+  category: Schema.Literal("inappropriate", "spam", "copyright", "harassment", "other"),
+  description: Schema.optional(Schema.String),
 });
 
 // Effect Schema for updating a report (admin only)
-const UpdateReportSchema = Schema.struct({
-  status: Schema.optional(Schema.enums(["pending", "reviewing", "resolved", "dismissed"])),
-  resolution: Schema.optional(Schema.enums(["content_removed", "user_warned", "user_suspended", "no_action"])),
-  resolutionNotes: Schema.optional(Schema.string),
+const UpdateReportSchema = Schema.Struct({
+  status: Schema.optional(Schema.Literal("pending", "reviewing", "resolved", "dismissed")),
+  resolution: Schema.optional(Schema.Literal("content_removed", "user_warned", "user_suspended", "no_action")),
+  resolutionNotes: Schema.optional(Schema.String),
 });
 
 // GET /api/reports - List reports (admin only)
@@ -114,11 +115,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const result = parse(CreateReportSchema, body);
+    const result = safeParse(CreateReportSchema, body);
     if (!result.success) {
       return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
     }
-    const { resourceType, resourceId, category, description } = result.value;
+    const { resourceType, resourceId, category, description } = result.data;
 
     // Check for duplicate reports from the same user for the same resource
     const existingReport = await db
@@ -190,11 +191,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const result = parse(UpdateReportSchema, updateData);
+    const result = safeParse(UpdateReportSchema, updateData);
     if (!result.success) {
       return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
     }
-    const { status, resolution, resolutionNotes } = result.value;
+    const { status, resolution, resolutionNotes } = result.data;
 
     // Build update object
     const updateObj: Record<string, unknown> = {};

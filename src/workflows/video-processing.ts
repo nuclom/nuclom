@@ -357,13 +357,13 @@ async function sendCompletionNotification(
 ): Promise<void> {
   try {
     const video = await db.query.videos.findFirst({
-      where: eq(videos.id, videoId),
+      where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
     });
 
     if (!video || !video.authorId) return;
 
     const user = await db.query.users.findFirst({
-      where: eq(users.id, video.authorId),
+      where: (u, { eq: eqOp }) => eqOp(u.id, video.authorId!),
     });
 
     if (!user?.email) return;

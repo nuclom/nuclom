@@ -47,16 +47,16 @@ export interface TrialReminderResult {
 async function sendTrialReminder(subscriptionId: string, daysRemaining: number): Promise<void> {
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
-    where: eq(subscriptions.id, subscriptionId),
+    where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
   });
 
-  if (!subscription) {
+  if (!subscription || !subscription.organizationId) {
     throw new FatalError(`Subscription ${subscriptionId} not found`);
   }
 
   // Get organization
   const org = await db.query.organizations.findFirst({
-    where: eq(organizations.id, subscription.organizationId),
+    where: (o, { eq: eqOp }) => eqOp(o.id, subscription.organizationId!),
   });
 
   if (!org) {
@@ -188,7 +188,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Verify subscription still exists and is still on trial
     const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.id, subscriptionId),
+      where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
     });
 
     if (!subscription) {
