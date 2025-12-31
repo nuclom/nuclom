@@ -1,260 +1,427 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
 // =============================================================================
 // Common Schemas
 // =============================================================================
 
-export const uuidSchema = z.string().uuid("Invalid UUID format");
+export const UuidSchema = Schema.UUID;
 
-export const paginationSchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+export const PaginationSchema = Schema.Struct({
+  page: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.positive()), { default: () => 1 }),
+  limit: Schema.optionalWith(
+    Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)),
+    { default: () => 20 },
+  ),
 });
 
-export const timestampSchema = z
-  .string()
-  .regex(/^\d+:\d{2}(:\d{2})?$/, "Invalid timestamp format (expected MM:SS or HH:MM:SS)");
+export const TimestampFormatSchema = Schema.String.pipe(
+  Schema.pattern(/^\d+:\d{2}(:\d{2})?$/, {
+    message: () => "Invalid timestamp format (expected MM:SS or HH:MM:SS)",
+  }),
+);
 
 // =============================================================================
 // Video Schemas
 // =============================================================================
 
-export const createVideoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title must be 200 characters or less").trim(),
-  description: z.string().max(5000, "Description must be 5000 characters or less").trim().optional().nullable(),
-  duration: z.string().min(1, "Duration is required"),
-  thumbnailUrl: z.string().url("Invalid thumbnail URL").optional().nullable(),
-  videoUrl: z.string().url("Invalid video URL").optional().nullable(),
-  organizationId: uuidSchema,
-  channelId: uuidSchema.optional().nullable(),
-  collectionId: uuidSchema.optional().nullable(),
-  transcript: z.string().optional().nullable(),
-  aiSummary: z.string().optional().nullable(),
+export const CreateVideoSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  duration: Schema.String.pipe(Schema.minLength(1, { message: () => "Duration is required" })),
+  thumbnailUrl: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
+    { nullable: true },
+  ),
+  videoUrl: Schema.optionalWith(
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid video URL" }))),
+    { nullable: true },
+  ),
+  organizationId: UuidSchema,
+  channelId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
+  collectionId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
+  transcript: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
+  aiSummary: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
 });
 
-export const updateVideoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title must be 200 characters or less").trim().optional(),
-  description: z.string().max(5000, "Description must be 5000 characters or less").trim().optional().nullable(),
-  channelId: uuidSchema.optional().nullable(),
-  collectionId: uuidSchema.optional().nullable(),
+export const UpdateVideoSchema = Schema.Struct({
+  title: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Title is required" }),
+      Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  channelId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
+  collectionId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
 });
 
-export const videoUploadSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title must be 200 characters or less").trim(),
-  description: z.string().max(5000, "Description must be 5000 characters or less").trim().optional(),
-  organizationId: uuidSchema,
-  authorId: uuidSchema,
-  channelId: uuidSchema.optional(),
-  collectionId: uuidSchema.optional(),
-  skipAIProcessing: z.enum(["true", "false"]).optional(),
+export const VideoUploadSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+  ),
+  description: Schema.optional(
+    Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+  ),
+  organizationId: UuidSchema,
+  authorId: UuidSchema,
+  channelId: Schema.optional(UuidSchema),
+  collectionId: Schema.optional(UuidSchema),
+  skipAIProcessing: Schema.optional(Schema.Literal("true", "false")),
 });
 
-export const getVideosSchema = z.object({
-  organizationId: uuidSchema,
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+export const GetVideosSchema = Schema.Struct({
+  organizationId: UuidSchema,
+  page: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.positive()), { default: () => 1 }),
+  limit: Schema.optionalWith(
+    Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)),
+    { default: () => 20 },
+  ),
 });
 
 // =============================================================================
 // Video Chapter Schemas
 // =============================================================================
 
-export const createChapterSchema = z
-  .object({
-    title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less").trim(),
-    summary: z.string().max(500, "Summary must be 500 characters or less").trim().optional().nullable(),
-    startTime: z.number().int().nonnegative("Start time must be positive"),
-    endTime: z.number().int().positive("End time must be positive").optional().nullable(),
-  })
-  .refine((data) => !data.endTime || data.endTime > data.startTime, {
-    message: "End time must be greater than start time",
-    path: ["endTime"],
-  });
+const BaseChapterSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }),
+  ),
+  summary: Schema.optionalWith(
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Summary must be 500 characters or less" }))),
+    { nullable: true },
+  ),
+  startTime: Schema.Number.pipe(Schema.int(), Schema.nonNegative({ message: () => "Start time must be positive" })),
+  endTime: Schema.optionalWith(
+    Schema.NullOr(Schema.Number.pipe(Schema.int(), Schema.positive({ message: () => "End time must be positive" }))),
+    { nullable: true },
+  ),
+});
+
+export const CreateChapterSchema = BaseChapterSchema.pipe(
+  Schema.filter((data) => !data.endTime || data.endTime > data.startTime, {
+    message: () => "End time must be greater than start time",
+  }),
+);
 
 // =============================================================================
 // Video Code Snippet Schemas
 // =============================================================================
 
-export const createCodeSnippetSchema = z.object({
-  code: z.string().min(1, "Code is required").max(10000, "Code must be 10000 characters or less"),
-  language: z.string().max(50, "Language must be 50 characters or less").optional().nullable(),
-  title: z.string().max(100, "Title must be 100 characters or less").trim().optional().nullable(),
-  description: z.string().max(500, "Description must be 500 characters or less").trim().optional().nullable(),
-  timestamp: z.number().int().nonnegative().optional().nullable(),
+export const CreateCodeSnippetSchema = Schema.Struct({
+  code: Schema.String.pipe(
+    Schema.minLength(1, { message: () => "Code is required" }),
+    Schema.maxLength(10000, { message: () => "Code must be 10000 characters or less" }),
+  ),
+  language: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.maxLength(50, { message: () => "Language must be 50 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  title: Schema.optionalWith(
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }))),
+    { nullable: true },
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  timestamp: Schema.optionalWith(Schema.NullOr(Schema.Number.pipe(Schema.int(), Schema.nonNegative())), {
+    nullable: true,
+  }),
 });
 
 // =============================================================================
 // Series Schemas
 // =============================================================================
 
-export const createSeriesSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less").trim(),
-  description: z.string().max(1000, "Description must be 1000 characters or less").trim().optional().nullable(),
-  thumbnailUrl: z.string().url("Invalid thumbnail URL").optional().nullable(),
-  organizationId: uuidSchema,
-  isPublic: z.boolean().default(false),
+export const CreateSeriesSchema = Schema.Struct({
+  name: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Name is required" }),
+    Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => "Description must be 1000 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  thumbnailUrl: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
+    { nullable: true },
+  ),
+  organizationId: UuidSchema,
+  isPublic: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 });
 
-export const updateSeriesSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less").trim().optional(),
-  description: z.string().max(1000, "Description must be 1000 characters or less").trim().optional().nullable(),
-  thumbnailUrl: z.string().url("Invalid thumbnail URL").optional().nullable(),
-  isPublic: z.boolean().optional(),
+export const UpdateSeriesSchema = Schema.Struct({
+  name: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Name is required" }),
+      Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => "Description must be 1000 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  thumbnailUrl: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
+    { nullable: true },
+  ),
+  isPublic: Schema.optional(Schema.Boolean),
 });
 
-export const getSeriesSchema = z.object({
-  organizationId: uuidSchema,
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+export const GetSeriesSchema = Schema.Struct({
+  organizationId: UuidSchema,
+  page: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.positive()), { default: () => 1 }),
+  limit: Schema.optionalWith(
+    Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)),
+    { default: () => 20 },
+  ),
 });
 
-export const addVideoToSeriesSchema = z.object({
-  videoId: uuidSchema,
-  position: z.number().int().nonnegative().optional(),
+export const AddVideoToSeriesSchema = Schema.Struct({
+  videoId: UuidSchema,
+  position: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
 });
 
-export const reorderSeriesVideosSchema = z.object({
-  videoIds: z.array(uuidSchema).min(1, "At least one video ID is required"),
+export const ReorderSeriesVideosSchema = Schema.Struct({
+  videoIds: Schema.Array(UuidSchema).pipe(Schema.minItems(1, { message: () => "At least one video ID is required" })),
 });
 
 // =============================================================================
 // Comment Schemas
 // =============================================================================
 
-export const createCommentSchema = z.object({
-  content: z.string().min(1, "Comment content is required").max(2000, "Comment must be 2000 characters or less").trim(),
-  timestamp: timestampSchema.optional().nullable(),
-  parentId: uuidSchema.optional().nullable(),
+export const CreateCommentSchema = Schema.Struct({
+  content: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Comment content is required" }),
+    Schema.maxLength(2000, { message: () => "Comment must be 2000 characters or less" }),
+  ),
+  timestamp: Schema.optionalWith(Schema.NullOr(TimestampFormatSchema), { nullable: true }),
+  parentId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
 });
 
-export const updateCommentSchema = z.object({
-  content: z.string().min(1, "Comment content is required").max(2000, "Comment must be 2000 characters or less").trim(),
+export const UpdateCommentSchema = Schema.Struct({
+  content: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Comment content is required" }),
+    Schema.maxLength(2000, { message: () => "Comment must be 2000 characters or less" }),
+  ),
 });
 
 // =============================================================================
 // Organization Schemas
 // =============================================================================
 
-export const createOrganizationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less").trim(),
-  slug: z
-    .string()
-    .min(1, "Slug is required")
-    .max(50, "Slug must be 50 characters or less")
-    .regex(/^[a-z0-9-]+$/, "Slug must only contain lowercase letters, numbers, and hyphens")
-    .optional(),
-  description: z.string().max(500, "Description must be 500 characters or less").trim().optional().nullable(),
-  logo: z.string().url("Invalid logo URL").optional().nullable(),
+export const CreateOrganizationSchema = Schema.Struct({
+  name: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Name is required" }),
+    Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+  ),
+  slug: Schema.optional(
+    Schema.String.pipe(
+      Schema.minLength(1, { message: () => "Slug is required" }),
+      Schema.maxLength(50, { message: () => "Slug must be 50 characters or less" }),
+      Schema.pattern(/^[a-z0-9-]+$/, {
+        message: () => "Slug must only contain lowercase letters, numbers, and hyphens",
+      }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  logo: Schema.optionalWith(
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid logo URL" }))),
+    { nullable: true },
+  ),
 });
 
-export const updateOrganizationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less").trim().optional(),
-  description: z.string().max(500, "Description must be 500 characters or less").trim().optional().nullable(),
-  logo: z.string().url("Invalid logo URL").optional().nullable(),
+export const UpdateOrganizationSchema = Schema.Struct({
+  name: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Name is required" }),
+      Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+    ),
+    { nullable: true },
+  ),
+  logo: Schema.optionalWith(
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid logo URL" }))),
+    { nullable: true },
+  ),
 });
 
 // =============================================================================
 // Invitation Schemas
 // =============================================================================
 
-export const createInvitationSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  role: z.enum(["owner", "member"]).default("member"),
+export const CreateInvitationSchema = Schema.Struct({
+  email: Schema.String.pipe(
+    Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => "Invalid email address" }),
+  ),
+  role: Schema.optionalWith(Schema.Literal("owner", "member"), { default: () => "member" as const }),
 });
 
 // =============================================================================
 // Video Progress Schemas
 // =============================================================================
 
-export const updateProgressSchema = z.object({
-  currentTime: z.string().min(1, "Current time is required"),
-  completed: z.boolean().optional(),
+export const UpdateProgressSchema = Schema.Struct({
+  currentTime: Schema.String.pipe(Schema.minLength(1, { message: () => "Current time is required" })),
+  completed: Schema.optional(Schema.Boolean),
 });
 
 // =============================================================================
 // Series Progress Schemas
 // =============================================================================
 
-export const updateSeriesProgressSchema = z.object({
-  lastVideoId: uuidSchema.optional(),
-  lastPosition: z.number().int().nonnegative().optional(),
-  completedVideoIds: z.array(uuidSchema).optional(),
+export const UpdateSeriesProgressSchema = Schema.Struct({
+  lastVideoId: Schema.optional(UuidSchema),
+  lastPosition: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
+  completedVideoIds: Schema.optional(Schema.Array(UuidSchema)),
 });
 
 // =============================================================================
 // Notification Schemas
 // =============================================================================
 
-export const updateNotificationSchema = z.object({
-  read: z.boolean(),
+export const UpdateNotificationSchema = Schema.Struct({
+  read: Schema.Boolean,
 });
 
 // =============================================================================
 // Billing Schemas
 // =============================================================================
 
-export const createCheckoutSchema = z.object({
-  planId: z.string().min(1, "Plan ID is required"),
-  billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
-  successUrl: z.string().url("Invalid success URL").optional(),
-  cancelUrl: z.string().url("Invalid cancel URL").optional(),
+export const CreateCheckoutSchema = Schema.Struct({
+  planId: Schema.String.pipe(Schema.minLength(1, { message: () => "Plan ID is required" })),
+  billingPeriod: Schema.optionalWith(Schema.Literal("monthly", "yearly"), { default: () => "monthly" as const }),
+  successUrl: Schema.optional(
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid success URL" })),
+  ),
+  cancelUrl: Schema.optional(
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid cancel URL" })),
+  ),
 });
 
 // =============================================================================
 // Integration Schemas
 // =============================================================================
 
-export const importMeetingSchema = z.object({
-  meetingId: z.string().min(1, "Meeting ID is required"),
-  recordingId: z.string().min(1, "Recording ID is required"),
-  title: z.string().max(200).trim().optional(),
+export const ImportMeetingSchema = Schema.Struct({
+  meetingId: Schema.String.pipe(Schema.minLength(1, { message: () => "Meeting ID is required" })),
+  recordingId: Schema.String.pipe(Schema.minLength(1, { message: () => "Recording ID is required" })),
+  title: Schema.optional(Schema.Trim.pipe(Schema.maxLength(200))),
 });
 
 // =============================================================================
 // AI Processing Schemas
 // =============================================================================
 
-export const analyzeVideoSchema = z.object({
-  videoId: uuidSchema,
-  options: z
-    .object({
-      generateTranscript: z.boolean().default(true),
-      generateSummary: z.boolean().default(true),
-      extractActionItems: z.boolean().default(true),
-      generateTags: z.boolean().default(true),
-    })
-    .optional(),
+export const AnalyzeVideoSchema = Schema.Struct({
+  videoId: UuidSchema,
+  options: Schema.optional(
+    Schema.Struct({
+      generateTranscript: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+      generateSummary: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+      extractActionItems: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+      generateTags: Schema.optionalWith(Schema.Boolean, { default: () => true }),
+    }),
+  ),
 });
 
 // =============================================================================
 // Type Exports
 // =============================================================================
 
-export type CreateVideoInput = z.infer<typeof createVideoSchema>;
-export type UpdateVideoInput = z.infer<typeof updateVideoSchema>;
-export type VideoUploadInput = z.infer<typeof videoUploadSchema>;
-export type GetVideosInput = z.infer<typeof getVideosSchema>;
+export type CreateVideoInput = typeof CreateVideoSchema.Type;
+export type UpdateVideoInput = typeof UpdateVideoSchema.Type;
+export type VideoUploadInput = typeof VideoUploadSchema.Type;
+export type GetVideosInput = typeof GetVideosSchema.Type;
 
-export type CreateChapterInput = z.infer<typeof createChapterSchema>;
-export type CreateCodeSnippetInput = z.infer<typeof createCodeSnippetSchema>;
+export type CreateChapterInput = typeof CreateChapterSchema.Type;
+export type CreateCodeSnippetInput = typeof CreateCodeSnippetSchema.Type;
 
-export type CreateSeriesInput = z.infer<typeof createSeriesSchema>;
-export type UpdateSeriesInput = z.infer<typeof updateSeriesSchema>;
-export type GetSeriesInput = z.infer<typeof getSeriesSchema>;
-export type AddVideoToSeriesInput = z.infer<typeof addVideoToSeriesSchema>;
-export type ReorderSeriesVideosInput = z.infer<typeof reorderSeriesVideosSchema>;
+export type CreateSeriesInput = typeof CreateSeriesSchema.Type;
+export type UpdateSeriesInput = typeof UpdateSeriesSchema.Type;
+export type GetSeriesInput = typeof GetSeriesSchema.Type;
+export type AddVideoToSeriesInput = typeof AddVideoToSeriesSchema.Type;
+export type ReorderSeriesVideosInput = typeof ReorderSeriesVideosSchema.Type;
 
-export type CreateCommentInput = z.infer<typeof createCommentSchema>;
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
+export type CreateCommentInput = typeof CreateCommentSchema.Type;
+export type UpdateCommentInput = typeof UpdateCommentSchema.Type;
 
-export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
-export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
+export type CreateOrganizationInput = typeof CreateOrganizationSchema.Type;
+export type UpdateOrganizationInput = typeof UpdateOrganizationSchema.Type;
 
-export type CreateInvitationInput = z.infer<typeof createInvitationSchema>;
-export type UpdateProgressInput = z.infer<typeof updateProgressSchema>;
-export type UpdateSeriesProgressInput = z.infer<typeof updateSeriesProgressSchema>;
-export type UpdateNotificationInput = z.infer<typeof updateNotificationSchema>;
+export type CreateInvitationInput = typeof CreateInvitationSchema.Type;
+export type UpdateProgressInput = typeof UpdateProgressSchema.Type;
+export type UpdateSeriesProgressInput = typeof UpdateSeriesProgressSchema.Type;
+export type UpdateNotificationInput = typeof UpdateNotificationSchema.Type;
 
-export type CreateCheckoutInput = z.infer<typeof createCheckoutSchema>;
-export type ImportMeetingInput = z.infer<typeof importMeetingSchema>;
-export type AnalyzeVideoInput = z.infer<typeof analyzeVideoSchema>;
+export type CreateCheckoutInput = typeof CreateCheckoutSchema.Type;
+export type ImportMeetingInput = typeof ImportMeetingSchema.Type;
+export type AnalyzeVideoInput = typeof AnalyzeVideoSchema.Type;
+
+// =============================================================================
+// Legacy aliases for backwards compatibility (lowercase names)
+// =============================================================================
+
+export const uuidSchema = UuidSchema;
+export const paginationSchema = PaginationSchema;
+export const timestampSchema = TimestampFormatSchema;
+export const createVideoSchema = CreateVideoSchema;
+export const updateVideoSchema = UpdateVideoSchema;
+export const videoUploadSchema = VideoUploadSchema;
+export const getVideosSchema = GetVideosSchema;
+export const createChapterSchema = CreateChapterSchema;
+export const createCodeSnippetSchema = CreateCodeSnippetSchema;
+export const createSeriesSchema = CreateSeriesSchema;
+export const updateSeriesSchema = UpdateSeriesSchema;
+export const getSeriesSchema = GetSeriesSchema;
+export const addVideoToSeriesSchema = AddVideoToSeriesSchema;
+export const reorderSeriesVideosSchema = ReorderSeriesVideosSchema;
+export const createCommentSchema = CreateCommentSchema;
+export const updateCommentSchema = UpdateCommentSchema;
+export const createOrganizationSchema = CreateOrganizationSchema;
+export const updateOrganizationSchema = UpdateOrganizationSchema;
+export const createInvitationSchema = CreateInvitationSchema;
+export const updateProgressSchema = UpdateProgressSchema;
+export const updateSeriesProgressSchema = UpdateSeriesProgressSchema;
+export const updateNotificationSchema = UpdateNotificationSchema;
+export const createCheckoutSchema = CreateCheckoutSchema;
+export const importMeetingSchema = ImportMeetingSchema;
+export const analyzeVideoSchema = AnalyzeVideoSchema;

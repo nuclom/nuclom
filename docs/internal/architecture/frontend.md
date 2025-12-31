@@ -676,8 +676,8 @@ interface VideoPageProps {
 
 ```typescript
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { effectSchemaResolver } from "@hookform/resolvers/effect-schema";
+import { effect } from "effect/schema";
 
 const videoSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -690,7 +690,7 @@ type VideoFormData = z.infer<typeof videoSchema>;
 
 export function VideoForm() {
   const form = useForm<VideoFormData>({
-    resolver: zodResolver(videoSchema),
+    resolver: effectSchemaResolver(videoSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -764,12 +764,12 @@ describe("/api/videos", () => {
 ### Input Validation
 
 ```typescript
-// Form validation with Zod
-const createVideoSchema = z.object({
-  title: z.string().min(1).max(100),
-  description: z.string().max(1000).optional(),
-  organizationId: z.string().uuid(),
-  channelId: z.string().uuid().optional(),
+// Form validation with Effect Schema
+const createVideoSchema = effect.object({
+  title: effect.string().min(1).max(100),
+  description: effect.string().max(1000).optional(),
+  organizationId: effect.string().uuid(),
+  channelId: effect.string().uuid().optional(),
 });
 
 // Server-side validation

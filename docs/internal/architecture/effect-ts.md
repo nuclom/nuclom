@@ -28,7 +28,7 @@ src/lib/effect/
     ├── storage.ts            # Storage service (R2/S3)
     ├── auth.ts               # Authentication service wrapper
     ├── ai.ts                 # AI service (Vercel AI SDK)
-    ├── ai-structured.ts      # AI with Zod structured outputs
+    ├── ai-structured.ts      # AI with structured outputs (Effect Schema)
     ├── video-processor.ts    # Video processing service
     ├── video-repository.ts   # Video data access
     ├── video-ai-processor.ts # AI video analysis pipeline
@@ -543,7 +543,7 @@ async function handleSubmit(formData: FormData) {
 
 ### AI Structured Service
 
-The `AIStructured` service uses Zod schemas for guaranteed structured outputs from AI:
+The `AIStructured` service uses Effect Schema for guaranteed structured outputs from AI:
 
 ```typescript
 import { AIStructured, VideoSummarySchema } from "@/lib/effect/services";
@@ -561,7 +561,7 @@ const summary = Effect.gen(function* () {
 // - sentiment: "positive" | "neutral" | "negative" | "mixed"
 ```
 
-Available Zod Schemas:
+Available Effect Schemas:
 - `VideoSummarySchema` - Video summary with key points
 - `ActionItemsSchema` - Extracted action items with priorities
 - `ChaptersSchema` - Video chapters with timestamps
