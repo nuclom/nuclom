@@ -82,6 +82,16 @@ export function MarketingFooter() {
                   Terms of Service
                 </Link>
               </li>
+              <li>
+                <Link href="/content-policy" className="hover:text-foreground transition-colors">
+                  Content Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:text-foreground transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

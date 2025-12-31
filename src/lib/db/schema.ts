@@ -29,6 +29,21 @@ export const users = pgTable("users", {
   banned: boolean("banned"),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
+  // Legal consent fields
+  tosAcceptedAt: timestamp("tos_accepted_at"),
+  tosVersion: text("tos_version"),
+  privacyAcceptedAt: timestamp("privacy_accepted_at"),
+  privacyVersion: text("privacy_version"),
+  marketingConsentAt: timestamp("marketing_consent_at"),
+  marketingConsent: boolean("marketing_consent").default(false),
+  // Account deletion fields
+  deletionRequestedAt: timestamp("deletion_requested_at"),
+  deletionScheduledFor: timestamp("deletion_scheduled_for"),
+  // Moderation fields
+  warnedAt: timestamp("warned_at"),
+  warningReason: text("warning_reason"),
+  suspendedUntil: timestamp("suspended_until"),
+  suspensionReason: text("suspension_reason"),
 });
 
 export const sessions = pgTable("sessions", {
@@ -804,6 +819,134 @@ export const savedSearches = pgTable(
   }),
 );
 
+// =====================
+// Legal & Compliance Tables
+// =====================
+
+// Document type enum for legal consents
+export const legalDocumentTypeEnum = pgEnum("LegalDocumentType", ["terms_of_service", "privacy_policy"]);
+
+// Consent audit action enum
+export const consentActionEnum = pgEnum("ConsentAction", ["granted", "withdrawn", "updated"]);
+
+// Report category enum
+export const reportCategoryEnum = pgEnum("ReportCategory", [
+  "inappropriate",
+  "spam",
+  "copyright",
+  "harassment",
+  "other",
+]);
+
+// Report status enum
+export const reportStatusEnum = pgEnum("ReportStatus", ["pending", "reviewing", "resolved", "dismissed"]);
+
+// Report resolution enum
+export const reportResolutionEnum = pgEnum("ReportResolution", [
+  "content_removed",
+  "user_warned",
+  "user_suspended",
+  "no_action",
+]);
+
+// Resource type enum for reports
+export const reportResourceTypeEnum = pgEnum("ReportResourceType", ["video", "comment", "user"]);
+
+// Legal consents table - tracks each user's consent to legal documents
+export const legalConsents = pgTable(
+  "legal_consents",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    documentType: legalDocumentTypeEnum("document_type").notNull(),
+    version: text("version").notNull(), // e.g., "2025-01-01"
+    acceptedAt: timestamp("accepted_at").defaultNow().notNull(),
+    ipAddress: text("ip_address"),
+  },
+  (table) => ({
+    userDocIdx: index("legal_consents_user_doc_idx").on(table.userId, table.documentType),
+    uniqueUserDocVersion: unique().on(table.userId, table.documentType, table.version),
+  }),
+);
+
+// Consent audit log - tracks all consent changes for compliance
+export const consentAuditLog = pgTable(
+  "consent_audit_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: consentActionEnum("action").notNull(),
+    details: jsonb("details").$type<{
+      documentType?: string;
+      version?: string;
+      previousValue?: boolean;
+      newValue?: boolean;
+      consentType?: string;
+    }>(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("consent_audit_log_user_idx").on(table.userId, table.createdAt),
+  }),
+);
+
+// Reports table - tracks abuse reports
+export const reports = pgTable(
+  "reports",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    reporterId: text("reporter_id").references(() => users.id, { onDelete: "set null" }),
+    resourceType: reportResourceTypeEnum("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    category: reportCategoryEnum("category").notNull(),
+    description: text("description"),
+    status: reportStatusEnum("status").default("pending").notNull(),
+    resolution: reportResolutionEnum("resolution"),
+    resolvedById: text("resolved_by_id").references(() => users.id, { onDelete: "set null" }),
+    resolvedAt: timestamp("resolved_at"),
+    resolutionNotes: text("resolution_notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("reports_status_idx").on(table.status, table.createdAt),
+    resourceIdx: index("reports_resource_idx").on(table.resourceType, table.resourceId),
+    reporterIdx: index("reports_reporter_idx").on(table.reporterId),
+  }),
+);
+
+// Data export requests - tracks GDPR data export requests
+export const dataExportRequests = pgTable(
+  "data_export_requests",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").default("pending").notNull(), // pending, processing, completed, failed
+    downloadUrl: text("download_url"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => ({
+    userIdx: index("data_export_requests_user_idx").on(table.userId, table.createdAt),
+  }),
+);
+
 // Relations
 export const userRelations = relations(users, ({ many }) => ({
   videos: many(videos),
@@ -1085,6 +1228,41 @@ export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
   }),
 }));
 
+// Legal relations
+export const legalConsentsRelations = relations(legalConsents, ({ one }) => ({
+  user: one(users, {
+    fields: [legalConsents.userId],
+    references: [users.id],
+  }),
+}));
+
+export const consentAuditLogRelations = relations(consentAuditLog, ({ one }) => ({
+  user: one(users, {
+    fields: [consentAuditLog.userId],
+    references: [users.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [reports.reporterId],
+    references: [users.id],
+    relationName: "ReportReporter",
+  }),
+  resolvedBy: one(users, {
+    fields: [reports.resolvedById],
+    references: [users.id],
+    relationName: "ReportResolver",
+  }),
+}));
+
+export const dataExportRequestsRelations = relations(dataExportRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [dataExportRequests.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Organization = typeof organizations.$inferSelect;
@@ -1159,3 +1337,20 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 // Performance metrics types
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export type NewPerformanceMetric = typeof performanceMetrics.$inferInsert;
+
+// Legal compliance types
+export type LegalDocumentType = (typeof legalDocumentTypeEnum.enumValues)[number];
+export type ConsentAction = (typeof consentActionEnum.enumValues)[number];
+export type ReportCategory = (typeof reportCategoryEnum.enumValues)[number];
+export type ReportStatus = (typeof reportStatusEnum.enumValues)[number];
+export type ReportResolution = (typeof reportResolutionEnum.enumValues)[number];
+export type ReportResourceType = (typeof reportResourceTypeEnum.enumValues)[number];
+
+export type LegalConsent = typeof legalConsents.$inferSelect;
+export type NewLegalConsent = typeof legalConsents.$inferInsert;
+export type ConsentAuditLog = typeof consentAuditLog.$inferSelect;
+export type NewConsentAuditLog = typeof consentAuditLog.$inferInsert;
+export type Report = typeof reports.$inferSelect;
+export type NewReport = typeof reports.$inferInsert;
+export type DataExportRequest = typeof dataExportRequests.$inferSelect;
+export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
