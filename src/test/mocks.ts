@@ -56,6 +56,7 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     warningReason: null,
     suspendedUntil: null,
     suspensionReason: null,
+    stripeCustomerId: null,
     ...overrides,
   };
 }

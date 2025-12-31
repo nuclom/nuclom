@@ -239,6 +239,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             author_warning_reason: string | null;
             author_suspended_until: Date | null;
             author_suspension_reason: string | null;
+            author_stripe_customer_id: string | null;
             headline_title: string | null;
             headline_description: string | null;
             headline_transcript: string | null;
@@ -270,6 +271,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               u.warning_reason as author_warning_reason,
               u.suspended_until as author_suspended_until,
               u.suspension_reason as author_suspension_reason,
+              u.stripe_customer_id as author_stripe_customer_id,
               ts_headline('english', COALESCE(v.title, ''), plainto_tsquery('english', ${query}),
                 'StartSel=<mark>, StopSel=</mark>, MaxWords=50, MinWords=25') as headline_title,
               ts_headline('english', COALESCE(v.description, ''), plainto_tsquery('english', ${query}),
@@ -355,6 +357,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 warningReason: row.author_warning_reason,
                 suspendedUntil: row.author_suspended_until,
                 suspensionReason: row.author_suspension_reason,
+                stripeCustomerId: row.author_stripe_customer_id,
               },
             } as VideoWithAuthor,
             rank: row.rank,
@@ -435,6 +438,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
+                stripeCustomerId: users.stripeCustomerId,
               },
             })
             .from(videos)
@@ -855,6 +859,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)

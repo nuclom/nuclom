@@ -123,6 +123,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         warningReason: users.warningReason,
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
+        stripeCustomerId: users.stripeCustomerId,
       },
       organization: {
         id: organizations.id,
@@ -197,6 +198,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         warningReason: users.warningReason,
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
+        stripeCustomerId: users.stripeCustomerId,
       },
     })
     .from(comments)

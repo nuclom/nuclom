@@ -170,6 +170,7 @@ const makeWatchLaterService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(watchLater)

@@ -297,6 +297,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -387,6 +388,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -469,6 +471,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
+                stripeCustomerId: users.stripeCustomerId,
               },
               organization: {
                 id: organizations.id,
@@ -573,6 +576,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
+                stripeCustomerId: users.stripeCustomerId,
               },
             })
             .from(comments)
@@ -887,6 +891,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -1000,6 +1005,20 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -1080,6 +1099,20 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -1158,6 +1191,20 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)

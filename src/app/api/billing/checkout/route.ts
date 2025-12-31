@@ -14,6 +14,7 @@ import { AppLive, MissingFieldError } from "@/lib/effect";
 import { mapErrorToResponse } from "@/lib/effect/runtime";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
+import { Database } from "@/lib/effect/services/database";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
 
@@ -85,6 +86,13 @@ export async function POST(request: NextRequest) {
     // Get organization for slug
     const org = yield* orgRepo.getOrganization(organizationId);
 
+    // Get full user data including stripeCustomerId from database
+    const { db } = yield* Database;
+    const dbUser = yield* Effect.tryPromise({
+      try: () => db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, user.id) }),
+      catch: () => new MissingFieldError({ field: "user", message: "Failed to fetch user" }),
+    });
+
     // Get plan to find Stripe price ID
     const billingRepo = yield* BillingRepository;
     const plan = yield* billingRepo.getPlan(planId);
@@ -107,10 +115,11 @@ export async function POST(request: NextRequest) {
 
     // Create checkout session using Stripe service
     const stripe = yield* StripeServiceTag;
+    const stripeCustomerId = dbUser?.stripeCustomerId;
     const session = yield* stripe.createCheckoutSession({
       priceId: stripePriceId,
-      customerId: user.stripeCustomerId || undefined,
-      customerEmail: !user.stripeCustomerId ? user.email : undefined,
+      customerId: stripeCustomerId || undefined,
+      customerEmail: !stripeCustomerId ? user.email : undefined,
       successUrl,
       cancelUrl,
       trialPeriodDays: trialDays,

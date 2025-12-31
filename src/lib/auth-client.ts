@@ -66,7 +66,9 @@ export async function upgradeSubscription(params: {
 // Helper function to list subscriptions for an organization
 export async function listSubscriptions(referenceId: string) {
   return authClient.subscription.list({
-    referenceId,
+    query: {
+      referenceId,
+    },
   });
 }
 

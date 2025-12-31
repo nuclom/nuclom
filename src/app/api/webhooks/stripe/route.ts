@@ -164,7 +164,9 @@ export async function POST(request: Request) {
       if (Option.isSome(error)) {
         const err = error.value;
         if (err && typeof err === "object" && "_tag" in err) {
-          if (err._tag === "WebhookSignatureError") {
+          // Cast to unknown first to allow checking any _tag value
+          const errorTag = (err as { _tag: string })._tag;
+          if (errorTag === "WebhookSignatureError") {
             return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
           }
         }
