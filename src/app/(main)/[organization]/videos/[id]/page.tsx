@@ -17,6 +17,7 @@ import {
   ThumbsUp,
   XCircle,
 } from "lucide-react";
+import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Image from "next/image";
 import { Suspense } from "react";
@@ -26,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VideoPlayerWithProgress } from "@/components/video";
+import { VideoActions, VideoPlayerWithProgress } from "@/components/video";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema";
@@ -295,6 +296,7 @@ interface VideoDetailProps {
   video: VideoWithDetails;
   chapters: VideoChapter[];
   codeSnippets: VideoCodeSnippet[];
+  organizationSlug: string;
   currentUser?: {
     id: string;
     name?: string | null;
@@ -302,7 +304,10 @@ interface VideoDetailProps {
   };
 }
 
-function VideoDetail({ video, chapters, codeSnippets, currentUser }: VideoDetailProps) {
+function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentUser }: VideoDetailProps) {
+  // Check if current user can delete the video (is author or video owner)
+  const canDelete = currentUser?.id === video.authorId;
+
   // Use transcript segments if available, otherwise fall back to simple line parsing
   const transcriptLines =
     video.transcriptSegments && video.transcriptSegments.length > 0
@@ -489,9 +494,17 @@ function VideoDetail({ video, chapters, codeSnippets, currentUser }: VideoDetail
               <Bookmark className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            <Share2 className="h-4 w-4 mr-2" /> Share
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Share2 className="h-4 w-4 mr-2" /> Share
+            </Button>
+            <VideoActions
+              videoId={video.id}
+              videoTitle={video.title}
+              organizationSlug={organizationSlug}
+              canDelete={canDelete}
+            />
+          </div>
         </div>
 
         <Tabs defaultValue="insights">
@@ -575,6 +588,7 @@ function VideoDetail({ video, chapters, codeSnippets, currentUser }: VideoDetail
 
 interface VideoLoaderProps {
   videoId: string;
+  organizationSlug: string;
   currentUser?: {
     id: string;
     name?: string | null;
@@ -582,7 +596,7 @@ interface VideoLoaderProps {
   };
 }
 
-async function VideoLoader({ videoId, currentUser }: VideoLoaderProps) {
+async function VideoLoader({ videoId, organizationSlug, currentUser }: VideoLoaderProps) {
   // Fetch video details and related data in parallel
   const [video, chapters, codeSnippets] = await Promise.all([
     getCachedVideo(videoId),
@@ -594,7 +608,20 @@ async function VideoLoader({ videoId, currentUser }: VideoLoaderProps) {
       .orderBy(asc(videoCodeSnippets.timestamp)),
   ]);
 
-  return <VideoDetail video={video} chapters={chapters} codeSnippets={codeSnippets} currentUser={currentUser} />;
+  // If video is deleted (soft delete), show 404
+  if (!video) {
+    notFound();
+  }
+
+  return (
+    <VideoDetail
+      video={video}
+      chapters={chapters}
+      codeSnippets={codeSnippets}
+      organizationSlug={organizationSlug}
+      currentUser={currentUser}
+    />
+  );
 }
 
 // =============================================================================
@@ -602,7 +629,7 @@ async function VideoLoader({ videoId, currentUser }: VideoLoaderProps) {
 // =============================================================================
 
 export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { id } = await params;
+  const { organization, id } = await params;
 
   // Get current user session (optional - allows anonymous viewing)
   const session = await auth.api.getSession({
@@ -619,7 +646,7 @@ export default async function VideoPage({ params }: { params: Promise<{ organiza
 
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} currentUser={currentUser} />
+      <VideoLoader videoId={id} organizationSlug={organization} currentUser={currentUser} />
     </Suspense>
   );
 }
