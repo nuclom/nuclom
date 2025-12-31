@@ -17,7 +17,7 @@ import {
 // Rate limit: 1 export per 24 hours
 const EXPORT_RATE_LIMIT_HOURS = 24;
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Authenticate user
     const session = await auth.api.getSession({

@@ -2,7 +2,6 @@ import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { MissingFieldError, OrganizationRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 

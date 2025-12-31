@@ -47,7 +47,14 @@ import { useToast } from "@/hooks/use-toast";
 // Official Zoom icon component
 function ZoomIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-labelledby="zoom-icon-title"
+    >
+      <title id="zoom-icon-title">Zoom</title>
       <rect width="24" height="24" rx="4" fill="#2D8CFF" />
       <path
         d="M5 8.5C5 7.67157 5.67157 7 6.5 7H13.5C14.3284 7 15 7.67157 15 8.5V15.5C15 16.3284 14.3284 17 13.5 17H6.5C5.67157 17 5 16.3284 5 15.5V8.5Z"
@@ -61,7 +68,14 @@ function ZoomIcon({ className }: { className?: string }) {
 // Official Google Meet icon component
 function GoogleMeetIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-labelledby="google-meet-icon-title"
+    >
+      <title id="google-meet-icon-title">Google Meet</title>
       <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" fill="#00832D" />
       <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#0066DA" />
       <path d="M2 7V17L12 12V2L2 7Z" fill="#00AC47" />

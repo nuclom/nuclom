@@ -365,8 +365,9 @@ async function sendCompletionNotification(
 
     if (!video || !video.authorId) return;
 
+    const authorId = video.authorId;
     const user = await db.query.users.findFirst({
-      where: (u, { eq: eqOp }) => eqOp(u.id, video.authorId!),
+      where: (u, { eq: eqOp }) => eqOp(u.id, authorId),
     });
 
     if (!user?.email) return;
