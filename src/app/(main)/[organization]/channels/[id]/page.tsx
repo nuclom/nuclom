@@ -1,112 +1,129 @@
+import { Users, VideoOff } from "lucide-react";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Avatar } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { VideoCard } from "@/components/video-card";
+import { auth } from "@/lib/auth";
+import { getCachedChannel, getCachedChannelVideos, getCachedOrganizationBySlug } from "@/lib/effect";
 
-const channelVideoData = [
-  {
-    id: "c1-v1",
-    title: "Weekly Standup",
-    author: "Team Lead",
-    duration: "55:30",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "c1-v2",
-    title: "Q3 Planning Session",
-    author: "Product Manager",
-    duration: "01:15:20",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "c1-v3",
-    title: "New Feature Demo",
-    author: "Engineer",
-    duration: "15:00",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-  {
-    id: "c1-v4",
-    title: "Design Review",
-    author: "Designer",
-    duration: "48:18",
-    thumbnailUrl: "/placeholder.svg?height=180&width=320",
-    authorImageUrl: "/placeholder.svg?height=36&width=36",
-  },
-];
+// =============================================================================
+// Loading Skeleton Component
+// =============================================================================
 
-export default async function ChannelPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization, id } = await params;
-  const channelName = id.replace("-", " ");
+function ChannelSkeleton() {
+  return (
+    <div className="space-y-8">
+      <header className="flex items-center gap-4">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <div>
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-4 w-24 mt-2" />
+        </div>
+      </header>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="space-y-3">
+            <Skeleton className="aspect-video rounded-lg" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Empty State Component
+// =============================================================================
+
+function EmptyState({ channelName }: { channelName: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="rounded-full bg-muted p-6 mb-4">
+        <VideoOff className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <h2 className="text-xl font-semibold mb-2">No videos in this channel</h2>
+      <p className="text-muted-foreground max-w-sm">Videos added to &quot;{channelName}&quot; will appear here.</p>
+    </div>
+  );
+}
+
+// =============================================================================
+// Channel Content Component (Server Component)
+// =============================================================================
+
+interface ChannelContentProps {
+  channelId: string;
+  organizationSlug: string;
+}
+
+async function ChannelContent({ channelId, organizationSlug }: ChannelContentProps) {
+  const [channel, videosResult] = await Promise.all([getCachedChannel(channelId), getCachedChannelVideos(channelId)]);
+
+  const videos = videosResult.data;
+
   return (
     <div className="space-y-8">
       <header className="flex items-center gap-4">
         <Avatar className="h-16 w-16">
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-purple-500 text-2xl font-bold">
-            {channelName.charAt(0).toUpperCase()}
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-purple-500 text-2xl font-bold text-white">
+            {channel.name.charAt(0).toUpperCase()}
           </div>
         </Avatar>
         <div>
-          <h1 className="text-4xl font-bold capitalize">{channelName}</h1>
-          <p className="text-gray-400">24 members</p>
+          <h1 className="text-4xl font-bold">{channel.name}</h1>
+          <div className="flex items-center gap-1 text-muted-foreground mt-1">
+            <Users className="h-4 w-4" />
+            <span>
+              {channel.memberCount} {channel.memberCount === 1 ? "member" : "members"}
+            </span>
+          </div>
+          {channel.description && <p className="text-muted-foreground mt-2 max-w-2xl">{channel.description}</p>}
         </div>
       </header>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-        {channelVideoData.map((video) => (
-          <VideoCard
-            key={video.id}
-            video={{
-              id: video.id,
-              title: video.title,
-              description: null,
-              duration: video.duration,
-              thumbnailUrl: video.thumbnailUrl,
-              videoUrl: null,
-              authorId: `author-${video.id}`,
-              organizationId: "organization",
-              channelId: null,
-              collectionId: null,
-              transcript: null,
-              transcriptSegments: null,
-              processingStatus: "completed",
-              processingError: null,
-              aiSummary: null,
-              aiTags: null,
-              aiActionItems: null,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              author: {
-                id: `author-${video.id}`,
-                name: video.author,
-                email: `${video.author.toLowerCase().replace(" ", ".")}@example.com`,
-                image: video.authorImageUrl,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                emailVerified: true,
-                role: "user",
-                banned: null,
-                banReason: null,
-                banExpires: null,
-                twoFactorEnabled: null,
-                tosAcceptedAt: null,
-                tosVersion: null,
-                privacyAcceptedAt: null,
-                privacyVersion: null,
-                marketingConsentAt: null,
-                marketingConsent: false,
-                deletionRequestedAt: null,
-                deletionScheduledFor: null,
-                warnedAt: null,
-                warningReason: null,
-                suspendedUntil: null,
-                suspensionReason: null,
-              },
-            }}
-            organization={organization}
-          />
-        ))}
-      </div>
+
+      {videos.length === 0 ? (
+        <EmptyState channelName={channel.name} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+          {videos.map((video) => (
+            <VideoCard key={video.id} video={video} organization={organizationSlug} />
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
+
+export default async function ChannelPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
+  const { organization: organizationSlug, id: channelId } = await params;
+
+  // Authenticate user
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  // Verify organization exists (for access control)
+  try {
+    await getCachedOrganizationBySlug(organizationSlug);
+  } catch {
+    notFound();
+  }
+
+  return (
+    <Suspense fallback={<ChannelSkeleton />}>
+      <ChannelContent channelId={channelId} organizationSlug={organizationSlug} />
+    </Suspense>
   );
 }

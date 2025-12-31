@@ -4,7 +4,7 @@
  * Provides type-safe database operations for videos.
  */
 
-import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import {
   type ActionItem,
@@ -157,6 +157,35 @@ export interface VideoRepositoryService {
    * Search videos with full-text search and filters
    */
   readonly searchVideos: (input: VideoSearchInput) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
+
+  /**
+   * Get paginated videos by author (user's own videos)
+   */
+  readonly getVideosByAuthor: (
+    authorId: string,
+    organizationId: string,
+    page?: number,
+    limit?: number,
+  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
+
+  /**
+   * Get paginated videos for a channel with author details
+   */
+  readonly getChannelVideosWithAuthor: (
+    channelId: string,
+    page?: number,
+    limit?: number,
+  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
+
+  /**
+   * Get paginated videos shared by others in the organization (not authored by the current user)
+   */
+  readonly getVideosSharedByOthers: (
+    userId: string,
+    organizationId: string,
+    page?: number,
+    limit?: number,
+  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
 }
 
 // =============================================================================
@@ -926,6 +955,241 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         }),
     });
 
+  const getVideosByAuthor = (
+    authorId: string,
+    organizationId: string,
+    page = 1,
+    limit = 20,
+  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const offset = (page - 1) * limit;
+
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            channelId: videos.channelId,
+            collectionId: videos.collectionId,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(
+            and(eq(videos.authorId, authorId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)),
+          )
+          .orderBy(desc(videos.createdAt))
+          .offset(offset)
+          .limit(limit);
+
+        const totalCount = await db
+          .select()
+          .from(videos)
+          .where(
+            and(eq(videos.authorId, authorId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)),
+          );
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit,
+            total: totalCount.length,
+            totalPages: Math.ceil(totalCount.length / limit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch user videos",
+          operation: "getVideosByAuthor",
+          cause: error,
+        }),
+    });
+
+  const getChannelVideosWithAuthor = (
+    channelId: string,
+    page = 1,
+    limit = 20,
+  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const offset = (page - 1) * limit;
+
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            channelId: videos.channelId,
+            collectionId: videos.collectionId,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)))
+          .orderBy(desc(videos.createdAt))
+          .offset(offset)
+          .limit(limit);
+
+        const totalCount = await db
+          .select()
+          .from(videos)
+          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)));
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit,
+            total: totalCount.length,
+            totalPages: Math.ceil(totalCount.length / limit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch channel videos",
+          operation: "getChannelVideosWithAuthor",
+          cause: error,
+        }),
+    });
+
+  const getVideosSharedByOthers = (
+    userId: string,
+    organizationId: string,
+    page = 1,
+    limit = 20,
+  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const offset = (page - 1) * limit;
+
+        // Get videos from the organization that are NOT authored by the current user
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            channelId: videos.channelId,
+            collectionId: videos.collectionId,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(and(ne(videos.authorId, userId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)))
+          .orderBy(desc(videos.createdAt))
+          .offset(offset)
+          .limit(limit);
+
+        const totalCount = await db
+          .select()
+          .from(videos)
+          .where(and(ne(videos.authorId, userId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)));
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit,
+            total: totalCount.length,
+            totalPages: Math.ceil(totalCount.length / limit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch shared videos",
+          operation: "getVideosSharedByOthers",
+          cause: error,
+        }),
+    });
+
   return {
     getVideos,
     getDeletedVideos,
@@ -939,6 +1203,9 @@ const makeVideoRepositoryService = Effect.gen(function* () {
     getVideoChapters,
     getVideoCodeSnippets,
     searchVideos,
+    getVideosByAuthor,
+    getChannelVideosWithAuthor,
+    getVideosSharedByOthers,
   } satisfies VideoRepositoryService;
 });
 
@@ -1051,4 +1318,36 @@ export const searchVideos = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.searchVideos(input);
+  });
+
+export const getVideosByAuthor = (
+  authorId: string,
+  organizationId: string,
+  page?: number,
+  limit?: number,
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getVideosByAuthor(authorId, organizationId, page, limit);
+  });
+
+export const getChannelVideosWithAuthor = (
+  channelId: string,
+  page?: number,
+  limit?: number,
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getChannelVideosWithAuthor(channelId, page, limit);
+  });
+
+export const getVideosSharedByOthers = (
+  userId: string,
+  organizationId: string,
+  page?: number,
+  limit?: number,
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getVideosSharedByOthers(userId, organizationId, page, limit);
   });
