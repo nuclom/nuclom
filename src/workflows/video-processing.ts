@@ -15,22 +15,9 @@
  * - No lost processing on deploy
  */
 
-import process from "node:process";
-import { eq } from "drizzle-orm";
 import { FatalError } from "workflow";
-import { db } from "@/lib/db";
-import {
-  type ActionItem,
-  notifications,
-  type ProcessingStatus,
-  type TranscriptSegment,
-  users,
-  videoChapters,
-  videoCodeSnippets,
-  videos,
-} from "@/lib/db/schema";
-import { resend } from "@/lib/email";
-import { env } from "@/lib/env/client";
+import type { ActionItem, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -79,6 +66,10 @@ interface AIAnalysisResult {
 // =============================================================================
 
 async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos } = await import("@/lib/db/schema");
+
   await db
     .update(videos)
     .set({
@@ -90,7 +81,7 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 }
 
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new FatalError("OpenAI API key not configured");
   }
@@ -142,7 +133,7 @@ async function analyzeWithAI(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<AIAnalysisResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new FatalError("OpenAI API key not configured");
   }
@@ -298,6 +289,10 @@ async function analyzeWithAI(
 }
 
 async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos } = await import("@/lib/db/schema");
+
   await db
     .update(videos)
     .set({
@@ -309,6 +304,10 @@ async function saveTranscript(videoId: string, transcript: string, segments: Tra
 }
 
 async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos, videoChapters, videoCodeSnippets } = await import("@/lib/db/schema");
+
   // Update video record
   await db
     .update(videos)
@@ -356,6 +355,10 @@ async function sendCompletionNotification(
   errorMessage?: string,
 ): Promise<void> {
   try {
+    const { db } = await import("@/lib/db");
+    const { notifications } = await import("@/lib/db/schema");
+    const { resend } = await import("@/lib/email");
+
     const video = await db.query.videos.findFirst({
       where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
     });
@@ -384,7 +387,7 @@ async function sendCompletionNotification(
     });
 
     // Send email notification
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
     await resend.emails.send({
       from: fromEmail,
       to: user.email,

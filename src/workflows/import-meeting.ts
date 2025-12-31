@@ -18,11 +18,9 @@
  * - Built-in observability
  */
 
-import process from "node:process";
-import { eq } from "drizzle-orm";
 import { FatalError } from "workflow";
-import { db } from "@/lib/db";
-import { type IntegrationProvider, importedMeetings, videos } from "@/lib/db/schema";
+import type { IntegrationProvider } from "@/lib/db/schema";
+import { env } from "@/lib/env/server";
 import { processVideoWorkflow } from "./video-processing";
 
 // =============================================================================
@@ -60,6 +58,10 @@ async function updateImportStatus(
     importedAt?: Date;
   },
 ): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { importedMeetings } = await import("@/lib/db/schema");
+
   await db
     .update(importedMeetings)
     .set({
@@ -119,12 +121,11 @@ async function downloadGoogleMeetRecording(
 async function uploadToR2(buffer: Buffer, key: string, contentType: string): Promise<{ url: string }> {
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
 
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucketName = process.env.R2_BUCKET_NAME;
-  const publicUrl = process.env.R2_PUBLIC_URL;
-
+  const accountId = env.R2_ACCOUNT_ID;
+  const accessKeyId = env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
+  const bucketName = env.R2_BUCKET_NAME;
+  const publicUrl = env.R2_PUBLIC_URL;
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
     throw new FatalError("R2 storage not configured");
   }
@@ -214,6 +215,9 @@ export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<
 
     // Step 5: Create video record
     const estimatedDuration = Math.round(downloadResult.buffer.length / 100000);
+
+    const { db } = await import("@/lib/db");
+    const { videos } = await import("@/lib/db/schema");
 
     const [video] = await db
       .insert(videos)
