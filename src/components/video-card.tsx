@@ -18,7 +18,7 @@ import type { VideoWithAuthor } from "@/lib/types";
 import { ReportDialog } from "@/components/moderation/report-dialog";
 
 interface VideoCardProps {
-  video: VideoWithAuthor;
+  video: VideoWithAuthor & { views?: number };
   organization?: string;
   priority?: boolean;
   showProgress?: boolean;
@@ -89,10 +89,7 @@ export function VideoCard({
               {/* Progress bar */}
               {showProgress && progress > 0 && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
+                  <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                 </div>
               )}
 
@@ -110,10 +107,7 @@ export function VideoCard({
             {/* Content */}
             <div className="flex items-start gap-3 mt-3">
               <Avatar className="h-9 w-9 ring-2 ring-background">
-                <AvatarImage
-                  src={video.author.image || "/placeholder.svg"}
-                  alt={video.author.name || "Author"}
-                />
+                <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
                 <AvatarFallback className="text-xs font-medium">
                   {video.author.name ? video.author.name.charAt(0).toUpperCase() : "A"}
                 </AvatarFallback>
@@ -163,10 +157,7 @@ export function VideoCard({
                 resourceType="video"
                 resourceId={video.id}
                 trigger={
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onSelect={(e) => e.preventDefault()}
-                  >
+                  <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
                     <Flag className="mr-2 h-4 w-4" />
                     Report video
                   </DropdownMenuItem>

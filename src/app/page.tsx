@@ -441,9 +441,7 @@ export default function LandingPage() {
 
           {/* Enterprise CTA */}
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Need custom integrations, SSO, or dedicated support?
-            </p>
+            <p className="text-muted-foreground mb-4">Need custom integrations, SSO, or dedicated support?</p>
             <Button variant="outline" asChild>
               <Link href="/contact">Contact Sales for Enterprise</Link>
             </Button>

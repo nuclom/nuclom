@@ -34,11 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    const [userData] = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, session.user.id))
-      .limit(1);
+    const [userData] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id)).limit(1);
 
     if (userData?.role !== "admin") {
       return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
@@ -85,10 +81,7 @@ export async function GET(request: NextRequest) {
         .orderBy(desc(reports.createdAt))
         .limit(limit)
         .offset(offset),
-      db
-        .select({ count: count() })
-        .from(reports)
-        .where(whereClause),
+      db.select({ count: count() }).from(reports).where(whereClause),
     ]);
 
     return NextResponse.json({
@@ -124,10 +117,7 @@ export async function POST(request: NextRequest) {
     const validationResult = createReportSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: validationResult.error.issues },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request", details: validationResult.error.issues }, { status: 400 });
     }
 
     const { resourceType, resourceId, category, description } = validationResult.data;
@@ -141,16 +131,13 @@ export async function POST(request: NextRequest) {
           eq(reports.reporterId, session.user.id),
           eq(reports.resourceType, resourceType),
           eq(reports.resourceId, resourceId),
-          eq(reports.status, "pending")
-        )
+          eq(reports.status, "pending"),
+        ),
       )
       .limit(1);
 
     if (existingReport.length > 0) {
-      return NextResponse.json(
-        { error: "You have already reported this content" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "You have already reported this content" }, { status: 409 });
     }
 
     // Create the report
@@ -172,7 +159,7 @@ export async function POST(request: NextRequest) {
         message: "Thank you for your report. Our team will review it shortly.",
         reportId: newReport.id,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Create report error:", error);
@@ -192,11 +179,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Check if user is admin
-    const [userData] = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, session.user.id))
-      .limit(1);
+    const [userData] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id)).limit(1);
 
     if (userData?.role !== "admin") {
       return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
@@ -212,10 +195,7 @@ export async function PATCH(request: NextRequest) {
     const validationResult = updateReportSchema.safeParse(updateData);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: validationResult.error.issues },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request", details: validationResult.error.issues }, { status: 400 });
     }
 
     const { status, resolution, resolutionNotes } = validationResult.data;
@@ -239,11 +219,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update the report
-    const [updatedReport] = await db
-      .update(reports)
-      .set(updateObj)
-      .where(eq(reports.id, reportId))
-      .returning();
+    const [updatedReport] = await db.update(reports).set(updateObj).where(eq(reports.id, reportId)).returning();
 
     if (!updatedReport) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });

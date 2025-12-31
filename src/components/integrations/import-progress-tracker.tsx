@@ -47,7 +47,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
 
   // Auto-refresh when there are pending imports
   const hasPendingImports = importedMeetings.some(
-    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing"
+    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing",
   );
 
   useEffect(() => {
@@ -82,7 +82,10 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
   };
 
   const getStatusBadge = (status: ImportedMeeting["importStatus"]) => {
-    const variants: Record<ImportedMeeting["importStatus"], { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    const variants: Record<
+      ImportedMeeting["importStatus"],
+      { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+    > = {
       pending: { variant: "secondary", label: "Pending" },
       downloading: { variant: "default", label: "Downloading" },
       processing: { variant: "default", label: "Processing" },

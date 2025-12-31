@@ -132,7 +132,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
         setLoading(false);
       }
     },
-    [provider, nextPageToken, toast, dateRange]
+    [provider, nextPageToken, toast, dateRange],
   );
 
   useEffect(() => {

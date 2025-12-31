@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import type { Video, VideoShareLink } from "@/lib/db/schema";
@@ -51,7 +45,8 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
   const [maxViews, setMaxViews] = useState<string>("");
 
   // Direct video URL
-  const directUrl = typeof window !== "undefined" ? `${window.location.origin}/${organizationSlug}/videos/${video.id}` : "";
+  const directUrl =
+    typeof window !== "undefined" ? `${window.location.origin}/${organizationSlug}/videos/${video.id}` : "";
 
   // Load existing share links
   const loadShareLinks = useCallback(async () => {
@@ -117,12 +112,11 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
 
   const copyLink = useCallback(
     (linkId: string) => {
-      const shareUrl =
-        typeof window !== "undefined" ? `${window.location.origin}/share/${linkId}` : "";
+      const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/share/${linkId}` : "";
       navigator.clipboard.writeText(shareUrl);
       toast({ title: "Link copied!" });
     },
-    [toast]
+    [toast],
   );
 
   const copyDirectLink = useCallback(() => {
@@ -199,10 +193,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label htmlFor="access-level">Access level</Label>
-              <Select
-                value={accessLevel}
-                onValueChange={(value: AccessLevel) => setAccessLevel(value)}
-              >
+              <Select value={accessLevel} onValueChange={(value: AccessLevel) => setAccessLevel(value)}>
                 <SelectTrigger id="access-level">
                   <SelectValue placeholder="Select access level" />
                 </SelectTrigger>
@@ -232,10 +223,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="expires-in">Expires</Label>
-                <Select
-                  value={expiresIn}
-                  onValueChange={(value: ExpiresIn) => setExpiresIn(value)}
-                >
+                <Select value={expiresIn} onValueChange={(value: ExpiresIn) => setExpiresIn(value)}>
                   <SelectTrigger id="expires-in">
                     <SelectValue placeholder="Select expiration" />
                   </SelectTrigger>
@@ -262,11 +250,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
             </div>
 
             <Button onClick={createShareLink} disabled={isCreating} className="w-full">
-              {isCreating ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Link2 className="h-4 w-4 mr-2" />
-              )}
+              {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Link2 className="h-4 w-4 mr-2" />}
               Create Link
             </Button>
           </div>
@@ -282,16 +266,11 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : shareLinks.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No active share links
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-4">No active share links</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {shareLinks.map((link) => (
-                <div
-                  key={link.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
+                <div key={link.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="min-w-0">
                     <p className="text-sm font-mono truncate">/share/{link.id.slice(0, 8)}...</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
@@ -307,28 +286,16 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
                       {link.expiresAt && (
                         <>
                           <span>•</span>
-                          <span>
-                            Expires {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true })}
-                          </span>
+                          <span>Expires {formatDistanceToNow(new Date(link.expiresAt), { addSuffix: true })}</span>
                         </>
                       )}
                     </div>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => copyLink(link.id)}
-                      title="Copy link"
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => copyLink(link.id)} title="Copy link">
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => revokeLink(link.id)}
-                      title="Revoke link"
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => revokeLink(link.id)} title="Revoke link">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

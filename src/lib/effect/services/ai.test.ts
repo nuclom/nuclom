@@ -18,28 +18,80 @@ import { generateText } from "ai";
 // Helper to create a mock AI response
 function createMockAIResponse(text: string) {
   return {
+    // Content and text
+    content: [{ type: "text" as const, text }],
     text,
-    usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-    finishReason: "stop",
+
+    // Reasoning
+    reasoning: [],
+    reasoningText: undefined,
+
+    // Files and sources
+    files: [],
+    sources: [],
+
+    // Tool calls and results
+    toolCalls: [],
+    staticToolCalls: [],
+    dynamicToolCalls: [],
+    toolResults: [],
+    staticToolResults: [],
+    dynamicToolResults: [],
+
+    // Finish reason
+    finishReason: "stop" as const,
+    rawFinishReason: undefined,
+
+    // Usage
+    usage: {
+      inputTokens: 100,
+      inputTokenDetails: {
+        noCacheTokens: 100,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      },
+      outputTokens: 50,
+      outputTokenDetails: {
+        textTokens: 50,
+        reasoningTokens: 0,
+      },
+      totalTokens: 150,
+    },
+    totalUsage: {
+      inputTokens: 100,
+      inputTokenDetails: {
+        noCacheTokens: 100,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      },
+      outputTokens: 50,
+      outputTokenDetails: {
+        textTokens: 50,
+        reasoningTokens: 0,
+      },
+      totalTokens: 150,
+    },
+
+    // Warnings and metadata
+    warnings: undefined,
+    providerMetadata: undefined,
+
+    // Request and response
+    request: { body: "" },
     response: {
       id: "resp-123",
       timestamp: new Date(),
       modelId: "xai/grok-3",
       headers: {},
+      messages: [],
     },
-    warnings: [],
-    providerMetadata: undefined,
-    request: { body: "" },
-    toJsonResponse: vi.fn(),
-    experimental_output: undefined,
+
+    // Steps
     steps: [],
-    toolCalls: [],
-    toolResults: [],
-    logprobs: undefined,
-    reasoning: undefined,
-    reasoningDetails: [],
-    files: [],
-    sources: [],
+
+    // Output
+    experimental_output: undefined,
+    output: undefined,
   };
 }
 

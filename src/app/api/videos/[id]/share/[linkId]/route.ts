@@ -34,10 +34,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // DELETE /api/videos/[id]/share/[linkId] - Revoke share link
 // =============================================================================
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; linkId: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; linkId: string }> }) {
   const AuthLayer = makeAuthLayer(auth);
   const FullLayer = Layer.merge(AppLive, AuthLayer);
 

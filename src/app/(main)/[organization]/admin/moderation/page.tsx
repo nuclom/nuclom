@@ -46,13 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -124,21 +118,19 @@ function ModerationDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showActionDialog, setShowActionDialog] = useState(false);
-  const [actionType, setActionType] = useState<"dismiss" | "remove" | "warn" | "suspend" | null>(
-    null
-  );
+  const [actionType, setActionType] = useState<"dismiss" | "remove" | "warn" | "suspend" | null>(null);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "all">(
-    (searchParams.get("status") as ReportStatus) || "pending"
+    (searchParams.get("status") as ReportStatus) || "pending",
   );
   const [categoryFilter, setCategoryFilter] = useState<ReportCategory | "all">(
-    (searchParams.get("category") as ReportCategory) || "all"
+    (searchParams.get("category") as ReportCategory) || "all",
   );
   const [resourceTypeFilter, setResourceTypeFilter] = useState<ReportResourceType | "all">(
-    (searchParams.get("resourceType") as ReportResourceType) || "all"
+    (searchParams.get("resourceType") as ReportResourceType) || "all",
   );
 
   // Fetch reports
@@ -188,15 +180,12 @@ function ModerationDashboard() {
   }, [fetchReports]);
 
   // Handle action
-  const handleAction = useCallback(
-    (report: Report, action: "dismiss" | "remove" | "warn" | "suspend") => {
-      setSelectedReport(report);
-      setActionType(action);
-      setResolutionNotes("");
-      setShowActionDialog(true);
-    },
-    []
-  );
+  const handleAction = useCallback((report: Report, action: "dismiss" | "remove" | "warn" | "suspend") => {
+    setSelectedReport(report);
+    setActionType(action);
+    setResolutionNotes("");
+    setShowActionDialog(true);
+  }, []);
 
   const submitAction = useCallback(async () => {
     if (!selectedReport || !actionType) return;
@@ -286,9 +275,7 @@ function ModerationDashboard() {
           <Shield className="h-8 w-8" />
           Content Moderation
         </h1>
-        <p className="text-muted-foreground mt-1">
-          Review and take action on reported content.
-        </p>
+        <p className="text-muted-foreground mt-1">Review and take action on reported content.</p>
       </div>
 
       {/* Stats */}
@@ -320,10 +307,7 @@ function ModerationDashboard() {
           <div className="flex flex-wrap gap-4">
             <div className="w-40">
               <Label className="text-xs mb-1.5 block">Status</Label>
-              <Select
-                value={statusFilter}
-                onValueChange={(v) => setStatusFilter(v as ReportStatus | "all")}
-              >
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ReportStatus | "all")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -339,10 +323,7 @@ function ModerationDashboard() {
 
             <div className="w-40">
               <Label className="text-xs mb-1.5 block">Category</Label>
-              <Select
-                value={categoryFilter}
-                onValueChange={(v) => setCategoryFilter(v as ReportCategory | "all")}
-              >
+              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as ReportCategory | "all")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -400,19 +381,14 @@ function ModerationDashboard() {
           ) : (
             <div className="space-y-4">
               {reports.map((report) => (
-                <div
-                  key={report.id}
-                  className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-                >
+                <div key={report.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Report Header */}
                       <div className="flex items-center gap-3 mb-2">
                         <div className="flex items-center gap-1.5">
                           {resourceTypeIcons[report.resourceType]}
-                          <span className="text-sm font-medium capitalize">
-                            {report.resourceType}
-                          </span>
+                          <span className="text-sm font-medium capitalize">{report.resourceType}</span>
                         </div>
                         <Badge className={statusColors[report.status]}>{report.status}</Badge>
                         <Badge variant="outline">{categoryLabels[report.category]}</Badge>
@@ -423,9 +399,7 @@ function ModerationDashboard() {
                         <div className="flex items-center gap-2 mb-2">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={report.reporter.image || undefined} />
-                            <AvatarFallback className="text-xs">
-                              {report.reporter.name?.[0] || "U"}
-                            </AvatarFallback>
+                            <AvatarFallback className="text-xs">{report.reporter.name?.[0] || "U"}</AvatarFallback>
                           </Avatar>
                           <span className="text-sm text-muted-foreground">
                             Reported by <strong>{report.reporter.name || report.reporter.email}</strong>
@@ -435,9 +409,7 @@ function ModerationDashboard() {
 
                       {/* Description */}
                       {report.description && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          "{report.description}"
-                        </p>
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">"{report.description}"</p>
                       )}
 
                       {/* Timestamp */}
@@ -555,9 +527,7 @@ function ModerationDashboard() {
               onClick={submitAction}
               disabled={isSubmitting}
               className={
-                actionType === "suspend"
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  : ""
+                actionType === "suspend" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""
               }
             >
               {isSubmitting ? (

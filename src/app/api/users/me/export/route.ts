@@ -35,19 +35,13 @@ export async function GET(request: NextRequest) {
     const recentExports = await db
       .select()
       .from(dataExportRequests)
-      .where(
-        and(
-          eq(dataExportRequests.userId, userId),
-          gte(dataExportRequests.createdAt, twentyFourHoursAgo)
-        )
-      )
+      .where(and(eq(dataExportRequests.userId, userId), gte(dataExportRequests.createdAt, twentyFourHoursAgo)))
       .limit(1);
 
     if (recentExports.length > 0) {
       const lastExport = recentExports[0];
       const timeRemaining = Math.ceil(
-        (lastExport.createdAt.getTime() + EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000 - Date.now()) /
-          (60 * 60 * 1000)
+        (lastExport.createdAt.getTime() + EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000 - Date.now()) / (60 * 60 * 1000),
       );
 
       return NextResponse.json(
@@ -55,10 +49,10 @@ export async function GET(request: NextRequest) {
           error: "Rate limit exceeded",
           message: `You can only request one data export every ${EXPORT_RATE_LIMIT_HOURS} hours. Please try again in ${timeRemaining} hours.`,
           nextAvailable: new Date(
-            lastExport.createdAt.getTime() + EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000
+            lastExport.createdAt.getTime() + EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000,
           ).toISOString(),
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -190,10 +184,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Data export error:", error);
-    return NextResponse.json(
-      { error: "Failed to export data. Please try again later." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to export data. Please try again later." }, { status: 500 });
   }
 }
 

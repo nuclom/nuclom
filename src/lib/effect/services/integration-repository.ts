@@ -564,10 +564,7 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       try: async () => {
         // Search for integrations with matching accountId in metadata
         // This uses a JSON containment query
-        const results = await db
-          .select()
-          .from(integrations)
-          .where(eq(integrations.provider, "zoom"));
+        const results = await db.select().from(integrations).where(eq(integrations.provider, "zoom"));
 
         // Filter in memory since we need to check JSON metadata
         return results.filter((integration) => {
