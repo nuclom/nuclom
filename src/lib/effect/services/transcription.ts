@@ -1,16 +1,16 @@
 /**
  * Transcription Service using Effect-TS
  *
- * Provides type-safe transcription operations using OpenAI Whisper API.
+ * Provides type-safe transcription operations using Replicate's Whisper model.
  * Handles audio extraction and transcription with timestamp segments.
  *
- * Note: This service uses the direct OpenAI SDK because the Vercel AI SDK
- * does not support audio transcription APIs (Whisper). All text generation
- * AI features use the Vercel AI SDK with gateway routing.
+ * This service uses Replicate for transcription to maintain consistency with
+ * the rest of the AI infrastructure, which uses managed services (Vercel AI SDK
+ * for text generation, Replicate for audio/video processing).
  */
 
 import { Context, Effect, Layer } from "effect";
-import OpenAI from "openai";
+import Replicate from "replicate";
 import type { TranscriptSegment } from "@/lib/db/schema";
 
 // =============================================================================
@@ -70,124 +70,92 @@ export interface TranscriptionServiceInterface {
 export class Transcription extends Context.Tag("Transcription")<Transcription, TranscriptionServiceInterface>() {}
 
 // =============================================================================
+// Replicate Model
+// =============================================================================
+
+const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
+
+// =============================================================================
 // Transcription Service Implementation
 // =============================================================================
 
 const makeTranscriptionService = Effect.gen(function* () {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const isConfigured = !!apiKey;
+  const apiToken = process.env.REPLICATE_API_TOKEN;
+  const isConfigured = !!apiToken;
 
-  // Create OpenAI client only if configured
-  const openai = isConfigured ? new OpenAI({ apiKey }) : null;
+  // Create Replicate client only if configured
+  const replicate = isConfigured ? new Replicate({ auth: apiToken }) : null;
 
   const isAvailable = (): boolean => isConfigured;
 
   const transcribeAudio = (
-    audioBuffer: Buffer,
-    filename = "audio.mp3",
+    _audioBuffer: Buffer,
+    _filename = "audio.mp3",
   ): Effect.Effect<TranscriptionResult, TranscriptionError> =>
+    Effect.fail(
+      new TranscriptionError({
+        message:
+          "Direct buffer transcription not supported with Replicate. Use transcribeFromUrl with a publicly accessible URL.",
+        operation: "transcribeAudio",
+      }),
+    );
+
+  const transcribeFromUrl = (videoUrl: string): Effect.Effect<TranscriptionResult, TranscriptionError> =>
     Effect.gen(function* () {
-      if (!openai) {
+      if (!replicate) {
         return yield* Effect.fail(
           new TranscriptionError({
-            message: "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
-            operation: "transcribeAudio",
+            message: "Replicate API token not configured. Please set REPLICATE_API_TOKEN environment variable.",
+            operation: "transcribeFromUrl",
           }),
         );
       }
 
-      // Convert buffer to File for OpenAI API (use Uint8Array for broader compatibility)
-      const file = new File([new Uint8Array(audioBuffer)], filename, {
-        type: filename.endsWith(".mp3") ? "audio/mpeg" : "audio/wav",
-      });
-
-      const response = yield* Effect.tryPromise({
+      const output = yield* Effect.tryPromise({
         try: async () => {
-          return await openai.audio.transcriptions.create({
-            file,
-            model: "whisper-1",
-            response_format: "verbose_json",
-            timestamp_granularities: ["segment"],
-          });
+          return (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
+            input: {
+              audio: videoUrl,
+              model: "large-v3",
+              translate: false,
+              temperature: 0,
+              transcription: "plain text",
+              suppress_tokens: "-1",
+              logprob_threshold: -1,
+              no_speech_threshold: 0.6,
+              condition_on_previous_text: true,
+              compression_ratio_threshold: 2.4,
+            },
+          })) as {
+            transcription?: string;
+            segments?: Array<{ start: number; end: number; text: string }>;
+            detected_language?: string;
+          };
         },
         catch: (error) =>
           new TranscriptionError({
-            message: "Failed to transcribe audio",
-            operation: "transcribeAudio",
+            message: "Failed to transcribe video",
+            operation: "transcribeFromUrl",
             cause: error,
           }),
       });
 
       // Parse segments from response
-      const segments: TranscriptSegment[] = (response.segments || []).map((seg) => ({
+      const segments: TranscriptSegment[] = (output.segments || []).map((seg) => ({
         startTime: seg.start,
         endTime: seg.end,
         text: seg.text.trim(),
-        confidence: seg.avg_logprob ? Math.exp(seg.avg_logprob) : undefined,
       }));
 
+      // Calculate duration from segments if available
+      const duration = segments.length > 0 ? Math.max(...segments.map((s) => s.endTime)) : 0;
+
       return {
-        transcript: response.text,
+        transcript: output.transcription || "",
         segments,
-        duration: response.duration || 0,
-        language: response.language,
+        duration,
+        language: output.detected_language,
       };
-    });
-
-  const transcribeFromUrl = (videoUrl: string): Effect.Effect<TranscriptionResult, TranscriptionError> =>
-    Effect.gen(function* () {
-      if (!openai) {
-        return yield* Effect.fail(
-          new TranscriptionError({
-            message: "OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.",
-            operation: "transcribeFromUrl",
-          }),
-        );
-      }
-
-      // Fetch video/audio from URL
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(videoUrl);
-          if (!res.ok) {
-            throw new Error(`Failed to fetch video: ${res.status} ${res.statusText}`);
-          }
-          return res;
-        },
-        catch: (error) =>
-          new TranscriptionError({
-            message: `Failed to fetch video from URL: ${videoUrl}`,
-            operation: "transcribeFromUrl",
-            cause: error,
-          }),
-      });
-
-      // Get the file buffer
-      const buffer = yield* Effect.tryPromise({
-        try: async () => Buffer.from(await response.arrayBuffer()),
-        catch: (error) =>
-          new TranscriptionError({
-            message: "Failed to read video buffer",
-            operation: "transcribeFromUrl",
-            cause: error,
-          }),
-      });
-
-      // Determine filename from URL or content-type
-      const contentType = response.headers.get("content-type") || "";
-      let filename = "audio.mp3";
-      if (contentType.includes("video/mp4") || videoUrl.endsWith(".mp4")) {
-        filename = "video.mp4";
-      } else if (contentType.includes("video/webm") || videoUrl.endsWith(".webm")) {
-        filename = "video.webm";
-      } else if (contentType.includes("audio/mpeg") || videoUrl.endsWith(".mp3")) {
-        filename = "audio.mp3";
-      } else if (contentType.includes("audio/wav") || videoUrl.endsWith(".wav")) {
-        filename = "audio.wav";
-      }
-
-      // Whisper can handle video files directly (it extracts audio internally)
-      return yield* transcribeAudio(buffer, filename);
     });
 
   return {

@@ -81,52 +81,51 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 }
 
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
-  const apiKey = env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new FatalError("OpenAI API key not configured");
+  const replicateToken = env.REPLICATE_API_TOKEN;
+  if (!replicateToken) {
+    throw new FatalError("Replicate API token not configured. Please set REPLICATE_API_TOKEN.");
   }
 
-  // Note: Whisper transcription requires the direct OpenAI SDK.
-  // The Vercel AI SDK does not support audio transcription APIs.
-  const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey });
+  // Use Replicate's Whisper model for transcription
+  // This keeps all AI services routed through managed gateways/services
+  const { default: Replicate } = await import("replicate");
+  const replicate = new Replicate({ auth: replicateToken });
 
-  // Fetch the video file
-  const response = await fetch(videoUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch video: ${response.status}`);
-  }
+  const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
 
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
+    input: {
+      audio: videoUrl,
+      model: "large-v3",
+      translate: false,
+      temperature: 0,
+      transcription: "plain text",
+      suppress_tokens: "-1",
+      logprob_threshold: -1,
+      no_speech_threshold: 0.6,
+      condition_on_previous_text: true,
+      compression_ratio_threshold: 2.4,
+    },
+  })) as {
+    transcription?: string;
+    segments?: Array<{ start: number; end: number; text: string }>;
+    detected_language?: string;
+  };
 
-  // Determine filename from URL
-  const filename = videoUrl.endsWith(".mp4") ? "video.mp4" : "video.webm";
-
-  // Create file for OpenAI
-  const file = new File([new Uint8Array(buffer)], filename, {
-    type: filename.endsWith(".mp4") ? "video/mp4" : "video/webm",
-  });
-
-  // Transcribe using Whisper
-  const transcription = await openai.audio.transcriptions.create({
-    file,
-    model: "whisper-1",
-    response_format: "verbose_json",
-    timestamp_granularities: ["segment"],
-  });
-
-  const segments: TranscriptSegment[] = (transcription.segments || []).map((seg) => ({
+  const segments: TranscriptSegment[] = (output.segments || []).map((seg) => ({
     startTime: seg.start,
     endTime: seg.end,
     text: seg.text.trim(),
-    confidence: seg.avg_logprob ? Math.exp(seg.avg_logprob) : undefined,
   }));
 
+  // Calculate duration from segments if available
+  const duration = segments.length > 0 ? Math.max(...segments.map((s) => s.endTime)) : 0;
+
   return {
-    transcript: transcription.text,
+    transcript: output.transcription || "",
     segments,
-    duration: transcription.duration || 0,
-    language: transcription.language,
+    duration,
+    language: output.detected_language,
   };
 }
 
