@@ -21,7 +21,7 @@ import { Database } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { env } from "@/lib/env/client";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // POST /api/webhooks/stripe - Handle additional Stripe webhooks
