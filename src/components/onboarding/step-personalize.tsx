@@ -64,9 +64,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
   };
 
   const canProceed =
-    (step === 0 && selectedRole) ||
-    (step === 1 && selectedTeamSize) ||
-    (step === 2 && selectedUseCase);
+    (step === 0 && selectedRole) || (step === 1 && selectedTeamSize) || (step === 2 && selectedUseCase);
 
   return (
     <div className="space-y-8">
@@ -87,15 +85,14 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
               key={role.id}
               className={cn(
                 "cursor-pointer transition-all hover:border-primary/50",
-                selectedRole === role.id && "border-primary bg-primary/5 ring-2 ring-primary/20"
+                selectedRole === role.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
               )}
               onClick={() => setSelectedRole(role.id)}
             >
               <CardContent className="flex flex-col items-center justify-center p-6">
-                <role.icon className={cn(
-                  "w-8 h-8 mb-3",
-                  selectedRole === role.id ? "text-primary" : "text-muted-foreground"
-                )} />
+                <role.icon
+                  className={cn("w-8 h-8 mb-3", selectedRole === role.id ? "text-primary" : "text-muted-foreground")}
+                />
                 <span className="font-medium text-sm">{role.label}</span>
               </CardContent>
             </Card>
@@ -111,7 +108,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
               key={size.id}
               className={cn(
                 "cursor-pointer transition-all hover:border-primary/50",
-                selectedTeamSize === size.id && "border-primary bg-primary/5 ring-2 ring-primary/20"
+                selectedTeamSize === size.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
               )}
               onClick={() => setSelectedTeamSize(size.id)}
             >
@@ -120,9 +117,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
                 <div
                   className={cn(
                     "w-5 h-5 rounded-full border-2 transition-all",
-                    selectedTeamSize === size.id
-                      ? "border-primary bg-primary"
-                      : "border-muted-foreground/30"
+                    selectedTeamSize === size.id ? "border-primary bg-primary" : "border-muted-foreground/30",
                   )}
                 >
                   {selectedTeamSize === size.id && (
@@ -145,7 +140,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
               key={useCase.id}
               className={cn(
                 "cursor-pointer transition-all hover:border-primary/50",
-                selectedUseCase === useCase.id && "border-primary bg-primary/5 ring-2 ring-primary/20"
+                selectedUseCase === useCase.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
               )}
               onClick={() => setSelectedUseCase(useCase.id)}
             >
@@ -154,9 +149,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
                   <div
                     className={cn(
                       "w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all",
-                      selectedUseCase === useCase.id
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground/30"
+                      selectedUseCase === useCase.id ? "border-primary bg-primary" : "border-muted-foreground/30",
                     )}
                   >
                     {selectedUseCase === useCase.id && (
@@ -181,10 +174,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
         {[0, 1, 2].map((s) => (
           <div
             key={s}
-            className={cn(
-              "w-2 h-2 rounded-full transition-all",
-              s === step ? "bg-primary w-6" : "bg-muted"
-            )}
+            className={cn("w-2 h-2 rounded-full transition-all", s === step ? "bg-primary w-6" : "bg-muted")}
           />
         ))}
       </div>

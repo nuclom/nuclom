@@ -18,21 +18,10 @@ import { AIServiceError } from "../errors";
 
 export const VideoSummarySchema = z.object({
   summary: z.string().describe("A concise 2-3 sentence summary of the video content"),
-  keyPoints: z
-    .array(z.string())
-    .min(1)
-    .max(10)
-    .describe("Key points discussed in the video"),
-  actionItems: z
-    .array(z.string())
-    .describe("Action items or tasks mentioned in the video"),
-  topics: z
-    .array(z.string())
-    .max(5)
-    .describe("Main topics covered in the video"),
-  sentiment: z
-    .enum(["positive", "neutral", "negative", "mixed"])
-    .describe("Overall sentiment of the content"),
+  keyPoints: z.array(z.string()).min(1).max(10).describe("Key points discussed in the video"),
+  actionItems: z.array(z.string()).describe("Action items or tasks mentioned in the video"),
+  topics: z.array(z.string()).max(5).describe("Main topics covered in the video"),
+  sentiment: z.enum(["positive", "neutral", "negative", "mixed"]).describe("Overall sentiment of the content"),
 });
 
 export const ActionItemSchema = z.object({
@@ -103,17 +92,7 @@ export const CodeSnippetsSchema = z.object({
 export const VideoTagsSchema = z.object({
   tags: z.array(z.string()).min(3).max(10).describe("Relevant tags for the video"),
   category: z
-    .enum([
-      "tutorial",
-      "demo",
-      "presentation",
-      "meeting",
-      "interview",
-      "review",
-      "announcement",
-      "discussion",
-      "other",
-    ])
+    .enum(["tutorial", "demo", "presentation", "meeting", "interview", "review", "announcement", "discussion", "other"])
     .describe("Primary category of the video"),
   technicalLevel: z
     .enum(["beginner", "intermediate", "advanced", "expert"])
@@ -294,9 +273,7 @@ Provide:
   ): Effect.Effect<ActionItemsResult, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const result = await generateObject({
           model,
@@ -395,9 +372,7 @@ For each snippet:
           };
         }
 
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const duration = totalDuration || Math.max(...segments.map((s) => s.endTime));
 

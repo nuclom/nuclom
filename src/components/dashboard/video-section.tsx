@@ -34,9 +34,7 @@ export function VideoSection({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold">{title}</h2>
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          )}
+          {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
         </div>
         {viewAllHref && videos.length > 0 && (
           <Button variant="ghost" size="sm" asChild>
@@ -66,12 +64,7 @@ export function VideoSection({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
           {videos.map((video, index) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              organization={organization}
-              priority={index < 4}
-            />
+            <VideoCard key={video.id} video={video} organization={organization} priority={index < 4} />
           ))}
         </div>
       )}

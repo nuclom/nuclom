@@ -56,10 +56,7 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
       <div className="flex h-16 items-center px-4 md:px-6">
         {/* Left section - Logo and Organization */}
         <div className="flex items-center gap-4">
-          <Link
-            href={`/${organization}`}
-            className="flex items-center gap-2.5 group"
-          >
+          <Link href={`/${organization}`} className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
               <Film className="h-5 w-5 text-white" />
             </div>
@@ -82,11 +79,7 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
 
         {/* Right section - Actions */}
         <div className="flex items-center gap-1 md:gap-2">
-          <Button
-            size="sm"
-            className="hidden sm:inline-flex gap-2 bg-primary hover:bg-primary/90"
-            asChild
-          >
+          <Button size="sm" className="hidden sm:inline-flex gap-2 bg-primary hover:bg-primary/90" asChild>
             <Link href={`/${organization}/upload`}>
               <Plus className="h-4 w-4" />
               <span className="hidden md:inline">New Video</span>
@@ -101,10 +94,7 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9 ring-2 ring-border">
-                  <AvatarImage
-                    src={user?.image || "/placeholder.svg?height=36&width=36"}
-                    alt={user?.name || "User"}
-                  />
+                  <AvatarImage src={user?.image || "/placeholder.svg?height=36&width=36"} alt={user?.name || "User"} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
                     {isLoading ? "..." : getInitials(user?.name)}
                   </AvatarFallback>
@@ -114,12 +104,8 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
             <DropdownMenuContent className="w-64" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1.5">
-                  <p className="text-sm font-semibold leading-none">
-                    {user?.name || "Loading..."}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email || ""}
-                  </p>
+                  <p className="text-sm font-semibold leading-none">{user?.name || "Loading..."}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -153,7 +139,10 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive cursor-pointer"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
                 <DropdownMenuShortcut>Q</DropdownMenuShortcut>

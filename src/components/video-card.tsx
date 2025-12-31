@@ -78,10 +78,7 @@ export function VideoCard({
             {/* Progress bar */}
             {showProgress && progress > 0 && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-                <div
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${progress}%` }}
-                />
+                <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
               </div>
             )}
 
@@ -99,10 +96,7 @@ export function VideoCard({
           {/* Content */}
           <div className="flex items-start gap-3 mt-3">
             <Avatar className="h-9 w-9 ring-2 ring-background">
-              <AvatarImage
-                src={video.author.image || "/placeholder.svg"}
-                alt={video.author.name || "Author"}
-              />
+              <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
               <AvatarFallback className="text-xs font-medium">
                 {video.author.name ? video.author.name.charAt(0).toUpperCase() : "A"}
               </AvatarFallback>

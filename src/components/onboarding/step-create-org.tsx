@@ -60,11 +60,7 @@ export function StepCreateOrg({ onNext, onBack, isLoading, error }: StepCreateOr
           )}
         </div>
 
-        {error && (
-          <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
 
         <div className="flex justify-between pt-4">
           <Button type="button" variant="ghost" onClick={onBack} disabled={isLoading}>

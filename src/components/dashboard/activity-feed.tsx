@@ -62,29 +62,32 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
   };
 
   // Demo activities if none provided
-  const displayActivities: ActivityItem[] = activities.length > 0 ? activities : [
-    {
-      id: "1",
-      type: "upload",
-      user: { name: "Alex Chen" },
-      target: "Q4 Product Demo",
-      timestamp: new Date(Date.now() - 3600000),
-    },
-    {
-      id: "2",
-      type: "comment",
-      user: { name: "Sarah Miller" },
-      target: "Engineering Standup",
-      timestamp: new Date(Date.now() - 7200000),
-    },
-    {
-      id: "3",
-      type: "view",
-      user: { name: "James Wilson" },
-      target: "Onboarding Guide",
-      timestamp: new Date(Date.now() - 18000000),
-    },
-  ];
+  const displayActivities: ActivityItem[] =
+    activities.length > 0
+      ? activities
+      : [
+          {
+            id: "1",
+            type: "upload",
+            user: { name: "Alex Chen" },
+            target: "Q4 Product Demo",
+            timestamp: new Date(Date.now() - 3600000),
+          },
+          {
+            id: "2",
+            type: "comment",
+            user: { name: "Sarah Miller" },
+            target: "Engineering Standup",
+            timestamp: new Date(Date.now() - 7200000),
+          },
+          {
+            id: "3",
+            type: "view",
+            user: { name: "James Wilson" },
+            target: "Onboarding Guide",
+            timestamp: new Date(Date.now() - 18000000),
+          },
+        ];
 
   return (
     <Card className={cn("", className)}>
@@ -96,9 +99,7 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
       </CardHeader>
       <CardContent>
         {displayActivities.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No recent activity
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
         ) : (
           <div className="space-y-4">
             {displayActivities.map((activity) => {
@@ -107,16 +108,12 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
                 <div key={activity.id} className="flex items-start gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={activity.user.image} />
-                    <AvatarFallback className="text-xs">
-                      {getInitials(activity.user.name)}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-xs">{getInitials(activity.user.name)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
                       <span className="font-medium">{activity.user.name}</span>{" "}
-                      <span className="text-muted-foreground">
-                        {activityMessages[activity.type]}
-                      </span>
+                      <span className="text-muted-foreground">{activityMessages[activity.type]}</span>
                       {activity.target && (
                         <>
                           {" "}
@@ -124,9 +121,7 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
                         </>
                       )}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {formatTime(activity.timestamp)}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{formatTime(activity.timestamp)}</p>
                   </div>
                   <div className="p-1.5 rounded-md bg-muted">
                     <Icon className="h-3.5 w-3.5 text-muted-foreground" />

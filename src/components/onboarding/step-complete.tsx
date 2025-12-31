@@ -41,8 +41,8 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
         </div>
         <h1 className="text-3xl font-bold tracking-tight">You're all set!</h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
-          Welcome to <span className="font-semibold text-foreground">{organizationName}</span>.
-          Here's what you can do next.
+          Welcome to <span className="font-semibold text-foreground">{organizationName}</span>. Here's what you can do
+          next.
         </p>
       </div>
 
@@ -53,13 +53,12 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
             className={action.primary ? "border-primary/50 bg-primary/5" : "hover:border-primary/30 transition-colors"}
           >
             <CardContent className="p-0">
-              <Link
-                href={action.href}
-                className="flex items-center gap-4 p-4"
-              >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  action.primary ? "bg-primary text-primary-foreground" : "bg-muted"
-                }`}>
+              <Link href={action.href} className="flex items-center gap-4 p-4">
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    action.primary ? "bg-primary text-primary-foreground" : "bg-muted"
+                  }`}
+                >
                   <action.icon className="w-6 h-6" />
                 </div>
                 <div className="text-left flex-1">
@@ -75,9 +74,7 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
 
       <div className="pt-4">
         <Button asChild size="lg" className="px-8">
-          <Link href={`/${organizationSlug}`}>
-            Go to Dashboard
-          </Link>
+          <Link href={`/${organizationSlug}`}>Go to Dashboard</Link>
         </Button>
       </div>
     </div>
