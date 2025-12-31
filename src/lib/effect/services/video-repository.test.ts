@@ -106,12 +106,17 @@ describe("VideoRepository Types", () => {
       };
 
       expect(mockService.getVideos).toBeDefined();
+      expect(mockService.getDeletedVideos).toBeDefined();
       expect(mockService.getVideo).toBeDefined();
       expect(mockService.createVideo).toBeDefined();
       expect(mockService.updateVideo).toBeDefined();
+      expect(mockService.softDeleteVideo).toBeDefined();
+      expect(mockService.restoreVideo).toBeDefined();
       expect(mockService.deleteVideo).toBeDefined();
+      expect(mockService.cleanupExpiredVideos).toBeDefined();
       expect(mockService.getVideoChapters).toBeDefined();
       expect(mockService.getVideoCodeSnippets).toBeDefined();
+      expect(mockService.searchVideos).toBeDefined();
     });
   });
 });

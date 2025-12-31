@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { Check, Clock, Edit2, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
+import { Check, Clock, Edit2, Flag, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import {
@@ -20,9 +20,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
 import { parseMentions } from "@/lib/mentions";
@@ -310,33 +312,42 @@ export function CommentItem({
                 Link
               </Button>
 
-              {(canEdit || canDelete) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">More options</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                        <Edit2 className="h-4 w-4 mr-2" />
-                        Edit
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                  {(canEdit || canDelete) && <DropdownMenuSeparator />}
+                  <ReportDialog
+                    resourceType="comment"
+                    resourceId={comment.id}
+                    trigger={
+                      <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                        <Flag className="h-4 w-4 mr-2" />
+                        Report
                       </DropdownMenuItem>
-                    )}
-                    {canDelete && (
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setShowDeleteDialog(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                    }
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>

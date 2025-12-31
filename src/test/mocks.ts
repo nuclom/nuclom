@@ -1,4 +1,6 @@
 import { vi } from "vitest";
+import type { User, Video, Organization } from "@/lib/db/schema";
+import type { VideoWithAuthor } from "@/lib/types";
 
 /**
  * Creates a mock database object for testing Effect-TS services
@@ -26,9 +28,9 @@ export function createMockDatabase() {
 }
 
 /**
- * Creates a mock user for testing
+ * Creates a mock user for testing with all required fields from schema
  */
-export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
+export function createMockUser(overrides: Partial<User> = {}): User {
   return {
     id: "user-123",
     email: "test@example.com",
@@ -38,33 +40,33 @@ export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
     updatedAt: new Date("2024-01-01"),
     emailVerified: true,
     role: "user",
-    banned: false,
+    banned: null,
     banReason: null,
     banExpires: null,
     twoFactorEnabled: null,
+    tosAcceptedAt: null,
+    tosVersion: null,
+    privacyAcceptedAt: null,
+    privacyVersion: null,
+    marketingConsentAt: null,
+    marketingConsent: false,
+    deletionRequestedAt: null,
+    deletionScheduledFor: null,
+    warnedAt: null,
+    warningReason: null,
+    suspendedUntil: null,
+    suspensionReason: null,
     ...overrides,
   };
 }
 
-interface MockUser {
-  id: string;
-  email: string;
-  name: string;
-  image: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  emailVerified: boolean;
-  role: "user" | "admin";
-  banned: boolean;
-  banReason: string | null;
-  banExpires: Date | null;
-  twoFactorEnabled: boolean | null;
-}
+// Omit internal fields from video types (searchVector, soft-delete fields) for testing
+type TestVideo = Omit<Video, "searchVector" | "deletedAt" | "retentionUntil">;
 
 /**
- * Creates a mock video for testing
+ * Creates a mock video for testing with all required fields from schema
  */
-export function createMockVideo(overrides: Partial<MockVideo> = {}): MockVideo {
+export function createMockVideo(overrides: Partial<TestVideo> = {}): TestVideo {
   return {
     id: "video-123",
     title: "Test Video",
@@ -89,45 +91,10 @@ export function createMockVideo(overrides: Partial<MockVideo> = {}): MockVideo {
   };
 }
 
-type MockActionItem = {
-  text: string;
-  timestamp?: number;
-  priority?: "high" | "medium" | "low";
-};
-
-type MockTranscriptSegment = {
-  startTime: number;
-  endTime: number;
-  text: string;
-  confidence?: number;
-};
-
-interface MockVideo {
-  id: string;
-  title: string;
-  description: string | null;
-  duration: string;
-  thumbnailUrl: string | null;
-  videoUrl: string | null;
-  authorId: string;
-  organizationId: string;
-  channelId: string | null;
-  collectionId: string | null;
-  transcript: string | null;
-  transcriptSegments: MockTranscriptSegment[];
-  processingStatus: "pending" | "transcribing" | "analyzing" | "completed" | "failed";
-  processingError: string | null;
-  aiSummary: string | null;
-  aiTags: string[] | null;
-  aiActionItems: MockActionItem[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 /**
- * Creates a mock organization for testing
+ * Creates a mock organization for testing with all required fields from schema
  */
-export function createMockOrganization(overrides: Partial<MockOrganization> = {}): MockOrganization {
+export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
     id: "org-123",
     name: "Test Organization",
@@ -139,42 +106,33 @@ export function createMockOrganization(overrides: Partial<MockOrganization> = {}
   };
 }
 
-interface MockOrganization {
-  id: string;
-  name: string;
-  slug: string | null;
-  logo: string | null;
-  createdAt: Date;
-  metadata: unknown;
-}
-
 /**
  * Creates a mock video with author for testing
  */
 export function createMockVideoWithAuthor(
-  videoOverrides: Partial<MockVideo> = {},
-  userOverrides: Partial<MockUser> = {},
-) {
+  videoOverrides: Partial<TestVideo> = {},
+  userOverrides: Partial<User> = {},
+): VideoWithAuthor {
   return {
     ...createMockVideo(videoOverrides),
     author: createMockUser(userOverrides),
   };
 }
 
+interface MockSession {
+  user: User;
+  expires: string;
+}
+
 /**
  * Creates a mock session for testing auth
  */
-export function createMockSession(overrides: Partial<MockSession> = {}) {
+export function createMockSession(overrides: Partial<MockSession> = {}): MockSession {
   return {
     user: createMockUser(),
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     ...overrides,
   };
-}
-
-interface MockSession {
-  user: MockUser;
-  expires: string;
 }
 
 /**

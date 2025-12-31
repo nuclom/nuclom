@@ -89,6 +89,18 @@ export default async function ChannelPage({ params }: { params: Promise<{ organi
                 banReason: null,
                 banExpires: null,
                 twoFactorEnabled: null,
+                tosAcceptedAt: null,
+                tosVersion: null,
+                privacyAcceptedAt: null,
+                privacyVersion: null,
+                marketingConsentAt: null,
+                marketingConsent: false,
+                deletionRequestedAt: null,
+                deletionScheduledFor: null,
+                warnedAt: null,
+                warningReason: null,
+                suspendedUntil: null,
+                suspensionReason: null,
               },
             }}
             organization={organization}

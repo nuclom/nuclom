@@ -50,11 +50,24 @@ vi.mock("effect", () => {
       runPromiseExit: vi.fn(),
     },
     Exit: {
+      succeed: vi.fn((value) => ({ _tag: "Success", value })),
+      fail: vi.fn((error) => ({ _tag: "Failure", cause: { _tag: "Fail", error } })),
       match: vi.fn((exit, { onSuccess, onFailure }) => {
         if (exit._tag === "Success") {
           return onSuccess(exit.value);
         }
         return onFailure(exit.cause);
+      }),
+    },
+    Option: {
+      some: vi.fn((value) => ({ _tag: "Some", value })),
+      none: vi.fn(() => ({ _tag: "None" })),
+    },
+    Data: {
+      TaggedError: vi.fn((tag) => {
+        return class extends Error {
+          _tag = tag;
+        };
       }),
     },
     Cause: {
@@ -66,7 +79,7 @@ vi.mock("effect", () => {
   };
 });
 
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { GET, POST } from "./route";
 
 describe("Videos API Route", () => {
@@ -82,24 +95,19 @@ describe("Videos API Route", () => {
     it("should return 400 when organizationId is missing", async () => {
       const _mockSession = createMockSession();
 
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Failure",
-        cause: {
-          _tag: "Fail",
-          error: {
-            _tag: "MissingFieldError",
-            message: "Organization ID is required",
-          },
-        },
-      } as never);
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce({
-        _tag: "Some",
-        value: {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
+        Exit.fail({
           _tag: "MissingFieldError",
           message: "Organization ID is required",
-        },
-      } as never);
+        }),
+      );
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce(
+        Option.some({
+          _tag: "MissingFieldError",
+          message: "Organization ID is required",
+        }),
+      );
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "GET",
@@ -113,24 +121,19 @@ describe("Videos API Route", () => {
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Failure",
-        cause: {
-          _tag: "Fail",
-          error: {
-            _tag: "UnauthorizedError",
-            message: "Unauthorized",
-          },
-        },
-      } as never);
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce({
-        _tag: "Some",
-        value: {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
+        Exit.fail({
           _tag: "UnauthorizedError",
           message: "Unauthorized",
-        },
-      } as never);
+        }),
+      );
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce(
+        Option.some({
+          _tag: "UnauthorizedError",
+          message: "Unauthorized",
+        }),
+      );
 
       const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
         method: "GET",
@@ -154,10 +157,7 @@ describe("Videos API Route", () => {
         },
       };
 
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Success",
-        value: mockVideos,
-      } as never);
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(mockVideos));
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(mockVideos));
 
@@ -176,24 +176,19 @@ describe("Videos API Route", () => {
 
   describe("POST /api/videos", () => {
     it("should return 400 when title is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Failure",
-        cause: {
-          _tag: "Fail",
-          error: {
-            _tag: "MissingFieldError",
-            message: "Title is required",
-          },
-        },
-      } as never);
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce({
-        _tag: "Some",
-        value: {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
+        Exit.fail({
           _tag: "MissingFieldError",
           message: "Title is required",
-        },
-      } as never);
+        }),
+      );
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce(
+        Option.some({
+          _tag: "MissingFieldError",
+          message: "Title is required",
+        }),
+      );
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -211,24 +206,19 @@ describe("Videos API Route", () => {
     });
 
     it("should return 400 when duration is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Failure",
-        cause: {
-          _tag: "Fail",
-          error: {
-            _tag: "MissingFieldError",
-            message: "Duration is required",
-          },
-        },
-      } as never);
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce({
-        _tag: "Some",
-        value: {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
+        Exit.fail({
           _tag: "MissingFieldError",
           message: "Duration is required",
-        },
-      } as never);
+        }),
+      );
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce(
+        Option.some({
+          _tag: "MissingFieldError",
+          message: "Duration is required",
+        }),
+      );
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -246,24 +236,19 @@ describe("Videos API Route", () => {
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Failure",
-        cause: {
-          _tag: "Fail",
-          error: {
-            _tag: "UnauthorizedError",
-            message: "Unauthorized",
-          },
-        },
-      } as never);
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce({
-        _tag: "Some",
-        value: {
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
+        Exit.fail({
           _tag: "UnauthorizedError",
           message: "Unauthorized",
-        },
-      } as never);
+        }),
+      );
+
+      vi.mocked(Cause.failureOption).mockReturnValueOnce(
+        Option.some({
+          _tag: "UnauthorizedError",
+          message: "Unauthorized",
+        }),
+      );
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -284,10 +269,7 @@ describe("Videos API Route", () => {
     it("should create video and return 201 on success", async () => {
       const newVideo = createMockVideo();
 
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
-        _tag: "Success",
-        value: newVideo,
-      } as never);
+      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(newVideo));
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newVideo));
 
