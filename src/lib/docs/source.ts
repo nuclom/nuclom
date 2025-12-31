@@ -32,15 +32,19 @@ export const docsStructure = {
   internal: {
     architecture: [
       { slug: "README", title: "Architecture Overview" },
+      { slug: "summary", title: "Architecture Summary" },
       { slug: "authentication", title: "Authentication System" },
       { slug: "database", title: "Database Design" },
       { slug: "frontend", title: "Frontend Architecture" },
       { slug: "backend", title: "Backend Architecture" },
       { slug: "video-processing", title: "Video Processing" },
+      { slug: "workflows", title: "Workflows" },
       { slug: "effect-ts", title: "Effect.js Integration" },
+      { slug: "integrations", title: "Integrations" },
       { slug: "accessibility", title: "Accessibility" },
       { slug: "deployment", title: "Deployment" },
     ],
+    business: [{ slug: "pricing", title: "Pricing Strategy" }],
     reference: [
       { slug: "README", title: "Reference Overview" },
       { slug: "development-setup", title: "Development Setup" },
@@ -96,6 +100,13 @@ export function getInternalDocsNavigation() {
       items: docsStructure.internal.reference.map((doc) => ({
         title: doc.title,
         url: `/docs/internal/reference/${doc.slug === "README" ? "" : doc.slug}`,
+      })),
+    },
+    {
+      title: "Business",
+      items: docsStructure.internal.business.map((doc) => ({
+        title: doc.title,
+        url: `/docs/internal/${doc.slug}`,
       })),
     },
   ];

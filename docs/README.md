@@ -1,60 +1,45 @@
 # Nuclom Documentation
 
-Welcome to the comprehensive documentation for Nuclom, a video collaboration platform built with Next.js 15, React 19, and modern web technologies.
+Documentation for Nuclom, a video collaboration platform built with Next.js 16, React 19, and modern web technologies.
 
-## 📚 Documentation Structure
+## Documentation Structure
 
-### 🌐 [Public Documentation](public/)
+### [Public Documentation](public/)
+
 User-facing documentation and API reference:
-- **[User Guides](public/guides/)** - Complete user documentation
-- **[API Documentation](public/api/)** - Developer API reference
+
+- **[User Guides](public/guides/)** - Complete user documentation for end users
+- **[API Documentation](public/api/)** - Developer API reference for integrations
 - **[Getting Started](public/guides/getting-started.md)** - New user onboarding
 
-### 🔒 [Internal Documentation](internal/)
+### [Internal Documentation](internal/)
+
 Developer and contributor documentation:
-- **[Developer Reference](internal/reference/)** - Technical documentation
-- **[System Architecture](internal/architecture/)** - System design and architecture
-- **[Contributing Guidelines](internal/reference/contributing.md)** - Development workflow
 
-## 🎥 About Nuclom
+- **[Developer Reference](internal/reference/)** - Development setup, components, and code patterns
+- **[System Architecture](internal/architecture/)** - System design and architectural decisions
+- **[Contributing Guidelines](internal/reference/contributing.md)** - Development workflow and standards
 
-Nuclom is a modern video collaboration platform designed for teams to:
-- Upload, organize, and share videos efficiently
-- Collaborate with time-stamped comments and discussions
-- Manage content through channels and series
-- Track viewing progress and engagement
-- Leverage AI for video analysis and insights
+## Quick Start
 
-## 🛠️ Tech Stack
+| Audience | Start Here |
+|----------|------------|
+| **Users** | [Getting Started Guide](public/guides/getting-started.md) |
+| **Developers** | [Development Setup](internal/reference/development-setup.md) |
+| **API Integrators** | [API Documentation](public/api/README.md) |
 
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, PostgreSQL, Drizzle ORM
-- **Authentication**: better-auth with OAuth support
-- **Storage**: Cloudflare R2 (configured)
-- **AI**: OpenAI integration for video analysis
-- **Deployment**: Vercel with automated CI/CD
+## Tech Stack
 
-## 🚀 Quick Start
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Next.js API Routes, Effect-TS, PostgreSQL, Drizzle ORM
+- **Authentication**: better-auth with OAuth (GitHub, Google)
+- **Storage**: Cloudflare R2
+- **AI**: OpenAI / Vercel AI SDK
+- **Testing**: Vitest, Playwright
+- **Deployment**: Vercel with CI/CD
 
-1. **For Users**: Start with the [Getting Started Guide](public/guides/getting-started.md)
-2. **For Developers**: Check out the [Development Setup](internal/reference/development-setup.md)
-3. **For API Integration**: Review the [API Documentation](public/api/README.md)
+## Documentation Updates
 
-## 📖 Navigation Tips
+This documentation is maintained alongside the codebase. When making code changes, please update relevant documentation in the same PR.
 
-- Use the table of contents in each section for quick navigation
-- Cross-references are provided between related documentation
-- Code examples are included throughout the developer documentation
-- Troubleshooting guides include common solutions and contact information
-
-## 🔄 Documentation Updates
-
-This documentation is maintained alongside the codebase and updated regularly. For the most current information, always refer to the latest version of these docs.
-
-## 🤝 Contributing
-
-Found an issue with the documentation? See our [Contributing Guidelines](internal/reference/contributing.md) for how to help improve these docs.
-
----
-
-**Need help?** Check the [Troubleshooting Guide](public/guides/troubleshooting.md) or contact support through the platform.
+See [AGENTS.md](AGENTS.md) for AI/LLM instructions when working with documentation.
