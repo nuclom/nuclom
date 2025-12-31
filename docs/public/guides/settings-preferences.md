@@ -70,8 +70,26 @@ Customize your Nuclom experience with the comprehensive settings and preferences
 
 1. Go to **Settings** → **Security**
 2. Click **"Disable 2FA"**
-3. Enter a verification code from your authenticator app
-4. Confirm the action
+3. Enter your password to confirm
+4. 2FA will be disabled
+
+**Passkeys (WebAuthn)**
+
+Passkeys provide passwordless authentication using biometrics or hardware security keys.
+
+**Adding a Passkey**
+
+1. Go to **Settings** → **Security**
+2. Under "Passkeys", click **"Add Passkey"**
+3. Enter an optional name for the passkey (e.g., "MacBook Touch ID")
+4. Follow your browser/device prompts to register the passkey
+5. Use the passkey for future logins
+
+**Managing Passkeys**
+
+- View all registered passkeys with their device types and creation dates
+- Delete passkeys you no longer use
+- Add multiple passkeys for different devices
 
 **Active Sessions**
 

@@ -756,6 +756,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
   comments: many(comments),
   videoProgresses: many(videoProgresses),
   twoFactor: one(twoFactors),
+  passkeys: many(passkeys),
   preferences: one(userPreferences),
   apiKeys: many(apikeys),
 }));
