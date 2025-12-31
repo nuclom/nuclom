@@ -6,7 +6,7 @@
 
 import { Config, Context, Effect, Layer, Redacted } from "effect";
 import Stripe from "stripe";
-import { StripeApiError, StripeNotConfiguredError, WebhookSignatureError } from "../errors";
+import { StripeApiError, WebhookSignatureError } from "../errors";
 
 // =============================================================================
 // Types

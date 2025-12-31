@@ -292,7 +292,6 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
     errorMessage?: string,
   ): Effect.Effect<void, never> =>
     Effect.gen(function* () {
-
       // Get video details and owner info
       const video = yield* Effect.tryPromise({
         try: () =>

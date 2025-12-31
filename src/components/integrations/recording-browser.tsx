@@ -1,8 +1,11 @@
 "use client";
 
+import { format } from "date-fns";
+import { Calendar, Check, Clock, Download, FileVideo, Loader2, RefreshCw, Video } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Video, Loader2, Check, Clock, FileVideo, Download, Calendar, RefreshCw } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -11,10 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 interface Recording {
@@ -95,7 +95,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
       setNextPageToken(undefined);
       loadRecordings(true);
     }
-  }, [open, provider]);
+  }, [open, loadRecordings]);
 
   const handleToggle = (id: string) => {
     setSelected((prev) => {

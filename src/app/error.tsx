@@ -17,7 +17,6 @@ interface ErrorPageProps {
 const IS_DEV = globalThis.process?.env?.NODE_ENV === "development";
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
-
   useEffect(() => {
     logClientError({
       error,

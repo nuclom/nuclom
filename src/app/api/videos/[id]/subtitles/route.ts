@@ -6,9 +6,9 @@
  * GET /api/videos/[id]/subtitles - List available subtitle languages
  */
 
+import { eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
 import { AppLive, DatabaseError, NotFoundError, Translation } from "@/lib/effect";
@@ -59,10 +59,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // GET /api/videos/[id]/subtitles - List Available Languages
 // =============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 

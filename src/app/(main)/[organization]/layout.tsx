@@ -1,5 +1,5 @@
-import type React from "react";
 import { eq } from "drizzle-orm";
+import type React from "react";
 import { TopNav } from "@/components/top-nav";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";

@@ -14,28 +14,28 @@
  * Then run: pnpm vitest src/lib/db/__tests__/cascade-delete.test.ts
  */
 
-// @ts-ignore - vitest may not be installed
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { eq } from "drizzle-orm";
+// @ts-expect-error - vitest may not be installed
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../index";
 import {
-  users,
-  organizations,
-  members,
-  videos,
-  comments,
-  videoProgresses,
   channels,
   collections,
-  seriesVideos,
-  seriesProgress,
+  comments,
   invitations,
-  notifications,
-  subscriptions,
-  usage,
   invoices,
+  members,
+  notifications,
+  organizations,
   paymentMethods,
   plans,
+  seriesProgress,
+  seriesVideos,
+  subscriptions,
+  usage,
+  users,
+  videoProgresses,
+  videos,
 } from "../schema";
 
 // Test data IDs
@@ -187,7 +187,10 @@ describe("Cascade Delete Tests", () => {
       const membersAfter = await db.select().from(members).where(eq(members.organizationId, testIds.orgId));
       expect(membersAfter.length).toBe(0);
 
-      const subscriptionsAfter = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, testIds.orgId));
+      const subscriptionsAfter = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.organizationId, testIds.orgId));
       expect(subscriptionsAfter.length).toBe(0);
 
       // Comments should also be deleted (cascade through videos)
@@ -207,7 +210,10 @@ describe("Cascade Delete Tests", () => {
         inviterId: testIds.userId,
       });
 
-      const invitationsBefore = await db.select().from(invitations).where(eq(invitations.organizationId, testIds.orgId));
+      const invitationsBefore = await db
+        .select()
+        .from(invitations)
+        .where(eq(invitations.organizationId, testIds.orgId));
       expect(invitationsBefore.length).toBe(1);
 
       // Delete organization
@@ -251,7 +257,10 @@ describe("Cascade Delete Tests", () => {
       await db.delete(organizations).where(eq(organizations.id, testIds.orgId));
 
       // Verify all billing data deleted
-      const subscriptionsAfter = await db.select().from(subscriptions).where(eq(subscriptions.organizationId, testIds.orgId));
+      const subscriptionsAfter = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.organizationId, testIds.orgId));
       expect(subscriptionsAfter.length).toBe(0);
 
       const usageAfter = await db.select().from(usage).where(eq(usage.organizationId, testIds.orgId));
@@ -260,7 +269,10 @@ describe("Cascade Delete Tests", () => {
       const invoicesAfter = await db.select().from(invoices).where(eq(invoices.organizationId, testIds.orgId));
       expect(invoicesAfter.length).toBe(0);
 
-      const paymentMethodsAfter = await db.select().from(paymentMethods).where(eq(paymentMethods.organizationId, testIds.orgId));
+      const paymentMethodsAfter = await db
+        .select()
+        .from(paymentMethods)
+        .where(eq(paymentMethods.organizationId, testIds.orgId));
       expect(paymentMethodsAfter.length).toBe(0);
     });
   });
@@ -444,7 +456,10 @@ describe("Cascade Delete Tests", () => {
         currentTime: "05:00",
       });
 
-      const progressBefore = await db.select().from(videoProgresses).where(eq(videoProgresses.videoId, testIds.videoId));
+      const progressBefore = await db
+        .select()
+        .from(videoProgresses)
+        .where(eq(videoProgresses.videoId, testIds.videoId));
       expect(progressBefore.length).toBe(1);
 
       // Delete video
@@ -485,14 +500,20 @@ describe("Cascade Delete Tests", () => {
         lastPosition: 0,
       });
 
-      const progressBefore = await db.select().from(seriesProgress).where(eq(seriesProgress.seriesId, testIds.collectionId));
+      const progressBefore = await db
+        .select()
+        .from(seriesProgress)
+        .where(eq(seriesProgress.seriesId, testIds.collectionId));
       expect(progressBefore[0].lastVideoId).toBe(testIds.videoId);
 
       // Delete video
       await db.delete(videos).where(eq(videos.id, testIds.videoId));
 
       // Series progress should remain but lastVideoId should be null
-      const progressAfter = await db.select().from(seriesProgress).where(eq(seriesProgress.seriesId, testIds.collectionId));
+      const progressAfter = await db
+        .select()
+        .from(seriesProgress)
+        .where(eq(seriesProgress.seriesId, testIds.collectionId));
       expect(progressAfter.length).toBe(1);
       expect(progressAfter[0].lastVideoId).toBeNull();
     });
@@ -550,20 +571,32 @@ describe("Cascade Delete Tests", () => {
         lastPosition: 0,
       });
 
-      const seriesVideosBefore = await db.select().from(seriesVideos).where(eq(seriesVideos.seriesId, testIds.collectionId));
+      const seriesVideosBefore = await db
+        .select()
+        .from(seriesVideos)
+        .where(eq(seriesVideos.seriesId, testIds.collectionId));
       expect(seriesVideosBefore.length).toBe(1);
 
-      const progressBefore = await db.select().from(seriesProgress).where(eq(seriesProgress.seriesId, testIds.collectionId));
+      const progressBefore = await db
+        .select()
+        .from(seriesProgress)
+        .where(eq(seriesProgress.seriesId, testIds.collectionId));
       expect(progressBefore.length).toBe(1);
 
       // Delete collection
       await db.delete(collections).where(eq(collections.id, testIds.collectionId));
 
       // Series videos and progress should be deleted
-      const seriesVideosAfter = await db.select().from(seriesVideos).where(eq(seriesVideos.seriesId, testIds.collectionId));
+      const seriesVideosAfter = await db
+        .select()
+        .from(seriesVideos)
+        .where(eq(seriesVideos.seriesId, testIds.collectionId));
       expect(seriesVideosAfter.length).toBe(0);
 
-      const progressAfter = await db.select().from(seriesProgress).where(eq(seriesProgress.seriesId, testIds.collectionId));
+      const progressAfter = await db
+        .select()
+        .from(seriesProgress)
+        .where(eq(seriesProgress.seriesId, testIds.collectionId));
       expect(progressAfter.length).toBe(0);
 
       // But the video should still exist

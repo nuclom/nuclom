@@ -9,7 +9,6 @@ import { Context, Effect, Layer, Option } from "effect";
 import type Stripe from "stripe";
 import {
   type InvoiceStatus,
-  members,
   type NewInvoice,
   type NewPaymentMethod,
   type NewSubscription,
@@ -19,14 +18,11 @@ import {
   type PlanLimits,
   type Subscription,
   type SubscriptionStatus,
-  users,
 } from "@/lib/db/schema";
 import { env } from "@/lib/env/client";
 import {
-  type BillingError,
   DatabaseError,
   NoSubscriptionError,
-  PaymentFailedError,
   PlanLimitExceededError,
   PlanNotFoundError,
   type StripeApiError,

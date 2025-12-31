@@ -1,10 +1,9 @@
+import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Effect, Layer } from "effect";
-import { AppLive } from "@/lib/effect/runtime";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 
 export const dynamic = "force-dynamic";
 

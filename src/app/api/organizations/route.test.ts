@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { createMockOrganization, createMockSession } from "@/test/mocks";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockOrganization } from "@/test/mocks";
 
 // Mock Effect-TS and services
 vi.mock("@/lib/auth", () => ({
@@ -61,8 +61,8 @@ vi.mock("effect", () => {
   };
 });
 
+import { Cause, Effect, Exit } from "effect";
 import { GET, POST } from "./route";
-import { Effect, Exit, Cause } from "effect";
 
 describe("Organizations API Route", () => {
   beforeEach(() => {

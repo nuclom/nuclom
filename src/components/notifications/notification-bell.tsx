@@ -1,18 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import {
-  Bell,
-  Check,
-  CheckCheck,
-  CreditCard,
-  MessageSquare,
-  Play,
-  Trash2,
-  UserPlus,
-  Video,
-  XCircle,
-} from "lucide-react";
+import { Bell, Check, CheckCheck, CreditCard, MessageSquare, Trash2, UserPlus, Video, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -239,9 +228,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                     {notification.actor ? (
                       <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage src={notification.actor.image || undefined} />
-                        <AvatarFallback>
-                          {notification.actor.name?.slice(0, 2).toUpperCase() || "?"}
-                        </AvatarFallback>
+                        <AvatarFallback>{notification.actor.name?.slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
                       </Avatar>
                     ) : (
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">

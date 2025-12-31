@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CommentForm } from "./comment-form";
 
 describe("CommentForm Component", () => {
@@ -243,7 +243,7 @@ describe("CommentForm Component", () => {
     expect(textarea).toBeDisabled();
 
     // Resolve the promise to complete the test
-    resolveSubmit!();
+    resolveSubmit?.();
     await waitFor(() => {
       expect(textarea).not.toBeDisabled();
     });

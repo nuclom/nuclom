@@ -17,8 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { TranscriptSegment } from "@/lib/db/schema";
+import { findSegmentIndexByTime } from "@/lib/subtitles";
 import { cn } from "@/lib/utils";
-import { findCurrentSegment, findSegmentIndexByTime } from "@/lib/subtitles";
 
 // =============================================================================
 // Types
@@ -112,9 +112,7 @@ function TranscriptSegmentItem({
       id={`transcript-segment-${index}`}
       className={cn(
         "group relative flex gap-4 p-3 rounded-lg transition-colors cursor-pointer",
-        isActive
-          ? "bg-primary/10 border-l-2 border-primary"
-          : "hover:bg-muted/50 border-l-2 border-transparent",
+        isActive ? "bg-primary/10 border-l-2 border-primary" : "hover:bg-muted/50 border-l-2 border-transparent",
       )}
       onClick={() => onSeek?.(segment.startTime)}
       onKeyDown={(e) => {
@@ -129,12 +127,7 @@ function TranscriptSegmentItem({
     >
       {/* Timestamp */}
       <div className="flex-shrink-0 w-16">
-        <span
-          className={cn(
-            "font-mono text-xs",
-            isActive ? "text-primary font-medium" : "text-muted-foreground",
-          )}
-        >
+        <span className={cn("font-mono text-xs", isActive ? "text-primary font-medium" : "text-muted-foreground")}>
           {formatTime(segment.startTime)}
         </span>
       </div>
@@ -206,15 +199,11 @@ export function TranscriptDisplay({
   // Filter segments by search term
   const filteredSegments = useMemo(() => {
     if (!searchTerm.trim()) return segments;
-    return segments.filter((segment) =>
-      segment.text.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    return segments.filter((segment) => segment.text.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [segments, searchTerm]);
 
   // Search match count
-  const searchMatchCount = searchTerm.trim()
-    ? filteredSegments.length
-    : 0;
+  const searchMatchCount = searchTerm.trim() ? filteredSegments.length : 0;
 
   // Auto-scroll to current segment
   useEffect(() => {
@@ -253,7 +242,7 @@ export function TranscriptDisplay({
     }, 3000);
 
     return () => clearTimeout(timeout);
-  }, [userHasScrolled, currentTime]);
+  }, [userHasScrolled]);
 
   // Clear search
   const clearSearch = useCallback(() => {
@@ -338,9 +327,7 @@ export function TranscriptDisplay({
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Transcript
-            <span className="text-xs text-muted-foreground font-normal">
-              ({segments.length} segments)
-            </span>
+            <span className="text-xs text-muted-foreground font-normal">({segments.length} segments)</span>
           </CardTitle>
 
           {/* Search toggle */}
@@ -372,13 +359,7 @@ export function TranscriptDisplay({
                 <span className="text-xs text-muted-foreground">
                   {searchMatchCount} match{searchMatchCount !== 1 ? "es" : ""}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5"
-                  onClick={clearSearch}
-                  aria-label="Clear search"
-                >
+                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={clearSearch} aria-label="Clear search">
                   <X className="h-3 w-3" />
                 </Button>
               </div>
@@ -388,12 +369,7 @@ export function TranscriptDisplay({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <ScrollArea
-          ref={scrollAreaRef}
-          className="pr-4"
-          style={{ maxHeight }}
-          onScrollCapture={handleScroll}
-        >
+        <ScrollArea ref={scrollAreaRef} className="pr-4" style={{ maxHeight }} onScrollCapture={handleScroll}>
           <div className="space-y-1">
             {filteredSegments.map((segment, displayIndex) => {
               // Find original index for active state
@@ -417,21 +393,14 @@ export function TranscriptDisplay({
 
           {/* No results message */}
           {searchTerm && filteredSegments.length === 0 && (
-            <div className="py-8 text-center text-muted-foreground text-sm">
-              No matches found for "{searchTerm}"
-            </div>
+            <div className="py-8 text-center text-muted-foreground text-sm">No matches found for "{searchTerm}"</div>
           )}
         </ScrollArea>
 
         {/* Auto-scroll indicator */}
         {autoScroll && userHasScrolled && (
           <div className="flex justify-center mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs h-7"
-              onClick={() => setUserHasScrolled(false)}
-            >
+            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setUserHasScrolled(false)}>
               Resume auto-scroll
             </Button>
           </div>

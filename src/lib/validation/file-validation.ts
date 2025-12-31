@@ -34,12 +34,8 @@ const FILE_SIGNATURES: Record<string, { signature: number[]; offset?: number; mi
   ],
   wmv: [{ signature: [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11], mimeType: "video/x-ms-wmv" }],
   flv: [{ signature: [0x46, 0x4c, 0x56, 0x01], mimeType: "video/x-flv" }],
-  "3gp": [
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70], offset: 4, mimeType: "video/3gpp" },
-  ],
-  m4v: [
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x56], offset: 4, mimeType: "video/x-m4v" },
-  ],
+  "3gp": [{ signature: [0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70], offset: 4, mimeType: "video/3gpp" }],
+  m4v: [{ signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x56], offset: 4, mimeType: "video/x-m4v" }],
 
   // Image formats
   jpg: [{ signature: [0xff, 0xd8, 0xff], mimeType: "image/jpeg" }],
@@ -106,7 +102,7 @@ export function detectFileType(buffer: Uint8Array | ArrayBuffer): string | null 
   const bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer;
 
   // Check video formats
-  for (const [ext, signatures] of Object.entries(FILE_SIGNATURES)) {
+  for (const [_ext, signatures] of Object.entries(FILE_SIGNATURES)) {
     for (const { signature, offset = 0, mimeType } of signatures) {
       if (checkSignature(bytes, signature, offset)) {
         return mimeType;
@@ -194,10 +190,12 @@ export function validateVideoFile(
   return Effect.gen(function* () {
     const buffer =
       file instanceof File
-        ? new Uint8Array(yield* Effect.tryPromise({
-            try: () => file.arrayBuffer(),
-            catch: () => new ValidationError({ message: "Failed to read file" }),
-          }))
+        ? new Uint8Array(
+            yield* Effect.tryPromise({
+              try: () => file.arrayBuffer(),
+              catch: () => new ValidationError({ message: "Failed to read file" }),
+            }),
+          )
         : new Uint8Array(file.buffer);
 
     const filename = file instanceof File ? file.name : file.name;
@@ -233,10 +231,12 @@ export function validateImageFile(
   return Effect.gen(function* () {
     const buffer =
       file instanceof File
-        ? new Uint8Array(yield* Effect.tryPromise({
-            try: () => file.arrayBuffer(),
-            catch: () => new ValidationError({ message: "Failed to read file" }),
-          }))
+        ? new Uint8Array(
+            yield* Effect.tryPromise({
+              try: () => file.arrayBuffer(),
+              catch: () => new ValidationError({ message: "Failed to read file" }),
+            }),
+          )
         : new Uint8Array(file.buffer);
 
     const filename = file instanceof File ? file.name : file.name;

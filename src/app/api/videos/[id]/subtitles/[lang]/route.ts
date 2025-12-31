@@ -8,14 +8,14 @@
  * GET /api/videos/[id]/subtitles/[lang].srt - Serve SRT subtitles (for compatibility)
  */
 
+import { eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, Translation, VideoRepository } from "@/lib/effect";
-import { generateSRT, generateWebVTT, type WebVTTOptions } from "@/lib/subtitles";
+import { AppLive, DatabaseError, NotFoundError, Translation } from "@/lib/effect";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/effect/services/translation";
+import { generateSRT, generateWebVTT, type WebVTTOptions } from "@/lib/subtitles";
 
 // =============================================================================
 // Types
@@ -78,10 +78,7 @@ function parseLanguageAndFormat(lang: string): {
 // GET /api/videos/[id]/subtitles/[lang] - Serve Subtitle File
 // =============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<SubtitleParams> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<SubtitleParams> }) {
   const effect = Effect.gen(function* () {
     const { id, lang } = yield* Effect.promise(() => params);
 

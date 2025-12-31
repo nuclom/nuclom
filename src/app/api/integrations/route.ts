@@ -1,9 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { DatabaseError, NotFoundError, UnauthorizedError, ValidationError } from "@/lib/effect/errors";
 
 export const dynamic = "force-dynamic";
 

@@ -4,7 +4,7 @@
  * Provides type-safe database operations for series (collections).
  */
 
-import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { collections, seriesProgress, seriesVideos, users, videos } from "@/lib/db/schema";
 import type {

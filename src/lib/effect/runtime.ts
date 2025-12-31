@@ -17,19 +17,19 @@ import { type BillingRepository, BillingRepositoryLive } from "./services/billin
 import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
+import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
-import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
 import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
 import { type Storage, StorageLive } from "./services/storage";
 import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
+import { type Translation, TranslationLive } from "./services/translation";
 import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
-import { type Translation, TranslationLive } from "./services/translation";
 
 // =============================================================================
 // Layer Composition
@@ -41,16 +41,22 @@ import { type Translation, TranslationLive } from "./services/translation";
  */
 
 // Base services layer (no dependencies on other services)
-const BaseServicesLive = Layer.mergeAll(DatabaseLive, StorageLive, AILive, ReplicateLive, StripeServiceLive, TranslationLive, EmailNotificationsLive);
+const BaseServicesLive = Layer.mergeAll(
+  DatabaseLive,
+  StorageLive,
+  AILive,
+  ReplicateLive,
+  StripeServiceLive,
+  TranslationLive,
+  EmailNotificationsLive,
+);
 
 // VideoProcessor depends on Storage - provide its dependency
 const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
 
 // Repositories depend on Database - provide their dependencies
 // VideoRepository depends on both Database and Storage
-const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(
-  Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)),
-);
+const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));

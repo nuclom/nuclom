@@ -13,7 +13,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
+import { AppLive, DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -58,10 +58,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 // GET /api/videos/[id]/transcript - Get Transcript
 // =============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 
@@ -130,10 +127,7 @@ export async function GET(
 // PUT /api/videos/[id]/transcript - Update Transcript
 // =============================================================================
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 

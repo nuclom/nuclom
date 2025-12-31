@@ -71,8 +71,7 @@ export function useTranscript({
   const [error, setError] = useState<string | null>(null);
 
   // Check for unsaved changes
-  const hasUnsavedChanges =
-    JSON.stringify(segments) !== JSON.stringify(originalSegments);
+  const hasUnsavedChanges = JSON.stringify(segments) !== JSON.stringify(originalSegments);
 
   // Fetch transcript data
   const fetchTranscript = useCallback(async () => {

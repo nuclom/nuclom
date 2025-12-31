@@ -4,11 +4,11 @@
  * Provides type-safe database operations for channels.
  */
 
-import { and, desc, eq } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
+import { desc, eq } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
 import { channels, videos } from "@/lib/db/schema";
 import type { PaginatedResponse } from "@/lib/types";
-import { DatabaseError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
+import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
 
 // =============================================================================
@@ -88,7 +88,10 @@ export interface ChannelRepositoryService {
 // Channel Repository Tag
 // =============================================================================
 
-export class ChannelRepository extends Context.Tag("ChannelRepository")<ChannelRepository, ChannelRepositoryService>() {}
+export class ChannelRepository extends Context.Tag("ChannelRepository")<
+  ChannelRepository,
+  ChannelRepositoryService
+>() {}
 
 // =============================================================================
 // Channel Repository Implementation
@@ -117,10 +120,7 @@ const makeChannelRepositoryService = Effect.gen(function* () {
         // Get video counts for each channel
         const channelsWithCounts = await Promise.all(
           channelsData.map(async (channel) => {
-            const videoCount = await db
-              .select()
-              .from(videos)
-              .where(eq(videos.channelId, channel.id));
+            const videoCount = await db.select().from(videos).where(eq(videos.channelId, channel.id));
             return {
               ...channel,
               videoCount: videoCount.length,
@@ -128,10 +128,7 @@ const makeChannelRepositoryService = Effect.gen(function* () {
           }),
         );
 
-        const totalCount = await db
-          .select()
-          .from(channels)
-          .where(eq(channels.organizationId, organizationId));
+        const totalCount = await db.select().from(channels).where(eq(channels.organizationId, organizationId));
 
         return {
           data: channelsWithCounts,
@@ -286,10 +283,7 @@ const makeChannelRepositoryService = Effect.gen(function* () {
           .offset(offset)
           .limit(limit);
 
-        const totalCount = await db
-          .select()
-          .from(videos)
-          .where(eq(videos.channelId, channelId));
+        const totalCount = await db.select().from(videos).where(eq(videos.channelId, channelId));
 
         return {
           data: videosData,
@@ -364,9 +358,7 @@ export const updateChannel = (
     return yield* repo.updateChannel(id, data);
   });
 
-export const deleteChannel = (
-  id: string,
-): Effect.Effect<void, DatabaseError | NotFoundError, ChannelRepository> =>
+export const deleteChannel = (id: string): Effect.Effect<void, DatabaseError | NotFoundError, ChannelRepository> =>
   Effect.gen(function* () {
     const repo = yield* ChannelRepository;
     return yield* repo.deleteChannel(id);

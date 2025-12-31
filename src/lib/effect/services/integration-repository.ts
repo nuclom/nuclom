@@ -10,9 +10,9 @@ import {
   type ImportStatus,
   type IntegrationMetadata,
   type IntegrationProvider,
-  type MeetingParticipant,
   importedMeetings,
   integrations,
+  type MeetingParticipant,
   users,
   videos,
 } from "@/lib/db/schema";

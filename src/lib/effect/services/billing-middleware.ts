@@ -4,11 +4,11 @@
  * Provides plan limits enforcement for API routes and business logic.
  */
 
-import { Effect, Layer, Option } from "effect";
+import { Effect, Option } from "effect";
 import type { PlanFeatures, PlanLimits } from "@/lib/db/schema";
 import { type DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from "../errors";
 import { Billing, type LimitResource } from "./billing";
-import { BillingRepository, type SubscriptionWithPlan } from "./billing-repository";
+import { BillingRepository } from "./billing-repository";
 
 // =============================================================================
 // Types

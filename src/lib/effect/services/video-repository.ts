@@ -20,7 +20,7 @@ import {
   videos,
 } from "@/lib/db/schema";
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
-import { DatabaseError, DeleteError, NotFoundError } from "../errors";
+import { DatabaseError, type DeleteError, NotFoundError } from "../errors";
 import { Database } from "./database";
 import { Storage } from "./storage";
 
@@ -803,10 +803,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           .limit(limit);
 
         // Get total count for pagination
-        const totalCountResult = await db
-          .select({ count: sql`count(*)::int` })
-          .from(videos)
-          .where(whereClause);
+        const totalCountResult = await db.select({ count: sql`count(*)::int` }).from(videos).where(whereClause);
 
         const total = totalCountResult[0]?.count ?? 0;
 

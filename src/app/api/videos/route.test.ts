@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockSession, createMockVideo } from "@/test/mocks";
 
 // Mock Effect-TS and services
@@ -66,8 +66,8 @@ vi.mock("effect", () => {
   };
 });
 
+import { Cause, Effect, Exit } from "effect";
 import { GET, POST } from "./route";
-import { Effect, Exit, Cause } from "effect";
 
 describe("Videos API Route", () => {
   beforeEach(() => {
@@ -80,7 +80,7 @@ describe("Videos API Route", () => {
 
   describe("GET /api/videos", () => {
     it("should return 400 when organizationId is missing", async () => {
-      const mockSession = createMockSession();
+      const _mockSession = createMockSession();
 
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",

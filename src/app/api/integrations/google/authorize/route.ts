@@ -1,9 +1,9 @@
+import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Effect } from "effect";
 import { auth } from "@/lib/auth";
-import { env } from "@/lib/env/server";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
+import { env } from "@/lib/env/server";
 
 export const dynamic = "force-dynamic";
 

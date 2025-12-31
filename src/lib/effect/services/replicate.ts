@@ -234,7 +234,7 @@ const makeReplicateService = Effect.gen(function* () {
       { concurrency: 3 },
     );
 
-  const extractMetadata = (videoUrl: string, fileSize: number): Effect.Effect<VideoMetadata, AIServiceError> =>
+  const extractMetadata = (_videoUrl: string, fileSize: number): Effect.Effect<VideoMetadata, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
         // For now, we'll use a heuristic-based approach since Replicate

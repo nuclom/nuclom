@@ -114,6 +114,68 @@ export {
   query,
   transaction,
 } from "./database";
+// Email Notifications Service
+export type {
+  CommentNotificationData,
+  EmailError,
+  EmailNotificationServiceInterface,
+  InvitationNotificationData,
+  SubscriptionNotificationData,
+  TrialEndingNotificationData,
+  VideoProcessingNotificationData,
+} from "./email-notifications";
+export {
+  EmailNotifications,
+  EmailNotificationsLive,
+  sendCommentNotification,
+  sendInvitationNotification,
+  sendSubscriptionNotification,
+  sendTrialEndingNotification,
+  sendVideoProcessingNotification,
+} from "./email-notifications";
+// Google Meet Service
+export type {
+  GoogleConfig,
+  GoogleDriveFilesResponse,
+  GoogleMeetRecording,
+  GoogleMeetServiceInterface,
+  GoogleTokenResponse,
+  GoogleUserInfo,
+} from "./google-meet";
+export {
+  downloadGoogleFile,
+  exchangeGoogleCodeForToken,
+  GoogleMeet,
+  GoogleMeetLive,
+  getGoogleAuthorizationUrl,
+  getGoogleUserInfo,
+  listGoogleMeetRecordings,
+  refreshGoogleAccessToken,
+} from "./google-meet";
+// Integration Repository
+export type {
+  CreateImportedMeetingInput,
+  CreateIntegrationInput,
+  ImportedMeetingWithVideo,
+  IntegrationRepositoryService,
+  IntegrationWithUser,
+  UpdateImportedMeetingInput,
+  UpdateIntegrationInput,
+} from "./integration-repository";
+export {
+  createImportedMeeting,
+  createIntegration,
+  deleteIntegration,
+  getImportedMeetings,
+  getIntegration,
+  getIntegrationByProvider,
+  getIntegrations,
+  getUserIntegrations,
+  IntegrationRepository,
+  IntegrationRepositoryLive,
+  updateImportedMeeting,
+  updateIntegration,
+} from "./integration-repository";
 export type {
   CreateNotificationInput,
   NotificationRepositoryService,
@@ -165,6 +227,28 @@ export {
   ReplicateLive,
   transcribe,
 } from "./replicate";
+// Search Repository
+export type {
+  CreateSavedSearchInput,
+  CreateSearchHistoryInput,
+  SearchParams,
+  SearchRepositoryService,
+  UpdateSavedSearchInput,
+} from "./search-repository";
+export {
+  clearSearchHistory,
+  createSavedSearch,
+  deleteSavedSearch,
+  getRecentSearches,
+  getSavedSearches,
+  getSuggestions,
+  quickSearch,
+  SearchRepository,
+  SearchRepositoryLive,
+  saveSearchHistory,
+  search,
+  updateSavedSearch,
+} from "./search-repository";
 export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from "./series-repository";
 // Series Repository
 export {
@@ -209,6 +293,27 @@ export {
   transcribeAudio,
   transcribeFromUrl,
 } from "./transcription";
+// Translation Service
+export type {
+  LanguageInfo,
+  SupportedLanguage,
+  TranslatedTranscript,
+  TranslationOptions,
+  TranslationResult,
+  TranslationServiceInterface,
+} from "./translation";
+export {
+  getSupportedLanguages,
+  isTranslationAvailable,
+  SUPPORTED_LANGUAGES,
+  Translation,
+  TranslationApiError,
+  TranslationLive,
+  TranslationNotConfiguredError,
+  translateText,
+  translateTranscript,
+  UnsupportedLanguageError,
+} from "./translation";
 export type { AIProcessingResult, VideoAIProcessorServiceInterface } from "./video-ai-processor";
 // Video AI Processor Service
 export {
@@ -266,134 +371,23 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from "./video-repository";
-
 // Zoom Service
 export type {
   ZoomConfig,
-  ZoomTokenResponse,
-  ZoomUserInfo,
+  ZoomMeeting,
   ZoomRecording,
   ZoomRecordingsResponse,
-  ZoomMeeting,
   ZoomServiceInterface,
+  ZoomTokenResponse,
+  ZoomUserInfo,
 } from "./zoom";
 export {
-  Zoom,
-  ZoomLive,
-  getZoomAuthorizationUrl,
   exchangeZoomCodeForToken,
-  refreshZoomAccessToken,
+  getZoomAuthorizationUrl,
+  getZoomMeetingRecordings,
   getZoomUserInfo,
   listZoomRecordings,
-  getZoomMeetingRecordings,
+  refreshZoomAccessToken,
+  Zoom,
+  ZoomLive,
 } from "./zoom";
-
-// Google Meet Service
-export type {
-  GoogleConfig,
-  GoogleTokenResponse,
-  GoogleUserInfo,
-  GoogleMeetRecording,
-  GoogleDriveFilesResponse,
-  GoogleMeetServiceInterface,
-} from "./google-meet";
-export {
-  GoogleMeet,
-  GoogleMeetLive,
-  getGoogleAuthorizationUrl,
-  exchangeGoogleCodeForToken,
-  refreshGoogleAccessToken,
-  getGoogleUserInfo,
-  listGoogleMeetRecordings,
-  downloadGoogleFile,
-} from "./google-meet";
-
-// Integration Repository
-export type {
-  CreateIntegrationInput,
-  UpdateIntegrationInput,
-  CreateImportedMeetingInput,
-  UpdateImportedMeetingInput,
-  IntegrationWithUser,
-  ImportedMeetingWithVideo,
-  IntegrationRepositoryService,
-} from "./integration-repository";
-export {
-  IntegrationRepository,
-  IntegrationRepositoryLive,
-  getIntegrations,
-  getUserIntegrations,
-  getIntegration,
-  getIntegrationByProvider,
-  createIntegration,
-  updateIntegration,
-  deleteIntegration,
-  getImportedMeetings,
-  createImportedMeeting,
-  updateImportedMeeting,
-} from "./integration-repository";
-
-// Translation Service
-export type {
-  TranslationServiceInterface,
-  TranslationOptions,
-  TranslationResult,
-  TranslatedTranscript,
-  LanguageInfo,
-  SupportedLanguage,
-} from "./translation";
-export {
-  Translation,
-  TranslationLive,
-  TranslationNotConfiguredError,
-  TranslationApiError,
-  UnsupportedLanguageError,
-  translateText,
-  translateTranscript,
-  isTranslationAvailable,
-  getSupportedLanguages,
-  SUPPORTED_LANGUAGES,
-} from "./translation";
-
-// Search Repository
-export type {
-  SearchParams,
-  CreateSearchHistoryInput,
-  CreateSavedSearchInput,
-  UpdateSavedSearchInput,
-  SearchRepositoryService,
-} from "./search-repository";
-export {
-  SearchRepository,
-  SearchRepositoryLive,
-  search,
-  getSuggestions,
-  getRecentSearches,
-  saveSearchHistory,
-  clearSearchHistory,
-  getSavedSearches,
-  createSavedSearch,
-  updateSavedSearch,
-  deleteSavedSearch,
-  quickSearch,
-} from "./search-repository";
-
-// Email Notifications Service
-export type {
-  EmailNotificationServiceInterface,
-  CommentNotificationData,
-  InvitationNotificationData,
-  VideoProcessingNotificationData,
-  TrialEndingNotificationData,
-  SubscriptionNotificationData,
-  EmailError,
-} from "./email-notifications";
-export {
-  EmailNotifications,
-  EmailNotificationsLive,
-  sendCommentNotification,
-  sendInvitationNotification,
-  sendVideoProcessingNotification,
-  sendTrialEndingNotification,
-  sendSubscriptionNotification,
-} from "./email-notifications";
