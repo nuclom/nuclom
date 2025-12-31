@@ -13,8 +13,8 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
 import type { VideoWithAuthor } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface CommandBarProps {
   organization: string;

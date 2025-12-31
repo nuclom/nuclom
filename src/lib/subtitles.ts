@@ -96,9 +96,7 @@ export function parseVTTTime(timestamp: string): number {
   if (parts.length === 2) {
     const [minutes, seconds] = parts;
     const [secs, ms] = seconds.split(".");
-    return (
-      Number.parseInt(minutes, 10) * 60 + Number.parseInt(secs, 10) + (ms ? Number.parseInt(ms, 10) / 1000 : 0)
-    );
+    return Number.parseInt(minutes, 10) * 60 + Number.parseInt(secs, 10) + (ms ? Number.parseInt(ms, 10) / 1000 : 0);
   }
 
   return 0;
@@ -340,7 +338,7 @@ const makeSubtitleService = Effect.gen(function* () {
     });
 
   const translateSegments = (
-    segments: readonly TranscriptSegment[],
+    _segments: readonly TranscriptSegment[],
     targetLanguage: string,
   ): Effect.Effect<TranscriptSegment[], TranslationError> =>
     Effect.gen(function* () {
@@ -355,14 +353,12 @@ const makeSubtitleService = Effect.gen(function* () {
     });
 
   const getAvailableLanguages = (
-    videoId: string,
+    _videoId: string,
     hasTranslations: boolean,
   ): Effect.Effect<SubtitleLanguage[], SubtitleError> =>
     Effect.gen(function* () {
       // Base languages - original transcript is always available if segments exist
-      const languages: SubtitleLanguage[] = [
-        { code: "en", name: "English", isOriginal: true },
-      ];
+      const languages: SubtitleLanguage[] = [{ code: "en", name: "English", isOriginal: true }];
 
       // Add translated languages if available
       if (hasTranslations) {
@@ -408,9 +404,7 @@ export function findCurrentSegment(
     return null;
   }
 
-  return (
-    segments.find((segment) => currentTime >= segment.startTime && currentTime < segment.endTime) || null
-  );
+  return segments.find((segment) => currentTime >= segment.startTime && currentTime < segment.endTime) || null;
 }
 
 /**
@@ -470,9 +464,10 @@ export function mergeAdjacentSegments(
         startTime: current.startTime,
         endTime: segment.endTime,
         text: `${current.text} ${segment.text}`,
-        confidence: current.confidence && segment.confidence
-          ? (current.confidence + segment.confidence) / 2
-          : current.confidence || segment.confidence,
+        confidence:
+          current.confidence && segment.confidence
+            ? (current.confidence + segment.confidence) / 2
+            : current.confidence || segment.confidence,
       };
     } else {
       merged.push(current);

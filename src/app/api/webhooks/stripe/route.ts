@@ -1,9 +1,8 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { AppLive } from "@/lib/effect";
-import { WebhookSignatureError } from "@/lib/effect/errors";
 import { Billing } from "@/lib/effect/services/billing";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Database } from "@/lib/effect/services/database";

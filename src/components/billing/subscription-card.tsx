@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { AlertTriangle, Calendar, CreditCard, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Calendar, CreditCard, Loader2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -19,7 +19,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SubscriptionWithPlan } from "@/lib/effect/services/billing-repository";
-import { cn } from "@/lib/utils";
 
 interface SubscriptionCardProps {
   subscription: SubscriptionWithPlan | null;

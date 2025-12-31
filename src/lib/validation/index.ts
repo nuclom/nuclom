@@ -6,17 +6,14 @@ import { ValidationError } from "@/lib/effect/errors";
  * Validates data against a Zod schema and returns an Effect
  * that either succeeds with the parsed data or fails with a ValidationError.
  */
-export function validate<T extends z.ZodSchema>(
-  schema: T,
-  data: unknown,
-): Effect.Effect<z.infer<T>, ValidationError> {
+export function validate<T extends z.ZodSchema>(schema: T, data: unknown): Effect.Effect<z.infer<T>, ValidationError> {
   return Effect.try({
     try: () => schema.parse(data),
     catch: (error) => {
       if (error && typeof error === "object" && "errors" in error) {
         const zodError = error as { errors: Array<{ message: string; path: (string | number)[] }> };
-        const messages = zodError.errors.map(
-          (e) => (e.path.length > 0 ? `${e.path.join(".")}: ${e.message}` : e.message),
+        const messages = zodError.errors.map((e) =>
+          e.path.length > 0 ? `${e.path.join(".")}: ${e.message}` : e.message,
         );
         return new ValidationError({ message: messages.join("; ") });
       }
@@ -138,11 +135,9 @@ export function validateFormData<T extends z.ZodSchema>(
   return validate(schema, data);
 }
 
-// Re-export schemas
-export * from "./schemas";
-
 // Re-export file validation
 export * from "./file-validation";
-
 // Re-export sanitization
 export * from "./sanitize";
+// Re-export schemas
+export * from "./schemas";

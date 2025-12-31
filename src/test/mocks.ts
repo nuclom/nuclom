@@ -112,9 +112,7 @@ interface MockVideo {
 /**
  * Creates a mock organization for testing
  */
-export function createMockOrganization(
-  overrides: Partial<MockOrganization> = {},
-): MockOrganization {
+export function createMockOrganization(overrides: Partial<MockOrganization> = {}): MockOrganization {
   return {
     id: "org-123",
     name: "Test Organization",

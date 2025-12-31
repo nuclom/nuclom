@@ -59,7 +59,7 @@ export function VideoDetailClient({
 }: VideoDetailClientProps) {
   // Track current playback time for transcript sync
   const [currentTime, setCurrentTime] = useState(0);
-  const [videoPlayerRef, setVideoPlayerRef] = useState<HTMLVideoElement | null>(null);
+  const [_videoPlayerRef, _setVideoPlayerRef] = useState<HTMLVideoElement | null>(null);
 
   // Handle time updates from video player
   const handleTimeUpdate = useCallback((time: number) => {

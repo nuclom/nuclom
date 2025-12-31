@@ -1,10 +1,9 @@
 "use client";
 
+import { Check, ExternalLink, Loader2, Video, X } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Video, Loader2, Check, X, ExternalLink, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { RecordingBrowser } from "@/components/integrations/recording-browser";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,8 +16,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { RecordingBrowser } from "@/components/integrations/recording-browser";
 
 // Zoom icon component
 function ZoomIcon({ className }: { className?: string }) {
@@ -167,7 +167,7 @@ export default function IntegrationsPage() {
       } else {
         throw new Error("Failed to disconnect");
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: "Error",
         description: "Failed to disconnect integration",

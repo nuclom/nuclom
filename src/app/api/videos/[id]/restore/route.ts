@@ -1,6 +1,6 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { AppLive, NotFoundError, VideoRepository } from "@/lib/effect";
+import { AppLive, VideoRepository } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================

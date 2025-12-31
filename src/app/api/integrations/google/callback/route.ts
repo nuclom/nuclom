@@ -1,6 +1,6 @@
+import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Effect, Layer } from "effect";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";

@@ -1,10 +1,10 @@
-import { type NextRequest, NextResponse } from "next/server";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { Zoom, ZoomLive, type ZoomRecording } from "@/lib/effect/services/zoom";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { HttpError, NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
+import { DatabaseLive } from "@/lib/effect/services/database";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { Zoom, ZoomLive, type ZoomRecording } from "@/lib/effect/services/zoom";
 
 export const dynamic = "force-dynamic";
 

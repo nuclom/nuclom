@@ -1,17 +1,17 @@
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { AppLive, VideoRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import {
+  createVideoSchema,
+  getVideosSchema,
+  sanitizeDescription,
+  sanitizeTitle,
   validateQueryParams,
   validateRequestBody,
-  getVideosSchema,
-  createVideoSchema,
-  sanitizeTitle,
-  sanitizeDescription,
 } from "@/lib/validation";
 
 // =============================================================================
@@ -73,9 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Sanitize user-provided content to prevent XSS
     const sanitizedTitle = sanitizeTitle(validatedData.title);
-    const sanitizedDescription = validatedData.description
-      ? sanitizeDescription(validatedData.description)
-      : undefined;
+    const sanitizedDescription = validatedData.description ? sanitizeDescription(validatedData.description) : undefined;
 
     // Create video using repository
     const videoRepo = yield* VideoRepository;

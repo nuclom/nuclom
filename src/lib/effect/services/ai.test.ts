@@ -1,5 +1,5 @@
-import { Effect, Exit, Layer } from "effect";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { Effect, Exit } from "effect";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AI, AILive } from "./ai";
 
 // Mock the ai package
@@ -13,7 +13,7 @@ vi.mock("@ai-sdk/gateway", () => ({
   gateway: vi.fn().mockReturnValue("mock-model"),
 }));
 
-import { generateText, streamText } from "ai";
+import { generateText } from "ai";
 
 // Helper to create a mock AI response
 function createMockAIResponse(text: string) {

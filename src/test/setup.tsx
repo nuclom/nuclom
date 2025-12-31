@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import { vi, beforeAll, afterAll } from "vitest";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -18,23 +18,15 @@ vi.mock("next/navigation", () => ({
 
 // Mock Next.js Image component
 vi.mock("next/image", () => ({
-  default: ({
-    src,
-    alt,
-    ...props
-  }: { src: string; alt: string; [key: string]: unknown }) => {
-    // biome-ignore lint/a11y/useAltText: Mock component for testing
+  default: ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => {
+    // biome-ignore lint/performance/noImgElement: Mock component for testing
     return <img src={src} alt={alt} {...props} />;
   },
 }));
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    ...props
-  }: { children: React.ReactNode; href: string; [key: string]: unknown }) => {
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => {
     return (
       <a href={href} {...props}>
         {children}
@@ -80,8 +72,7 @@ beforeAll(() => {
     const message = args[0];
     if (
       typeof message === "string" &&
-      (message.includes("Warning: ReactDOM.render") ||
-        message.includes("Warning: An update to"))
+      (message.includes("Warning: ReactDOM.render") || message.includes("Warning: An update to"))
     ) {
       return;
     }

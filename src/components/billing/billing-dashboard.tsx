@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Invoice, Plan } from "@/lib/db/schema";
+import type { Plan } from "@/lib/db/schema";
 import type { OrganizationBillingInfo, UsageSummary } from "@/lib/effect/services/billing-repository";
 import { InvoiceList } from "./invoice-list";
 import { PlanSelector } from "./plan-selector";

@@ -6,7 +6,6 @@
 
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
-import * as schema from "@/lib/db/schema";
 import {
   type Invoice,
   invoices,
@@ -14,10 +13,8 @@ import {
   type NewInvoice,
   type NewPaymentMethod,
   type NewSubscription,
-  type NewUsage,
   type PaymentMethod,
   type Plan,
-  type PlanFeatures,
   type PlanLimits,
   paymentMethods,
   plans,

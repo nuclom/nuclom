@@ -1,26 +1,17 @@
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  AppLive,
-  MissingFieldError,
-  ValidationError,
-  VideoProcessor,
-  VideoRepository,
-} from "@/lib/effect";
-import { PlanLimitExceededError } from "@/lib/effect/errors";
-import { requireActiveSubscription, trackVideoUpload } from "@/lib/effect/services/billing-middleware";
+import { AppLive, MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
+import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
 import {
-  validateFormData,
-  videoUploadSchema,
-  validateVideoFile,
-  sanitizeTitle,
   sanitizeDescription,
-  MAX_FILE_SIZES,
-  SUPPORTED_VIDEO_EXTENSIONS,
+  sanitizeTitle,
+  validateFormData,
+  validateVideoFile,
+  videoUploadSchema,
 } from "@/lib/validation";
 
 // Handle file upload size limit
@@ -115,9 +106,7 @@ export async function POST(request: NextRequest) {
 
     // Sanitize user-provided content to prevent XSS
     const sanitizedTitle = sanitizeTitle(validatedData.title);
-    const sanitizedDescription = validatedData.description
-      ? sanitizeDescription(validatedData.description)
-      : undefined;
+    const sanitizedDescription = validatedData.description ? sanitizeDescription(validatedData.description) : undefined;
 
     const skipAIProcessing = validatedData.skipAIProcessing === "true";
 

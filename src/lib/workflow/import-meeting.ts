@@ -8,14 +8,14 @@
 import { Effect, Layer } from "effect";
 import type { IntegrationProvider } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect/runtime";
-import { Storage } from "@/lib/effect/services/storage";
-import { VideoRepository } from "@/lib/effect/services/video-repository";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
-import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
-import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
-import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import { DatabaseLive } from "@/lib/effect/services/database";
+import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { Storage } from "@/lib/effect/services/storage";
+import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
+import { VideoRepository } from "@/lib/effect/services/video-repository";
+import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 
 // =============================================================================
 // Workflow Input Types

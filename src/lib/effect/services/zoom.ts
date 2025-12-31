@@ -4,7 +4,7 @@
  * Provides type-safe Zoom API operations for OAuth and recordings.
  */
 
-import { Config, Context, Effect, Layer, Option, pipe } from "effect";
+import { Config, Context, Effect, Layer, Option } from "effect";
 import { HttpError } from "../errors";
 
 // =============================================================================

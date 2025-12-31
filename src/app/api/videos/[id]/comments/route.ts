@@ -3,12 +3,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { AppLive, CommentRepository, NotificationRepository, VideoRepository } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { Database } from "@/lib/effect/services/database";
-import { commentEventEmitter } from "@/lib/realtime/comment-events";
+import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { env } from "@/lib/env/client";
+import { commentEventEmitter } from "@/lib/realtime/comment-events";
 import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody, createCommentSchema, sanitizeComment } from "@/lib/validation";
+import { createCommentSchema, sanitizeComment, validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // Error Response Handler
@@ -119,8 +119,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (validatedData.parentId) {
       // Notify parent comment author of reply
-      yield* Effect.catchAll(notificationRepo.notifyCommentReply(validatedData.parentId, newComment.id, user.id, videoId), () =>
-        Effect.succeed(null),
+      yield* Effect.catchAll(
+        notificationRepo.notifyCommentReply(validatedData.parentId, newComment.id, user.id, videoId),
+        () => Effect.succeed(null),
       );
 
       // Send email notification for reply

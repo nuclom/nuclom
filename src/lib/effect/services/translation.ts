@@ -221,9 +221,7 @@ const makeTranslationService = Effect.gen(function* () {
   const isConfigured = !!apiKey;
 
   // DeepL API endpoint (use free or pro based on key format)
-  const apiUrl = apiKey?.endsWith(":fx")
-    ? "https://api-free.deepl.com/v2"
-    : "https://api.deepl.com/v2";
+  const apiUrl = apiKey?.endsWith(":fx") ? "https://api-free.deepl.com/v2" : "https://api.deepl.com/v2";
 
   const isAvailable = (): boolean => isConfigured;
 

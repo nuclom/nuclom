@@ -130,7 +130,7 @@ export function decodeCursor(cursor: string): { timestamp: number; id: string } 
     const [timestampStr, id] = decoded.split(":");
     const timestamp = parseInt(timestampStr, 10);
 
-    if (isNaN(timestamp) || !id) {
+    if (Number.isNaN(timestamp) || !id) {
       return null;
     }
 
@@ -237,8 +237,8 @@ export function parsePaginationParams(searchParams: URLSearchParams): {
   const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100); // Max 100 items
 
   return {
-    page: isNaN(page) || page < 1 ? 1 : page,
-    limit: isNaN(limit) || limit < 1 ? 20 : limit,
+    page: Number.isNaN(page) || page < 1 ? 1 : page,
+    limit: Number.isNaN(limit) || limit < 1 ? 20 : limit,
     cursor,
     useCursor: !!cursor,
   };

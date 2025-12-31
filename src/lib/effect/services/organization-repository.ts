@@ -492,9 +492,7 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
       // Remove member
       yield* Effect.tryPromise({
         try: () =>
-          db
-            .delete(members)
-            .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId))),
+          db.delete(members).where(and(eq(members.userId, userId), eq(members.organizationId, organizationId))),
         catch: (error) =>
           new DatabaseError({
             message: "Failed to remove member",

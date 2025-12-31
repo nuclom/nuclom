@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { CreateOrganizationInput, OrganizationRepositoryService, OrganizationWithRole } from "./organization-repository";
+import type {
+  CreateOrganizationInput,
+  OrganizationRepositoryService,
+  OrganizationWithRole,
+} from "./organization-repository";
 
 describe("OrganizationRepository Types", () => {
   describe("CreateOrganizationInput", () => {

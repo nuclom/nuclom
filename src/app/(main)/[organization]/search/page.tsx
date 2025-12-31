@@ -1,12 +1,12 @@
-import { Suspense } from "react";
-import { headers } from "next/headers";
+import { and, eq } from "drizzle-orm";
 import { Loader2 } from "lucide-react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { SearchPageContent } from "@/components/search";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { channels, collections, members, organizations, users, videos } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { redirect } from "next/navigation";
 
 interface SearchPageProps {
   params: Promise<{ organization: string }>;

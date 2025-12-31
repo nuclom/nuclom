@@ -25,9 +25,8 @@ import {
   Save,
   Scissors,
   Trash2,
-  X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -42,12 +41,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -305,14 +299,7 @@ interface SegmentEditorDialogProps {
   onDelete: () => void;
 }
 
-function SegmentEditorDialog({
-  segment,
-  index,
-  open,
-  onOpenChange,
-  onSave,
-  onDelete,
-}: SegmentEditorDialogProps) {
+function SegmentEditorDialog({ segment, index, open, onOpenChange, onSave, onDelete }: SegmentEditorDialogProps) {
   const [text, setText] = useState(segment?.text || "");
   const [startTime, setStartTime] = useState(formatTime(segment?.startTime || 0));
   const [endTime, setEndTime] = useState(formatTime(segment?.endTime || 0));
@@ -494,22 +481,10 @@ function SegmentRow({
           )}
 
           <div className="flex flex-col -space-y-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-7"
-              onClick={onMoveUp}
-              disabled={isFirst}
-            >
+            <Button variant="ghost" size="icon" className="h-5 w-7" onClick={onMoveUp} disabled={isFirst}>
               <ChevronUp className="h-3 w-3" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-7"
-              onClick={onMoveDown}
-              disabled={isLast}
-            >
+            <Button variant="ghost" size="icon" className="h-5 w-7" onClick={onMoveDown} disabled={isLast}>
               <ChevronDown className="h-3 w-3" />
             </Button>
           </div>
@@ -573,9 +548,12 @@ export function TranscriptEditor({
     setEditDialogOpen(true);
   }, []);
 
-  const handleSaveSegment = useCallback((segment: TranscriptSegment) => {
-    dispatch({ type: "UPDATE_SEGMENT", index: selectedSegmentIndex, segment });
-  }, [selectedSegmentIndex]);
+  const handleSaveSegment = useCallback(
+    (segment: TranscriptSegment) => {
+      dispatch({ type: "UPDATE_SEGMENT", index: selectedSegmentIndex, segment });
+    },
+    [selectedSegmentIndex],
+  );
 
   const handleDeleteSegment = useCallback(() => {
     dispatch({ type: "DELETE_SEGMENT", index: selectedSegmentIndex });
@@ -590,49 +568,55 @@ export function TranscriptEditor({
   }, []);
 
   // Move segment up/down (swap with adjacent)
-  const handleMoveUp = useCallback((index: number) => {
-    if (index <= 0) return;
+  const handleMoveUp = useCallback(
+    (index: number) => {
+      if (index <= 0) return;
 
-    const segments = state.segments.map((s) => ({ ...s }));
-    const current = segments[index];
-    const prev = segments[index - 1];
+      const segments = state.segments.map((s) => ({ ...s }));
+      const current = segments[index];
+      const prev = segments[index - 1];
 
-    // Swap segments and adjust timestamps
-    segments[index] = {
-      ...prev,
-      startTime: current.startTime,
-      endTime: current.endTime,
-    };
-    segments[index - 1] = {
-      ...current,
-      startTime: prev.startTime,
-      endTime: prev.endTime,
-    };
+      // Swap segments and adjust timestamps
+      segments[index] = {
+        ...prev,
+        startTime: current.startTime,
+        endTime: current.endTime,
+      };
+      segments[index - 1] = {
+        ...current,
+        startTime: prev.startTime,
+        endTime: prev.endTime,
+      };
 
-    dispatch({ type: "SET_SEGMENTS", segments });
-  }, [state.segments]);
+      dispatch({ type: "SET_SEGMENTS", segments });
+    },
+    [state.segments],
+  );
 
-  const handleMoveDown = useCallback((index: number) => {
-    if (index >= state.segments.length - 1) return;
+  const handleMoveDown = useCallback(
+    (index: number) => {
+      if (index >= state.segments.length - 1) return;
 
-    const segments = state.segments.map((s) => ({ ...s }));
-    const current = segments[index];
-    const next = segments[index + 1];
+      const segments = state.segments.map((s) => ({ ...s }));
+      const current = segments[index];
+      const next = segments[index + 1];
 
-    // Swap segments and adjust timestamps
-    segments[index] = {
-      ...next,
-      startTime: current.startTime,
-      endTime: current.endTime,
-    };
-    segments[index + 1] = {
-      ...current,
-      startTime: next.startTime,
-      endTime: next.endTime,
-    };
+      // Swap segments and adjust timestamps
+      segments[index] = {
+        ...next,
+        startTime: current.startTime,
+        endTime: current.endTime,
+      };
+      segments[index + 1] = {
+        ...current,
+        startTime: next.startTime,
+        endTime: next.endTime,
+      };
 
-    dispatch({ type: "SET_SEGMENTS", segments });
-  }, [state.segments]);
+      dispatch({ type: "SET_SEGMENTS", segments });
+    },
+    [state.segments],
+  );
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -672,9 +656,7 @@ export function TranscriptEditor({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm text-center py-8">
-            No transcript available to edit.
-          </p>
+          <p className="text-muted-foreground text-sm text-center py-8">No transcript available to edit.</p>
         </CardContent>
       </Card>
     );
@@ -730,16 +712,8 @@ export function TranscriptEditor({
 
             {/* Save button */}
             {showSaveButton && (
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={!state.hasUnsavedChanges || isSaving}
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
+              <Button size="sm" onClick={handleSave} disabled={!state.hasUnsavedChanges || isSaving}>
+                {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Changes
               </Button>
             )}
@@ -748,9 +722,7 @@ export function TranscriptEditor({
 
         {/* Unsaved changes indicator */}
         {state.hasUnsavedChanges && (
-          <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-            You have unsaved changes
-          </div>
+          <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">You have unsaved changes</div>
         )}
       </CardHeader>
 
