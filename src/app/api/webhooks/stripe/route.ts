@@ -1,13 +1,14 @@
 /**
- * Custom Stripe Webhook Handler
+ * Unified Stripe Webhook Handler
  *
- * NOTE: Better Auth Stripe handles subscription lifecycle webhooks at /api/auth/stripe/webhook.
- * This endpoint handles additional events not covered by Better Auth Stripe, such as:
+ * This is the single webhook endpoint for all Stripe events.
+ * It handles:
  * - Invoice tracking in our local database
  * - Payment method management
  * - Custom notifications and usage tracking
+ * - Forwards subscription/checkout events to Better Auth for processing
  *
- * Configure this endpoint in Stripe Dashboard alongside the Better Auth webhook.
+ * Configure ONLY this endpoint in Stripe Dashboard with all required events.
  */
 
 import { Cause, Effect, Exit, Option } from "effect";
@@ -21,10 +22,52 @@ import { Database } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
+import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
 
+// Events that Better Auth needs to handle for subscription management
+const BETTER_AUTH_EVENTS = new Set([
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "customer.subscription.paused",
+  "customer.subscription.resumed",
+  "customer.subscription.pending_update_applied",
+  "customer.subscription.pending_update_expired",
+  "checkout.session.completed",
+]);
+
 // =============================================================================
-// POST /api/webhooks/stripe - Handle additional Stripe webhooks
+// Forward events to Better Auth webhook handler
+// =============================================================================
+
+async function forwardToBetterAuth(body: string, signature: string): Promise<void> {
+  const baseUrl = env.APP_URL || clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const betterAuthWebhookUrl = `${baseUrl}/api/auth/stripe/webhook`;
+
+  try {
+    const response = await fetch(betterAuthWebhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "stripe-signature": signature,
+      },
+      body,
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`[Webhook] Better Auth forwarding failed: ${response.status} - ${text}`);
+    } else {
+      console.log("[Webhook] Event forwarded to Better Auth successfully");
+    }
+  } catch (error) {
+    console.error("[Webhook] Failed to forward event to Better Auth:", error);
+  }
+}
+
+// =============================================================================
+// POST /api/webhooks/stripe - Unified Stripe webhook handler
 // =============================================================================
 
 export async function POST(request: Request) {
@@ -43,7 +86,15 @@ export async function POST(request: Request) {
     const billingRepo = yield* BillingRepository;
     const { db } = yield* Database;
 
-    // Handle the event
+    // Forward subscription/checkout events to Better Auth
+    if (BETTER_AUTH_EVENTS.has(event.type)) {
+      yield* Effect.tryPromise({
+        try: () => forwardToBetterAuth(body, signature),
+        catch: (error) => new Error(`Failed to forward to Better Auth: ${error}`),
+      });
+    }
+
+    // Handle the event locally
     switch (event.type) {
       // Invoice events - track in our local database
       case "invoice.paid": {
@@ -89,7 +140,7 @@ export async function POST(request: Request) {
         break;
       }
 
-      // Trial ending notification
+      // Trial ending notification (our custom handling)
       case "customer.subscription.trial_will_end": {
         const subscription = event.data.object as Stripe.Subscription;
         yield* handleTrialEnding(subscription, db);
@@ -98,8 +149,7 @@ export async function POST(request: Request) {
       }
 
       default:
-        // Other events are handled by Better Auth Stripe at /api/auth/stripe/webhook
-        console.log(`[Webhook] Event ${event.type} - handled by Better Auth or ignored`);
+        console.log(`[Webhook] Event ${event.type} processed`);
     }
 
     return { received: true };
@@ -326,7 +376,7 @@ const sendPaymentNotification = (
       payment_failed: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
     };
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of ownerMembers) {
       const user = (member as { user: { id: string; email: string; name: string } }).user;
@@ -388,7 +438,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: typeof import(
     });
 
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of members) {
       const user = (member as { user: { id: string; email: string; name: string } }).user;
