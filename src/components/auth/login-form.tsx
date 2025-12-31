@@ -88,7 +88,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Button variant="link" className="p-0 h-auto font-normal text-sm" asChild>
+                <a href="/forgot-password">Forgot password?</a>
+              </Button>
+            </div>
             <div className="relative">
               <Input
                 id="password"

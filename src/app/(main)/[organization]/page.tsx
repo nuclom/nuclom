@@ -69,11 +69,7 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <DashboardHero
-        organization={organizationSlug}
-        userName={userName}
-        hasVideos={hasVideos}
-      />
+      <DashboardHero organization={organizationSlug} userName={userName} hasVideos={hasVideos} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -117,10 +113,7 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <GettingStartedChecklist
-            organization={organizationSlug}
-            hasVideos={hasVideos}
-          />
+          <GettingStartedChecklist organization={organizationSlug} hasVideos={hasVideos} />
 
           <ActivityFeed />
         </div>

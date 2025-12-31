@@ -14,9 +14,7 @@ export function MarketingFooter() {
               </div>
               <span className="text-xl font-bold">Nuclom</span>
             </Link>
-            <p className="text-sm text-muted-foreground">
-              The modern video collaboration platform for teams.
-            </p>
+            <p className="text-sm text-muted-foreground">The modern video collaboration platform for teams.</p>
           </div>
 
           {/* Product */}

@@ -32,7 +32,7 @@ export function OnboardingProgress({ steps, currentStep, className }: Onboarding
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300",
                     isCompleted && "bg-emerald-500 text-white",
                     isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20",
-                    isUpcoming && "bg-muted text-muted-foreground"
+                    isUpcoming && "bg-muted text-muted-foreground",
                   )}
                 >
                   {isCompleted ? <Check className="w-5 h-5" /> : index + 1}
@@ -42,7 +42,7 @@ export function OnboardingProgress({ steps, currentStep, className }: Onboarding
                     className={cn(
                       "text-sm font-medium transition-colors",
                       isCurrent && "text-foreground",
-                      !isCurrent && "text-muted-foreground"
+                      !isCurrent && "text-muted-foreground",
                     )}
                   >
                     {step.title}
@@ -55,7 +55,7 @@ export function OnboardingProgress({ steps, currentStep, className }: Onboarding
                     <div
                       className={cn(
                         "h-full bg-emerald-500 transition-all duration-500",
-                        isCompleted ? "w-full" : "w-0"
+                        isCompleted ? "w-full" : "w-0",
                       )}
                     />
                   </div>

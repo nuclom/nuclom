@@ -6,10 +6,18 @@ Nuclom is a comprehensive video collaboration platform that enables teams to cre
 
 The Nuclom API provides RESTful endpoints for managing video content, organizations, user authentication, and AI-powered video analysis. All endpoints return JSON responses and follow consistent patterns for error handling and data formatting.
 
+## Interactive API Reference
+
+For a complete, interactive API reference with all endpoints, parameters, and response schemas, visit the [Interactive API Reference](/docs/api/reference).
+
+You can also download the OpenAPI specification:
+- [OpenAPI JSON](/api/openapi.json)
+- [OpenAPI YAML](/api/openapi.yaml)
+
 ## Base URL
 
 ```
-https://yourdomain.com/api
+https://nuclom.com/api
 ```
 
 ## Authentication

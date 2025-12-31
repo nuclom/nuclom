@@ -20,8 +20,15 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ redirectTo }: RegisterFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect URL and prefilled email from search params
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
+  const prefilledEmail = searchParams.get("email") || "";
+
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,11 +36,6 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +70,9 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       if (result.error) {
         setError(result.error.message || "Failed to create account");
       } else {
-        // Redirect to verification pending page with email
-        router.push(`/verification-pending?email=${encodeURIComponent(email)}`);
+        // Redirect to verification pending page with email and redirect URL
+        const verificationUrl = `/verification-pending?email=${encodeURIComponent(email)}${finalRedirectTo !== "/onboarding" ? `&redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`;
+        router.push(verificationUrl);
       }
     } catch (err) {
       setError("An unexpected error occurred");

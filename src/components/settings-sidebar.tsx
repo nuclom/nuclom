@@ -1,62 +1,121 @@
 "use client";
 
-import { Building, CreditCard, Plug, User, Users } from "lucide-react";
+import { Bell, Building, CreditCard, Globe, Key, Plug, Shield, User, UserCog, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
 export function SettingsSidebar({ organization }: { organization: string }) {
   const pathname = usePathname();
-  const navItems = [
+
+  const navSections: NavSection[] = [
     {
-      href: `/${organization}/settings/profile`,
-      label: "Your Profile",
-      icon: User,
+      title: "Personal",
+      items: [
+        {
+          href: `/${organization}/settings/profile`,
+          label: "Your Profile",
+          icon: User,
+        },
+        {
+          href: `/${organization}/settings/account`,
+          label: "Account",
+          icon: UserCog,
+        },
+        {
+          href: `/${organization}/settings/security`,
+          label: "Security",
+          icon: Shield,
+        },
+        {
+          href: `/${organization}/settings/notifications`,
+          label: "Notifications",
+          icon: Bell,
+        },
+      ],
     },
     {
-      href: `/${organization}/settings/organization`,
-      label: "Organization",
-      icon: Building,
+      title: "Organization",
+      items: [
+        {
+          href: `/${organization}/settings/organization`,
+          label: "General",
+          icon: Building,
+        },
+        {
+          href: `/${organization}/settings/members`,
+          label: "Members",
+          icon: Users,
+        },
+        {
+          href: `/${organization}/settings/billing`,
+          label: "Billing",
+          icon: CreditCard,
+        },
+      ],
     },
     {
-      href: `/${organization}/settings/members`,
-      label: "Members",
-      icon: Users,
-    },
-    {
-      href: `/${organization}/settings/integrations`,
-      label: "Integrations",
-      icon: Plug,
-    },
-    {
-      href: `/${organization}/settings/billing`,
-      label: "Billing",
-      icon: CreditCard,
+      title: "Developer",
+      items: [
+        {
+          href: `/${organization}/settings/api-keys`,
+          label: "API Keys",
+          icon: Key,
+        },
+        {
+          href: `/${organization}/settings/oauth-apps`,
+          label: "OAuth Apps",
+          icon: Globe,
+        },
+        {
+          href: `/${organization}/settings/integrations`,
+          label: "Integrations",
+          icon: Plug,
+        },
+      ],
     },
   ];
 
   return (
     <aside className="w-full md:w-56 flex-shrink-0">
       <h2 className="text-2xl font-bold mb-6">Settings</h2>
-      <nav>
-        <ul className="space-y-1">
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <nav className="space-y-6">
+        {navSections.map((section) => (
+          <div key={section.title}>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+              {section.title}
+            </h3>
+            <ul className="space-y-1">
+              {section.items.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      pathname === item.href
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
     </aside>
   );

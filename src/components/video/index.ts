@@ -25,3 +25,4 @@ export {
   VideoPlayerWithProgress,
   type VideoPlayerWithProgressProps,
 } from "./video-player-with-progress";
+export { VideoActions, type VideoActionsProps } from "./video-actions";

@@ -29,6 +29,7 @@ export const users = pgTable("users", {
   banned: boolean("banned"),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
+  twoFactorEnabled: boolean("two_factor_enabled"),
   // Legal consent fields
   tosAcceptedAt: timestamp("tos_accepted_at"),
   tosVersion: text("tos_version"),
@@ -147,6 +148,60 @@ export const apikeys = pgTable("apikeys", {
   updatedAt: timestamp("updated_at").notNull(),
   permissions: text("permissions"),
   metadata: text("metadata"),
+});
+
+// Two-Factor Authentication tables
+export const twoFactors = pgTable("two_factors", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+});
+
+// Passkeys/WebAuthn table
+export const passkeys = pgTable("passkeys", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  publicKey: text("public_key").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  credentialID: text("credential_id").notNull().unique(),
+  counter: integer("counter").notNull(),
+  deviceType: text("device_type"),
+  backedUp: boolean("backed_up"),
+  transports: text("transports"),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+});
+
+// User preferences table
+export const userPreferences = pgTable("user_preferences", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // Notification preferences
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  emailCommentReplies: boolean("email_comment_replies").default(true).notNull(),
+  emailMentions: boolean("email_mentions").default(true).notNull(),
+  emailVideoProcessing: boolean("email_video_processing").default(true).notNull(),
+  emailWeeklyDigest: boolean("email_weekly_digest").default(false).notNull(),
+  emailProductUpdates: boolean("email_product_updates").default(true).notNull(),
+  // In-app notification preferences
+  pushNotifications: boolean("push_notifications").default(true).notNull(),
+  // Appearance preferences
+  theme: text("theme").default("system").notNull(), // 'light', 'dark', 'system'
+  // Privacy preferences
+  showActivityStatus: boolean("show_activity_status").default(true).notNull(),
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const oauthApplications = pgTable("oauth_applications", {
@@ -443,11 +498,7 @@ export const performanceMetrics = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => ({
-    orgTypeIdx: index("performance_metrics_org_type_idx").on(
-      table.organizationId,
-      table.metricType,
-      table.createdAt,
-    ),
+    orgTypeIdx: index("performance_metrics_org_type_idx").on(table.organizationId, table.metricType, table.createdAt),
   }),
 );
 
@@ -948,10 +999,42 @@ export const dataExportRequests = pgTable(
 );
 
 // Relations
-export const userRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ one, many }) => ({
   videos: many(videos),
   comments: many(comments),
   videoProgresses: many(videoProgresses),
+  twoFactor: one(twoFactors),
+  passkeys: many(passkeys),
+  preferences: one(userPreferences),
+  apiKeys: many(apikeys),
+}));
+
+export const twoFactorRelations = relations(twoFactors, ({ one }) => ({
+  user: one(users, {
+    fields: [twoFactors.userId],
+    references: [users.id],
+  }),
+}));
+
+export const passkeyRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const apiKeyRelations = relations(apikeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apikeys.userId],
+    references: [users.id],
+  }),
 }));
 
 export const organizationRelations = relations(organizations, ({ one, many }) => ({
@@ -1205,6 +1288,104 @@ export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
   }),
 }));
 
+// =====================
+// Video Analytics Tables
+// =====================
+
+export const videoViewSourceEnum = pgEnum("VideoViewSource", ["direct", "share_link", "embed"]);
+
+export const videoViews = pgTable(
+  "video_views",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }), // null for anonymous
+    sessionId: text("session_id").notNull(), // browser session fingerprint
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    watchDuration: integer("watch_duration").default(0), // seconds watched
+    completionPercent: integer("completion_percent").default(0), // 0-100
+    source: videoViewSourceEnum("source").default("direct"),
+    referrer: text("referrer"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("video_views_video_idx").on(table.videoId),
+    sessionVideoIdx: unique("video_views_session_video_idx").on(table.sessionId, table.videoId),
+    orgDateIdx: index("video_views_org_date_idx").on(table.organizationId, table.createdAt),
+  }),
+);
+
+// Aggregated daily stats for faster queries
+export const videoAnalyticsDaily = pgTable(
+  "video_analytics_daily",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    date: timestamp("date").notNull(),
+    viewCount: integer("view_count").default(0),
+    uniqueViewers: integer("unique_viewers").default(0),
+    totalWatchTime: integer("total_watch_time").default(0), // seconds
+    avgCompletionPercent: integer("avg_completion_percent").default(0),
+  },
+  (table) => ({
+    videoDateIdx: unique("video_analytics_video_date_idx").on(table.videoId, table.date),
+  }),
+);
+
+// =====================
+// Video Sharing Tables
+// =====================
+
+export const videoShareLinkStatusEnum = pgEnum("VideoShareLinkStatus", ["active", "expired", "revoked"]);
+
+export const videoShareLinkAccessEnum = pgEnum("VideoShareLinkAccess", ["view", "comment", "download"]);
+
+export const videoShareLinks = pgTable(
+  "video_share_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Access control
+    accessLevel: videoShareLinkAccessEnum("access_level").notNull().default("view"),
+    password: text("password"), // hashed, null = no password
+
+    // Limits
+    expiresAt: timestamp("expires_at"), // null = never expires
+    maxViews: integer("max_views"), // null = unlimited
+    viewCount: integer("view_count").default(0),
+
+    // Status
+    status: videoShareLinkStatusEnum("status").default("active"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastAccessedAt: timestamp("last_accessed_at"),
+  },
+  (table) => ({
+    videoIdx: index("video_share_links_video_idx").on(table.videoId),
+    statusIdx: index("video_share_links_status_idx").on(table.status),
+  }),
+);
+
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
   user: one(users, {
@@ -1225,6 +1406,42 @@ export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
   organization: one(organizations, {
     fields: [savedSearches.organizationId],
     references: [organizations.id],
+  }),
+}));
+
+// Video Views relations
+export const videoViewsRelations = relations(videoViews, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoViews.videoId],
+    references: [videos.id],
+  }),
+  user: one(users, {
+    fields: [videoViews.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [videoViews.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Video Analytics Daily relations
+export const videoAnalyticsDailyRelations = relations(videoAnalyticsDaily, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoAnalyticsDaily.videoId],
+    references: [videos.id],
+  }),
+}));
+
+// Video Share Links relations
+export const videoShareLinksRelations = relations(videoShareLinks, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoShareLinks.videoId],
+    references: [videos.id],
+  }),
+  creator: one(users, {
+    fields: [videoShareLinks.createdBy],
+    references: [users.id],
   }),
 }));
 
@@ -1321,6 +1538,22 @@ export type NewSearchHistory = typeof searchHistory.$inferInsert;
 export type SavedSearch = typeof savedSearches.$inferSelect;
 export type NewSavedSearch = typeof savedSearches.$inferInsert;
 
+// Authentication types
+export type TwoFactor = typeof twoFactors.$inferSelect;
+export type NewTwoFactor = typeof twoFactors.$inferInsert;
+export type Passkey = typeof passkeys.$inferSelect;
+export type NewPasskey = typeof passkeys.$inferInsert;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type NewUserPreferences = typeof userPreferences.$inferInsert;
+export type ApiKey = typeof apikeys.$inferSelect;
+export type NewApiKey = typeof apikeys.$inferInsert;
+export type OAuthApplication = typeof oauthApplications.$inferSelect;
+export type NewOAuthApplication = typeof oauthApplications.$inferInsert;
+export type OAuthAccessToken = typeof oauthAccessTokens.$inferSelect;
+export type NewOAuthAccessToken = typeof oauthAccessTokens.$inferInsert;
+export type OAuthConsent = typeof oauthConsents.$inferSelect;
+export type NewOAuthConsent = typeof oauthConsents.$inferInsert;
+
 // Comment reaction types
 export type ReactionType = (typeof reactionTypeEnum.enumValues)[number];
 export type CommentReaction = typeof commentReactions.$inferSelect;
@@ -1337,6 +1570,21 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 // Performance metrics types
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 export type NewPerformanceMetric = typeof performanceMetrics.$inferInsert;
+
+// Video Views types
+export type VideoViewSource = (typeof videoViewSourceEnum.enumValues)[number];
+export type VideoView = typeof videoViews.$inferSelect;
+export type NewVideoView = typeof videoViews.$inferInsert;
+
+// Video Analytics Daily types
+export type VideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferSelect;
+export type NewVideoAnalyticsDaily = typeof videoAnalyticsDaily.$inferInsert;
+
+// Video Share Links types
+export type VideoShareLinkStatus = (typeof videoShareLinkStatusEnum.enumValues)[number];
+export type VideoShareLinkAccess = (typeof videoShareLinkAccessEnum.enumValues)[number];
+export type VideoShareLink = typeof videoShareLinks.$inferSelect;
+export type NewVideoShareLink = typeof videoShareLinks.$inferInsert;
 
 // Legal compliance types
 export type LegalDocumentType = (typeof legalDocumentTypeEnum.enumValues)[number];
