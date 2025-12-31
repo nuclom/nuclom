@@ -125,6 +125,7 @@ export function CookieConsentBanner() {
           <div className="mx-auto max-w-4xl">
             <div className="relative rounded-xl border bg-background shadow-2xl p-6">
               <button
+                type="button"
                 onClick={rejectNonEssential}
                 className="absolute right-4 top-4 text-muted-foreground hover:text-foreground"
                 aria-label="Close"
@@ -249,6 +250,7 @@ export function CookieSettingsButton() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowSettings(true)}
         className="fixed bottom-4 left-4 z-40 rounded-full bg-muted p-3 shadow-lg hover:bg-muted/80 transition-colors"
         aria-label="Cookie settings"

@@ -186,7 +186,6 @@ function TrashPageSkeleton() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton elements
           <Card key={i} className="overflow-hidden">
             <CardContent className="p-0">
               <Skeleton className="aspect-video" />

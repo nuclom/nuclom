@@ -189,7 +189,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Hash password if provided
     let hashedPassword: string | null = null;
-    if (body.password && body.password.trim()) {
+    if (body.password?.trim()) {
       hashedPassword = yield* Effect.tryPromise({
         try: () => hashPassword(body.password as string),
         catch: () =>

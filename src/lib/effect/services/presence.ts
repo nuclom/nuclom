@@ -301,7 +301,7 @@ const makePresenceService = Effect.gen(function* () {
         }),
     });
 
-  const heartbeat = (userId: string, organizationId: string): Effect.Effect<void, DatabaseError> =>
+  const heartbeat = (userId: string, _organizationId: string): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         await db.update(userPresence).set({ lastSeen: new Date() }).where(eq(userPresence.userId, userId));

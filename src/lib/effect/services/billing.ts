@@ -327,6 +327,7 @@ const makeBillingService = Effect.gen(function* () {
           trialPeriodDays: params.trialDays,
         });
 
+        // biome-ignore lint/style/noNonNullAssertion: Stripe always returns url for checkout sessions
         return { url: session.url! };
       }),
 
@@ -583,7 +584,7 @@ const makeBillingService = Effect.gen(function* () {
           canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
           trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
-          seats: stripeSubscription.metadata?.seats ? Number.parseInt(stripeSubscription.metadata.seats) : null,
+          seats: stripeSubscription.metadata?.seats ? Number.parseInt(stripeSubscription.metadata.seats, 10) : null,
           // Custom fields for our app
           organizationId,
           planId: localPlan.id,

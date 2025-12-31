@@ -31,7 +31,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
 interface Integration {
@@ -66,13 +65,17 @@ interface MeetingCalendarProps {
   onImportRecording: (provider: "zoom" | "google_meet") => void;
 }
 
-export function MeetingCalendar({ integrations, organizationSlug, onImportRecording }: MeetingCalendarProps) {
+export function MeetingCalendar({
+  integrations,
+  organizationSlug: _organizationSlug,
+  onImportRecording,
+}: MeetingCalendarProps) {
   const { toast } = useToast();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeView, setActiveView] = useState<"month" | "week" | "day">("month");
+  const [_activeView, _setActiveView] = useState<"month" | "week" | "day">("month");
 
   const hasZoom = integrations.some((i) => i.provider === "zoom");
   const hasGoogle = integrations.some((i) => i.provider === "google_meet");

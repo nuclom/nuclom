@@ -72,6 +72,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                role="img"
+                aria-label="Error icon"
               >
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
                 <path d="M12 9v4" />
@@ -108,6 +110,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <button
+                type="button"
                 onClick={reset}
                 style={{
                   width: "100%",
@@ -123,7 +126,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Try again
               </button>
               <button
-                onClick={() => (window.location.href = "/")}
+                type="button"
+                onClick={() => {
+                  window.location.href = "/";
+                }}
                 style={{
                   width: "100%",
                   padding: "0.75rem 1rem",

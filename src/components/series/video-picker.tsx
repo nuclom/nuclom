@@ -150,11 +150,24 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
               <ScrollArea className="h-[300px] rounded-md border">
                 <div className="p-2 space-y-2">
                   {filteredVideos.map((video) => (
-                    <label
+                    <div
                       key={video.id}
+                      role="button"
+                      tabIndex={0}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
+                      onClick={() => handleToggle(video.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleToggle(video.id);
+                        }
+                      }}
                     >
-                      <Checkbox checked={selectedIds.has(video.id)} onCheckedChange={() => handleToggle(video.id)} />
+                      <Checkbox
+                        checked={selectedIds.has(video.id)}
+                        onCheckedChange={() => handleToggle(video.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                       <div className="relative h-12 w-20 flex-shrink-0 rounded overflow-hidden">
                         <Image
                           src={video.thumbnailUrl || "/placeholder.svg"}
@@ -176,7 +189,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
                         )}
                       </div>
                       {selectedIds.has(video.id) && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-                    </label>
+                    </div>
                   ))}
                 </div>
               </ScrollArea>

@@ -156,7 +156,8 @@ export function sanitizeText(text: string | null | undefined): string {
   }
 
   // Remove null bytes and other control characters (except newlines and tabs)
-  const cleaned = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally matching control chars for sanitization
+  const cleaned = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
 
   // Escape HTML entities
   return escapeHtml(cleaned);

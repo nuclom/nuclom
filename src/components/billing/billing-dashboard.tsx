@@ -25,7 +25,7 @@ export function BillingDashboard({
   organizationId,
   organizationSlug,
   billingInfo,
-  plans,
+  plans: _plans,
   usageSummary,
   currentUserId,
   isOwner,

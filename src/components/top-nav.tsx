@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Film, HelpCircle, LogOut, Plus, Settings, User, Users } from "lucide-react";
+import { Film, HelpCircle, LogOut, Plus, Settings, User, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

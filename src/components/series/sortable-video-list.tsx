@@ -110,7 +110,13 @@ interface SortableVideoListProps {
   onRemove: (videoId: string) => Promise<void>;
 }
 
-export function SortableVideoList({ videos, organization, seriesId, onReorder, onRemove }: SortableVideoListProps) {
+export function SortableVideoList({
+  videos,
+  organization,
+  seriesId: _seriesId,
+  onReorder,
+  onRemove,
+}: SortableVideoListProps) {
   const [items, setItems] = useState(videos);
   const [removingId, setRemovingId] = useState<string | null>(null);
 

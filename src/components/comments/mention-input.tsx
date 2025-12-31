@@ -83,7 +83,7 @@ export function MentionInput({
 
     document.body.appendChild(div);
 
-    const textareaRect = textarea.getBoundingClientRect();
+    const _textareaRect = textarea.getBoundingClientRect();
     const divHeight = div.offsetHeight;
 
     document.body.removeChild(div);

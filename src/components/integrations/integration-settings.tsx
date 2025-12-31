@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Bell, Clock, Download, Info, RefreshCw, Shield } from "lucide-react";
+import { Bell, Download, Info, RefreshCw, Shield } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -185,7 +185,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
                       id="min-duration"
                       value={settings.importMinDuration}
                       onChange={(e) =>
-                        setSettings((prev) => ({ ...prev, importMinDuration: Number.parseInt(e.target.value) }))
+                        setSettings((prev) => ({ ...prev, importMinDuration: Number.parseInt(e.target.value, 10) }))
                       }
                       className="flex h-9 w-full max-w-[150px] rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     >

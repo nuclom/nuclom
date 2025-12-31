@@ -74,7 +74,7 @@ interface SubscriptionManagerProps {
 export function SubscriptionManager({
   organizationId,
   organizationSlug,
-  currentUserId,
+  currentUserId: _currentUserId,
   isOwner,
 }: SubscriptionManagerProps) {
   const router = useRouter();
@@ -83,7 +83,7 @@ export function SubscriptionManager({
   const [isLoading, setIsLoading] = useState(true);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<{ plan: SubscriptionPlan; annual: boolean } | null>(null);
+  const [_selectedPlan, _setSelectedPlan] = useState<{ plan: SubscriptionPlan; annual: boolean } | null>(null);
 
   // Fetch subscriptions on mount
   useEffect(() => {

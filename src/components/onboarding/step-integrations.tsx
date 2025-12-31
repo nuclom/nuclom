@@ -15,7 +15,7 @@ interface StepIntegrationsProps {
 // Zoom icon component
 function ZoomIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M4.585 10.432C4.585 9.063 5.688 7.96 7.058 7.96h6.403c1.37 0 2.473 1.104 2.473 2.473v3.135c0 1.37-1.104 2.473-2.473 2.473H7.058c-1.37 0-2.473-1.104-2.473-2.473v-3.135z" />
       <path d="M16.584 10.432l3.2-2.24c.31-.216.631-.05.631.327v7.962c0 .377-.321.543-.631.327l-3.2-2.24v-4.136z" />
     </svg>
@@ -25,7 +25,7 @@ function ZoomIcon({ className }: { className?: string }) {
 // Google Meet icon component
 function GoogleMeetIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 10.5c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5z" />
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
     </svg>
@@ -35,7 +35,7 @@ function GoogleMeetIcon({ className }: { className?: string }) {
 // Slack icon component
 function SlackIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" />
     </svg>
   );
@@ -69,7 +69,7 @@ const integrations = [
   },
 ];
 
-export function StepIntegrations({ onNext, onBack, organizationSlug }: StepIntegrationsProps) {
+export function StepIntegrations({ onNext, onBack, organizationSlug: _organizationSlug }: StepIntegrationsProps) {
   const [connectedIntegrations, setConnectedIntegrations] = useState<string[]>([]);
   const [connecting, setConnecting] = useState<string | null>(null);
 

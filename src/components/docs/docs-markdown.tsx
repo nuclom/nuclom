@@ -190,9 +190,9 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
         // Horizontal rule
         hr: ({ ...props }) => <hr className="my-8" {...props} />,
 
-        // Images
+        // Images - using native img for markdown content where src is dynamic
         img: ({ src, alt, ...props }) => (
-          // eslint-disable-next-line @next/next/no-img-element
+          // biome-ignore lint/performance/noImgElement: dynamic src from markdown
           <img src={src} alt={alt || ""} className="rounded-lg border my-4" {...props} />
         ),
 

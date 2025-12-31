@@ -8,7 +8,7 @@
  * - Reduced boilerplate in route handlers
  */
 
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Exit, Layer } from "effect";
 import { NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { auth } from "@/lib/auth";

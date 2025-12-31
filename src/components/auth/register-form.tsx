@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
 // Current version of legal documents - update when ToS/Privacy Policy changes
-const LEGAL_VERSION = "2025-01-01";
+const _LEGAL_VERSION = "2025-01-01";
 
 interface RegisterFormProps {
   readonly redirectTo?: string;
