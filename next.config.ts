@@ -15,9 +15,29 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // Remote patterns for external images (e.g., user avatars, CDN thumbnails)
     remotePatterns: [
+      // GitHub avatars
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "avatars.githubusercontent.com",
+      },
+      // Google user photos
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      // Gravatar
+      {
+        protocol: "https",
+        hostname: "*.gravatar.com",
+      },
+      // Cloudflare R2 public bucket URLs
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.cloudflarestorage.com",
       },
     ],
     // Minimize image reprocessing in development
