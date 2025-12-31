@@ -25,10 +25,10 @@ Annual billing: $228/user/year (vs $300 monthly)
 
 | Billing | Price | Savings |
 |---------|-------|---------|
-| **Monthly** | $99/user/month | - |
-| **Annual** | $82.50/user/month | 17% off |
+| **Monthly** | $49/user/month | - |
+| **Annual** | $41/user/month | 16% off |
 
-Annual billing: $990/user/year (vs $1,188 monthly)
+Annual billing: $492/user/year (vs $588 monthly)
 
 ---
 
@@ -38,11 +38,11 @@ Annual billing: $990/user/year (vs $1,188 monthly)
 
 | Feature | Pro | Enterprise |
 |---------|-----|------------|
-| Storage | 100 GB | **Unlimited** |
+| Storage | 10 GB/user | **Unlimited** |
 | Video uploads | Unlimited | Unlimited |
 | Max file size | 500 MB | 2 GB |
 | Team members | Up to 25 | **Unlimited** |
-| Monthly bandwidth | 100 GB | **Unlimited** |
+| Monthly bandwidth | 50 GB | **Unlimited** |
 
 ### Features
 
@@ -60,10 +60,10 @@ Annual billing: $990/user/year (vs $1,188 monthly)
 | Threaded discussions | Yes | Yes |
 | Zoom & Google Meet import | Yes | Yes |
 | Slack integration | Yes | Yes |
+| API access | Yes | Yes |
+| Webhooks | Yes | Yes |
 | **Custom branding** | No | **Yes** |
 | **SSO / SAML** | No | **Yes** |
-| **API access** | No | **Yes** |
-| **Webhooks** | No | **Yes** |
 | **Audit logs** | No | **Yes** |
 | **Priority support** | No | **Yes** |
 | **Dedicated account manager** | No | **Yes** |
@@ -154,14 +154,14 @@ Annual billing: $990/user/year (vs $1,188 monthly)
 
 | Billing | Price | Estimated Cost | Margin |
 |---------|-------|----------------|--------|
-| Monthly ($99) | $99.00 | $25.00 | **74.7%** |
-| Annual ($82.50) | $82.50 | $25.00 | **69.7%** |
+| Monthly ($49) | $49.00 | $25.00 | **49.0%** |
+| Annual ($41) | $41.00 | $25.00 | **39.0%** |
 
 *Enterprise costs include priority support overhead and additional storage/bandwidth costs.*
 
-**Blended margin** (assuming 70% annual / 30% monthly): **71.2%**
+**Blended margin** (assuming 70% annual / 30% monthly): **42.0%**
 
-*Note: Pro margins are lower than typical SaaS to prioritize market share. Enterprise margins are healthy and fund premium support.*
+*Note: Pro margins are lower than typical SaaS to prioritize market share. Enterprise margins target ~50% for sustainable growth while remaining competitive.*
 
 ---
 
@@ -271,8 +271,8 @@ STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts --force
 |---------|-------------------|--------|----------|---------------|
 | Nuclom Pro | Pro Monthly | $25.00 | month | Prorated daily |
 | Nuclom Pro | Pro Yearly | $228.00 | year | Non-refundable |
-| Nuclom Enterprise | Enterprise Monthly | $99.00 | month | Prorated daily |
-| Nuclom Enterprise | Enterprise Yearly | $990.00 | year | Non-refundable |
+| Nuclom Enterprise | Enterprise Monthly | $49.00 | month | Prorated daily |
+| Nuclom Enterprise | Enterprise Yearly | $492.00 | year | Non-refundable |
 
 ---
 
@@ -287,14 +287,20 @@ These features are exclusive to the Enterprise plan and represent key differenti
 
 ### Customization
 - **Custom branding**: Add your logo, colors, and custom domain
-- **API access**: Build custom integrations with REST API
-- **Webhooks**: Receive real-time notifications for events
+- **Custom domain**: Use your own domain for video sharing
+- **White-label options**: Remove Nuclom branding entirely
 
 ### Support
 - **Priority support**: Faster response times (4-hour SLA)
 - **Dedicated account manager**: Named contact for your organization
 - **Custom onboarding**: Personalized setup and training
 - **99.9% uptime SLA**: Guaranteed availability with credits
+
+## Features Available on All Plans
+
+- **API access**: Build custom integrations with REST API
+- **Webhooks**: Receive real-time notifications for events
+- **All AI features**: Transcription, summaries, action items, semantic search
 
 ---
 

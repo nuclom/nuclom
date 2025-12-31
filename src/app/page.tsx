@@ -374,7 +374,7 @@ export default function LandingPage() {
               <CardContent className="space-y-4 pb-8">
                 <div className="grid grid-cols-2 gap-2 p-3 bg-muted/50 rounded-lg text-sm">
                   <div className="text-center">
-                    <div className="font-semibold">100 GB</div>
+                    <div className="font-semibold">10 GB/user</div>
                     <div className="text-muted-foreground text-xs">Storage</div>
                   </div>
                   <div className="text-center">
@@ -393,7 +393,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>10 subtitle languages</span>
+                    <span>API access &amp; webhooks</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
@@ -422,10 +422,10 @@ export default function LandingPage() {
                 <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
                 <CardDescription className="text-base">For organizations at scale</CardDescription>
                 <div className="text-4xl font-bold mt-4">
-                  $82
+                  $41
                   <span className="text-base font-normal text-muted-foreground">/user/month</span>
                 </div>
-                <p className="text-sm text-muted-foreground">billed annually ($99/mo if monthly)</p>
+                <p className="text-sm text-muted-foreground">billed annually ($49/mo if monthly)</p>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <div className="grid grid-cols-2 gap-2 p-3 bg-primary/10 rounded-lg text-sm">
@@ -453,11 +453,11 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>API access &amp; webhooks</span>
+                    <span>Priority support &amp; SLA</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Priority support &amp; SLA</span>
+                    <span>Dedicated account manager</span>
                   </li>
                 </ul>
                 <Button className="w-full mt-6" asChild>
