@@ -561,17 +561,25 @@ const makeBillingService = Effect.gen(function* () {
 
         const plan = yield* billingRepo.getPlanByStripePrice(priceId);
 
+        // Cast to access snake_case properties (Stripe API uses snake_case but types may vary)
+        const sub = stripeSubscription as unknown as {
+          current_period_start: number;
+          current_period_end: number;
+          cancel_at_period_end: boolean;
+          trial_start: number | null;
+          trial_end: number | null;
+        };
         const subscriptionData: NewSubscription = {
           organizationId,
           planId: plan.id,
           stripeSubscriptionId: stripeSubscription.id,
           stripeCustomerId: stripeSubscription.customer as string,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-          cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-          trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
-          trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
+          currentPeriodStart: new Date(sub.current_period_start * 1000),
+          currentPeriodEnd: new Date(sub.current_period_end * 1000),
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          trialStart: sub.trial_start ? new Date(sub.trial_start * 1000) : null,
+          trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
         };
 
         // Check if subscription exists
@@ -606,13 +614,20 @@ const makeBillingService = Effect.gen(function* () {
           }
         }
 
+        // Cast to access snake_case properties
+        const sub = stripeSubscription as unknown as {
+          current_period_start: number;
+          current_period_end: number;
+          cancel_at_period_end: boolean;
+          canceled_at: number | null;
+        };
         const result = yield* billingRepo.updateSubscription(subscription.organizationId, {
           planId,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-          cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
-          canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
+          currentPeriodStart: new Date(sub.current_period_start * 1000),
+          currentPeriodEnd: new Date(sub.current_period_end * 1000),
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
         });
 
         // Get plan name for notification
@@ -645,26 +660,38 @@ const makeBillingService = Effect.gen(function* () {
 
     handleInvoicePaid: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // Cast to access snake_case properties
+        const inv = stripeInvoice as unknown as {
+          subscription: string | { id: string } | null;
+          payment_intent: string | { id: string } | null;
+          amount_due: number;
+          amount_paid: number;
+          invoice_pdf: string | null;
+          hosted_invoice_url: string | null;
+          period_start: number | null;
+          period_end: number | null;
+        };
+        const subscriptionId = typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id;
+        if (!subscriptionId) return;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
+
+        const paymentIntentId = typeof inv.payment_intent === "string" ? inv.payment_intent : inv.payment_intent?.id;
 
         const invoiceData: NewInvoice = {
           organizationId: subscription.value.organizationId,
           stripeInvoiceId: stripeInvoice.id,
-          stripePaymentIntentId: stripeInvoice.payment_intent as string,
-          amount: stripeInvoice.amount_due,
-          amountPaid: stripeInvoice.amount_paid,
-          currency: stripeInvoice.currency,
+          stripePaymentIntentId: paymentIntentId ?? null,
+          amount: inv.amount_due,
+          amountPaid: inv.amount_paid,
+          currency: stripeInvoice.currency ?? "usd",
           status: mapStripeInvoiceStatus(stripeInvoice.status),
-          pdfUrl: stripeInvoice.invoice_pdf ?? undefined,
-          hostedInvoiceUrl: stripeInvoice.hosted_invoice_url ?? undefined,
-          periodStart: stripeInvoice.period_start ? new Date(stripeInvoice.period_start * 1000) : undefined,
-          periodEnd: stripeInvoice.period_end ? new Date(stripeInvoice.period_end * 1000) : undefined,
+          pdfUrl: inv.invoice_pdf ?? undefined,
+          hostedInvoiceUrl: inv.hosted_invoice_url ?? undefined,
+          periodStart: inv.period_start ? new Date(inv.period_start * 1000) : undefined,
+          periodEnd: inv.period_end ? new Date(inv.period_end * 1000) : undefined,
           paidAt: new Date(),
         };
 
@@ -688,11 +715,12 @@ const makeBillingService = Effect.gen(function* () {
 
     handleInvoiceFailed: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // Cast to access snake_case properties
+        const inv = stripeInvoice as unknown as { subscription: string | { id: string } | null };
+        const subscriptionId = typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id;
+        if (!subscriptionId) return;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
 

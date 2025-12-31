@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
@@ -30,7 +29,7 @@ function AccountContent() {
   // Email change state
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [emailPassword, setEmailPassword] = useState("");
+  const [_emailPassword, setEmailPassword] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
 
   // Export data state
@@ -184,20 +183,14 @@ function AccountContent() {
             <Mail className="h-5 w-5" />
             Email Address
           </CardTitle>
-          <CardDescription>
-            Manage your email address
-          </CardDescription>
+          <CardDescription>Manage your email address</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Current email</Label>
             <div className="flex items-center gap-2">
               <Input value={user?.email || ""} disabled className="bg-muted" />
-              {user?.emailVerified && (
-                <span className="text-sm text-green-600 whitespace-nowrap">
-                  Verified
-                </span>
-              )}
+              {user?.emailVerified && <span className="text-sm text-green-600 whitespace-nowrap">Verified</span>}
             </div>
           </div>
         </CardContent>
@@ -215,14 +208,12 @@ function AccountContent() {
             <Download className="h-5 w-5" />
             Export Your Data
           </CardTitle>
-          <CardDescription>
-            Download a copy of all your data stored in Nuclom
-          </CardDescription>
+          <CardDescription>Download a copy of all your data stored in Nuclom</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Your export will include your profile information, videos, comments, and settings.
-            This process may take a few moments depending on how much data you have.
+            Your export will include your profile information, videos, comments, and settings. This process may take a
+            few moments depending on how much data you have.
           </p>
         </CardContent>
         <CardFooter className="bg-muted/50 border-t px-6 py-4">
@@ -249,17 +240,15 @@ function AccountContent() {
             <UserX className="h-5 w-5" />
             Danger Zone
           </CardTitle>
-          <CardDescription>
-            Irreversible and destructive actions
-          </CardDescription>
+          <CardDescription>Irreversible and destructive actions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
             <AlertDescription>
-              Deleting your account is permanent. All your data, including videos, comments, and settings will be permanently deleted.
-              This action cannot be undone.
+              Deleting your account is permanent. All your data, including videos, comments, and settings will be
+              permanently deleted. This action cannot be undone.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -283,12 +272,7 @@ function AccountContent() {
           <form onSubmit={handleChangeEmail} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentEmail">Current Email</Label>
-              <Input
-                id="currentEmail"
-                value={user?.email || ""}
-                disabled
-                className="bg-muted"
-              />
+              <Input id="currentEmail" value={user?.email || ""} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="newEmail">New Email Address</Label>

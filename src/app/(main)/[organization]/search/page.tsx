@@ -73,6 +73,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         banned: users.banned,
         banReason: users.banReason,
         banExpires: users.banExpires,
+        twoFactorEnabled: users.twoFactorEnabled,
       })
       .from(users)
       .innerJoin(videos, eq(videos.authorId, users.id))

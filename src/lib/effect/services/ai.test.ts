@@ -40,7 +40,14 @@ function createMockAIResponse(text: string) {
     reasoningDetails: [],
     files: [],
     sources: [],
-  };
+    // Additional properties required by GenerateTextResult type
+    content: [],
+    reasoningText: undefined,
+    staticToolCalls: [],
+    dynamicToolCalls: [],
+    rawResponse: undefined,
+    experimental_providerMetadata: undefined,
+  } as never;
 }
 
 describe("AI Service", () => {

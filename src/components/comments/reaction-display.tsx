@@ -43,7 +43,7 @@ export function ReactionDisplay({ reactions, onReactionClick, disabled }: Reacti
                   reaction.hasReacted
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
                     : "bg-muted text-muted-foreground hover:bg-muted/80",
-                  disabled && "cursor-not-allowed opacity-50"
+                  disabled && "cursor-not-allowed opacity-50",
                 )}
               >
                 <span>{getEmoji(reaction.type)}</span>
@@ -52,7 +52,10 @@ export function ReactionDisplay({ reactions, onReactionClick, disabled }: Reacti
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs">
-                {reaction.users.slice(0, 5).map((u) => u.name || "Anonymous").join(", ")}
+                {reaction.users
+                  .slice(0, 5)
+                  .map((u) => u.name || "Anonymous")
+                  .join(", ")}
                 {reaction.users.length > 5 && ` and ${reaction.users.length - 5} more`}
               </p>
             </TooltipContent>
@@ -73,7 +76,7 @@ export function groupReactions(
     userId: string;
     user?: { id: string; name: string | null };
   }>,
-  currentUserId?: string
+  currentUserId?: string,
 ): GroupedReaction[] {
   const grouped = new Map<ReactionType, GroupedReaction>();
 

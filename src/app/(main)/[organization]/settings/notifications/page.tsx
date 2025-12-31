@@ -77,7 +77,8 @@ function NotificationsContent() {
 
   useEffect(() => {
     const changed = Object.keys(preferences).some(
-      (key) => preferences[key as keyof NotificationPreferences] !== originalPreferences[key as keyof NotificationPreferences]
+      (key) =>
+        preferences[key as keyof NotificationPreferences] !== originalPreferences[key as keyof NotificationPreferences],
     );
     setHasChanges(changed);
   }, [preferences, originalPreferences]);
@@ -151,18 +152,14 @@ function NotificationsContent() {
             <Mail className="h-5 w-5" />
             Email Notifications
           </CardTitle>
-          <CardDescription>
-            Configure which emails you receive from Nuclom
-          </CardDescription>
+          <CardDescription>Configure which emails you receive from Nuclom</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Master Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Email notifications</Label>
-              <p className="text-sm text-muted-foreground">
-                Receive email notifications from Nuclom
-              </p>
+              <p className="text-sm text-muted-foreground">Receive email notifications from Nuclom</p>
             </div>
             <Switch
               checked={preferences.emailNotifications}
@@ -185,9 +182,7 @@ function NotificationsContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Comment replies</Label>
-                      <p className="text-sm text-muted-foreground">
-                        When someone replies to your comments
-                      </p>
+                      <p className="text-sm text-muted-foreground">When someone replies to your comments</p>
                     </div>
                     <Switch
                       checked={preferences.emailCommentReplies}
@@ -198,14 +193,9 @@ function NotificationsContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Mentions</Label>
-                      <p className="text-sm text-muted-foreground">
-                        When someone mentions you in a comment
-                      </p>
+                      <p className="text-sm text-muted-foreground">When someone mentions you in a comment</p>
                     </div>
-                    <Switch
-                      checked={preferences.emailMentions}
-                      onCheckedChange={() => handleToggle("emailMentions")}
-                    />
+                    <Switch checked={preferences.emailMentions} onCheckedChange={() => handleToggle("emailMentions")} />
                   </div>
                 </div>
               </div>
@@ -223,9 +213,7 @@ function NotificationsContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Video processing</Label>
-                      <p className="text-sm text-muted-foreground">
-                        When your videos finish processing or fail
-                      </p>
+                      <p className="text-sm text-muted-foreground">When your videos finish processing or fail</p>
                     </div>
                     <Switch
                       checked={preferences.emailVideoProcessing}
@@ -248,9 +236,7 @@ function NotificationsContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Weekly digest</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Weekly summary of activity in your organizations
-                      </p>
+                      <p className="text-sm text-muted-foreground">Weekly summary of activity in your organizations</p>
                     </div>
                     <Switch
                       checked={preferences.emailWeeklyDigest}
@@ -261,9 +247,7 @@ function NotificationsContent() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Product updates</Label>
-                      <p className="text-sm text-muted-foreground">
-                        New features and improvements to Nuclom
-                      </p>
+                      <p className="text-sm text-muted-foreground">New features and improvements to Nuclom</p>
                     </div>
                     <Switch
                       checked={preferences.emailProductUpdates}
@@ -294,22 +278,15 @@ function NotificationsContent() {
             <Bell className="h-5 w-5" />
             In-App Notifications
           </CardTitle>
-          <CardDescription>
-            Configure in-app notification preferences
-          </CardDescription>
+          <CardDescription>Configure in-app notification preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-base">Push notifications</Label>
-              <p className="text-sm text-muted-foreground">
-                Receive push notifications in your browser
-              </p>
+              <p className="text-sm text-muted-foreground">Receive push notifications in your browser</p>
             </div>
-            <Switch
-              checked={preferences.pushNotifications}
-              onCheckedChange={() => handleToggle("pushNotifications")}
-            />
+            <Switch checked={preferences.pushNotifications} onCheckedChange={() => handleToggle("pushNotifications")} />
           </div>
         </CardContent>
         {hasChanges && (

@@ -15,7 +15,6 @@
  */
 
 import { eq } from "drizzle-orm";
-// @ts-expect-error - vitest may not be installed
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../index";
 import {

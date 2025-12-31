@@ -122,9 +122,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={isExpired ? "destructive" : "secondary"}>
-                  {isExpired ? "Expired" : "Active"}
-                </Badge>
+                <Badge variant={isExpired ? "destructive" : "secondary"}>{isExpired ? "Expired" : "Active"}</Badge>
               </div>
               {integration.expiresAt && (
                 <div className="flex items-center justify-between">
@@ -136,9 +134,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
               )}
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Connected</span>
-                <span className="text-muted-foreground">
-                  {format(new Date(integration.createdAt), "MMM d, yyyy")}
-                </span>
+                <span className="text-muted-foreground">{format(new Date(integration.createdAt), "MMM d, yyyy")}</span>
               </div>
             </div>
 

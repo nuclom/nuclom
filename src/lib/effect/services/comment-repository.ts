@@ -117,6 +117,7 @@ const selectCommentWithAuthor = {
     banned: users.banned,
     banReason: users.banReason,
     banExpires: users.banExpires,
+    twoFactorEnabled: users.twoFactorEnabled,
   },
 };
 

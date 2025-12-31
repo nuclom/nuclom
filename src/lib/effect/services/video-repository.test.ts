@@ -70,6 +70,9 @@ describe("VideoRepository Types", () => {
         getVideos: () => {
           throw new Error("Mock");
         },
+        getDeletedVideos: () => {
+          throw new Error("Mock");
+        },
         getVideo: () => {
           throw new Error("Mock");
         },
@@ -79,13 +82,25 @@ describe("VideoRepository Types", () => {
         updateVideo: () => {
           throw new Error("Mock");
         },
+        softDeleteVideo: () => {
+          throw new Error("Mock");
+        },
+        restoreVideo: () => {
+          throw new Error("Mock");
+        },
         deleteVideo: () => {
+          throw new Error("Mock");
+        },
+        cleanupExpiredVideos: () => {
           throw new Error("Mock");
         },
         getVideoChapters: () => {
           throw new Error("Mock");
         },
         getVideoCodeSnippets: () => {
+          throw new Error("Mock");
+        },
+        searchVideos: () => {
           throw new Error("Mock");
         },
       };

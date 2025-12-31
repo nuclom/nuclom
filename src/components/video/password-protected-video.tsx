@@ -13,11 +13,7 @@ interface PasswordProtectedVideoProps {
   onVerified: () => void;
 }
 
-export function PasswordProtectedVideo({
-  shareLinkId,
-  videoTitle,
-  onVerified,
-}: PasswordProtectedVideoProps) {
+export function PasswordProtectedVideo({ shareLinkId, videoTitle, onVerified }: PasswordProtectedVideoProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);

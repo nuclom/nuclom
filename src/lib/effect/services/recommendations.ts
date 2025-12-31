@@ -10,7 +10,7 @@
 
 import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { videoProgresses, videos, users, type Video } from "@/lib/db/schema";
+import { users, type Video, videoProgresses, videos } from "@/lib/db/schema";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError } from "../errors";
 import { Database } from "./database";
@@ -237,6 +237,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)
@@ -324,6 +325,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
             currentTime: videoProgresses.currentTime,
             completed: videoProgresses.completed,
@@ -455,6 +457,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)
@@ -552,6 +555,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)
@@ -634,6 +638,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videoProgresses)
@@ -745,6 +750,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)

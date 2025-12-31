@@ -17,9 +17,9 @@ import {
   ThumbsUp,
   XCircle,
 } from "lucide-react";
-import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentList } from "@/components/comments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

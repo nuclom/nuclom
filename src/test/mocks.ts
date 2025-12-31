@@ -41,6 +41,7 @@ export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
     banned: false,
     banReason: null,
     banExpires: null,
+    twoFactorEnabled: null,
     ...overrides,
   };
 }
@@ -53,10 +54,11 @@ interface MockUser {
   createdAt: Date;
   updatedAt: Date;
   emailVerified: boolean;
-  role: string;
+  role: "user" | "admin";
   banned: boolean;
   banReason: string | null;
   banExpires: Date | null;
+  twoFactorEnabled: boolean | null;
 }
 
 /**
@@ -87,6 +89,19 @@ export function createMockVideo(overrides: Partial<MockVideo> = {}): MockVideo {
   };
 }
 
+type MockActionItem = {
+  text: string;
+  timestamp?: number;
+  priority?: "high" | "medium" | "low";
+};
+
+type MockTranscriptSegment = {
+  startTime: number;
+  endTime: number;
+  text: string;
+  confidence?: number;
+};
+
 interface MockVideo {
   id: string;
   title: string;
@@ -99,12 +114,12 @@ interface MockVideo {
   channelId: string | null;
   collectionId: string | null;
   transcript: string | null;
-  transcriptSegments: unknown[];
-  processingStatus: string;
+  transcriptSegments: MockTranscriptSegment[];
+  processingStatus: "pending" | "transcribing" | "analyzing" | "completed" | "failed";
   processingError: string | null;
   aiSummary: string | null;
   aiTags: string[] | null;
-  aiActionItems: unknown[];
+  aiActionItems: MockActionItem[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -78,13 +78,13 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",
         cause: {
-          _tag: "Some",
-          value: {
+          _tag: "Fail",
+          error: {
             _tag: "UnauthorizedError",
             message: "Unauthorized",
           },
         },
-      });
+      } as never);
 
       vi.mocked(Cause.failureOption).mockReturnValueOnce({
         _tag: "Some",
@@ -92,7 +92,7 @@ describe("Organizations API Route", () => {
           _tag: "UnauthorizedError",
           message: "Unauthorized",
         },
-      });
+      } as never);
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "GET",
@@ -114,7 +114,7 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Success",
         value: mockOrgs,
-      });
+      } as never);
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(mockOrgs));
 
@@ -134,7 +134,7 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Success",
         value: [],
-      });
+      } as never);
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess([]));
 
@@ -155,13 +155,13 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",
         cause: {
-          _tag: "Some",
-          value: {
+          _tag: "Fail",
+          error: {
             _tag: "MissingFieldError",
             message: "Name is required",
           },
         },
-      });
+      } as never);
 
       vi.mocked(Cause.failureOption).mockReturnValueOnce({
         _tag: "Some",
@@ -169,7 +169,7 @@ describe("Organizations API Route", () => {
           _tag: "MissingFieldError",
           message: "Name is required",
         },
-      });
+      } as never);
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -189,13 +189,13 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",
         cause: {
-          _tag: "Some",
-          value: {
+          _tag: "Fail",
+          error: {
             _tag: "MissingFieldError",
             message: "Slug is required",
           },
         },
-      });
+      } as never);
 
       vi.mocked(Cause.failureOption).mockReturnValueOnce({
         _tag: "Some",
@@ -203,7 +203,7 @@ describe("Organizations API Route", () => {
           _tag: "MissingFieldError",
           message: "Slug is required",
         },
-      });
+      } as never);
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -219,17 +219,17 @@ describe("Organizations API Route", () => {
       expect(data.error).toBe("Slug is required");
     });
 
-    it("should return 401 when user is not authenticated", async () => {
+    it("should return 401 when user is not authenticated for POST", async () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",
         cause: {
-          _tag: "Some",
-          value: {
+          _tag: "Fail",
+          error: {
             _tag: "UnauthorizedError",
             message: "Unauthorized",
           },
         },
-      });
+      } as never);
 
       vi.mocked(Cause.failureOption).mockReturnValueOnce({
         _tag: "Some",
@@ -237,7 +237,7 @@ describe("Organizations API Route", () => {
           _tag: "UnauthorizedError",
           message: "Unauthorized",
         },
-      });
+      } as never);
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -258,13 +258,13 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Failure",
         cause: {
-          _tag: "Some",
-          value: {
+          _tag: "Fail",
+          error: {
             _tag: "DuplicateError",
             message: "Organization with this slug already exists",
           },
         },
-      });
+      } as never);
 
       vi.mocked(Cause.failureOption).mockReturnValueOnce({
         _tag: "Some",
@@ -272,7 +272,7 @@ describe("Organizations API Route", () => {
           _tag: "DuplicateError",
           message: "Organization with this slug already exists",
         },
-      });
+      } as never);
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -295,7 +295,7 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Success",
         value: newOrg,
-      });
+      } as never);
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newOrg));
 
@@ -321,7 +321,7 @@ describe("Organizations API Route", () => {
       vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce({
         _tag: "Success",
         value: newOrg,
-      });
+      } as never);
 
       vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newOrg));
 

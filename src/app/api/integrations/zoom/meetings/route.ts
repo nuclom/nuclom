@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         return yield* Effect.fail(
           new UnauthorizedError({
             message: "Access token expired. Please reconnect your account.",
-          })
+          }),
         );
       }
 

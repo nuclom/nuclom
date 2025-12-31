@@ -79,7 +79,7 @@ function ApiKeysContent() {
   const handleCreateKey = async () => {
     try {
       setCreating(true);
-      const expirationDays = parseInt(newKeyExpiration);
+      const expirationDays = parseInt(newKeyExpiration, 10);
       const expiresIn = expirationDays > 0 ? expirationDays * 24 * 60 * 60 : undefined;
 
       const { data, error } = await authClient.apiKey.create({
@@ -212,9 +212,7 @@ function ApiKeysContent() {
               <Key className="h-5 w-5" />
               API Keys
             </CardTitle>
-            <CardDescription>
-              Manage API keys for programmatic access to your account
-            </CardDescription>
+            <CardDescription>Manage API keys for programmatic access to your account</CardDescription>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -250,17 +248,13 @@ function ApiKeysContent() {
               <TableBody>
                 {apiKeys.map((key) => (
                   <TableRow key={key.id}>
-                    <TableCell className="font-medium">
-                      {key.name || "Unnamed key"}
-                    </TableCell>
+                    <TableCell className="font-medium">{key.name || "Unnamed key"}</TableCell>
                     <TableCell>
                       <code className="text-sm bg-muted px-2 py-1 rounded">
                         {key.prefix || "nc_"}...{key.start || "****"}
                       </code>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(key.createdAt)}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(key.createdAt)}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {key.expiresAt ? formatDate(key.expiresAt) : "Never"}
                     </TableCell>
@@ -277,11 +271,7 @@ function ApiKeysContent() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setKeyToDelete(key)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => setKeyToDelete(key)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -302,13 +292,12 @@ function ApiKeysContent() {
       <Card>
         <CardHeader>
           <CardTitle>API Documentation</CardTitle>
-          <CardDescription>
-            Learn how to use the Nuclom API
-          </CardDescription>
+          <CardDescription>Learn how to use the Nuclom API</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Use your API key in the <code className="bg-muted px-1 rounded">x-api-key</code> header when making requests.
+            Use your API key in the <code className="bg-muted px-1 rounded">x-api-key</code> header when making
+            requests.
           </p>
           <div className="bg-muted rounded-lg p-4 font-mono text-sm overflow-x-auto">
             <pre>{`curl -X GET "https://api.nuclom.com/v1/videos" \\
@@ -325,15 +314,16 @@ function ApiKeysContent() {
       </Card>
 
       {/* Create API Key Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={(open) => {
-        if (!open) closeNewKeyDialog();
-        else setCreateDialogOpen(true);
-      }}>
+      <Dialog
+        open={createDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) closeNewKeyDialog();
+          else setCreateDialogOpen(true);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {newlyCreatedKey ? "API Key Created" : "Create API Key"}
-            </DialogTitle>
+            <DialogTitle>{newlyCreatedKey ? "API Key Created" : "Create API Key"}</DialogTitle>
             <DialogDescription>
               {newlyCreatedKey
                 ? "Copy your new API key. You won't be able to see it again!"
@@ -357,27 +347,11 @@ function ApiKeysContent() {
                     readOnly
                     className="font-mono"
                   />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setShowNewKey(!showNewKey)}
-                  >
-                    {showNewKey ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                  <Button variant="outline" size="icon" onClick={() => setShowNewKey(!showNewKey)}>
+                    {showNewKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyKey}
-                  >
-                    {copied ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
+                  <Button variant="outline" size="icon" onClick={handleCopyKey}>
+                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -446,11 +420,7 @@ function ApiKeysContent() {
               <Button variant="outline" onClick={() => setKeyToDelete(null)}>
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteKey}
-                disabled={deleting}
-              >
+              <Button variant="destructive" onClick={handleDeleteKey} disabled={deleting}>
                 {deleting ? "Deleting..." : "Delete Key"}
               </Button>
             </DialogFooter>

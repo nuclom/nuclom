@@ -72,6 +72,7 @@ export default async function MyVideosPage({ params }: { params: Promise<{ organ
                 banned: null,
                 banReason: null,
                 banExpires: null,
+                twoFactorEnabled: null,
               },
             }}
             organization={organization}

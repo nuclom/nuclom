@@ -9,14 +9,14 @@ const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provi
 const WebhookLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
 
 // Google Push Notification headers
-interface GooglePushHeaders {
+type _GooglePushHeaders = {
   "x-goog-channel-id": string;
   "x-goog-channel-token": string;
   "x-goog-message-number": string;
   "x-goog-resource-id": string;
   "x-goog-resource-state": "sync" | "exists" | "not_exists" | "update";
   "x-goog-resource-uri": string;
-}
+};
 
 // =============================================================================
 // POST /api/integrations/google/webhook - Handle Google Drive/Calendar webhooks
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   const channelId = request.headers.get("x-goog-channel-id");
   const channelToken = request.headers.get("x-goog-channel-token");
   const resourceState = request.headers.get("x-goog-resource-state");
-  const resourceId = request.headers.get("x-goog-resource-id");
+  const _resourceId = request.headers.get("x-goog-resource-id");
 
   console.log(`[Google Webhook] Received notification: ${resourceState} for channel ${channelId}`);
 
@@ -66,9 +66,7 @@ export async function POST(request: NextRequest) {
 
       const integration = yield* Effect.tryPromise({
         try: async () => {
-          return await Effect.runPromise(
-            Effect.provide(integrationRepo.getIntegration(integrationId), WebhookLayer)
-          );
+          return await Effect.runPromise(Effect.provide(integrationRepo.getIntegration(integrationId), WebhookLayer));
         },
         catch: () => null,
       });

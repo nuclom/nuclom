@@ -39,6 +39,7 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
         banned: users.banned,
         banReason: users.banReason,
         banExpires: users.banExpires,
+        twoFactorEnabled: users.twoFactorEnabled,
       },
     })
     .from(videos)
@@ -97,6 +98,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         banned: users.banned,
         banReason: users.banReason,
         banExpires: users.banExpires,
+        twoFactorEnabled: users.twoFactorEnabled,
       },
       organization: {
         id: organizations.id,
@@ -158,6 +160,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         banned: users.banned,
         banReason: users.banReason,
         banExpires: users.banExpires,
+        twoFactorEnabled: users.twoFactorEnabled,
       },
     })
     .from(comments)

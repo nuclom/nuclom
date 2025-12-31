@@ -17,6 +17,29 @@ export {
   generateVideoSummary,
   generateVideoTags,
 } from "./ai";
+// AI Structured Service (with Zod schemas)
+export type {
+  ActionItemsResult,
+  AIStructuredServiceInterface,
+  ChaptersResult,
+  CodeSnippetsResult,
+  VideoSummary as StructuredVideoSummary,
+  VideoTagsResult,
+} from "./ai-structured";
+export {
+  ActionItemsSchema,
+  AIStructured,
+  AIStructuredLive,
+  ChaptersSchema,
+  CodeSnippetsSchema,
+  detectStructuredCodeSnippets,
+  extractStructuredActionItems,
+  generateStructuredChapters,
+  generateStructuredVideoSummary,
+  generateStructuredVideoTags,
+  VideoSummarySchema,
+  VideoTagsSchema,
+} from "./ai-structured";
 export type { AuthServiceInterface, UserSession } from "./auth";
 // Auth Service
 export {
@@ -42,7 +65,6 @@ export {
   getFeatureAccess,
   resumeSubscription,
 } from "./billing";
-
 // Billing Middleware
 export type { LimitCheckResult } from "./billing-middleware";
 export {
@@ -83,6 +105,31 @@ export {
   getVideoCount,
   incrementUsage,
 } from "./billing-repository";
+// Channel Repository
+export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from "./channel-repository";
+export {
+  ChannelRepository,
+  ChannelRepositoryLive,
+  createChannel,
+  deleteChannel,
+  getChannel,
+  getChannels,
+  updateChannel,
+} from "./channel-repository";
+// Comment Reactions Service
+export type {
+  CommentReactionsServiceInterface,
+  CommentWithReactions,
+  ReactionCount,
+  ReactionUser,
+} from "./comment-reactions";
+export {
+  CommentReactionsService,
+  CommentReactionsServiceLive,
+  getReactionCounts,
+  getReactionsForComments,
+  toggleReaction,
+} from "./comment-reactions";
 export type {
   CommentEvent,
   CommentRepositoryService,
@@ -212,6 +259,49 @@ export {
   OrganizationRepository,
   OrganizationRepositoryLive,
 } from "./organization-repository";
+// Performance Monitoring Service
+export type {
+  MetricsSummary,
+  MetricsTimeSeries,
+  MetricType,
+  PerformanceMonitoringServiceInterface,
+  PerformanceReport,
+  RecordMetricInput,
+} from "./performance-monitoring";
+export {
+  getPerformanceReport,
+  PerformanceMonitoring,
+  PerformanceMonitoringLive,
+  recordMetric,
+} from "./performance-monitoring";
+// Presence Service
+export type {
+  PresenceServiceInterface,
+  PresenceUpdate,
+  UserPresenceInfo,
+} from "./presence";
+export {
+  getOrganizationPresence,
+  getVideoPresence,
+  Presence,
+  PresenceLive,
+  updatePresence,
+} from "./presence";
+// Recommendations Service
+export type {
+  ContinueWatchingItem,
+  RecommendationOptions,
+  RecommendationsServiceInterface,
+  TrendingVideo,
+} from "./recommendations";
+export {
+  getContinueWatching,
+  getRecommendations,
+  getSimilarVideos,
+  getTrending,
+  Recommendations,
+  RecommendationsLive,
+} from "./recommendations";
 // Replicate API Service
 export type {
   ReplicateService,
@@ -371,6 +461,21 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from "./video-repository";
+// Watch Later Service
+export type {
+  AddToWatchLaterInput,
+  UpdateWatchLaterInput,
+  WatchLaterItem,
+  WatchLaterServiceInterface,
+} from "./watch-later";
+export {
+  addToWatchLater,
+  getWatchLaterList,
+  isInWatchLater,
+  removeFromWatchLater,
+  WatchLaterService,
+  WatchLaterServiceLive,
+} from "./watch-later";
 // Zoom Service
 export type {
   ZoomConfig,
@@ -391,116 +496,3 @@ export {
   Zoom,
   ZoomLive,
 } from "./zoom";
-
-// AI Structured Service (with Zod schemas)
-export type {
-  VideoSummary as StructuredVideoSummary,
-  ActionItemsResult,
-  ChaptersResult,
-  CodeSnippetsResult,
-  VideoTagsResult,
-  AIStructuredServiceInterface,
-} from "./ai-structured";
-export {
-  AIStructured,
-  AIStructuredLive,
-  generateStructuredVideoSummary,
-  generateStructuredVideoTags,
-  extractStructuredActionItems,
-  detectStructuredCodeSnippets,
-  generateStructuredChapters,
-  VideoSummarySchema,
-  ActionItemsSchema,
-  ChaptersSchema,
-  CodeSnippetsSchema,
-  VideoTagsSchema,
-} from "./ai-structured";
-
-// Recommendations Service
-export type {
-  RecommendationOptions,
-  ContinueWatchingItem,
-  TrendingVideo,
-  RecommendationsServiceInterface,
-} from "./recommendations";
-export {
-  Recommendations,
-  RecommendationsLive,
-  getRecommendations,
-  getContinueWatching,
-  getTrending,
-  getSimilarVideos,
-} from "./recommendations";
-
-// Presence Service
-export type {
-  PresenceUpdate,
-  UserPresenceInfo,
-  PresenceServiceInterface,
-} from "./presence";
-export {
-  Presence,
-  PresenceLive,
-  updatePresence,
-  getVideoPresence,
-  getOrganizationPresence,
-} from "./presence";
-
-// Performance Monitoring Service
-export type {
-  MetricType,
-  RecordMetricInput,
-  MetricsSummary,
-  MetricsTimeSeries,
-  PerformanceReport,
-  PerformanceMonitoringServiceInterface,
-} from "./performance-monitoring";
-export {
-  PerformanceMonitoring,
-  PerformanceMonitoringLive,
-  recordMetric,
-  getPerformanceReport,
-} from "./performance-monitoring";
-
-// Watch Later Service
-export type {
-  WatchLaterItem,
-  AddToWatchLaterInput,
-  UpdateWatchLaterInput,
-  WatchLaterServiceInterface,
-} from "./watch-later";
-export {
-  WatchLaterService,
-  WatchLaterServiceLive,
-  getWatchLaterList,
-  addToWatchLater,
-  removeFromWatchLater,
-  isInWatchLater,
-} from "./watch-later";
-
-// Comment Reactions Service
-export type {
-  ReactionCount,
-  ReactionUser,
-  CommentWithReactions,
-  CommentReactionsServiceInterface,
-} from "./comment-reactions";
-export {
-  CommentReactionsService,
-  CommentReactionsServiceLive,
-  toggleReaction,
-  getReactionCounts,
-  getReactionsForComments,
-} from "./comment-reactions";
-
-// Channel Repository
-export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from "./channel-repository";
-export {
-  ChannelRepository,
-  ChannelRepositoryLive,
-  createChannel,
-  getChannel,
-  getChannels,
-  updateChannel,
-  deleteChannel,
-} from "./channel-repository";

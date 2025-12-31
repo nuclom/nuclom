@@ -7,9 +7,9 @@
  * - Get users who reacted
  */
 
+import { type CommentReaction, commentReactions, type ReactionType, users } from "@/lib/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { commentReactions, comments, users, type CommentReaction, type ReactionType } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
 
@@ -290,7 +290,7 @@ const makeCommentReactionsService = Effect.gen(function* () {
           .groupBy(commentReactions.commentId, commentReactions.reactionType);
 
         // Get user's reactions if userId provided
-        let userReactionsMap = new Map<string, ReactionType[]>();
+        const userReactionsMap = new Map<string, ReactionType[]>();
         if (userId) {
           const userReactions = await db
             .select({

@@ -255,6 +255,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)
@@ -332,6 +333,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)
@@ -401,6 +403,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
               },
               organization: {
                 id: organizations.id,
@@ -492,6 +495,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
               },
             })
             .from(comments)
@@ -793,6 +797,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)

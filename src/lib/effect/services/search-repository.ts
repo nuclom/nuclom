@@ -226,6 +226,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             author_banned: boolean | null;
             author_ban_reason: string | null;
             author_ban_expires: Date | null;
+            author_two_factor_enabled: boolean | null;
             headline_title: string | null;
             headline_description: string | null;
             headline_transcript: string | null;
@@ -244,6 +245,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               u.banned as author_banned,
               u.ban_reason as author_ban_reason,
               u.ban_expires as author_ban_expires,
+              u.two_factor_enabled as author_two_factor_enabled,
               ts_headline('english', COALESCE(v.title, ''), plainto_tsquery('english', ${query}),
                 'StartSel=<mark>, StopSel=</mark>, MaxWords=50, MinWords=25') as headline_title,
               ts_headline('english', COALESCE(v.description, ''), plainto_tsquery('english', ${query}),
@@ -316,6 +318,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 banned: row.author_banned,
                 banReason: row.author_ban_reason,
                 banExpires: row.author_ban_expires,
+                twoFactorEnabled: row.author_two_factor_enabled,
               },
             } as VideoWithAuthor,
             rank: row.rank,
@@ -383,6 +386,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
               },
             })
             .from(videos)
@@ -550,6 +554,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(searchHistory)
@@ -636,6 +641,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(savedSearches)
@@ -790,6 +796,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(videos)

@@ -1,8 +1,8 @@
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DocsBody, DocsPage, DocsTitle, DocsDescription } from "fumadocs-ui/page";
-import { getDocsContent, getAllDocsPaths } from "@/lib/docs/markdown";
 import { DocsMarkdown } from "@/components/docs/docs-markdown";
+import { getAllDocsPaths, getDocsContent } from "@/lib/docs/markdown";
 
 interface PageProps {
   params: Promise<{

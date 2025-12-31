@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import process from "node:process";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
         try: async () => {
           // Try to find integration by email
           const integrations = await Effect.runPromise(
-            Effect.provide(integrationRepo.getIntegrationsByAccountId(account_id), WebhookLayer)
+            Effect.provide(integrationRepo.getIntegrationsByAccountId(account_id), WebhookLayer),
           );
           return integrations[0] || null;
         },
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
       // Find the main video recording
       const videoFile =
         object.recording_files?.find(
-          (f) => f.file_type === "MP4" && f.recording_type === "shared_screen_with_speaker_view"
+          (f) => f.file_type === "MP4" && f.recording_type === "shared_screen_with_speaker_view",
         ) || object.recording_files?.find((f) => f.file_type === "MP4");
 
       if (!videoFile) {

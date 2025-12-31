@@ -3,7 +3,7 @@ import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { videoViews, videos } from "@/lib/db/schema";
+import { videos, videoViews } from "@/lib/db/schema";
 import { AppLive, DatabaseError, UnauthorizedError } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
@@ -217,11 +217,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Get total video count
     const videoCountResult = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({ count: count() })
-          .from(videos)
-          .where(eq(videos.organizationId, organizationId)),
+      try: () => db.select({ count: count() }).from(videos).where(eq(videos.organizationId, organizationId)),
       catch: () =>
         new DatabaseError({
           message: "Failed to fetch video count",

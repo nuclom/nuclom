@@ -53,7 +53,7 @@ export function MentionInput({
   // Fetch members matching query
   const { data: membersData } = useSWR<{ success: boolean; data: Member[] }>(
     query.length > 0 ? `/api/organizations/${organizationId}/members?search=${encodeURIComponent(query)}` : null,
-    fetcher
+    fetcher,
   );
 
   const members = membersData?.data || [];
@@ -117,7 +117,7 @@ export function MentionInput({
       setCursorPosition(cursor);
       onChange(text);
     },
-    [onChange]
+    [onChange],
   );
 
   // Handle selection changes
@@ -150,7 +150,7 @@ export function MentionInput({
         }
       }, 0);
     },
-    [value, mentionStartPosition, cursorPosition, onChange]
+    [value, mentionStartPosition, cursorPosition, onChange],
   );
 
   // Handle keyboard navigation in suggestions
@@ -185,7 +185,7 @@ export function MentionInput({
           break;
       }
     },
-    [showSuggestions, members, selectedIndex, insertMention]
+    [showSuggestions, members, selectedIndex, insertMention],
   );
 
   // Update suggestion position when showing
@@ -239,7 +239,7 @@ export function MentionInput({
                 type="button"
                 className={cn(
                   "w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors",
-                  index === selectedIndex && "bg-accent"
+                  index === selectedIndex && "bg-accent",
                 )}
                 onClick={() => insertMention(member)}
                 onMouseEnter={() => setSelectedIndex(index)}

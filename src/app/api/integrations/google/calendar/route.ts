@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         return yield* Effect.fail(
           new UnauthorizedError({
             message: "Access token expired. Please reconnect your account.",
-          })
+          }),
         );
       }
 
@@ -70,7 +70,8 @@ export async function GET(request: NextRequest) {
 
     // Filter events that have Google Meet links
     const meetEvents = response.items.filter(
-      (event) => event.hangoutLink || (event.conferenceData && event.conferenceData.conferenceSolution?.name === "Google Meet")
+      (event) =>
+        event.hangoutLink || (event.conferenceData && event.conferenceData.conferenceSolution?.name === "Google Meet"),
     );
 
     return {

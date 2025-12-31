@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
-import { PasswordProtectedVideo } from "@/components/video/password-protected-video";
-import { VideoPlayer } from "@/components/video/video-player";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PasswordProtectedVideo } from "@/components/video/password-protected-video";
+import { VideoPlayer } from "@/components/video/video-player";
 
 interface ShareLinkData {
   id: string;
@@ -77,7 +77,7 @@ export default function SharePage() {
   // Fetch share link data
   const { data, error, isLoading } = useSWR<{ success: boolean; data: ShareLinkData; error?: string }>(
     `/api/share/${shareLinkId}`,
-    fetcher
+    fetcher,
   );
 
   // Check if password was already verified in this session
@@ -164,9 +164,7 @@ export default function SharePage() {
             <Video className="h-6 w-6 text-primary" />
             <span className="font-semibold">Shared Video</span>
           </div>
-          <span className="text-sm text-muted-foreground">
-            Shared by {shareLink.video.organization.name}
-          </span>
+          <span className="text-sm text-muted-foreground">Shared by {shareLink.video.organization.name}</span>
         </div>
       </header>
 

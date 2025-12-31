@@ -66,6 +66,9 @@ describe("OrganizationRepository Types", () => {
         createOrganization: () => {
           throw new Error("Mock");
         },
+        updateOrganization: () => {
+          throw new Error("Mock");
+        },
         getUserOrganizations: () => {
           throw new Error("Mock");
         },
@@ -82,6 +85,15 @@ describe("OrganizationRepository Types", () => {
           throw new Error("Mock");
         },
         getUserRole: () => {
+          throw new Error("Mock");
+        },
+        getOrganizationMembers: () => {
+          throw new Error("Mock");
+        },
+        removeMember: () => {
+          throw new Error("Mock");
+        },
+        updateMemberRole: () => {
           throw new Error("Mock");
         },
       };

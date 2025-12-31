@@ -1,7 +1,8 @@
+import process from "node:process";
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey";
 import { eq } from "drizzle-orm";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
@@ -78,13 +79,7 @@ export const auth = betterAuth({
         `,
       });
     },
-    async sendResetPassword({
-      user,
-      url,
-    }: {
-      user: { email: string; name?: string | null };
-      url: string;
-    }) {
+    async sendResetPassword({ user, url }: { user: { email: string; name?: string | null }; url: string }) {
       await resend.emails.send({
         from: "Nuclom <no-reply@nuclom.com>",
         to: user.email,
@@ -283,8 +278,7 @@ export const auth = betterAuth({
     passkey({
       rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
       rpName: "Nuclom",
-      origin:
-        env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+      origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
     }),
     openAPI(),
   ],

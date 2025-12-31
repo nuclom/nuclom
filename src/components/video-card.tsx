@@ -10,7 +10,7 @@ import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 
 interface VideoCardProps {
-  video: VideoWithAuthor;
+  video: VideoWithAuthor & { views?: number };
   organization?: string;
   priority?: boolean;
   showProgress?: boolean;

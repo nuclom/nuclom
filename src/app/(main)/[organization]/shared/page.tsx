@@ -53,6 +53,7 @@ export default async function SharedWithMePage({ params }: { params: Promise<{ o
                 banned: null,
                 banReason: null,
                 banExpires: null,
+                twoFactorEnabled: null,
               },
             }}
             organization={organization}

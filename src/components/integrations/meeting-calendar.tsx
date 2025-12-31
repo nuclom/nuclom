@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   addDays,
   addMonths,
@@ -26,6 +25,7 @@ import {
   VideoOff,
 } from "lucide-react";
 import Link from "next/link";
+import type * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,7 @@ export function MeetingCalendar({ integrations, organizationSlug, onImportRecord
       if (hasGoogle) {
         try {
           const response = await fetch(
-            `/api/integrations/google/calendar?from=${startDate.toISOString()}&to=${endDate.toISOString()}`
+            `/api/integrations/google/calendar?from=${startDate.toISOString()}&to=${endDate.toISOString()}`,
           );
           const data = await response.json();
 
@@ -121,7 +121,7 @@ export function MeetingCalendar({ integrations, organizationSlug, onImportRecord
                   status: a.responseStatus,
                 })),
                 conferenceId: event.conferenceData?.conferenceId,
-              })
+              }),
             );
             allEvents.push(...googleEvents);
           }
@@ -134,7 +134,7 @@ export function MeetingCalendar({ integrations, organizationSlug, onImportRecord
       if (hasZoom) {
         try {
           const response = await fetch(
-            `/api/integrations/zoom/meetings?from=${startDate.toISOString()}&to=${endDate.toISOString()}`
+            `/api/integrations/zoom/meetings?from=${startDate.toISOString()}&to=${endDate.toISOString()}`,
           );
           const data = await response.json();
 
@@ -155,7 +155,7 @@ export function MeetingCalendar({ integrations, organizationSlug, onImportRecord
                 end: new Date(new Date(meeting.start_time).getTime() + meeting.duration * 60000),
                 meetingLink: meeting.join_url,
                 provider: "zoom" as const,
-              })
+              }),
             );
             allEvents.push(...zoomEvents);
           }
@@ -251,7 +251,7 @@ export function MeetingCalendar({ integrations, organizationSlug, onImportRecord
               <div className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</div>
             )}
           </div>
-        </button>
+        </button>,
       );
 
       day = addDays(day, 1);

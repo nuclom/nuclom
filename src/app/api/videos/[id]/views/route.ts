@@ -3,7 +3,7 @@ import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { videoViews, videos } from "@/lib/db/schema";
+import { videos, videoViews } from "@/lib/db/schema";
 import { AppLive, DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
