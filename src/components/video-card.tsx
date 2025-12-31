@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Eye, Flag, MoreVertical, Play } from "lucide-react";
+import { Clock, Flag, MoreVertical, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatRelativeTime } from "@/lib/format-utils";
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 import { ReportDialog } from "@/components/moderation/report-dialog";
@@ -35,26 +36,6 @@ export function VideoCard({
   showReportOption = true,
 }: VideoCardProps) {
   const organizationSlug = organization || "default";
-
-  const formatViews = (views: number) => {
-    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
-    if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
-    return views.toString();
-  };
-
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const days = Math.floor(diff / 86400000);
-
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-    if (days < 365) return `${Math.floor(days / 30)} months ago`;
-    return `${Math.floor(days / 365)} years ago`;
-  };
 
   return (
     <div className="group relative">
@@ -118,16 +99,10 @@ export function VideoCard({
                 </h4>
                 <p className="text-sm text-muted-foreground mt-1">{video.author.name}</p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                  {video.views !== undefined && (
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      {formatViews(video.views)} views
-                    </span>
-                  )}
                   {video.createdAt && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {formatDate(video.createdAt)}
+                      {formatRelativeTime(video.createdAt)}
                     </span>
                   )}
                 </div>

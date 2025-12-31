@@ -16,6 +16,7 @@ import { TranscriptionLive } from "@/lib/effect/services/transcription";
 import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
 import { VideoRepository } from "@/lib/effect/services/video-repository";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
+import { formatDuration } from "@/lib/format-utils";
 
 // =============================================================================
 // Workflow Input Types
@@ -53,21 +54,6 @@ const ImportWorkflowLayer = Layer.mergeAll(
   IntegrationRepositoryWithDeps,
   VideoAIProcessorWithDeps,
 );
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
 
 // =============================================================================
 // Import Meeting Effect
