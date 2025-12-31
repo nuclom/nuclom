@@ -1,6 +1,6 @@
 # Frontend Architecture
 
-Nuclom's frontend is built with Next.js 15 App Router, leveraging React 19 Server Components for optimal performance and developer experience.
+Nuclom's frontend is built with Next.js 16 App Router, leveraging React 19 Server Components for optimal performance and developer experience.
 
 ## Architecture Overview
 

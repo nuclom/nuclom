@@ -17,12 +17,15 @@ const internalTree = {
       defaultOpen: true,
       children: [
         { type: "page" as const, name: "Overview", url: "/docs/internal/architecture" },
+        { type: "page" as const, name: "Summary", url: "/docs/internal/architecture/summary" },
         { type: "page" as const, name: "Authentication", url: "/docs/internal/architecture/authentication" },
         { type: "page" as const, name: "Database", url: "/docs/internal/architecture/database" },
         { type: "page" as const, name: "Frontend", url: "/docs/internal/architecture/frontend" },
         { type: "page" as const, name: "Backend", url: "/docs/internal/architecture/backend" },
         { type: "page" as const, name: "Video Processing", url: "/docs/internal/architecture/video-processing" },
+        { type: "page" as const, name: "Workflows", url: "/docs/internal/architecture/workflows" },
         { type: "page" as const, name: "Effect.js", url: "/docs/internal/architecture/effect-ts" },
+        { type: "page" as const, name: "Integrations", url: "/docs/internal/architecture/integrations" },
         { type: "page" as const, name: "Accessibility", url: "/docs/internal/architecture/accessibility" },
         { type: "page" as const, name: "Deployment", url: "/docs/internal/architecture/deployment" },
       ],
@@ -43,6 +46,11 @@ const internalTree = {
         { type: "page" as const, name: "Data Integrity", url: "/docs/internal/reference/data-integrity" },
         { type: "page" as const, name: "Contributing", url: "/docs/internal/reference/contributing" },
       ],
+    },
+    {
+      type: "folder" as const,
+      name: "Business",
+      children: [{ type: "page" as const, name: "Pricing Strategy", url: "/docs/internal/pricing" }],
     },
   ],
 };

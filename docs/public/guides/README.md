@@ -1,12 +1,12 @@
 # Nuclom User Guides
 
-Welcome to the Nuclom video collaboration platform! This documentation will help you get started and make the most of our powerful video collaboration tools.
+Welcome to the Nuclom video collaboration platform! This documentation will help you get started and make the most of our video collaboration tools.
 
-## 📚 Available Guides
+## Available Guides
 
 ### Getting Started
 
-- [**Getting Started Guide**](getting-started.md) - New to Nuclom? Start here!
+- [**Getting Started Guide**](getting-started.md) - New to Nuclom? Start here
 - [**Organization Management**](organization-management.md) - Learn to create and manage organizations
 - [**Video Organization**](video-organization.md) - Upload, organize, and manage your videos
 
@@ -20,7 +20,7 @@ Welcome to the Nuclom video collaboration platform! This documentation will help
 - [**Settings & Preferences**](settings-preferences.md) - Customize your Nuclom experience
 - [**Troubleshooting**](troubleshooting.md) - Common issues and solutions
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **[Create an account](getting-started.md#creating-your-account)** on Nuclom
 2. **[Set up your first organization](organization-management.md#creating-a-organization)**
@@ -28,54 +28,44 @@ Welcome to the Nuclom video collaboration platform! This documentation will help
 4. **[Invite team members](team-management.md#inviting-members)**
 5. **[Start collaborating](collaboration.md#getting-started-with-collaboration)**
 
-## 🎯 What is Nuclom?
+## Key Features
 
-Nuclom is a powerful video collaboration platform that enables teams to:
-
-- **Upload and organize videos** in structured organizations
-- **Collaborate in real-time** with comments and annotations
-- **Manage content** with channels and series
-- **Track video progress** and viewing analytics
-- **Share securely** with advanced permission controls
-
-## 💡 Key Features
-
-### 🏢 Organization Management
+### Organization Management
 
 - Create unlimited organizations for different projects
 - Organize content with channels and series
 - Manage team access and permissions
 
-### 📹 Video Organization
+### Video Organization
 
 - Upload videos with rich metadata
 - Automatic transcript generation
-- AI-powered summaries
+- AI-powered summaries and action items
 - Thumbnail management
 
-### 🤝 Collaboration Tools
+### Collaboration Tools
 
-- Time-stamped comments
+- Time-stamped comments with reactions
 - Threaded discussions
-- Real-time sharing
-- Progress tracking
+- Secure video sharing
+- Progress tracking and watch later lists
 
-### 🔐 Security & Permissions
+### Security & Permissions
 
 - Role-based access control (Owner, Admin, Member)
 - Secure video sharing
-- Enterprise-grade security
+- OAuth authentication (GitHub, Google)
 
-## 🆘 Need Help?
+## Need Help?
 
 - Check our [**Troubleshooting Guide**](troubleshooting.md)
-- Contact support at support@nuclom.com
-- Join our community Discord server
+- Contact support through the platform
+- Review the [**API Documentation**](../api/README.md) for developers
 
-## 📖 Guide Navigation
+## Guide Navigation
 
 Each guide is designed to be read independently, but we recommend starting with the Getting Started guide if you're new to Nuclom.
 
 ---
 
-_Last updated: January 2025_
+_Last updated: December 2025_

@@ -6,7 +6,7 @@ This document provides a high-level summary of the Nuclom video collaboration pl
 
 ### Tech Stack Overview
 
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: Next.js API Routes, Better-Auth, Drizzle ORM
 - **Database**: PostgreSQL with Drizzle ORM
 - **Storage**: Cloudflare R2 for video files
@@ -68,9 +68,9 @@ This document provides a high-level summary of the Nuclom video collaboration pl
 
 ## Key Architectural Decisions
 
-### 1. Next.js 15 App Router
+### 1. Next.js 16 App Router
 
-**Decision**: Use Next.js 15 with App Router for the frontend framework
+**Decision**: Use Next.js 16 with App Router for the frontend framework
 **Rationale**:
 
 - Server Components for better performance

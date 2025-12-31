@@ -2,19 +2,14 @@
 
 Welcome to Nuclom, a modern video collaboration platform designed for teams to upload, organize, and collaborate on video content efficiently.
 
-## 🚀 Getting Started
+## Getting Started
 
-### New to Nuclom?
+New to Nuclom? Start here:
 
 - **[Getting Started Guide](guides/getting-started.md)** - Complete onboarding for new users
 - **[Platform Overview](guides/README.md)** - Understand Nuclom's core features
 
-### Quick Navigation
-
-- **[User Guides](guides/)** - Complete user documentation
-- **[API Documentation](api/)** - Developer API reference
-
-## 📚 User Guides
+## User Guides
 
 ### Essential Guides
 
@@ -29,9 +24,9 @@ Welcome to Nuclom, a modern video collaboration platform designed for teams to u
 - **[Settings & Preferences](guides/settings-preferences.md)** - Customize your experience
 - **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
 
-## 🌐 API Documentation
+## API Documentation
 
-### For Developers
+For developers integrating with Nuclom:
 
 - **[API Overview](api/README.md)** - Introduction to the Nuclom API
 - **[Authentication](api/authentication.md)** - API authentication methods
@@ -39,18 +34,7 @@ Welcome to Nuclom, a modern video collaboration platform designed for teams to u
 - **[Organization APIs](api/organizations.md)** - Team and organization management
 - **[AI Integration](api/ai.md)** - Video analysis and AI features
 
-## 🎥 What is Nuclom?
-
-Nuclom is a comprehensive video collaboration platform that enables teams to:
-
-- **📹 Upload & Organize**: Efficiently manage video content with channels and series
-- **💬 Collaborate**: Add time-stamped comments and discussions
-- **👥 Team Management**: Control access with role-based permissions
-- **🔍 Search & Discover**: Find content quickly with powerful search
-- **🤖 AI-Powered**: Leverage AI for video analysis and insights
-- **📊 Track Progress**: Monitor viewing progress and engagement
-
-## 🛠️ Key Features
+## Key Features
 
 ### Video Management
 
@@ -61,19 +45,20 @@ Nuclom is a comprehensive video collaboration platform that enables teams to:
 
 ### Collaboration Tools
 
-- Time-stamped comments
-- Real-time discussions
-- Share videos with external users
-- Team organizations with permissions
+- Time-stamped comments with reactions
+- Threaded discussions
+- Share videos with team members
+- Role-based permissions (Owner, Admin, Member)
 
 ### Smart Features
 
 - AI-powered video summaries
 - Automatic transcription
 - Action item extraction
-- Progress tracking and analytics
+- Progress tracking and watch later lists
+- Personalized recommendations
 
-## 🚀 Getting Support
+## Getting Support
 
 - **[Troubleshooting Guide](guides/troubleshooting.md)** - Self-service solutions
 - **Contact Support** - Reach out through the platform

@@ -2,7 +2,7 @@
 
 Internal documentation for developers, contributors, and maintainers of the Nuclom video collaboration platform.
 
-## 🔧 Developer Resources
+## Developer Resources
 
 ### Development Setup
 
@@ -18,34 +18,38 @@ Internal documentation for developers, contributors, and maintainers of the Nucl
 
 ### Quality & Testing
 
-- **[Testing Guide](reference/testing.md)** - Testing strategy and implementation
+- **[Testing Guide](reference/testing.md)** - Testing strategy and implementation (Vitest, Playwright)
 - **[Contributing Guidelines](reference/contributing.md)** - Code standards and workflow
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### Architecture Overview
 
 - **[System Design](architecture/README.md)** - High-level architecture overview
+- **[Architecture Summary](architecture/summary.md)** - Quick technical reference
 - **[Database Schema](architecture/database.md)** - Complete database design
 - **[Frontend Architecture](architecture/frontend.md)** - Next.js and React patterns
+- **[Backend Architecture](architecture/backend.md)** - API design and patterns
 - **[Authentication System](architecture/authentication.md)** - better-auth implementation
+- **[Video Processing](architecture/video-processing.md)** - Upload and streaming
+- **[Workflows](architecture/workflows.md)** - Application workflows
+- **[Integrations](architecture/integrations.md)** - External service integrations
+- **[Effect.js Integration](architecture/effect-ts.md)** - Effect-TS patterns
 - **[Deployment Strategy](architecture/deployment.md)** - Infrastructure and CI/CD
 
-### Technical Deep Dives
+### Business
 
-- **[System Summary](architecture/summary.md)** - Quick technical reference
-- **[Security Considerations](architecture/authentication.md#security)** - Security best practices
-- **[Performance Optimization](architecture/frontend.md#performance)** - Performance strategies
+- **[Pricing Strategy](pricing.md)** - Pricing model and cost analysis
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Core Technologies
 
-- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, PostgreSQL, Drizzle ORM
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Next.js API Routes, Effect-TS, PostgreSQL, Drizzle ORM
 - **Authentication**: better-auth with OAuth (GitHub, Google)
-- **Storage**: Cloudflare R2 (configured)
-- **AI**: OpenAI GPT integration
+- **Storage**: Cloudflare R2
+- **AI**: OpenAI / Vercel AI SDK
 - **Deployment**: Vercel with automated CI/CD
 
 ### Development Tools
@@ -54,17 +58,9 @@ Internal documentation for developers, contributors, and maintainers of the Nucl
 - **Database**: Drizzle ORM, PostgreSQL, Drizzle Kit migrations
 - **UI**: shadcn/ui components, Tailwind CSS, Radix UI
 - **State**: React hooks, Context API
-- **Testing**: Jest, React Testing Library, Playwright (planned)
+- **Testing**: Vitest, React Testing Library, Playwright
 
-## 📋 Development Workflow
-
-### Getting Started
-
-1. **[Environment Setup](reference/development-setup.md)** - Install dependencies and configure
-2. **[Database Setup](reference/database-setup.md)** - Set up PostgreSQL and run migrations
-3. **[Contributing](reference/contributing.md)** - Understand the development process
-
-### Common Commands
+## Common Commands
 
 ```bash
 # Development
@@ -73,6 +69,7 @@ pnpm build              # Build for production
 pnpm start              # Start production server
 
 # Code Quality
+pnpm tsc                # TypeScript type checking
 pnpm lint               # Run biome checker
 pnpm format             # Run biome formatter
 
@@ -81,25 +78,40 @@ pnpm db:generate        # Generate migrations
 pnpm db:migrate         # Run migrations
 pnpm db:push            # Push schema changes
 pnpm db:studio          # Open database GUI
+
+# Testing
+pnpm test               # Run unit tests (Vitest)
+pnpm test:e2e           # Run E2E tests (Playwright)
 ```
 
-### Development Guidelines
+## Project Structure
 
-- Follow TypeScript strict mode
-- Use shadcn/ui components for consistency
-- Implement proper error handling and loading states
-- Write tests for critical functionality
-- Follow the established code style and patterns
+```
+src/
+├── app/                 # Next.js app router
+│   ├── (main)/         # Organization-based routes
+│   ├── api/            # API endpoints
+│   ├── docs/           # Documentation site
+│   └── globals.css     # Global styles
+├── components/         # React components
+│   ├── ui/            # shadcn/ui components
+│   └── *.tsx          # Custom components
+├── lib/               # Utilities and configuration
+│   ├── db/            # Database schema and connection
+│   ├── auth.ts        # Authentication config
+│   └── utils.ts       # Utility functions
+├── hooks/             # Custom React hooks
+└── types/             # TypeScript type definitions
+```
 
-## 🔍 Architecture Patterns
+## Architecture Patterns
 
 ### Frontend Patterns
 
-- **App Router**: Next.js 15 with organization-based routing
+- **App Router**: Next.js 16 with organization-based routing
 - **Server Components**: React Server Components for performance
 - **Client Components**: Interactive components with hooks
 - **Type Safety**: Full TypeScript integration
-
 
 ### Backend Patterns
 
@@ -115,38 +127,7 @@ pnpm db:studio          # Open database GUI
 - **Input Validation**: Server-side validation for all inputs
 - **Secure Sessions**: HTTP-only cookies with proper expiration
 
-## 📊 Project Structure
-
-```
-src/
-├── app/                 # Next.js app router
-│   ├── (main)/         # Organization-based routes
-│   ├── api/            # API endpoints
-│   └── globals.css     # Global styles
-├── components/         # React components
-│   ├── ui/            # shadcn/ui components
-│   └── *.tsx          # Custom components
-├── lib/               # Utilities and configuration
-│   ├── db/            # Database schema and connection
-│   ├── auth.ts        # Authentication config
-│   └── utils.ts       # Utility functions
-└── hooks/             # Custom React hooks
-```
-
-## 🚀 Deployment
-
-### Production Environment
-
-- **Platform**: Vercel with automatic deployments
-- **Database**: PostgreSQL (Supabase/PlanetScale recommended)
-- **Storage**: Cloudflare R2 for video files
-- **Monitoring**: Built-in Vercel analytics
-
-### Environment Variables
-
-See **[Environment Configuration](reference/environment-config.md)** for complete setup.
-
-## 🤝 Contributing
+## Contributing
 
 ### Before Contributing
 

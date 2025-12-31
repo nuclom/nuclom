@@ -17,7 +17,7 @@ This guide covers testing strategies, patterns, and best practices for the Nuclo
 
 **E2E Tests**: Configured with Playwright. Tests are located in the `e2e/` directory and run via GitHub Actions on every push/PR.
 
-**Unit/Integration Tests**: Not yet configured. See below for setup instructions.
+**Unit/Integration Tests**: Configured with Vitest. Tests are located in `__tests__` directories or files with `.test.ts` suffix.
 
 ## Running E2E Tests
 
@@ -47,87 +47,83 @@ The E2E test suite covers:
 - **Public Pages**: Privacy policy, terms of service, support, contact, 404 handling
 - **Performance**: Page load times
 
-## Test Setup (for Unit/Integration Tests)
-
-### Installing Additional Testing Dependencies
+## Running Unit Tests
 
 ```bash
-# Testing framework and utilities
-pnpm add -D jest @jest/globals
-pnpm add -D @testing-library/react @testing-library/jest-dom @testing-library/user-event
-pnpm add -D @types/jest
+# Run all unit tests
+pnpm test
 
-# Next.js testing utilities
-pnpm add -D @next/env jest-environment-jsdom
+# Run tests in watch mode
+pnpm test -- --watch
 
-# Database testing
-pnpm add -D @testcontainers/postgresql
+# Run tests with coverage
+pnpm test:coverage
+
+# Run tests with UI mode
+pnpm test:ui
 ```
 
-### Jest Configuration
+## Test Configuration
 
-```javascript
-// jest.config.js
-const nextJest = require("next/jest");
+### Vitest Configuration
 
-const createJestConfig = nextJest({
-  dir: "./",
-});
+The project uses Vitest for unit and integration testing. Configuration is in `vitest.config.ts`:
 
-const customJestConfig = {
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-  testEnvironment: "jest-environment-jsdom",
-  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
-  moduleNameMapping: {
-    "^@/(.*)$": "<rootDir>/src/$1",
+```typescript
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["**/__tests__/**/*.test.{ts,tsx}", "**/*.test.{ts,tsx}"],
+    exclude: ["node_modules", ".next", "e2e"],
+    globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      exclude: ["node_modules", ".next", "e2e"],
+    },
   },
-  collectCoverageFrom: [
-    "src/**/*.{js,jsx,ts,tsx}",
-    "!src/**/*.d.ts",
-    "!src/**/*.stories.{js,jsx,ts,tsx}",
-    "!src/**/index.{js,jsx,ts,tsx}",
-  ],
-  testMatch: [
-    "**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)",
-    "**/*.(test|spec).(js|jsx|ts|tsx)",
-  ],
-};
-
-module.exports = createJestConfig(customJestConfig);
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "./src"),
+    },
+  },
+});
 ```
 
 ### Test Setup File
 
-```javascript
-// jest.setup.js
-import "@testing-library/jest-dom";
-import { server } from "./src/mocks/server";
+```typescript
+// src/test/setup.ts
+import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
 
 // Mock next/navigation
-jest.mock("next/navigation", () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
   }),
   useSearchParams: () => ({
-    get: jest.fn(),
+    get: vi.fn(),
   }),
   usePathname: () => "/",
 }));
 
 // Mock next-themes
-jest.mock("next-themes", () => ({
+vi.mock("next-themes", () => ({
   useTheme: () => ({
     theme: "light",
-    setTheme: jest.fn(),
+    setTheme: vi.fn(),
   }),
 }));
-
-// Setup MSW
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 ```
 
 ### Package.json Scripts
@@ -135,12 +131,12 @@ afterAll(() => server.close());
 ```json
 {
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:db": "jest --testPathPattern=__tests__/database"
+    "test:e2e:ui": "playwright test --ui"
   }
 }
 ```
@@ -198,10 +194,12 @@ export { customRender as render };
 import { render, screen } from "@/lib/test-utils";
 import { VideoCard } from "../video-card";
 import { mockVideo } from "@/lib/mock-data";
+import { describe, it, expect, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 
 describe("VideoCard", () => {
   it("renders video information", () => {
-    render(<VideoCard video={mockVideo} onClick={jest.fn()} />);
+    render(<VideoCard video={mockVideo} onClick={vi.fn()} />);
 
     expect(screen.getByText(mockVideo.title)).toBeInTheDocument();
     expect(screen.getByText(mockVideo.description)).toBeInTheDocument();
@@ -209,7 +207,8 @@ describe("VideoCard", () => {
   });
 
   it("calls onClick when clicked", async () => {
-    const mockOnClick = jest.fn();
+    const user = userEvent.setup();
+    const mockOnClick = vi.fn();
 
     render(<VideoCard video={mockVideo} onClick={mockOnClick} />);
 
@@ -226,7 +225,7 @@ describe("VideoCard", () => {
           ...mockVideo,
           thumbnailUrl: "https://example.com/thumbnail.jpg",
         }}
-        onClick={jest.fn()}
+        onClick={vi.fn()}
       />
     );
 
@@ -244,7 +243,7 @@ describe("VideoCard", () => {
           ...mockVideo,
           thumbnailUrl: undefined,
         }}
-        onClick={jest.fn()}
+        onClick={vi.fn()}
       />
     );
 
@@ -357,14 +356,14 @@ describe("cn utility", () => {
 import { NextRequest } from "next/server";
 import { GET, POST } from "../route";
 import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock database
-jest.mock("@/lib/db");
+vi.mock("@/lib/db");
 
 describe("/api/videos", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("GET", () => {
@@ -377,11 +376,11 @@ describe("/api/videos", () => {
         },
       ];
 
-      (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(mockVideos),
+      vi.mocked(db.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue(mockVideos),
         }),
-      });
+      } as any);
 
       const request = new NextRequest(
         "http://localhost:3000/api/videos?organizationId=organization-1"
@@ -415,11 +414,11 @@ describe("/api/videos", () => {
         organizationId: "organization-1",
       };
 
-      (db.insert as jest.Mock).mockReturnValue({
-        values: jest.fn().mockReturnValue({
-          returning: jest.fn().mockResolvedValue([mockVideo]),
+      vi.mocked(db.insert).mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockVideo]),
         }),
-      });
+      } as any);
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
