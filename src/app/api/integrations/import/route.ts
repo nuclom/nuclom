@@ -7,7 +7,7 @@ import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
-import { triggerImportMeeting } from "@/lib/workflow/import-meeting";
+import { importMeetingWorkflow } from "@/workflows/import-meeting";
 
 export const dynamic = "force-dynamic";
 
@@ -134,9 +134,9 @@ export async function POST(request: NextRequest) {
         fileSize: recording.fileSize,
       });
 
-      // Trigger the import workflow (fire and forget - it's async)
-      // The triggerImportMeeting function doesn't throw, it handles errors internally
-      triggerImportMeeting({
+      // Trigger the import workflow using durable execution
+      // The workflow handles retries, persistence, and error recovery
+      importMeetingWorkflow({
         importedMeetingId: importedMeeting.id,
         integrationId: integration.id,
         provider,
@@ -146,6 +146,9 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         organizationId: integration.organizationId,
         accessToken,
+      }).catch((err) => {
+        // Log but don't fail - workflow will retry on its own
+        console.error("[Meeting Import Workflow Error]", err);
       });
 
       importResults.push({

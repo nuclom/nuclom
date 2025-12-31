@@ -89,33 +89,58 @@ interface ReplicateService {
 
 Located at `src/workflows/video-processing.ts`
 
-Uses Vercel Workflow DevKit for durable processing:
+Uses Workflow DevKit (useworkflow.dev) for durable processing:
 
 ```typescript
-async function processVideoWorkflow(input: VideoProcessingInput): Promise<ProcessingResult> {
+export async function processVideoWorkflow(
+  input: VideoProcessingInput,
+): Promise<VideoProcessingResult> {
   "use workflow";
 
-  // Step 1: Update status to processing
-  await updateProcessingStatus(videoId, "processing", 10);
+  const { videoId, videoUrl, videoTitle } = input;
 
-  // Step 2: Extract metadata
-  const metadata = await extractVideoMetadata(videoUrl, fileSize);
+  // Step 1: Update status to transcribing
+  await updateProcessingStatus(videoId, "transcribing");
+  "use step";
 
-  // Step 3: Generate thumbnails
-  const thumbnails = await generateVideoThumbnails(videoUrl, metadata.duration);
-
-  // Step 4: Transcribe video
+  // Step 2: Transcribe the video using OpenAI Whisper
   const transcription = await transcribeVideo(videoUrl);
+  "use step";
 
-  // Step 5: Generate AI summary
-  const aiSummary = await generateAISummary(transcription.text, title);
+  // Step 3: Save transcript to database
+  await saveTranscript(videoId, transcription.transcript, transcription.segments);
+  "use step";
 
-  // Step 6: Update database
-  await updateVideoRecord(videoId, { ... });
+  // Step 4: Update status to analyzing
+  await updateProcessingStatus(videoId, "analyzing");
+  "use step";
 
-  return { videoId, status: "completed" };
+  // Step 5: Run AI analysis (summary, tags, action items, chapters, code snippets)
+  const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
+  "use step";
+
+  // Step 6: Save AI analysis results
+  await saveAIAnalysis(videoId, analysis);
+  "use step";
+
+  // Step 7: Update status to completed
+  await updateProcessingStatus(videoId, "completed");
+  "use step";
+
+  // Step 8: Send completion notification
+  await sendCompletionNotification(videoId, "completed");
+
+  return { videoId, success: true };
 }
 ```
+
+**Key Features:**
+- `"use workflow"` directive marks the function as a durable workflow
+- `"use step"` directives create checkpoints for resumable execution
+- Automatic retries on transient failures (network errors, API timeouts)
+- Resume from last successful step on server restart or deploy
+- Built-in observability for debugging and monitoring
+- No external queue service needed
 
 ## Processing Status
 

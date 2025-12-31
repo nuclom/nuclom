@@ -1,10 +1,9 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { AppLive, MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
 import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { TranscriptionLive } from "@/lib/effect/services/transcription";
-import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
+import { processVideoWorkflow } from "@/workflows/video-processing";
 import type { ApiResponse } from "@/lib/types";
 import {
   sanitizeDescription,
@@ -65,10 +64,6 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
   return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 };
 
-// Build the layer with all required dependencies for AI processing
-const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
-
-const FullProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProcessorWithDeps);
 
 // =============================================================================
 // POST /api/videos/upload - Upload a video file
@@ -184,19 +179,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
     onSuccess: (data) => {
-      // Trigger AI processing in the background (fire and forget)
+      // Trigger AI processing using durable workflow
       if (!data.skipAIProcessing && data.videoUrl) {
-        // Run AI processing asynchronously - don't await
-        const aiEffect = Effect.gen(function* () {
-          const aiProcessor = yield* VideoAIProcessor;
-          yield* aiProcessor.processVideo(data.videoId, data.videoUrl!, data.videoTitle);
-        });
-
-        const aiRunnable = Effect.provide(aiEffect, FullProcessingLayer);
-
-        // Fire and forget - run in background
-        Effect.runPromise(aiRunnable).catch((err) => {
-          console.error("[AI Processing Error]", err);
+        // Start the workflow - it runs durably in the background
+        // No need for fire-and-forget, the workflow handles retries and persistence
+        processVideoWorkflow({
+          videoId: data.videoId,
+          videoUrl: data.videoUrl,
+          videoTitle: data.videoTitle,
+        }).catch((err) => {
+          // Log but don't fail - workflow will retry on its own
+          console.error("[Video Processing Workflow Error]", err);
         });
       }
 
