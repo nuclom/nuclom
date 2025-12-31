@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { forgotPasswordSchema } from "@/lib/validations/schemas";
+import { forgotPasswordSchema, safeParse } from "@/lib/validations/schemas";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -21,7 +21,7 @@ export function ForgotPasswordForm() {
     setError(null);
 
     // Validate email using schema
-    const result = forgotPasswordSchema.safeParse({ email });
+    const result = safeParse(forgotPasswordSchema, { email });
     if (!result.success) {
       setError(result.error.issues[0]?.message || "Please enter a valid email address");
       setIsLoading(false);

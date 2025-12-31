@@ -69,8 +69,8 @@ export const checkResourceLimit = (
     const billingRepo = yield* BillingRepository;
     const subscription = yield* billingRepo.getSubscription(organizationId);
 
-    const limits = subscription.plan.limits;
-    const limit = limits[resource as keyof PlanLimits];
+    const limits = subscription.planInfo?.limits;
+    const limit = limits?.[resource as keyof PlanLimits] ?? -1; // Default to unlimited if no plan info
 
     // Unlimited
     if (limit === -1) {
@@ -157,7 +157,7 @@ export const checkFeatureAccess = (
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
     const subscription = yield* billingRepo.getSubscription(organizationId);
-    return subscription.plan.features[feature] ?? false;
+    return subscription.planInfo?.features?.[feature] ?? false;
   });
 
 /**
@@ -187,11 +187,11 @@ export const requireFeature = (
  */
 export const getPlanLimits = (
   organizationId: string,
-): Effect.Effect<PlanLimits, NoSubscriptionError | DatabaseError, BillingRepository> =>
+): Effect.Effect<PlanLimits | null, NoSubscriptionError | DatabaseError, BillingRepository> =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
     const subscription = yield* billingRepo.getSubscription(organizationId);
-    return subscription.plan.limits;
+    return subscription.planInfo?.limits ?? null;
   });
 
 /**
@@ -199,11 +199,11 @@ export const getPlanLimits = (
  */
 export const getPlanFeatures = (
   organizationId: string,
-): Effect.Effect<PlanFeatures, NoSubscriptionError | DatabaseError, BillingRepository> =>
+): Effect.Effect<PlanFeatures | null, NoSubscriptionError | DatabaseError, BillingRepository> =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
     const subscription = yield* billingRepo.getSubscription(organizationId);
-    return subscription.plan.features;
+    return subscription.planInfo?.features ?? null;
   });
 
 // =============================================================================

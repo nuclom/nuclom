@@ -270,7 +270,7 @@ export const auth = betterAuth({
           {
             name: "pro",
             priceId: process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
-            annualPriceId: process.env.STRIPE_PRICE_ID_PRO_YEARLY,
+            annualDiscountPriceId: process.env.STRIPE_PRICE_ID_PRO_YEARLY,
             limits: {
               storage: 100 * 1024 * 1024 * 1024, // 100GB
               videos: -1, // unlimited
@@ -284,7 +284,7 @@ export const auth = betterAuth({
           {
             name: "enterprise",
             priceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY,
-            annualPriceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
+            annualDiscountPriceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
             limits: {
               storage: -1, // unlimited
               videos: -1, // unlimited
@@ -316,7 +316,15 @@ export const auth = betterAuth({
         }),
       },
       // Lifecycle hooks for subscription events
-      onSubscriptionComplete: async ({ subscription, plan, user }) => {
+      onSubscriptionComplete: async ({
+        subscription,
+        plan,
+        user,
+      }: {
+        subscription: { id: string };
+        plan: { name: string };
+        user: { id: string; email: string; name?: string | null };
+      }) => {
         const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
 
@@ -351,7 +359,15 @@ export const auth = betterAuth({
           `,
         });
       },
-      onSubscriptionUpdate: async ({ subscription, plan, user }) => {
+      onSubscriptionUpdate: async ({
+        subscription,
+        plan,
+        user,
+      }: {
+        subscription: { id: string };
+        plan?: { name: string } | null;
+        user: { id: string; email: string; name?: string | null };
+      }) => {
         await db.insert(notifications).values({
           userId: user.id,
           type: "subscription_updated",
@@ -361,7 +377,13 @@ export const auth = betterAuth({
           resourceId: subscription.id,
         });
       },
-      onSubscriptionCancel: async ({ subscription, user }) => {
+      onSubscriptionCancel: async ({
+        subscription,
+        user,
+      }: {
+        subscription: { id: string; cancelAtPeriodEnd?: boolean | null; periodEnd?: Date | null };
+        user: { id: string; email: string; name?: string | null };
+      }) => {
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
 
         await db.insert(notifications).values({
@@ -395,7 +417,13 @@ export const auth = betterAuth({
           `,
         });
       },
-      onTrialEnd: async ({ subscription, user }) => {
+      onTrialEnd: async ({
+        subscription,
+        user,
+      }: {
+        subscription: { id: string };
+        user: { id: string; email: string; name?: string | null };
+      }) => {
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
 
         await db.insert(notifications).values({

@@ -103,6 +103,15 @@ describe("VideoRepository Types", () => {
         searchVideos: () => {
           throw new Error("Mock");
         },
+        getVideosByAuthor: () => {
+          throw new Error("Mock");
+        },
+        getChannelVideosWithAuthor: () => {
+          throw new Error("Mock");
+        },
+        getVideosSharedByOthers: () => {
+          throw new Error("Mock");
+        },
       };
 
       expect(mockService.getVideos).toBeDefined();

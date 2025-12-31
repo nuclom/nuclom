@@ -453,9 +453,9 @@ const makeBillingService = Effect.gen(function* () {
     checkLimit: (organizationId, resource, additionalAmount = 0) =>
       Effect.gen(function* () {
         const subscription = yield* billingRepo.getSubscription(organizationId);
-        const limits = subscription.plan.limits;
+        const limits = subscription.planInfo?.limits;
 
-        const limit = limits[resource as keyof PlanLimits];
+        const limit = limits?.[resource as keyof PlanLimits] ?? -1;
         if (limit === -1) return true; // Unlimited
 
         let currentUsage: number;
@@ -491,9 +491,9 @@ const makeBillingService = Effect.gen(function* () {
     enforceLimit: (organizationId, resource, additionalAmount = 0) =>
       Effect.gen(function* () {
         const subscription = yield* billingRepo.getSubscription(organizationId);
-        const limits = subscription.plan.limits;
+        const limits = subscription.planInfo?.limits;
 
-        const limit = limits[resource as keyof PlanLimits];
+        const limit = limits?.[resource as keyof PlanLimits] ?? -1;
         if (limit === -1) return; // Unlimited
 
         let currentUsage: number;
@@ -538,8 +538,8 @@ const makeBillingService = Effect.gen(function* () {
     getFeatureAccess: (organizationId, feature) =>
       Effect.gen(function* () {
         const subscription = yield* billingRepo.getSubscription(organizationId);
-        const features = subscription.plan.features;
-        return features[feature] ?? false;
+        const features = subscription.planInfo?.features;
+        return features?.[feature] ?? false;
       }),
 
     getPlans: () => billingRepo.getPlans(),
