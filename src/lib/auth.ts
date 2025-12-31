@@ -9,6 +9,7 @@ import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
 
 export const auth = betterAuth({
+  trustedOrigins: ["http://localhost:3000"],
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,

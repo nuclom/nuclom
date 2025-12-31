@@ -410,26 +410,23 @@ export default async function VideosPage({ params }) {
 
 ### Cached Queries
 
-Queries are automatically cached using Next.js `unstable_cache`:
+Queries are automatically cached using React's `cache` function for request-level deduplication:
 
 ```typescript
-import { createCachedQuery } from "@/lib/effect/server";
+import { cache } from "react";
+import { Effect } from "effect";
+import { runServerEffect } from "@/lib/effect/server";
+import { VideoRepository } from "@/lib/effect/services";
 
-export const getVideos = async (organizationId: string, page = 1, limit = 20) => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* VideoRepository;
-        return yield* repo.getVideos(organizationId, page, limit);
-      });
-      return runServerEffect(effect);
-    },
-    [`videos`, `videos:${organizationId}`],
-    { tags: [`videos`, `videos:${organizationId}`], revalidate: 60 }
-  );
-
-  return cachedFn();
-};
+export const getVideos = cache(
+  async (organizationId: string, page = 1, limit = 20) => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* VideoRepository;
+      return yield* repo.getVideos(organizationId, page, limit);
+    });
+    return runServerEffect(effect);
+  }
+);
 ```
 
 ### Revalidation

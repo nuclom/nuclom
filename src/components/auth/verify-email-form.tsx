@@ -49,7 +49,7 @@ export function VerifyEmailForm() {
   };
 
   const handleGoToDashboard = () => {
-    router.push("/vercel");
+    router.push("/onboarding");
   };
 
   if (status === "loading") {
