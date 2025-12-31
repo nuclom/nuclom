@@ -1,96 +1,130 @@
-import { Upload } from "lucide-react";
 import { headers } from "next/headers";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { VideoCard } from "@/components/video-card";
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+import { VideoSection } from "@/components/dashboard/video-section";
+import { GettingStartedChecklist } from "@/components/getting-started-checklist";
 import { auth } from "@/lib/auth";
 import type { Organization } from "@/lib/db/schema";
 import { getCachedOrganizationBySlug, getCachedVideos } from "@/lib/effect";
-import type { VideoWithAuthor } from "@/lib/types";
 
 // =============================================================================
 // Loading Skeleton Component
 // =============================================================================
 
-function VideoSectionSkeleton() {
+function DashboardSkeleton() {
   return (
-    <section>
-      <div className="h-8 w-48 bg-muted animate-pulse rounded mb-6" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-        {Array.from({ length: 4 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items never reorder
-          <div key={`skeleton-${i}`} className="space-y-3">
-            <div className="aspect-video bg-muted animate-pulse rounded-lg" />
-            <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-            <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+    <div className="space-y-8">
+      {/* Hero skeleton */}
+      <div className="h-48 rounded-2xl bg-muted animate-pulse" />
+
+      {/* Grid skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div>
+            <div className="h-6 w-48 bg-muted animate-pulse rounded mb-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="space-y-3">
+                  <div className="aspect-video bg-muted animate-pulse rounded-lg" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// =============================================================================
-// Video Section Component (Server Component)
-// =============================================================================
-
-interface VideoSectionProps {
-  title: string;
-  videos: VideoWithAuthor[];
-  organization: string;
-}
-
-function VideoSection({ title, videos, organization }: VideoSectionProps) {
-  if (videos.length === 0) {
-    return (
-      <section>
-        <h2 className="text-2xl font-bold mb-6">{title}</h2>
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-4">No videos found. Upload your first video to get started.</p>
-          <Button asChild>
-            <Link href={`/${organization}/upload`}>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload first video
-            </Link>
-          </Button>
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section>
-      <h2 className="text-2xl font-bold mb-6">{title}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-        {videos.map((video) => (
-          <VideoCard key={video.id} video={video} organization={organization} />
-        ))}
+        <div className="space-y-6">
+          <div className="h-64 rounded-xl bg-muted animate-pulse" />
+          <div className="h-48 rounded-xl bg-muted animate-pulse" />
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
 
 // =============================================================================
-// Async Video Sections Component (with streaming)
+// Dashboard Content Component (Server Component)
 // =============================================================================
 
-interface VideoSectionsProps {
+interface DashboardContentProps {
   organizationId: string;
   organizationSlug: string;
+  userName?: string;
 }
 
-async function VideoSections({ organizationId, organizationSlug }: VideoSectionsProps) {
+async function DashboardContent({ organizationId, organizationSlug, userName }: DashboardContentProps) {
   // Fetch videos using cached Effect query
   const result = await getCachedVideos(organizationId);
   const videos = result.data;
 
+  const hasVideos = videos.length > 0;
+
+  // Split videos into sections
+  const continueWatching = videos.slice(0, 4);
+  const newThisWeek = videos.slice(0, 8);
+  const fromChannels = videos.slice(0, 6);
+
   return (
-    <div className="space-y-12">
-      <VideoSection title="Continue watching" videos={videos.slice(0, 2)} organization={organizationSlug} />
-      <VideoSection title="New this week" videos={videos} organization={organizationSlug} />
-      <VideoSection title="From your channels" videos={videos.slice(1, 4)} organization={organizationSlug} />
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <DashboardHero
+        organization={organizationSlug}
+        userName={userName}
+        hasVideos={hasVideos}
+      />
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Video Sections */}
+        <div className="lg:col-span-2 space-y-10">
+          {hasVideos ? (
+            <>
+              <VideoSection
+                title="Continue Watching"
+                description="Pick up where you left off"
+                videos={continueWatching}
+                organization={organizationSlug}
+                viewAllHref={`/${organizationSlug}/history`}
+              />
+
+              <VideoSection
+                title="New This Week"
+                description="Latest videos from your team"
+                videos={newThisWeek}
+                organization={organizationSlug}
+                viewAllHref={`/${organizationSlug}/videos`}
+              />
+
+              <VideoSection
+                title="From Your Channels"
+                videos={fromChannels}
+                organization={organizationSlug}
+                viewAllHref={`/${organizationSlug}/channels`}
+              />
+            </>
+          ) : (
+            <VideoSection
+              title="Your Videos"
+              videos={[]}
+              organization={organizationSlug}
+              emptyMessage="Upload your first video to get started"
+              showUploadCTA
+            />
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <GettingStartedChecklist
+            organization={organizationSlug}
+            hasVideos={hasVideos}
+          />
+
+          <ActivityFeed />
+        </div>
+      </div>
     </div>
   );
 }
@@ -121,16 +155,12 @@ export default async function OrganizationPage({ params }: { params: Promise<{ o
 
   // Render with Suspense for streaming
   return (
-    <Suspense
-      fallback={
-        <div className="space-y-12">
-          <VideoSectionSkeleton />
-          <VideoSectionSkeleton />
-          <VideoSectionSkeleton />
-        </div>
-      }
-    >
-      <VideoSections organizationId={organization.id} organizationSlug={organizationSlug} />
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent
+        organizationId={organization.id}
+        organizationSlug={organizationSlug}
+        userName={session.user?.name || undefined}
+      />
     </Suspense>
   );
 }
