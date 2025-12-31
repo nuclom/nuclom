@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  Database,
-  Download,
-  Loader2,
-  Mail,
-  MessageSquare,
-  Shield,
-  Trash2,
-  Video,
-} from "lucide-react";
+import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/auth/auth-guard";
@@ -234,7 +224,7 @@ function PrivacyDataSection() {
               deletionRequestedAt: data.deletionRequestedAt,
               deletionScheduledFor: data.deletionScheduledFor,
             }
-          : null
+          : null,
       );
       setMessage({ type: "success", text: data.message });
     } catch (error) {
@@ -270,7 +260,7 @@ function PrivacyDataSection() {
               deletionRequestedAt: null,
               deletionScheduledFor: null,
             }
-          : null
+          : null,
       );
       setMessage({ type: "success", text: data.message });
     } catch (error) {
@@ -299,9 +289,7 @@ function PrivacyDataSection() {
       setMarketingConsent(checked);
       setMessage({
         type: "success",
-        text: checked
-          ? "Marketing communications enabled."
-          : "Marketing communications disabled.",
+        text: checked ? "Marketing communications enabled." : "Marketing communications disabled.",
       });
     } catch (error) {
       console.error("Consent update error:", error);
@@ -334,7 +322,8 @@ function PrivacyDataSection() {
           Manage your data, privacy settings, and account. Learn more in our{" "}
           <Link href="/privacy" className="text-primary hover:underline">
             Privacy Policy
-          </Link>.
+          </Link>
+          .
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -386,8 +375,8 @@ function PrivacyDataSection() {
           <div>
             <h3 className="text-sm font-medium">Download Your Data</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Get a copy of all your data in JSON format. Includes profile, videos, comments, and settings.
-              Limited to one export per 24 hours.
+              Get a copy of all your data in JSON format. Includes profile, videos, comments, and settings. Limited to
+              one export per 24 hours.
             </p>
           </div>
           <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
@@ -415,16 +404,14 @@ function PrivacyDataSection() {
               Delete Account
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Permanently delete your account and all associated data. This action has a 30-day grace
-              period during which you can cancel.
+              Permanently delete your account and all associated data. This action has a 30-day grace period during
+              which you can cancel.
             </p>
           </div>
 
           {hasPendingDeletion ? (
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-3">
-              <p className="text-sm text-destructive font-medium">
-                Account deletion scheduled
-              </p>
+              <p className="text-sm text-destructive font-medium">Account deletion scheduled</p>
               <p className="text-sm text-muted-foreground">
                 Your account will be permanently deleted on{" "}
                 <strong>
@@ -434,13 +421,10 @@ function PrivacyDataSection() {
                     month: "long",
                     day: "numeric",
                   })}
-                </strong>.
+                </strong>
+                .
               </p>
-              <Button
-                variant="outline"
-                onClick={handleCancelDeletion}
-                disabled={isCancelling}
-              >
+              <Button variant="outline" onClick={handleCancelDeletion} disabled={isCancelling}>
                 {isCancelling ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -452,11 +436,7 @@ function PrivacyDataSection() {
               </Button>
             </div>
           ) : (
-            <Button
-              variant="destructive"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isDeleting}
-            >
+            <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete My Account
             </Button>
@@ -489,9 +469,7 @@ function PrivacyDataSection() {
                 <li>Remove all your videos, comments, and settings</li>
                 <li>Delete your data from our systems</li>
               </ul>
-              <p className="font-medium mt-4">
-                You can cancel this request within the 30-day grace period.
-              </p>
+              <p className="font-medium mt-4">You can cancel this request within the 30-day grace period.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

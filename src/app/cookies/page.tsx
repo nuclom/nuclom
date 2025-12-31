@@ -2,14 +2,7 @@ import { ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const metadata = {
   title: "Cookie Policy | Nuclom",
@@ -129,10 +122,9 @@ export default function CookiePolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">What Are Cookies?</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Cookies are small text files that are placed on your device when you visit a website.
-                    They are widely used to make websites work more efficiently and to provide information
-                    to the owners of the site. We also use localStorage, a similar technology that stores
-                    data in your browser.
+                    Cookies are small text files that are placed on your device when you visit a website. They are
+                    widely used to make websites work more efficiently and to provide information to the owners of the
+                    site. We also use localStorage, a similar technology that stores data in your browser.
                   </p>
                 </section>
 
@@ -143,10 +135,18 @@ export default function CookiePolicyPage() {
                     We use cookies for the following purposes:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li><strong>Essential:</strong> To authenticate you and keep you logged in securely</li>
-                    <li><strong>Security:</strong> To protect against malicious traffic and attacks</li>
-                    <li><strong>Preferences:</strong> To remember your settings and preferences</li>
-                    <li><strong>Analytics:</strong> To understand how you use our service (optional)</li>
+                    <li>
+                      <strong>Essential:</strong> To authenticate you and keep you logged in securely
+                    </li>
+                    <li>
+                      <strong>Security:</strong> To protect against malicious traffic and attacks
+                    </li>
+                    <li>
+                      <strong>Preferences:</strong> To remember your settings and preferences
+                    </li>
+                    <li>
+                      <strong>Analytics:</strong> To understand how you use our service (optional)
+                    </li>
                   </ul>
                 </section>
 
@@ -154,8 +154,7 @@ export default function CookiePolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">Essential Cookies</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    These cookies are necessary for the website to function properly. They cannot be
-                    disabled.
+                    These cookies are necessary for the website to function properly. They cannot be disabled.
                   </p>
                   <div className="overflow-x-auto">
                     <Table>
@@ -185,8 +184,8 @@ export default function CookiePolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">Analytics Cookies</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    These cookies help us understand how visitors interact with our website. They are
-                    optional and only set if you consent to analytics.
+                    These cookies help us understand how visitors interact with our website. They are optional and only
+                    set if you consent to analytics.
                   </p>
                   <div className="overflow-x-auto">
                     <Table>
@@ -250,16 +249,15 @@ export default function CookiePolicyPage() {
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
-                      <strong>Cloudflare:</strong> Security and performance cookies that protect our
-                      service from attacks and improve load times
+                      <strong>Cloudflare:</strong> Security and performance cookies that protect our service from
+                      attacks and improve load times
                     </li>
                     <li>
-                      <strong>Google Analytics:</strong> Analytics cookies that help us understand
-                      usage patterns (only if you consent)
+                      <strong>Google Analytics:</strong> Analytics cookies that help us understand usage patterns (only
+                      if you consent)
                     </li>
                     <li>
-                      <strong>Stripe:</strong> When you make a payment, Stripe may set cookies for
-                      fraud prevention
+                      <strong>Stripe:</strong> When you make a payment, Stripe may set cookies for fraud prevention
                     </li>
                   </ul>
                 </section>
@@ -272,16 +270,16 @@ export default function CookiePolicyPage() {
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
-                      <strong>Cookie Banner:</strong> When you first visit, you can choose to accept
-                      all cookies, essential only, or customize your preferences
+                      <strong>Cookie Banner:</strong> When you first visit, you can choose to accept all cookies,
+                      essential only, or customize your preferences
                     </li>
                     <li>
-                      <strong>Cookie Settings Button:</strong> Click the cookie icon in the bottom-left
-                      corner to update your preferences at any time
+                      <strong>Cookie Settings Button:</strong> Click the cookie icon in the bottom-left corner to update
+                      your preferences at any time
                     </li>
                     <li>
-                      <strong>Browser Settings:</strong> Most browsers allow you to block or delete
-                      cookies through their settings
+                      <strong>Browser Settings:</strong> Most browsers allow you to block or delete cookies through
+                      their settings
                     </li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">

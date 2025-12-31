@@ -7,13 +7,7 @@ import { AnalyticsOverview } from "@/components/analytics/analytics-overview";
 import { TopVideosTable } from "@/components/analytics/top-videos-table";
 import { ViewsChart } from "@/components/analytics/views-chart";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AnalyticsData {
   overview: {
@@ -61,7 +55,7 @@ export default function AnalyticsPage() {
   // First fetch organization by slug
   const { data: orgData, isLoading: isOrgLoading } = useSWR<{ success: boolean; data: OrganizationData }>(
     `/api/organizations/slug/${organizationSlug}`,
-    fetcher
+    fetcher,
   );
 
   const organization = orgData?.data;
@@ -70,7 +64,7 @@ export default function AnalyticsPage() {
   const { data, error, isLoading } = useSWR<{ success: boolean; data: AnalyticsData }>(
     organization ? `/api/organizations/${organization.id}/analytics?period=${period}` : null,
     fetcher,
-    { refreshInterval: 60000 } // Refresh every minute
+    { refreshInterval: 60000 }, // Refresh every minute
   );
 
   const handlePeriodChange = (newPeriod: string) => {
@@ -105,9 +99,7 @@ export default function AnalyticsPage() {
             <BarChart3 className="h-8 w-8" />
             Analytics
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Track video performance and viewer engagement
-          </p>
+          <p className="text-muted-foreground mt-1">Track video performance and viewer engagement</p>
         </div>
 
         <Select value={period} onValueChange={handlePeriodChange}>
@@ -146,9 +138,7 @@ export default function AnalyticsPage() {
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
           <BarChart3 className="h-12 w-12 text-muted-foreground" />
           <h2 className="text-xl font-semibold">No analytics data yet</h2>
-          <p className="text-muted-foreground">
-            Start sharing videos to see analytics data here
-          </p>
+          <p className="text-muted-foreground">Start sharing videos to see analytics data here</p>
         </div>
       )}
     </div>

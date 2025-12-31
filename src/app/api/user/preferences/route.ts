@@ -93,10 +93,7 @@ export async function PUT(request: NextRequest) {
 
     if (existing) {
       // Update existing preferences
-      await db
-        .update(userPreferences)
-        .set(updateData)
-        .where(eq(userPreferences.userId, session.user.id));
+      await db.update(userPreferences).set(updateData).where(eq(userPreferences.userId, session.user.id));
     } else {
       // Create new preferences
       await db.insert(userPreferences).values({
