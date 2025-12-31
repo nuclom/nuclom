@@ -135,9 +135,11 @@ export function validateFormData<A, I>(
 
 // Re-export file validation
 export * from "./file-validation";
-// Re-export form utilities (for client-side usage)
-export * from "./form";
 // Re-export sanitization
 export * from "./sanitize";
 // Re-export schemas
 export * from "./schemas";
+
+// Note: Form utilities (useValidatedForm, etc.) are in ./form.ts
+// Import them directly for client-side usage:
+// import { useValidatedForm } from "@/lib/validation/form";
