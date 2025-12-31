@@ -1,44 +1,18 @@
 import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videos, videoViews } from "@/lib/db/schema";
-import { AppLive, DatabaseError, UnauthorizedError } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { DatabaseError, UnauthorizedError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/organizations/[id]/analytics - Get organization analytics
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
+  const FullLayer = createFullLayer();
 
   const url = new URL(request.url);
   const period = url.searchParams.get("period") || "30d";
@@ -255,9 +229,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

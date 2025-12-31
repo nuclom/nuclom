@@ -7,11 +7,12 @@
  */
 
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option } from "effect";
+import { Effect } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, Translation } from "@/lib/effect";
+import { DatabaseError, NotFoundError, Translation } from "@/lib/effect";
 import { SUPPORTED_LANGUAGES } from "@/lib/effect/services/translation";
 import type { ApiResponse } from "@/lib/types";
 
@@ -34,26 +35,6 @@ interface SubtitleLanguagesResponse {
   processingStatus: string;
   languages: SubtitleLanguage[];
 }
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/videos/[id]/subtitles - List Available Languages
@@ -116,31 +97,22 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return a.name.localeCompare(b.name);
     });
 
-    return {
+    const data: SubtitleLanguagesResponse = {
       videoId: id,
       hasTranscript,
       processingStatus: videoData.processingStatus,
       languages,
-    } satisfies SubtitleLanguagesResponse;
+    };
+
+    const response: ApiResponse<SubtitleLanguagesResponse> = {
+      success: true,
+      data,
+    };
+    return response;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse<SubtitleLanguagesResponse> = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

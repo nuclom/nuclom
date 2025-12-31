@@ -8,12 +8,13 @@
  */
 
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
+import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -30,29 +31,6 @@ const TranscriptSegmentSchema = Schema.Struct({
 const UpdateTranscriptSchema = Schema.Struct({
   segments: Schema.Array(TranscriptSegmentSchema),
 });
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/videos/[id]/transcript - Get Transcript
@@ -94,33 +72,20 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     }
 
     return {
-      videoId: id,
-      title: videoData.title,
-      transcript: videoData.transcript,
-      segments: videoData.transcriptSegments || [],
-      processingStatus: videoData.processingStatus,
+      success: true,
+      data: {
+        videoId: id,
+        title: videoData.title,
+        transcript: videoData.transcript,
+        segments: videoData.transcriptSegments || [],
+        processingStatus: videoData.processingStatus,
+      },
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -237,29 +202,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     return {
-      videoId: id,
-      segments,
-      message: "Transcript updated successfully",
+      success: true,
+      data: {
+        videoId: id,
+        segments,
+        message: "Transcript updated successfully",
+      },
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

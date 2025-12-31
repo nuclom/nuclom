@@ -1,30 +1,11 @@
 import process from "node:process";
-import { Cause, Effect, Exit } from "effect";
+import { Effect } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
-import { AppLive, VideoRepository } from "@/lib/effect";
+import { VideoRepository } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // POST /api/videos/cleanup - Cleanup expired soft-deleted videos
@@ -64,29 +45,18 @@ export async function POST(request: NextRequest) {
     const videoRepo = yield* VideoRepository;
     const deletedCount = yield* videoRepo.cleanupExpiredVideos();
 
-    return {
-      message: `Cleanup completed: ${deletedCount} expired videos permanently deleted`,
-      deletedCount,
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        message: `Cleanup completed: ${deletedCount} expired videos permanently deleted`,
+        deletedCount,
+      },
     };
+    return response;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

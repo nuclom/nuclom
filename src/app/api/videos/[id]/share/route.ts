@@ -1,37 +1,15 @@
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Effect } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videoShareLinks, videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
-// Error Response Handler
+// Hash Password Helper
 // =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // Hash password using Web Crypto API
 async function hashPassword(password: string): Promise<string> {
@@ -48,9 +26,6 @@ async function hashPassword(password: string): Promise<string> {
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -79,31 +54,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     // Don't expose password hashes
-    return links.map((link) => ({
+    const data = links.map((link) => ({
       ...link,
       password: link.password ? true : null, // Just indicate if password is set
     }));
+
+    const response: ApiResponse = {
+      success: true,
+      data,
+    };
+    return response;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -118,9 +84,6 @@ interface CreateShareLinkBody {
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -222,29 +185,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
     });
 
-    return {
+    const data = {
       ...result[0],
       password: hashedPassword ? true : null, // Don't expose hash
     };
+
+    const response: ApiResponse = {
+      success: true,
+      data,
+    };
+    return response;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response, { status: 201 });
-    },
-  });
+  if (exit._tag === "Success") {
+    return NextResponse.json(exit.value, { status: 201 });
+  }
+
+  return handleEffectExit(exit);
 }

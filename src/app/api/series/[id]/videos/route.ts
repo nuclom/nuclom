@@ -1,35 +1,7 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppLive, MissingFieldError, SeriesRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ error: taggedError.message }, { status: 401 });
-      case "MissingFieldError":
-      case "ValidationError":
-        return NextResponse.json({ error: taggedError.message }, { status: 400 });
-      case "NotFoundError":
-        return NextResponse.json({ error: taggedError.message }, { status: 404 });
-      case "DuplicateError":
-        return NextResponse.json({ error: taggedError.message }, { status: 409 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-};
+import { Auth, createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
+import { MissingFieldError, SeriesRepository } from "@/lib/effect";
 
 // =============================================================================
 // GET /api/series/[id]/videos - Get available videos (not in series)
@@ -37,8 +9,7 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: seriesId } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
+  const FullLayer = createFullLayer();
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -66,16 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -84,8 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: seriesId } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
+  const FullLayer = createFullLayer();
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -120,9 +81,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      return mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => NextResponse.json(data, { status: 201 }),
   });
@@ -134,8 +95,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: seriesId } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
+  const FullLayer = createFullLayer();
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -167,14 +127,5 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }
