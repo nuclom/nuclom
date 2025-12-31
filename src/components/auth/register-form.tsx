@@ -27,7 +27,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,7 +189,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
         Already have an account?{" "}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
           <a
-            href={`/login${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
+            href={`/login${finalRedirectTo !== "/onboarding" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
           >
             Sign in
           </a>

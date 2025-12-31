@@ -6,7 +6,8 @@
  */
 
 import { Cause, Effect, Exit, Option } from "effect";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { cache } from "react";
+import { revalidateTag } from "next/cache";
 import type {
   PaginatedResponse,
   PaginatedResponse as PaginatedResponseType,
@@ -77,100 +78,54 @@ export const runServerEffectSafe = async <A, E>(
 // =============================================================================
 
 /**
- * Get videos for an organization (cached)
+ * Get videos for an organization (cached per request)
  */
-export const getVideos = async (
-  organizationId: string,
-  page: number = 1,
-  limit: number = 20,
-): Promise<PaginatedResponse<VideoWithAuthor>> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* VideoRepository;
-        return yield* repo.getVideos(organizationId, page, limit);
-      });
-      return runServerEffect(effect);
-    },
-    [`videos`, `videos:${organizationId}`, `page:${page}`, `limit:${limit}`],
-    {
-      tags: [`videos`, `videos:${organizationId}`],
-      revalidate: 60,
-    },
-  );
-
-  return cachedFn();
-};
+export const getVideos = cache(
+  async (organizationId: string, page: number = 1, limit: number = 20): Promise<PaginatedResponse<VideoWithAuthor>> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* VideoRepository;
+      return yield* repo.getVideos(organizationId, page, limit);
+    });
+    return runServerEffect(effect);
+  },
+);
 
 /**
- * Get a single video with details (cached)
+ * Get a single video with details (cached per request)
  */
-export const getVideo = async (id: string): Promise<VideoWithDetails> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* VideoRepository;
-        return yield* repo.getVideo(id);
-      });
-      return runServerEffect(effect);
-    },
-    [`video:${id}`],
-    {
-      tags: [`video:${id}`],
-      revalidate: 60,
-    },
-  );
-
-  return cachedFn();
-};
+export const getVideo = cache(async (id: string): Promise<VideoWithDetails> => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getVideo(id);
+  });
+  return runServerEffect(effect);
+});
 
 // =============================================================================
 // Organization Queries (Cached)
 // =============================================================================
 
 /**
- * Get organizations for a user (cached)
+ * Get organizations for a user (cached per request)
  */
-export const getOrganizations = async (userId: string) => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* OrganizationRepository;
-        return yield* repo.getUserOrganizations(userId);
-      });
-      return runServerEffect(effect);
-    },
-    [`organizations`, `organizations:user:${userId}`],
-    {
-      tags: [`organizations`, `organizations:user:${userId}`],
-      revalidate: 300,
-    },
-  );
-
-  return cachedFn();
-};
+export const getOrganizations = cache(async (userId: string) => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.getUserOrganizations(userId);
+  });
+  return runServerEffect(effect);
+});
 
 /**
- * Get organization by slug (cached)
+ * Get organization by slug (cached per request)
  */
-export const getOrganizationBySlug = async (slug: string) => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* OrganizationRepository;
-        return yield* repo.getOrganizationBySlug(slug);
-      });
-      return runServerEffect(effect);
-    },
-    [`organization:${slug}`],
-    {
-      tags: [`organization:${slug}`],
-      revalidate: 300,
-    },
-  );
-
-  return cachedFn();
-};
+export const getOrganizationBySlug = cache(async (slug: string) => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.getOrganizationBySlug(slug);
+  });
+  return runServerEffect(effect);
+});
 
 // =============================================================================
 // Revalidation Helpers
@@ -280,49 +235,26 @@ export const deleteVideo = async (id: string, organizationId?: string) => {
 // =============================================================================
 
 /**
- * Get video progress for a user (short-lived cache)
- * Uses a short revalidation time since progress changes frequently
+ * Get video progress for a user (cached per request)
  */
-export const getVideoProgress = async (videoId: string, userId: string): Promise<VideoProgressData | null> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* VideoProgressRepository;
-        return yield* repo.getProgress(videoId, userId);
-      });
-      return runServerEffect(effect);
-    },
-    [`video-progress:${videoId}:${userId}`],
-    {
-      tags: [`video-progress:${videoId}:${userId}`, `video-progress:user:${userId}`],
-      revalidate: 10, // Short cache - progress updates frequently
-    },
-  );
-
-  return cachedFn();
-};
+export const getVideoProgress = cache(async (videoId: string, userId: string): Promise<VideoProgressData | null> => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* VideoProgressRepository;
+    return yield* repo.getProgress(videoId, userId);
+  });
+  return runServerEffect(effect);
+});
 
 /**
  * Get all video progress for a user (for "Continue Watching")
  */
-export const getUserVideoProgress = async (userId: string, limit: number = 10): Promise<VideoProgressData[]> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* VideoProgressRepository;
-        return yield* repo.getUserProgress(userId, limit);
-      });
-      return runServerEffect(effect);
-    },
-    [`video-progress:user:${userId}`, `limit:${limit}`],
-    {
-      tags: [`video-progress:user:${userId}`],
-      revalidate: 30,
-    },
-  );
-
-  return cachedFn();
-};
+export const getUserVideoProgress = cache(async (userId: string, limit: number = 10): Promise<VideoProgressData[]> => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* VideoProgressRepository;
+    return yield* repo.getUserProgress(userId, limit);
+  });
+  return runServerEffect(effect);
+});
 
 /**
  * Revalidate video progress caches
@@ -338,32 +270,19 @@ export const revalidateVideoProgress = (videoId: string, userId: string) => {
 
 /**
  * Create a cached server query from an Effect
- * Uses Next.js unstable_cache for automatic caching and revalidation
+ * Uses React cache for request-level deduplication
  */
 export const createCachedQuery = <TArgs extends unknown[], TResult>(
-  keyFn: (...args: TArgs) => string[],
+  _keyFn: (...args: TArgs) => string[],
   effectFn: (...args: TArgs) => Effect.Effect<TResult, unknown, AppServices>,
-  options?: {
+  _options?: {
     revalidate?: number | false;
   },
 ) => {
-  return async (...args: TArgs): Promise<TResult> => {
-    const keys = keyFn(...args);
-
-    const cachedFn = unstable_cache(
-      async () => {
-        const effect = effectFn(...args);
-        return runServerEffect(effect);
-      },
-      keys,
-      {
-        tags: keys,
-        revalidate: options?.revalidate,
-      },
-    );
-
-    return cachedFn();
-  };
+  return cache(async (...args: TArgs): Promise<TResult> => {
+    const effect = effectFn(...args);
+    return runServerEffect(effect);
+  });
 };
 
 // =============================================================================
@@ -371,102 +290,61 @@ export const createCachedQuery = <TArgs extends unknown[], TResult>(
 // =============================================================================
 
 /**
- * Get series for an organization (cached)
+ * Get series for an organization (cached per request)
  */
-export const getSeries = async (
-  organizationId: string,
-  page: number = 1,
-  limit: number = 20,
-): Promise<PaginatedResponseType<SeriesWithVideoCount>> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* SeriesRepository;
-        return yield* repo.getSeries(organizationId, page, limit);
-      });
-      return runServerEffect(effect);
-    },
-    [`series`, `series:${organizationId}`, `page:${page}`, `limit:${limit}`],
-    {
-      tags: [`series`, `series:${organizationId}`],
-      revalidate: 60,
-    },
-  );
-
-  return cachedFn();
-};
+export const getSeries = cache(
+  async (
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<PaginatedResponseType<SeriesWithVideoCount>> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* SeriesRepository;
+      return yield* repo.getSeries(organizationId, page, limit);
+    });
+    return runServerEffect(effect);
+  },
+);
 
 /**
- * Get a series with its videos (cached)
+ * Get a series with its videos (cached per request)
  */
-export const getSeriesWithVideos = async (id: string): Promise<SeriesWithVideos> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* SeriesRepository;
-        return yield* repo.getSeriesWithVideos(id);
-      });
-      return runServerEffect(effect);
-    },
-    [`series:${id}`],
-    {
-      tags: [`series:${id}`],
-      revalidate: 60,
-    },
-  );
-
-  return cachedFn();
-};
+export const getSeriesWithVideos = cache(async (id: string): Promise<SeriesWithVideos> => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* SeriesRepository;
+    return yield* repo.getSeriesWithVideos(id);
+  });
+  return runServerEffect(effect);
+});
 
 /**
- * Get series with user progress (cached)
+ * Get series with user progress (cached per request)
  */
-export const getSeriesWithProgress = async (
-  organizationId: string,
-  userId: string,
-): Promise<(SeriesWithVideoCount & { progress?: SeriesProgressWithDetails })[]> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* SeriesRepository;
-        return yield* repo.getSeriesWithProgress(organizationId, userId);
-      });
-      return runServerEffect(effect);
-    },
-    [`series:${organizationId}:progress:${userId}`],
-    {
-      tags: [`series:${organizationId}`, `series-progress:user:${userId}`],
-      revalidate: 30,
-    },
-  );
-
-  return cachedFn();
-};
+export const getSeriesWithProgress = cache(
+  async (
+    organizationId: string,
+    userId: string,
+  ): Promise<(SeriesWithVideoCount & { progress?: SeriesProgressWithDetails })[]> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* SeriesRepository;
+      return yield* repo.getSeriesWithProgress(organizationId, userId);
+    });
+    return runServerEffect(effect);
+  },
+);
 
 /**
- * Get user's progress for a specific series (cached)
+ * Get user's progress for a specific series (cached per request)
  */
-export const getSeriesProgress = async (
-  userId: string,
-  seriesId: string,
-): Promise<SeriesProgressWithDetails | null> => {
-  const cachedFn = unstable_cache(
-    async () => {
-      const effect = Effect.gen(function* () {
-        const repo = yield* SeriesRepository;
-        return yield* repo.getSeriesProgress(userId, seriesId);
-      });
-      return runServerEffect(effect);
-    },
-    [`series-progress:${seriesId}:${userId}`],
-    {
-      tags: [`series-progress:${seriesId}:${userId}`, `series-progress:user:${userId}`],
-      revalidate: 30,
-    },
-  );
-
-  return cachedFn();
-};
+export const getSeriesProgress = cache(
+  async (userId: string, seriesId: string): Promise<SeriesProgressWithDetails | null> => {
+    const effect = Effect.gen(function* () {
+      const repo = yield* SeriesRepository;
+      return yield* repo.getSeriesProgress(userId, seriesId);
+    });
+    return runServerEffect(effect);
+  },
+);
 
 // =============================================================================
 // Series Revalidation Helpers

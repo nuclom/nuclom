@@ -91,9 +91,10 @@ export function NotificationBell({ organization }: NotificationBellProps) {
     try {
       const response = await fetch("/api/notifications?limit=20");
       if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.data || []);
-        setUnreadCount(data.unreadCount || 0);
+        const result = await response.json();
+        // API returns { success, data: { data: [...], unreadCount } }
+        setNotifications(result.data?.data || []);
+        setUnreadCount(result.data?.unreadCount || 0);
       }
     } catch (error) {
       console.error("Failed to fetch notifications:", error);

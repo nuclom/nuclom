@@ -24,7 +24,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/vercel";
+  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,7 +135,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         Don't have an account?{" "}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
           <a
-            href={`/register${finalRedirectTo !== "/vercel" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
+            href={`/register${finalRedirectTo !== "/onboarding" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
           >
             Sign up
           </a>
