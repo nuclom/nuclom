@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Check, Clock, Edit2, Flag, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { ReportDialog } from "@/components/moderation/report-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
 import { parseMentions } from "@/lib/mentions";

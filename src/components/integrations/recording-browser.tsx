@@ -14,7 +14,6 @@ import {
   Loader2,
   RefreshCw,
   Search,
-  SortAsc,
   Video,
   X,
 } from "lucide-react";
@@ -32,7 +31,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -42,9 +40,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDurationHuman, formatFileSize } from "@/lib/format-utils";
 import { useToast } from "@/hooks/use-toast";
+import { formatDurationHuman, formatFileSize } from "@/lib/format-utils";
 
 interface Recording {
   id: string;

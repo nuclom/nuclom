@@ -1,11 +1,11 @@
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
 import { reports, users } from "@/lib/db/schema";
-import type { ReportCategory, ReportResourceType, ReportResolution, ReportStatus } from "@/lib/db/schema";
-import { headers } from "next/headers";
 
 // Validation schema for creating a report
 const createReportSchema = z.object({

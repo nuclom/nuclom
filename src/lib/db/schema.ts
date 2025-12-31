@@ -30,6 +30,8 @@ export const users = pgTable("users", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   twoFactorEnabled: boolean("two_factor_enabled"),
+  // Better Auth Stripe integration
+  stripeCustomerId: text("stripe_customer_id"),
   // Legal consent fields
   tosAcceptedAt: timestamp("tos_accepted_at"),
   tosVersion: text("tos_version"),
@@ -717,29 +719,42 @@ export const plans = pgTable("plans", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const subscriptions = pgTable("subscriptions", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" })
-    .unique(),
-  planId: text("plan_id")
-    .notNull()
-    .references(() => plans.id),
-  stripeSubscriptionId: text("stripe_subscription_id").unique(),
-  stripeCustomerId: text("stripe_customer_id"),
-  status: subscriptionStatusEnum("status").notNull().default("active"),
-  currentPeriodStart: timestamp("current_period_start"),
-  currentPeriodEnd: timestamp("current_period_end"),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
-  canceledAt: timestamp("canceled_at"),
-  trialStart: timestamp("trial_start"),
-  trialEnd: timestamp("trial_end"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// Better Auth Stripe compatible subscription table
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // Better Auth Stripe fields
+    plan: text("plan").notNull(), // Plan name (e.g., "pro", "enterprise")
+    referenceId: text("reference_id").notNull(), // Organization ID for org-based billing
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    status: text("status").notNull().default("active"), // active, canceled, past_due, trialing, etc.
+    periodStart: timestamp("period_start"),
+    periodEnd: timestamp("period_end"),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+    cancelAt: timestamp("cancel_at"),
+    canceledAt: timestamp("canceled_at"),
+    endedAt: timestamp("ended_at"),
+    seats: integer("seats"),
+    trialStart: timestamp("trial_start"),
+    trialEnd: timestamp("trial_end"),
+    // Custom fields for our app
+    organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+    planId: text("plan_id").references(() => plans.id),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Index for Better Auth Stripe queries
+    referenceIdx: index("subscriptions_reference_idx").on(table.referenceId),
+    stripeSubIdx: index("subscriptions_stripe_subscription_idx").on(table.stripeSubscriptionId),
+    statusIdx: index("subscriptions_status_idx").on(table.status),
+  }),
+);
 
 export const usage = pgTable(
   "usage",
@@ -1529,7 +1544,16 @@ export type Invoice = typeof invoices.$inferSelect;
 export type NewInvoice = typeof invoices.$inferInsert;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type NewPaymentMethod = typeof paymentMethods.$inferInsert;
-export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];
+// Better Auth Stripe compatible subscription statuses
+export type SubscriptionStatus =
+  | "active"
+  | "canceled"
+  | "past_due"
+  | "trialing"
+  | "incomplete"
+  | "incomplete_expired"
+  | "unpaid"
+  | "paused";
 export type InvoiceStatus = (typeof invoiceStatusEnum.enumValues)[number];
 
 // Search types

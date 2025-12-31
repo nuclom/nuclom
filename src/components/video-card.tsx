@@ -3,6 +3,7 @@
 import { Clock, Flag, MoreVertical, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
 import { formatRelativeTime } from "@/lib/format-utils";
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
 import type { VideoWithAuthor } from "@/lib/types";
-import { ReportDialog } from "@/components/moderation/report-dialog";
 
 interface VideoCardProps {
   video: VideoWithAuthor & { views?: number };

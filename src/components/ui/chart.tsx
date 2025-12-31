@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
-import type {
-  Payload as RechartsPayload,
-  NameType,
-  ValueType,
-  Formatter as RechartsFormatter,
-} from "recharts/types/component/DefaultTooltipContent";
 import type { LegendPayload } from "recharts/types/component/DefaultLegendContent";
+import type {
+  NameType,
+  Formatter as RechartsFormatter,
+  Payload as RechartsPayload,
+  ValueType,
+} from "recharts/types/component/DefaultTooltipContent";
 
 import { cn } from "@/lib/utils";
 
@@ -317,4 +317,4 @@ function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key:
   return configLabelKey in config ? config[configLabelKey] : config[key as keyof typeof config];
 }
 
-export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle };
+export { ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent };

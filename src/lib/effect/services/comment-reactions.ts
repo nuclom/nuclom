@@ -7,9 +7,9 @@
  * - Get users who reacted
  */
 
-import { type CommentReaction, commentReactions, type ReactionType, users } from "@/lib/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
+import { type CommentReaction, commentReactions, type ReactionType, users } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
 
