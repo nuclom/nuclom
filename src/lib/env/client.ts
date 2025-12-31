@@ -1,13 +1,15 @@
 import process from "node:process";
-import { z } from "zod/v4";
+import { Schema } from "effect";
 
-export const ClientEnv = z.object({
-  NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url().optional(),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
-  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+export const ClientEnv = Schema.Struct({
+  NEXT_PUBLIC_BETTER_AUTH_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: Schema.optional(Schema.String),
+  NEXT_PUBLIC_APP_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
 });
 
-export const env = ClientEnv.parse(
+export type ClientEnvType = typeof ClientEnv.Type;
+
+export const env = Schema.decodeUnknownSync(ClientEnv)(
   // biome-ignore lint/nursery/noProcessGlobal: needed for env vars
   {
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,

@@ -1,232 +1,299 @@
 /**
- * Zod Validation Schemas (Zod v4)
+ * Effect Schema Validation Schemas
  *
  * Centralized validation schemas for forms and API requests.
  * These schemas provide consistent validation across client and server.
  */
 
-import { z } from "zod";
+import { Schema } from "effect";
 
 // =============================================================================
 // Common Field Validators
 // =============================================================================
 
-export const emailSchema = z.string().min(1, "Email is required").email("Please enter a valid email address");
+export const EmailSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Email is required" }),
+  Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => "Please enter a valid email address" }),
+);
 
-export const passwordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters")
-  .max(100, "Password must be less than 100 characters");
+export const PasswordSchema = Schema.String.pipe(
+  Schema.minLength(8, { message: () => "Password must be at least 8 characters" }),
+  Schema.maxLength(100, { message: () => "Password must be less than 100 characters" }),
+);
 
-export const nameSchema = z
-  .string()
-  .min(1, "Name is required")
-  .max(100, "Name must be less than 100 characters")
-  .trim();
+export const NameSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Name is required" }),
+  Schema.maxLength(100, { message: () => "Name must be less than 100 characters" }),
+);
 
-export const slugSchema = z
-  .string()
-  .min(1, "Slug is required")
-  .max(50, "Slug must be less than 50 characters")
-  .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
-  .trim();
+export const SlugSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Slug is required" }),
+  Schema.maxLength(50, { message: () => "Slug must be less than 50 characters" }),
+  Schema.pattern(/^[a-z0-9-]+$/, { message: () => "Slug can only contain lowercase letters, numbers, and hyphens" }),
+);
 
-export const urlSchema = z.string().url("Please enter a valid URL").optional().or(z.literal(""));
+export const UrlSchema = Schema.optional(
+  Schema.Union(
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Please enter a valid URL" })),
+    Schema.Literal(""),
+  ),
+);
 
-export const descriptionSchema = z.string().max(2000, "Description must be less than 2000 characters").optional();
+export const DescriptionSchema = Schema.optional(
+  Schema.String.pipe(Schema.maxLength(2000, { message: () => "Description must be less than 2000 characters" })),
+);
 
 // =============================================================================
 // Authentication Schemas
 // =============================================================================
 
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, "Password is required"),
+export const LoginSchema = Schema.Struct({
+  email: EmailSchema,
+  password: Schema.String.pipe(Schema.minLength(1, { message: () => "Password is required" })),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
+export type LoginInput = typeof LoginSchema.Type;
 
-export const registerSchema = z
-  .object({
-    name: nameSchema,
-    email: emailSchema,
-    password: passwordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-export type RegisterInput = z.infer<typeof registerSchema>;
-
-export const forgotPasswordSchema = z.object({
-  email: emailSchema,
+const BaseRegisterSchema = Schema.Struct({
+  name: NameSchema,
+  email: EmailSchema,
+  password: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
 });
 
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export const RegisterSchema = BaseRegisterSchema.pipe(
+  Schema.filter((data) => data.password === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+);
 
-export const resetPasswordSchema = z
-  .object({
-    password: passwordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-    token: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+export type RegisterInput = typeof RegisterSchema.Type;
 
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export const ForgotPasswordSchema = Schema.Struct({
+  email: EmailSchema,
+});
+
+export type ForgotPasswordInput = typeof ForgotPasswordSchema.Type;
+
+const BaseResetPasswordSchema = Schema.Struct({
+  password: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+  token: Schema.String,
+});
+
+export const ResetPasswordSchema = BaseResetPasswordSchema.pipe(
+  Schema.filter((data) => data.password === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+);
+
+export type ResetPasswordInput = typeof ResetPasswordSchema.Type;
 
 // =============================================================================
 // Organization Schemas
 // =============================================================================
 
-export const createOrganizationSchema = z.object({
-  name: nameSchema,
-  slug: slugSchema,
-  description: descriptionSchema,
+export const CreateOrganizationSchema = Schema.Struct({
+  name: NameSchema,
+  slug: SlugSchema,
+  description: DescriptionSchema,
 });
 
-export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
+export type CreateOrganizationInput = typeof CreateOrganizationSchema.Type;
 
-export const updateOrganizationSchema = z.object({
-  name: nameSchema.optional(),
-  slug: slugSchema.optional(),
-  description: descriptionSchema,
-  logoUrl: urlSchema,
+export const UpdateOrganizationSchema = Schema.Struct({
+  name: Schema.optional(NameSchema),
+  slug: Schema.optional(SlugSchema),
+  description: DescriptionSchema,
+  logoUrl: UrlSchema,
 });
 
-export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
+export type UpdateOrganizationInput = typeof UpdateOrganizationSchema.Type;
 
 // =============================================================================
 // Video Schemas
 // =============================================================================
 
-export const createVideoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters").trim(),
-  description: descriptionSchema,
-  seriesId: z.string().optional(),
-  channelId: z.string().optional(),
+export const CreateVideoSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+  ),
+  description: DescriptionSchema,
+  seriesId: Schema.optional(Schema.String),
+  channelId: Schema.optional(Schema.String),
 });
 
-export type CreateVideoInput = z.infer<typeof createVideoSchema>;
+export type CreateVideoInput = typeof CreateVideoSchema.Type;
 
-export const updateVideoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters").trim().optional(),
-  description: descriptionSchema,
-  seriesId: z.string().nullable().optional(),
-  channelId: z.string().nullable().optional(),
-  thumbnailUrl: urlSchema,
+export const UpdateVideoSchema = Schema.Struct({
+  title: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Title is required" }),
+      Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+    ),
+  ),
+  description: DescriptionSchema,
+  seriesId: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
+  channelId: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
+  thumbnailUrl: UrlSchema,
 });
 
-export type UpdateVideoInput = z.infer<typeof updateVideoSchema>;
+export type UpdateVideoInput = typeof UpdateVideoSchema.Type;
 
 // =============================================================================
 // Series Schemas
 // =============================================================================
 
-export const createSeriesSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters").trim(),
-  description: descriptionSchema,
+export const CreateSeriesSchema = Schema.Struct({
+  name: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Name is required" }),
+    Schema.maxLength(100, { message: () => "Name must be less than 100 characters" }),
+  ),
+  description: DescriptionSchema,
 });
 
-export type CreateSeriesInput = z.infer<typeof createSeriesSchema>;
+export type CreateSeriesInput = typeof CreateSeriesSchema.Type;
 
-export const updateSeriesSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters").trim().optional(),
-  description: descriptionSchema,
-  thumbnailUrl: urlSchema,
+export const UpdateSeriesSchema = Schema.Struct({
+  name: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Name is required" }),
+      Schema.maxLength(100, { message: () => "Name must be less than 100 characters" }),
+    ),
+  ),
+  description: DescriptionSchema,
+  thumbnailUrl: UrlSchema,
 });
 
-export type UpdateSeriesInput = z.infer<typeof updateSeriesSchema>;
+export type UpdateSeriesInput = typeof UpdateSeriesSchema.Type;
 
 // =============================================================================
 // Comment Schemas
 // =============================================================================
 
-export const createCommentSchema = z.object({
-  content: z.string().min(1, "Comment cannot be empty").max(5000, "Comment must be less than 5000 characters").trim(),
-  videoId: z.string().min(1, "Video ID is required"),
-  timestamp: z.number().min(0).optional(),
-  parentId: z.string().optional(),
+export const CreateCommentSchema = Schema.Struct({
+  content: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Comment cannot be empty" }),
+    Schema.maxLength(5000, { message: () => "Comment must be less than 5000 characters" }),
+  ),
+  videoId: Schema.String.pipe(Schema.minLength(1, { message: () => "Video ID is required" })),
+  timestamp: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(0))),
+  parentId: Schema.optional(Schema.String),
 });
 
-export type CreateCommentInput = z.infer<typeof createCommentSchema>;
+export type CreateCommentInput = typeof CreateCommentSchema.Type;
 
-export const updateCommentSchema = z.object({
-  content: z.string().min(1, "Comment cannot be empty").max(5000, "Comment must be less than 5000 characters").trim(),
+export const UpdateCommentSchema = Schema.Struct({
+  content: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Comment cannot be empty" }),
+    Schema.maxLength(5000, { message: () => "Comment must be less than 5000 characters" }),
+  ),
 });
 
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
+export type UpdateCommentInput = typeof UpdateCommentSchema.Type;
 
 // =============================================================================
 // Profile Schemas
 // =============================================================================
 
-export const updateProfileSchema = z.object({
-  name: nameSchema.optional(),
-  avatarUrl: urlSchema,
-  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+export const UpdateProfileSchema = Schema.Struct({
+  name: Schema.optional(NameSchema),
+  avatarUrl: UrlSchema,
+  bio: Schema.optional(Schema.String.pipe(Schema.maxLength(500, { message: () => "Bio must be less than 500 characters" }))),
 });
 
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type UpdateProfileInput = typeof UpdateProfileSchema.Type;
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: passwordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
-  .refine((data) => data.currentPassword !== data.newPassword, {
-    message: "New password must be different from current password",
-    path: ["newPassword"],
-  });
+const BaseChangePasswordSchema = Schema.Struct({
+  currentPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Current password is required" })),
+  newPassword: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+});
 
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export const ChangePasswordSchema = BaseChangePasswordSchema.pipe(
+  Schema.filter((data) => data.newPassword === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+  Schema.filter((data) => data.currentPassword !== data.newPassword, {
+    message: () => "New password must be different from current password",
+  }),
+);
+
+export type ChangePasswordInput = typeof ChangePasswordSchema.Type;
 
 // =============================================================================
 // Invite Schemas
 // =============================================================================
 
-export const inviteMemberSchema = z.object({
-  email: emailSchema,
-  role: z.enum(["admin", "member", "viewer"]),
+export const InviteMemberSchema = Schema.Struct({
+  email: EmailSchema,
+  role: Schema.Literal("admin", "member", "viewer"),
 });
 
-export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
+export type InviteMemberInput = typeof InviteMemberSchema.Type;
 
 // =============================================================================
 // Search Schemas
 // =============================================================================
 
-export const searchSchema = z.object({
-  query: z.string().min(1, "Search query is required").max(200, "Search query is too long"),
-  type: z.enum(["all", "videos", "series", "channels"]).optional().default("all"),
-  page: z.number().min(1).optional().default(1),
-  limit: z.number().min(1).max(100).optional().default(20),
+export const SearchSchema = Schema.Struct({
+  query: Schema.String.pipe(
+    Schema.minLength(1, { message: () => "Search query is required" }),
+    Schema.maxLength(200, { message: () => "Search query is too long" }),
+  ),
+  type: Schema.optionalWith(Schema.Literal("all", "videos", "series", "channels"), { default: () => "all" as const }),
+  page: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1)), { default: () => 1 }),
+  limit: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)), {
+    default: () => 20,
+  }),
 });
 
-export type SearchInput = z.infer<typeof searchSchema>;
+export type SearchInput = typeof SearchSchema.Type;
 
 // =============================================================================
 // Contact/Support Schemas
 // =============================================================================
 
-export const contactSchema = z.object({
-  name: nameSchema,
-  email: emailSchema,
-  subject: z.string().min(1, "Subject is required").max(200, "Subject must be less than 200 characters").trim(),
-  message: z
-    .string()
-    .min(10, "Message must be at least 10 characters")
-    .max(5000, "Message must be less than 5000 characters")
-    .trim(),
+export const ContactSchema = Schema.Struct({
+  name: NameSchema,
+  email: EmailSchema,
+  subject: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Subject is required" }),
+    Schema.maxLength(200, { message: () => "Subject must be less than 200 characters" }),
+  ),
+  message: Schema.Trim.pipe(
+    Schema.minLength(10, { message: () => "Message must be at least 10 characters" }),
+    Schema.maxLength(5000, { message: () => "Message must be less than 5000 characters" }),
+  ),
 });
 
-export type ContactInput = z.infer<typeof contactSchema>;
+export type ContactInput = typeof ContactSchema.Type;
+
+// =============================================================================
+// Legacy aliases for backwards compatibility (lowercase names)
+// =============================================================================
+
+export const emailSchema = EmailSchema;
+export const passwordSchema = PasswordSchema;
+export const nameSchema = NameSchema;
+export const slugSchema = SlugSchema;
+export const urlSchema = UrlSchema;
+export const descriptionSchema = DescriptionSchema;
+export const loginSchema = LoginSchema;
+export const registerSchema = RegisterSchema;
+export const forgotPasswordSchema = ForgotPasswordSchema;
+export const resetPasswordSchema = ResetPasswordSchema;
+export const createOrganizationSchema = CreateOrganizationSchema;
+export const updateOrganizationSchema = UpdateOrganizationSchema;
+export const createVideoSchema = CreateVideoSchema;
+export const updateVideoSchema = UpdateVideoSchema;
+export const createSeriesSchema = CreateSeriesSchema;
+export const updateSeriesSchema = UpdateSeriesSchema;
+export const createCommentSchema = CreateCommentSchema;
+export const updateCommentSchema = UpdateCommentSchema;
+export const updateProfileSchema = UpdateProfileSchema;
+export const changePasswordSchema = ChangePasswordSchema;
+export const inviteMemberSchema = InviteMemberSchema;
+export const searchSchema = SearchSchema;
+export const contactSchema = ContactSchema;
