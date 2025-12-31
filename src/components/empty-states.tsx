@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, FolderVideo, History, Search, Share2, Upload, Video } from "lucide-react";
+import { FileVideo, Folder, History, Search, Share2, Upload, Video } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -55,7 +55,7 @@ export function EmptyVideos({ organization }: { organization: string }) {
 export function EmptyChannels({ organization }: { organization: string }) {
   return (
     <EmptyState
-      icon={FolderVideo}
+      icon={FileVideo}
       title="No channels yet"
       description="Create channels to organize your videos by topic, team, or project."
       actionLabel="Create Channel"

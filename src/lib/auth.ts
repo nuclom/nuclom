@@ -78,13 +78,7 @@ export const auth = betterAuth({
         `,
       });
     },
-    async sendResetPassword({
-      user,
-      url,
-    }: {
-      user: { email: string; name?: string | null };
-      url: string;
-    }) {
+    async sendResetPassword({ user, url }: { user: { email: string; name?: string | null }; url: string }) {
       await resend.emails.send({
         from: "Nuclom <no-reply@nuclom.com>",
         to: user.email,
@@ -283,8 +277,7 @@ export const auth = betterAuth({
     passkey({
       rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
       rpName: "Nuclom",
-      origin:
-        env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+      origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
     }),
     openAPI(),
   ],

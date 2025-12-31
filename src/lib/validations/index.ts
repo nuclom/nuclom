@@ -19,7 +19,7 @@ import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } fr
 // =============================================================================
 
 interface UseValidatedFormOptions<TInput extends FieldValues> {
-  schema: ZodType<TInput>;
+  schema: ZodType<TInput, any, any>;
   defaultValues?: DefaultValues<TInput>;
   onSubmit: (data: TInput) => Promise<void>;
   onSuccess?: () => void;
@@ -69,10 +69,8 @@ export function useValidatedForm<TInput extends FieldValues>({
 }: UseValidatedFormOptions<TInput>) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Use type assertion to work around Zod v4 / hookform resolver type compatibility
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<TInput>({
-    resolver: zodResolver(schema as any) as any,
+    resolver: zodResolver(schema),
     defaultValues,
     mode: "onBlur",
   });
@@ -229,7 +227,7 @@ export function hasFieldError(error: FieldError | undefined): boolean {
  * Validate data against a schema and return typed result
  */
 export function validateData<T>(
-  schema: ZodType<T>,
+  schema: ZodType<T, any, any>,
   data: unknown,
 ): { success: true; data: T } | { success: false; errors: Array<{ field: string; message: string }> } {
   const result = schema.safeParse(data);

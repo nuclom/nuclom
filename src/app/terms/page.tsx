@@ -38,9 +38,7 @@ export default function TermsOfServicePage() {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms of Service</h1>
-            <p className="text-xl text-muted-foreground">
-              Last updated: January 2025 | Version: {TERMS_VERSION}
-            </p>
+            <p className="text-xl text-muted-foreground">Last updated: January 2025 | Version: {TERMS_VERSION}</p>
           </div>
 
           <Card className="shadow-lg">
@@ -48,9 +46,7 @@ export default function TermsOfServicePage() {
               <div className="space-y-8">
                 {/* Beta Disclaimer */}
                 <section className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
-                  <h2 className="text-2xl font-bold mb-4 text-amber-800 dark:text-amber-200">
-                    Beta Service Notice
-                  </h2>
+                  <h2 className="text-2xl font-bold mb-4 text-amber-800 dark:text-amber-200">Beta Service Notice</h2>
                   <p className="text-amber-700 dark:text-amber-300 leading-relaxed mb-4">
                     Nuclom is currently in <strong>beta</strong>. This means:
                   </p>
@@ -69,14 +65,14 @@ export default function TermsOfServicePage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">1. Acceptance of Terms</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    By accessing or using Nuclom's services ("Service"), you agree to be bound by these Terms of
-                    Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
+                    By accessing or using Nuclom's services ("Service"), you agree to be bound by these Terms of Service
+                    ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    These Terms constitute a legally binding agreement between you and Nuclom regarding your use
-                    of the Service. We may update these Terms from time to time. If we make material changes, we
-                    will notify you via email or through the Service. Your continued use after such notification
-                    constitutes acceptance of the updated Terms.
+                    These Terms constitute a legally binding agreement between you and Nuclom regarding your use of the
+                    Service. We may update these Terms from time to time. If we make material changes, we will notify
+                    you via email or through the Service. Your continued use after such notification constitutes
+                    acceptance of the updated Terms.
                   </p>
                 </section>
 
@@ -108,8 +104,8 @@ export default function TermsOfServicePage() {
                     <li>Ensuring you are at least 18 years old or have parental consent</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    We reserve the right to suspend or terminate accounts that violate these Terms or for any
-                    other reason at our sole discretion.
+                    We reserve the right to suspend or terminate accounts that violate these Terms or for any other
+                    reason at our sole discretion.
                   </p>
                 </section>
 
@@ -119,8 +115,10 @@ export default function TermsOfServicePage() {
                     You agree to use the Service only for lawful purposes. You must not:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Upload content that is illegal, harmful, threatening, abusive, harassing, defamatory,
-                        vulgar, obscene, or otherwise objectionable</li>
+                    <li>
+                      Upload content that is illegal, harmful, threatening, abusive, harassing, defamatory, vulgar,
+                      obscene, or otherwise objectionable
+                    </li>
                     <li>Upload content that infringes on intellectual property rights of others</li>
                     <li>Upload malware, viruses, or any malicious code</li>
                     <li>Attempt to gain unauthorized access to other accounts or systems</li>
@@ -135,16 +133,17 @@ export default function TermsOfServicePage() {
                     For more details, see our{" "}
                     <Link href="/content-policy" className="text-primary hover:underline">
                       Content Policy
-                    </Link>.
+                    </Link>
+                    .
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-2xl font-bold mb-4">5. Content Ownership and License</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    <strong>Your Content:</strong> You retain full ownership of all content you upload to the
-                    Service ("User Content"). By uploading content, you grant Nuclom a worldwide, non-exclusive,
-                    royalty-free license to:
+                    <strong>Your Content:</strong> You retain full ownership of all content you upload to the Service
+                    ("User Content"). By uploading content, you grant Nuclom a worldwide, non-exclusive, royalty-free
+                    license to:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>Store, process, and transmit your content to provide the Service</li>
@@ -152,9 +151,9 @@ export default function TermsOfServicePage() {
                     <li>Display your content to authorized users within your organization</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    <strong>Our Content:</strong> The Service, including its design, features, and functionality,
-                    is owned by Nuclom and protected by intellectual property laws. You may not copy, modify, or
-                    create derivative works without our express permission.
+                    <strong>Our Content:</strong> The Service, including its design, features, and functionality, is
+                    owned by Nuclom and protected by intellectual property laws. You may not copy, modify, or create
+                    derivative works without our express permission.
                   </p>
                 </section>
 
@@ -176,31 +175,31 @@ export default function TermsOfServicePage() {
 
                 <section>
                   <h2 className="text-2xl font-bold mb-4">7. Limitation of Liability</h2>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    TO THE MAXIMUM EXTENT PERMITTED BY LAW:
-                  </p>
+                  <p className="text-muted-foreground leading-relaxed mb-4">TO THE MAXIMUM EXTENT PERMITTED BY LAW:</p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND</li>
-                    <li>WE DISCLAIM ALL IMPLIED WARRANTIES INCLUDING MERCHANTABILITY AND FITNESS FOR A
-                        PARTICULAR PURPOSE</li>
-                    <li>WE ARE NOT LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
-                        DAMAGES</li>
-                    <li>OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE PAST 12 MONTHS,
-                        OR $100, WHICHEVER IS GREATER</li>
+                    <li>
+                      WE DISCLAIM ALL IMPLIED WARRANTIES INCLUDING MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+                    </li>
+                    <li>WE ARE NOT LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES</li>
+                    <li>
+                      OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE PAST 12 MONTHS, OR $100,
+                      WHICHEVER IS GREATER
+                    </li>
                     <li>WE ARE NOT LIABLE FOR LOSS OF DATA, PROFITS, REVENUE, OR BUSINESS OPPORTUNITIES</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    Some jurisdictions do not allow limitation of certain damages, so some of these limitations
-                    may not apply to you.
+                    Some jurisdictions do not allow limitation of certain damages, so some of these limitations may not
+                    apply to you.
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-2xl font-bold mb-4">8. Indemnification</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    You agree to indemnify and hold harmless Nuclom, its officers, directors, employees, and
-                    agents from any claims, damages, losses, or expenses (including legal fees) arising from
-                    your use of the Service, your User Content, or your violation of these Terms.
+                    You agree to indemnify and hold harmless Nuclom, its officers, directors, employees, and agents from
+                    any claims, damages, losses, or expenses (including legal fees) arising from your use of the
+                    Service, your User Content, or your violation of these Terms.
                   </p>
                 </section>
 
@@ -217,34 +216,35 @@ export default function TermsOfServicePage() {
                     <li>At our sole discretion, with or without cause</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    You may terminate your account at any time through your account settings. Upon termination,
-                    you may request export of your data as described in our{" "}
+                    You may terminate your account at any time through your account settings. Upon termination, you may
+                    request export of your data as described in our{" "}
                     <Link href="/privacy" className="text-primary hover:underline">
                       Privacy Policy
-                    </Link>.
+                    </Link>
+                    .
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-2xl font-bold mb-4">10. Governing Law and Disputes</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    These Terms shall be governed by the laws of the State of Delaware, United States, without
-                    regard to conflict of law principles.
+                    These Terms shall be governed by the laws of the State of Delaware, United States, without regard to
+                    conflict of law principles.
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
-                    Any disputes arising from these Terms or your use of the Service shall be resolved through
-                    binding arbitration in accordance with the rules of the American Arbitration Association.
-                    You waive any right to participate in class action lawsuits.
+                    Any disputes arising from these Terms or your use of the Service shall be resolved through binding
+                    arbitration in accordance with the rules of the American Arbitration Association. You waive any
+                    right to participate in class action lawsuits.
                   </p>
                 </section>
 
                 <section>
                   <h2 className="text-2xl font-bold mb-4">11. Changes to Terms</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    We reserve the right to modify these Terms at any time. Material changes will be notified
-                    via email or through the Service at least 30 days before they take effect. Your continued
-                    use of the Service after the changes become effective constitutes acceptance. If you
-                    disagree with the changes, you must stop using the Service.
+                    We reserve the right to modify these Terms at any time. Material changes will be notified via email
+                    or through the Service at least 30 days before they take effect. Your continued use of the Service
+                    after the changes become effective constitutes acceptance. If you disagree with the changes, you
+                    must stop using the Service.
                   </p>
                 </section>
 

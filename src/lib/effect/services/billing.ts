@@ -561,14 +561,19 @@ const makeBillingService = Effect.gen(function* () {
 
         const plan = yield* billingRepo.getPlanByStripePrice(priceId);
 
+        // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
+        // We use start_date and billing_cycle_anchor as fallbacks
+        const periodStart = new Date(stripeSubscription.start_date * 1000);
+        const periodEnd = new Date((stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000);
+
         const subscriptionData: NewSubscription = {
           organizationId,
           planId: plan.id,
           stripeSubscriptionId: stripeSubscription.id,
           stripeCustomerId: stripeSubscription.customer as string,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
           trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
@@ -606,11 +611,16 @@ const makeBillingService = Effect.gen(function* () {
           }
         }
 
+        // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
+        // We use start_date and billing_cycle_anchor as fallbacks
+        const periodStart = new Date(stripeSubscription.start_date * 1000);
+        const periodEnd = new Date((stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000);
+
         const result = yield* billingRepo.updateSubscription(subscription.organizationId, {
           planId,
           status: mapStripeStatus(stripeSubscription.status),
-          currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-          currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
           cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
           canceledAt: stripeSubscription.canceled_at ? new Date(stripeSubscription.canceled_at * 1000) : null,
         });
@@ -645,18 +655,30 @@ const makeBillingService = Effect.gen(function* () {
 
     handleInvoicePaid: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
+        const subscriptionId =
+          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+            ? stripeInvoice.parent.subscription_details.subscription
+            : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        if (!subscriptionId) return;
+
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
+
+        // In Stripe API 2025-12-15.clover, payment_intent is in the payments list
+        // Get the first/default payment intent ID
+        const defaultPayment = (stripeInvoice.payments?.data || []).find((p) => p.is_default);
+        const paymentIntentId =
+          typeof defaultPayment?.payment.payment_intent === "string"
+            ? defaultPayment.payment.payment_intent
+            : (defaultPayment?.payment.payment_intent as any)?.id;
 
         const invoiceData: NewInvoice = {
           organizationId: subscription.value.organizationId,
           stripeInvoiceId: stripeInvoice.id,
-          stripePaymentIntentId: stripeInvoice.payment_intent as string,
+          stripePaymentIntentId: paymentIntentId || null,
           amount: stripeInvoice.amount_due,
           amountPaid: stripeInvoice.amount_paid,
           currency: stripeInvoice.currency,
@@ -688,11 +710,15 @@ const makeBillingService = Effect.gen(function* () {
 
     handleInvoiceFailed: (stripeInvoice) =>
       Effect.gen(function* () {
-        if (!stripeInvoice.subscription) return;
+        // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
+        const subscriptionId =
+          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+            ? stripeInvoice.parent.subscription_details.subscription
+            : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
-        const subscription = yield* billingRepo
-          .getSubscriptionByStripeId(stripeInvoice.subscription as string)
-          .pipe(Effect.option);
+        if (!subscriptionId) return;
+
+        const subscription = yield* billingRepo.getSubscriptionByStripeId(subscriptionId).pipe(Effect.option);
 
         if (Option.isNone(subscription)) return;
 

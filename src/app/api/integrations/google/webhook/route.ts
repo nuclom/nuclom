@@ -66,9 +66,7 @@ export async function POST(request: NextRequest) {
 
       const integration = yield* Effect.tryPromise({
         try: async () => {
-          return await Effect.runPromise(
-            Effect.provide(integrationRepo.getIntegration(integrationId), WebhookLayer)
-          );
+          return await Effect.runPromise(Effect.provide(integrationRepo.getIntegration(integrationId), WebhookLayer));
         },
         catch: () => null,
       });

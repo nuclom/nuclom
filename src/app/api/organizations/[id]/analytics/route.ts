@@ -217,11 +217,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Get total video count
     const videoCountResult = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({ count: count() })
-          .from(videos)
-          .where(eq(videos.organizationId, organizationId)),
+      try: () => db.select({ count: count() }).from(videos).where(eq(videos.organizationId, organizationId)),
       catch: () =>
         new DatabaseError({
           message: "Failed to fetch video count",

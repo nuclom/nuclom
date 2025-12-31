@@ -66,6 +66,9 @@ describe("OrganizationRepository Types", () => {
         createOrganization: () => {
           throw new Error("Mock");
         },
+        updateOrganization: () => {
+          throw new Error("Mock");
+        },
         getUserOrganizations: () => {
           throw new Error("Mock");
         },
@@ -84,15 +87,28 @@ describe("OrganizationRepository Types", () => {
         getUserRole: () => {
           throw new Error("Mock");
         },
+        getOrganizationMembers: () => {
+          throw new Error("Mock");
+        },
+        removeMember: () => {
+          throw new Error("Mock");
+        },
+        updateMemberRole: () => {
+          throw new Error("Mock");
+        },
       };
 
       expect(mockService.createOrganization).toBeDefined();
+      expect(mockService.updateOrganization).toBeDefined();
       expect(mockService.getUserOrganizations).toBeDefined();
       expect(mockService.getActiveOrganization).toBeDefined();
       expect(mockService.getOrganization).toBeDefined();
       expect(mockService.getOrganizationBySlug).toBeDefined();
       expect(mockService.isMember).toBeDefined();
       expect(mockService.getUserRole).toBeDefined();
+      expect(mockService.getOrganizationMembers).toBeDefined();
+      expect(mockService.removeMember).toBeDefined();
+      expect(mockService.updateMemberRole).toBeDefined();
     });
   });
 });

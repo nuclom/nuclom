@@ -90,32 +90,28 @@ const consequences = [
   {
     level: "First Violation",
     action: "Warning",
-    description:
-      "Content removal and a warning notification. Your account remains in good standing.",
+    description: "Content removal and a warning notification. Your account remains in good standing.",
     color: "text-yellow-600 dark:text-yellow-400",
     bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
   },
   {
     level: "Repeat Violations",
     action: "Temporary Restriction",
-    description:
-      "Temporary limitations on your ability to upload or comment. Duration depends on severity.",
+    description: "Temporary limitations on your ability to upload or comment. Duration depends on severity.",
     color: "text-orange-600 dark:text-orange-400",
     bgColor: "bg-orange-100 dark:bg-orange-900/30",
   },
   {
     level: "Serious Violations",
     action: "Account Suspension",
-    description:
-      "Temporary or permanent account suspension for severe or repeated violations.",
+    description: "Temporary or permanent account suspension for severe or repeated violations.",
     color: "text-red-600 dark:text-red-400",
     bgColor: "bg-red-100 dark:bg-red-900/30",
   },
   {
     level: "Illegal Content",
     action: "Immediate Ban + Reporting",
-    description:
-      "Immediate permanent ban and reporting to appropriate law enforcement authorities.",
+    description: "Immediate permanent ban and reporting to appropriate law enforcement authorities.",
     color: "text-red-800 dark:text-red-300",
     bgColor: "bg-red-200 dark:bg-red-900/50",
   },
@@ -152,9 +148,7 @@ export default function ContentPolicyPage() {
               <Gavel className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Content Policy</h1>
-            <p className="text-xl text-muted-foreground">
-              Our guidelines for a safe and productive community.
-            </p>
+            <p className="text-xl text-muted-foreground">Our guidelines for a safe and productive community.</p>
           </div>
 
           <div className="space-y-8">
@@ -163,14 +157,13 @@ export default function ContentPolicyPage() {
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold mb-4">Our Commitment</h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Nuclom is committed to maintaining a safe, professional environment for video
-                  collaboration. We believe in fostering creativity and productivity while
-                  protecting our community from harmful content.
+                  Nuclom is committed to maintaining a safe, professional environment for video collaboration. We
+                  believe in fostering creativity and productivity while protecting our community from harmful content.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  This Content Policy outlines what is and isn't allowed on our platform. By using
-                  Nuclom, you agree to follow these guidelines. Violations may result in content
-                  removal, account restrictions, or termination.
+                  This Content Policy outlines what is and isn't allowed on our platform. By using Nuclom, you agree to
+                  follow these guidelines. Violations may result in content removal, account restrictions, or
+                  termination.
                 </p>
               </CardContent>
             </Card>
@@ -187,10 +180,7 @@ export default function ContentPolicyPage() {
                 </p>
                 <div className="grid gap-6">
                   {prohibitedContent.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 border"
-                    >
+                    <div key={index} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 border">
                       <div className="p-2 rounded-full bg-destructive/10">
                         <item.icon className="h-5 w-5 text-destructive" />
                       </div>
@@ -215,25 +205,23 @@ export default function ContentPolicyPage() {
                   <div>
                     <h3 className="font-semibold mb-2">User Reports</h3>
                     <p className="text-muted-foreground text-sm">
-                      Our community plays a vital role in keeping Nuclom safe. You can report any
-                      content that violates our policies using the "Report" button on videos and
-                      comments. All reports are reviewed by our moderation team.
+                      Our community plays a vital role in keeping Nuclom safe. You can report any content that violates
+                      our policies using the "Report" button on videos and comments. All reports are reviewed by our
+                      moderation team.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Proactive Detection</h3>
                     <p className="text-muted-foreground text-sm">
-                      We use automated systems to detect potentially harmful content. This includes
-                      scanning for known prohibited material and identifying patterns that may
-                      indicate policy violations.
+                      We use automated systems to detect potentially harmful content. This includes scanning for known
+                      prohibited material and identifying patterns that may indicate policy violations.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Human Review</h3>
                     <p className="text-muted-foreground text-sm">
-                      Our trained moderation team reviews reported content and automated flags to
-                      make final decisions. We consider context and intent when evaluating potential
-                      violations.
+                      Our trained moderation team reviews reported content and automated flags to make final decisions.
+                      We consider context and intent when evaluating potential violations.
                     </p>
                   </div>
                 </div>
@@ -273,8 +261,7 @@ export default function ContentPolicyPage() {
                   Appeal Process
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  If you believe a moderation decision was made in error, you have the right to
-                  appeal:
+                  If you believe a moderation decision was made in error, you have the right to appeal:
                 </p>
                 <div className="space-y-4">
                   {appealProcess.map((item, index) => (
@@ -305,21 +292,15 @@ export default function ContentPolicyPage() {
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Respect the intellectual property rights of others
-                    </span>
+                    <span className="text-muted-foreground">Respect the intellectual property rights of others</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Keep comments professional and constructive
-                    </span>
+                    <span className="text-muted-foreground">Keep comments professional and constructive</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">
-                      Report content that violates our policies
-                    </span>
+                    <span className="text-muted-foreground">Report content that violates our policies</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
@@ -336,8 +317,7 @@ export default function ContentPolicyPage() {
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold mb-4">Questions?</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  If you have questions about this Content Policy or need to report a violation,
-                  please contact us at{" "}
+                  If you have questions about this Content Policy or need to report a violation, please contact us at{" "}
                   <Link href="/support" className="text-primary hover:underline">
                     our support page
                   </Link>{" "}

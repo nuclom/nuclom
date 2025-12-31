@@ -82,8 +82,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
       // Update status to expired
       yield* Effect.tryPromise({
-        try: () =>
-          db.update(videoShareLinks).set({ status: "expired" }).where(eq(videoShareLinks.id, id)),
+        try: () => db.update(videoShareLinks).set({ status: "expired" }).where(eq(videoShareLinks.id, id)),
         catch: () =>
           new DatabaseError({
             message: "Failed to update status",

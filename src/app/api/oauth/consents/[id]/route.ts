@@ -9,10 +9,7 @@ import { oauthAccessTokens, oauthConsents } from "@/lib/db/schema";
 // DELETE /api/oauth/consents/[id] - Revoke access for an OAuth application
 // =============================================================================
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const session = await auth.api.getSession({
@@ -27,12 +24,7 @@ export async function DELETE(
     const existing = await db
       .select()
       .from(oauthConsents)
-      .where(
-        and(
-          eq(oauthConsents.id, id),
-          eq(oauthConsents.userId, session.user.id)
-        )
-      )
+      .where(and(eq(oauthConsents.id, id), eq(oauthConsents.userId, session.user.id)))
       .limit(1);
 
     if (existing.length === 0) {
@@ -45,12 +37,7 @@ export async function DELETE(
     if (consent.clientId) {
       await db
         .delete(oauthAccessTokens)
-        .where(
-          and(
-            eq(oauthAccessTokens.clientId, consent.clientId),
-            eq(oauthAccessTokens.userId, session.user.id)
-          )
-        );
+        .where(and(eq(oauthAccessTokens.clientId, consent.clientId), eq(oauthAccessTokens.userId, session.user.id)));
     }
 
     // Delete the consent
