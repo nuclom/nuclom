@@ -80,7 +80,7 @@ function ApiKeysContent() {
   const handleCreateKey = async () => {
     try {
       setCreating(true);
-      const expirationDays = parseInt(newKeyExpiration);
+      const expirationDays = parseInt(newKeyExpiration, 10);
       const expiresIn = expirationDays > 0 ? expirationDays * 24 * 60 * 60 : undefined;
 
       const { data, error } = await authClient.apiKey.create({

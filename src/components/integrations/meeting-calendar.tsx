@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   addDays,
   addMonths,
@@ -26,6 +25,7 @@ import {
   VideoOff,
 } from "lucide-react";
 import Link from "next/link";
+import type * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

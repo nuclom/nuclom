@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
@@ -30,7 +29,7 @@ function AccountContent() {
   // Email change state
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
-  const [emailPassword, setEmailPassword] = useState("");
+  const [_emailPassword, setEmailPassword] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
 
   // Export data state

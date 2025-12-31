@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
 import { parseMentions } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
-import { ReactionDisplay, groupReactions } from "./reaction-display";
+import { groupReactions, ReactionDisplay } from "./reaction-display";
 import { ReactionPicker, type ReactionType } from "./reaction-picker";
 
 interface CommentReaction {

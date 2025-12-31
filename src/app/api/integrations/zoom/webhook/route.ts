@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import process from "node:process";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";

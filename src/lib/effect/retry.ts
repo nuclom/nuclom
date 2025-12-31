@@ -8,7 +8,7 @@
  * - Error filtering (only retry on specific errors)
  */
 
-import { Effect, Schedule, Duration } from "effect";
+import { type Duration, Effect, Schedule } from "effect";
 
 // =============================================================================
 // Types

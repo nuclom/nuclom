@@ -186,6 +186,7 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
             },
           })
           .from(collections)
@@ -249,6 +250,7 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
               },
             })
             .from(collections)
@@ -317,6 +319,7 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
               },
             })
             .from(seriesVideos)

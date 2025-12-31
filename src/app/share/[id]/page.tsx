@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
-import { PasswordProtectedVideo } from "@/components/video/password-protected-video";
-import { VideoPlayer } from "@/components/video/video-player";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PasswordProtectedVideo } from "@/components/video/password-protected-video";
+import { VideoPlayer } from "@/components/video/video-player";
 
 interface ShareLinkData {
   id: string;

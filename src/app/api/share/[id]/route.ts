@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { videoShareLinks, videos } from "@/lib/db/schema";
+import { videoShareLinks } from "@/lib/db/schema";
 import { AppLive, DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
 
@@ -112,7 +112,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       videoId: shareLink.videoId,
       accessLevel: shareLink.accessLevel,
       status: shareLink.status,
-      password: shareLink.password ? true : false,
+      password: !!shareLink.password,
       expiresAt: shareLink.expiresAt,
       maxViews: shareLink.maxViews,
       viewCount: shareLink.viewCount,

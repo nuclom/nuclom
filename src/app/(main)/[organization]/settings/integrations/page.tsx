@@ -1,6 +1,6 @@
 "use client";
 
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import {
   Calendar,
   Check,
@@ -139,7 +139,7 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<"zoom" | "google_meet" | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [_showCalendar, setShowCalendar] = useState(false);
   const [showSettings, setShowSettings] = useState<"zoom" | "google_meet" | null>(null);
   const [activeTab, setActiveTab] = useState("integrations");
   const [refreshing, setRefreshing] = useState(false);

@@ -1,7 +1,8 @@
+import process from "node:process";
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
-import { passkey } from "@better-auth/passkey";
 import { eq } from "drizzle-orm";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
