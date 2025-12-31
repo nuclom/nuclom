@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, apiKey, mcp, organization } from "better-auth/plugins";
+import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
 import { eq } from "drizzle-orm";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
@@ -8,8 +9,19 @@ import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
 
+// Build trusted origins from environment
+const trustedOrigins = [env.APP_URL];
+// Add Vercel preview URL if available
+if (process.env.VERCEL_URL) {
+  trustedOrigins.push(`https://${process.env.VERCEL_URL}`);
+}
+// Add localhost for development
+if (process.env.NODE_ENV === "development") {
+  trustedOrigins.push("http://localhost:3000");
+}
+
 export const auth = betterAuth({
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
@@ -212,5 +224,23 @@ export const auth = betterAuth({
         scopes: ["openid", "profile", "email", "offline_access"],
       },
     }),
+    twoFactor({
+      issuer: "Nuclom",
+      totpOptions: {
+        digits: 6,
+        period: 30,
+      },
+      backupCodeOptions: {
+        length: 10,
+        count: 10,
+      },
+    }),
+    passkey({
+      rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
+      rpName: "Nuclom",
+      origin:
+        env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+    }),
+    openAPI(),
   ],
 });
