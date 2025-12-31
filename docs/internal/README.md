@@ -100,12 +100,13 @@ pnpm db:studio          # Open database GUI
 - **Client Components**: Interactive components with hooks
 - **Type Safety**: Full TypeScript integration
 
+
 ### Backend Patterns
 
 - **API Routes**: RESTful endpoints with proper error handling
 - **Database**: Drizzle ORM with PostgreSQL
 - **Authentication**: Session-based auth with better-auth
-- **Validation**: Zod schemas for request validation
+- **Validation**: Effect Schema for request validation
 
 ### Security Patterns
 

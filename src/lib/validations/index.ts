@@ -1,25 +1,25 @@
 /**
  * Form Validation Utilities
  *
- * Provides hooks and utilities for form validation with Zod and React Hook Form.
+ * Provides hooks and utilities for form validation with Effect Schema and React Hook Form.
  */
 
 export * from "./schemas";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { effectTsResolver } from "@hookform/resolvers/effect-ts";
+import { ParseResult, Schema } from "effect";
 import { useCallback, useState } from "react";
 import type { DefaultValues, FieldError, FieldValues, Path } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { ZodError, ZodType } from "zod";
 import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from "@/lib/api-errors";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-interface UseValidatedFormOptions<TInput extends FieldValues> {
-  schema: ZodType<TInput, any, any>;
+interface UseValidatedFormOptions<TInput extends FieldValues, I> {
+  schema: Schema.Schema<TInput, I>;
   defaultValues?: DefaultValues<TInput>;
   onSubmit: (data: TInput) => Promise<void>;
   onSuccess?: () => void;
@@ -33,12 +33,12 @@ interface UseValidatedFormOptions<TInput extends FieldValues> {
 // =============================================================================
 
 /**
- * A hook that combines React Hook Form with Zod validation and API error handling.
+ * A hook that combines React Hook Form with Effect Schema validation and API error handling.
  *
  * @example
  * ```tsx
  * const { form, handleFormSubmit, isSubmitting, submitError } = useValidatedForm({
- *   schema: loginSchema,
+ *   schema: LoginSchema,
  *   defaultValues: { email: "", password: "" },
  *   onSubmit: async (data) => {
  *     await login(data);
@@ -58,7 +58,7 @@ interface UseValidatedFormOptions<TInput extends FieldValues> {
  * );
  * ```
  */
-export function useValidatedForm<TInput extends FieldValues>({
+export function useValidatedForm<TInput extends FieldValues, I>({
   schema,
   defaultValues,
   onSubmit,
@@ -66,11 +66,13 @@ export function useValidatedForm<TInput extends FieldValues>({
   onError,
   successMessage,
   resetOnSuccess = false,
-}: UseValidatedFormOptions<TInput>) {
+}: UseValidatedFormOptions<TInput, I>) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Use type assertion to work around Effect Schema / hookform resolver type compatibility
+  // The resolver will still validate correctly at runtime
   const form = useForm<TInput>({
-    resolver: zodResolver(schema),
+    resolver: effectTsResolver(schema as unknown as Schema.Schema<TInput, FieldValues>) as never,
     defaultValues,
     mode: "onBlur",
   });
@@ -159,18 +161,23 @@ function handleSubmitError<TInput extends FieldValues>(
     return;
   }
 
-  // Handle Zod validation errors
-  if (error instanceof Error && "issues" in error) {
-    const zodError = error as ZodError;
-    for (const issue of zodError.issues) {
-      const path = issue.path.join(".") as Path<TInput>;
-      setError(path, {
-        type: "validation",
-        message: issue.message,
-      });
+  // Handle Effect Schema validation errors (ParseError)
+  if (error instanceof Error && "issue" in error) {
+    try {
+      const parseError = error as ParseResult.ParseError;
+      const issues = ParseResult.ArrayFormatter.formatErrorSync(parseError);
+      for (const issue of issues) {
+        const path = issue.path.join(".") as Path<TInput>;
+        setError(path, {
+          type: "validation",
+          message: issue.message,
+        });
+      }
+      setSubmitError("Please check the form for errors");
+      return;
+    } catch {
+      // Fall through to generic error handling
     }
-    setSubmitError("Please check the form for errors");
-    return;
   }
 
   // Handle fetch errors
@@ -224,19 +231,20 @@ export function hasFieldError(error: FieldError | undefined): boolean {
 // =============================================================================
 
 /**
- * Validate data against a schema and return typed result
+ * Validate data against an Effect Schema and return typed result
  */
-export function validateData<T>(
-  schema: ZodType<T, any, any>,
+export function validateData<A, I>(
+  schema: Schema.Schema<A, I>,
   data: unknown,
-): { success: true; data: T } | { success: false; errors: Array<{ field: string; message: string }> } {
-  const result = schema.safeParse(data);
+): { success: true; data: A } | { success: false; errors: Array<{ field: string; message: string }> } {
+  const result = Schema.decodeUnknownEither(schema)(data);
 
-  if (result.success) {
-    return { success: true, data: result.data };
+  if (result._tag === "Right") {
+    return { success: true, data: result.right };
   }
 
-  const errors = result.error.issues.map((issue) => ({
+  const issues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
+  const errors = issues.map((issue) => ({
     field: issue.path.join("."),
     message: issue.message,
   }));
@@ -245,12 +253,13 @@ export function validateData<T>(
 }
 
 /**
- * Format Zod errors into a flat object for easy display
+ * Format Effect Schema errors into a flat object for easy display
  */
-export function formatZodErrors(error: ZodError): Record<string, string> {
+export function formatSchemaErrors(error: ParseResult.ParseError): Record<string, string> {
   const errors: Record<string, string> = {};
+  const issues = ParseResult.ArrayFormatter.formatErrorSync(error);
 
-  for (const issue of error.issues) {
+  for (const issue of issues) {
     const path = issue.path.join(".");
     if (!errors[path]) {
       errors[path] = issue.message;
