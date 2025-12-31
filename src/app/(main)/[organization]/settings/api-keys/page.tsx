@@ -52,8 +52,12 @@ function ApiKeysContent() {
   const loadApiKeys = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await authClient.apiKey.listApiKeys();
-      if (data) {
+      // Use fetch directly since the client doesn't expose listApiKeys
+      const response = await fetch("/api/auth/api-key/list", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
         setApiKeys(data as ApiKey[]);
       }
     } catch (error) {

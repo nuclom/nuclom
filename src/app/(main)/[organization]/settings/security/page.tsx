@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Key, KeyRound, Laptop, Loader2, Plus, Shield, Smartphone, Trash2 } from "lucide-react";
+import { AlertTriangle, Key, Laptop, Loader2, Shield, Smartphone } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { RequireAuth } from "@/components/auth/auth-guard";
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
 
@@ -32,19 +31,10 @@ type Session = {
   createdAt: Date;
 };
 
-type Passkey = {
-  id: string;
-  name?: string | null;
-  credentialID: string;
-  createdAt?: Date | null;
-  deviceType?: string | null;
-};
-
 function SecurityContent() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [passkeys, setPasskeys] = useState<Passkey[]>([]);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null);
 
@@ -63,14 +53,9 @@ function SecurityContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Passkey state
-  const [addingPasskey, setAddingPasskey] = useState(false);
-  const [passkeyName, setPasskeyName] = useState("");
-  const [passkeyDialogOpen, setPasskeyDialogOpen] = useState(false);
-
   // Disable 2FA state
   const [disable2FAOpen, setDisable2FAOpen] = useState(false);
-  const [disable2FACode, setDisable2FACode] = useState("");
+  const [disable2FAPassword, setDisable2FAPassword] = useState("");
   const [disabling2FA, setDisabling2FA] = useState(false);
 
   const loadSecurityData = useCallback(async () => {
@@ -92,16 +77,6 @@ function SecurityContent() {
       const { data: sessionsData } = await authClient.listSessions();
       if (sessionsData) {
         setSessions(sessionsData as Session[]);
-      }
-
-      // Get passkeys
-      try {
-        const { data: passkeysData } = await authClient.passkey.listUserPasskeys();
-        if (passkeysData) {
-          setPasskeys(passkeysData as Passkey[]);
-        }
-      } catch {
-        // Passkeys might not be set up
       }
     } catch (error) {
       console.error("Error loading security data:", error);
@@ -212,19 +187,19 @@ function SecurityContent() {
     try {
       setDisabling2FA(true);
       const { error } = await authClient.twoFactor.disable({
-        code: disable2FACode,
+        password: disable2FAPassword,
       });
       if (error) {
         toast({
           title: "Error",
-          description: error.message || "Invalid verification code",
+          description: error.message || "Invalid password",
           variant: "destructive",
         });
         return;
       }
       setIs2FAEnabled(false);
       setDisable2FAOpen(false);
-      setDisable2FACode("");
+      setDisable2FAPassword("");
       toast({
         title: "2FA Disabled",
         description: "Two-factor authentication has been disabled",
@@ -283,67 +258,6 @@ function SecurityContent() {
       });
     } finally {
       setChangingPassword(false);
-    }
-  };
-
-  const handleAddPasskey = async () => {
-    try {
-      setAddingPasskey(true);
-      const { error } = await authClient.passkey.addPasskey({
-        name: passkeyName || undefined,
-      });
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to add passkey",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({
-        title: "Passkey added",
-        description: "Your passkey has been registered",
-      });
-      setPasskeyDialogOpen(false);
-      setPasskeyName("");
-      await loadSecurityData();
-    } catch (error) {
-      console.error("Error adding passkey:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add passkey. Make sure your browser supports WebAuthn.",
-        variant: "destructive",
-      });
-    } finally {
-      setAddingPasskey(false);
-    }
-  };
-
-  const handleDeletePasskey = async (passkeyId: string) => {
-    try {
-      const { error } = await authClient.passkey.deletePasskey({
-        id: passkeyId,
-      });
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to delete passkey",
-          variant: "destructive",
-        });
-        return;
-      }
-      toast({
-        title: "Passkey deleted",
-        description: "Your passkey has been removed",
-      });
-      await loadSecurityData();
-    } catch (error) {
-      console.error("Error deleting passkey:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete passkey",
-        variant: "destructive",
-      });
     }
   };
 
@@ -439,63 +353,6 @@ function SecurityContent() {
               Enable 2FA
             </Button>
           )}
-        </CardFooter>
-      </Card>
-
-      {/* Passkeys Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
-            Passkeys
-          </CardTitle>
-          <CardDescription>
-            Use biometrics or hardware security keys for passwordless login
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {passkeys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No passkeys registered. Add a passkey for faster, more secure sign-ins.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {passkeys.map((passkey) => (
-                <div
-                  key={passkey.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <KeyRound className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        {passkey.name || "Passkey"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {passkey.deviceType || "Security Key"} &bull; Added{" "}
-                        {passkey.createdAt
-                          ? new Date(passkey.createdAt).toLocaleDateString()
-                          : "recently"}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeletePasskey(passkey.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="bg-muted/50 border-t px-6 py-4">
-          <Button onClick={() => setPasskeyDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Passkey
-          </Button>
         </CardFooter>
       </Card>
 
@@ -705,19 +562,18 @@ function SecurityContent() {
           <DialogHeader>
             <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Enter a code from your authenticator app to disable 2FA
+              Enter your password to disable 2FA
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="disable2FACode">Verification Code</Label>
+              <Label htmlFor="disable2FAPassword">Password</Label>
               <Input
-                id="disable2FACode"
-                value={disable2FACode}
-                onChange={(e) => setDisable2FACode(e.target.value)}
-                placeholder="000000"
-                maxLength={6}
-                className="text-center text-2xl tracking-widest"
+                id="disable2FAPassword"
+                type="password"
+                value={disable2FAPassword}
+                onChange={(e) => setDisable2FAPassword(e.target.value)}
+                placeholder="Enter your password"
               />
             </div>
             <DialogFooter>
@@ -727,40 +583,9 @@ function SecurityContent() {
               <Button
                 variant="destructive"
                 onClick={handleDisable2FA}
-                disabled={disabling2FA || disable2FACode.length !== 6}
+                disabled={disabling2FA || !disable2FAPassword}
               >
                 {disabling2FA ? "Disabling..." : "Disable 2FA"}
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Passkey Dialog */}
-      <Dialog open={passkeyDialogOpen} onOpenChange={setPasskeyDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add a Passkey</DialogTitle>
-            <DialogDescription>
-              Register a passkey for passwordless login using biometrics or a security key
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="passkeyName">Passkey Name (optional)</Label>
-              <Input
-                id="passkeyName"
-                value={passkeyName}
-                onChange={(e) => setPasskeyName(e.target.value)}
-                placeholder="e.g., MacBook Pro, iPhone"
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setPasskeyDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddPasskey} disabled={addingPasskey}>
-                {addingPasskey ? "Registering..." : "Register Passkey"}
               </Button>
             </DialogFooter>
           </div>
