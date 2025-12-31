@@ -1,25 +1,25 @@
 import { and, count, desc, eq } from "drizzle-orm";
+import { parse, Schema } from "effect/schema";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
 import { reports, users } from "@/lib/db/schema";
 
-// Validation schema for creating a report
-const createReportSchema = z.object({
-  resourceType: z.enum(["video", "comment", "user"]),
-  resourceId: z.string().min(1),
-  category: z.enum(["inappropriate", "spam", "copyright", "harassment", "other"]),
-  description: z.string().max(2000).optional(),
+// Effect Schema for creating a report
+const CreateReportSchema = Schema.struct({
+  resourceType: Schema.enums(["video", "comment", "user"]),
+  resourceId: Schema.string,
+  category: Schema.enums(["inappropriate", "spam", "copyright", "harassment", "other"]),
+  description: Schema.optional(Schema.string),
 });
 
-// Validation schema for updating a report (admin only)
-const updateReportSchema = z.object({
-  status: z.enum(["pending", "reviewing", "resolved", "dismissed"]).optional(),
-  resolution: z.enum(["content_removed", "user_warned", "user_suspended", "no_action"]).optional(),
-  resolutionNotes: z.string().max(2000).optional(),
+// Effect Schema for updating a report (admin only)
+const UpdateReportSchema = Schema.struct({
+  status: Schema.optional(Schema.enums(["pending", "reviewing", "resolved", "dismissed"])),
+  resolution: Schema.optional(Schema.enums(["content_removed", "user_warned", "user_suspended", "no_action"])),
+  resolutionNotes: Schema.optional(Schema.string),
 });
 
 // GET /api/reports - List reports (admin only)
@@ -114,13 +114,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validationResult = createReportSchema.safeParse(body);
-
-    if (!validationResult.success) {
-      return NextResponse.json({ error: "Invalid request", details: validationResult.error.issues }, { status: 400 });
+    const result = parse(CreateReportSchema, body);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
     }
-
-    const { resourceType, resourceId, category, description } = validationResult.data;
+    const { resourceType, resourceId, category, description } = result.value;
 
     // Check for duplicate reports from the same user for the same resource
     const existingReport = await db
@@ -192,13 +190,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const validationResult = updateReportSchema.safeParse(updateData);
-
-    if (!validationResult.success) {
-      return NextResponse.json({ error: "Invalid request", details: validationResult.error.issues }, { status: 400 });
+    const result = parse(UpdateReportSchema, updateData);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
     }
-
-    const { status, resolution, resolutionNotes } = validationResult.data;
+    const { status, resolution, resolutionNotes } = result.value;
 
     // Build update object
     const updateObj: Record<string, unknown> = {};

@@ -34,7 +34,9 @@ export const VideoSummarySchema = Schema.Struct({
 
 export const ActionItemSchema = Schema.Struct({
   text: Schema.String.annotations({ description: "Description of the action item" }),
-  timestamp: Schema.optional(Schema.Number).annotations({ description: "Timestamp in seconds where this was mentioned" }),
+  timestamp: Schema.optional(Schema.Number).annotations({
+    description: "Timestamp in seconds where this was mentioned",
+  }),
   priority: Schema.Literal("high", "medium", "low").annotations({ description: "Priority level based on urgency" }),
   assignee: Schema.optional(Schema.String).annotations({ description: "Person assigned if mentioned" }),
   dueDate: Schema.optional(Schema.String).annotations({ description: "Due date if mentioned" }),

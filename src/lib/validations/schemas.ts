@@ -200,7 +200,9 @@ export type UpdateCommentInput = typeof UpdateCommentSchema.Type;
 export const UpdateProfileSchema = Schema.Struct({
   name: Schema.optional(NameSchema),
   avatarUrl: UrlSchema,
-  bio: Schema.optional(Schema.String.pipe(Schema.maxLength(500, { message: () => "Bio must be less than 500 characters" }))),
+  bio: Schema.optional(
+    Schema.String.pipe(Schema.maxLength(500, { message: () => "Bio must be less than 500 characters" })),
+  ),
 });
 
 export type UpdateProfileInput = typeof UpdateProfileSchema.Type;

@@ -5,10 +5,7 @@ import { ValidationError } from "@/lib/effect/errors";
  * Validates data against an Effect Schema and returns an Effect
  * that either succeeds with the parsed data or fails with a ValidationError.
  */
-export function validate<A, I>(
-  schema: Schema.Schema<A, I>,
-  data: unknown,
-): Effect.Effect<A, ValidationError> {
+export function validate<A, I>(schema: Schema.Schema<A, I>, data: unknown): Effect.Effect<A, ValidationError> {
   return Schema.decodeUnknown(schema)(data).pipe(
     Effect.mapError((error) => {
       const issues = ParseResult.ArrayFormatter.formatErrorSync(error);

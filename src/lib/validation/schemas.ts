@@ -37,7 +37,9 @@ export const CreateVideoSchema = Schema.Struct({
   ),
   duration: Schema.String.pipe(Schema.minLength(1, { message: () => "Duration is required" })),
   thumbnailUrl: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" }))),
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
     { nullable: true },
   ),
   videoUrl: Schema.optionalWith(
@@ -102,9 +104,7 @@ const BaseChapterSchema = Schema.Struct({
     Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }),
   ),
   summary: Schema.optionalWith(
-    Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Summary must be 500 characters or less" })),
-    ),
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Summary must be 500 characters or less" }))),
     { nullable: true },
   ),
   startTime: Schema.Number.pipe(Schema.int(), Schema.nonNegative({ message: () => "Start time must be positive" })),
@@ -130,13 +130,13 @@ export const CreateCodeSnippetSchema = Schema.Struct({
     Schema.maxLength(10000, { message: () => "Code must be 10000 characters or less" }),
   ),
   language: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.maxLength(50, { message: () => "Language must be 50 characters or less" }))),
+    Schema.NullOr(
+      Schema.String.pipe(Schema.maxLength(50, { message: () => "Language must be 50 characters or less" })),
+    ),
     { nullable: true },
   ),
   title: Schema.optionalWith(
-    Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(100, { message: () => "Title must be 100 characters or less" })),
-    ),
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }))),
     { nullable: true },
   ),
   description: Schema.optionalWith(
@@ -166,7 +166,9 @@ export const CreateSeriesSchema = Schema.Struct({
     { nullable: true },
   ),
   thumbnailUrl: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" }))),
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
     { nullable: true },
   ),
   organizationId: UuidSchema,
@@ -187,7 +189,9 @@ export const UpdateSeriesSchema = Schema.Struct({
     { nullable: true },
   ),
   thumbnailUrl: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" }))),
+    Schema.NullOr(
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+    ),
     { nullable: true },
   ),
   isPublic: Schema.optional(Schema.Boolean),
