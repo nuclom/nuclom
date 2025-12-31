@@ -67,7 +67,9 @@ export type EmailConfig = typeof EmailConfig extends Config.Config<infer A> ? A 
 export const AppConfig = Config.all({
   nodeEnv: Config.string("NODE_ENV").pipe(Config.withDefault("development")),
   vercelOidcToken: Config.string("VERCEL_OIDC_TOKEN").pipe(Config.option),
-  betterAuthUrl: Config.string("NEXT_PUBLIC_BETTER_AUTH_URL").pipe(Config.withDefault("http://localhost:3000")),
+  // Vercel automatic environment variables for URL detection
+  vercelUrl: Config.string("VERCEL_URL").pipe(Config.option),
+  vercelProjectProductionUrl: Config.string("VERCEL_PROJECT_PRODUCTION_URL").pipe(Config.option),
 });
 
 /**

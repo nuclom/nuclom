@@ -4,7 +4,24 @@ import { adminClient, apiKeyClient, organizationClient } from "better-auth/clien
 import { createAuthClient } from "better-auth/react";
 import { env } from "@/lib/env/client";
 
+// Determine baseURL from Vercel automatic environment variables or browser origin
+const getBaseURL = () => {
+  // In browser, use current origin (most reliable)
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  // In SSR, derive from Vercel automatic env vars
+  if (env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+  // Fallback to relative URLs for local development
+  return "";
+};
+
 export const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: getBaseURL(),
   plugins: [organizationClient(), adminClient(), apiKeyClient()],
 });

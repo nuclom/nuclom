@@ -8,8 +8,19 @@ import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
 
+// Build trusted origins from environment
+const trustedOrigins = [env.APP_URL];
+// Add Vercel preview URL if available
+if (process.env.VERCEL_URL) {
+  trustedOrigins.push(`https://${process.env.VERCEL_URL}`);
+}
+// Add localhost for development
+if (process.env.NODE_ENV === "development") {
+  trustedOrigins.push("http://localhost:3000");
+}
+
 export const auth = betterAuth({
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
