@@ -82,7 +82,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
         <Label htmlFor="billing-toggle" className={cn(billingPeriod === "yearly" && "text-foreground font-medium")}>
           Yearly
           <Badge variant="secondary" className="ml-2">
-            Save up to 20%
+            Save 24%
           </Badge>
         </Label>
       </div>
