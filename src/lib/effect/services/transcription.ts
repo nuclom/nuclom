@@ -3,6 +3,10 @@
  *
  * Provides type-safe transcription operations using OpenAI Whisper API.
  * Handles audio extraction and transcription with timestamp segments.
+ *
+ * Note: This service uses the direct OpenAI SDK because the Vercel AI SDK
+ * does not support audio transcription APIs (Whisper). All text generation
+ * AI features use the Vercel AI SDK with gateway routing.
  */
 
 import { Context, Effect, Layer } from "effect";

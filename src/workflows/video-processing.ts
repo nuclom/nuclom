@@ -86,6 +86,8 @@ async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
     throw new FatalError("OpenAI API key not configured");
   }
 
+  // Note: Whisper transcription requires the direct OpenAI SDK.
+  // The Vercel AI SDK does not support audio transcription APIs.
   const { default: OpenAI } = await import("openai");
   const openai = new OpenAI({ apiKey });
 
@@ -133,148 +135,171 @@ async function analyzeWithAI(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<AIAnalysisResult> {
-  const apiKey = env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new FatalError("OpenAI API key not configured");
-  }
+  const { gateway } = await import("@ai-sdk/gateway");
+  const { generateText, generateObject, jsonSchema } = await import("ai");
 
-  const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey });
+  // Use Vercel AI Gateway for all AI operations
+  const model = gateway("xai/grok-3");
 
-  // Generate summary
-  const summaryResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.",
+  // Define schemas for structured outputs
+  const tagsSchema = jsonSchema<{ tags: string[] }>({
+    type: "object",
+    properties: {
+      tags: {
+        type: "array",
+        items: { type: "string" },
+        description: "5-10 relevant tags for the video",
       },
-      {
-        role: "user",
-        content: `Please summarize this video transcript:\n\n${transcript.slice(0, 10000)}`,
-      },
-    ],
-    max_tokens: 500,
+    },
+    required: ["tags"],
   });
 
-  const summary = summaryResponse.choices[0]?.message?.content || "Summary generation failed";
-
-  // Generate tags
-  const tagsResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: "Generate 5-10 relevant tags for this video. Return only the tags as a JSON array of strings.",
+  const actionItemsSchema = jsonSchema<{
+    items: Array<{ text: string; timestamp?: number; priority?: "high" | "medium" | "low" }>;
+  }>({
+    type: "object",
+    properties: {
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "The action item description" },
+            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
+            priority: { type: "string", enum: ["high", "medium", "low"], description: "Priority level" },
+          },
+          required: ["text"],
+        },
+        description: "List of action items extracted from the transcript",
       },
-      {
-        role: "user",
-        content: `Title: ${videoTitle || "Untitled"}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
-      },
-    ],
-    max_tokens: 200,
-    response_format: { type: "json_object" },
+    },
+    required: ["items"],
   });
 
+  const chaptersSchema = jsonSchema<{
+    chapters: Array<{ title: string; summary: string; startTime: number; endTime?: number }>;
+  }>({
+    type: "object",
+    properties: {
+      chapters: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Chapter title" },
+            summary: { type: "string", description: "Brief chapter summary" },
+            startTime: { type: "number", description: "Start time in seconds" },
+            endTime: { type: "number", description: "End time in seconds" },
+          },
+          required: ["title", "summary", "startTime"],
+        },
+        description: "Video chapters based on topic changes",
+      },
+    },
+    required: ["chapters"],
+  });
+
+  const codeSnippetsSchema = jsonSchema<{
+    snippets: Array<{ language: string; code: string; title?: string; description?: string; timestamp?: number }>;
+  }>({
+    type: "object",
+    properties: {
+      snippets: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            language: { type: "string", description: "Programming language" },
+            code: { type: "string", description: "The code snippet" },
+            title: { type: "string", description: "Brief title" },
+            description: { type: "string", description: "What the code does" },
+            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
+          },
+          required: ["language", "code"],
+        },
+        description: "Code snippets detected in the transcript",
+      },
+    },
+    required: ["snippets"],
+  });
+
+  // Generate summary using Vercel AI SDK
+  const summaryResult = await generateText({
+    model,
+    system:
+      "You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.",
+    prompt: `Please summarize this video transcript:\n\n${transcript.slice(0, 10000)}`,
+  });
+
+  const summary = summaryResult.text || "Summary generation failed";
+
+  // Generate tags using structured output
   let tags: string[] = [];
   try {
-    const tagsContent = tagsResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(tagsContent);
-    tags = Array.isArray(parsed.tags) ? parsed.tags : [];
+    const tagsResult = await generateObject({
+      model,
+      schema: tagsSchema,
+      system: "Generate 5-10 relevant tags for this video based on its title and content.",
+      prompt: `Title: ${videoTitle || "Untitled"}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
+    });
+    tags = Array.isArray(tagsResult.object?.tags) ? tagsResult.object.tags : [];
   } catch {
     tags = [];
   }
 
-  // Extract action items
-  const actionItemsResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Extract action items from this transcript. Return a JSON object with an "items" array containing objects with:
-- text: the action item description
-- timestamp: approximate timestamp in seconds (if mentioned)
-- priority: "high", "medium", or "low"`,
-      },
-      {
-        role: "user",
-        content: transcript.slice(0, 8000),
-      },
-    ],
-    max_tokens: 500,
-    response_format: { type: "json_object" },
-  });
-
+  // Extract action items using structured output
   let actionItems: ActionItem[] = [];
   try {
-    const itemsContent = actionItemsResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(itemsContent);
-    actionItems = Array.isArray(parsed.items) ? parsed.items : [];
+    const actionItemsResult = await generateObject({
+      model,
+      schema: actionItemsSchema,
+      system: `Extract action items from this transcript. Include:
+- text: the action item description
+- timestamp: approximate timestamp in seconds (if mentioned)
+- priority: "high", "medium", or "low" based on urgency`,
+      prompt: transcript.slice(0, 8000),
+    });
+    actionItems = Array.isArray(actionItemsResult.object?.items) ? actionItemsResult.object.items : [];
   } catch {
     actionItems = [];
   }
 
-  // Generate chapters
-  const chaptersResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Analyze this transcript and create chapters. Return a JSON object with a "chapters" array containing objects with:
+  // Generate chapters using structured output
+  let chapters: AIAnalysisResult["chapters"] = [];
+  try {
+    const chaptersResult = await generateObject({
+      model,
+      schema: chaptersSchema,
+      system: `Analyze this transcript and create chapters. For each chapter include:
 - title: chapter title
 - summary: brief chapter summary
 - startTime: start time in seconds
 - endTime: end time in seconds (optional)`,
-      },
-      {
-        role: "user",
-        content: `Transcript with timestamps:\n${segments
-          .slice(0, 100)
-          .map((s) => `[${s.startTime}s] ${s.text}`)
-          .join("\n")}`,
-      },
-    ],
-    max_tokens: 800,
-    response_format: { type: "json_object" },
-  });
-
-  let chapters: AIAnalysisResult["chapters"] = [];
-  try {
-    const chaptersContent = chaptersResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(chaptersContent);
-    chapters = Array.isArray(parsed.chapters) ? parsed.chapters : [];
+      prompt: `Transcript with timestamps:\n${segments
+        .slice(0, 100)
+        .map((s) => `[${s.startTime}s] ${s.text}`)
+        .join("\n")}`,
+    });
+    chapters = Array.isArray(chaptersResult.object?.chapters) ? chaptersResult.object.chapters : [];
   } catch {
     chapters = [];
   }
 
-  // Detect code snippets
-  const codeResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Detect any code snippets mentioned in this transcript. Return a JSON object with a "snippets" array containing objects with:
+  // Detect code snippets using structured output
+  let codeSnippets: AIAnalysisResult["codeSnippets"] = [];
+  try {
+    const codeResult = await generateObject({
+      model,
+      schema: codeSnippetsSchema,
+      system: `Detect any code snippets, commands, or technical code mentioned in this transcript. For each snippet include:
 - language: programming language
 - code: the code snippet
 - title: brief title
 - description: what the code does
 - timestamp: approximate timestamp in seconds`,
-      },
-      {
-        role: "user",
-        content: transcript.slice(0, 8000),
-      },
-    ],
-    max_tokens: 1000,
-    response_format: { type: "json_object" },
-  });
-
-  let codeSnippets: AIAnalysisResult["codeSnippets"] = [];
-  try {
-    const codeContent = codeResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(codeContent);
-    codeSnippets = Array.isArray(parsed.snippets) ? parsed.snippets : [];
+      prompt: transcript.slice(0, 8000),
+    });
+    codeSnippets = Array.isArray(codeResult.object?.snippets) ? codeResult.object.snippets : [];
   } catch {
     codeSnippets = [];
   }
