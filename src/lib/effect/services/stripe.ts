@@ -33,7 +33,8 @@ export interface StripeService {
    * Create a checkout session for subscription
    */
   readonly createCheckoutSession: (params: {
-    customerId: string;
+    customerId?: string;
+    customerEmail?: string;
     priceId: string;
     successUrl: string;
     cancelUrl: string;
@@ -189,6 +190,7 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
       try: () =>
         client.checkout.sessions.create({
           customer: params.customerId,
+          customer_email: params.customerId ? undefined : params.customerEmail,
           mode: "subscription",
           line_items: [
             {

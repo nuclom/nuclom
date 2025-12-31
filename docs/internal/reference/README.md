@@ -23,7 +23,7 @@ Welcome to the Nuclom developer reference documentation. This guide provides com
 
 ### Frontend
 
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript
 - **UI Library**: Radix UI + shadcn/ui
 - **Styling**: Tailwind CSS

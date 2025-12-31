@@ -241,6 +241,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -341,6 +342,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
             currentTime: videoProgresses.currentTime,
             completed: videoProgresses.completed,
@@ -485,6 +487,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -595,6 +598,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)
@@ -690,6 +694,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videoProgresses)
@@ -814,6 +819,7 @@ const makeRecommendationsService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(videos)

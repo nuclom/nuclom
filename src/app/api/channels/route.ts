@@ -1,8 +1,8 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { AppLive, ValidationError } from "@/lib/effect";
+import { ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";

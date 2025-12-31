@@ -299,3 +299,31 @@ export const changePasswordSchema = ChangePasswordSchema;
 export const inviteMemberSchema = InviteMemberSchema;
 export const searchSchema = SearchSchema;
 export const contactSchema = ContactSchema;
+
+// =============================================================================
+// Helper for safe parsing (mimics Zod's safeParse for migration)
+// =============================================================================
+
+import { ArrayFormatter } from "effect/ParseResult";
+
+/**
+ * Safely parse data against an Effect Schema, returning a Zod-like result object.
+ * This provides compatibility for code migrating from Zod to Effect Schema.
+ */
+export function safeParse<A, I>(
+  schema: Schema.Schema<A, I>,
+  data: unknown,
+): { success: true; data: A } | { success: false; error: { issues: Array<{ message: string }> } } {
+  const result = Schema.decodeUnknownEither(schema)(data);
+  if (result._tag === "Right") {
+    return { success: true, data: result.right };
+  }
+  // Extract error messages from the parse error using ArrayFormatter
+  const issues = ArrayFormatter.formatErrorSync(result.left);
+  return {
+    success: false,
+    error: {
+      issues: issues.map((issue) => ({ message: issue.message })),
+    },
+  };
+}

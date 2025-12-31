@@ -114,12 +114,12 @@ const PRODUCTS: ProductConfig[] = [
     metadata: {
       plan_type: "enterprise",
       trial_days: "14",
-      features: "unlimited_storage,sso,advanced_ai,dedicated_support,custom_branding,api_access",
+      features: "unlimited_storage,sso,advanced_ai,dedicated_support,custom_branding",
     },
     prices: [
       {
         nickname: "Enterprise Monthly",
-        unit_amount: 9900, // $99.00
+        unit_amount: 4900, // $49.00
         recurring: {
           interval: "month",
           interval_count: 1,
@@ -127,12 +127,12 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: "monthly",
           refund_policy: "prorated_daily",
-          price_per_user: "99.00",
+          price_per_user: "49.00",
         },
       },
       {
         nickname: "Enterprise Yearly",
-        unit_amount: 99000, // $990.00/year = ~$82.50/month
+        unit_amount: 49200, // $492.00/year = ~$41/month
         recurring: {
           interval: "year",
           interval_count: 1,
@@ -140,8 +140,8 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: "yearly",
           refund_policy: "non_refundable",
-          price_per_user: "82.50",
-          yearly_savings: "17%",
+          price_per_user: "41.00",
+          yearly_savings: "16%",
         },
       },
     ],
@@ -363,8 +363,8 @@ async function main() {
   console.log("   • Monthly: $25/user/month (prorated daily refund)");
   console.log("   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)");
   console.log("   Enterprise Plan:");
-  console.log("   • Monthly: $99/user/month (prorated daily refund)");
-  console.log("   • Yearly:  $82.50/user/month ($990/year, 17% off, non-refundable)");
+  console.log("   • Monthly: $49/user/month (prorated daily refund)");
+  console.log("   • Yearly:  $41/user/month ($492/year, 16% off, non-refundable)");
   console.log("   Trial:   14 days (no credit card required)\n");
   console.log("=".repeat(50) + "\n");
 
@@ -439,15 +439,18 @@ async function main() {
     console.log("");
 
     console.log("=".repeat(50));
-    console.log("🔗 Webhook Endpoints to Configure\n");
-    console.log("Configure these webhooks in Stripe Dashboard:\n");
-    console.log("1. Better Auth Stripe Webhook (handles subscriptions):");
-    console.log("   URL: https://your-app.com/api/auth/stripe/webhook");
-    console.log("   Events: customer.subscription.*, checkout.session.completed");
-    console.log("");
-    console.log("2. Custom Webhook (handles invoices, payments):");
+    console.log("🔗 Webhook Endpoint to Configure\n");
+    console.log("Configure this single webhook in Stripe Dashboard:\n");
     console.log("   URL: https://your-app.com/api/webhooks/stripe");
-    console.log("   Events: invoice.*, payment_method.*, customer.subscription.trial_will_end");
+    console.log("   Events:");
+    console.log("     - customer.subscription.* (all subscription events)");
+    console.log("     - checkout.session.completed");
+    console.log("     - invoice.* (all invoice events)");
+    console.log("     - payment_method.attached");
+    console.log("     - payment_method.detached");
+    console.log("");
+    console.log("   Note: This unified endpoint handles all events and forwards");
+    console.log("   subscription events to Better Auth internally.");
     console.log("");
 
     console.log("📝 Next Steps:");

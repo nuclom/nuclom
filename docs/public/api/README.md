@@ -14,6 +14,8 @@ You can also download the OpenAPI specification:
 - [OpenAPI JSON](/api/openapi.json)
 - [OpenAPI YAML](/api/openapi.yaml)
 
+The OpenAPI specification is automatically generated from the Effect Schema definitions used for request/response validation, ensuring the documentation always stays in sync with the actual API behavior.
+
 ## Base URL
 
 ```

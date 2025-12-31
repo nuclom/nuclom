@@ -21,7 +21,7 @@ import process from "node:process";
 import { eq } from "drizzle-orm";
 import { FatalError, sleep } from "workflow";
 import { db } from "@/lib/db";
-import { members, notifications, organizations, subscriptions, users } from "@/lib/db/schema";
+import { members, notifications, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/client";
 
@@ -47,16 +47,18 @@ export interface TrialReminderResult {
 async function sendTrialReminder(subscriptionId: string, daysRemaining: number): Promise<void> {
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
-    where: eq(subscriptions.id, subscriptionId),
+    where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
   });
 
-  if (!subscription) {
+  if (!subscription || !subscription.organizationId) {
     throw new FatalError(`Subscription ${subscriptionId} not found`);
   }
 
+  const orgId = subscription.organizationId;
+
   // Get organization
   const org = await db.query.organizations.findFirst({
-    where: eq(organizations.id, subscription.organizationId),
+    where: (o, { eq: eqOp }) => eqOp(o.id, orgId),
   });
 
   if (!org) {
@@ -72,7 +74,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     })
     .from(members)
     .innerJoin(users, eq(members.userId, users.id))
-    .where(eq(members.organizationId, subscription.organizationId));
+    .where(eq(members.organizationId, orgId));
 
   const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const upgradeUrl = `${baseUrl}/${org.slug}/settings/billing`;
@@ -121,7 +123,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
       <p>Your trial for <strong>${org.name}</strong> is ending soon!</p>
       <div class="highlight">
         <p style="margin: 0;"><strong>${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining</strong></p>
-        <p style="margin: 8px 0 0 0;">Your trial will end on ${new Date(subscription.trialEnd!).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.</p>
+        <p style="margin: 8px 0 0 0;">Your trial will end on ${subscription.trialEnd ? new Date(subscription.trialEnd).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : "soon"}.</p>
       </div>
       <p>To continue using all the features you love, upgrade your plan before the trial ends.</p>
       <p style="text-align: center; margin: 24px 0;">
@@ -188,7 +190,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Verify subscription still exists and is still on trial
     const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.id, subscriptionId),
+      where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
     });
 
     if (!subscription) {

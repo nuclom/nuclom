@@ -15,22 +15,9 @@
  * - No lost processing on deploy
  */
 
-import process from "node:process";
-import { eq } from "drizzle-orm";
 import { FatalError } from "workflow";
-import { db } from "@/lib/db";
-import {
-  type ActionItem,
-  notifications,
-  type ProcessingStatus,
-  type TranscriptSegment,
-  users,
-  videoChapters,
-  videoCodeSnippets,
-  videos,
-} from "@/lib/db/schema";
-import { resend } from "@/lib/email";
-import { env } from "@/lib/env/client";
+import type { ActionItem, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -79,6 +66,10 @@ interface AIAnalysisResult {
 // =============================================================================
 
 async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos } = await import("@/lib/db/schema");
+
   await db
     .update(videos)
     .set({
@@ -90,50 +81,51 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 }
 
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new FatalError("OpenAI API key not configured");
+  const replicateToken = env.REPLICATE_API_TOKEN;
+  if (!replicateToken) {
+    throw new FatalError("Replicate API token not configured. Please set REPLICATE_API_TOKEN.");
   }
 
-  const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey });
+  // Use Replicate's Whisper model for transcription
+  // This keeps all AI services routed through managed gateways/services
+  const { default: Replicate } = await import("replicate");
+  const replicate = new Replicate({ auth: replicateToken });
 
-  // Fetch the video file
-  const response = await fetch(videoUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch video: ${response.status}`);
-  }
+  const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
 
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
+    input: {
+      audio: videoUrl,
+      model: "large-v3",
+      translate: false,
+      temperature: 0,
+      transcription: "plain text",
+      suppress_tokens: "-1",
+      logprob_threshold: -1,
+      no_speech_threshold: 0.6,
+      condition_on_previous_text: true,
+      compression_ratio_threshold: 2.4,
+    },
+  })) as {
+    transcription?: string;
+    segments?: Array<{ start: number; end: number; text: string }>;
+    detected_language?: string;
+  };
 
-  // Determine filename from URL
-  const filename = videoUrl.endsWith(".mp4") ? "video.mp4" : "video.webm";
-
-  // Create file for OpenAI
-  const file = new File([new Uint8Array(buffer)], filename, {
-    type: filename.endsWith(".mp4") ? "video/mp4" : "video/webm",
-  });
-
-  // Transcribe using Whisper
-  const transcription = await openai.audio.transcriptions.create({
-    file,
-    model: "whisper-1",
-    response_format: "verbose_json",
-    timestamp_granularities: ["segment"],
-  });
-
-  const segments: TranscriptSegment[] = (transcription.segments || []).map((seg) => ({
+  const segments: TranscriptSegment[] = (output.segments || []).map((seg) => ({
     startTime: seg.start,
     endTime: seg.end,
     text: seg.text.trim(),
-    confidence: seg.avg_logprob ? Math.exp(seg.avg_logprob) : undefined,
   }));
 
+  // Calculate duration from segments if available
+  const duration = segments.length > 0 ? Math.max(...segments.map((s) => s.endTime)) : 0;
+
   return {
-    transcript: transcription.text,
+    transcript: output.transcription || "",
     segments,
-    duration: transcription.duration || 0,
-    language: transcription.language,
+    duration,
+    language: output.detected_language,
   };
 }
 
@@ -142,148 +134,171 @@ async function analyzeWithAI(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<AIAnalysisResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new FatalError("OpenAI API key not configured");
-  }
+  const { gateway } = await import("@ai-sdk/gateway");
+  const { generateText, generateObject, jsonSchema } = await import("ai");
 
-  const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey });
+  // Use Vercel AI Gateway for all AI operations
+  const model = gateway("xai/grok-3");
 
-  // Generate summary
-  const summaryResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.",
+  // Define schemas for structured outputs
+  const tagsSchema = jsonSchema<{ tags: string[] }>({
+    type: "object",
+    properties: {
+      tags: {
+        type: "array",
+        items: { type: "string" },
+        description: "5-10 relevant tags for the video",
       },
-      {
-        role: "user",
-        content: `Please summarize this video transcript:\n\n${transcript.slice(0, 10000)}`,
-      },
-    ],
-    max_tokens: 500,
+    },
+    required: ["tags"],
   });
 
-  const summary = summaryResponse.choices[0]?.message?.content || "Summary generation failed";
-
-  // Generate tags
-  const tagsResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: "Generate 5-10 relevant tags for this video. Return only the tags as a JSON array of strings.",
+  const actionItemsSchema = jsonSchema<{
+    items: Array<{ text: string; timestamp?: number; priority?: "high" | "medium" | "low" }>;
+  }>({
+    type: "object",
+    properties: {
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            text: { type: "string", description: "The action item description" },
+            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
+            priority: { type: "string", enum: ["high", "medium", "low"], description: "Priority level" },
+          },
+          required: ["text"],
+        },
+        description: "List of action items extracted from the transcript",
       },
-      {
-        role: "user",
-        content: `Title: ${videoTitle || "Untitled"}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
-      },
-    ],
-    max_tokens: 200,
-    response_format: { type: "json_object" },
+    },
+    required: ["items"],
   });
 
+  const chaptersSchema = jsonSchema<{
+    chapters: Array<{ title: string; summary: string; startTime: number; endTime?: number }>;
+  }>({
+    type: "object",
+    properties: {
+      chapters: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Chapter title" },
+            summary: { type: "string", description: "Brief chapter summary" },
+            startTime: { type: "number", description: "Start time in seconds" },
+            endTime: { type: "number", description: "End time in seconds" },
+          },
+          required: ["title", "summary", "startTime"],
+        },
+        description: "Video chapters based on topic changes",
+      },
+    },
+    required: ["chapters"],
+  });
+
+  const codeSnippetsSchema = jsonSchema<{
+    snippets: Array<{ language: string; code: string; title?: string; description?: string; timestamp?: number }>;
+  }>({
+    type: "object",
+    properties: {
+      snippets: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            language: { type: "string", description: "Programming language" },
+            code: { type: "string", description: "The code snippet" },
+            title: { type: "string", description: "Brief title" },
+            description: { type: "string", description: "What the code does" },
+            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
+          },
+          required: ["language", "code"],
+        },
+        description: "Code snippets detected in the transcript",
+      },
+    },
+    required: ["snippets"],
+  });
+
+  // Generate summary using Vercel AI SDK
+  const summaryResult = await generateText({
+    model,
+    system:
+      "You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.",
+    prompt: `Please summarize this video transcript:\n\n${transcript.slice(0, 10000)}`,
+  });
+
+  const summary = summaryResult.text || "Summary generation failed";
+
+  // Generate tags using structured output
   let tags: string[] = [];
   try {
-    const tagsContent = tagsResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(tagsContent);
-    tags = Array.isArray(parsed.tags) ? parsed.tags : [];
+    const tagsResult = await generateObject({
+      model,
+      schema: tagsSchema,
+      system: "Generate 5-10 relevant tags for this video based on its title and content.",
+      prompt: `Title: ${videoTitle || "Untitled"}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
+    });
+    tags = Array.isArray(tagsResult.object?.tags) ? tagsResult.object.tags : [];
   } catch {
     tags = [];
   }
 
-  // Extract action items
-  const actionItemsResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Extract action items from this transcript. Return a JSON object with an "items" array containing objects with:
-- text: the action item description
-- timestamp: approximate timestamp in seconds (if mentioned)
-- priority: "high", "medium", or "low"`,
-      },
-      {
-        role: "user",
-        content: transcript.slice(0, 8000),
-      },
-    ],
-    max_tokens: 500,
-    response_format: { type: "json_object" },
-  });
-
+  // Extract action items using structured output
   let actionItems: ActionItem[] = [];
   try {
-    const itemsContent = actionItemsResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(itemsContent);
-    actionItems = Array.isArray(parsed.items) ? parsed.items : [];
+    const actionItemsResult = await generateObject({
+      model,
+      schema: actionItemsSchema,
+      system: `Extract action items from this transcript. Include:
+- text: the action item description
+- timestamp: approximate timestamp in seconds (if mentioned)
+- priority: "high", "medium", or "low" based on urgency`,
+      prompt: transcript.slice(0, 8000),
+    });
+    actionItems = Array.isArray(actionItemsResult.object?.items) ? actionItemsResult.object.items : [];
   } catch {
     actionItems = [];
   }
 
-  // Generate chapters
-  const chaptersResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Analyze this transcript and create chapters. Return a JSON object with a "chapters" array containing objects with:
+  // Generate chapters using structured output
+  let chapters: AIAnalysisResult["chapters"] = [];
+  try {
+    const chaptersResult = await generateObject({
+      model,
+      schema: chaptersSchema,
+      system: `Analyze this transcript and create chapters. For each chapter include:
 - title: chapter title
 - summary: brief chapter summary
 - startTime: start time in seconds
 - endTime: end time in seconds (optional)`,
-      },
-      {
-        role: "user",
-        content: `Transcript with timestamps:\n${segments
-          .slice(0, 100)
-          .map((s) => `[${s.startTime}s] ${s.text}`)
-          .join("\n")}`,
-      },
-    ],
-    max_tokens: 800,
-    response_format: { type: "json_object" },
-  });
-
-  let chapters: AIAnalysisResult["chapters"] = [];
-  try {
-    const chaptersContent = chaptersResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(chaptersContent);
-    chapters = Array.isArray(parsed.chapters) ? parsed.chapters : [];
+      prompt: `Transcript with timestamps:\n${segments
+        .slice(0, 100)
+        .map((s) => `[${s.startTime}s] ${s.text}`)
+        .join("\n")}`,
+    });
+    chapters = Array.isArray(chaptersResult.object?.chapters) ? chaptersResult.object.chapters : [];
   } catch {
     chapters = [];
   }
 
-  // Detect code snippets
-  const codeResponse = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `Detect any code snippets mentioned in this transcript. Return a JSON object with a "snippets" array containing objects with:
+  // Detect code snippets using structured output
+  let codeSnippets: AIAnalysisResult["codeSnippets"] = [];
+  try {
+    const codeResult = await generateObject({
+      model,
+      schema: codeSnippetsSchema,
+      system: `Detect any code snippets, commands, or technical code mentioned in this transcript. For each snippet include:
 - language: programming language
 - code: the code snippet
 - title: brief title
 - description: what the code does
 - timestamp: approximate timestamp in seconds`,
-      },
-      {
-        role: "user",
-        content: transcript.slice(0, 8000),
-      },
-    ],
-    max_tokens: 1000,
-    response_format: { type: "json_object" },
-  });
-
-  let codeSnippets: AIAnalysisResult["codeSnippets"] = [];
-  try {
-    const codeContent = codeResponse.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(codeContent);
-    codeSnippets = Array.isArray(parsed.snippets) ? parsed.snippets : [];
+      prompt: transcript.slice(0, 8000),
+    });
+    codeSnippets = Array.isArray(codeResult.object?.snippets) ? codeResult.object.snippets : [];
   } catch {
     codeSnippets = [];
   }
@@ -298,6 +313,10 @@ async function analyzeWithAI(
 }
 
 async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos } = await import("@/lib/db/schema");
+
   await db
     .update(videos)
     .set({
@@ -309,6 +328,10 @@ async function saveTranscript(videoId: string, transcript: string, segments: Tra
 }
 
 async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
+  const { eq } = await import("drizzle-orm");
+  const { db } = await import("@/lib/db");
+  const { videos, videoChapters, videoCodeSnippets } = await import("@/lib/db/schema");
+
   // Update video record
   await db
     .update(videos)
@@ -356,14 +379,19 @@ async function sendCompletionNotification(
   errorMessage?: string,
 ): Promise<void> {
   try {
+    const { db } = await import("@/lib/db");
+    const { notifications } = await import("@/lib/db/schema");
+    const { resend } = await import("@/lib/email");
+
     const video = await db.query.videos.findFirst({
-      where: eq(videos.id, videoId),
+      where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
     });
 
     if (!video || !video.authorId) return;
 
+    const authorId = video.authorId;
     const user = await db.query.users.findFirst({
-      where: eq(users.id, video.authorId),
+      where: (u, { eq: eqOp }) => eqOp(u.id, authorId),
     });
 
     if (!user?.email) return;
@@ -384,7 +412,7 @@ async function sendCompletionNotification(
     });
 
     // Send email notification
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
     await resend.emails.send({
       from: fromEmail,
       to: user.email,

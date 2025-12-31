@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { resetPasswordSchema } from "@/lib/validations/schemas";
+import { resetPasswordSchema, safeParse } from "@/lib/validations/schemas";
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState("");
@@ -56,7 +56,7 @@ export function ResetPasswordForm() {
     setError(null);
 
     // Validate using schema
-    const result = resetPasswordSchema.safeParse({ password, confirmPassword, token });
+    const result = safeParse(resetPasswordSchema, { password, confirmPassword, token });
     if (!result.success) {
       const firstError = result.error.issues[0];
       setError(firstError?.message || "Please check your input");

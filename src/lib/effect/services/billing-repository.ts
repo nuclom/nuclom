@@ -59,6 +59,7 @@ export interface UsageSummary {
 }
 
 // Default plan limits based on plan name (synced with auth.ts)
+// Note: Pro storage is 10GB per user, applied dynamically based on member count
 const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
   free: {
     storage: 1024 * 1024 * 1024, // 1GB
@@ -67,10 +68,10 @@ const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
     bandwidth: 5 * 1024 * 1024 * 1024, // 5GB/month
   },
   pro: {
-    storage: 100 * 1024 * 1024 * 1024, // 100GB
+    storage: 10 * 1024 * 1024 * 1024, // 10GB per user (base, multiplied by member count)
     videos: -1, // unlimited
     members: 25,
-    bandwidth: 100 * 1024 * 1024 * 1024, // 100GB/month
+    bandwidth: 50 * 1024 * 1024 * 1024, // 50GB/month
   },
   enterprise: {
     storage: -1, // unlimited

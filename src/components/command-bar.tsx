@@ -190,11 +190,11 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Actions">
-            <CommandItem onSelect={() => runCommand(() => console.log("New Video"))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/upload`))}>
               <Plus className="mr-2 h-4 w-4" />
               <span>New Video</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => console.log("New Notebook"))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/notebooks/new`))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>New Notebook</span>
             </CommandItem>

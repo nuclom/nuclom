@@ -1,21 +1,20 @@
 "use client";
 
+import { AlertTriangle, ArrowLeft, Home, RefreshCcw } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect } from "react";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { logClientError } from "@/lib/error-logging";
-import { AlertTriangle, ArrowLeft, Home, RefreshCcw } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
-const IS_DEV = globalThis.process?.env?.NODE_ENV === "development";
+const IS_DEV = typeof window !== "undefined" && window.location.hostname === "localhost";
 
 export default function OrganizationErrorPage({ error, reset }: ErrorPageProps) {
   const params = useParams();

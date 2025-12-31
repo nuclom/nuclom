@@ -7,7 +7,7 @@ Nuclom is a video collaboration platform built with modern web technologies, des
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        A[Next.js 15 App Router]
+        A[Next.js 16 App Router]
         B[React 19 Components]
         C[Tailwind CSS + shadcn/ui]
         D[TypeScript]
@@ -47,7 +47,7 @@ graph TB
 
 ### 1. Frontend Architecture
 
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 16 with App Router
 - **Styling**: Tailwind CSS with shadcn/ui component library
 - **State Management**: React hooks and context
 - **Type Safety**: TypeScript with strict configuration
@@ -96,7 +96,7 @@ graph TB
 
 ### Frontend
 
-- **Next.js 15**: React framework with App Router
+- **Next.js 16**: React framework with App Router
 - **React 19**: UI library with Server Components
 - **TypeScript**: Type safety and developer experience
 - **Tailwind CSS**: Utility-first CSS framework

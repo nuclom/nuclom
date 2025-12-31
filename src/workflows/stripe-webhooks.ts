@@ -17,7 +17,7 @@ import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { FatalError } from "workflow";
 import { db } from "@/lib/db";
-import { members, notifications, organizations, subscriptions, users } from "@/lib/db/schema";
+import { members, notifications, subscriptions, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/client";
 import { trialReminderWorkflow } from "./trial-reminders";
@@ -132,7 +132,7 @@ export async function handleSubscriptionCreatedWorkflow(
 
     // Step 2: Get organization details
     const org = await db.query.organizations.findFirst({
-      where: eq(organizations.id, organizationId),
+      where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
     });
 
     if (!org) {
@@ -172,7 +172,7 @@ export async function handleSubscriptionCreatedWorkflow(
     // Step 4: If this is a trial, start the reminder workflow
     if (subscription.trial_end) {
       const dbSubscription = await db.query.subscriptions.findFirst({
-        where: eq(subscriptions.stripeSubscriptionId, subscription.id),
+        where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
       });
 
       if (dbSubscription) {
@@ -239,15 +239,16 @@ export async function handleSubscriptionDeletedWorkflow(
 
     // Step 2: Get subscription and organization details
     const dbSubscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.stripeSubscriptionId, subscription.id),
+      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
     });
 
-    if (!dbSubscription) {
+    if (!dbSubscription || !dbSubscription.organizationId) {
       return { success: true, eventId };
     }
 
+    const organizationId = dbSubscription.organizationId;
     const org = await db.query.organizations.findFirst({
-      where: eq(organizations.id, dbSubscription.organizationId),
+      where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
     });
 
     if (!org) {
@@ -256,7 +257,7 @@ export async function handleSubscriptionDeletedWorkflow(
     ("use step");
 
     // Step 3: Notify organization owners
-    const owners = await getOrganizationOwners(dbSubscription.organizationId);
+    const owners = await getOrganizationOwners(organizationId);
     const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const owner of owners) {
@@ -334,15 +335,16 @@ export async function handleInvoiceFailedWorkflow(
 
     // Step 1: Get subscription and organization for notifications
     const dbSubscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.stripeSubscriptionId, subscriptionId),
+      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscriptionId),
     });
 
-    if (!dbSubscription) {
+    if (!dbSubscription || !dbSubscription.organizationId) {
       return { success: true, eventId };
     }
 
+    const invoiceOrgId = dbSubscription.organizationId;
     const org = await db.query.organizations.findFirst({
-      where: eq(organizations.id, dbSubscription.organizationId),
+      where: (o, { eq: eqOp }) => eqOp(o.id, invoiceOrgId),
     });
 
     if (!org) {
@@ -351,7 +353,7 @@ export async function handleInvoiceFailedWorkflow(
     ("use step");
 
     // Step 2: Notify organization owners
-    const owners = await getOrganizationOwners(dbSubscription.organizationId);
+    const owners = await getOrganizationOwners(invoiceOrgId);
     const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const owner of owners) {
@@ -398,22 +400,23 @@ export async function handleTrialEndingWorkflow(
   try {
     // The trial reminder workflow handles this, but we can trigger immediate notification
     const dbSubscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.stripeSubscriptionId, subscription.id),
+      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
     });
 
-    if (!dbSubscription) {
+    if (!dbSubscription || !dbSubscription.organizationId) {
       return { success: true, eventId };
     }
 
+    const trialOrgId = dbSubscription.organizationId;
     const org = await db.query.organizations.findFirst({
-      where: eq(organizations.id, dbSubscription.organizationId),
+      where: (o, { eq: eqOp }) => eqOp(o.id, trialOrgId),
     });
 
     if (!org) {
       return { success: true, eventId };
     }
 
-    const owners = await getOrganizationOwners(dbSubscription.organizationId);
+    const owners = await getOrganizationOwners(trialOrgId);
     const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
     const daysLeft = Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));

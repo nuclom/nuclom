@@ -1,4 +1,5 @@
-import process from "node:process";
+// biome-ignore-all lint/correctness/noProcessGlobal: "This is a env file"
+
 import { Schema } from "effect";
 
 export const ClientEnv = Schema.Struct({
@@ -11,12 +12,9 @@ export const ClientEnv = Schema.Struct({
 
 export type ClientEnvType = typeof ClientEnv.Type;
 
-export const env = Schema.decodeUnknownSync(ClientEnv)(
-  // biome-ignore lint/nursery/noProcessGlobal: needed for env vars
-  {
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-    NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
-  },
-);
+export const env = Schema.decodeUnknownSync(ClientEnv)({
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+  NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+});

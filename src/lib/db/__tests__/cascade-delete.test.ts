@@ -154,9 +154,8 @@ describe("Cascade Delete Tests", () => {
 
       // Create subscription
       await db.insert(subscriptions).values({
-        id: crypto.randomUUID(),
-        organizationId: testIds.orgId,
-        planId: testIds.planId,
+        plan: "pro",
+        referenceId: testIds.orgId,
         status: "active",
       });
 
@@ -225,9 +224,8 @@ describe("Cascade Delete Tests", () => {
     it("should cascade delete billing data when organization is deleted", async () => {
       // Create billing data
       await db.insert(subscriptions).values({
-        id: crypto.randomUUID(),
-        organizationId: testIds.orgId,
-        planId: testIds.planId,
+        plan: "pro",
+        referenceId: testIds.orgId,
         status: "active",
       });
 
