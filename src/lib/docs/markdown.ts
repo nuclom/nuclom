@@ -110,15 +110,7 @@ export function getAllDocsPaths(): string[][] {
 
   // Public API
   paths.push(["api"]);
-  const apiDocs = [
-    "authentication",
-    "videos",
-    "organizations",
-    "comments",
-    "notifications",
-    "ai",
-    "errors",
-  ];
+  const apiDocs = ["authentication", "videos", "organizations", "comments", "notifications", "ai", "errors"];
   for (const api of apiDocs) {
     paths.push(["api", api]);
   }

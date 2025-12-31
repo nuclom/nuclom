@@ -28,14 +28,12 @@ export function EmptyState({
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground max-w-sm mb-6">{description}</p>
-      {(actionLabel && actionHref) && (
+      {actionLabel && actionHref && (
         <Button asChild>
           <Link href={actionHref}>{actionLabel}</Link>
         </Button>
       )}
-      {(actionLabel && onAction) && (
-        <Button onClick={onAction}>{actionLabel}</Button>
-      )}
+      {actionLabel && onAction && <Button onClick={onAction}>{actionLabel}</Button>}
     </div>
   );
 }

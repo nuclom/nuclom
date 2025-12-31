@@ -322,9 +322,7 @@ Provide:
   ): Effect.Effect<ActionItemsResult, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const result = await generateObject({
           model,
@@ -423,9 +421,7 @@ For each snippet:
           };
         }
 
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const duration = totalDuration || Math.max(...segments.map((s) => s.endTime));
 

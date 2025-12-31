@@ -163,11 +163,7 @@ const makeWatchLaterService = Effect.gen(function* () {
           .innerJoin(videos, eq(watchLater.videoId, videos.id))
           .innerJoin(users, eq(videos.authorId, users.id))
           .where(
-            and(
-              eq(watchLater.userId, userId),
-              eq(videos.organizationId, organizationId),
-              isNull(videos.deletedAt),
-            ),
+            and(eq(watchLater.userId, userId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)),
           )
           .orderBy(orderByClause);
 
@@ -222,10 +218,7 @@ const makeWatchLaterService = Effect.gen(function* () {
         }),
     });
 
-  const removeFromWatchLater = (
-    userId: string,
-    videoId: string,
-  ): Effect.Effect<void, DatabaseError | NotFoundError> =>
+  const removeFromWatchLater = (userId: string, videoId: string): Effect.Effect<void, DatabaseError | NotFoundError> =>
     Effect.tryPromise({
       try: async () => {
         const result = await db
@@ -347,10 +340,7 @@ const makeWatchLaterService = Effect.gen(function* () {
   const getWatchLaterCount = (userId: string): Effect.Effect<number, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        const result = await db
-          .select({ count: watchLater.id })
-          .from(watchLater)
-          .where(eq(watchLater.userId, userId));
+        const result = await db.select({ count: watchLater.id }).from(watchLater).where(eq(watchLater.userId, userId));
 
         return result.length;
       },
