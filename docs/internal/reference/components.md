@@ -13,7 +13,21 @@ src/components/
 │   ├── card.tsx           # Card components
 │   ├── dialog.tsx         # Modal dialogs
 │   └── ...                # Other UI primitives
-├── video-card.tsx         # Custom video card
+├── onboarding/            # Multi-step onboarding flow
+│   ├── onboarding-progress.tsx  # Progress indicator
+│   ├── step-welcome.tsx        # Welcome step
+│   ├── step-personalize.tsx    # Role/team size selection
+│   ├── step-create-org.tsx     # Organization creation
+│   ├── step-integrations.tsx   # Integration setup
+│   └── step-complete.tsx       # Completion with next steps
+├── dashboard/             # Dashboard components
+│   ├── sidebar-nav.tsx    # Main sidebar navigation
+│   ├── dashboard-hero.tsx # Hero section with CTAs
+│   ├── video-section.tsx  # Video grid section
+│   └── activity-feed.tsx  # Recent activity widget
+├── video-card.tsx         # Custom video card with hover states
+├── getting-started-checklist.tsx # Onboarding checklist widget
+├── empty-states.tsx       # Empty state components
 ├── organization-switcher.tsx # Organization selector
 ├── top-nav.tsx           # Top navigation
 ├── settings-sidebar.tsx   # Settings sidebar
@@ -213,6 +227,167 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
   <AvatarImage src="/user-avatar.jpg" alt="User" />
   <AvatarFallback>UN</AvatarFallback>
 </Avatar>
+```
+
+## Onboarding Components
+
+The onboarding system provides a multi-step, guided experience for new users.
+
+### OnboardingProgress
+
+A visual progress indicator showing the current step in the onboarding flow.
+
+```typescript
+import { OnboardingProgress } from "@/components/onboarding/onboarding-progress";
+
+const steps = [
+  { id: "welcome", title: "Welcome" },
+  { id: "personalize", title: "About You" },
+  { id: "workspace", title: "Workspace" },
+  { id: "integrations", title: "Integrations" },
+  { id: "complete", title: "Complete" },
+];
+
+<OnboardingProgress steps={steps} currentStep={2} />;
+```
+
+### Step Components
+
+Each step is a self-contained component with its own logic:
+
+```typescript
+// Welcome step - introduces the platform
+<StepWelcome userName="John" onNext={() => setStep(1)} />;
+
+// Personalization step - collects role, team size, use case
+<StepPersonalize
+  onNext={(data) => {
+    console.log(data.role, data.teamSize, data.useCase);
+    setStep(2);
+  }}
+  onBack={() => setStep(0)}
+/>;
+
+// Organization creation step
+<StepCreateOrg
+  onNext={(data) => createOrg(data.name, data.slug)}
+  onBack={() => setStep(1)}
+  isLoading={creating}
+  error={error}
+/>;
+
+// Integrations step - connect Zoom, Google Meet
+<StepIntegrations
+  onNext={() => setStep(4)}
+  onBack={() => setStep(2)}
+  organizationSlug="my-org"
+/>;
+
+// Completion step - shows next actions
+<StepComplete organizationSlug="my-org" organizationName="My Organization" />;
+```
+
+### GettingStartedChecklist
+
+A dismissible checklist widget that appears on the dashboard for new users.
+
+```typescript
+import { GettingStartedChecklist } from "@/components/getting-started-checklist";
+
+<GettingStartedChecklist
+  organization="my-org"
+  hasVideos={false}
+  hasTeamMembers={false}
+  hasIntegrations={false}
+/>;
+```
+
+## Dashboard Components
+
+### SidebarNav
+
+The main navigation sidebar for the app with library sections.
+
+```typescript
+import { SidebarNav } from "@/components/dashboard/sidebar-nav";
+
+<SidebarNav organization="my-org" />;
+```
+
+**Sections:**
+- Home, Videos, Channels, Series
+- Library: My Videos, Watch Later, Watch History, Shared with Me
+- Collections (user-created)
+- Settings
+
+### DashboardHero
+
+A welcoming hero section with time-based greeting and quick actions.
+
+```typescript
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+
+<DashboardHero organization="my-org" userName="John Doe" hasVideos={true} />;
+```
+
+### VideoSection
+
+A reusable video grid section with optional view-all link.
+
+```typescript
+import { VideoSection } from "@/components/dashboard/video-section";
+
+<VideoSection
+  title="New This Week"
+  description="Latest videos from your team"
+  videos={videos}
+  organization="my-org"
+  viewAllHref="/my-org/videos"
+  emptyMessage="No videos yet"
+  showUploadCTA={true}
+/>;
+```
+
+### ActivityFeed
+
+A widget showing recent team activity.
+
+```typescript
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
+
+<ActivityFeed activities={activities} />;
+```
+
+## Empty States
+
+Pre-configured empty state components for common scenarios.
+
+```typescript
+import {
+  EmptyVideos,
+  EmptyChannels,
+  EmptySearch,
+  EmptyHistory,
+  EmptyShared,
+  EmptyWatchLater,
+} from "@/components/empty-states";
+
+// Empty videos with upload CTA
+<EmptyVideos organization="my-org" />;
+
+// Empty search results
+<EmptySearch query="search term" />;
+
+// Generic empty state
+import { EmptyState } from "@/components/empty-states";
+
+<EmptyState
+  icon={FolderIcon}
+  title="No items found"
+  description="Create your first item to get started."
+  actionLabel="Create Item"
+  actionHref="/create"
+/>;
 ```
 
 ## Custom Components

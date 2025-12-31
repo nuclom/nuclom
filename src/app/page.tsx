@@ -1,5 +1,26 @@
-import { ArrowRight, Globe, Play, Shield, Star, Users, Video, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  Bot,
+  Check,
+  Clock,
+  Cloud,
+  FileVideo,
+  Globe,
+  Lock,
+  MessageSquare,
+  Play,
+  Share2,
+  Shield,
+  Sparkles,
+  Star,
+  Upload,
+  Users,
+  Video,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
+import { MarketingFooter } from "@/components/marketing-footer";
+import { MarketingHeader } from "@/components/marketing-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,41 +28,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
-              <Play className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-              Nuclom
-            </h1>
-          </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
-              Features
-            </Link>
-            <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
-              Pricing
-            </Link>
-            <Link href="#about" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild className="shadow-lg">
-              <Link href="/signup">Get Started</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <MarketingHeader />
 
       {/* Hero Section */}
-      <section className="relative py-24 px-4 sm:px-6 lg:px-8 text-center overflow-hidden">
+      <section className="relative py-24 lg:py-32 px-4 sm:px-6 lg:px-8 text-center overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -60,26 +50,92 @@ export default function LandingPage() {
           </h2>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Streamline your video workflow with real-time collaboration, powerful editing tools, and seamless sharing
+            Streamline your video workflow with real-time collaboration, AI-powered insights, and seamless sharing
             across teams and organizations.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
             <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
-              <Link href="/signup">
+              <Link href="/register">
                 Start Free Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="px-8 py-6 text-lg">
-              <Link href="#demo">Watch Demo</Link>
+              <Link href="/docs">View Documentation</Link>
             </Button>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              <span>Enterprise Security</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-primary" />
+              <span>Lightning Fast</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              <span>Global CDN</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-2">
+              How It Works
+            </Badge>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Get Started in Minutes</h3>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              From upload to collaboration, Nuclom makes video teamwork effortless
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="relative text-center">
+              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
+                1
+              </div>
+              <h4 className="text-xl font-semibold mb-3">Upload Your Videos</h4>
+              <p className="text-muted-foreground">
+                Drag and drop videos or import from your favorite cloud storage. We handle all the processing.
+              </p>
+              <Upload className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+            </div>
+
+            <div className="relative text-center">
+              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
+                2
+              </div>
+              <h4 className="text-xl font-semibold mb-3">Invite Your Team</h4>
+              <p className="text-muted-foreground">
+                Create organizations and invite team members. Control access with granular permissions.
+              </p>
+              <Users className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+            </div>
+
+            <div className="relative text-center">
+              <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
+                3
+              </div>
+              <h4 className="text-xl font-semibold mb-3">Collaborate Together</h4>
+              <p className="text-muted-foreground">
+                Add time-stamped comments, share feedback, and track progress—all in one place.
+              </p>
+              <MessageSquare className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
@@ -90,6 +146,7 @@ export default function LandingPage() {
               Powerful features to transform your video collaboration workflow
             </p>
           </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
@@ -98,10 +155,11 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Smart Video Management</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Organize your videos with channels, series, and intelligent categorization
+                  Organize videos with channels, series, and intelligent categorization. Find any video instantly.
                 </CardDescription>
               </CardHeader>
             </Card>
+
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
@@ -109,10 +167,23 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Team Collaboration</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Work together in real-time with comments, annotations, and shared organizations
+                  Work together in real-time with time-stamped comments, annotations, and shared organizations.
                 </CardDescription>
               </CardHeader>
             </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Bot className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">AI-Powered Insights</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Automatic transcriptions, video summaries, action item extraction, and smart search.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
@@ -120,10 +191,23 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Enterprise Security</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Advanced permissions, secure sharing, and compliance-ready infrastructure
+                  Advanced permissions, secure sharing, SSO integration, and compliance-ready infrastructure.
                 </CardDescription>
               </CardHeader>
             </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Share2 className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Seamless Integrations</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Connect with Zoom, Google Drive, and more. Import recordings and sync your workflow.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
@@ -131,31 +215,129 @@ export default function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Lightning Fast</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Optimized performance with instant previews and seamless streaming
+                  Optimized performance with global CDN, instant previews, and seamless streaming worldwide.
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Globe className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+      </section>
+
+      {/* AI Features Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <Badge variant="outline" className="px-4 py-2">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI-Powered
+              </Badge>
+              <h3 className="text-4xl md:text-5xl font-bold">Let AI Do the Heavy Lifting</h3>
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                Our AI understands your videos, generates accurate transcripts, summarizes key points, and extracts
+                action items—saving your team hours of manual work.
+              </p>
+
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="font-medium">Automatic Transcription</span>
+                    <p className="text-sm text-muted-foreground">Accurate speech-to-text in multiple languages</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="font-medium">Smart Summaries</span>
+                    <p className="text-sm text-muted-foreground">Get the key points without watching the full video</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="font-medium">Action Item Extraction</span>
+                    <p className="text-sm text-muted-foreground">Never miss a task or follow-up mentioned in videos</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <span className="font-medium">Semantic Search</span>
+                    <p className="text-sm text-muted-foreground">Find any moment by searching what was said</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="relative">
+              <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shadow-2xl">
+                <div className="text-center">
+                  <Bot className="w-20 h-20 text-primary mx-auto mb-4" />
+                  <p className="text-lg font-medium text-primary">AI Analysis in Action</p>
                 </div>
-                <CardTitle className="text-xl mb-3">Global Access</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Access your content anywhere with our global CDN and offline sync
-                </CardDescription>
-              </CardHeader>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-2">
+              Integrations
+            </Badge>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Works With Your Tools</h3>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Connect Nuclom with the tools you already use for a seamless workflow
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <Video className="w-8 h-8" />
+                </div>
+                <span className="font-medium">Zoom</span>
+              </CardContent>
             </Card>
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Play className="w-8 h-8 text-primary" />
+
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <Cloud className="w-8 h-8" />
                 </div>
-                <CardTitle className="text-xl mb-3">Advanced Playback</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Professional-grade video player with custom controls and analytics
-                </CardDescription>
-              </CardHeader>
+                <span className="font-medium">Google Drive</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <FileVideo className="w-8 h-8" />
+                </div>
+                <span className="font-medium">Dropbox</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <span className="font-medium">SSO/SAML</span>
+              </CardContent>
             </Card>
           </div>
         </div>
@@ -173,6 +355,7 @@ export default function LandingPage() {
               Choose the plan that fits your team's needs. Start free and scale as you grow.
             </p>
           </div>
+
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Starter Plan */}
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -182,34 +365,26 @@ export default function LandingPage() {
                 <CardDescription className="text-base">Perfect for small teams getting started</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Up to 5 team members</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>10 GB storage</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Basic collaboration tools</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Email support</span>
-                  </div>
-                </div>
-                <Button className="w-full mt-8" asChild>
-                  <Link href="/signup">Get Started Free</Link>
+                  </li>
+                </ul>
+                <Button className="w-full mt-8" variant="outline" asChild>
+                  <Link href="/register">Get Started Free</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -228,40 +403,30 @@ export default function LandingPage() {
                 <CardDescription className="text-base">For growing teams that need more power</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Up to 25 team members</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>100 GB storage</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Advanced collaboration</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>AI-powered features</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Priority support</span>
-                  </div>
-                </div>
+                  </li>
+                </ul>
                 <Button className="w-full mt-8" asChild>
-                  <Link href="/signup">Start Free Trial</Link>
+                  <Link href="/register">Start Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -274,38 +439,28 @@ export default function LandingPage() {
                 <CardDescription className="text-base">For large organizations with custom needs</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Unlimited team members</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Unlimited storage</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Custom integrations</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>Dedicated support</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>SLA guarantee</span>
-                  </div>
-                </div>
+                  </li>
+                </ul>
                 <Button variant="outline" className="w-full mt-8" asChild>
                   <Link href="/contact">Contact Sales</Link>
                 </Button>
@@ -342,33 +497,40 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="relative">
-              <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center">
+              <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shadow-xl">
                 <Play className="w-16 h-16 text-primary" />
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Users className="w-10 h-10 text-primary" />
               </div>
-              <h5 className="text-xl font-bold mb-3">10,000+ Teams</h5>
-              <p className="text-muted-foreground">Trusted by teams worldwide to collaborate on their video content</p>
+              <h5 className="text-3xl font-bold mb-2">10,000+</h5>
+              <p className="text-muted-foreground">Teams Worldwide</p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Video className="w-10 h-10 text-primary" />
               </div>
-              <h5 className="text-xl font-bold mb-3">1M+ Videos</h5>
-              <p className="text-muted-foreground">Millions of videos organized and shared through our platform</p>
+              <h5 className="text-3xl font-bold mb-2">1M+</h5>
+              <p className="text-muted-foreground">Videos Processed</p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Globe className="w-10 h-10 text-primary" />
               </div>
-              <h5 className="text-xl font-bold mb-3">50+ Countries</h5>
-              <p className="text-muted-foreground">Supporting teams across the globe with reliable infrastructure</p>
+              <h5 className="text-3xl font-bold mb-2">50+</h5>
+              <p className="text-muted-foreground">Countries Served</p>
+            </div>
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Clock className="w-10 h-10 text-primary" />
+              </div>
+              <h5 className="text-3xl font-bold mb-2">99.9%</h5>
+              <p className="text-muted-foreground">Uptime SLA</p>
             </div>
           </div>
         </div>
@@ -387,7 +549,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
-              <Link href="/signup">
+              <Link href="/register">
                 Get Started Free
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
@@ -399,33 +561,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t mt-auto bg-muted/20">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-6 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg">
-                <Play className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">Nuclom</span>
-            </div>
-            <div className="flex items-center space-x-8 text-sm text-muted-foreground">
-              <Link href="/privacy" className="hover:text-foreground transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="hover:text-foreground transition-colors">
-                Terms of Service
-              </Link>
-              <Link href="/support" className="hover:text-foreground transition-colors">
-                Support
-              </Link>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            © 2025 Nuclom. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

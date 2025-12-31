@@ -391,3 +391,116 @@ export {
   Zoom,
   ZoomLive,
 } from "./zoom";
+
+// AI Structured Service (with Zod schemas)
+export type {
+  VideoSummary as StructuredVideoSummary,
+  ActionItemsResult,
+  ChaptersResult,
+  CodeSnippetsResult,
+  VideoTagsResult,
+  AIStructuredServiceInterface,
+} from "./ai-structured";
+export {
+  AIStructured,
+  AIStructuredLive,
+  generateStructuredVideoSummary,
+  generateStructuredVideoTags,
+  extractStructuredActionItems,
+  detectStructuredCodeSnippets,
+  generateStructuredChapters,
+  VideoSummarySchema,
+  ActionItemsSchema,
+  ChaptersSchema,
+  CodeSnippetsSchema,
+  VideoTagsSchema,
+} from "./ai-structured";
+
+// Recommendations Service
+export type {
+  RecommendationOptions,
+  ContinueWatchingItem,
+  TrendingVideo,
+  RecommendationsServiceInterface,
+} from "./recommendations";
+export {
+  Recommendations,
+  RecommendationsLive,
+  getRecommendations,
+  getContinueWatching,
+  getTrending,
+  getSimilarVideos,
+} from "./recommendations";
+
+// Presence Service
+export type {
+  PresenceUpdate,
+  UserPresenceInfo,
+  PresenceServiceInterface,
+} from "./presence";
+export {
+  Presence,
+  PresenceLive,
+  updatePresence,
+  getVideoPresence,
+  getOrganizationPresence,
+} from "./presence";
+
+// Performance Monitoring Service
+export type {
+  MetricType,
+  RecordMetricInput,
+  MetricsSummary,
+  MetricsTimeSeries,
+  PerformanceReport,
+  PerformanceMonitoringServiceInterface,
+} from "./performance-monitoring";
+export {
+  PerformanceMonitoring,
+  PerformanceMonitoringLive,
+  recordMetric,
+  getPerformanceReport,
+} from "./performance-monitoring";
+
+// Watch Later Service
+export type {
+  WatchLaterItem,
+  AddToWatchLaterInput,
+  UpdateWatchLaterInput,
+  WatchLaterServiceInterface,
+} from "./watch-later";
+export {
+  WatchLaterService,
+  WatchLaterServiceLive,
+  getWatchLaterList,
+  addToWatchLater,
+  removeFromWatchLater,
+  isInWatchLater,
+} from "./watch-later";
+
+// Comment Reactions Service
+export type {
+  ReactionCount,
+  ReactionUser,
+  CommentWithReactions,
+  CommentReactionsServiceInterface,
+} from "./comment-reactions";
+export {
+  CommentReactionsService,
+  CommentReactionsServiceLive,
+  toggleReaction,
+  getReactionCounts,
+  getReactionsForComments,
+} from "./comment-reactions";
+
+// Channel Repository
+export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from "./channel-repository";
+export {
+  ChannelRepository,
+  ChannelRepositoryLive,
+  createChannel,
+  getChannel,
+  getChannels,
+  updateChannel,
+  deleteChannel,
+} from "./channel-repository";
