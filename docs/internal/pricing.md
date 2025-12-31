@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simple, transparent pricing for our video collaboration platform.
+Simple, transparent two-tier pricing for our video collaboration platform.
 
 - **No free tier**
 - **14-day free trial** (no credit card required)
@@ -10,7 +10,9 @@ Simple, transparent pricing for our video collaboration platform.
 
 ---
 
-## Pricing
+## Pricing Tiers
+
+### Pro Plan
 
 | Billing | Price | Savings |
 |---------|-------|---------|
@@ -19,23 +21,66 @@ Simple, transparent pricing for our video collaboration platform.
 
 Annual billing: $228/user/year (vs $300 monthly)
 
+### Enterprise Plan
+
+| Billing | Price | Savings |
+|---------|-------|---------|
+| **Monthly** | $99/user/month | - |
+| **Annual** | $82.50/user/month | 17% off |
+
+Annual billing: $990/user/year (vs $1,188 monthly)
+
 ---
 
-## What's Included (All Users)
+## Plan Comparison
 
-### Storage & Uploads
-- 20 GB storage per user
-- Unlimited video uploads
-- Up to 500MB per video
-- Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV
+### Limits
+
+| Feature | Pro | Enterprise |
+|---------|-----|------------|
+| Storage | 100 GB | **Unlimited** |
+| Video uploads | Unlimited | Unlimited |
+| Max file size | 500 MB | 2 GB |
+| Team members | Up to 25 | **Unlimited** |
+| Monthly bandwidth | 100 GB | **Unlimited** |
+
+### Features
+
+| Feature | Pro | Enterprise |
+|---------|-----|------------|
+| AI transcription | 120 min/user/mo | **Unlimited** |
+| AI summaries | Yes | Yes |
+| Chapter detection | Yes | Yes |
+| Action item extraction | Yes | Yes |
+| Code snippet detection | Yes | Yes |
+| Semantic search | Yes | Yes |
+| 10 subtitle languages | Yes | Yes |
+| Time-stamped comments | Yes | Yes |
+| @mentions & notifications | Yes | Yes |
+| Threaded discussions | Yes | Yes |
+| Zoom & Google Meet import | Yes | Yes |
+| Slack integration | Yes | Yes |
+| **Custom branding** | No | **Yes** |
+| **SSO / SAML** | No | **Yes** |
+| **API access** | No | **Yes** |
+| **Webhooks** | No | **Yes** |
+| **Audit logs** | No | **Yes** |
+| **Priority support** | No | **Yes** |
+| **Dedicated account manager** | No | **Yes** |
+| **SLA guarantee** | 99.5% | **99.9%** |
+
+---
+
+## What's Included (All Plans)
 
 ### AI Features
-- Automatic transcription (120 min/user/month)
+- Automatic transcription
 - AI-generated summaries
 - Chapter/key moment detection
 - Action item extraction
 - Code snippet detection
 - Smart tagging
+- Semantic search
 
 ### Subtitles & Translation
 - 10 subtitle languages included
@@ -52,9 +97,15 @@ Annual billing: $228/user/year (vs $300 monthly)
 - Google Meet recording import
 - Slack notifications
 
-### Support
+### Support (Pro)
 - Email support
 - Help documentation
+
+### Support (Enterprise)
+- Priority email & chat support
+- Dedicated account manager
+- Custom onboarding
+- 99.9% uptime SLA
 
 ---
 
@@ -90,6 +141,8 @@ Annual billing: $228/user/year (vs $300 monthly)
 
 ### Margin Analysis
 
+#### Pro Plan
+
 | Billing | Price | Cost | Margin |
 |---------|-------|------|--------|
 | Monthly ($25) | $25.00 | $15.52 | **37.9%** |
@@ -97,7 +150,18 @@ Annual billing: $228/user/year (vs $300 monthly)
 
 **Blended margin** (assuming 60% annual / 40% monthly): **26.7%**
 
-*Note: Margins are lower than typical SaaS but competitive pricing prioritizes market share.*
+#### Enterprise Plan
+
+| Billing | Price | Estimated Cost | Margin |
+|---------|-------|----------------|--------|
+| Monthly ($99) | $99.00 | $25.00 | **74.7%** |
+| Annual ($82.50) | $82.50 | $25.00 | **69.7%** |
+
+*Enterprise costs include priority support overhead and additional storage/bandwidth costs.*
+
+**Blended margin** (assuming 70% annual / 30% monthly): **71.2%**
+
+*Note: Pro margins are lower than typical SaaS to prioritize market share. Enterprise margins are healthy and fund premium support.*
 
 ---
 
@@ -207,6 +271,30 @@ STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts --force
 |---------|-------------------|--------|----------|---------------|
 | Nuclom Pro | Pro Monthly | $25.00 | month | Prorated daily |
 | Nuclom Pro | Pro Yearly | $228.00 | year | Non-refundable |
+| Nuclom Enterprise | Enterprise Monthly | $99.00 | month | Prorated daily |
+| Nuclom Enterprise | Enterprise Yearly | $990.00 | year | Non-refundable |
+
+---
+
+## Enterprise-Only Features
+
+These features are exclusive to the Enterprise plan and represent key differentiators:
+
+### Security & Compliance
+- **SSO / SAML authentication**: Integrate with identity providers (Okta, Azure AD, Google Workspace)
+- **Audit logs**: Track all user actions for compliance and security
+- **Data retention controls**: Configure automatic deletion policies
+
+### Customization
+- **Custom branding**: Add your logo, colors, and custom domain
+- **API access**: Build custom integrations with REST API
+- **Webhooks**: Receive real-time notifications for events
+
+### Support
+- **Priority support**: Faster response times (4-hour SLA)
+- **Dedicated account manager**: Named contact for your organization
+- **Custom onboarding**: Personalized setup and training
+- **99.9% uptime SLA**: Guaranteed availability with credits
 
 ---
 

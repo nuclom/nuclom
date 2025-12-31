@@ -352,30 +352,44 @@ export default function LandingPage() {
             </Badge>
             <h3 className="text-4xl md:text-5xl font-bold mb-6">Simple, Transparent Pricing</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              One powerful plan for teams of any size. Start with a 14-day free trial.
+              Choose the plan that fits your team. Start with a 14-day free trial.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Monthly Plan */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Pro Plan */}
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl mb-2">Monthly</CardTitle>
-                <div className="text-4xl font-bold mb-2">
-                  $25
+              <CardHeader className="text-center pb-6">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl mb-2">Pro</CardTitle>
+                <CardDescription className="text-base">For growing teams</CardDescription>
+                <div className="text-4xl font-bold mt-4">
+                  $19
                   <span className="text-base font-normal text-muted-foreground">/user/month</span>
                 </div>
-                <CardDescription className="text-base">Flexible month-to-month billing</CardDescription>
+                <p className="text-sm text-muted-foreground">billed annually ($25/mo if monthly)</p>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
+                <div className="grid grid-cols-2 gap-2 p-3 bg-muted/50 rounded-lg text-sm">
+                  <div className="text-center">
+                    <div className="font-semibold">100 GB</div>
+                    <div className="text-muted-foreground text-xs">Storage</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold">25</div>
+                    <div className="text-muted-foreground text-xs">Team members</div>
+                  </div>
+                </div>
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>20 GB storage per user</span>
+                    <span>AI transcription &amp; summaries</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>AI transcription &amp; summaries</span>
+                    <span>Action item extraction</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
@@ -387,64 +401,78 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Prorated refund if canceled</span>
+                    <span>Email support</span>
                   </li>
                 </ul>
-                <Button className="w-full mt-8" variant="outline" asChild>
-                  <Link href="/register">Start 14-Day Free Trial</Link>
+                <Button className="w-full mt-6" variant="outline" asChild>
+                  <Link href="/register">Start Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Yearly Plan */}
+            {/* Enterprise Plan */}
             <Card className="relative border-2 border-primary shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="px-4 py-1 bg-primary text-primary-foreground">Save 24%</Badge>
+                <Badge className="px-4 py-1 bg-primary text-primary-foreground">Most Popular</Badge>
               </div>
-              <CardHeader className="text-center pb-8 pt-8">
-                <CardTitle className="text-2xl mb-2">Yearly</CardTitle>
-                <div className="text-4xl font-bold mb-2">
-                  $19
+              <CardHeader className="text-center pb-6 pt-8">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+                <CardDescription className="text-base">For organizations at scale</CardDescription>
+                <div className="text-4xl font-bold mt-4">
+                  $82
                   <span className="text-base font-normal text-muted-foreground">/user/month</span>
                 </div>
-                <CardDescription className="text-base">$228/user billed annually</CardDescription>
+                <p className="text-sm text-muted-foreground">billed annually ($99/mo if monthly)</p>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
+                <div className="grid grid-cols-2 gap-2 p-3 bg-primary/10 rounded-lg text-sm">
+                  <div className="text-center">
+                    <div className="font-semibold text-primary">Unlimited</div>
+                    <div className="text-muted-foreground text-xs">Storage</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-primary">Unlimited</div>
+                    <div className="text-muted-foreground text-xs">Team members</div>
+                  </div>
+                </div>
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>20 GB storage per user</span>
+                    <span className="font-medium">Everything in Pro, plus:</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>AI transcription &amp; summaries</span>
+                    <span>SSO / SAML authentication</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>10 subtitle languages</span>
+                    <span>Custom branding</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Zoom &amp; Google Meet import</span>
+                    <span>API access &amp; webhooks</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Priority support included</span>
+                    <span>Priority support &amp; SLA</span>
                   </li>
                 </ul>
-                <Button className="w-full mt-8" asChild>
-                  <Link href="/register">Start 14-Day Free Trial</Link>
+                <Button className="w-full mt-6" asChild>
+                  <Link href="/register?plan=enterprise">Start Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Enterprise CTA */}
+          {/* View Full Comparison */}
           <div className="mt-12 text-center">
-            <p className="text-muted-foreground mb-4">Need custom integrations, SSO, or dedicated support?</p>
-            <Button variant="outline" asChild>
-              <Link href="/contact">Contact Sales for Enterprise</Link>
-            </Button>
+            <Link href="/pricing" className="text-primary hover:underline font-medium inline-flex items-center gap-2">
+              View detailed plan comparison
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
