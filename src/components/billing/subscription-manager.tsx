@@ -1,18 +1,10 @@
 "use client";
 
+import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Settings, Sparkles, X } from "lucide-react";
-import {
-  authClient,
-  cancelSubscription,
-  listSubscriptions,
-  openBillingPortal,
-  restoreSubscription,
-  upgradeSubscription,
-  type SubscriptionPlan,
-} from "@/lib/auth-client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -24,7 +16,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import {
+  cancelSubscription,
+  listSubscriptions,
+  openBillingPortal,
+  restoreSubscription,
+  type SubscriptionPlan,
+  upgradeSubscription,
+} from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 // Types for subscription data from Better Auth Stripe
@@ -298,8 +297,7 @@ export function SubscriptionManager({
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-yellow-600" />
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      Your subscription is scheduled to cancel on{" "}
-                      {activeSubscription.periodEnd?.toLocaleDateString()}.
+                      Your subscription is scheduled to cancel on {activeSubscription.periodEnd?.toLocaleDateString()}.
                       <Button variant="link" className="h-auto p-0 pl-1" onClick={handleRestore} disabled={isPending}>
                         {isPending ? "Restoring..." : "Restore subscription"}
                       </Button>
@@ -391,13 +389,7 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
       displayName: "Pro",
       monthlyPrice: 25,
       yearlyPrice: 228,
-      features: [
-        "100GB storage",
-        "Unlimited videos",
-        "25 team members",
-        "AI-powered insights",
-        "Priority support",
-      ],
+      features: ["100GB storage", "Unlimited videos", "25 team members", "AI-powered insights", "Priority support"],
     },
     {
       name: "enterprise" as const,
@@ -467,7 +459,9 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
                   </span>
                   <span className="text-muted-foreground">/month</span>
                   {billingPeriod === "yearly" && (
-                    <span className="block text-sm text-muted-foreground">Billed annually (${plan.yearlyPrice}/year)</span>
+                    <span className="block text-sm text-muted-foreground">
+                      Billed annually (${plan.yearlyPrice}/year)
+                    </span>
                   )}
                 </CardDescription>
               </CardHeader>
@@ -493,9 +487,7 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
                       Processing...
                     </>
                   ) : (
-                    <>
-                      Upgrade to {plan.displayName}
-                    </>
+                    <>Upgrade to {plan.displayName}</>
                   )}
                 </Button>
               </CardFooter>
@@ -504,9 +496,7 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
         </div>
 
         <DialogFooter>
-          <p className="text-xs text-muted-foreground">
-            14-day free trial. No credit card required. Cancel anytime.
-          </p>
+          <p className="text-xs text-muted-foreground">14-day free trial. No credit card required. Cancel anytime.</p>
         </DialogFooter>
       </DialogContent>
     </Dialog>

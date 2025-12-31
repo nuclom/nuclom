@@ -173,9 +173,7 @@ export function SubscriptionCard({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Plan</p>
             <p className="text-2xl font-bold capitalize">{displayName}</p>
-            {monthlyPrice > 0 && (
-              <p className="text-lg text-muted-foreground">{formatPrice(monthlyPrice)}/month</p>
-            )}
+            {monthlyPrice > 0 && <p className="text-lg text-muted-foreground">{formatPrice(monthlyPrice)}/month</p>}
           </div>
 
           <div>

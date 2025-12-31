@@ -1,4 +1,5 @@
 import { and, desc, eq, gte } from "drizzle-orm";
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -12,7 +13,6 @@ import {
   videoProgresses,
   videos,
 } from "@/lib/db/schema";
-import { headers } from "next/headers";
 
 // Rate limit: 1 export per 24 hours
 const EXPORT_RATE_LIMIT_HOURS = 24;

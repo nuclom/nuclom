@@ -1,13 +1,13 @@
 "use client";
 
-import { Check, Copy, Eye, EyeOff, ExternalLink, Globe, Loader2, Plus, Settings2, Trash2 } from "lucide-react";
+import { Check, Copy, ExternalLink, Eye, EyeOff, Globe, Loader2, Plus, Settings2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/auth/auth-guard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
 
 type OAuthApp = {
   id: string;

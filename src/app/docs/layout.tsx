@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import type React from "react";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/next";
+import type { Metadata } from "next";
+import type React from "react";
 import "fumadocs-ui/style.css";
 
 export const metadata: Metadata = {

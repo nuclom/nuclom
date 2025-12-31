@@ -80,9 +80,9 @@
     "drizzle-orm": "0.45.1",
     "effect": "3.19.13",
     "embla-carousel-react": "^8.6.0",
-    "fumadocs-core": "^16.4.1",
-    "fumadocs-mdx": "^14.2.3",
-    "fumadocs-ui": "^16.4.1",
+    "fumadocs-core": "^16.4.2",
+    "fumadocs-mdx": "^14.2.4",
+    "fumadocs-ui": "^16.4.2",
     "input-otp": "^1.4.2",
     "lucide-react": "0.562.0",
     "multer": "2.0.2",
@@ -96,7 +96,7 @@
     "react-hook-form": "^7.69.0",
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.0.18",
-    "react-resizable-panels": "^4.1.0",
+    "react-resizable-panels": "^4.1.1",
     "recharts": "^3.6.0",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
@@ -127,15 +127,18 @@
     "@vitejs/plugin-react": "^5.1.2",
     "drizzle-kit": "0.31.8",
     "jsdom": "^27.4.0",
+    "lefthook": "^1.11.5",
     "postcss": "~8.5.6",
     "tailwindcss": "4.1.18",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.16",
-    "lefthook": "^1.11.5"
+    "vitest": "^4.0.16"
   },
   "pnpm": {
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "lefthook"
+    ]
   }
 }

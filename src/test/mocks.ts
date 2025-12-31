@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { User, Video, Organization } from "@/lib/db/schema";
+import type { Organization, User, Video } from "@/lib/db/schema";
 import type { VideoWithAuthor } from "@/lib/types";
 
 /**

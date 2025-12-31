@@ -564,8 +564,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       const currentUsage = yield* makeBillingRepository(db).getCurrentUsage(organizationId);
 
       // Get limits from local plan or from plan name-based defaults
-      const limits =
-        subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
+      const limits = subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
 
       return {
         storageUsed: currentUsage.storageUsed,

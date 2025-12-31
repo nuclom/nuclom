@@ -13,9 +13,9 @@ import { auth } from "@/lib/auth";
 import { AppLive, MissingFieldError } from "@/lib/effect";
 import { mapErrorToResponse } from "@/lib/effect/runtime";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
 
 // =============================================================================
 // POST /api/billing/checkout - Create checkout session (legacy)
@@ -89,8 +89,7 @@ export async function POST(request: NextRequest) {
     const billingRepo = yield* BillingRepository;
     const plan = yield* billingRepo.getPlan(planId);
 
-    const stripePriceId =
-      billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
+    const stripePriceId = billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
 
     if (!stripePriceId) {
       return yield* Effect.fail(

@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3, Loader2 } from "lucide-react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import { AnalyticsOverview } from "@/components/analytics/analytics-overview";
 import { TopVideosTable } from "@/components/analytics/top-videos-table";

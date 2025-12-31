@@ -1,10 +1,11 @@
+import process from "node:process";
+import { passkey } from "@better-auth/passkey";
+import { stripe } from "@better-auth/stripe";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
-import { stripe } from "@better-auth/stripe";
-import { passkey } from "@better-auth/passkey";
-import Stripe from "stripe";
 import { eq } from "drizzle-orm";
+import Stripe from "stripe";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
 import { db } from "./db";
@@ -13,7 +14,7 @@ import { resend } from "./email";
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-02-24.acacia",
+  apiVersion: "2025-12-15.clover",
   typescript: true,
 });
 
@@ -297,11 +298,7 @@ export const auth = betterAuth({
           // Check if user is owner of the organization
           const membership = await db.query.members.findFirst({
             where: (m, { and, eq: colEq }) =>
-              and(
-                colEq(m.userId, user.id),
-                colEq(m.organizationId, referenceId),
-                colEq(m.role, "owner"),
-              ),
+              and(colEq(m.userId, user.id), colEq(m.organizationId, referenceId), colEq(m.role, "owner")),
           });
           return !!membership;
         },

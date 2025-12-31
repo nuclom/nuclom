@@ -4,13 +4,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Plan, PlanLimits } from "@/lib/db/schema";
+import type { Plan } from "@/lib/db/schema";
 import type { OrganizationBillingInfo, UsageSummary } from "@/lib/effect/services/billing-repository";
 import { InvoiceList } from "./invoice-list";
-import { PlanSelector } from "./plan-selector";
+import { PaymentMethodList } from "./payment-method-list";
 import { SubscriptionManager } from "./subscription-manager";
 import { UsageChart, UsageOverview } from "./usage-chart";
-import { PaymentMethodList } from "./payment-method-list";
 
 interface BillingDashboardProps {
   organizationId: string;
@@ -82,9 +81,7 @@ export function BillingDashboard({
               <UsageChart usage={usageSummary} />
             </>
           ) : (
-            <div className="rounded-lg border p-6 text-center text-muted-foreground">
-              No usage data available yet
-            </div>
+            <div className="rounded-lg border p-6 text-center text-muted-foreground">No usage data available yet</div>
           )}
         </TabsContent>
 

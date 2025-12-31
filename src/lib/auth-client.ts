@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  adminClient,
-  apiKeyClient,
-  organizationClient,
-  twoFactorClient,
-} from "better-auth/client/plugins";
-import { stripeClient } from "@better-auth/stripe/client";
 import { passkeyClient } from "@better-auth/passkey/client";
+import { stripeClient } from "@better-auth/stripe/client";
+import { adminClient, apiKeyClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { env } from "@/lib/env/client";
 
@@ -43,15 +38,7 @@ export const authClient = createAuthClient({
 });
 
 // Export convenient hooks and methods for subscription management
-export const {
-  useSession,
-  signIn,
-  signOut,
-  signUp,
-  useActiveOrganization,
-  organization,
-  subscription,
-} = authClient;
+export const { useSession, signIn, signOut, signUp, useActiveOrganization, organization, subscription } = authClient;
 
 // Helper types for subscription management
 export type SubscriptionPlan = "free" | "pro" | "enterprise";
@@ -107,16 +94,12 @@ export async function openBillingPortal(returnUrl: string) {
 
 // Check if organization has active subscription
 export function hasActiveSubscription(subscriptions: Array<{ status: string }>) {
-  return subscriptions.some(
-    (sub) => sub.status === "active" || sub.status === "trialing"
-  );
+  return subscriptions.some((sub) => sub.status === "active" || sub.status === "trialing");
 }
 
 // Get current subscription status
 export function getSubscriptionStatus(subscriptions: Array<{ status: string; plan: string }>) {
-  const activeSub = subscriptions.find(
-    (sub) => sub.status === "active" || sub.status === "trialing"
-  );
+  const activeSub = subscriptions.find((sub) => sub.status === "active" || sub.status === "trialing");
   return activeSub
     ? { isActive: true, plan: activeSub.plan, status: activeSub.status }
     : { isActive: false, plan: "free", status: "none" };

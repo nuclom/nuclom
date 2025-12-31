@@ -7,8 +7,8 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
 
 interface Invitation {
   id: string;

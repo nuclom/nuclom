@@ -10,7 +10,7 @@
 
 import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { videoProgresses, videos, users, type Video } from "@/lib/db/schema";
+import { users, videoProgresses, videos } from "@/lib/db/schema";
 import { formatDuration } from "@/lib/format-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError } from "../errors";

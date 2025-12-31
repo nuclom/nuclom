@@ -17,7 +17,6 @@ import {
   type Plan,
   type PlanLimits,
   type Subscription,
-  type SubscriptionStatus,
 } from "@/lib/db/schema";
 import { env } from "@/lib/env/client";
 import {
@@ -565,7 +564,9 @@ const makeBillingService = Effect.gen(function* () {
         // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
         // We use start_date and billing_cycle_anchor as fallbacks
         const periodStartDate = new Date(stripeSubscription.start_date * 1000);
-        const periodEndDate = new Date((stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000);
+        const periodEndDate = new Date(
+          (stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000,
+        );
 
         // Better Auth Stripe compatible subscription data
         const subscriptionData: NewSubscription = {
@@ -625,7 +626,9 @@ const makeBillingService = Effect.gen(function* () {
         // In Stripe API 2025-12-15.clover, current_period_start/end are no longer on Subscription
         // We use start_date and billing_cycle_anchor as fallbacks
         const periodStartDate = new Date(stripeSubscription.start_date * 1000);
-        const periodEndDate = new Date((stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000);
+        const periodEndDate = new Date(
+          (stripeSubscription.billing_cycle_anchor || stripeSubscription.start_date) * 1000,
+        );
 
         // Better Auth Stripe compatible update data
         const result = yield* billingRepo.updateSubscription(subscription.referenceId, {
