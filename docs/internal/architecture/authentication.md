@@ -651,6 +651,175 @@ export async function withOrganizationAuth(
 }
 ```
 
+## Better-Auth Plugins
+
+Nuclom uses several Better-Auth plugins for enhanced authentication features:
+
+### Admin Plugin
+
+```typescript
+admin({
+  defaultRole: "user",
+  adminRoles: ["admin"],
+  impersonationSessionDuration: 60 * 60, // 1 hour
+  defaultBanReason: "Terms of service violation",
+  defaultBanExpiresIn: 60 * 60 * 24 * 7, // 7 days
+}),
+```
+
+### Organization Plugin
+
+```typescript
+organization({
+  allowUserToCreateOrganization: async () => true,
+  organizationLimit: 5,
+  creatorRole: "owner",
+  membershipLimit: 100,
+  invitationExpiresIn: 60 * 60 * 48, // 48 hours
+  async sendInvitationEmail(data) { /* custom email handler */ },
+}),
+```
+
+### API Key Plugin
+
+```typescript
+apiKey({
+  apiKeyHeaders: ["x-api-key"],
+  defaultKeyLength: 64,
+  defaultPrefix: "nc_",
+  keyExpiration: {
+    defaultExpiresIn: 60 * 60 * 24 * 30, // 30 days
+  },
+  rateLimit: {
+    enabled: true,
+    timeWindow: 60 * 1000, // 1 minute
+    maxRequests: 100,
+  },
+}),
+```
+
+### Two-Factor Authentication Plugin
+
+```typescript
+twoFactor({
+  issuer: "Nuclom",
+  totpOptions: {
+    digits: 6,
+    period: 30,
+  },
+  backupCodeOptions: {
+    length: 10,
+    count: 10,
+  },
+}),
+```
+
+**Client-side usage:**
+```typescript
+// Enable 2FA
+await authClient.twoFactor.enable({ password: "..." });
+
+// Verify TOTP code
+await authClient.twoFactor.verifyTotp({ code: "123456" });
+
+// Disable 2FA
+await authClient.twoFactor.disable({ code: "123456" });
+```
+
+### Passkey/WebAuthn Plugin
+
+```typescript
+passkey({
+  rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
+  rpName: "Nuclom",
+  origin: env.NODE_ENV === "production"
+    ? "https://nuclom.com"
+    : "http://localhost:3000",
+}),
+```
+
+**Client-side usage:**
+```typescript
+// Add a passkey
+await authClient.passkey.addPasskey({ name: "MacBook Pro" });
+
+// List passkeys
+await authClient.passkey.listUserPasskeys();
+
+// Delete a passkey
+await authClient.passkey.deletePasskey({ id: "..." });
+```
+
+### MCP/OIDC Plugin
+
+```typescript
+mcp({
+  loginPage: "/auth/sign-in",
+  oidcConfig: {
+    loginPage: "/auth/sign-in",
+    codeExpiresIn: 600, // 10 minutes
+    accessTokenExpiresIn: 3600, // 1 hour
+    refreshTokenExpiresIn: 604800, // 7 days
+    defaultScope: "openid",
+    scopes: ["openid", "profile", "email", "offline_access"],
+  },
+}),
+```
+
+### OpenAPI Plugin
+
+Enables OpenAPI documentation at `/api/auth/reference`:
+```typescript
+openAPI(),
+```
+
+## Session Management
+
+### Listing Active Sessions
+
+```typescript
+const { data } = await authClient.listSessions();
+```
+
+### Revoking Sessions
+
+```typescript
+// Revoke a specific session
+await authClient.revokeSession({ token: sessionToken });
+
+// Revoke all other sessions
+await authClient.revokeOtherSessions();
+```
+
+## Password Management
+
+### Changing Password
+
+```typescript
+await authClient.changePassword({
+  currentPassword: "...",
+  newPassword: "...",
+  revokeOtherSessions: true, // Log out from all other devices
+});
+```
+
+### Changing Email
+
+```typescript
+await authClient.changeEmail({
+  newEmail: "new@example.com",
+});
+// Sends verification email to the new address
+```
+
+## Account Deletion
+
+```typescript
+await authClient.deleteUser({
+  password: "...",
+});
+```
+
 ## Security Features
 
 ### CSRF Protection

@@ -1,6 +1,12 @@
 "use client";
 
-import { adminClient, apiKeyClient, organizationClient } from "better-auth/client/plugins";
+import {
+  adminClient,
+  apiKeyClient,
+  organizationClient,
+  twoFactorClient,
+} from "better-auth/client/plugins";
+import { passkeyClient } from "@better-auth/passkey/client";
 import { createAuthClient } from "better-auth/react";
 import { env } from "@/lib/env/client";
 
@@ -23,5 +29,11 @@ const getBaseURL = () => {
 
 export const authClient = createAuthClient({
   baseURL: getBaseURL(),
-  plugins: [organizationClient(), adminClient(), apiKeyClient()],
+  plugins: [
+    organizationClient(),
+    adminClient(),
+    apiKeyClient(),
+    twoFactorClient(),
+    passkeyClient(),
+  ],
 });
