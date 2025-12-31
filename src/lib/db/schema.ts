@@ -29,6 +29,7 @@ export const users = pgTable("users", {
   banned: boolean("banned"),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
+  twoFactorEnabled: boolean("two_factor_enabled"),
 });
 
 export const sessions = pgTable("sessions", {
@@ -132,6 +133,60 @@ export const apikeys = pgTable("apikeys", {
   updatedAt: timestamp("updated_at").notNull(),
   permissions: text("permissions"),
   metadata: text("metadata"),
+});
+
+// Two-Factor Authentication tables
+export const twoFactors = pgTable("two_factors", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+});
+
+// Passkeys/WebAuthn table
+export const passkeys = pgTable("passkeys", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  publicKey: text("public_key").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  credentialID: text("credential_id").notNull().unique(),
+  counter: integer("counter").notNull(),
+  deviceType: text("device_type"),
+  backedUp: boolean("backed_up"),
+  transports: text("transports"),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+});
+
+// User preferences table
+export const userPreferences = pgTable("user_preferences", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // Notification preferences
+  emailNotifications: boolean("email_notifications").default(true).notNull(),
+  emailCommentReplies: boolean("email_comment_replies").default(true).notNull(),
+  emailMentions: boolean("email_mentions").default(true).notNull(),
+  emailVideoProcessing: boolean("email_video_processing").default(true).notNull(),
+  emailWeeklyDigest: boolean("email_weekly_digest").default(false).notNull(),
+  emailProductUpdates: boolean("email_product_updates").default(true).notNull(),
+  // In-app notification preferences
+  pushNotifications: boolean("push_notifications").default(true).notNull(),
+  // Appearance preferences
+  theme: text("theme").default("system").notNull(), // 'light', 'dark', 'system'
+  // Privacy preferences
+  showActivityStatus: boolean("show_activity_status").default(true).notNull(),
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const oauthApplications = pgTable("oauth_applications", {
@@ -696,10 +751,42 @@ export const savedSearches = pgTable(
 );
 
 // Relations
-export const userRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ one, many }) => ({
   videos: many(videos),
   comments: many(comments),
   videoProgresses: many(videoProgresses),
+  twoFactor: one(twoFactors),
+  passkeys: many(passkeys),
+  preferences: one(userPreferences),
+  apiKeys: many(apikeys),
+}));
+
+export const twoFactorRelations = relations(twoFactors, ({ one }) => ({
+  user: one(users, {
+    fields: [twoFactors.userId],
+    references: [users.id],
+  }),
+}));
+
+export const passkeyRelations = relations(passkeys, ({ one }) => ({
+  user: one(users, {
+    fields: [passkeys.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const apiKeyRelations = relations(apikeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apikeys.userId],
+    references: [users.id],
+  }),
 }));
 
 export const organizationRelations = relations(organizations, ({ one, many }) => ({
@@ -980,3 +1067,19 @@ export type SearchHistory = typeof searchHistory.$inferSelect;
 export type NewSearchHistory = typeof searchHistory.$inferInsert;
 export type SavedSearch = typeof savedSearches.$inferSelect;
 export type NewSavedSearch = typeof savedSearches.$inferInsert;
+
+// Authentication types
+export type TwoFactor = typeof twoFactors.$inferSelect;
+export type NewTwoFactor = typeof twoFactors.$inferInsert;
+export type Passkey = typeof passkeys.$inferSelect;
+export type NewPasskey = typeof passkeys.$inferInsert;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type NewUserPreferences = typeof userPreferences.$inferInsert;
+export type ApiKey = typeof apikeys.$inferSelect;
+export type NewApiKey = typeof apikeys.$inferInsert;
+export type OAuthApplication = typeof oauthApplications.$inferSelect;
+export type NewOAuthApplication = typeof oauthApplications.$inferInsert;
+export type OAuthAccessToken = typeof oauthAccessTokens.$inferSelect;
+export type NewOAuthAccessToken = typeof oauthAccessTokens.$inferInsert;
+export type OAuthConsent = typeof oauthConsents.$inferSelect;
+export type NewOAuthConsent = typeof oauthConsents.$inferInsert;

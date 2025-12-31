@@ -59,11 +59,88 @@ Customize your Nuclom experience with the comprehensive settings and preferences
 
 **Two-Factor Authentication (2FA)**
 
-1. Enable 2FA in security settings
-2. Download authenticator app (Google Authenticator, Authy)
-3. Scan QR code or enter setup key
-4. Enter verification code
-5. Save backup codes securely
+1. Go to **Settings** → **Security**
+2. Click **"Enable 2FA"**
+3. Download authenticator app (Google Authenticator, Authy, 1Password)
+4. Scan QR code with your authenticator app
+5. Enter the 6-digit verification code
+6. Save your backup codes securely (these are one-time use codes for account recovery)
+
+**Disabling 2FA**
+
+1. Go to **Settings** → **Security**
+2. Click **"Disable 2FA"**
+3. Enter a verification code from your authenticator app
+4. Confirm the action
+
+**Passkeys (WebAuthn)**
+
+Passkeys provide passwordless authentication using biometrics or hardware security keys.
+
+1. Go to **Settings** → **Security**
+2. Under "Passkeys", click **"Add Passkey"**
+3. Enter an optional name for the passkey (e.g., "MacBook Touch ID")
+4. Follow your browser/device prompts to register the passkey
+5. Use the passkey for future logins
+
+**Managing Passkeys**
+
+- View all registered passkeys with their device types and creation dates
+- Delete passkeys you no longer use
+- Add multiple passkeys for different devices
+
+**Active Sessions**
+
+View and manage all your active login sessions:
+
+1. Go to **Settings** → **Security**
+2. See all active sessions with device info and IP address
+3. Click **"Sign out"** next to any session to revoke it
+4. Use **"Sign out all other sessions"** to secure your account
+
+### Account Settings
+
+#### Email Management
+
+**Changing Your Email**
+
+1. Go to **Settings** → **Account**
+2. Click **"Change Email"**
+3. Enter your new email address
+4. A verification email will be sent to the new address
+5. Click the verification link to complete the change
+
+#### Data Export
+
+**Exporting Your Data (GDPR Compliance)**
+
+1. Go to **Settings** → **Account**
+2. Click **"Export Data"**
+3. Your data will be downloaded as a JSON file including:
+   - Profile information
+   - User preferences
+   - Videos you've uploaded
+   - Comments you've made
+   - Video watch progress
+   - Notifications
+   - API key metadata (without the actual keys)
+
+#### Account Deletion
+
+**Permanently Deleting Your Account**
+
+1. Go to **Settings** → **Account**
+2. Under "Danger Zone", click **"Delete Account"**
+3. Enter your password
+4. Type "delete my account" to confirm
+5. Click **"Permanently Delete Account"**
+
+**What Gets Deleted:**
+- Your profile and settings
+- All videos you've uploaded
+- All comments you've made
+- Your organization memberships
+- API keys and OAuth applications
 
 ### Personal Preferences
 
@@ -189,13 +266,67 @@ Customize your Nuclom experience with the comprehensive settings and preferences
 
 #### API and Integrations
 
-**API Access**
+**API Keys**
 
-1. Go to **Settings** → **API**
-2. Generate API keys
-3. Set API permissions and scopes
-4. Configure rate limiting
-5. Monitor API usage
+1. Go to **Settings** → **API Keys**
+2. Click **"Create API Key"**
+3. Enter a name for the key (e.g., "Production API")
+4. Select an expiration period (7 days, 30 days, 90 days, 1 year, or never)
+5. Click **"Create Key"**
+6. **Important:** Copy your API key immediately - you won't be able to see it again!
+
+**Using API Keys**
+
+Include your API key in the `x-api-key` header:
+```
+curl -X GET "https://api.nuclom.com/v1/videos" \
+  -H "x-api-key: nc_your_api_key_here"
+```
+
+**Managing API Keys**
+
+- View all API keys with their status, creation date, and last used
+- See partial key previews (prefix and first few characters)
+- Delete keys that are no longer needed
+- Monitor key expiration dates
+
+**API Key Features**
+
+- **Rate Limiting:** 100 requests per minute per key
+- **Key Prefix:** All keys start with `nc_`
+- **Default Expiration:** 30 days (configurable)
+
+**OAuth Applications**
+
+Create OAuth applications to allow external services to integrate with Nuclom.
+
+1. Go to **Settings** → **OAuth Apps**
+2. Click **"Create Application"**
+3. Enter the application name and optional icon URL
+4. Add redirect URLs (one per line)
+5. Click **"Create Application"**
+6. **Important:** Copy your client ID and secret immediately!
+
+**OAuth Application Settings**
+
+- **Client ID:** Public identifier for your app
+- **Client Secret:** Secret key for server-side authentication (only shown once)
+- **Redirect URLs:** Allowed callback URLs for OAuth flow
+- **Disable/Enable:** Temporarily disable apps without deleting
+
+**OAuth 2.0 / OpenID Connect Endpoints**
+
+- **Authorization:** `/api/auth/oauth2/authorize`
+- **Token:** `/api/auth/oauth2/token`
+- **Scopes:** `openid`, `profile`, `email`, `offline_access`
+
+**Authorized Applications**
+
+View and manage applications you've granted access to your account:
+
+1. Go to **Settings** → **OAuth Apps**
+2. Under "Authorized Applications", see all apps with access
+3. Click **"Revoke"** to remove an application's access
 
 **Available Integrations**
 

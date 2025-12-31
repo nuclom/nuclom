@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, apiKey, mcp, organization } from "better-auth/plugins";
+import { admin, apiKey, mcp, openAPI, organization, passkey, twoFactor } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
@@ -212,5 +212,23 @@ export const auth = betterAuth({
         scopes: ["openid", "profile", "email", "offline_access"],
       },
     }),
+    twoFactor({
+      issuer: "Nuclom",
+      totpOptions: {
+        digits: 6,
+        period: 30,
+      },
+      backupCodeOptions: {
+        length: 10,
+        count: 10,
+      },
+    }),
+    passkey({
+      rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
+      rpName: "Nuclom",
+      origin:
+        env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+    }),
+    openAPI(),
   ],
 });
