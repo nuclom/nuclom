@@ -226,6 +226,19 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             author_banned: boolean | null;
             author_ban_reason: string | null;
             author_ban_expires: Date | null;
+            author_two_factor_enabled: boolean | null;
+            author_tos_accepted_at: Date | null;
+            author_tos_version: string | null;
+            author_privacy_accepted_at: Date | null;
+            author_privacy_version: string | null;
+            author_marketing_consent_at: Date | null;
+            author_marketing_consent: boolean | null;
+            author_deletion_requested_at: Date | null;
+            author_deletion_scheduled_for: Date | null;
+            author_warned_at: Date | null;
+            author_warning_reason: string | null;
+            author_suspended_until: Date | null;
+            author_suspension_reason: string | null;
             headline_title: string | null;
             headline_description: string | null;
             headline_transcript: string | null;
@@ -244,6 +257,19 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               u.banned as author_banned,
               u.ban_reason as author_ban_reason,
               u.ban_expires as author_ban_expires,
+              u.two_factor_enabled as author_two_factor_enabled,
+              u.tos_accepted_at as author_tos_accepted_at,
+              u.tos_version as author_tos_version,
+              u.privacy_accepted_at as author_privacy_accepted_at,
+              u.privacy_version as author_privacy_version,
+              u.marketing_consent_at as author_marketing_consent_at,
+              u.marketing_consent as author_marketing_consent,
+              u.deletion_requested_at as author_deletion_requested_at,
+              u.deletion_scheduled_for as author_deletion_scheduled_for,
+              u.warned_at as author_warned_at,
+              u.warning_reason as author_warning_reason,
+              u.suspended_until as author_suspended_until,
+              u.suspension_reason as author_suspension_reason,
               ts_headline('english', COALESCE(v.title, ''), plainto_tsquery('english', ${query}),
                 'StartSel=<mark>, StopSel=</mark>, MaxWords=50, MinWords=25') as headline_title,
               ts_headline('english', COALESCE(v.description, ''), plainto_tsquery('english', ${query}),
@@ -316,6 +342,19 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 banned: row.author_banned,
                 banReason: row.author_ban_reason,
                 banExpires: row.author_ban_expires,
+                twoFactorEnabled: row.author_two_factor_enabled,
+                tosAcceptedAt: row.author_tos_accepted_at,
+                tosVersion: row.author_tos_version,
+                privacyAcceptedAt: row.author_privacy_accepted_at,
+                privacyVersion: row.author_privacy_version,
+                marketingConsentAt: row.author_marketing_consent_at,
+                marketingConsent: row.author_marketing_consent,
+                deletionRequestedAt: row.author_deletion_requested_at,
+                deletionScheduledFor: row.author_deletion_scheduled_for,
+                warnedAt: row.author_warned_at,
+                warningReason: row.author_warning_reason,
+                suspendedUntil: row.author_suspended_until,
+                suspensionReason: row.author_suspension_reason,
               },
             } as VideoWithAuthor,
             rank: row.rank,
@@ -383,6 +422,19 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 banned: users.banned,
                 banReason: users.banReason,
                 banExpires: users.banExpires,
+                twoFactorEnabled: users.twoFactorEnabled,
+                tosAcceptedAt: users.tosAcceptedAt,
+                tosVersion: users.tosVersion,
+                privacyAcceptedAt: users.privacyAcceptedAt,
+                privacyVersion: users.privacyVersion,
+                marketingConsentAt: users.marketingConsentAt,
+                marketingConsent: users.marketingConsent,
+                deletionRequestedAt: users.deletionRequestedAt,
+                deletionScheduledFor: users.deletionScheduledFor,
+                warnedAt: users.warnedAt,
+                warningReason: users.warningReason,
+                suspendedUntil: users.suspendedUntil,
+                suspensionReason: users.suspensionReason,
               },
             })
             .from(videos)
@@ -790,6 +842,19 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)

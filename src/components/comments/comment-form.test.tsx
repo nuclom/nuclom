@@ -225,7 +225,7 @@ describe("CommentForm Component", () => {
   it("should show loading state during submission", async () => {
     const user = userEvent.setup();
     // Create a promise that we can control
-    let resolveSubmit: () => void;
+    let resolveSubmit!: () => void;
     const submitPromise = new Promise<void>((resolve) => {
       resolveSubmit = resolve;
     });

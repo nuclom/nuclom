@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
+import { formatDate } from "@/lib/format-utils";
 
 type ApiKey = {
   id: string;
@@ -170,15 +171,6 @@ function ApiKeysContent() {
     setShowNewKey(false);
     setNewKeyName("");
     setNewKeyExpiration("30");
-  };
-
-  const formatDate = (date: Date | null | undefined) => {
-    if (!date) return "Never";
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const isExpired = (expiresAt: Date | null | undefined) => {

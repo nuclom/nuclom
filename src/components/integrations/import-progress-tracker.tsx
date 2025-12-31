@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDurationHuman } from "@/lib/format-utils";
 
 interface ImportedMeeting {
   id: string;
@@ -149,14 +150,6 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
     return dateB - dateA;
   });
 
-  const formatDuration = (minutes: number | null) => {
-    if (!minutes) return "Unknown duration";
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -260,7 +253,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDuration(meeting.duration)}
+                          {formatDurationHuman(meeting.duration)}
                         </span>
                       </div>
 

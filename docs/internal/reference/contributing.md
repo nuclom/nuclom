@@ -244,41 +244,41 @@ import { cn } from "@/lib/utils";
 
 #### API Routes
 
-```typescript
-// ✅ Good: Proper error handling and response structure
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { z } from "zod/v4";
+Use the centralized API handler utilities from `@/lib/api-handler`:
 
-const createVideoSchema = z.object({
-  title: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  duration: z.string().regex(/^\d+:\d{2}$/),
-});
+```typescript
+// ✅ Good: Use centralized helpers for consistent error handling
+import { Effect } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
+import { Auth } from "@/lib/effect/services/auth";
+import { VideoRepository } from "@/lib/effect/services/video-repository";
+import { validateRequestBody } from "@/lib/validation";
+import { createVideoSchema } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validatedData = createVideoSchema.parse(body);
+  const effect = Effect.gen(function* () {
+    // Authentication
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-    // Process request
-    const result = await createVideo(validatedData);
+    // Validation
+    const data = yield* validateRequestBody(createVideoSchema, request);
 
-    return NextResponse.json({ success: true, data: result }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: "Invalid data", details: error.errors },
-        { status: 400 }
-      );
-    }
+    // Business logic
+    const videoRepo = yield* VideoRepository;
+    return yield* videoRepo.createVideo({
+      ...data,
+      authorId: user.id,
+    });
+  });
 
-    console.error("API Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+  const FullLayer = createFullLayer();
+  const runnable = Effect.provide(effect, FullLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  // Use handleEffectExit for GET, handleEffectExitWithStatus for POST (201)
+  return handleEffectExit(exit);
 }
 ```
 
@@ -320,6 +320,41 @@ export async function createVideoWithAuthor(
   }
 }
 ```
+
+### Utility Functions
+
+Use centralized utility functions instead of defining local helpers:
+
+```typescript
+// ✅ Good: Use centralized formatting utilities
+import { formatTime, formatDate, formatRelativeTime, formatDuration } from "@/lib/format-utils";
+
+// Format video timestamps (MM:SS or HH:MM:SS)
+<span>{formatTime(video.currentTime)}</span>
+
+// Format dates
+<span>{formatDate(video.createdAt)}</span> // "Dec 31, 2024"
+
+// Format relative time
+<span>{formatRelativeTime(video.createdAt)}</span> // "2 days ago"
+
+// Format duration
+<span>{formatDuration(video.durationSeconds)}</span> // "1:05:30"
+
+// ❌ Bad: Define local formatting functions
+function formatTime(seconds) { ... } // Duplicates existing utility
+```
+
+Available formatting utilities in `@/lib/format-utils`:
+- `formatTime(seconds)` - Video timestamps (MM:SS or HH:MM:SS)
+- `formatTimePrecise(seconds)` - Timestamps with milliseconds (MM:SS.mmm)
+- `formatDuration(seconds)` - Duration display
+- `formatDurationHuman(minutes)` - Human-readable duration (1h 30m)
+- `formatDate(date)` - Date formatting (Dec 31, 2024)
+- `formatDateTime(date)` - Full date-time formatting
+- `formatRelativeTime(date)` - Relative time (2 days ago)
+- `formatCompactNumber(value)` - Compact numbers (1.5K, 2.5M)
+- `formatFileSize(bytes)` - File size formatting (1.5 MB)
 
 ## Testing Requirements
 
