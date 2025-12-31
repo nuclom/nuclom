@@ -12,6 +12,7 @@ export const ServerEnv = Schema.Struct({
   }),
   DATABASE_URL: Schema.String,
   OPENAI_API_KEY: Schema.optional(Schema.String),
+  REPLICATE_API_TOKEN: Schema.optional(Schema.String),
   VERCEL_OIDC_TOKEN: Schema.optional(Schema.String),
   RESEND_API_KEY: Schema.String,
   RESEND_FROM_EMAIL: Schema.optional(Schema.String),
