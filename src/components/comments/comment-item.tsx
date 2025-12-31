@@ -1,8 +1,10 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { Check, Clock, Edit2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
+import { Check, Clock, Edit2, Flag, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useState } from "react";
+import { ReportDialog } from "@/components/moderation/report-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,45 +21,91 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
+import { parseMentions } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
+import { groupReactions, ReactionDisplay } from "./reaction-display";
+import { ReactionPicker, type ReactionType } from "./reaction-picker";
+
+interface CommentReaction {
+  id: string;
+  reactionType: ReactionType;
+  userId: string;
+  user?: { id: string; name: string | null };
+}
 
 interface CommentItemProps {
-  comment: CommentWithAuthor;
+  comment: CommentWithAuthor & { reactions?: CommentReaction[] };
   currentUserId?: string;
   videoAuthorId?: string;
+  organizationSlug?: string;
   onReply?: (commentId: string) => void;
   onEdit: (commentId: string, content: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
   onTimestampClick?: (timestamp: string) => void;
+  onReactionChange?: () => void;
   isReplyTarget?: boolean;
   depth?: number;
+}
+
+/**
+ * Render comment content with parsed mentions
+ */
+function CommentContent({ content }: { content: string }) {
+  const parts = parseMentions(content);
+
+  return (
+    <p className="mt-1 text-sm whitespace-pre-wrap break-words">
+      {parts.map((part, i) =>
+        typeof part === "string" ? (
+          part
+        ) : (
+          <Link
+            key={`mention-${i}`}
+            href={`/profile/${part.userId}`}
+            className="text-primary font-medium hover:underline"
+          >
+            @{part.name}
+          </Link>
+        ),
+      )}
+    </p>
+  );
 }
 
 export function CommentItem({
   comment,
   currentUserId,
   videoAuthorId,
+  organizationSlug,
   onReply,
   onEdit,
   onDelete,
   onTimestampClick,
+  onReactionChange,
   isReplyTarget = false,
   depth = 0,
 }: CommentItemProps) {
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [reactions, setReactions] = useState<CommentReaction[]>(comment.reactions || []);
 
   const isAuthor = currentUserId === comment.authorId;
   const isVideoOwner = currentUserId === videoAuthorId;
   const canEdit = isAuthor;
   const canDelete = isAuthor || isVideoOwner;
+
+  // Get current user's reaction
+  const currentUserReaction = currentUserId ? reactions.find((r) => r.userId === currentUserId)?.reactionType : null;
 
   const handleEdit = useCallback(async () => {
     if (!editContent.trim() || editContent.trim() === comment.content) {
@@ -92,8 +140,73 @@ export function CommentItem({
     setEditContent(comment.content);
   }, [comment.content]);
 
+  const handleReaction = useCallback(
+    async (commentId: string, reactionType: ReactionType | null) => {
+      if (!currentUserId) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to react to comments",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        if (reactionType === null) {
+          // Remove reaction
+          await fetch(`/api/comments/${commentId}/reactions`, { method: "DELETE" });
+          setReactions((prev) => prev.filter((r) => r.userId !== currentUserId));
+        } else {
+          // Add or update reaction
+          await fetch(`/api/comments/${commentId}/reactions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reactionType }),
+          });
+          setReactions((prev) => {
+            const existing = prev.find((r) => r.userId === currentUserId);
+            if (existing) {
+              return prev.map((r) => (r.userId === currentUserId ? { ...r, reactionType } : r));
+            }
+            return [...prev, { id: crypto.randomUUID(), reactionType, userId: currentUserId }];
+          });
+        }
+        onReactionChange?.();
+      } catch (error) {
+        console.error("Failed to update reaction:", error);
+        toast({
+          title: "Failed to update reaction",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      }
+    },
+    [currentUserId, onReactionChange, toast],
+  );
+
+  const handleReactionClick = useCallback(
+    (reactionType: ReactionType) => {
+      if (currentUserReaction === reactionType) {
+        handleReaction(comment.id, null);
+      } else {
+        handleReaction(comment.id, reactionType);
+      }
+    },
+    [comment.id, currentUserReaction, handleReaction],
+  );
+
+  const handleCopyLink = useCallback(() => {
+    const url = organizationSlug
+      ? `${window.location.origin}/${organizationSlug}/videos/${comment.videoId}?comment=${comment.id}`
+      : `${window.location.href}?comment=${comment.id}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copied!" });
+  }, [comment.id, comment.videoId, organizationSlug, toast]);
+
   const formattedDate = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true });
   const wasEdited = comment.updatedAt > comment.createdAt;
+
+  const groupedReactions = groupReactions(reactions, currentUserId);
 
   return (
     <>
@@ -103,6 +216,7 @@ export function CommentItem({
           isReplyTarget && "bg-muted/50 ring-1 ring-primary/20",
           depth > 0 && "ml-10",
         )}
+        id={`comment-${comment.id}`}
       >
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarImage src={comment.author.image || undefined} alt={comment.author.name || "User"} />
@@ -159,7 +273,16 @@ export function CommentItem({
               </div>
             </div>
           ) : (
-            <p className="mt-1 text-sm whitespace-pre-wrap break-words">{comment.content}</p>
+            <CommentContent content={comment.content} />
+          )}
+
+          {/* Reactions Display */}
+          {!isEditing && groupedReactions.length > 0 && (
+            <ReactionDisplay
+              reactions={groupedReactions}
+              onReactionClick={handleReactionClick}
+              disabled={!currentUserId}
+            />
           )}
 
           {!isEditing && (
@@ -176,33 +299,55 @@ export function CommentItem({
                 </Button>
               )}
 
-              {(canEdit || canDelete) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">More options</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                        <Edit2 className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                    )}
-                    {canDelete && (
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setShowDeleteDialog(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              {currentUserId && (
+                <ReactionPicker
+                  commentId={comment.id}
+                  currentUserReaction={currentUserReaction}
+                  onReact={handleReaction}
+                />
               )}
+
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={handleCopyLink}>
+                <Link2 className="h-3 w-3 mr-1" />
+                Link
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                  {(canEdit || canDelete) && <DropdownMenuSeparator />}
+                  <ReportDialog
+                    resourceType="comment"
+                    resourceId={comment.id}
+                    trigger={
+                      <DropdownMenuItem className="cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                        <Flag className="h-4 w-4 mr-2" />
+                        Report
+                      </DropdownMenuItem>
+                    }
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>

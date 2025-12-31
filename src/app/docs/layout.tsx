@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import type React from "react";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/next";
+import type { Metadata } from "next";
+import type React from "react";
 import "fumadocs-ui/style.css";
 
 export const metadata: Metadata = {
@@ -40,6 +40,7 @@ const publicTree = {
       name: "API Reference",
       children: [
         { type: "page" as const, name: "API Overview", url: "/docs/api" },
+        { type: "page" as const, name: "Interactive Reference", url: "/docs/api/reference" },
         { type: "page" as const, name: "Authentication", url: "/docs/api/authentication" },
         { type: "page" as const, name: "Videos", url: "/docs/api/videos" },
         { type: "page" as const, name: "Organizations", url: "/docs/api/organizations" },
@@ -52,11 +53,7 @@ const publicTree = {
   ],
 };
 
-export default function DocsRootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DocsRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <RootProvider>
       <DocsLayout

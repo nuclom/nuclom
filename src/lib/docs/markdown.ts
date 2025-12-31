@@ -1,6 +1,7 @@
-import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 
 export interface MarkdownContent {
   title: string;
@@ -110,15 +111,7 @@ export function getAllDocsPaths(): string[][] {
 
   // Public API
   paths.push(["api"]);
-  const apiDocs = [
-    "authentication",
-    "videos",
-    "organizations",
-    "comments",
-    "notifications",
-    "ai",
-    "errors",
-  ];
+  const apiDocs = ["authentication", "videos", "organizations", "comments", "notifications", "ai", "errors"];
   for (const api of apiDocs) {
     paths.push(["api", api]);
   }

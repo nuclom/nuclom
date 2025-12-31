@@ -1,6 +1,6 @@
 "use client";
 
-import { Folder, FolderVideo, History, Search, Share2, Upload, Video } from "lucide-react";
+import { FileVideo, Folder, History, Search, Share2, Upload, Video } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -28,14 +28,12 @@ export function EmptyState({
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground max-w-sm mb-6">{description}</p>
-      {(actionLabel && actionHref) && (
+      {actionLabel && actionHref && (
         <Button asChild>
           <Link href={actionHref}>{actionLabel}</Link>
         </Button>
       )}
-      {(actionLabel && onAction) && (
-        <Button onClick={onAction}>{actionLabel}</Button>
-      )}
+      {actionLabel && onAction && <Button onClick={onAction}>{actionLabel}</Button>}
     </div>
   );
 }
@@ -57,7 +55,7 @@ export function EmptyVideos({ organization }: { organization: string }) {
 export function EmptyChannels({ organization }: { organization: string }) {
   return (
     <EmptyState
-      icon={FolderVideo}
+      icon={FileVideo}
       title="No channels yet"
       description="Create channels to organize your videos by topic, team, or project."
       actionLabel="Create Channel"

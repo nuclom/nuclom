@@ -304,7 +304,7 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
   getUpcomingInvoice: (params) =>
     Effect.tryPromise({
       try: () =>
-        client.invoices.retrieveUpcoming({
+        client.invoices.createPreview({
           customer: params.customerId,
           subscription: params.subscriptionId,
         }),
@@ -419,7 +419,7 @@ export const StripeServiceLive = Layer.effect(
     const webhookSecret = yield* Config.redacted("STRIPE_WEBHOOK_SECRET");
 
     const client = new Stripe(Redacted.value(secretKey), {
-      apiVersion: "2025-02-24.acacia",
+      apiVersion: "2025-12-15.clover",
       typescript: true,
     });
 

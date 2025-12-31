@@ -73,6 +73,19 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         banned: users.banned,
         banReason: users.banReason,
         banExpires: users.banExpires,
+        twoFactorEnabled: users.twoFactorEnabled,
+        tosAcceptedAt: users.tosAcceptedAt,
+        tosVersion: users.tosVersion,
+        privacyAcceptedAt: users.privacyAcceptedAt,
+        privacyVersion: users.privacyVersion,
+        marketingConsentAt: users.marketingConsentAt,
+        marketingConsent: users.marketingConsent,
+        deletionRequestedAt: users.deletionRequestedAt,
+        deletionScheduledFor: users.deletionScheduledFor,
+        warnedAt: users.warnedAt,
+        warningReason: users.warningReason,
+        suspendedUntil: users.suspendedUntil,
+        suspensionReason: users.suspensionReason,
       })
       .from(users)
       .innerJoin(videos, eq(videos.authorId, users.id))

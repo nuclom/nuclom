@@ -15,6 +15,7 @@
  * - No lost processing on deploy
  */
 
+import process from "node:process";
 import { eq } from "drizzle-orm";
 import { FatalError } from "workflow";
 import { db } from "@/lib/db";
@@ -28,8 +29,8 @@ import {
   videoCodeSnippets,
   videos,
 } from "@/lib/db/schema";
-import { env } from "@/lib/env/client";
 import { resend } from "@/lib/email";
+import { env } from "@/lib/env/client";
 
 // =============================================================================
 // Types
@@ -77,11 +78,7 @@ interface AIAnalysisResult {
 // Helper Functions
 // =============================================================================
 
-async function updateProcessingStatus(
-  videoId: string,
-  status: ProcessingStatus,
-  error?: string,
-): Promise<void> {
+async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
   await db
     .update(videos)
     .set({
@@ -178,8 +175,7 @@ async function analyzeWithAI(
     messages: [
       {
         role: "system",
-        content:
-          "Generate 5-10 relevant tags for this video. Return only the tags as a JSON array of strings.",
+        content: "Generate 5-10 relevant tags for this video. Return only the tags as a JSON array of strings.",
       },
       {
         role: "user",
@@ -301,11 +297,7 @@ async function analyzeWithAI(
   };
 }
 
-async function saveTranscript(
-  videoId: string,
-  transcript: string,
-  segments: TranscriptSegment[],
-): Promise<void> {
+async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
   await db
     .update(videos)
     .set({
@@ -316,10 +308,7 @@ async function saveTranscript(
     .where(eq(videos.id, videoId));
 }
 
-async function saveAIAnalysis(
-  videoId: string,
-  analysis: AIAnalysisResult,
-): Promise<void> {
+async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
   // Update video record
   await db
     .update(videos)
@@ -400,9 +389,7 @@ async function sendCompletionNotification(
       from: fromEmail,
       to: user.email,
       subject:
-        status === "completed"
-          ? `Your video "${video.title}" is ready!`
-          : `Video processing failed: "${video.title}"`,
+        status === "completed" ? `Your video "${video.title}" is ready!` : `Video processing failed: "${video.title}"`,
       html: `
         <h2>${status === "completed" ? "Video Processing Complete" : "Video Processing Failed"}</h2>
         <p>Hi ${user.name || "there"},</p>
@@ -439,9 +426,7 @@ async function sendCompletionNotification(
  * Each step is checkpointed, so if the server restarts, processing resumes
  * from the last successful step.
  */
-export async function processVideoWorkflow(
-  input: VideoProcessingInput,
-): Promise<VideoProcessingResult> {
+export async function processVideoWorkflow(input: VideoProcessingInput): Promise<VideoProcessingResult> {
   "use workflow";
 
   const { videoId, videoUrl, videoTitle } = input;
@@ -449,35 +434,31 @@ export async function processVideoWorkflow(
   try {
     // Step 1: Update status to transcribing
     await updateProcessingStatus(videoId, "transcribing");
-    "use step";
+    ("use step");
 
     // Step 2: Transcribe the video
     const transcription = await transcribeVideo(videoUrl);
-    "use step";
+    ("use step");
 
     // Step 3: Save transcript
     await saveTranscript(videoId, transcription.transcript, transcription.segments);
-    "use step";
+    ("use step");
 
     // Step 4: Update status to analyzing
     await updateProcessingStatus(videoId, "analyzing");
-    "use step";
+    ("use step");
 
     // Step 5: Run AI analysis
-    const analysis = await analyzeWithAI(
-      transcription.transcript,
-      transcription.segments,
-      videoTitle,
-    );
-    "use step";
+    const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
+    ("use step");
 
     // Step 6: Save AI analysis results
     await saveAIAnalysis(videoId, analysis);
-    "use step";
+    ("use step");
 
     // Step 7: Update status to completed
     await updateProcessingStatus(videoId, "completed");
-    "use step";
+    ("use step");
 
     // Step 8: Send completion notification
     await sendCompletionNotification(videoId, "completed");

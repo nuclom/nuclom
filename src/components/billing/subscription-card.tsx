@@ -55,6 +55,13 @@ const getStatusBadge = (status: string, cancelAtPeriodEnd: boolean) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
+// Plan display names and prices (synced with auth.ts plan configuration)
+const PLAN_DISPLAY_INFO: Record<string, { displayName: string; monthlyPrice: number }> = {
+  free: { displayName: "Free", monthlyPrice: 0 },
+  pro: { displayName: "Pro", monthlyPrice: 2500 }, // $25.00 in cents
+  enterprise: { displayName: "Enterprise", monthlyPrice: 9900 }, // $99.00 in cents
+};
+
 export function SubscriptionCard({
   subscription,
   onManageBilling,
@@ -120,6 +127,12 @@ export function SubscriptionCard({
   const isCanceled = subscription.cancelAtPeriodEnd;
   const isTrialing = subscription.status === "trialing";
 
+  // Get plan display info - use local plan info if available, otherwise fall back to plan name
+  const planName = subscription.plan;
+  const planDisplayInfo = PLAN_DISPLAY_INFO[planName] || { displayName: planName, monthlyPrice: 0 };
+  const displayName = subscription.planInfo?.name || planDisplayInfo.displayName;
+  const monthlyPrice = subscription.planInfo?.priceMonthly ?? planDisplayInfo.monthlyPrice;
+
   return (
     <Card>
       <CardHeader>
@@ -148,8 +161,8 @@ export function SubscriptionCard({
             <AlertTitle>Subscription Canceling</AlertTitle>
             <AlertDescription>
               Your subscription will be canceled at the end of the current billing period on{" "}
-              {subscription.currentPeriodEnd
-                ? format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")
+              {subscription.periodEnd
+                ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
                 : "the end of this period"}
               .
             </AlertDescription>
@@ -159,8 +172,8 @@ export function SubscriptionCard({
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Plan</p>
-            <p className="text-2xl font-bold">{subscription.plan.name}</p>
-            <p className="text-lg text-muted-foreground">{formatPrice(subscription.plan.priceMonthly)}/month</p>
+            <p className="text-2xl font-bold capitalize">{displayName}</p>
+            {monthlyPrice > 0 && <p className="text-lg text-muted-foreground">{formatPrice(monthlyPrice)}/month</p>}
           </div>
 
           <div>
@@ -172,8 +185,8 @@ export function SubscriptionCard({
               <p className="text-lg">
                 {isTrialing && subscription.trialEnd
                   ? format(new Date(subscription.trialEnd), "MMMM d, yyyy")
-                  : subscription.currentPeriodEnd
-                    ? format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")
+                  : subscription.periodEnd
+                    ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
                     : "—"}
               </p>
             </div>
@@ -204,8 +217,8 @@ export function SubscriptionCard({
                   <AlertDialogDescription>
                     Are you sure you want to cancel your subscription? You will retain access until the end of your
                     current billing period on{" "}
-                    {subscription.currentPeriodEnd
-                      ? format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")
+                    {subscription.periodEnd
+                      ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
                       : "the end of this period"}
                     .
                   </AlertDialogDescription>

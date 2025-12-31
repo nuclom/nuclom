@@ -11,7 +11,7 @@
 
 import { and, avg, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { performanceMetrics, type PerformanceMetric } from "@/lib/db/schema";
+import { type PerformanceMetric, performanceMetrics } from "@/lib/db/schema";
 import { DatabaseError } from "../errors";
 import { Database } from "./database";
 
@@ -348,12 +348,7 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
         const errorCount = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(performanceMetrics)
-          .where(
-            and(
-              ...conditions,
-              sql`${performanceMetrics.metricType} LIKE '%error%'`,
-            ),
-          );
+          .where(and(...conditions, sql`${performanceMetrics.metricType} LIKE '%error%'`));
 
         const total = totalCount[0]?.count || 0;
         const errors = errorCount[0]?.count || 0;
@@ -398,10 +393,7 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
         }),
     });
 
-  const getRecentErrors = (
-    organizationId: string,
-    limit = 50,
-  ): Effect.Effect<PerformanceMetric[], DatabaseError> =>
+  const getRecentErrors = (organizationId: string, limit = 50): Effect.Effect<PerformanceMetric[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         return await db

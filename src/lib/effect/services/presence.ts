@@ -8,8 +8,8 @@
  */
 
 import { and, desc, eq, gt, sql } from "drizzle-orm";
-import { Context, Effect, Layer, Schedule } from "effect";
-import { userPresence, users, type UserPresence } from "@/lib/db/schema";
+import { Context, Effect, Layer } from "effect";
+import { userPresence, users } from "@/lib/db/schema";
 import { DatabaseError } from "../errors";
 import { Database } from "./database";
 
@@ -304,10 +304,7 @@ const makePresenceService = Effect.gen(function* () {
   const heartbeat = (userId: string, organizationId: string): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        await db
-          .update(userPresence)
-          .set({ lastSeen: new Date() })
-          .where(eq(userPresence.userId, userId));
+        await db.update(userPresence).set({ lastSeen: new Date() }).where(eq(userPresence.userId, userId));
       },
       catch: (error) =>
         new DatabaseError({

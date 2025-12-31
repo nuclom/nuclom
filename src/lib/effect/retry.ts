@@ -8,7 +8,7 @@
  * - Error filtering (only retry on specific errors)
  */
 
-import { Effect, Schedule, Duration } from "effect";
+import { type Duration, Effect, Schedule } from "effect";
 
 // =============================================================================
 // Types
@@ -130,9 +130,7 @@ export function createFilteredRetrySchedule<E>(
   shouldRetry: (error: E) => boolean,
 ): Schedule.Schedule<number, E, never> {
   const baseSchedule = createRetrySchedule(config);
-  return baseSchedule.pipe(
-    Schedule.whileInput((error: E) => shouldRetry(error)),
-  );
+  return baseSchedule.pipe(Schedule.whileInput((error: E) => shouldRetry(error)));
 }
 
 // =============================================================================

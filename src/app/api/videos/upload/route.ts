@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { AppLive, MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
 import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { processVideoWorkflow } from "@/workflows/video-processing";
 import type { ApiResponse } from "@/lib/types";
 import {
   sanitizeDescription,
@@ -12,6 +11,7 @@ import {
   validateVideoFile,
   videoUploadSchema,
 } from "@/lib/validation";
+import { processVideoWorkflow } from "@/workflows/video-processing";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
@@ -63,7 +63,6 @@ const mapErrorToResponse = (error: unknown): NextResponse => {
   console.error("[Error]", error);
   return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 };
-
 
 // =============================================================================
 // POST /api/videos/upload - Upload a video file

@@ -1,138 +1,168 @@
 /**
- * AI Service with Structured Outputs using Effect-TS and Zod
+ * AI Service with Structured Outputs using Effect-TS and Effect Schema
  *
  * Provides type-safe AI operations with guaranteed structured outputs.
- * Uses Vercel AI SDK with XAI Grok-3 model and Zod schemas for validation.
+ * Uses Vercel AI SDK with XAI Grok-3 model and Effect schemas for validation.
  */
 
 import { gateway } from "@ai-sdk/gateway";
-import { generateObject, generateText, streamText } from "ai";
-import { Context, Effect, Layer, Schedule, Stream } from "effect";
-import { z } from "zod";
+import { generateObject, generateText, jsonSchema, streamText } from "ai";
+import { Context, Effect, JSONSchema, Layer, Schedule, Schema, Stream } from "effect";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { AIServiceError } from "../errors";
 
 // =============================================================================
-// Zod Schemas for Structured AI Outputs
+// Effect Schemas for Structured AI Outputs
 // =============================================================================
 
-export const VideoSummarySchema = z.object({
-  summary: z.string().describe("A concise 2-3 sentence summary of the video content"),
-  keyPoints: z
-    .array(z.string())
-    .min(1)
-    .max(10)
-    .describe("Key points discussed in the video"),
-  actionItems: z
-    .array(z.string())
-    .describe("Action items or tasks mentioned in the video"),
-  topics: z
-    .array(z.string())
-    .max(5)
-    .describe("Main topics covered in the video"),
-  sentiment: z
-    .enum(["positive", "neutral", "negative", "mixed"])
-    .describe("Overall sentiment of the content"),
+export const VideoSummarySchema = Schema.Struct({
+  summary: Schema.String.annotations({ description: "A concise 2-3 sentence summary of the video content" }),
+  keyPoints: Schema.Array(Schema.String).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(10),
+    Schema.annotations({ description: "Key points discussed in the video" }),
+  ),
+  actionItems: Schema.Array(Schema.String).annotations({ description: "Action items or tasks mentioned in the video" }),
+  topics: Schema.Array(Schema.String).pipe(
+    Schema.maxItems(5),
+    Schema.annotations({ description: "Main topics covered in the video" }),
+  ),
+  sentiment: Schema.Literal("positive", "neutral", "negative", "mixed").annotations({
+    description: "Overall sentiment of the content",
+  }),
 });
 
-export const ActionItemSchema = z.object({
-  text: z.string().describe("Description of the action item"),
-  timestamp: z.number().optional().describe("Timestamp in seconds where this was mentioned"),
-  priority: z.enum(["high", "medium", "low"]).describe("Priority level based on urgency"),
-  assignee: z.string().optional().describe("Person assigned if mentioned"),
-  dueDate: z.string().optional().describe("Due date if mentioned"),
+export const ActionItemSchema = Schema.Struct({
+  text: Schema.String.annotations({ description: "Description of the action item" }),
+  timestamp: Schema.optional(Schema.Number).annotations({
+    description: "Timestamp in seconds where this was mentioned",
+  }),
+  priority: Schema.Literal("high", "medium", "low").annotations({ description: "Priority level based on urgency" }),
+  assignee: Schema.optional(Schema.String).annotations({ description: "Person assigned if mentioned" }),
+  dueDate: Schema.optional(Schema.String).annotations({ description: "Due date if mentioned" }),
 });
 
-export const ActionItemsSchema = z.object({
-  actionItems: z.array(ActionItemSchema).describe("List of action items extracted from the transcript"),
-  hasDeadlines: z.boolean().describe("Whether any action items have explicit deadlines"),
-  totalCount: z.number().describe("Total number of action items found"),
+export const ActionItemsSchema = Schema.Struct({
+  actionItems: Schema.Array(ActionItemSchema).annotations({
+    description: "List of action items extracted from the transcript",
+  }),
+  hasDeadlines: Schema.Boolean.annotations({ description: "Whether any action items have explicit deadlines" }),
+  totalCount: Schema.Number.annotations({ description: "Total number of action items found" }),
 });
 
-export const ChapterSchema = z.object({
-  title: z.string().max(100).describe("Chapter title"),
-  summary: z.string().max(500).optional().describe("Brief summary of the chapter"),
-  startTime: z.number().describe("Start time in seconds"),
-  endTime: z.number().optional().describe("End time in seconds"),
-  keyMoments: z.array(z.string()).max(3).optional().describe("Key moments in this chapter"),
+export const ChapterSchema = Schema.Struct({
+  title: Schema.String.pipe(Schema.maxLength(100)).annotations({ description: "Chapter title" }),
+  summary: Schema.optional(Schema.String.pipe(Schema.maxLength(500))).annotations({
+    description: "Brief summary of the chapter",
+  }),
+  startTime: Schema.Number.annotations({ description: "Start time in seconds" }),
+  endTime: Schema.optional(Schema.Number).annotations({ description: "End time in seconds" }),
+  keyMoments: Schema.optional(Schema.Array(Schema.String).pipe(Schema.maxItems(3))).annotations({
+    description: "Key moments in this chapter",
+  }),
 });
 
-export const ChaptersSchema = z.object({
-  chapters: z.array(ChapterSchema).min(1).max(15).describe("Video chapters"),
-  totalDuration: z.number().describe("Total video duration in seconds"),
+export const ChaptersSchema = Schema.Struct({
+  chapters: Schema.Array(ChapterSchema).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(15),
+    Schema.annotations({ description: "Video chapters" }),
+  ),
+  totalDuration: Schema.Number.annotations({ description: "Total video duration in seconds" }),
 });
 
-export const CodeSnippetSchema = z.object({
-  language: z
-    .enum([
-      "javascript",
-      "typescript",
-      "python",
-      "rust",
-      "go",
-      "java",
-      "csharp",
-      "cpp",
-      "ruby",
-      "php",
-      "swift",
-      "kotlin",
-      "shell",
-      "sql",
-      "html",
-      "css",
-      "json",
-      "yaml",
-      "markdown",
-      "other",
-    ])
-    .describe("Programming language"),
-  code: z.string().describe("The code snippet"),
-  title: z.string().max(100).optional().describe("Title describing what the code does"),
-  description: z.string().max(500).optional().describe("Explanation of the code"),
-  timestamp: z.number().optional().describe("Timestamp in seconds where this code was mentioned"),
-  context: z.string().optional().describe("Context or use case for this code"),
+const ProgrammingLanguage = Schema.Literal(
+  "javascript",
+  "typescript",
+  "python",
+  "rust",
+  "go",
+  "java",
+  "csharp",
+  "cpp",
+  "ruby",
+  "php",
+  "swift",
+  "kotlin",
+  "shell",
+  "sql",
+  "html",
+  "css",
+  "json",
+  "yaml",
+  "markdown",
+  "other",
+);
+
+export const CodeSnippetSchema = Schema.Struct({
+  language: ProgrammingLanguage.annotations({ description: "Programming language" }),
+  code: Schema.String.annotations({ description: "The code snippet" }),
+  title: Schema.optional(Schema.String.pipe(Schema.maxLength(100))).annotations({
+    description: "Title describing what the code does",
+  }),
+  description: Schema.optional(Schema.String.pipe(Schema.maxLength(500))).annotations({
+    description: "Explanation of the code",
+  }),
+  timestamp: Schema.optional(Schema.Number).annotations({
+    description: "Timestamp in seconds where this code was mentioned",
+  }),
+  context: Schema.optional(Schema.String).annotations({ description: "Context or use case for this code" }),
 });
 
-export const CodeSnippetsSchema = z.object({
-  snippets: z.array(CodeSnippetSchema).describe("Code snippets detected in the transcript"),
-  primaryLanguage: z.string().optional().describe("The primary programming language discussed"),
-  hasCommands: z.boolean().describe("Whether any terminal/CLI commands were detected"),
+export const CodeSnippetsSchema = Schema.Struct({
+  snippets: Schema.Array(CodeSnippetSchema).annotations({ description: "Code snippets detected in the transcript" }),
+  primaryLanguage: Schema.optional(Schema.String).annotations({
+    description: "The primary programming language discussed",
+  }),
+  hasCommands: Schema.Boolean.annotations({ description: "Whether any terminal/CLI commands were detected" }),
 });
 
-export const VideoTagsSchema = z.object({
-  tags: z.array(z.string()).min(3).max(10).describe("Relevant tags for the video"),
-  category: z
-    .enum([
-      "tutorial",
-      "demo",
-      "presentation",
-      "meeting",
-      "interview",
-      "review",
-      "announcement",
-      "discussion",
-      "other",
-    ])
-    .describe("Primary category of the video"),
-  technicalLevel: z
-    .enum(["beginner", "intermediate", "advanced", "expert"])
-    .optional()
-    .describe("Technical level of the content"),
+const VideoCategory = Schema.Literal(
+  "tutorial",
+  "demo",
+  "presentation",
+  "meeting",
+  "interview",
+  "review",
+  "announcement",
+  "discussion",
+  "other",
+);
+
+const TechnicalLevel = Schema.Literal("beginner", "intermediate", "advanced", "expert");
+
+export const VideoTagsSchema = Schema.Struct({
+  tags: Schema.Array(Schema.String).pipe(
+    Schema.minItems(3),
+    Schema.maxItems(10),
+    Schema.annotations({ description: "Relevant tags for the video" }),
+  ),
+  category: VideoCategory.annotations({ description: "Primary category of the video" }),
+  technicalLevel: Schema.optional(TechnicalLevel).annotations({ description: "Technical level of the content" }),
 });
 
 // =============================================================================
-// Types derived from Zod schemas
+// Types derived from Effect schemas
 // =============================================================================
 
-export type VideoSummary = z.infer<typeof VideoSummarySchema>;
-export type ActionItemResult = z.infer<typeof ActionItemSchema>;
-export type ActionItemsResult = z.infer<typeof ActionItemsSchema>;
-export type ChapterResult = z.infer<typeof ChapterSchema>;
-export type ChaptersResult = z.infer<typeof ChaptersSchema>;
-export type CodeSnippetResult = z.infer<typeof CodeSnippetSchema>;
-export type CodeSnippetsResult = z.infer<typeof CodeSnippetsSchema>;
-export type VideoTagsResult = z.infer<typeof VideoTagsSchema>;
+export type VideoSummary = typeof VideoSummarySchema.Type;
+export type ActionItemResult = typeof ActionItemSchema.Type;
+export type ActionItemsResult = typeof ActionItemsSchema.Type;
+export type ChapterResult = typeof ChapterSchema.Type;
+export type ChaptersResult = typeof ChaptersSchema.Type;
+export type CodeSnippetResult = typeof CodeSnippetSchema.Type;
+export type CodeSnippetsResult = typeof CodeSnippetsSchema.Type;
+export type VideoTagsResult = typeof VideoTagsSchema.Type;
+
+// =============================================================================
+// JSON Schema conversions for AI SDK
+// =============================================================================
+
+const videoSummaryJsonSchema = jsonSchema(JSONSchema.make(VideoSummarySchema));
+const actionItemsJsonSchema = jsonSchema(JSONSchema.make(ActionItemsSchema));
+const chaptersJsonSchema = jsonSchema(JSONSchema.make(ChaptersSchema));
+const codeSnippetsJsonSchema = jsonSchema(JSONSchema.make(CodeSnippetsSchema));
+const videoTagsJsonSchema = jsonSchema(JSONSchema.make(VideoTagsSchema));
 
 // =============================================================================
 // Service Interface
@@ -227,7 +257,7 @@ const makeAIStructuredService = Effect.gen(function* () {
       try: async () => {
         const result = await generateObject({
           model,
-          schema: VideoSummarySchema,
+          schema: videoSummaryJsonSchema,
           prompt: `Analyze this video transcript and provide a structured summary.
 
 Transcript:
@@ -240,7 +270,7 @@ Provide:
 4. Main topics covered (up to 5)
 5. Overall sentiment of the content`,
         });
-        return result.object;
+        return Schema.decodeUnknownSync(VideoSummarySchema)(result.object);
       },
       catch: (error) =>
         new AIServiceError({
@@ -259,7 +289,7 @@ Provide:
       try: async () => {
         const result = await generateObject({
           model,
-          schema: VideoTagsSchema,
+          schema: videoTagsJsonSchema,
           prompt: `Generate relevant tags and categorization for this video.
 
 Title: ${title}
@@ -271,7 +301,7 @@ Provide:
 2. The primary category of this content
 3. Technical level if applicable`,
         });
-        return result.object;
+        return Schema.decodeUnknownSync(VideoTagsSchema)(result.object);
       },
       catch: (error) =>
         new AIServiceError({
@@ -294,13 +324,11 @@ Provide:
   ): Effect.Effect<ActionItemsResult, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const result = await generateObject({
           model,
-          schema: ActionItemsSchema,
+          schema: actionItemsJsonSchema,
           prompt: `Extract all action items, tasks, and to-dos from this timestamped transcript.
 
 Transcript:
@@ -312,7 +340,7 @@ For each action item:
 3. Assign priority based on urgency indicators (words like "urgent", "ASAP", "important")
 4. Note any assignees or due dates mentioned`,
         });
-        return result.object;
+        return Schema.decodeUnknownSync(ActionItemsSchema)(result.object);
       },
       catch: (error) =>
         new AIServiceError({
@@ -343,7 +371,7 @@ For each action item:
 
         const result = await generateObject({
           model,
-          schema: CodeSnippetsSchema,
+          schema: codeSnippetsJsonSchema,
           prompt: `Detect and extract any code snippets, commands, or technical code mentioned in this transcript.
 
 Transcript:
@@ -363,7 +391,7 @@ For each snippet:
 - Provide a title and description
 - Include the timestamp if available`,
         });
-        return result.object;
+        return Schema.decodeUnknownSync(CodeSnippetsSchema)(result.object);
       },
       catch: (error) =>
         new AIServiceError({
@@ -395,15 +423,13 @@ For each snippet:
           };
         }
 
-        const formattedTranscript = segments
-          .map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`)
-          .join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
 
         const duration = totalDuration || Math.max(...segments.map((s) => s.endTime));
 
         const result = await generateObject({
           model,
-          schema: ChaptersSchema,
+          schema: chaptersJsonSchema,
           prompt: `Generate chapters (key moments) for this video based on the transcript.
 ${videoTitle ? `Video title: "${videoTitle}"` : ""}
 
@@ -419,7 +445,7 @@ Create 3-12 logical chapters:
 
 Ensure chapters cover the entire video without gaps.`,
         });
-        return result.object;
+        return Schema.decodeUnknownSync(ChaptersSchema)(result.object);
       },
       catch: (error) =>
         new AIServiceError({

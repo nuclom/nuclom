@@ -12,6 +12,7 @@
  * - Consumes no resources during sleep
  */
 
+import process from "node:process";
 import { and, isNotNull, lt, sql } from "drizzle-orm";
 import { sleep } from "workflow";
 import { db } from "@/lib/db";
@@ -113,10 +114,10 @@ export async function scheduledCleanupWorkflow(): Promise<never> {
     try {
       const deletedCount = await cleanupExpiredVideos();
       console.log(`[Cleanup Workflow] Deleted ${deletedCount} expired videos at ${new Date().toISOString()}`);
-      "use step";
+      ("use step");
     } catch (error) {
       console.error("[Cleanup Workflow] Error during cleanup:", error);
-      "use step";
+      ("use step");
     }
 
     // Sleep for 24 hours

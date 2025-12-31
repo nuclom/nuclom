@@ -1,36 +1,31 @@
-import { Effect } from "effect";
-import type { z } from "zod";
+import { Effect, ParseResult, Schema } from "effect";
 import { ValidationError } from "@/lib/effect/errors";
 
 /**
- * Validates data against a Zod schema and returns an Effect
+ * Validates data against an Effect Schema and returns an Effect
  * that either succeeds with the parsed data or fails with a ValidationError.
  */
-export function validate<T extends z.ZodSchema>(schema: T, data: unknown): Effect.Effect<z.infer<T>, ValidationError> {
-  return Effect.try({
-    try: () => schema.parse(data),
-    catch: (error) => {
-      if (error && typeof error === "object" && "errors" in error) {
-        const zodError = error as { errors: Array<{ message: string; path: (string | number)[] }> };
-        const messages = zodError.errors.map((e) =>
-          e.path.length > 0 ? `${e.path.join(".")}: ${e.message}` : e.message,
-        );
-        return new ValidationError({ message: messages.join("; ") });
-      }
-      return new ValidationError({ message: "Validation failed" });
-    },
-  });
+export function validate<A, I>(schema: Schema.Schema<A, I>, data: unknown): Effect.Effect<A, ValidationError> {
+  return Schema.decodeUnknown(schema)(data).pipe(
+    Effect.mapError((error) => {
+      const issues = ParseResult.ArrayFormatter.formatErrorSync(error);
+      const messages = issues.map((issue) =>
+        issue.path.length > 0 ? `${issue.path.join(".")}: ${issue.message}` : issue.message,
+      );
+      return new ValidationError({ message: messages.join("; ") });
+    }),
+  );
 }
 
 /**
- * Validates data against a Zod schema and returns an Effect
+ * Validates data against an Effect Schema and returns an Effect
  * that succeeds with the parsed data or fails with a ValidationError.
  * Returns undefined instead of failing for missing optional data.
  */
-export function validateOptional<T extends z.ZodSchema>(
-  schema: T,
+export function validateOptional<A, I>(
+  schema: Schema.Schema<A, I>,
   data: unknown,
-): Effect.Effect<z.infer<T> | undefined, ValidationError> {
+): Effect.Effect<A | undefined, ValidationError> {
   if (data === undefined || data === null) {
     return Effect.succeed(undefined);
   }
@@ -38,26 +33,24 @@ export function validateOptional<T extends z.ZodSchema>(
 }
 
 /**
- * Safely parses data against a Zod schema.
+ * Safely parses data against an Effect Schema.
  * Returns the parsed data or null if validation fails.
  * Does not throw errors - useful for form handling.
  */
-export function safeParse<T extends z.ZodSchema>(
-  schema: T,
+export function safeParse<A, I>(
+  schema: Schema.Schema<A, I>,
   data: unknown,
-): { success: true; data: z.infer<T> } | { success: false; errors: string[] } {
-  const result = schema.safeParse(data);
+): { success: true; data: A } | { success: false; errors: string[] } {
+  const result = Schema.decodeUnknownEither(schema)(data);
 
-  if (result.success) {
-    return { success: true, data: result.data };
+  if (result._tag === "Right") {
+    return { success: true, data: result.right };
   }
 
-  // Handle Zod 4 error structure
-  const zodError = result.error;
-  const issues = "issues" in zodError ? zodError.issues : [];
-  const errors = issues.map((e) => {
-    const path = e.path.map(String);
-    return path.length > 0 ? `${path.join(".")}: ${e.message}` : e.message;
+  const issues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
+  const errors = issues.map((issue) => {
+    const path = issue.path.map(String);
+    return path.length > 0 ? `${path.join(".")}: ${issue.message}` : issue.message;
   });
 
   return { success: false, errors };
@@ -88,23 +81,23 @@ export function parseQueryParams(url: string | URL): Record<string, unknown> {
 }
 
 /**
- * Validates query parameters against a Zod schema.
+ * Validates query parameters against an Effect Schema.
  */
-export function validateQueryParams<T extends z.ZodSchema>(
-  schema: T,
+export function validateQueryParams<A, I>(
+  schema: Schema.Schema<A, I>,
   url: string | URL,
-): Effect.Effect<z.infer<T>, ValidationError> {
+): Effect.Effect<A, ValidationError> {
   const params = parseQueryParams(url);
   return validate(schema, params);
 }
 
 /**
- * Validates a JSON request body against a Zod schema.
+ * Validates a JSON request body against an Effect Schema.
  */
-export function validateRequestBody<T extends z.ZodSchema>(
-  schema: T,
+export function validateRequestBody<A, I>(
+  schema: Schema.Schema<A, I>,
   request: Request,
-): Effect.Effect<z.infer<T>, ValidationError> {
+): Effect.Effect<A, ValidationError> {
   return Effect.gen(function* () {
     const body = yield* Effect.tryPromise({
       try: () => request.json(),
@@ -116,12 +109,12 @@ export function validateRequestBody<T extends z.ZodSchema>(
 }
 
 /**
- * Validates form data against a Zod schema.
+ * Validates form data against an Effect Schema.
  */
-export function validateFormData<T extends z.ZodSchema>(
-  schema: T,
+export function validateFormData<A, I>(
+  schema: Schema.Schema<A, I>,
   formData: FormData,
-): Effect.Effect<z.infer<T>, ValidationError> {
+): Effect.Effect<A, ValidationError> {
   const data: Record<string, unknown> = {};
 
   formData.forEach((value, key) => {

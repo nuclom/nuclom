@@ -7,9 +7,9 @@
  * - Notes and annotations
  */
 
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { watchLater, videos, users, type WatchLater } from "@/lib/db/schema";
+import { users, videos, type WatchLater, watchLater } from "@/lib/db/schema";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
@@ -157,17 +157,26 @@ const makeWatchLaterService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(watchLater)
           .innerJoin(videos, eq(watchLater.videoId, videos.id))
           .innerJoin(users, eq(videos.authorId, users.id))
           .where(
-            and(
-              eq(watchLater.userId, userId),
-              eq(videos.organizationId, organizationId),
-              isNull(videos.deletedAt),
-            ),
+            and(eq(watchLater.userId, userId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)),
           )
           .orderBy(orderByClause);
 
@@ -222,10 +231,7 @@ const makeWatchLaterService = Effect.gen(function* () {
         }),
     });
 
-  const removeFromWatchLater = (
-    userId: string,
-    videoId: string,
-  ): Effect.Effect<void, DatabaseError | NotFoundError> =>
+  const removeFromWatchLater = (userId: string, videoId: string): Effect.Effect<void, DatabaseError | NotFoundError> =>
     Effect.tryPromise({
       try: async () => {
         const result = await db
@@ -347,10 +353,7 @@ const makeWatchLaterService = Effect.gen(function* () {
   const getWatchLaterCount = (userId: string): Effect.Effect<number, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        const result = await db
-          .select({ count: watchLater.id })
-          .from(watchLater)
-          .where(eq(watchLater.userId, userId));
+        const result = await db.select({ count: watchLater.id }).from(watchLater).where(eq(watchLater.userId, userId));
 
         return result.length;
       },

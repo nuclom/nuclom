@@ -18,10 +18,11 @@
  * - Built-in observability
  */
 
+import process from "node:process";
 import { eq } from "drizzle-orm";
 import { FatalError } from "workflow";
 import { db } from "@/lib/db";
-import { importedMeetings, videos, type IntegrationProvider } from "@/lib/db/schema";
+import { type IntegrationProvider, importedMeetings, videos } from "@/lib/db/schema";
 import { processVideoWorkflow } from "./video-processing";
 
 // =============================================================================
@@ -103,9 +104,7 @@ async function downloadGoogleMeetRecording(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to download Google Meet recording: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`Failed to download Google Meet recording: ${response.status} ${response.statusText}`);
   }
 
   const arrayBuffer = await response.arrayBuffer();
@@ -117,11 +116,7 @@ async function downloadGoogleMeetRecording(
   };
 }
 
-async function uploadToR2(
-  buffer: Buffer,
-  key: string,
-  contentType: string,
-): Promise<{ url: string }> {
+async function uploadToR2(buffer: Buffer, key: string, contentType: string): Promise<{ url: string }> {
   const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
 
   const accountId = process.env.R2_ACCOUNT_ID;
@@ -186,26 +181,16 @@ function formatDuration(seconds: number): string {
  * Each step is checkpointed, so if the server restarts or there's a
  * transient failure, processing resumes from the last successful step.
  */
-export async function importMeetingWorkflow(
-  input: ImportMeetingInput,
-): Promise<ImportMeetingResult> {
+export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<ImportMeetingResult> {
   "use workflow";
 
-  const {
-    importedMeetingId,
-    provider,
-    externalId,
-    downloadUrl,
-    meetingTitle,
-    userId,
-    organizationId,
-    accessToken,
-  } = input;
+  const { importedMeetingId, provider, externalId, downloadUrl, meetingTitle, userId, organizationId, accessToken } =
+    input;
 
   try {
     // Step 1: Update import status to downloading
     await updateImportStatus(importedMeetingId, "downloading");
-    "use step";
+    ("use step");
 
     // Step 2: Download the recording from provider
     let downloadResult: { buffer: Buffer; contentType: string };
@@ -215,17 +200,17 @@ export async function importMeetingWorkflow(
     } else {
       downloadResult = await downloadGoogleMeetRecording(externalId, accessToken);
     }
-    "use step";
+    ("use step");
 
     // Step 3: Upload to R2 storage
     const filename = `${externalId}.mp4`;
     const key = `videos/${organizationId}/${filename}`;
     const uploadResult = await uploadToR2(downloadResult.buffer, key, downloadResult.contentType);
-    "use step";
+    ("use step");
 
     // Step 4: Update status to processing
     await updateImportStatus(importedMeetingId, "processing");
-    "use step";
+    ("use step");
 
     // Step 5: Create video record
     const estimatedDuration = Math.round(downloadResult.buffer.length / 100000);
@@ -242,14 +227,14 @@ export async function importMeetingWorkflow(
         processingStatus: "pending",
       })
       .returning();
-    "use step";
+    ("use step");
 
     // Step 6: Update imported meeting with video ID
     await updateImportStatus(importedMeetingId, "completed", {
       videoId: video.id,
       importedAt: new Date(),
     });
-    "use step";
+    ("use step");
 
     // Step 7: Trigger video processing workflow
     // This is a separate durable workflow that will handle transcription and AI analysis

@@ -5,7 +5,7 @@
 Simple, transparent pricing for our video collaboration platform.
 
 - **No free tier**
-- **15-day free trial** (no credit card required)
+- **14-day free trial** (no credit card required)
 - **Resources deleted** if payment not received within 30 days after trial ends
 
 ---
@@ -121,14 +121,31 @@ Annual billing: $228/user/year (vs $300 monthly)
 
 ## Trial & Payment Policy
 
-### 15-Day Free Trial
+### 14-Day Free Trial
 - Full access to all features
 - No credit card required
-- Email reminders at day 10, 13, and 15
+- Email reminders at day 7, 12, and 14
 
 ### Payment Terms
 - Payment due within 30 days of trial end
 - Accepted: Credit card, ACH transfer
+
+### Refund Policy
+
+| Plan | Refund Policy | Details |
+|------|---------------|---------|
+| **Monthly** | Prorated daily refund | Refund = remaining days × daily rate |
+| **Yearly** | Non-refundable | No refunds after subscription starts |
+
+**Monthly Refund Calculation:**
+- Daily rate = $25 ÷ 30 = $0.833/day
+- Refund amount = Days remaining × $0.833
+- Example: Cancel after 10 days = 20 days × $0.833 = $16.67 refund
+
+**Yearly Plan:**
+- 24% discount reflects commitment to full year
+- No partial refunds available
+- Can cancel at end of billing period (no renewal)
 
 ### Data Retention
 | Scenario | Data Kept | Then Deleted |
@@ -158,7 +175,7 @@ Annual billing: $228/user/year (vs $300 monthly)
 
 ### Feature Flags
 - `subscription.active`: Full access
-- `subscription.trial`: 15-day trial period
+- `subscription.trial`: 14-day trial period
 - `subscription.expired`: Read-only, then deletion
 
 ### Metering
@@ -169,6 +186,28 @@ Annual billing: $228/user/year (vs $300 monthly)
 ### Overage Handling
 No hard limits - usage is monitored and users contacted if significantly exceeding fair use (>2x allocation).
 
+### Stripe IaC Setup
+
+Run the setup script to create Stripe products and prices:
+
+```bash
+# Preview changes (dry run)
+STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts --dry-run
+
+# Create resources in Stripe
+STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts
+
+# Force update existing resources
+STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts --force
+```
+
+**Stripe Products/Prices Created:**
+
+| Product | Price ID Nickname | Amount | Interval | Refund Policy |
+|---------|-------------------|--------|----------|---------------|
+| Nuclom Pro | Pro Monthly | $25.00 | month | Prorated daily |
+| Nuclom Pro | Pro Yearly | $228.00 | year | Non-refundable |
+
 ---
 
-*Last Updated: December 2024*
+*Last Updated: December 2025*

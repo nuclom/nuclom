@@ -17,8 +17,9 @@
  * - Resource-efficient sleep
  */
 
+import process from "node:process";
 import { eq } from "drizzle-orm";
-import { sleep, FatalError } from "workflow";
+import { FatalError, sleep } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, organizations, subscriptions, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
@@ -43,10 +44,7 @@ export interface TrialReminderResult {
 // Helper Functions
 // =============================================================================
 
-async function sendTrialReminder(
-  subscriptionId: string,
-  daysRemaining: number,
-): Promise<void> {
+async function sendTrialReminder(subscriptionId: string, daysRemaining: number): Promise<void> {
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.id, subscriptionId),
@@ -173,9 +171,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Skip if this reminder time has already passed
     if (reminderTime <= now) {
-      console.log(
-        `[Trial Reminder] Skipping ${daysBeforeEnd}-day reminder for ${subscriptionId} (already passed)`,
-      );
+      console.log(`[Trial Reminder] Skipping ${daysBeforeEnd}-day reminder for ${subscriptionId} (already passed)`);
       continue;
     }
 
@@ -188,7 +184,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Sleep until reminder time
     await sleep(sleepDuration);
-    "use step";
+    ("use step");
 
     // Verify subscription still exists and is still on trial
     const subscription = await db.query.subscriptions.findFirst({
@@ -211,7 +207,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     try {
       await sendTrialReminder(subscriptionId, daysBeforeEnd);
       remindersSent++;
-      "use step";
+      ("use step");
     } catch (error) {
       console.error(`[Trial Reminder] Failed to send ${daysBeforeEnd}-day reminder:`, error);
       // Continue to next reminder even if this one fails

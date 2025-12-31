@@ -105,6 +105,7 @@ const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 const SKIP_SECONDS = 10;
 const PROGRESS_SAVE_INTERVAL = 5000; // Save progress every 5 seconds
 const COMPLETION_THRESHOLD = 0.9; // 90% watched = completed
+const VIEW_TRACKING_INTERVAL = 30000; // Update view progress every 30 seconds
 
 // Keyboard shortcuts documentation
 const KEYBOARD_SHORTCUTS = [
@@ -171,6 +172,20 @@ export function VideoPlayer({
   const [captionsEnabled, setCaptionsEnabled] = useState(false);
   const [selectedCaptionTrack, setSelectedCaptionTrack] = useState<string | null>(null);
   const [availableCaptionTracks, setAvailableCaptionTracks] = useState<CaptionTrack[]>([]);
+
+  // View tracking state
+  const [hasTrackedView, setHasTrackedView] = useState(false);
+  const viewTrackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate or retrieve session ID for view tracking
+  const sessionId = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    const stored = localStorage.getItem("viewSessionId");
+    if (stored) return stored;
+    const id = crypto.randomUUID();
+    localStorage.setItem("viewSessionId", id);
+    return id;
+  }, []);
 
   // Load caption tracks from API or use custom tracks
   useEffect(() => {
@@ -456,6 +471,70 @@ export function VideoPlayer({
   }, []);
 
   // =============================================================================
+  // View Tracking Functions
+  // =============================================================================
+
+  // Track view on first play
+  const trackView = useCallback(async () => {
+    if (!videoId || !sessionId || hasTrackedView) return;
+
+    try {
+      await fetch(`/api/videos/${videoId}/views`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      setHasTrackedView(true);
+    } catch (error) {
+      console.error("Failed to track view:", error);
+    }
+  }, [videoId, sessionId, hasTrackedView]);
+
+  // Update view progress
+  const updateViewProgress = useCallback(async () => {
+    const video = videoRef.current;
+    if (!videoId || !sessionId || !hasTrackedView || !video || !Number.isFinite(video.duration)) return;
+
+    try {
+      await fetch(`/api/videos/${videoId}/views`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          watchDuration: Math.floor(video.currentTime),
+          completionPercent: Math.floor((video.currentTime / video.duration) * 100),
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to update view progress:", error);
+    }
+  }, [videoId, sessionId, hasTrackedView]);
+
+  // Set up view progress tracking interval
+  useEffect(() => {
+    if (playing && hasTrackedView && videoId) {
+      viewTrackingIntervalRef.current = setInterval(updateViewProgress, VIEW_TRACKING_INTERVAL);
+    } else if (viewTrackingIntervalRef.current) {
+      clearInterval(viewTrackingIntervalRef.current);
+      viewTrackingIntervalRef.current = null;
+    }
+
+    return () => {
+      if (viewTrackingIntervalRef.current) {
+        clearInterval(viewTrackingIntervalRef.current);
+        viewTrackingIntervalRef.current = null;
+      }
+    };
+  }, [playing, hasTrackedView, videoId, updateViewProgress]);
+
+  // Update view progress when video ends or pauses
+  useEffect(() => {
+    if (!playing && hasTrackedView) {
+      updateViewProgress();
+    }
+  }, [playing, hasTrackedView, updateViewProgress]);
+
+  // =============================================================================
   // Video Event Handlers
   // =============================================================================
 
@@ -499,7 +578,11 @@ export function VideoPlayer({
   const handlePlay = useCallback(() => {
     setPlaying(true);
     setVideoState("playing");
-  }, []);
+    // Track view on first play
+    if (!hasTrackedView && videoId) {
+      trackView();
+    }
+  }, [hasTrackedView, videoId, trackView]);
 
   const handlePause = useCallback(() => {
     setPlaying(false);

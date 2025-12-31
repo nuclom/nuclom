@@ -1,6 +1,6 @@
-import type React from "react";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/next";
+import type React from "react";
 
 // Internal docs tree - only shown when viewing internal docs
 const internalTree = {
@@ -47,11 +47,7 @@ const internalTree = {
   ],
 };
 
-export default function InternalDocsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function InternalDocsLayout({ children }: { children: React.ReactNode }) {
   return (
     <RootProvider>
       <DocsLayout

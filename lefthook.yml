@@ -1,0 +1,10 @@
+# Lefthook configuration
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: false
+  commands:
+    lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: pnpm lint:fix
+      stage_fixed: true

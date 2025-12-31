@@ -352,120 +352,99 @@ export default function LandingPage() {
             </Badge>
             <h3 className="text-4xl md:text-5xl font-bold mb-6">Simple, Transparent Pricing</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Choose the plan that fits your team's needs. Start free and scale as you grow.
+              One powerful plan for teams of any size. Start with a 14-day free trial.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter Plan */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Monthly Plan */}
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl mb-2">Starter</CardTitle>
-                <div className="text-4xl font-bold mb-2">Free</div>
-                <CardDescription className="text-base">Perfect for small teams getting started</CardDescription>
+                <CardTitle className="text-2xl mb-2">Monthly</CardTitle>
+                <div className="text-4xl font-bold mb-2">
+                  $25
+                  <span className="text-base font-normal text-muted-foreground">/user/month</span>
+                </div>
+                <CardDescription className="text-base">Flexible month-to-month billing</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Up to 5 team members</span>
+                    <span>20 GB storage per user</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>10 GB storage</span>
+                    <span>AI transcription &amp; summaries</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Basic collaboration tools</span>
+                    <span>10 subtitle languages</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Email support</span>
+                    <span>Zoom &amp; Google Meet import</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
+                    <span>Prorated refund if canceled</span>
                   </li>
                 </ul>
                 <Button className="w-full mt-8" variant="outline" asChild>
-                  <Link href="/register">Get Started Free</Link>
+                  <Link href="/register">Start 14-Day Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Pro Plan */}
+            {/* Yearly Plan */}
             <Card className="relative border-2 border-primary shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="px-4 py-1 bg-primary text-primary-foreground">Most Popular</Badge>
+                <Badge className="px-4 py-1 bg-primary text-primary-foreground">Save 24%</Badge>
               </div>
               <CardHeader className="text-center pb-8 pt-8">
-                <CardTitle className="text-2xl mb-2">Pro</CardTitle>
+                <CardTitle className="text-2xl mb-2">Yearly</CardTitle>
                 <div className="text-4xl font-bold mb-2">
-                  $29
-                  <span className="text-base font-normal text-muted-foreground">/month</span>
+                  $19
+                  <span className="text-base font-normal text-muted-foreground">/user/month</span>
                 </div>
-                <CardDescription className="text-base">For growing teams that need more power</CardDescription>
+                <CardDescription className="text-base">$228/user billed annually</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Up to 25 team members</span>
+                    <span>20 GB storage per user</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>100 GB storage</span>
+                    <span>AI transcription &amp; summaries</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Advanced collaboration</span>
+                    <span>10 subtitle languages</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>AI-powered features</span>
+                    <span>Zoom &amp; Google Meet import</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Priority support</span>
+                    <span>Priority support included</span>
                   </li>
                 </ul>
                 <Button className="w-full mt-8" asChild>
-                  <Link href="/register">Start Free Trial</Link>
+                  <Link href="/register">Start 14-Day Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Enterprise Plan */}
-            <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
-                <div className="text-4xl font-bold mb-2">Custom</div>
-                <CardDescription className="text-base">For large organizations with custom needs</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pb-8">
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>Unlimited team members</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>Unlimited storage</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>Custom integrations</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>Dedicated support</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>SLA guarantee</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full mt-8" asChild>
-                  <Link href="/contact">Contact Sales</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Enterprise CTA */}
+          <div className="mt-12 text-center">
+            <p className="text-muted-foreground mb-4">Need custom integrations, SSO, or dedicated support?</p>
+            <Button variant="outline" asChild>
+              <Link href="/contact">Contact Sales for Enterprise</Link>
+            </Button>
           </div>
         </div>
       </section>

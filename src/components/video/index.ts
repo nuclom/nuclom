@@ -6,6 +6,7 @@
 
 export { TranscriptDisplay, type TranscriptDisplayProps } from "./transcript-display";
 export { TranscriptEditor, type TranscriptEditorProps } from "./transcript-editor";
+export { VideoActions, type VideoActionsProps } from "./video-actions";
 export {
   VideoDetailClient,
   type VideoDetailClientProps,
@@ -25,4 +26,3 @@ export {
   VideoPlayerWithProgress,
   type VideoPlayerWithProgressProps,
 } from "./video-player-with-progress";
-export { VideoActions, type VideoActionsProps } from "./video-actions";

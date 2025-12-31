@@ -8,6 +8,7 @@
 
 import { Context, Effect, Layer, pipe } from "effect";
 import { v4 as uuidv4 } from "uuid";
+import { formatDuration } from "@/lib/format-utils";
 import { FileSizeExceededError, UnsupportedFormatError, type VideoError, VideoProcessingError } from "../errors";
 import { Storage, type UploadProgress } from "./storage";
 
@@ -110,17 +111,6 @@ const getExtension = (filename: string): string => {
 const getContentType = (filename: string): string => {
   const ext = getExtension(filename);
   return CONTENT_TYPES[ext] || "video/mp4";
-};
-
-const formatDuration = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 };
 
 /**

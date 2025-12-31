@@ -1,27 +1,35 @@
 import process from "node:process";
-import { z } from "zod/v4";
+import { Schema } from "effect";
 import { ClientEnv } from "@/lib/env/client";
 
-export const ServerEnv = z.object({
-  ...ClientEnv.shape,
-  APP_URL: z.string().url().default("http://localhost:3000"),
-  DATABASE_URL: z.string(),
-  VERCEL_OIDC_TOKEN: z.string().optional(),
-  RESEND_API_KEY: z.string(),
-  RESEND_FROM_EMAIL: z.string().optional(),
-  GITHUB_CLIENT_ID: z.string(),
-  GITHUB_CLIENT_SECRET: z.string(),
-  GOOGLE_CLIENT_ID: z.string(),
-  GOOGLE_CLIENT_SECRET: z.string(),
-  ZOOM_CLIENT_ID: z.string().optional(),
-  ZOOM_CLIENT_SECRET: z.string().optional(),
-  R2_ACCOUNT_ID: z.string(),
-  R2_ACCESS_KEY_ID: z.string(),
-  R2_SECRET_ACCESS_KEY: z.string(),
-  R2_BUCKET_NAME: z.string(),
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  STRIPE_SECRET_KEY: z.string(),
-  STRIPE_WEBHOOK_SECRET: z.string(),
+const NodeEnv = Schema.Literal("development", "test", "production");
+
+export const ServerEnv = Schema.Struct({
+  ...ClientEnv.fields,
+  APP_URL: Schema.String.pipe(
+    Schema.filter((s) => URL.canParse(s)),
+    Schema.propertySignature,
+    Schema.withConstructorDefault(() => "http://localhost:3000"),
+  ),
+  DATABASE_URL: Schema.String,
+  VERCEL_OIDC_TOKEN: Schema.optional(Schema.String),
+  RESEND_API_KEY: Schema.String,
+  RESEND_FROM_EMAIL: Schema.optional(Schema.String),
+  GITHUB_CLIENT_ID: Schema.String,
+  GITHUB_CLIENT_SECRET: Schema.String,
+  GOOGLE_CLIENT_ID: Schema.String,
+  GOOGLE_CLIENT_SECRET: Schema.String,
+  ZOOM_CLIENT_ID: Schema.optional(Schema.String),
+  ZOOM_CLIENT_SECRET: Schema.optional(Schema.String),
+  R2_ACCOUNT_ID: Schema.String,
+  R2_ACCESS_KEY_ID: Schema.String,
+  R2_SECRET_ACCESS_KEY: Schema.String,
+  R2_BUCKET_NAME: Schema.String,
+  NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => "development" as const }),
+  STRIPE_SECRET_KEY: Schema.String,
+  STRIPE_WEBHOOK_SECRET: Schema.String,
 });
 
-export const env = ServerEnv.parse(process.env);
+export type ServerEnvType = typeof ServerEnv.Type;
+
+export const env = Schema.decodeUnknownSync(ServerEnv)(process.env);

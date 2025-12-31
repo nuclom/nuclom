@@ -10,12 +10,8 @@
 
 import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import {
-  videoProgresses,
-  videos,
-  users,
-  type Video,
-} from "@/lib/db/schema";
+import { users, videoProgresses, videos } from "@/lib/db/schema";
+import { formatDuration } from "@/lib/format-utils";
 import type { VideoWithAuthor } from "@/lib/types";
 import { DatabaseError } from "../errors";
 import { Database } from "./database";
@@ -79,10 +75,7 @@ export interface RecommendationsServiceInterface {
   /**
    * Get similar videos based on tags and content
    */
-  readonly getSimilarVideos: (
-    videoId: string,
-    limit?: number,
-  ) => Effect.Effect<VideoWithAuthor[], DatabaseError>;
+  readonly getSimilarVideos: (videoId: string, limit?: number) => Effect.Effect<VideoWithAuthor[], DatabaseError>;
 
   /**
    * Get recently watched videos for a user
@@ -105,11 +98,7 @@ export interface RecommendationsServiceInterface {
   /**
    * Record a video view for recommendations
    */
-  readonly recordView: (
-    userId: string,
-    videoId: string,
-    progress: number,
-  ) => Effect.Effect<void, DatabaseError>;
+  readonly recordView: (userId: string, videoId: string, progress: number) => Effect.Effect<void, DatabaseError>;
 }
 
 // =============================================================================
@@ -134,16 +123,6 @@ const parseDuration = (duration: string): number => {
     return parts[0] * 60 + parts[1];
   }
   return parts[0] || 0;
-};
-
-const formatDuration = (seconds: number): string => {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
 // =============================================================================
@@ -249,6 +228,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -336,6 +328,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
             currentTime: videoProgresses.currentTime,
             completed: videoProgresses.completed,
@@ -419,11 +424,7 @@ const makeRecommendationsService = Effect.gen(function* () {
             viewCount: sql<number>`count(*)::int`,
           })
           .from(videoProgresses)
-          .where(
-            and(
-              sql`${videoProgresses.lastWatchedAt} >= ${sinceDate}`,
-            ),
-          )
+          .where(and(sql`${videoProgresses.lastWatchedAt} >= ${sinceDate}`))
           .groupBy(videoProgresses.videoId)
           .orderBy(desc(sql`count(*)`))
           .limit(limit * 2);
@@ -471,16 +472,25 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
           .innerJoin(users, eq(videos.authorId, users.id))
           .where(
-            and(
-              eq(videos.organizationId, organizationId),
-              inArray(videos.id, videoIds),
-              isNull(videos.deletedAt),
-            ),
+            and(eq(videos.organizationId, organizationId), inArray(videos.id, videoIds), isNull(videos.deletedAt)),
           );
 
         // Calculate trending score (views + recency boost)
@@ -509,10 +519,7 @@ const makeRecommendationsService = Effect.gen(function* () {
         }),
     });
 
-  const getSimilarVideos = (
-    videoId: string,
-    limit = 6,
-  ): Effect.Effect<VideoWithAuthor[], DatabaseError> =>
+  const getSimilarVideos = (videoId: string, limit = 6): Effect.Effect<VideoWithAuthor[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         // Get the source video's tags and details
@@ -575,6 +582,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -657,6 +677,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videoProgresses)
@@ -712,9 +745,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           return [];
         }
 
-        const favoriteChannelIds = channelWatches
-          .filter((c) => c.channelId !== null)
-          .map((c) => c.channelId as string);
+        const favoriteChannelIds = channelWatches.filter((c) => c.channelId !== null).map((c) => c.channelId as string);
 
         // Get unwatched videos from favorite channels
         const watchedVideoIds = await db
@@ -770,6 +801,19 @@ const makeRecommendationsService = Effect.gen(function* () {
               banned: users.banned,
               banReason: users.banReason,
               banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              tosAcceptedAt: users.tosAcceptedAt,
+              tosVersion: users.tosVersion,
+              privacyAcceptedAt: users.privacyAcceptedAt,
+              privacyVersion: users.privacyVersion,
+              marketingConsentAt: users.marketingConsentAt,
+              marketingConsent: users.marketingConsent,
+              deletionRequestedAt: users.deletionRequestedAt,
+              deletionScheduledFor: users.deletionScheduledFor,
+              warnedAt: users.warnedAt,
+              warningReason: users.warningReason,
+              suspendedUntil: users.suspendedUntil,
+              suspensionReason: users.suspensionReason,
             },
           })
           .from(videos)
@@ -788,11 +832,7 @@ const makeRecommendationsService = Effect.gen(function* () {
         }),
     });
 
-  const recordView = (
-    userId: string,
-    videoId: string,
-    progress: number,
-  ): Effect.Effect<void, DatabaseError> =>
+  const recordView = (userId: string, videoId: string, progress: number): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         // Get video duration to calculate current time

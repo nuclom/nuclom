@@ -9,13 +9,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import {
-  commentReactions,
-  comments,
-  users,
-  type CommentReaction,
-  type ReactionType,
-} from "@/lib/db/schema";
+import { type CommentReaction, commentReactions, type ReactionType, users } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
 
@@ -96,10 +90,7 @@ export interface CommentReactionsServiceInterface {
   /**
    * Get user's reactions on a comment
    */
-  readonly getUserReactions: (
-    commentId: string,
-    userId: string,
-  ) => Effect.Effect<ReactionType[], DatabaseError>;
+  readonly getUserReactions: (commentId: string, userId: string) => Effect.Effect<ReactionType[], DatabaseError>;
 
   /**
    * Check if user has reacted with specific type
@@ -231,9 +222,7 @@ const makeCommentReactionsService = Effect.gen(function* () {
 
         if (existing.length > 0) {
           // Remove the reaction
-          await db
-            .delete(commentReactions)
-            .where(eq(commentReactions.id, existing[0].id));
+          await db.delete(commentReactions).where(eq(commentReactions.id, existing[0].id));
           return { added: false };
         } else {
           // Add the reaction
@@ -301,7 +290,7 @@ const makeCommentReactionsService = Effect.gen(function* () {
           .groupBy(commentReactions.commentId, commentReactions.reactionType);
 
         // Get user's reactions if userId provided
-        let userReactionsMap = new Map<string, ReactionType[]>();
+        const userReactionsMap = new Map<string, ReactionType[]>();
         if (userId) {
           const userReactions = await db
             .select({
@@ -309,12 +298,7 @@ const makeCommentReactionsService = Effect.gen(function* () {
               reactionType: commentReactions.reactionType,
             })
             .from(commentReactions)
-            .where(
-              and(
-                sql`${commentReactions.commentId} = ANY(${commentIds})`,
-                eq(commentReactions.userId, userId),
-              ),
-            );
+            .where(and(sql`${commentReactions.commentId} = ANY(${commentIds})`, eq(commentReactions.userId, userId)));
 
           for (const ur of userReactions) {
             const existing = userReactionsMap.get(ur.commentId) || [];
@@ -394,21 +378,13 @@ const makeCommentReactionsService = Effect.gen(function* () {
         }),
     });
 
-  const getUserReactions = (
-    commentId: string,
-    userId: string,
-  ): Effect.Effect<ReactionType[], DatabaseError> =>
+  const getUserReactions = (commentId: string, userId: string): Effect.Effect<ReactionType[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const reactions = await db
           .select({ reactionType: commentReactions.reactionType })
           .from(commentReactions)
-          .where(
-            and(
-              eq(commentReactions.commentId, commentId),
-              eq(commentReactions.userId, userId),
-            ),
-          );
+          .where(and(eq(commentReactions.commentId, commentId), eq(commentReactions.userId, userId)));
 
         return reactions.map((r) => r.reactionType);
       },

@@ -136,21 +136,12 @@ export default function OnboardingPage() {
       {/* Content */}
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl">
-          {currentStep === 0 && (
-            <StepWelcome userName={user?.name || undefined} onNext={handleNext} />
-          )}
+          {currentStep === 0 && <StepWelcome userName={user?.name || undefined} onNext={handleNext} />}
 
-          {currentStep === 1 && (
-            <StepPersonalize onNext={handlePersonalize} onBack={handleBack} />
-          )}
+          {currentStep === 1 && <StepPersonalize onNext={handlePersonalize} onBack={handleBack} />}
 
           {currentStep === 2 && (
-            <StepCreateOrg
-              onNext={handleCreateOrg}
-              onBack={handleBack}
-              isLoading={creating}
-              error={error}
-            />
+            <StepCreateOrg onNext={handleCreateOrg} onBack={handleBack} isLoading={creating} error={error} />
           )}
 
           {currentStep === 3 && (
@@ -173,7 +164,10 @@ export default function OnboardingPage() {
       {/* Footer */}
       <footer className="py-4 text-center text-sm text-muted-foreground">
         <p>
-          Need help? <a href="/support" className="underline hover:text-foreground">Contact support</a>
+          Need help?{" "}
+          <a href="/support" className="underline hover:text-foreground">
+            Contact support
+          </a>
         </p>
       </footer>
     </div>

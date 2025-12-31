@@ -195,6 +195,13 @@ export interface IntegrationRepositoryService {
    * Get pending imports for processing
    */
   readonly getPendingImports: () => Effect.Effect<(typeof importedMeetings.$inferSelect)[], DatabaseError>;
+
+  /**
+   * Get integrations by account ID (from metadata)
+   */
+  readonly getIntegrationsByAccountId: (
+    accountId: string,
+  ) => Effect.Effect<(typeof integrations.$inferSelect)[], DatabaseError>;
 }
 
 // =============================================================================
@@ -550,6 +557,29 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         }),
     });
 
+  const getIntegrationsByAccountId = (
+    accountId: string,
+  ): Effect.Effect<(typeof integrations.$inferSelect)[], DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        // Search for integrations with matching accountId in metadata
+        // This uses a JSON containment query
+        const results = await db.select().from(integrations).where(eq(integrations.provider, "zoom"));
+
+        // Filter in memory since we need to check JSON metadata
+        return results.filter((integration) => {
+          const metadata = integration.metadata as Record<string, unknown> | null;
+          return metadata?.accountId === accountId;
+        });
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: "Failed to fetch integrations by account ID",
+          operation: "getIntegrationsByAccountId",
+          cause: error,
+        }),
+    });
+
   return {
     getIntegrations,
     getUserIntegrations,
@@ -564,6 +594,7 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
     createImportedMeeting,
     updateImportedMeeting,
     getPendingImports,
+    getIntegrationsByAccountId,
   } satisfies IntegrationRepositoryService;
 });
 

@@ -14,9 +14,7 @@ export function MarketingFooter() {
               </div>
               <span className="text-xl font-bold">Nuclom</span>
             </Link>
-            <p className="text-sm text-muted-foreground">
-              The modern video collaboration platform for teams.
-            </p>
+            <p className="text-sm text-muted-foreground">The modern video collaboration platform for teams.</p>
           </div>
 
           {/* Product */}
@@ -80,6 +78,16 @@ export function MarketingFooter() {
               <li>
                 <Link href="/terms" className="hover:text-foreground transition-colors">
                   Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/content-policy" className="hover:text-foreground transition-colors">
+                  Content Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:text-foreground transition-colors">
+                  Cookie Policy
                 </Link>
               </li>
             </ul>
