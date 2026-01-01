@@ -111,7 +111,6 @@ paths:
         - Billing
       summary: List billing
       operationId: listBilling
-      description: GET /api/billing - Get complete billing info for organization
       security:
         - 
           bearerAuth:[]
@@ -156,7 +155,6 @@ paths:
         - Billing
       summary: List invoices
       operationId: listBillingInvoic
-      description: GET /api/billing/invoices - Get invoices for organization
       security:
         - 
           bearerAuth:[]
@@ -249,7 +247,6 @@ paths:
         - Billing
       summary: Delete subscription
       operationId: deleteBillingSubscription
-      description: DELETE /api/billing/subscription - Cancel subscription
       security:
         - 
           bearerAuth:[]
@@ -304,7 +301,6 @@ paths:
         - Billing
       summary: Patch subscription
       operationId: patchBillingSubscription
-      description: PATCH /api/billing/subscription - Resume canceled subscription
       security:
         - 
           bearerAuth:[]
@@ -376,7 +372,6 @@ paths:
         - Billing
       summary: Create usage
       operationId: createBillingUsage
-      description: GET /api/billing/usage/history - Get usage history
       security:
         - 
           bearerAuth:[]
@@ -420,7 +415,6 @@ paths:
         - Channels
       summary: Delete channel
       operationId: deleteChannel
-      description: "DELETE /api/channels/[id] - Delete channel"
       security:
         - 
           bearerAuth:[]
@@ -480,7 +474,6 @@ paths:
         - Channels
       summary: Patch channel
       operationId: patchChannel
-      description: "PATCH /api/channels/[id] - Update channel"
       security:
         - 
           bearerAuth:[]
@@ -511,7 +504,6 @@ paths:
         - Comments
       summary: Delete comment
       operationId: deleteComment
-      description: "DELETE /api/comments/[id] - Delete a comment"
       security:
         - 
           bearerAuth:[]
@@ -541,7 +533,6 @@ paths:
         - Comments
       summary: Get comment
       operationId: getComment
-      description: "GET /api/comments/[id] - Get a single comment"
       parameters:
         - 
           name: id
@@ -566,7 +557,6 @@ paths:
         - Comments
       summary: Patch comment
       operationId: patchComment
-      description: "PATCH /api/comments/[id] - Update a comment"
       security:
         - 
           bearerAuth:[]
@@ -597,7 +587,6 @@ paths:
         - Comments
       summary: Delete reaction
       operationId: deleteCommentReaction
-      description: "DELETE /api/comments/[id]/reactions - Remove user's reaction"
       security:
         - 
           bearerAuth:[]
@@ -627,7 +616,6 @@ paths:
         - Comments
       summary: Get reaction
       operationId: getCommentReaction
-      description: "GET /api/comments/[id]/reactions - Get reactions for a comment"
       parameters:
         - 
           name: id
@@ -705,7 +693,6 @@ paths:
         - Integrations
       summary: Delete integration
       operationId: deleteIntegration
-      description: DELETE /api/integrations - Disconnect an integration
       responses:
         200:
           description: Success
@@ -714,7 +701,6 @@ paths:
         - Integrations
       summary: List integrations
       operationId: listIntegration
-      description: GET /api/integrations - List integrations for the current user
       responses:
         200:
           description: Success
@@ -724,7 +710,6 @@ paths:
         - Integrations
       summary: Get setting
       operationId: getIntegrationSetting
-      description: "GET /api/integrations/[integrationId]/settings - Get integration settings"
       parameters:
         - 
           name: integrationId
@@ -749,7 +734,6 @@ paths:
         - Integrations
       summary: Patch setting
       operationId: patchIntegrationSetting
-      description: "PATCH /api/integrations/[integrationId]/settings - Update integration settings"
       parameters:
         - 
           name: integrationId
@@ -784,7 +768,6 @@ paths:
         - Integrations
       summary: List calendar
       operationId: listIntegrationGoogleCalendar
-      description: GET /api/integrations/google/calendar - List Google Calendar events with Meet links
       responses:
         200:
           description: Success
@@ -794,7 +777,6 @@ paths:
         - Integrations
       summary: List recordings
       operationId: listIntegrationGoogleRecording
-      description: GET /api/integrations/google/recordings - List Google Meet recordings
       responses:
         200:
           description: List of recordings
@@ -829,7 +811,6 @@ paths:
         - Integrations
       summary: List import
       operationId: listIntegrationImport
-      description: GET /api/integrations/import - Get import status
       responses:
         200:
           description: Success
@@ -838,7 +819,6 @@ paths:
         - Integrations
       summary: Create import
       operationId: createIntegrationImport
-      description: POST /api/integrations/import - Import recordings from a provider
       responses:
         201:
           description: Created successfully
@@ -857,7 +837,6 @@ paths:
         - Integrations
       summary: List meetings
       operationId: listIntegrationZoomMeeting
-      description: GET /api/integrations/zoom/meetings - List Zoom scheduled/past meetings
       responses:
         200:
           description: Success
@@ -867,7 +846,6 @@ paths:
         - Integrations
       summary: List recordings
       operationId: listIntegrationZoomRecording
-      description: GET /api/integrations/zoom/recordings - List Zoom recordings
       responses:
         200:
           description: List of recordings
@@ -902,7 +880,6 @@ paths:
         - Invitations
       summary: Get invitation
       operationId: getInvitation
-      description: "GET /api/invitations/[id] - Get invitation details"
       parameters:
         - 
           name: id
@@ -1008,7 +985,6 @@ paths:
         - Notifications
       summary: Create notification
       operationId: createNotification
-      description: POST /api/notifications - Mark all as read
       security:
         - 
           bearerAuth:[]
@@ -1023,7 +999,6 @@ paths:
         - Notifications
       summary: Delete notification
       operationId: deleteNotification
-      description: "DELETE /api/notifications/[id] - Delete a notification"
       security:
         - 
           bearerAuth:[]
@@ -1053,7 +1028,6 @@ paths:
         - Notifications
       summary: Patch notification
       operationId: patchNotification
-      description: "PATCH /api/notifications/[id] - Mark notification as read"
       security:
         - 
           bearerAuth:[]
@@ -1084,7 +1058,6 @@ paths:
         - OAuth
       summary: List applications
       operationId: listOauthApplication
-      description: "GET /api/oauth/applications - List user's OAuth applications"
       responses:
         200:
           description: Success
@@ -1093,7 +1066,6 @@ paths:
         - OAuth
       summary: Create application
       operationId: createOauthApplication
-      description: POST /api/oauth/applications - Create a new OAuth application
       responses:
         201:
           description: Created successfully
@@ -1103,7 +1075,6 @@ paths:
         - OAuth
       summary: Delete application
       operationId: deleteOauthApplication
-      description: "DELETE /api/oauth/applications/[id] - Delete an OAuth application"
       parameters:
         - 
           name: id
@@ -1128,7 +1099,6 @@ paths:
         - OAuth
       summary: Get application
       operationId: getOauthApplication
-      description: "GET /api/oauth/applications/[id] - Get a specific OAuth application"
       parameters:
         - 
           name: id
@@ -1153,7 +1123,6 @@ paths:
         - OAuth
       summary: Patch application
       operationId: patchOauthApplication
-      description: "PATCH /api/oauth/applications/[id] - Update an OAuth application"
       parameters:
         - 
           name: id
@@ -1179,7 +1148,6 @@ paths:
         - OAuth
       summary: List consents
       operationId: listOauthConsent
-      description: "GET /api/oauth/consents - List user's authorized OAuth applications"
       responses:
         200:
           description: Success
@@ -1189,7 +1157,6 @@ paths:
         - OAuth
       summary: Delete consent
       operationId: deleteOauthConsent
-      description: "DELETE /api/oauth/consents/[id] - Revoke access for an OAuth application"
       parameters:
         - 
           name: id
@@ -1332,7 +1299,6 @@ paths:
         - Organizations
       summary: Get analytic
       operationId: getOrganizationAnalytic
-      description: "GET /api/organizations/[id]/analytics - Get organization analytics"
       security:
         - 
           bearerAuth:[]
@@ -1363,7 +1329,6 @@ paths:
         - Organizations
       summary: Delete member
       operationId: deleteOrganizationMember
-      description: "DELETE /api/organizations/[id]/members - Remove a member"
       parameters:
         - 
           name: id
@@ -1469,7 +1434,6 @@ paths:
         - Organizations
       summary: Patch member
       operationId: patchOrganizationMember
-      description: "PATCH /api/organizations/[id]/members - Update member role"
       parameters:
         - 
           name: id
@@ -1495,7 +1459,6 @@ paths:
         - Organizations
       summary: Get setting
       operationId: getOrganizationSetting
-      description: "GET /api/organizations/[id]/settings - Get organization settings"
       parameters:
         - 
           name: id
@@ -1520,7 +1483,6 @@ paths:
         - Organizations
       summary: Patch setting
       operationId: patchOrganizationSetting
-      description: "PATCH /api/organizations/[id]/settings - Update organization settings"
       parameters:
         - 
           name: id
@@ -1546,7 +1508,6 @@ paths:
         - Organizations
       summary: Get slug
       operationId: getOrganizationSlug
-      description: "GET /api/organizations/slug/[slug] - Get organization by slug"
       parameters:
         - 
           name: slug
@@ -1572,7 +1533,6 @@ paths:
         - Reports
       summary: List reports
       operationId: listReport
-      description: GET /api/reports - List reports (admin only)
       responses:
         200:
           description: Success
@@ -1581,7 +1541,6 @@ paths:
         - Reports
       summary: Patch report
       operationId: patchReport
-      description: PATCH /api/reports - Update a report (admin only)
       responses:
         200:
           description: Success
@@ -1590,7 +1549,6 @@ paths:
         - Reports
       summary: Create report
       operationId: createReport
-      description: POST /api/reports - Create a new report
       responses:
         201:
           description: Created successfully
@@ -1693,7 +1651,6 @@ paths:
         - Search
       summary: Delete history
       operationId: deleteSearchHistory
-      description: DELETE /api/search/history - Clear search history
       security:
         - 
           bearerAuth:[]
@@ -1707,7 +1664,6 @@ paths:
         - Search
       summary: List history
       operationId: listSearchHistory
-      description: GET /api/search/history - Get recent search history
       security:
         - 
           bearerAuth:[]
@@ -1722,7 +1678,6 @@ paths:
         - Search
       summary: List quick
       operationId: listSearchQuick
-      description: GET /api/search/quick - Quick search for command bar
       security:
         - 
           bearerAuth:[]
@@ -1737,7 +1692,6 @@ paths:
         - Search
       summary: List saved
       operationId: listSearchSaved
-      description: GET /api/search/saved - Get saved searches
       security:
         - 
           bearerAuth:[]
@@ -1751,7 +1705,6 @@ paths:
         - Search
       summary: Create saved
       operationId: createSearchSaved
-      description: POST /api/search/saved - Create a saved search
       security:
         - 
           bearerAuth:[]
@@ -1766,7 +1719,6 @@ paths:
         - Search
       summary: Delete saved
       operationId: deleteSearchSaved
-      description: "DELETE /api/search/saved/[id] - Delete a saved search"
       security:
         - 
           bearerAuth:[]
@@ -1796,7 +1748,6 @@ paths:
         - Search
       summary: Patch saved
       operationId: patchSearchSaved
-      description: "PATCH /api/search/saved/[id] - Update a saved search"
       security:
         - 
           bearerAuth:[]
@@ -1827,7 +1778,6 @@ paths:
         - Search
       summary: List suggestions
       operationId: listSearchSuggestion
-      description: GET /api/search/suggestions - Get search suggestions
       security:
         - 
           bearerAuth:[]
@@ -2214,7 +2164,6 @@ paths:
         - Series
       summary: Patch sery
       operationId: patchSery
-      description: "PATCH /api/series/[id] - Update a series"
       security:
         - 
           bearerAuth:[]
@@ -2245,7 +2194,6 @@ paths:
         - Series
       summary: Get progress
       operationId: getSeryProgress
-      description: "GET /api/series/[id]/progress - Get user's progress for a series"
       security:
         - 
           bearerAuth:[]
@@ -2275,7 +2223,6 @@ paths:
         - Series
       summary: Create progress
       operationId: createSeryProgress
-      description: "POST /api/series/[id]/progress - Update user's progress"
       security:
         - 
           bearerAuth:[]
@@ -2306,7 +2253,6 @@ paths:
         - Series
       summary: Get video
       operationId: getSeryVideo
-      description: "GET /api/series/[id]/videos - Get available videos (not in series)"
       security:
         - 
           bearerAuth:[]
@@ -2336,7 +2282,6 @@ paths:
         - Series
       summary: Patch video
       operationId: patchSeryVideo
-      description: "PATCH /api/series/[id]/videos - Reorder videos in series"
       security:
         - 
           bearerAuth:[]
@@ -2366,7 +2311,6 @@ paths:
         - Series
       summary: Create video
       operationId: createSeryVideo
-      description: "POST /api/series/[id]/videos - Add video to series"
       security:
         - 
           bearerAuth:[]
@@ -2397,7 +2341,6 @@ paths:
         - Series
       summary: Delete video
       operationId: deleteSeryVideo
-      description: "DELETE /api/series/[id]/videos/[videoId] - Remove video from series"
       security:
         - 
           bearerAuth:[]
@@ -2441,7 +2384,6 @@ paths:
         - Sharing
       summary: Get share
       operationId: getShare
-      description: "GET /api/share/[id] - Get share link data for public access"
       parameters:
         - 
           name: id
@@ -2466,7 +2408,6 @@ paths:
         - Sharing
       summary: Create share
       operationId: createShare
-      description: "POST /api/share/[id] - Track view on share link (called when accessing)"
       parameters:
         - 
           name: id
@@ -2517,7 +2458,6 @@ paths:
         - User
       summary: Create export
       operationId: createUserExport
-      description: POST /api/user/export - Export all user data (GDPR compliance)
       responses:
         201:
           description: Created successfully
@@ -2527,7 +2467,6 @@ paths:
         - User
       summary: List preferences
       operationId: listUserPreferenc
-      description: GET /api/user/preferences - Get user notification preferences
       responses:
         200:
           description: Success
@@ -2536,7 +2475,6 @@ paths:
         - User
       summary: Update preferenc
       operationId: updateUserPreferenc
-      description: PUT /api/user/preferences - Update user notification preferences
       responses:
         200:
           description: Success
@@ -2546,7 +2484,6 @@ paths:
         - Users
       summary: Delete me
       operationId: deleteUserMe
-      description: DELETE /api/users/me - Request account deletion (soft delete with grace period)
       responses:
         200:
           description: Success
@@ -2555,7 +2492,6 @@ paths:
         - Users
       summary: List me
       operationId: listUserMe
-      description: GET /api/users/me - Get current user data
       responses:
         200:
           description: Success
@@ -2564,7 +2500,6 @@ paths:
         - Users
       summary: Patch me
       operationId: patchUserMe
-      description: PATCH /api/users/me - Update user settings (marketing consent, etc.)
       responses:
         200:
           description: Success
@@ -2573,7 +2508,6 @@ paths:
         - Users
       summary: Create me
       operationId: createUserMe
-      description: POST /api/users/me - Cancel account deletion
       responses:
         201:
           description: Created successfully
@@ -3386,7 +3320,6 @@ paths:
         - Videos
       summary: Get code-snippet
       operationId: getVideoCode-snippet
-      description: "GET /api/videos/[id]/code-snippets - Get video code snippets"
       parameters:
         - 
           name: id
@@ -3715,7 +3648,6 @@ paths:
         - Videos
       summary: Get stream
       operationId: getVideoCommentStream
-      description: "GET /api/videos/[id]/comments/stream - SSE endpoint for real-time comments"
       parameters:
         - 
           name: id
@@ -3741,7 +3673,6 @@ paths:
         - Videos
       summary: Create move
       operationId: createVideoMove
-      description: "POST /api/videos/[id]/move\n\nBody:\n- channelId?: string | null - The channel to move the video to (null to unassign)\n- collectionId?: string | null - The collection to move the video to (null to unassign)"
       parameters:
         - 
           name: id
@@ -3767,7 +3698,6 @@ paths:
         - Videos
       summary: Get process
       operationId: getVideoProcess
-      description: "GET /api/videos/[id]/process - Get processing status"
       parameters:
         - 
           name: id
@@ -3792,7 +3722,6 @@ paths:
         - Videos
       summary: Create process
       operationId: createVideoProcess
-      description: "POST /api/videos/[id]/process - Trigger AI processing"
       security:
         - 
           bearerAuth:[]
@@ -3823,7 +3752,6 @@ paths:
         - Videos
       summary: Delete progress
       operationId: deleteVideoProgress
-      description: "DELETE /api/videos/[id]/progress - Delete video progress for current user"
       security:
         - 
           bearerAuth:[]
@@ -3853,7 +3781,6 @@ paths:
         - Videos
       summary: Get progress
       operationId: getVideoProgress
-      description: "GET /api/videos/[id]/progress - Get video progress for current user"
       security:
         - 
           bearerAuth:[]
@@ -3939,7 +3866,6 @@ paths:
         - Videos
       summary: Get share
       operationId: getVideoShare
-      description: "GET /api/videos/[id]/share - List share links for video"
       security:
         - 
           bearerAuth:[]
@@ -3999,7 +3925,6 @@ paths:
         - Videos
       summary: Delete share
       operationId: deleteVideoShare
-      description: "DELETE /api/videos/[id]/share/[linkId] - Revoke share link"
       security:
         - 
           bearerAuth:[]
@@ -4043,7 +3968,6 @@ paths:
         - Videos
       summary: Get subtitl
       operationId: getVideoSubtitl
-      description: "GET /api/videos/[id]/subtitles - List Available Languages"
       parameters:
         - 
           name: id
@@ -4069,7 +3993,6 @@ paths:
         - Videos
       summary: Get subtitl
       operationId: getVideoSubtitl
-      description: "GET /api/videos/[id]/subtitles/[lang] - Serve Subtitle File"
       parameters:
         - 
           name: id
@@ -4108,7 +4031,6 @@ paths:
         - Videos
       summary: Get transcript
       operationId: getVideoTranscript
-      description: "GET /api/videos/[id]/transcript - Get Transcript"
       parameters:
         - 
           name: id
@@ -4133,7 +4055,6 @@ paths:
         - Videos
       summary: Update transcript
       operationId: updateVideoTranscript
-      description: "PUT /api/videos/[id]/transcript - Update Transcript"
       parameters:
         - 
           name: id
@@ -4159,7 +4080,6 @@ paths:
         - Videos
       summary: Get view
       operationId: getVideoView
-      description: "GET /api/videos/[id]/views - Get view count for a video"
       parameters:
         - 
           name: id
@@ -4238,7 +4158,6 @@ paths:
         - Videos
       summary: Create cleanup
       operationId: createVideoCleanup
-      description: "POST /api/videos/cleanup\n\nPermanently deletes all videos past their retention period.\nThis endpoint should be called by a cron job or admin user.\n\nRequires admin role or a valid cron secret."
       responses:
         201:
           description: Created successfully
@@ -4248,7 +4167,6 @@ paths:
         - Videos
       summary: List deleted
       operationId: listVideoDeleted
-      description: GET /api/videos/deleted - Get soft-deleted videos for the organization
       responses:
         200:
           description: Success
@@ -4332,22 +4250,6 @@ components:
               code:
                 type: string
                 example: AUTH_REQUIRED
-            required:
-              - error
-              - code
-    Forbidden:
-      description: Insufficient permissions
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: Permission denied
-              code:
-                type: string
-                example: PERMISSION_DENIED
             required:
               - error
               - code
