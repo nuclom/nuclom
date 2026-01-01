@@ -1410,6 +1410,211 @@ export const videoShareLinks = pgTable(
 );
 
 // =====================
+// Referral Program Tables
+// =====================
+
+export const referralStatusEnum = pgEnum("ReferralStatus", ["pending", "signed_up", "converted", "expired"]);
+
+export const referralRewardStatusEnum = pgEnum("ReferralRewardStatus", ["pending", "awarded", "claimed", "expired"]);
+
+export const referralRewardTypeEnum = pgEnum("ReferralRewardType", [
+  "credit",
+  "extended_trial",
+  "storage_bonus",
+  "feature_unlock",
+]);
+
+// Referral codes for users to share
+export const referralCodes = pgTable(
+  "referral_codes",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: text("code").notNull().unique(), // e.g., "JOHN2024" or auto-generated
+    usageCount: integer("usage_count").default(0).notNull(),
+    maxUses: integer("max_uses"), // null = unlimited
+    isActive: boolean("is_active").default(true).notNull(),
+    expiresAt: timestamp("expires_at"), // null = never expires
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("referral_codes_user_idx").on(table.userId),
+    codeIdx: index("referral_codes_code_idx").on(table.code),
+  }),
+);
+
+// Track individual referrals
+export const referrals = pgTable(
+  "referrals",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    referrerId: text("referrer_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    referredUserId: text("referred_user_id").references(() => users.id, { onDelete: "set null" }),
+    referredEmail: text("referred_email").notNull(),
+    referralCodeId: text("referral_code_id")
+      .notNull()
+      .references(() => referralCodes.id, { onDelete: "cascade" }),
+    status: referralStatusEnum("status").default("pending").notNull(),
+    signedUpAt: timestamp("signed_up_at"),
+    convertedAt: timestamp("converted_at"), // When they became a paying customer
+    conversionValue: integer("conversion_value"), // cents - value of their subscription
+    metadata: jsonb("metadata").$type<{
+      source?: string;
+      campaign?: string;
+      utmParams?: Record<string, string>;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    referrerIdx: index("referrals_referrer_idx").on(table.referrerId),
+    referredUserIdx: index("referrals_referred_user_idx").on(table.referredUserId),
+    codeIdx: index("referrals_code_idx").on(table.referralCodeId),
+    statusIdx: index("referrals_status_idx").on(table.status),
+  }),
+);
+
+// Rewards earned through referrals
+export const referralRewards = pgTable(
+  "referral_rewards",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    referralId: text("referral_id")
+      .notNull()
+      .references(() => referrals.id, { onDelete: "cascade" }),
+    rewardType: referralRewardTypeEnum("reward_type").notNull(),
+    amount: integer("amount"), // cents for credit, days for trial, bytes for storage
+    status: referralRewardStatusEnum("status").default("pending").notNull(),
+    awardedAt: timestamp("awarded_at"),
+    claimedAt: timestamp("claimed_at"),
+    expiresAt: timestamp("expires_at"),
+    metadata: jsonb("metadata").$type<{
+      description?: string;
+      promoCode?: string;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("referral_rewards_user_idx").on(table.userId),
+    referralIdx: index("referral_rewards_referral_idx").on(table.referralId),
+    statusIdx: index("referral_rewards_status_idx").on(table.status),
+  }),
+);
+
+// Referral program configuration (admin-managed)
+export const referralPrograms = pgTable("referral_programs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  // Rewards for referrer
+  referrerRewardType: referralRewardTypeEnum("referrer_reward_type").notNull(),
+  referrerRewardAmount: integer("referrer_reward_amount").notNull(),
+  // Rewards for referred user
+  referredRewardType: referralRewardTypeEnum("referred_reward_type").notNull(),
+  referredRewardAmount: integer("referred_reward_amount").notNull(),
+  // Requirements
+  requiresConversion: boolean("requires_conversion").default(true).notNull(), // Reward only after payment
+  minConversionValue: integer("min_conversion_value"), // Min subscription value in cents
+  validFrom: timestamp("valid_from").defaultNow().notNull(),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// =====================
+// Video Workflow Templates
+// =====================
+
+export const workflowTemplateTypeEnum = pgEnum("WorkflowTemplateType", [
+  "onboarding",
+  "tutorial",
+  "meeting_recap",
+  "product_demo",
+  "training",
+  "marketing",
+  "custom",
+]);
+
+// Predefined workflow templates
+export const workflowTemplates = pgTable("workflow_templates", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: workflowTemplateTypeEnum("type").default("custom").notNull(),
+  icon: text("icon"), // Lucide icon name
+  // Template configuration
+  config: jsonb("config")
+    .$type<{
+      autoTranscribe?: boolean;
+      generateSummary?: boolean;
+      extractChapters?: boolean;
+      extractActionItems?: boolean;
+      detectCodeSnippets?: boolean;
+      subtitleLanguages?: string[];
+      defaultChannel?: string;
+      autoShareSettings?: {
+        enabled?: boolean;
+        accessLevel?: "view" | "comment" | "download";
+        expiresInDays?: number;
+      };
+      notifyOnComplete?: boolean;
+      customPrompts?: {
+        summaryPrompt?: string;
+        actionItemsPrompt?: string;
+      };
+    }>()
+    .notNull(),
+  // Ownership - null means system template
+  organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+  createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  isSystem: boolean("is_system").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  usageCount: integer("usage_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Track which template was used for a video
+export const videoWorkflowHistory = pgTable(
+  "video_workflow_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    templateId: text("template_id").references(() => workflowTemplates.id, { onDelete: "set null" }),
+    templateName: text("template_name").notNull(), // Denormalized for history
+    appliedConfig: jsonb("applied_config").notNull(),
+    appliedAt: timestamp("applied_at").defaultNow().notNull(),
+    appliedById: text("applied_by_id").references(() => users.id, { onDelete: "set null" }),
+  },
+  (table) => ({
+    videoIdx: index("video_workflow_history_video_idx").on(table.videoId),
+    templateIdx: index("video_workflow_history_template_idx").on(table.templateId),
+  }),
+);
+
+// =====================
 // Health Check Tables
 // =====================
 
@@ -1672,3 +1877,89 @@ export type Report = typeof reports.$inferSelect;
 export type NewReport = typeof reports.$inferInsert;
 export type DataExportRequest = typeof dataExportRequests.$inferSelect;
 export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
+
+// Referral program types
+export type ReferralStatus = (typeof referralStatusEnum.enumValues)[number];
+export type ReferralRewardStatus = (typeof referralRewardStatusEnum.enumValues)[number];
+export type ReferralRewardType = (typeof referralRewardTypeEnum.enumValues)[number];
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type NewReferralCode = typeof referralCodes.$inferInsert;
+export type Referral = typeof referrals.$inferSelect;
+export type NewReferral = typeof referrals.$inferInsert;
+export type ReferralReward = typeof referralRewards.$inferSelect;
+export type NewReferralReward = typeof referralRewards.$inferInsert;
+export type ReferralProgram = typeof referralPrograms.$inferSelect;
+export type NewReferralProgram = typeof referralPrograms.$inferInsert;
+
+// Referral relations
+export const referralCodesRelations = relations(referralCodes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [referralCodes.userId],
+    references: [users.id],
+  }),
+  referrals: many(referrals),
+}));
+
+export const referralsRelations = relations(referrals, ({ one, many }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+    relationName: "ReferralReferrer",
+  }),
+  referredUser: one(users, {
+    fields: [referrals.referredUserId],
+    references: [users.id],
+    relationName: "ReferralReferred",
+  }),
+  referralCode: one(referralCodes, {
+    fields: [referrals.referralCodeId],
+    references: [referralCodes.id],
+  }),
+  rewards: many(referralRewards),
+}));
+
+export const referralRewardsRelations = relations(referralRewards, ({ one }) => ({
+  user: one(users, {
+    fields: [referralRewards.userId],
+    references: [users.id],
+  }),
+  referral: one(referrals, {
+    fields: [referralRewards.referralId],
+    references: [referrals.id],
+  }),
+}));
+
+// Workflow template relations
+export const workflowTemplatesRelations = relations(workflowTemplates, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [workflowTemplates.organizationId],
+    references: [organizations.id],
+  }),
+  createdBy: one(users, {
+    fields: [workflowTemplates.createdById],
+    references: [users.id],
+  }),
+  history: many(videoWorkflowHistory),
+}));
+
+export const videoWorkflowHistoryRelations = relations(videoWorkflowHistory, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoWorkflowHistory.videoId],
+    references: [videos.id],
+  }),
+  template: one(workflowTemplates, {
+    fields: [videoWorkflowHistory.templateId],
+    references: [workflowTemplates.id],
+  }),
+  appliedBy: one(users, {
+    fields: [videoWorkflowHistory.appliedById],
+    references: [users.id],
+  }),
+}));
+
+// Workflow template types
+export type WorkflowTemplateType = (typeof workflowTemplateTypeEnum.enumValues)[number];
+export type WorkflowTemplate = typeof workflowTemplates.$inferSelect;
+export type NewWorkflowTemplate = typeof workflowTemplates.$inferInsert;
+export type VideoWorkflowHistory = typeof videoWorkflowHistory.$inferSelect;
+export type NewVideoWorkflowHistory = typeof videoWorkflowHistory.$inferInsert;
