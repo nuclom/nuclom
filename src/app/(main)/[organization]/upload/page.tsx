@@ -3,15 +3,30 @@ import { ArrowLeft } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { VideoUpload } from "@/components/video-upload";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
 
-export default async function UploadPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization: organizationSlug } = await params;
+function UploadSkeleton() {
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Skeleton className="h-10 w-32" />
+        <div className="text-center space-y-2">
+          <Skeleton className="h-9 w-48 mx-auto" />
+          <Skeleton className="h-4 w-64 mx-auto" />
+        </div>
+        <Skeleton className="h-64 w-full rounded-lg" />
+      </div>
+    </div>
+  );
+}
 
+async function UploadContent({ organizationSlug }: { organizationSlug: string }) {
   // Get user from session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -53,5 +68,15 @@ export default async function UploadPage({ params }: { params: Promise<{ organiz
         <VideoUpload organizationId={organizationId} authorId={authorId} />
       </div>
     </div>
+  );
+}
+
+export default async function UploadPage({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization: organizationSlug } = await params;
+
+  return (
+    <Suspense fallback={<UploadSkeleton />}>
+      <UploadContent organizationSlug={organizationSlug} />
+    </Suspense>
   );
 }

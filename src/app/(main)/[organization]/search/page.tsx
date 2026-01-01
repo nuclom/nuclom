@@ -13,9 +13,15 @@ interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
-export default async function SearchPage({ params, searchParams }: SearchPageProps) {
-  const { organization: organizationSlug } = await params;
-  const { q } = await searchParams;
+function SearchSkeleton() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
+async function SearchLoader({ organizationSlug, query }: { organizationSlug: string; query?: string }) {
   const headersList = await headers();
 
   // Get current session
@@ -97,9 +103,9 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">
-          {q ? (
+          {query ? (
             <>
-              Search results for <span className="text-primary">"{q}"</span>
+              Search results for <span className="text-primary">"{query}"</span>
             </>
           ) : (
             "Search"
@@ -108,21 +114,24 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         <p className="text-muted-foreground mt-1">Search across videos, transcripts, and AI summaries</p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        }
-      >
-        <SearchPageContent
-          organizationId={org.id}
-          organization={organizationSlug}
-          authors={orgAuthors}
-          channels={orgChannels}
-          collections={orgCollections}
-        />
-      </Suspense>
+      <SearchPageContent
+        organizationId={org.id}
+        organization={organizationSlug}
+        authors={orgAuthors}
+        channels={orgChannels}
+        collections={orgCollections}
+      />
     </div>
+  );
+}
+
+export default async function SearchPage({ params, searchParams }: SearchPageProps) {
+  const { organization: organizationSlug } = await params;
+  const { q } = await searchParams;
+
+  return (
+    <Suspense fallback={<SearchSkeleton />}>
+      <SearchLoader organizationSlug={organizationSlug} query={q} />
+    </Suspense>
   );
 }

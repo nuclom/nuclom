@@ -123,12 +123,10 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
 }
 
 // =============================================================================
-// Main Page Component
+// Dashboard Loader Component
 // =============================================================================
 
-export default async function OrganizationPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization: organizationSlug } = await params;
-
+async function DashboardLoader({ organizationSlug }: { organizationSlug: string }) {
   // Authenticate user
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -146,14 +144,25 @@ export default async function OrganizationPage({ params }: { params: Promise<{ o
     notFound();
   }
 
-  // Render with Suspense for streaming
+  return (
+    <DashboardContent
+      organizationId={organization.id}
+      organizationSlug={organizationSlug}
+      userName={session.user?.name || undefined}
+    />
+  );
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
+
+export default async function OrganizationPage({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization: organizationSlug } = await params;
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent
-        organizationId={organization.id}
-        organizationSlug={organizationSlug}
-        userName={session.user?.name || undefined}
-      />
+      <DashboardLoader organizationSlug={organizationSlug} />
     </Suspense>
   );
 }

@@ -86,12 +86,10 @@ async function MyVideosContent({ userId, organizationId, organizationSlug }: MyV
 }
 
 // =============================================================================
-// Main Page Component
+// My Videos Loader Component
 // =============================================================================
 
-export default async function MyVideosPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization: organizationSlug } = await params;
-
+async function MyVideosLoader({ organizationSlug }: { organizationSlug: string }) {
   // Authenticate user
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -121,13 +119,25 @@ export default async function MyVideosPage({ params }: { params: Promise<{ organ
         </Link>
       </div>
 
-      <Suspense fallback={<MyVideosSkeleton />}>
-        <MyVideosContent
-          userId={session.user.id}
-          organizationId={organization.id}
-          organizationSlug={organizationSlug}
-        />
-      </Suspense>
+      <MyVideosContent
+        userId={session.user.id}
+        organizationId={organization.id}
+        organizationSlug={organizationSlug}
+      />
     </div>
+  );
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
+
+export default async function MyVideosPage({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization: organizationSlug } = await params;
+
+  return (
+    <Suspense fallback={<MyVideosSkeleton />}>
+      <MyVideosLoader organizationSlug={organizationSlug} />
+    </Suspense>
   );
 }
