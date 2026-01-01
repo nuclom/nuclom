@@ -6,6 +6,21 @@ This document describes the security features and best practices implemented in 
 
 The platform implements comprehensive rate limiting to protect against abuse:
 
+### Storage Backend
+
+Rate limiting supports two storage backends:
+
+1. **Redis (Upstash)** - Recommended for production
+   - Distributed rate limiting across all server instances
+   - Persistent across deployments
+   - Uses Upstash's sliding window algorithm
+   - Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` environment variables
+
+2. **In-Memory** - Fallback for development
+   - Per-instance rate limiting
+   - Used automatically when Redis is not configured
+   - State lost on restart
+
 ### Configuration
 
 Rate limits are configured in `src/lib/rate-limit.ts` and applied via Next.js middleware (`src/middleware.ts`).
@@ -16,6 +31,14 @@ Rate limits are configured in `src/lib/rate-limit.ts` and applied via Next.js mi
 | Authentication | 10 | 15 minutes | Login, signup, sign-out |
 | Sensitive Operations | 5 | 1 hour | Password reset, account deletion |
 | File Uploads | 20 | 1 hour | Video and file uploads |
+
+### Environment Variables
+
+```bash
+# Upstash Redis (get these from your Vercel/Upstash dashboard)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+```
 
 ### Response Headers
 
@@ -30,11 +53,20 @@ When rate limited, endpoints return HTTP 429 with a `Retry-After` header.
 ### Usage
 
 ```typescript
+// Sync version (for middleware, uses in-memory)
 import { rateLimit, rateLimitAuth } from "@/lib/rate-limit";
 
-// In API routes
 export async function POST(request: NextRequest) {
   const rateLimitResult = rateLimitAuth(request);
+  if (rateLimitResult) return rateLimitResult;
+  // ... handle request
+}
+
+// Async version (for API routes, uses Redis when available)
+import { rateLimitAsync, rateLimitAuthAsync } from "@/lib/rate-limit";
+
+export async function POST(request: NextRequest) {
+  const rateLimitResult = await rateLimitAuthAsync(request);
   if (rateLimitResult) return rateLimitResult;
   // ... handle request
 }
@@ -153,7 +185,8 @@ The following columns support session security:
 
 ## Related Files
 
-- `src/lib/rate-limit.ts` - Rate limiting implementation
+- `src/lib/rate-limit.ts` - Rate limiting implementation (Redis + in-memory)
+- `src/lib/redis.ts` - Redis client configuration (Upstash)
 - `src/lib/session-security.ts` - Session security utilities
 - `src/lib/auth.ts` - Authentication configuration
 - `src/middleware.ts` - Next.js middleware for rate limiting
