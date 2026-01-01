@@ -1,16 +1,13 @@
 import { eq, sql } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { videos, videoShareLinks, videoViews } from "@/lib/db/schema";
+import { videoShareLinks, videos, videoViews } from "@/lib/db/schema";
 
 // =============================================================================
 // POST /api/embed/[id]/view - Track embed video view
 // =============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
@@ -55,10 +52,7 @@ export async function POST(
       .where(eq(videos.id, videoId));
 
     if (!video) {
-      return NextResponse.json(
-        { success: false, error: "Video not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
     }
 
     // Record the view (upsert to handle duplicate sessions)
@@ -89,10 +83,7 @@ export async function POST(
     return response;
   } catch (error) {
     console.error("Embed view tracking error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 

@@ -4,7 +4,7 @@
  * Provides type-safe database operations for organization activity feeds.
  */
 
-import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { ActivityFeed, ActivityType, User } from "@/lib/db/schema";
 import { activityFeed, users } from "@/lib/db/schema";
@@ -263,10 +263,7 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
             .orderBy(desc(activityFeed.createdAt))
             .limit(limit)
             .offset(offset),
-          db
-            .select({ count: sql<number>`count(*)::int` })
-            .from(activityFeed)
-            .where(whereClause),
+          db.select({ count: sql<number>`count(*)::int` }).from(activityFeed).where(whereClause),
         ]);
 
         return {
@@ -477,12 +474,7 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
             count: sql<number>`count(*)::int`,
           })
           .from(activityFeed)
-          .where(
-            and(
-              eq(activityFeed.organizationId, organizationId),
-              sql`${activityFeed.createdAt} >= ${startDate}`,
-            ),
-          )
+          .where(and(eq(activityFeed.organizationId, organizationId), sql`${activityFeed.createdAt} >= ${startDate}`))
           .groupBy(activityFeed.activityType);
 
         return result as { type: ActivityType; count: number }[];
@@ -517,10 +509,7 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
 // Activity Feed Repository Layer
 // =============================================================================
 
-export const ActivityFeedRepositoryLive = Layer.effect(
-  ActivityFeedRepository,
-  makeActivityFeedRepositoryService,
-);
+export const ActivityFeedRepositoryLive = Layer.effect(ActivityFeedRepository, makeActivityFeedRepositoryService);
 
 // =============================================================================
 // Activity Feed Repository Helper Functions

@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -5,16 +6,12 @@ import { db } from "@/lib/db";
 import { customRoles, members, type PermissionAction, type PermissionResource } from "@/lib/db/schema";
 import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/roles/[roleId] - Get role details
 // =============================================================================
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string; roleId: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string; roleId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -31,7 +28,10 @@ export async function GET(
   });
 
   if (!membership) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Not a member of this organization" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Not a member of this organization" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -63,10 +63,7 @@ export async function GET(
 // PATCH /api/organizations/[id]/roles/[roleId] - Update role
 // =============================================================================
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; roleId: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string; roleId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -146,10 +143,7 @@ export async function PATCH(
 // DELETE /api/organizations/[id]/roles/[roleId] - Delete role
 // =============================================================================
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string; roleId: string }> },
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string; roleId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });

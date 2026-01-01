@@ -2,10 +2,7 @@ import { Effect, Layer } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  ZapierWebhooksService,
-  ZapierWebhooksServiceLive,
-} from "@/lib/effect/services/zapier-webhooks";
+import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const DeliveriesLayer = Layer.mergeAll(ZapierWebhooksWithDeps, DatabaseLive);
@@ -46,10 +43,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Deliveries GET Error]", err);
-    return NextResponse.json(
-      { error: "Failed to fetch deliveries" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch deliveries" }, { status: 500 });
   }
 }
 
@@ -73,10 +67,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   if (!body.deliveryId) {
-    return NextResponse.json(
-      { error: "Missing required field: deliveryId" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing required field: deliveryId" }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -90,9 +81,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Retry Delivery Error]", err);
-    return NextResponse.json(
-      { error: "Failed to retry delivery" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to retry delivery" }, { status: 500 });
   }
 }

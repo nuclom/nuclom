@@ -1,20 +1,17 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { members, type PermissionAction, type PermissionResource } from "@/lib/db/schema";
+import { members } from "@/lib/db/schema";
 import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/members/[userId]/permissions - Get user permissions
 // =============================================================================
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string; userId: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -31,7 +28,10 @@ export async function GET(
   });
 
   if (!membership) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Not a member of this organization" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Not a member of this organization" },
+      { status: 403 },
+    );
   }
 
   // Only owners/admins can view other users' permissions, or user can view their own
@@ -77,10 +77,7 @@ export async function GET(
 // POST /api/organizations/[id]/members/[userId]/permissions - Assign role to user
 // =============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; userId: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -97,10 +94,7 @@ export async function POST(
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: "Only owners can assign roles" },
-      { status: 403 },
-    );
+    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can assign roles" }, { status: 403 });
   }
 
   try {
@@ -138,10 +132,7 @@ export async function POST(
 // DELETE /api/organizations/[id]/members/[userId]/permissions - Remove role from user
 // =============================================================================
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; userId: string }> },
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -158,10 +149,7 @@ export async function DELETE(
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: "Only owners can remove roles" },
-      { status: 403 },
-    );
+    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can remove roles" }, { status: 403 });
   }
 
   try {

@@ -1,25 +1,19 @@
 import { eq, sql } from "drizzle-orm";
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflowTemplates } from "@/lib/db/schema";
-import { headers } from "next/headers";
 
 // =============================================================================
 // GET /api/workflow-templates/[id] - Get a specific template
 // =============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
-    const [template] = await db
-      .select()
-      .from(workflowTemplates)
-      .where(eq(workflowTemplates.id, id));
+    const [template] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!template) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
@@ -36,10 +30,7 @@ export async function GET(
 // PATCH /api/workflow-templates/[id] - Update a template
 // =============================================================================
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
@@ -52,10 +43,7 @@ export async function PATCH(
     }
 
     // Check if template exists and user has permission
-    const [existing] = await db
-      .select()
-      .from(workflowTemplates)
-      .where(eq(workflowTemplates.id, id));
+    const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!existing) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
@@ -63,10 +51,7 @@ export async function PATCH(
 
     // Can't edit system templates
     if (existing.isSystem) {
-      return NextResponse.json(
-        { error: "Cannot edit system templates" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Cannot edit system templates" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -97,10 +82,7 @@ export async function PATCH(
 // DELETE /api/workflow-templates/[id] - Delete a template
 // =============================================================================
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
@@ -113,10 +95,7 @@ export async function DELETE(
     }
 
     // Check if template exists and user has permission
-    const [existing] = await db
-      .select()
-      .from(workflowTemplates)
-      .where(eq(workflowTemplates.id, id));
+    const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!existing) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
@@ -124,10 +103,7 @@ export async function DELETE(
 
     // Can't delete system templates
     if (existing.isSystem) {
-      return NextResponse.json(
-        { error: "Cannot delete system templates" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Cannot delete system templates" }, { status: 403 });
     }
 
     await db.delete(workflowTemplates).where(eq(workflowTemplates.id, id));
@@ -143,10 +119,7 @@ export async function DELETE(
 // POST /api/workflow-templates/[id] - Apply template (increment usage)
 // =============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {

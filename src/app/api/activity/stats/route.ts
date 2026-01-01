@@ -1,15 +1,9 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import {
-  ActivityFeedRepository,
-  ActivityFeedRepositoryLive,
-} from "@/lib/effect/services/activity-feed-repository";
+import { ActivityFeedRepository, ActivityFeedRepositoryLive } from "@/lib/effect/services/activity-feed-repository";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-} from "@/lib/effect/services/organization-repository";
+import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
 
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -33,11 +27,13 @@ export async function GET(request: Request) {
     const orgRepo = yield* OrganizationRepository;
 
     // Get the user's active organization
-    const activeOrg = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
-    if (!activeOrg) {
+    if (Option.isNone(activeOrgOption)) {
       return { stats: [], days };
     }
+
+    const activeOrg = activeOrgOption.value;
 
     // Fetch activity stats
     const stats = yield* activityRepo.getActivityStats(activeOrg.id, days);
@@ -50,9 +46,6 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Activity Stats Error]", err);
-    return NextResponse.json(
-      { error: "Failed to fetch activity stats" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch activity stats" }, { status: 500 });
   }
 }

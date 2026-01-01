@@ -9,11 +9,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EmbedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function EmbedLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>

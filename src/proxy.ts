@@ -3,7 +3,7 @@
  *
  * Handles:
  * - Authentication checks for protected routes
- * - Rate limiting for API routes
+ * - Rate limiting for API routes (Redis-based, disabled if Redis not configured)
  * - Request logging with structured output
  * - Request ID generation and propagation
  *
@@ -11,9 +11,10 @@
  * database access.
  */
 
-// Use Node.js runtime for database access in auth validation
-export const runtime = "nodejs";
-
+import process from "node:process";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createLogger } from "@/lib/logger";
@@ -26,67 +27,106 @@ import {
 } from "@/lib/rate-limit";
 
 // =============================================================================
-// In-Memory Rate Limit Store
+// Redis Rate Limiting (disabled if not configured)
 // =============================================================================
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
+function isRedisConfigured(): boolean {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
-// Simple in-memory store
-// Note: This is per-instance, so in a distributed environment you'd want Redis
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-// Clean up expired entries periodically (simple approach)
-function cleanup() {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore) {
-    if (entry.resetAt < now) {
-      rateLimitStore.delete(key);
-    }
+function createRedisClient(): Redis | null {
+  if (!isRedisConfigured()) {
+    return null;
   }
+
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL as string,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+  });
 }
 
-function checkRateLimit(
+// Cache rate limiters
+let apiRateLimiter: Ratelimit | null = null;
+let authRateLimiter: Ratelimit | null = null;
+let sensitiveRateLimiter: Ratelimit | null = null;
+let uploadRateLimiter: Ratelimit | null = null;
+let rateLimitersInitialized = false;
+
+function initializeRateLimiters() {
+  if (rateLimitersInitialized) return;
+
+  const redis = createRedisClient();
+  if (!redis) {
+    rateLimitersInitialized = true;
+    return;
+  }
+
+  apiRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(API_RATE_LIMIT.maxRequests, "1 m"),
+    prefix: "ratelimit:api",
+  });
+
+  authRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(AUTH_RATE_LIMIT.maxRequests, "15 m"),
+    prefix: "ratelimit:auth",
+  });
+
+  sensitiveRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(SENSITIVE_RATE_LIMIT.maxRequests, "1 h"),
+    prefix: "ratelimit:sensitive",
+  });
+
+  uploadRateLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(UPLOAD_RATE_LIMIT.maxRequests, "1 h"),
+    prefix: "ratelimit:upload",
+  });
+
+  rateLimitersInitialized = true;
+}
+
+async function checkRateLimit(
   identifier: string,
-  config: { maxRequests: number; windowMs: number },
-): { success: boolean; remaining: number; resetAt: number } {
-  // Clean up occasionally
-  if (Math.random() < 0.01) cleanup();
+  type: "api" | "auth" | "sensitive" | "upload",
+): Promise<{ success: boolean; remaining: number; resetAt: number; limit: number } | null> {
+  initializeRateLimiters();
 
-  const now = Date.now();
-  const key = identifier;
-  const entry = rateLimitStore.get(key);
+  let rateLimiter: Ratelimit | null = null;
+  let config = API_RATE_LIMIT;
 
-  if (!entry || entry.resetAt < now) {
-    // First request in this window
-    rateLimitStore.set(key, {
-      count: 1,
-      resetAt: now + config.windowMs,
-    });
-    return {
-      success: true,
-      remaining: config.maxRequests - 1,
-      resetAt: now + config.windowMs,
-    };
+  switch (type) {
+    case "auth":
+      rateLimiter = authRateLimiter;
+      config = AUTH_RATE_LIMIT;
+      break;
+    case "sensitive":
+      rateLimiter = sensitiveRateLimiter;
+      config = SENSITIVE_RATE_LIMIT;
+      break;
+    case "upload":
+      rateLimiter = uploadRateLimiter;
+      config = UPLOAD_RATE_LIMIT;
+      break;
+    default:
+      rateLimiter = apiRateLimiter;
+      config = API_RATE_LIMIT;
   }
 
-  if (entry.count >= config.maxRequests) {
-    return {
-      success: false,
-      remaining: 0,
-      resetAt: entry.resetAt,
-    };
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
   }
 
-  entry.count++;
-  rateLimitStore.set(key, entry);
+  const result = await rateLimiter.limit(`${type}:${identifier}`);
 
   return {
-    success: true,
-    remaining: config.maxRequests - entry.count,
-    resetAt: entry.resetAt,
+    success: result.success,
+    remaining: result.remaining,
+    resetAt: result.reset,
+    limit: config.maxRequests,
   };
 }
 
@@ -155,6 +195,8 @@ function isPublicPageRoute(pathname: string): boolean {
     "/auth",
     "/sign-in",
     "/sign-up",
+    "/login", // Legacy route alias
+    "/register", // Legacy route alias
     "/reset-password",
     "/verify-email",
     "/accept-invitation",
@@ -170,6 +212,7 @@ function isPublicPageRoute(pathname: string): boolean {
     "/contact",
     "/help",
     "/docs",
+    "/support",
   ];
   return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
 }
@@ -214,7 +257,53 @@ export async function proxy(request: NextRequest) {
   const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
 
   if (needsAuth) {
-    // Validate session using better-auth
+    // Fast check: if no session cookie exists, reject immediately without DB lookup
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
+      // For API routes, return 401 Unauthorized
+      if (isApiRoute(pathname)) {
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized (no session cookie)`,
+        );
+
+        return new NextResponse(
+          JSON.stringify({
+            error: "Unauthorized",
+            message: "Authentication required",
+          }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              "x-request-id": requestId,
+            },
+          },
+        );
+      }
+
+      // For page routes, redirect to sign-in
+      const signInUrl = new URL("/auth/sign-in", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+
+      requestLogger.info(
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
+        `Redirecting unauthenticated user to sign-in (no session cookie)`,
+      );
+
+      return NextResponse.redirect(signInUrl);
+    }
+
+    // Full session validation using better-auth (validates against DB)
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -312,26 +401,26 @@ export async function proxy(request: NextRequest) {
   // Get client identifier
   const identifier = getClientIdentifier(request);
 
-  // Determine rate limit config based on route type
-  let config: { maxRequests: number; windowMs: number };
-  let prefix: string;
+  // Determine rate limit type based on route
+  let rateLimitType: "api" | "auth" | "sensitive" | "upload" = "api";
 
   if (isSensitiveRoute(pathname)) {
-    config = SENSITIVE_RATE_LIMIT;
-    prefix = "sensitive";
+    rateLimitType = "sensitive";
   } else if (isAuthRoute(pathname)) {
-    config = AUTH_RATE_LIMIT;
-    prefix = "auth";
+    rateLimitType = "auth";
   } else if (isUploadRoute(pathname)) {
-    config = UPLOAD_RATE_LIMIT;
-    prefix = "upload";
-  } else {
-    config = API_RATE_LIMIT;
-    prefix = "api";
+    rateLimitType = "upload";
   }
 
-  // Check rate limit
-  const result = checkRateLimit(`${prefix}:${identifier}`, config);
+  // Check rate limit (returns null if Redis not configured)
+  const result = await checkRateLimit(identifier, rateLimitType);
+
+  // If rate limiting is disabled (no Redis), continue without rate limit headers
+  if (!result) {
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
+  }
 
   // If rate limited, return 429
   if (!result.success) {
@@ -346,8 +435,8 @@ export async function proxy(request: NextRequest) {
         status: 429,
         durationMs,
         rateLimit: {
-          type: prefix,
-          limit: config.maxRequests,
+          type: rateLimitType,
+          limit: result.limit,
           remaining: 0,
           retryAfter,
         },
@@ -366,7 +455,7 @@ export async function proxy(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
           "x-request-id": requestId,
-          "X-RateLimit-Limit": String(config.maxRequests),
+          "X-RateLimit-Limit": String(result.limit),
           "X-RateLimit-Remaining": "0",
           "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
           "Retry-After": String(retryAfter),
@@ -378,7 +467,7 @@ export async function proxy(request: NextRequest) {
   // Continue with rate limit headers and request ID
   const response = NextResponse.next();
   response.headers.set("x-request-id", requestId);
-  response.headers.set("X-RateLimit-Limit", String(config.maxRequests));
+  response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
   response.headers.set("X-RateLimit-Reset", String(Math.ceil(result.resetAt / 1000)));
 
@@ -394,7 +483,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - Public assets (images, fonts, etc.)
+     * - public folder assets
      */
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
+    "/((?!_next/static|_next/image|public|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };

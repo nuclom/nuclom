@@ -18,7 +18,6 @@ Launch publicly with confidence and prepare for rapid growth.
 ### Milestone 4.2: Growth Features
 | Deliverable | Status | Notes |
 |-------------|--------|-------|
-| Referral program with tracking | ✅ Done | Schema, API, rewards system implemented |
 | Public video pages with SEO | ⚠️ Partial | Share links exist |
 | Embeddable player | ✅ Done | `/embed/[id]` with full customization |
 | Partner API documentation | ✅ Done | #95 (closed), embed docs added |
@@ -44,19 +43,6 @@ Launch publicly with confidence and prepare for rapid growth.
   - Response time guarantees by priority (P1-P4)
   - Service credit calculations
   - Maintenance windows and communication policy
-
-### Referral Program
-- **Database Schema:**
-  - `referral_codes` - User shareable codes with usage tracking
-  - `referrals` - Individual referral tracking with status
-  - `referral_rewards` - Reward tracking and claiming
-  - `referral_programs` - Admin-configurable program settings
-- **API Endpoints:**
-  - `GET/POST /api/referrals` - List and create referral codes
-  - `GET /api/referrals/code/[code]` - Validate referral code
-  - `GET/POST /api/referrals/rewards` - Manage rewards
-- **Service Layer:**
-  - `ReferralRepository` Effect-TS service with full CRUD operations
 
 ### Embeddable Video Player
 - **Pages:**
@@ -112,13 +98,11 @@ Launch publicly with confidence and prepare for rapid growth.
 
 ## Exit Criteria
 - [x] Public launch complete (documentation ready)
-- [x] Growth features functional (referrals, embeds)
 - [x] Enterprise tier selling (sales package ready)
 - [ ] Mobile strategy decided
 
 ## Remaining Work
 1. ~~SLA documentation~~ ✅
-2. ~~Referral program~~ ✅
 3. ~~Embeddable player~~ ✅
 4. ~~Video workflow templates~~ ✅
 5. ~~Enterprise sales package~~ ✅

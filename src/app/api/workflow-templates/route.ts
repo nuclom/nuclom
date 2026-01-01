@@ -1,9 +1,9 @@
-import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { workflowTemplates } from "@/lib/db/schema";
-import { headers } from "next/headers";
+import { type WorkflowTemplateType, workflowTemplates } from "@/lib/db/schema";
 
 // Default system templates
 const SYSTEM_TEMPLATES = [
@@ -96,8 +96,7 @@ const SYSTEM_TEMPLATES = [
       customPrompts: {
         summaryPrompt:
           "Create a training summary that includes: 1) Learning objectives covered, 2) Key concepts explained, 3) Practical exercises or examples, 4) Assessment points",
-        actionItemsPrompt:
-          "Extract homework, practice exercises, and follow-up tasks from this training session.",
+        actionItemsPrompt: "Extract homework, practice exercises, and follow-up tasks from this training session.",
       },
     },
     isSystem: true,
@@ -176,11 +175,11 @@ export async function GET(request: NextRequest) {
     const conditions = [eq(workflowTemplates.isActive, true)];
 
     if (type) {
-      conditions.push(eq(workflowTemplates.type, type as any));
+      conditions.push(eq(workflowTemplates.type, type as WorkflowTemplateType));
     }
 
     // Get custom templates for the organization if authenticated
-    let customTemplates: typeof workflowTemplates.$inferSelect[] = [];
+    let customTemplates: (typeof workflowTemplates.$inferSelect)[] = [];
     if (session?.user && organizationId) {
       customTemplates = await db
         .select()
@@ -190,14 +189,14 @@ export async function GET(request: NextRequest) {
             eq(workflowTemplates.organizationId, organizationId),
             eq(workflowTemplates.isActive, true),
             eq(workflowTemplates.isSystem, false),
-            type ? eq(workflowTemplates.type, type as any) : undefined,
+            type ? eq(workflowTemplates.type, type as WorkflowTemplateType) : undefined,
           ),
         )
         .orderBy(desc(workflowTemplates.usageCount));
     }
 
     // Get system templates from database or use defaults
-    let systemTemplates: typeof workflowTemplates.$inferSelect[] = [];
+    let systemTemplates: (typeof workflowTemplates.$inferSelect)[] = [];
     if (includeSystem) {
       systemTemplates = await db
         .select()
@@ -206,16 +205,14 @@ export async function GET(request: NextRequest) {
           and(
             eq(workflowTemplates.isSystem, true),
             eq(workflowTemplates.isActive, true),
-            type ? eq(workflowTemplates.type, type as any) : undefined,
+            type ? eq(workflowTemplates.type, type as WorkflowTemplateType) : undefined,
           ),
         )
         .orderBy(desc(workflowTemplates.usageCount));
 
       // If no system templates in DB, return defaults
       if (systemTemplates.length === 0) {
-        const filteredDefaults = type
-          ? SYSTEM_TEMPLATES.filter((t) => t.type === type)
-          : SYSTEM_TEMPLATES;
+        const filteredDefaults = type ? SYSTEM_TEMPLATES.filter((t) => t.type === type) : SYSTEM_TEMPLATES;
         return NextResponse.json({
           templates: [...filteredDefaults, ...customTemplates],
           total: filteredDefaults.length + customTemplates.length,
@@ -253,10 +250,7 @@ export async function POST(request: NextRequest) {
     const { name, description, type, icon, config, organizationId } = body;
 
     if (!name || !config || !organizationId) {
-      return NextResponse.json(
-        { error: "Name, config, and organizationId are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Name, config, and organizationId are required" }, { status: 400 });
     }
 
     const [template] = await db

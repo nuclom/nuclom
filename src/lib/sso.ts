@@ -1,16 +1,16 @@
 import { eq } from "drizzle-orm";
+import { AuditLogger } from "./audit-log";
 import { db } from "./db";
 import {
   members,
-  ssoConfigurations,
-  ssoSessions,
-  users,
   type NewSSOConfiguration,
   type NewSSOSession,
   type SSOConfiguration,
   type SSOProviderType,
+  ssoConfigurations,
+  ssoSessions,
+  users,
 } from "./db/schema";
-import { AuditLogger } from "./audit-log";
 
 export interface SAMLConfig {
   entityId: string;
@@ -83,7 +83,7 @@ export class SSOService {
       configuredBy?: string;
     },
   ): Promise<SSOConfiguration> {
-    const existingConfig = await this.getConfig(organizationId);
+    const existingConfig = await SSOService.getConfig(organizationId);
 
     const ssoConfig: NewSSOConfiguration = {
       id: existingConfig?.id || crypto.randomUUID(),
@@ -100,7 +100,7 @@ export class SSOService {
       const samlConfig = config as SAMLConfig;
       ssoConfig.entityId = samlConfig.entityId;
       ssoConfig.ssoUrl = samlConfig.ssoUrl;
-      sloUrl: samlConfig.sloUrl || null;
+      ssoConfig.sloUrl = samlConfig.sloUrl || null;
       ssoConfig.certificate = samlConfig.certificate;
     } else {
       const oidcConfig = config as OIDCConfig;
@@ -133,7 +133,9 @@ export class SSOService {
         "sso_configured",
         { actorId: options.configuredBy, organizationId },
         {
-          previousValue: existingConfig ? { enabled: existingConfig.enabled, providerType: existingConfig.providerType } : undefined,
+          previousValue: existingConfig
+            ? { enabled: existingConfig.enabled, providerType: existingConfig.providerType }
+            : undefined,
           newValue: { enabled: result.enabled, providerType: result.providerType },
         },
       );
@@ -146,7 +148,7 @@ export class SSOService {
    * Enable SSO for an organization
    */
   static async enable(organizationId: string, enabledBy?: string): Promise<void> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config) {
       throw new Error("SSO not configured for this organization");
@@ -185,7 +187,7 @@ export class SSOService {
    * Disable SSO for an organization
    */
   static async disable(organizationId: string, disabledBy?: string): Promise<void> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config) {
       throw new Error("SSO not configured for this organization");
@@ -235,7 +237,7 @@ export class SSOService {
     userInfo: SSOUserInfo,
     sessionId: string,
   ): Promise<SSOAuthResult> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config || !config.enabled) {
       return { success: false, error: "SSO not enabled for this organization" };
@@ -348,11 +350,8 @@ export class SSOService {
   /**
    * Validate SAML assertion (placeholder - real implementation needs saml library)
    */
-  static async validateSAMLAssertion(
-    organizationId: string,
-    samlResponse: string,
-  ): Promise<SSOUserInfo | null> {
-    const config = await this.getConfig(organizationId);
+  static async validateSAMLAssertion(organizationId: string, _samlResponse: string): Promise<SSOUserInfo | null> {
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config || config.providerType !== "saml") {
       return null;
@@ -378,7 +377,7 @@ export class SSOService {
    * Initiate OIDC authorization flow
    */
   static async initiateOIDCFlow(organizationId: string, redirectUri: string, state: string): Promise<string | null> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config || config.providerType !== "oidc") {
       return null;
@@ -412,7 +411,7 @@ export class SSOService {
     code: string,
     redirectUri: string,
   ): Promise<SSOUserInfo | null> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (!config || config.providerType !== "oidc" || !config.clientId || !config.clientSecret) {
       return null;
@@ -459,13 +458,14 @@ export class SSOService {
       const userInfo = await userInfoResponse.json();
 
       // Map attributes
-      const mapping = (config.attributeMapping as {
-        email?: string;
-        name?: string;
-        firstName?: string;
-        lastName?: string;
-        groups?: string;
-      }) || {};
+      const mapping =
+        (config.attributeMapping as {
+          email?: string;
+          name?: string;
+          firstName?: string;
+          lastName?: string;
+          groups?: string;
+        }) || {};
 
       return {
         externalUserId: userInfo.sub,
@@ -497,7 +497,7 @@ export class SSOService {
    * Delete SSO configuration
    */
   static async deleteConfig(organizationId: string, deletedBy?: string): Promise<void> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
 
     if (config) {
       await db.delete(ssoConfigurations).where(eq(ssoConfigurations.id, config.id));
@@ -519,7 +519,7 @@ export class SSOService {
    * Test SSO configuration (dry run)
    */
   static async testConfig(organizationId: string): Promise<{ valid: boolean; errors: string[] }> {
-    const config = await this.getConfig(organizationId);
+    const config = await SSOService.getConfig(organizationId);
     const errors: string[] = [];
 
     if (!config) {

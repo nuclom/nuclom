@@ -2,17 +2,17 @@ import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Cl
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { and, eq } from "drizzle-orm";
+import { AuditLogger } from "./audit-log";
 import { db } from "./db";
 import {
   fileRegionLocations,
-  organizationStorageConfigs,
   type NewFileRegionLocation,
   type NewOrganizationStorageConfig,
   type OrganizationStorageConfig,
+  organizationStorageConfigs,
   type StorageRegion,
 } from "./db/schema";
 import { env } from "./env/server";
-import { AuditLogger } from "./audit-log";
 
 export interface RegionConfig {
   region: StorageRegion;
@@ -36,7 +36,7 @@ export interface UploadOptions {
 }
 
 // Region endpoint configurations
-const REGION_ENDPOINTS: Record<StorageRegion, string> = {
+const _REGION_ENDPOINTS: Record<StorageRegion, string> = {
   "us-east-1": "https://s3.us-east-1.amazonaws.com",
   "us-west-2": "https://s3.us-west-2.amazonaws.com",
   "eu-west-1": "https://s3.eu-west-1.amazonaws.com",
@@ -59,13 +59,12 @@ const DATA_RESIDENCY_REGIONS: Record<string, StorageRegion[]> = {
 // biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern
 export class MultiRegionStorageService {
   private static r2Client: S3Client | null = null;
-  private static regionClients: Map<StorageRegion, S3Client> = new Map();
 
   /**
    * Initialize the R2 client
    */
   private static getR2Client(): S3Client {
-    if (!this.r2Client) {
+    if (!MultiRegionStorageService.r2Client) {
       const R2_ACCOUNT_ID = env.R2_ACCOUNT_ID;
       const R2_ACCESS_KEY_ID = env.R2_ACCESS_KEY_ID;
       const R2_SECRET_ACCESS_KEY = env.R2_SECRET_ACCESS_KEY;
@@ -74,7 +73,7 @@ export class MultiRegionStorageService {
         throw new Error("R2 storage not configured");
       }
 
-      this.r2Client = new S3Client({
+      MultiRegionStorageService.r2Client = new S3Client({
         region: "auto",
         endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
         credentials: {
@@ -84,7 +83,7 @@ export class MultiRegionStorageService {
       });
     }
 
-    return this.r2Client;
+    return MultiRegionStorageService.r2Client;
   }
 
   /**
@@ -112,7 +111,7 @@ export class MultiRegionStorageService {
     },
     configuredBy?: string,
   ): Promise<OrganizationStorageConfig> {
-    const existingConfig = await this.getConfig(organizationId);
+    const existingConfig = await MultiRegionStorageService.getConfig(organizationId);
 
     // Validate data residency and regions match
     if (config.dataResidency && config.primaryRegion && config.primaryRegion !== "auto") {
@@ -178,7 +177,7 @@ export class MultiRegionStorageService {
    * Get the primary region for an organization
    */
   static async getPrimaryRegion(organizationId: string): Promise<StorageRegion> {
-    const config = await this.getConfig(organizationId);
+    const config = await MultiRegionStorageService.getConfig(organizationId);
     return config?.primaryRegion || "auto";
   }
 
@@ -191,8 +190,8 @@ export class MultiRegionStorageService {
     key: string,
     options: UploadOptions = {},
   ): Promise<UploadResult> {
-    const client = this.getR2Client();
-    const config = await this.getConfig(organizationId);
+    const client = MultiRegionStorageService.getR2Client();
+    const config = await MultiRegionStorageService.getConfig(organizationId);
     const primaryRegion = config?.primaryRegion || "auto";
 
     const uploadParams: PutObjectCommandInput = {
@@ -212,13 +211,19 @@ export class MultiRegionStorageService {
       const result = await upload.done();
 
       // Record file location
-      await this.recordFileLocation(organizationId, key, primaryRegion, env.R2_BUCKET_NAME, true);
+      await MultiRegionStorageService.recordFileLocation(organizationId, key, primaryRegion, env.R2_BUCKET_NAME, true);
 
       const url = `https://${env.R2_BUCKET_NAME}.${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;
 
       // Trigger replication if enabled
       if (options.replicate !== false && config?.replicationRegions) {
-        void this.replicateToRegions(organizationId, key, buffer, config.replicationRegions as StorageRegion[], options);
+        void MultiRegionStorageService.replicateToRegions(
+          organizationId,
+          key,
+          buffer,
+          config.replicationRegions as StorageRegion[],
+          options,
+        );
       }
 
       return {
@@ -243,8 +248,8 @@ export class MultiRegionStorageService {
     options: UploadOptions = {},
     onProgress?: (progress: { loaded: number; total: number }) => void,
   ): Promise<UploadResult> {
-    const client = this.getR2Client();
-    const config = await this.getConfig(organizationId);
+    const client = MultiRegionStorageService.getR2Client();
+    const config = await MultiRegionStorageService.getConfig(organizationId);
     const primaryRegion = config?.primaryRegion || "auto";
 
     const uploadParams: PutObjectCommandInput = {
@@ -275,7 +280,7 @@ export class MultiRegionStorageService {
       const result = await upload.done();
 
       // Record file location
-      await this.recordFileLocation(organizationId, key, primaryRegion, env.R2_BUCKET_NAME, true);
+      await MultiRegionStorageService.recordFileLocation(organizationId, key, primaryRegion, env.R2_BUCKET_NAME, true);
 
       const url = `https://${env.R2_BUCKET_NAME}.${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;
 
@@ -295,7 +300,7 @@ export class MultiRegionStorageService {
    * Delete a file from all regions
    */
   static async deleteFile(organizationId: string, key: string): Promise<void> {
-    const client = this.getR2Client();
+    const client = MultiRegionStorageService.getR2Client();
 
     // Get all locations of this file
     const locations = await db.query.fileRegionLocations.findMany({
@@ -335,8 +340,8 @@ export class MultiRegionStorageService {
     contentType: string,
     expiresIn = 3600,
   ): Promise<{ url: string; region: StorageRegion }> {
-    const client = this.getR2Client();
-    const config = await this.getConfig(organizationId);
+    const client = MultiRegionStorageService.getR2Client();
+    const config = await MultiRegionStorageService.getConfig(organizationId);
     const primaryRegion = config?.primaryRegion || "auto";
 
     const command = new PutObjectCommand({
@@ -409,9 +414,9 @@ export class MultiRegionStorageService {
   private static async replicateToRegions(
     organizationId: string,
     key: string,
-    buffer: Buffer,
+    _buffer: Buffer,
     regions: StorageRegion[],
-    options: UploadOptions,
+    _options: UploadOptions,
   ): Promise<void> {
     // In a production implementation, this would:
     // 1. Queue replication jobs
@@ -422,7 +427,13 @@ export class MultiRegionStorageService {
       console.log(`[Storage] Would replicate ${key} to region: ${region}`);
 
       // Record pending replication
-      await this.recordFileLocation(organizationId, key, region, `${env.R2_BUCKET_NAME}-${region}`, false);
+      await MultiRegionStorageService.recordFileLocation(
+        organizationId,
+        key,
+        region,
+        `${env.R2_BUCKET_NAME}-${region}`,
+        false,
+      );
     }
   }
 
@@ -455,7 +466,7 @@ export class MultiRegionStorageService {
     replicationPending: number;
     replicationFailed: number;
   }> {
-    const config = await this.getConfig(organizationId);
+    const config = await MultiRegionStorageService.getConfig(organizationId);
 
     // Count files by replication status
     const locations = await db.query.fileRegionLocations.findMany({
@@ -463,12 +474,8 @@ export class MultiRegionStorageService {
     });
 
     const primaryFiles = new Set(locations.filter((l) => l.isPrimary).map((l) => l.fileKey));
-    const pendingReplication = locations.filter(
-      (l) => !l.isPrimary && l.replicationStatus === "pending",
-    ).length;
-    const failedReplication = locations.filter(
-      (l) => !l.isPrimary && l.replicationStatus === "failed",
-    ).length;
+    const pendingReplication = locations.filter((l) => !l.isPrimary && l.replicationStatus === "pending").length;
+    const failedReplication = locations.filter((l) => !l.isPrimary && l.replicationStatus === "failed").length;
 
     return {
       primaryRegion: config?.primaryRegion || "auto",

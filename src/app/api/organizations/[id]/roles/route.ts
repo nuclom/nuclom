@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -5,7 +6,6 @@ import { db } from "@/lib/db";
 import { members, type PermissionAction, type PermissionResource } from "@/lib/db/schema";
 import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/roles - Get all roles
@@ -28,7 +28,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!membership) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Not a member of this organization" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Not a member of this organization" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -68,10 +71,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: "Only owners can create roles" },
-      { status: 403 },
-    );
+    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can create roles" }, { status: 403 });
   }
 
   try {

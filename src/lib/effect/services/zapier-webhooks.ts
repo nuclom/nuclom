@@ -4,10 +4,15 @@
  * Provides webhook management and delivery for Zapier integration.
  */
 
+import crypto from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import crypto from "node:crypto";
-import type { ZapierWebhook, ZapierWebhookDelivery, ZapierWebhookEvent } from "@/lib/db/schema";
+import type {
+  NewZapierWebhookDelivery,
+  ZapierWebhook,
+  ZapierWebhookDelivery,
+  ZapierWebhookEvent,
+} from "@/lib/db/schema";
 import { zapierWebhookDeliveries, zapierWebhooks } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
@@ -62,9 +67,7 @@ export interface ZapierWebhooksServiceInterface {
   /**
    * Get a specific webhook
    */
-  readonly getWebhook: (
-    id: string,
-  ) => Effect.Effect<ZapierWebhook, DatabaseError | NotFoundError>;
+  readonly getWebhook: (id: string) => Effect.Effect<ZapierWebhook, DatabaseError | NotFoundError>;
 
   /**
    * Create a new webhook
@@ -121,9 +124,7 @@ export interface ZapierWebhooksServiceInterface {
   /**
    * Retry a failed delivery
    */
-  readonly retryDelivery: (
-    deliveryId: string,
-  ) => Effect.Effect<WebhookDeliveryResult, DatabaseError | NotFoundError>;
+  readonly retryDelivery: (deliveryId: string) => Effect.Effect<WebhookDeliveryResult, DatabaseError | NotFoundError>;
 
   /**
    * Generate a signature for a payload
@@ -165,18 +166,13 @@ const makeZapierWebhooksService = Effect.gen(function* () {
   const verifySignature = (secret: string, payload: string, signature: string): boolean => {
     const expectedSignature = generateSignature(secret, payload);
     try {
-      return crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature),
-      );
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
     } catch {
       return false;
     }
   };
 
-  const getWebhooks = (
-    organizationId: string,
-  ): Effect.Effect<WebhookWithStats[], DatabaseError> =>
+  const getWebhooks = (organizationId: string): Effect.Effect<WebhookWithStats[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const webhooks = await db
@@ -216,17 +212,11 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         }),
     });
 
-  const getWebhook = (
-    id: string,
-  ): Effect.Effect<ZapierWebhook, DatabaseError | NotFoundError> =>
+  const getWebhook = (id: string): Effect.Effect<ZapierWebhook, DatabaseError | NotFoundError> =>
     Effect.gen(function* () {
       const result = yield* Effect.tryPromise({
         try: async () => {
-          return await db
-            .select()
-            .from(zapierWebhooks)
-            .where(eq(zapierWebhooks.id, id))
-            .limit(1);
+          return await db.select().from(zapierWebhooks).where(eq(zapierWebhooks.id, id)).limit(1);
         },
         catch: (error) =>
           new DatabaseError({
@@ -249,9 +239,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       return result[0];
     });
 
-  const createWebhook = (
-    data: CreateWebhookInput,
-  ): Effect.Effect<ZapierWebhook, DatabaseError> =>
+  const createWebhook = (data: CreateWebhookInput): Effect.Effect<ZapierWebhook, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const [webhook] = await db
@@ -306,16 +294,11 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       return result[0];
     });
 
-  const deleteWebhook = (
-    id: string,
-  ): Effect.Effect<void, DatabaseError | NotFoundError> =>
+  const deleteWebhook = (id: string): Effect.Effect<void, DatabaseError | NotFoundError> =>
     Effect.gen(function* () {
       const result = yield* Effect.tryPromise({
         try: async () => {
-          return await db
-            .delete(zapierWebhooks)
-            .where(eq(zapierWebhooks.id, id))
-            .returning();
+          return await db.delete(zapierWebhooks).where(eq(zapierWebhooks.id, id)).returning();
         },
         catch: (error) =>
           new DatabaseError({
@@ -345,12 +328,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         const webhooks = await db
           .select()
           .from(zapierWebhooks)
-          .where(
-            and(
-              eq(zapierWebhooks.organizationId, organizationId),
-              eq(zapierWebhooks.isActive, true),
-            ),
-          );
+          .where(and(eq(zapierWebhooks.organizationId, organizationId), eq(zapierWebhooks.isActive, true)));
 
         // Filter webhooks that subscribe to this event
         return webhooks.filter((webhook) => {
@@ -402,18 +380,16 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         }
 
         // Record the delivery
-        const [delivery] = await db
-          .insert(zapierWebhookDeliveries)
-          .values({
-            webhookId: webhook.id,
-            event: payload.event,
-            payload,
-            responseStatus: statusCode,
-            responseBody: responseBody?.slice(0, 1000), // Limit response body size
-            success,
-            deliveredAt: success ? new Date() : null,
-          })
-          .returning();
+        const deliveryData: NewZapierWebhookDelivery = {
+          webhookId: webhook.id,
+          event: payload.event,
+          payload: payload as unknown as Record<string, unknown>,
+          responseStatus: statusCode,
+          responseBody: responseBody?.slice(0, 1000), // Limit response body size
+          success,
+          deliveredAt: success ? new Date() : null,
+        };
+        const [delivery] = await db.insert(zapierWebhookDeliveries).values(deliveryData).returning();
 
         // Update webhook stats
         if (!success) {
@@ -511,9 +487,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         }),
     });
 
-  const retryDelivery = (
-    deliveryId: string,
-  ): Effect.Effect<WebhookDeliveryResult, DatabaseError | NotFoundError> =>
+  const retryDelivery = (deliveryId: string): Effect.Effect<WebhookDeliveryResult, DatabaseError | NotFoundError> =>
     Effect.gen(function* () {
       // Get the original delivery
       const deliveryResult = yield* Effect.tryPromise({
@@ -548,7 +522,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       const webhook = yield* getWebhook(delivery.webhookId);
 
       // Retry the delivery
-      const payload = delivery.payload as WebhookPayload;
+      const payload = delivery.payload as unknown as WebhookPayload;
       return yield* deliverWebhook(webhook, payload);
     });
 
@@ -572,10 +546,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
 // Zapier Webhooks Service Layer
 // =============================================================================
 
-export const ZapierWebhooksServiceLive = Layer.effect(
-  ZapierWebhooksService,
-  makeZapierWebhooksService,
-);
+export const ZapierWebhooksServiceLive = Layer.effect(ZapierWebhooksService, makeZapierWebhooksService);
 
 // =============================================================================
 // Zapier Webhooks Helper Functions
@@ -628,11 +599,7 @@ export const getZapierWebhookDeliveries = (
   webhookId: string,
   page?: number,
   limit?: number,
-): Effect.Effect<
-  { data: ZapierWebhookDelivery[]; total: number },
-  DatabaseError,
-  ZapierWebhooksService
-> =>
+): Effect.Effect<{ data: ZapierWebhookDelivery[]; total: number }, DatabaseError, ZapierWebhooksService> =>
   Effect.gen(function* () {
     const service = yield* ZapierWebhooksService;
     return yield* service.getDeliveries(webhookId, page, limit);

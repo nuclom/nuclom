@@ -2,10 +2,7 @@ import { Effect, Layer } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  IntegrationRepository,
-  IntegrationRepositoryLive,
-} from "@/lib/effect/services/integration-repository";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Slack, SlackLive } from "@/lib/effect/services/slack";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -26,10 +23,7 @@ export async function GET(request: Request) {
     const integrationRepo = yield* IntegrationRepository;
 
     // Get the user's Slack integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(
-      session.user.id,
-      "slack",
-    );
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "slack");
 
     if (!integration) {
       return { channels: [], connected: false };
@@ -50,9 +44,6 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Slack Channels Error]", err);
-    return NextResponse.json(
-      { error: "Failed to fetch Slack channels" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch Slack channels" }, { status: 500 });
   }
 }

@@ -359,7 +359,7 @@ async function main() {
   console.log("   • Monthly: $49/user/month (prorated daily refund)");
   console.log("   • Yearly:  $41/user/month ($492/year, 16% off, non-refundable)");
   console.log("   Trial:   14 days (no credit card required)\n");
-  console.log("=".repeat(50) + "\n");
+  console.log(`${"=".repeat(50)}\n`);
 
   const createdResources: {
     products: Array<{ name: string; id: string }>;
@@ -393,7 +393,7 @@ async function main() {
   await setupBillingPortal();
 
   // Summary
-  console.log("\n" + "=".repeat(50));
+  console.log(`\n${"=".repeat(50)}`);
   console.log("📊 Summary\n");
 
   if (!DRY_RUN) {
@@ -413,7 +413,7 @@ async function main() {
     const enterpriseMonthly = createdResources.prices.find((p) => p.nickname === "Enterprise Monthly");
     const enterpriseYearly = createdResources.prices.find((p) => p.nickname === "Enterprise Yearly");
 
-    console.log("\n" + "=".repeat(50));
+    console.log(`\n${"=".repeat(50)}`);
     console.log("🔐 Required Environment Variables\n");
     console.log("Add these to your .env file:\n");
     console.log("# Stripe Configuration");

@@ -1,12 +1,12 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { type AuditLogFilters, AuditLogger } from "@/lib/audit-log";
 import { auth } from "@/lib/auth";
-import { AuditLogger, type AuditLogFilters } from "@/lib/audit-log";
 import { db } from "@/lib/db";
-import { members, type AuditLogCategory, type AuditLogSeverity } from "@/lib/db/schema";
+import { type AuditLogCategory, type AuditLogSeverity, members } from "@/lib/db/schema";
 import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/audit-logs - Query audit logs
@@ -29,7 +29,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!membership) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Not a member of this organization" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Not a member of this organization" },
+      { status: 403 },
+    );
   }
 
   // Check if user has audit_log:read permission
@@ -136,7 +139,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!membership) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Not a member of this organization" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Not a member of this organization" },
+      { status: 403 },
+    );
   }
 
   const hasPermission = await RBACService.checkPermission({

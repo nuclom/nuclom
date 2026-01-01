@@ -3,10 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import type { ZapierWebhookEvent } from "@/lib/db/schema";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  ZapierWebhooksService,
-  ZapierWebhooksServiceLive,
-} from "@/lib/effect/services/zapier-webhooks";
+import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const WebhooksLayer = Layer.mergeAll(ZapierWebhooksWithDeps, DatabaseLive);
@@ -38,10 +35,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Webhook GET Error]", err);
-    return NextResponse.json(
-      { error: "Webhook not found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
   }
 }
 
@@ -75,10 +69,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Webhook PATCH Error]", err);
-    return NextResponse.json(
-      { error: "Failed to update webhook" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to update webhook" }, { status: 500 });
   }
 }
 
@@ -105,9 +96,6 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Webhook DELETE Error]", err);
-    return NextResponse.json(
-      { error: "Failed to delete webhook" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to delete webhook" }, { status: 500 });
   }
 }

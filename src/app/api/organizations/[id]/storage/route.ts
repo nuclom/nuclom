@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -5,7 +6,6 @@ import { db } from "@/lib/db";
 import { members, type StorageRegion } from "@/lib/db/schema";
 import { MultiRegionStorageService } from "@/lib/multi-region-storage";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/storage - Get storage configuration

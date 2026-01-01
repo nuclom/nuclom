@@ -1,11 +1,11 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
-import { SSOService, type SAMLConfig, type OIDCConfig } from "@/lib/sso";
+import { type OIDCConfig, type SAMLConfig, SSOService } from "@/lib/sso";
 import type { ApiResponse } from "@/lib/types";
-import { and, eq } from "drizzle-orm";
 
 // =============================================================================
 // GET /api/organizations/[id]/sso - Get SSO configuration
@@ -28,7 +28,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can view SSO settings" }, { status: 403 });
+    return NextResponse.json<ApiResponse>(
+      { success: false, error: "Only owners can view SSO settings" },
+      { status: 403 },
+    );
   }
 
   const config = await SSOService.getConfig(organizationId);
@@ -89,15 +92,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    const ssoConfig = await SSOService.configure(
-      organizationId,
-      providerType,
-      config as SAMLConfig | OIDCConfig,
-      {
-        ...options,
-        configuredBy: session.user.id,
-      },
-    );
+    const ssoConfig = await SSOService.configure(organizationId, providerType, config as SAMLConfig | OIDCConfig, {
+      ...options,
+      configuredBy: session.user.id,
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,

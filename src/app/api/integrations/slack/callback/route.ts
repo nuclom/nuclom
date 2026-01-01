@@ -2,10 +2,7 @@ import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  IntegrationRepository,
-  IntegrationRepositoryLive,
-} from "@/lib/effect/services/integration-repository";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Slack, SlackLive } from "@/lib/effect/services/slack";
 
 export const dynamic = "force-dynamic";
