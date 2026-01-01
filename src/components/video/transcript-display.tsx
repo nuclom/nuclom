@@ -97,8 +97,10 @@ function TranscriptSegmentItem({
     <div
       id={`transcript-segment-${index}`}
       className={cn(
-        "group relative flex gap-4 p-3 rounded-lg transition-colors cursor-pointer",
-        isActive ? "bg-primary/10 border-l-2 border-primary" : "hover:bg-muted/50 border-l-2 border-transparent",
+        "group relative flex gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-lg transition-colors cursor-pointer touch-manipulation",
+        isActive
+          ? "bg-primary/10 border-l-2 border-primary"
+          : "hover:bg-muted/50 active:bg-muted/70 border-l-2 border-transparent",
       )}
       onClick={() => onSeek?.(segment.startTime)}
       onKeyDown={(e) => {
@@ -112,26 +114,31 @@ function TranscriptSegmentItem({
       aria-label={`Jump to ${formatTime(segment.startTime)}: ${segment.text}`}
     >
       {/* Timestamp */}
-      <div className="flex-shrink-0 w-16">
-        <span className={cn("font-mono text-xs", isActive ? "text-primary font-medium" : "text-muted-foreground")}>
+      <div className="flex-shrink-0 w-12 sm:w-16">
+        <span
+          className={cn(
+            "font-mono text-[11px] sm:text-xs",
+            isActive ? "text-primary font-medium" : "text-muted-foreground",
+          )}
+        >
           {formatTime(segment.startTime)}
         </span>
       </div>
 
       {/* Text content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pr-6 sm:pr-0">
         <p className={cn("text-sm leading-relaxed", isActive && "text-foreground font-medium")}>
           {highlightSearchTerm(segment.text, searchTerm)}
         </p>
       </div>
 
-      {/* Comment button (visible on hover) */}
+      {/* Comment button (visible on hover/always on touch) */}
       {onAddComment && (
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 sm:h-7 sm:w-7 text-muted-foreground hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation();
               onAddComment(segment);
