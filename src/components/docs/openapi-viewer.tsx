@@ -1,8 +1,17 @@
 "use client";
 
 import { Check, ChevronDown, ChevronRight, Copy, ExternalLink } from "lucide-react";
-import { useState } from "react";
-import { openApiSpec } from "@/lib/openapi";
+import { useEffect, useState } from "react";
+
+// The OpenAPI spec is generated at build time and served as a static file
+type OpenApiSpec = {
+  openapi: string;
+  info: { title: string; description?: string; version: string };
+  servers?: Array<{ url: string; description?: string }>;
+  tags?: Array<{ name: string; description?: string }>;
+  paths: Record<string, Record<string, PathOperation>>;
+  components?: { parameters?: Record<string, ParameterDef> };
+};
 
 type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 type Tag = { name: string; description?: string };
@@ -80,7 +89,17 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function EndpointCard({ path, method, operation }: { path: string; method: HttpMethod; operation: PathOperation }) {
+function EndpointCard({
+  path,
+  method,
+  operation,
+  spec,
+}: {
+  path: string;
+  method: HttpMethod;
+  operation: PathOperation;
+  spec: OpenApiSpec;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const requiresAuth = operation.security && operation.security.length > 0;
 
@@ -88,7 +107,7 @@ function EndpointCard({ path, method, operation }: { path: string; method: HttpM
   const resolveParamRef = (param: ParameterDef): ParameterDef => {
     if (param.$ref) {
       const refPath = param.$ref.replace("#/components/parameters/", "");
-      const params = openApiSpec.components?.parameters as Record<string, ParameterDef> | undefined;
+      const params = spec.components?.parameters;
       return params?.[refPath] || param;
     }
     return param;
@@ -199,9 +218,11 @@ function EndpointCard({ path, method, operation }: { path: string; method: HttpM
 function TagSection({
   tag,
   paths,
+  spec,
 }: {
   tag: Tag;
   paths: Array<{ path: string; method: HttpMethod; operation: PathOperation }>;
+  spec: OpenApiSpec;
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -220,7 +241,7 @@ function TagSection({
       {isExpanded && (
         <div className="ml-2">
           {paths.map(({ path, method, operation }) => (
-            <EndpointCard key={`${method}-${path}`} path={path} method={method} operation={operation} />
+            <EndpointCard key={`${method}-${path}`} path={path} method={method} operation={operation} spec={spec} />
           ))}
         </div>
       )}
@@ -229,10 +250,29 @@ function TagSection({
 }
 
 export function OpenApiViewer() {
-  const spec = openApiSpec;
+  const [spec, setSpec] = useState<OpenApiSpec | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/openapi.json")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load OpenAPI spec");
+        return res.json();
+      })
+      .then(setSpec)
+      .catch((err) => setError(err.message));
+  }, []);
+
+  if (error) {
+    return <div className="text-red-500">Error loading API specification: {error}</div>;
+  }
+
+  if (!spec) {
+    return <div className="text-muted-foreground">Loading API specification...</div>;
+  }
+
   const tags = (spec.tags || []) as Tag[];
-  // Cast paths to unknown first to avoid strict type checking issues with the complex OpenAPI spec
-  const paths = spec.paths as unknown as Record<string, Record<string, PathOperation>>;
+  const paths = spec.paths;
 
   // Group endpoints by tag
   const endpointsByTag = new Map<string, Array<{ path: string; method: HttpMethod; operation: PathOperation }>>();
@@ -264,7 +304,7 @@ export function OpenApiViewer() {
           <span className="px-2 py-1 bg-muted rounded">Version: {spec.info.version}</span>
           <span className="px-2 py-1 bg-muted rounded">OpenAPI 3.1</span>
           <a
-            href="/api/openapi.json"
+            href="/openapi.json"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
@@ -273,7 +313,7 @@ export function OpenApiViewer() {
             openapi.json
           </a>
           <a
-            href="/api/openapi.yaml"
+            href="/openapi.yaml"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
@@ -315,7 +355,7 @@ export function OpenApiViewer() {
         {tags.map((tag) => {
           const tagEndpoints = endpointsByTag.get(tag.name) || [];
           if (tagEndpoints.length === 0) return null;
-          return <TagSection key={tag.name} tag={tag} paths={tagEndpoints} />;
+          return <TagSection key={tag.name} tag={tag} paths={tagEndpoints} spec={spec} />;
         })}
       </div>
 
@@ -324,12 +364,7 @@ export function OpenApiViewer() {
         <h2 className="text-xl font-semibold mb-4">Data Models</h2>
         <p className="text-muted-foreground mb-4">
           For detailed schema definitions, download the{" "}
-          <a
-            href="/api/openapi.json"
-            className="text-primary hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="/openapi.json" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
             OpenAPI specification
           </a>{" "}
           and view the <code>components.schemas</code> section.
