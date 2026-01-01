@@ -31,7 +31,8 @@ function AcceptInvitationSkeleton() {
   );
 }
 
-async function AcceptInvitationContent({ id }: { id: string }) {
+async function AcceptInvitationContent({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const invitation = await getInvitation(id);
 
   return (
@@ -45,12 +46,10 @@ interface AcceptInvitationPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function AcceptInvitationPage({ params }: AcceptInvitationPageProps) {
-  const { id } = await params;
-
+export default function AcceptInvitationPage({ params }: AcceptInvitationPageProps) {
   return (
     <Suspense fallback={<AcceptInvitationSkeleton />}>
-      <AcceptInvitationContent id={id} />
+      <AcceptInvitationContent params={params} />
     </Suspense>
   );
 }

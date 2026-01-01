@@ -21,7 +21,15 @@ function SearchSkeleton() {
   );
 }
 
-async function SearchLoader({ organizationSlug, query }: { organizationSlug: string; query?: string }) {
+async function SearchLoader({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ organization: string }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { organization: organizationSlug } = await params;
+  const { q: query } = await searchParams;
   const headersList = await headers();
 
   // Get current session
@@ -125,13 +133,10 @@ async function SearchLoader({ organizationSlug, query }: { organizationSlug: str
   );
 }
 
-export default async function SearchPage({ params, searchParams }: SearchPageProps) {
-  const { organization: organizationSlug } = await params;
-  const { q } = await searchParams;
-
+export default function SearchPage({ params, searchParams }: SearchPageProps) {
   return (
     <Suspense fallback={<SearchSkeleton />}>
-      <SearchLoader organizationSlug={organizationSlug} query={q} />
+      <SearchLoader params={params} searchParams={searchParams} />
     </Suspense>
   );
 }

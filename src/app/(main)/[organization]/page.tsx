@@ -126,7 +126,9 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
 // Dashboard Loader Component
 // =============================================================================
 
-async function DashboardLoader({ organizationSlug }: { organizationSlug: string }) {
+async function DashboardLoader({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization: organizationSlug } = await params;
+
   // Authenticate user
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -157,12 +159,10 @@ async function DashboardLoader({ organizationSlug }: { organizationSlug: string 
 // Main Page Component
 // =============================================================================
 
-export default async function OrganizationPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization: organizationSlug } = await params;
-
+export default function OrganizationPage({ params }: { params: Promise<{ organization: string }> }) {
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardLoader organizationSlug={organizationSlug} />
+      <DashboardLoader params={params} />
     </Suspense>
   );
 }

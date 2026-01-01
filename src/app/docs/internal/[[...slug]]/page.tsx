@@ -54,7 +54,8 @@ function DocsContentSkeleton() {
   );
 }
 
-async function InternalDocsContent({ slug }: { slug: string[] }) {
+async function InternalDocsContent({ params }: { params: Promise<{ slug?: string[] }> }) {
+  const { slug = [] } = await params;
   const fullSlug = ["internal", ...slug];
   const content = await getDocsContent(fullSlug);
 
@@ -73,12 +74,10 @@ async function InternalDocsContent({ slug }: { slug: string[] }) {
   );
 }
 
-export default async function InternalDocsPage({ params }: PageProps) {
-  const { slug = [] } = await params;
-
+export default function InternalDocsPage({ params }: PageProps) {
   return (
     <Suspense fallback={<DocsContentSkeleton />}>
-      <InternalDocsContent slug={slug} />
+      <InternalDocsContent params={params} />
     </Suspense>
   );
 }

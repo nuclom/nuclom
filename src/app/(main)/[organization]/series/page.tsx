@@ -23,7 +23,8 @@ function SeriesListSkeleton() {
   );
 }
 
-async function SeriesListLoader({ organization }: { organization: string }) {
+async function SeriesListLoader({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization } = await params;
   // Get the current user session
   const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
@@ -67,12 +68,10 @@ async function SeriesListLoader({ organization }: { organization: string }) {
   );
 }
 
-export default async function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization } = await params;
-
+export default function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
   return (
     <Suspense fallback={<SeriesListSkeleton />}>
-      <SeriesListLoader organization={organization} />
+      <SeriesListLoader params={params} />
     </Suspense>
   );
 }

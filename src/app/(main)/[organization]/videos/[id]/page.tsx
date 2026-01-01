@@ -572,11 +572,11 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
 // =============================================================================
 
 interface VideoLoaderProps {
-  videoId: string;
-  organizationSlug: string;
+  params: Promise<{ organization: string; id: string }>;
 }
 
-async function VideoLoader({ videoId, organizationSlug }: VideoLoaderProps) {
+async function VideoLoader({ params }: VideoLoaderProps) {
+  const { organization: organizationSlug, id: videoId } = await params;
   // Get current user session (optional - allows anonymous viewing)
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -621,12 +621,10 @@ async function VideoLoader({ videoId, organizationSlug }: VideoLoaderProps) {
 // Main Page Component
 // =============================================================================
 
-export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization, id } = await params;
-
+export default function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} organizationSlug={organization} />
+      <VideoLoader params={params} />
     </Suspense>
   );
 }

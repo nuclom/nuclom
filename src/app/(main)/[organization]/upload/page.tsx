@@ -26,7 +26,8 @@ function UploadSkeleton() {
   );
 }
 
-async function UploadContent({ organizationSlug }: { organizationSlug: string }) {
+async function UploadContent({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization: organizationSlug } = await params;
   // Get user from session
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -71,12 +72,10 @@ async function UploadContent({ organizationSlug }: { organizationSlug: string })
   );
 }
 
-export default async function UploadPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization: organizationSlug } = await params;
-
+export default function UploadPage({ params }: { params: Promise<{ organization: string }> }) {
   return (
     <Suspense fallback={<UploadSkeleton />}>
-      <UploadContent organizationSlug={organizationSlug} />
+      <UploadContent params={params} />
     </Suspense>
   );
 }

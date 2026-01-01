@@ -21,7 +21,8 @@ function SeriesDetailSkeleton() {
   );
 }
 
-async function SeriesDetailLoader({ organization, id }: { organization: string; id: string }) {
+async function SeriesDetailLoader({ params }: { params: Promise<{ organization: string; id: string }> }) {
+  const { organization, id } = await params;
   // Get the current user session
   const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
@@ -67,12 +68,10 @@ async function SeriesDetailLoader({ organization, id }: { organization: string; 
   );
 }
 
-export default async function SeriesDetailPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization, id } = await params;
-
+export default function SeriesDetailPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   return (
     <Suspense fallback={<SeriesDetailSkeleton />}>
-      <SeriesDetailLoader organization={organization} id={id} />
+      <SeriesDetailLoader params={params} />
     </Suspense>
   );
 }

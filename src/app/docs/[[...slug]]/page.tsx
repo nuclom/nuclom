@@ -50,7 +50,8 @@ function DocsContentSkeleton() {
   );
 }
 
-async function DocsContent({ slug }: { slug: string[] }) {
+async function DocsContent({ params }: { params: Promise<{ slug?: string[] }> }) {
+  const { slug = [] } = await params;
   const content = await getDocsContent(slug);
 
   if (!content) {
@@ -68,12 +69,10 @@ async function DocsContent({ slug }: { slug: string[] }) {
   );
 }
 
-export default async function Page({ params }: PageProps) {
-  const { slug = [] } = await params;
-
+export default function Page({ params }: PageProps) {
   return (
     <Suspense fallback={<DocsContentSkeleton />}>
-      <DocsContent slug={slug} />
+      <DocsContent params={params} />
     </Suspense>
   );
 }
