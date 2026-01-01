@@ -15,7 +15,9 @@
       "src/**/*.json",
       "scripts/**/*.ts",
       "e2e/**/*",
-      "!**/*.d.ts"
+      "!**/*.d.ts",
+      "!public/openapi.json",
+      "!public/openapi.yaml"
     ]
   },
   "formatter": {

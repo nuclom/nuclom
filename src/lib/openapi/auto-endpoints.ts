@@ -441,8 +441,6 @@ export const descriptionOverrides: Record<string, { summary: string; description
  */
 export const skipRoutes = [
   "/auth/{...auth}",
-  "/openapi.json",
-  "/openapi.yaml",
   "/webhooks/stripe",
   "/integrations/google/callback",
   "/integrations/google/webhook",
