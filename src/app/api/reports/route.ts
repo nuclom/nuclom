@@ -117,7 +117,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const result = safeParse(CreateReportSchema, body);
     if (!result.success) {
-      return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
+        { status: 400 },
+      );
     }
     const { resourceType, resourceId, category, description } = result.data;
 
@@ -193,7 +196,10 @@ export async function PATCH(request: NextRequest) {
 
     const result = safeParse(UpdateReportSchema, updateData);
     if (!result.success) {
-      return NextResponse.json({ error: "Invalid request", details: result.errors }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
+        { status: 400 },
+      );
     }
     const { status, resolution, resolutionNotes } = result.data;
 

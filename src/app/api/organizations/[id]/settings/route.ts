@@ -1,36 +1,10 @@
 import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
-import { AppLive } from "@/lib/effect";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "ForbiddenError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/organizations/[id]/settings - Get organization settings
@@ -59,16 +33,16 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return organization;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -128,16 +102,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return { message: "Organization settings updated successfully", organization: updatedOrg };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

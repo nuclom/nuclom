@@ -1,44 +1,16 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { auth } from "@/lib/auth";
-import { AppLive, MissingFieldError, ValidationError, VideoProgressRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { MissingFieldError, ValidationError, VideoProgressRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "MissingFieldError":
-      case "ValidationError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/videos/[id]/progress - Get video progress for current user
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
@@ -59,14 +31,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return yield* progressRepo.getProgress(videoId, user.id);
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
@@ -95,9 +67,6 @@ interface UpdateProgressBody {
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
@@ -127,33 +96,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Save progress using repository
     const progressRepo = yield* VideoProgressRepository;
-    return yield* progressRepo.saveProgress({
+    const progress = yield* progressRepo.saveProgress({
       videoId,
       userId: user.id,
       currentTime: body.currentTime,
       completed: body.completed ?? false,
     });
+
+    return {
+      success: true,
+      data: progress,
+    };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -161,9 +119,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 // =============================================================================
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
@@ -176,26 +131,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const progressRepo = yield* VideoProgressRepository;
     yield* progressRepo.deleteProgress(videoId, user.id);
 
-    return { message: "Progress deleted successfully" };
+    return {
+      success: true,
+      data: { message: "Progress deleted successfully" },
+    };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

@@ -1,45 +1,15 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppLive, NotificationRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
+import { NotificationRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "ForbiddenError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/notifications - Get user's notifications
 // =============================================================================
 
 export async function GET(request: NextRequest) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -55,16 +25,15 @@ export async function GET(request: NextRequest) {
     return yield* notificationRepo.getNotifications(user.id, page, limit);
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return error._tag === "Some"
+        ? mapErrorToApiResponse(error.value)
+        : mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -81,9 +50,6 @@ export async function GET(request: NextRequest) {
 // =============================================================================
 
 export async function POST(request: NextRequest) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -96,16 +62,15 @@ export async function POST(request: NextRequest) {
     return { markedAsRead: count };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return error._tag === "Some"
+        ? mapErrorToApiResponse(error.value)
+        : mapErrorToApiResponse(new Error("Internal server error"));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

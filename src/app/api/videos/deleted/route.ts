@@ -1,35 +1,11 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Effect, Option } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
-import { AppLive, VideoRepository } from "@/lib/effect";
+import { VideoRepository } from "@/lib/effect";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/videos/deleted - Get soft-deleted videos for the organization
@@ -53,38 +29,33 @@ export async function GET(request: NextRequest) {
     const activeOrg = yield* orgRepo.getActiveOrganization(session.user.id);
 
     if (Option.isNone(activeOrg)) {
-      return {
-        data: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0,
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
         },
       };
+      return response;
     }
 
     const videoRepo = yield* VideoRepository;
-    return yield* videoRepo.getDeletedVideos(activeOrg.value.id, page, limit);
+    const deletedVideos = yield* videoRepo.getDeletedVideos(activeOrg.value.id, page, limit);
+
+    const response: ApiResponse = {
+      success: true,
+      data: deletedVideos,
+    };
+    return response;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

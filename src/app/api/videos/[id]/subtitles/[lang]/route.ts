@@ -9,11 +9,12 @@
  */
 
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option } from "effect";
+import { Effect, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import { AppLive, DatabaseError, NotFoundError, Translation } from "@/lib/effect";
+import { DatabaseError, NotFoundError, Translation } from "@/lib/effect";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/effect/services/translation";
 import { generateSRT, generateWebVTT, type WebVTTOptions } from "@/lib/subtitles";
 
@@ -25,31 +26,6 @@ interface SubtitleParams {
   id: string;
   lang: string; // e.g., "en.vtt", "es.vtt", "fr.srt"
 }
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "TranslationNotConfiguredError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
-      case "SubtitleError":
-      case "UnsupportedLanguageError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // Parse Language and Format from Path
@@ -193,29 +169,27 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: ({ content, contentType, filename }) => {
-      return new NextResponse(content, {
-        status: 200,
-        headers: {
-          "Content-Type": `${contentType}; charset=utf-8`,
-          "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
-          "Cache-Control": "public, max-age=3600", // Cache for 1 hour
-          "Access-Control-Allow-Origin": "*", // Allow CORS for video players
-        },
-      });
-    },
-  });
+  if (exit._tag === "Failure") {
+    return mapErrorToApiResponse(exit.cause);
+  }
+
+  if (exit._tag === "Success") {
+    const { content, contentType, filename } = exit.value;
+    return new NextResponse(content, {
+      status: 200,
+      headers: {
+        "Content-Type": `${contentType}; charset=utf-8`,
+        "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
+        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+        "Access-Control-Allow-Origin": "*", // Allow CORS for video players
+      },
+    });
+  }
+
+  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 }
 
 // =============================================================================

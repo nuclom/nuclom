@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
+import { createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
@@ -14,32 +15,6 @@ import {
 } from "@/lib/effect/services/video-ai-processor";
 import type { ApiResponse } from "@/lib/types";
 
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "VideoAIProcessingError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 500 });
-      case "TranscriptionError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 500 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
-
 // Build the layer with all required dependencies
 const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
 
@@ -50,9 +25,6 @@ const ProcessingLayer = Layer.mergeAll(AppLive, TranscriptionLive, VideoAIProces
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(ProcessingLayer, AuthLayer);
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
@@ -141,6 +113,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
   });
 
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(ProcessingLayer, AuthLayer);
   const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
@@ -148,7 +122,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
@@ -205,33 +179,20 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     }
 
     return {
-      videoId: video.id,
-      status: video.processingStatus,
-      error: video.processingError,
-      hasTranscript: !!video.transcript,
-      hasSummary: !!video.aiSummary,
-      tags: video.aiTags || [],
-      actionItems: video.aiActionItems || [],
+      success: true,
+      data: {
+        videoId: video.id,
+        status: video.processingStatus,
+        error: video.processingError,
+        hasTranscript: !!video.transcript,
+        hasSummary: !!video.aiSummary,
+        tags: video.aiTags || [],
+        actionItems: video.aiActionItems || [],
+      },
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

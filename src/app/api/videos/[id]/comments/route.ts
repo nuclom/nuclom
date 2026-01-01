@@ -1,41 +1,14 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppLive, CommentRepository, NotificationRepository, VideoRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
+import { CommentRepository, NotificationRepository, VideoRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import { Database } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { env } from "@/lib/env/client";
 import { commentEventEmitter } from "@/lib/realtime/comment-events";
 import type { ApiResponse } from "@/lib/types";
 import { createCommentSchema, sanitizeComment, validateRequestBody } from "@/lib/validation";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "ForbiddenError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // GET /api/videos/[id]/comments - List all comments for a video
@@ -47,28 +20,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     // Fetch comments using repository
     const commentRepo = yield* CommentRepository;
-    return yield* commentRepo.getComments(videoId);
+    const comments = yield* commentRepo.getComments(videoId);
+
+    return {
+      success: true,
+      data: comments,
+    };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -76,9 +38,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -199,14 +158,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return newComment;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },

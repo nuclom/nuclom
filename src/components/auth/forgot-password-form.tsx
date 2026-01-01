@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { forgotPasswordSchema, safeParse } from "@/lib/validations/schemas";
+import { forgotPasswordSchema, safeParse } from "@/lib/validation";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");

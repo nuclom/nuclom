@@ -1,35 +1,12 @@
 import { and, eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videos, videoViews } from "@/lib/db/schema";
-import { AppLive, DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "MissingFieldError":
-      case "ValidationError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // POST /api/videos/[id]/views - Track view start
@@ -41,9 +18,6 @@ interface TrackViewBody {
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
@@ -145,14 +119,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return { success: true, viewId: result[0].id, isNewView: true };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
+        return mapErrorToApiResponse(error.value);
       }
       return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     },
@@ -246,28 +220,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    return { success: true, updated: true };
+    return {
+      success: true,
+      data: { success: true, updated: true },
+    };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -300,30 +261,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       viewCount > 0 ? Math.round(views.reduce((sum, v) => sum + (v.completionPercent || 0), 0) / viewCount) : 0;
 
     return {
-      viewCount,
-      uniqueViewers,
-      totalWatchTime,
-      avgCompletionPercent,
+      success: true,
+      data: {
+        viewCount,
+        uniqueViewers,
+        totalWatchTime,
+        avgCompletionPercent,
+      },
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

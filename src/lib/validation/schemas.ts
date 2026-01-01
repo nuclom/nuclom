@@ -1,6 +1,42 @@
 import { Schema } from "effect";
 
 // =============================================================================
+// Common Field Validators
+// =============================================================================
+
+export const EmailSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Email is required" }),
+  Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => "Please enter a valid email address" }),
+);
+
+export const PasswordSchema = Schema.String.pipe(
+  Schema.minLength(8, { message: () => "Password must be at least 8 characters" }),
+  Schema.maxLength(100, { message: () => "Password must be less than 100 characters" }),
+);
+
+export const NameSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Name is required" }),
+  Schema.maxLength(100, { message: () => "Name must be less than 100 characters" }),
+);
+
+export const SlugSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => "Slug is required" }),
+  Schema.maxLength(50, { message: () => "Slug must be less than 50 characters" }),
+  Schema.pattern(/^[a-z0-9-]+$/, { message: () => "Slug can only contain lowercase letters, numbers, and hyphens" }),
+);
+
+export const UrlOptionalSchema = Schema.optional(
+  Schema.Union(
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Please enter a valid URL" })),
+    Schema.Literal(""),
+  ),
+);
+
+export const DescriptionOptionalSchema = Schema.optional(
+  Schema.String.pipe(Schema.maxLength(2000, { message: () => "Description must be less than 2000 characters" })),
+);
+
+// =============================================================================
 // Common Schemas
 // =============================================================================
 
@@ -19,6 +55,113 @@ export const TimestampFormatSchema = Schema.String.pipe(
     message: () => "Invalid timestamp format (expected MM:SS or HH:MM:SS)",
   }),
 );
+
+// =============================================================================
+// Authentication Schemas
+// =============================================================================
+
+export const LoginSchema = Schema.Struct({
+  email: EmailSchema,
+  password: Schema.String.pipe(Schema.minLength(1, { message: () => "Password is required" })),
+});
+
+const BaseRegisterSchema = Schema.Struct({
+  name: NameSchema,
+  email: EmailSchema,
+  password: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+});
+
+export const RegisterSchema = BaseRegisterSchema.pipe(
+  Schema.filter((data) => data.password === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+);
+
+export const ForgotPasswordSchema = Schema.Struct({
+  email: EmailSchema,
+});
+
+const BaseResetPasswordSchema = Schema.Struct({
+  password: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+  token: Schema.String,
+});
+
+export const ResetPasswordSchema = BaseResetPasswordSchema.pipe(
+  Schema.filter((data) => data.password === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+);
+
+const BaseChangePasswordSchema = Schema.Struct({
+  currentPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Current password is required" })),
+  newPassword: PasswordSchema,
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+});
+
+export const ChangePasswordSchema = BaseChangePasswordSchema.pipe(
+  Schema.filter((data) => data.newPassword === data.confirmPassword, {
+    message: () => "Passwords do not match",
+  }),
+  Schema.filter((data) => data.currentPassword !== data.newPassword, {
+    message: () => "New password must be different from current password",
+  }),
+);
+
+// =============================================================================
+// Profile Schemas
+// =============================================================================
+
+export const UpdateProfileSchema = Schema.Struct({
+  name: Schema.optional(NameSchema),
+  avatarUrl: UrlOptionalSchema,
+  bio: Schema.optional(
+    Schema.String.pipe(Schema.maxLength(500, { message: () => "Bio must be less than 500 characters" })),
+  ),
+});
+
+// =============================================================================
+// Search Schemas
+// =============================================================================
+
+export const SearchSchema = Schema.Struct({
+  query: Schema.String.pipe(
+    Schema.minLength(1, { message: () => "Search query is required" }),
+    Schema.maxLength(200, { message: () => "Search query is too long" }),
+  ),
+  type: Schema.optionalWith(Schema.Literal("all", "videos", "series", "channels"), { default: () => "all" as const }),
+  page: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1)), { default: () => 1 }),
+  limit: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)), {
+    default: () => 20,
+  }),
+});
+
+// =============================================================================
+// Contact/Support Schemas
+// =============================================================================
+
+export const ContactSchema = Schema.Struct({
+  name: NameSchema,
+  email: EmailSchema,
+  subject: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Subject is required" }),
+    Schema.maxLength(200, { message: () => "Subject must be less than 200 characters" }),
+  ),
+  message: Schema.Trim.pipe(
+    Schema.minLength(10, { message: () => "Message must be at least 10 characters" }),
+    Schema.maxLength(5000, { message: () => "Message must be less than 5000 characters" }),
+  ),
+});
+
+// =============================================================================
+// Invite Member Schema
+// =============================================================================
+
+export const InviteMemberSchema = Schema.Struct({
+  email: EmailSchema,
+  role: Schema.Literal("admin", "member", "viewer"),
+});
 
 // =============================================================================
 // Video Schemas
@@ -367,6 +510,22 @@ export const AnalyzeVideoSchema = Schema.Struct({
 // Type Exports
 // =============================================================================
 
+// Authentication types
+export type LoginInput = typeof LoginSchema.Type;
+export type RegisterInput = typeof RegisterSchema.Type;
+export type ForgotPasswordInput = typeof ForgotPasswordSchema.Type;
+export type ResetPasswordInput = typeof ResetPasswordSchema.Type;
+export type ChangePasswordInput = typeof ChangePasswordSchema.Type;
+
+// Profile types
+export type UpdateProfileInput = typeof UpdateProfileSchema.Type;
+
+// Search types
+export type SearchInput = typeof SearchSchema.Type;
+export type ContactInput = typeof ContactSchema.Type;
+export type InviteMemberInput = typeof InviteMemberSchema.Type;
+
+// Video types
 export type CreateVideoInput = typeof CreateVideoSchema.Type;
 export type UpdateVideoInput = typeof UpdateVideoSchema.Type;
 export type VideoUploadInput = typeof VideoUploadSchema.Type;
@@ -400,28 +559,64 @@ export type AnalyzeVideoInput = typeof AnalyzeVideoSchema.Type;
 // Legacy aliases for backwards compatibility (lowercase names)
 // =============================================================================
 
+// Common field validators
+export const emailSchema = EmailSchema;
+export const passwordSchema = PasswordSchema;
+export const nameSchema = NameSchema;
+export const slugSchema = SlugSchema;
+export const urlSchema = UrlOptionalSchema;
+export const descriptionSchema = DescriptionOptionalSchema;
+
+// Common schemas
 export const uuidSchema = UuidSchema;
 export const paginationSchema = PaginationSchema;
 export const timestampSchema = TimestampFormatSchema;
+
+// Authentication schemas
+export const loginSchema = LoginSchema;
+export const registerSchema = RegisterSchema;
+export const forgotPasswordSchema = ForgotPasswordSchema;
+export const resetPasswordSchema = ResetPasswordSchema;
+export const changePasswordSchema = ChangePasswordSchema;
+
+// Profile schemas
+export const updateProfileSchema = UpdateProfileSchema;
+
+// Search & contact schemas
+export const searchSchema = SearchSchema;
+export const contactSchema = ContactSchema;
+export const inviteMemberSchema = InviteMemberSchema;
+
+// Video schemas
 export const createVideoSchema = CreateVideoSchema;
 export const updateVideoSchema = UpdateVideoSchema;
 export const videoUploadSchema = VideoUploadSchema;
 export const getVideosSchema = GetVideosSchema;
 export const createChapterSchema = CreateChapterSchema;
 export const createCodeSnippetSchema = CreateCodeSnippetSchema;
+
+// Series schemas
 export const createSeriesSchema = CreateSeriesSchema;
 export const updateSeriesSchema = UpdateSeriesSchema;
 export const getSeriesSchema = GetSeriesSchema;
 export const addVideoToSeriesSchema = AddVideoToSeriesSchema;
 export const reorderSeriesVideosSchema = ReorderSeriesVideosSchema;
+
+// Comment schemas
 export const createCommentSchema = CreateCommentSchema;
 export const updateCommentSchema = UpdateCommentSchema;
+
+// Organization schemas
 export const createOrganizationSchema = CreateOrganizationSchema;
 export const updateOrganizationSchema = UpdateOrganizationSchema;
 export const createInvitationSchema = CreateInvitationSchema;
+
+// Progress schemas
 export const updateProgressSchema = UpdateProgressSchema;
 export const updateSeriesProgressSchema = UpdateSeriesProgressSchema;
 export const updateNotificationSchema = UpdateNotificationSchema;
+
+// Billing schemas
 export const createCheckoutSchema = CreateCheckoutSchema;
 export const importMeetingSchema = ImportMeetingSchema;
 export const analyzeVideoSchema = AnalyzeVideoSchema;

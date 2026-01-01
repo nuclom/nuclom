@@ -33,27 +33,32 @@ export function validateOptional<A, I>(
 }
 
 /**
- * Safely parses data against an Effect Schema.
- * Returns the parsed data or null if validation fails.
- * Does not throw errors - useful for form handling.
+ * Result type for safeParse - matches Zod-like API for easy migration
  */
-export function safeParse<A, I>(
-  schema: Schema.Schema<A, I>,
-  data: unknown,
-): { success: true; data: A } | { success: false; errors: string[] } {
+export type SafeParseResult<A> =
+  | { success: true; data: A }
+  | { success: false; error: { issues: Array<{ message: string; path?: string }> } };
+
+/**
+ * Safely parses data against an Effect Schema.
+ * Returns the parsed data or validation errors if validation fails.
+ * Does not throw errors - useful for form handling.
+ * Returns a Zod-like result object for compatibility.
+ */
+export function safeParse<A, I>(schema: Schema.Schema<A, I>, data: unknown): SafeParseResult<A> {
   const result = Schema.decodeUnknownEither(schema)(data);
 
   if (result._tag === "Right") {
     return { success: true, data: result.right };
   }
 
-  const issues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
-  const errors = issues.map((issue) => {
-    const path = issue.path.map(String);
-    return path.length > 0 ? `${path.join(".")}: ${issue.message}` : issue.message;
-  });
+  const formattedIssues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
+  const issues = formattedIssues.map((issue) => ({
+    message: issue.message,
+    path: issue.path.length > 0 ? issue.path.join(".") : undefined,
+  }));
 
-  return { success: false, errors };
+  return { success: false, error: { issues } };
 }
 
 /**
@@ -134,3 +139,7 @@ export * from "./file-validation";
 export * from "./sanitize";
 // Re-export schemas
 export * from "./schemas";
+
+// Note: Form utilities (useValidatedForm, etc.) are in ./form.ts
+// Import them directly for client-side usage:
+// import { useValidatedForm } from "@/lib/validation/form";

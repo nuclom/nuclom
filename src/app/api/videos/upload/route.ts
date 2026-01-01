@@ -1,6 +1,7 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Effect, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { AppLive, MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
+import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
+import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
 import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import type { ApiResponse } from "@/lib/types";
@@ -28,41 +29,6 @@ interface UploadResponse {
   duration: string;
   processingStatus: string;
 }
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "MissingFieldError":
-      case "ValidationError":
-      case "UnsupportedFormatError":
-      case "FileSizeExceededError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      case "StorageNotConfiguredError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
-      case "PlanLimitExceededError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
-      case "NoSubscriptionError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
-      case "VideoProcessingError":
-      case "UploadError":
-      case "DatabaseError":
-      case "UsageTrackingError":
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Failed to upload video" }, { status: 500 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
 
 // =============================================================================
 // POST /api/videos/upload - Upload a video file
@@ -166,43 +132,41 @@ export async function POST(request: NextRequest) {
     };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      // Trigger AI processing using durable workflow
-      if (!data.skipAIProcessing && data.videoUrl) {
-        // Start the workflow - it runs durably in the background
-        // No need for fire-and-forget, the workflow handles retries and persistence
-        processVideoWorkflow({
-          videoId: data.videoId,
-          videoUrl: data.videoUrl,
-          videoTitle: data.videoTitle,
-        }).catch((err) => {
-          // Log but don't fail - workflow will retry on its own
-          console.error("[Video Processing Workflow Error]", err);
-        });
-      }
+  if (exit._tag === "Failure") {
+    return mapErrorToApiResponse(exit.cause);
+  }
 
-      const response: ApiResponse<UploadResponse> = {
-        success: true,
-        data: {
-          videoId: data.videoId,
-          videoUrl: data.videoUrl,
-          thumbnailUrl: data.thumbnailUrl,
-          duration: data.duration,
-          processingStatus: data.processingStatus,
-        },
-      };
-      return NextResponse.json(response, { status: 201 });
-    },
-  });
+  if (exit._tag === "Success") {
+    const data = exit.value;
+    // Trigger AI processing using durable workflow
+    if (!data.skipAIProcessing && data.videoUrl) {
+      // Start the workflow - it runs durably in the background
+      // No need for fire-and-forget, the workflow handles retries and persistence
+      processVideoWorkflow({
+        videoId: data.videoId,
+        videoUrl: data.videoUrl,
+        videoTitle: data.videoTitle,
+      }).catch((err) => {
+        // Log but don't fail - workflow will retry on its own
+        console.error("[Video Processing Workflow Error]", err);
+      });
+    }
+
+    const response: ApiResponse<UploadResponse> = {
+      success: true,
+      data: {
+        videoId: data.videoId,
+        videoUrl: data.videoUrl,
+        thumbnailUrl: data.thumbnailUrl,
+        duration: data.duration,
+        processingStatus: data.processingStatus,
+      },
+    };
+    return NextResponse.json(response, { status: 201 });
+  }
+
+  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 }

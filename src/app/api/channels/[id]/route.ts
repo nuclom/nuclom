@@ -1,53 +1,22 @@
-import { Cause, Effect, Exit, Option } from "effect";
-import { headers } from "next/headers";
+import { Effect, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppLive, ForbiddenError } from "@/lib/effect";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
+import { ForbiddenError } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
-      case "ForbiddenError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
-      case "NotFoundError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
-      case "ValidationError":
-      case "MissingFieldError":
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-};
-
-// =============================================================================
 // GET /api/channels/[id] - Get channel details
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    // Authenticate user
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
     const resolvedParams = yield* Effect.promise(() => params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
@@ -55,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const channel = yield* channelRepo.getChannel(resolvedParams.id);
 
     // Verify user has access to this channel's organization
-    const isMemberResult = yield* orgRepo.isMember(session.user.id, channel.organizationId);
+    const isMemberResult = yield* orgRepo.isMember(user.id, channel.organizationId);
     if (!isMemberResult) {
       return yield* Effect.fail(
         new ForbiddenError({
@@ -68,25 +37,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return channel;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -94,18 +47,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
-  const { name, description } = body;
-
   const effect = Effect.gen(function* () {
+    // Authenticate user
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    const body = yield* Effect.promise(() => request.json());
+    const { name, description } = body;
+
     const resolvedParams = yield* Effect.promise(() => params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
@@ -114,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const channel = yield* channelRepo.getChannel(resolvedParams.id);
 
     // Verify user has access to this channel's organization
-    const isMemberResult = yield* orgRepo.isMember(session.user.id, channel.organizationId);
+    const isMemberResult = yield* orgRepo.isMember(user.id, channel.organizationId);
     if (!isMemberResult) {
       return yield* Effect.fail(
         new ForbiddenError({
@@ -132,41 +81,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return updatedChannel;
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
 // DELETE /api/channels/[id] - Delete channel
 // =============================================================================
 
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    // Authenticate user
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
     const resolvedParams = yield* Effect.promise(() => params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
@@ -175,7 +104,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const channel = yield* channelRepo.getChannel(resolvedParams.id);
 
     // Verify user is an owner of this channel's organization
-    const userRole = yield* orgRepo.getUserRole(session.user.id, channel.organizationId);
+    const userRole = yield* orgRepo.getUserRole(user.id, channel.organizationId);
     if (Option.isNone(userRole) || userRole.value !== "owner") {
       return yield* Effect.fail(
         new ForbiddenError({
@@ -189,23 +118,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     return { message: "Channel deleted successfully" };
   });
 
-  const runnable = Effect.provide(effect, AppLive);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

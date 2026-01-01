@@ -1,43 +1,15 @@
-import { Cause, Effect, Exit, Layer } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { Effect } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import type { SearchFilters } from "@/lib/db/schema";
-import { AppLive, MissingFieldError, SearchRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-
-// =============================================================================
-// Error Response Handler
-// =============================================================================
-
-const mapErrorToResponse = (error: unknown): NextResponse => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-
-    switch (taggedError._tag) {
-      case "UnauthorizedError":
-        return NextResponse.json({ error: taggedError.message }, { status: 401 });
-      case "MissingFieldError":
-      case "ValidationError":
-        return NextResponse.json({ error: taggedError.message }, { status: 400 });
-      case "NotFoundError":
-        return NextResponse.json({ error: taggedError.message }, { status: 404 });
-      default:
-        console.error(`[${taggedError._tag}]`, taggedError);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    }
-  }
-  console.error("[Error]", error);
-  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-};
+import { MissingFieldError, SearchRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // GET /api/search - Search videos with full-text search
 // =============================================================================
 
 export async function GET(request: NextRequest) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
@@ -110,17 +82,7 @@ export async function GET(request: NextRequest) {
     return results;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }
