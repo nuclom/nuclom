@@ -415,7 +415,7 @@ function PrivacyDataSection() {
               <p className="text-sm text-muted-foreground">
                 Your account will be permanently deleted on{" "}
                 <strong>
-                  {new Date(userData.deletionScheduledFor!).toLocaleDateString("en-US", {
+                  {new Date(userData.deletionScheduledFor as string).toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",

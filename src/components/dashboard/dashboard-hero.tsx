@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Plus, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,7 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
           viewBox="0 0 400 400"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
           <circle cx="300" cy="100" r="200" stroke="currentColor" strokeWidth="0.5" className="text-primary/20" />
           <circle cx="350" cy="150" r="150" stroke="currentColor" strokeWidth="0.5" className="text-primary/20" />

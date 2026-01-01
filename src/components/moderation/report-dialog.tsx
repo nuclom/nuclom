@@ -160,8 +160,15 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
               {Object.entries(categoryLabels).map(([key, { label, description }]) => (
                 <div
                   key={key}
+                  role="button"
+                  tabIndex={0}
                   className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => setCategory(key as ReportCategory)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setCategory(key as ReportCategory);
+                    }
+                  }}
                 >
                   <RadioGroupItem value={key} id={key} className="mt-1" />
                   <div className="flex-1 space-y-1">

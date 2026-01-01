@@ -1,14 +1,15 @@
 "use client";
 
+import { AlertTriangle, RefreshCcw } from "lucide-react";
 import * as React from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { logClientError } from "@/lib/error-logging";
-import { AlertTriangle, RefreshCcw } from "lucide-react";
 
-const IS_DEV = globalThis.process?.env?.NODE_ENV === "development";
+// Use window.location to detect dev mode in client component
+const IS_DEV = typeof window !== "undefined" && window.location.hostname === "localhost";
 
 interface ErrorBoundaryState {
   hasError: boolean;

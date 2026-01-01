@@ -9,12 +9,10 @@ import {
   Globe,
   HardDrive,
   Headphones,
-  Key,
   Palette,
   Shield,
   Sparkles,
   Users,
-  Video,
   X,
   Zap,
 } from "lucide-react";

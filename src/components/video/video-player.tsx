@@ -850,6 +850,7 @@ export function VideoPlayer({
       aria-label={`Video player: ${title}`}
     >
       {/* Video Element */}
+      {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
       <video
         ref={videoRef}
         src={url}

@@ -13,7 +13,7 @@
  */
 
 import process from "node:process";
-import { and, isNotNull, lt, sql } from "drizzle-orm";
+import { and, isNotNull, lt } from "drizzle-orm";
 import { sleep } from "workflow";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";

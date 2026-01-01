@@ -311,6 +311,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
       const videoOwner = yield* Effect.tryPromise({
         try: () =>
           db.query.users.findFirst({
+            // biome-ignore lint/style/noNonNullAssertion: authorId is validated before this point
             where: eq(users.id, video.authorId!),
           }),
         catch: () =>

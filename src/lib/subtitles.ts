@@ -355,25 +355,24 @@ const makeSubtitleService = Effect.gen(function* () {
   const getAvailableLanguages = (
     _videoId: string,
     hasTranslations: boolean,
-  ): Effect.Effect<SubtitleLanguage[], SubtitleError> =>
-    Effect.gen(function* () {
-      // Base languages - original transcript is always available if segments exist
-      const languages: SubtitleLanguage[] = [{ code: "en", name: "English", isOriginal: true }];
+  ): Effect.Effect<SubtitleLanguage[], SubtitleError> => {
+    // Base languages - original transcript is always available if segments exist
+    const languages: SubtitleLanguage[] = [{ code: "en", name: "English", isOriginal: true }];
 
-      // Add translated languages if available
-      if (hasTranslations) {
-        languages.push(
-          { code: "es", name: "Spanish", isOriginal: false },
-          { code: "fr", name: "French", isOriginal: false },
-          { code: "de", name: "German", isOriginal: false },
-          { code: "pt", name: "Portuguese", isOriginal: false },
-          { code: "ja", name: "Japanese", isOriginal: false },
-          { code: "zh", name: "Chinese", isOriginal: false },
-        );
-      }
+    // Add translated languages if available
+    if (hasTranslations) {
+      languages.push(
+        { code: "es", name: "Spanish", isOriginal: false },
+        { code: "fr", name: "French", isOriginal: false },
+        { code: "de", name: "German", isOriginal: false },
+        { code: "pt", name: "Portuguese", isOriginal: false },
+        { code: "ja", name: "Japanese", isOriginal: false },
+        { code: "zh", name: "Chinese", isOriginal: false },
+      );
+    }
 
-      return languages;
-    });
+    return Effect.succeed(languages);
+  };
 
   return {
     generateWebVTT: generateWebVTTEffect,

@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
       // Always show success regardless of whether email exists (security best practice)
       // The API returns success even if the email doesn't exist to prevent enumeration
       setIsSuccess(true);
-    } catch (err) {
+    } catch (_err) {
       // Don't reveal if the email exists or not
       setIsSuccess(true);
     } finally {

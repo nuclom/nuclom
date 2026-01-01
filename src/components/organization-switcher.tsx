@@ -131,7 +131,6 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* biome-ignore lint/a11y/useSemanticElements: role="combobox" is correct pattern for searchable dropdown */}
         <Button
           variant="outline"
           role="combobox"

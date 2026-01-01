@@ -6,8 +6,9 @@
  * like Sentry, LogRocket, or a custom endpoint.
  */
 
-const IS_DEV = globalThis.process?.env?.NODE_ENV === "development";
-const IS_PROD = globalThis.process?.env?.NODE_ENV === "production";
+// Detect environment without using process global (works in both server and client)
+const IS_DEV = typeof window !== "undefined" ? window.location.hostname === "localhost" : true;
+const IS_PROD = !IS_DEV;
 
 export interface ClientErrorLog {
   error: Error;

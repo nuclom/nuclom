@@ -488,7 +488,7 @@ function SegmentRow({
 // =============================================================================
 
 export function TranscriptEditor({
-  videoId,
+  videoId: _videoId,
   segments: initialSegments,
   onSave,
   showSaveButton = true,

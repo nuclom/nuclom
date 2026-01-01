@@ -220,11 +220,19 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                 const link = getNotificationLink(notification, organization);
                 const content = (
                   <div
+                    key={`content-${notification.id}`}
+                    role="button"
+                    tabIndex={0}
                     className={cn(
                       "flex gap-3 p-3 hover:bg-accent cursor-pointer transition-colors",
                       !notification.read && "bg-accent/50",
                     )}
                     onClick={() => handleNotificationClick(notification)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        handleNotificationClick(notification);
+                      }
+                    }}
                   >
                     {notification.actor ? (
                       <Avatar className="h-10 w-10 flex-shrink-0">

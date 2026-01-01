@@ -68,7 +68,12 @@ type SortField = "date" | "name" | "duration" | "size";
 type SortOrder = "asc" | "desc";
 type DateRange = "7" | "30" | "90" | "all";
 
-export function RecordingBrowser({ provider, open, onClose, organizationSlug }: RecordingBrowserProps) {
+export function RecordingBrowser({
+  provider,
+  open,
+  onClose,
+  organizationSlug: _organizationSlug,
+}: RecordingBrowserProps) {
   const { toast } = useToast();
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,7 +87,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [dateRange, setDateRange] = useState<DateRange>("30");
   const [minDuration, setMinDuration] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [_viewMode, _setViewMode] = useState<"list" | "grid">("list");
 
   const providerName = provider === "zoom" ? "Zoom" : "Google Meet";
 
@@ -101,7 +106,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
 
         // Add date range filter
         if (dateRange !== "all") {
-          const fromDate = subDays(new Date(), Number.parseInt(dateRange));
+          const fromDate = subDays(new Date(), Number.parseInt(dateRange, 10));
           params.set("from", fromDate.toISOString().split("T")[0]);
           params.set("to", new Date().toISOString().split("T")[0]);
         }
@@ -374,7 +379,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup
                   value={minDuration?.toString() || "none"}
-                  onValueChange={(v) => setMinDuration(v === "none" ? null : Number.parseInt(v))}
+                  onValueChange={(v) => setMinDuration(v === "none" ? null : Number.parseInt(v, 10))}
                 >
                   <DropdownMenuRadioItem value="none">No minimum</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="5">5+ minutes</DropdownMenuRadioItem>
@@ -441,7 +446,7 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
                 <>
                   <p className="text-muted-foreground">No recordings found</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Recordings from the last {dateRange === "all" ? "" : dateRange + " days"} will appear here
+                    Recordings from the last {dateRange === "all" ? "" : `${dateRange} days`} will appear here
                   </p>
                 </>
               )}
@@ -456,12 +461,20 @@ export function RecordingBrowser({ provider, open, onClose, organizationSlug }: 
                 return (
                   <div
                     key={recording.id}
+                    role="button"
+                    tabIndex={0}
                     className={`group flex items-start gap-3 p-4 rounded-lg border transition-all cursor-pointer hover:shadow-sm ${
                       isSelected
                         ? "bg-primary/5 border-primary/50 shadow-sm"
                         : "hover:bg-muted/50 hover:border-muted-foreground/20"
                     }`}
                     onClick={() => handleToggle(recording.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleToggle(recording.id);
+                      }
+                    }}
                   >
                     <div className="flex items-center justify-center pt-0.5">
                       <Checkbox

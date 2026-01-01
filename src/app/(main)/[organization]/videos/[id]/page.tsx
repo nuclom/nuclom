@@ -388,7 +388,6 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
             {transcriptLines.length > 0 ? (
               <div className="space-y-1 font-mono max-h-96 overflow-y-auto">
                 {transcriptLines.map((line, index) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: Transcript lines are ordered and don't change
                   <TranscriptLine key={index} time={line.time} text={line.text} />
                 ))}
               </div>

@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           const parentComment = yield* Effect.tryPromise({
             try: () =>
               db.query.comments.findFirst({
-                where: (c, { eq }) => eq(c.id, validatedData.parentId!),
+                where: (c, { eq }) => eq(c.id, validatedData.parentId as string),
                 with: { author: true },
               }),
             catch: () => new Error("Failed to get parent comment"),
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           const videoOwner = yield* Effect.tryPromise({
             try: () =>
               db.query.users.findFirst({
-                where: (u, { eq }) => eq(u.id, video.authorId!),
+                where: (u, { eq }) => eq(u.id, video.authorId as string),
               }),
             catch: () => new Error("Failed to get video owner"),
           });

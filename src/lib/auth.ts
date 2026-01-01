@@ -294,7 +294,7 @@ export const auth = betterAuth({
           },
         ],
         // Authorize organization-based subscriptions
-        authorizeReference: async ({ user, referenceId, action }) => {
+        authorizeReference: async ({ user, referenceId, action: _action }) => {
           // Check if user is owner of the organization
           const membership = await db.query.members.findFirst({
             where: (m, { and, eq: colEq }) =>
@@ -303,7 +303,7 @@ export const auth = betterAuth({
           return !!membership;
         },
         // Custom checkout params for additional features
-        getCheckoutSessionParams: async ({ user, plan }) => ({
+        getCheckoutSessionParams: async ({ user: _user, plan: _plan }) => ({
           params: {
             allow_promotion_codes: true,
             billing_address_collection: "auto",

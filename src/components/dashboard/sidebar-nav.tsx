@@ -5,7 +5,6 @@ import {
   Folders,
   History,
   Home,
-  Layout,
   ListVideo,
   PlayCircle,
   Plus,
