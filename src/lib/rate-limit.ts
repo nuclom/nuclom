@@ -9,6 +9,7 @@
  * - Sliding window rate limiting algorithm
  */
 
+import process from "node:process";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
