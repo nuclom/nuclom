@@ -18,6 +18,9 @@
 import { FatalError } from "workflow";
 import type { ActionItem, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
 import { env } from "@/lib/env/server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("video-processing");
 
 // =============================================================================
 // Types
@@ -430,7 +433,7 @@ async function sendCompletionNotification(
       `,
     });
   } catch (error) {
-    console.error("[Video Processing] Failed to send notification:", error);
+    log.error({ videoId, status, err: error }, "Failed to send notification");
   }
 }
 

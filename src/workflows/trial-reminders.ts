@@ -24,6 +24,9 @@ import { db } from "@/lib/db";
 import { members, notifications, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/client";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("trial-reminders");
 
 // =============================================================================
 // Types
@@ -138,8 +141,9 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     });
   }
 
-  console.log(
-    `[Trial Reminder] Sent ${daysRemaining}-day reminder for subscription ${subscriptionId} to ${ownerMembers.length} owners`,
+  log.info(
+    { subscriptionId, daysRemaining, recipientCount: ownerMembers.length },
+    "Sent trial reminder to organization owners",
   );
 }
 
@@ -173,16 +177,15 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Skip if this reminder time has already passed
     if (reminderTime <= now) {
-      console.log(`[Trial Reminder] Skipping ${daysBeforeEnd}-day reminder for ${subscriptionId} (already passed)`);
+      log.debug({ subscriptionId, daysBeforeEnd }, "Skipping reminder (already passed)");
       continue;
     }
 
     // Calculate sleep duration
     const sleepDuration = reminderTime - now;
+    const sleepHours = Math.round(sleepDuration / 1000 / 60 / 60);
 
-    console.log(
-      `[Trial Reminder] Sleeping ${Math.round(sleepDuration / 1000 / 60 / 60)} hours until ${daysBeforeEnd}-day reminder for ${subscriptionId}`,
-    );
+    log.info({ subscriptionId, daysBeforeEnd, sleepHours }, "Sleeping until next reminder");
 
     // Sleep until reminder time
     await sleep(sleepDuration);
@@ -194,13 +197,14 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     });
 
     if (!subscription) {
-      console.log(`[Trial Reminder] Subscription ${subscriptionId} no longer exists, stopping workflow`);
+      log.info({ subscriptionId }, "Subscription no longer exists, stopping workflow");
       break;
     }
 
     if (subscription.status !== "trialing") {
-      console.log(
-        `[Trial Reminder] Subscription ${subscriptionId} is no longer trialing (status: ${subscription.status}), stopping workflow`,
+      log.info(
+        { subscriptionId, status: subscription.status },
+        "Subscription is no longer trialing, stopping workflow",
       );
       break;
     }
@@ -211,7 +215,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
       remindersSent++;
       ("use step");
     } catch (error) {
-      console.error(`[Trial Reminder] Failed to send ${daysBeforeEnd}-day reminder:`, error);
+      log.error({ subscriptionId, daysBeforeEnd, err: error }, "Failed to send reminder");
       // Continue to next reminder even if this one fails
     }
   }

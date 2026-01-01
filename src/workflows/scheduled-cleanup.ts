@@ -17,6 +17,9 @@ import { and, isNotNull, lt } from "drizzle-orm";
 import { sleep } from "workflow";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("cleanup-workflow");
 
 // =============================================================================
 // Types
@@ -77,7 +80,7 @@ async function cleanupExpiredVideos(): Promise<number> {
             }),
           );
         } catch (error) {
-          console.error(`[Cleanup] Failed to delete file for video ${video.id}:`, error);
+          log.error({ videoId: video.id, err: error }, "Failed to delete file for video");
         }
       }
     }
@@ -108,15 +111,15 @@ async function cleanupExpiredVideos(): Promise<number> {
 export async function scheduledCleanupWorkflow(): Promise<never> {
   "use workflow";
 
-  console.log("[Cleanup Workflow] Starting scheduled video cleanup workflow");
+  log.info("Starting scheduled video cleanup workflow");
 
   while (true) {
     try {
       const deletedCount = await cleanupExpiredVideos();
-      console.log(`[Cleanup Workflow] Deleted ${deletedCount} expired videos at ${new Date().toISOString()}`);
+      log.info({ deletedCount, timestamp: new Date().toISOString() }, "Deleted expired videos");
       ("use step");
     } catch (error) {
-      console.error("[Cleanup Workflow] Error during cleanup:", error);
+      log.error({ err: error }, "Error during cleanup");
       ("use step");
     }
 
