@@ -47,6 +47,10 @@ export const users = pgTable("users", {
   warningReason: text("warning_reason"),
   suspendedUntil: timestamp("suspended_until"),
   suspensionReason: text("suspension_reason"),
+  // Security: Track password changes for session revocation
+  passwordChangedAt: timestamp("password_changed_at"),
+  // Security: Maximum concurrent sessions allowed (null = use default)
+  maxSessions: integer("max_sessions"),
 });
 
 export const sessions = pgTable("sessions", {
@@ -62,6 +66,10 @@ export const sessions = pgTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   activeOrganizationId: text("active_organization_id"),
   impersonatedBy: text("impersonated_by"),
+  // Session fingerprint for security (hash of IP + user agent)
+  fingerprint: text("fingerprint"),
+  // Track last validated fingerprint to detect session hijacking
+  lastFingerprintCheck: timestamp("last_fingerprint_check"),
 });
 
 export const accounts = pgTable("accounts", {
