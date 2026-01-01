@@ -2,10 +2,8 @@ import { withWorkflow } from "workflow/next";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable Partial Prerendering for all routes
-  experimental: {
-    ppr: true,
-  },
+  // Enable Partial Prerendering (PPR) / Component Caching for all routes
+  cacheComponents: true,
 
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },

@@ -491,13 +491,11 @@ export default {
 
 ### Partial Prerendering (PPR)
 
-Nuclom uses Next.js Partial Prerendering to combine static and dynamic rendering in the same route. PPR is enabled globally in `next.config.ts`:
+Nuclom uses Next.js Partial Prerendering to combine static and dynamic rendering in the same route. PPR is enabled globally in `next.config.ts` via `cacheComponents`:
 
 ```typescript
 const nextConfig: NextConfig = {
-  experimental: {
-    ppr: true,
-  },
+  cacheComponents: true,
   // ... other config
 };
 ```
