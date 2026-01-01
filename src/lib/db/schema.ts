@@ -1401,6 +1401,44 @@ export const videoShareLinks = pgTable(
   }),
 );
 
+// =====================
+// Health Check Tables
+// =====================
+
+export const healthCheckServiceEnum = pgEnum("HealthCheckService", ["database", "storage", "ai", "overall"]);
+
+export const healthCheckStatusEnum = pgEnum("HealthCheckStatus", [
+  "healthy",
+  "degraded",
+  "unhealthy",
+  "not_configured",
+]);
+
+export const healthChecks = pgTable(
+  "health_checks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    service: healthCheckServiceEnum("service").notNull(),
+    status: healthCheckStatusEnum("status").notNull(),
+    latencyMs: integer("latency_ms").notNull(),
+    error: text("error"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    checkedAt: timestamp("checked_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    serviceCheckedAtIdx: index("health_checks_service_checked_at_idx").on(table.service, table.checkedAt),
+    statusIdx: index("health_checks_status_idx").on(table.status),
+  }),
+);
+
+// Health check types
+export type HealthCheckService = (typeof healthCheckServiceEnum.enumValues)[number];
+export type HealthCheckStatus = (typeof healthCheckStatusEnum.enumValues)[number];
+export type HealthCheck = typeof healthChecks.$inferSelect;
+export type NewHealthCheck = typeof healthChecks.$inferInsert;
+
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
   user: one(users, {
