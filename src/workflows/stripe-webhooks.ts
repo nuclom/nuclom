@@ -12,7 +12,6 @@
  * - Resume on server restart
  */
 
-import process from "node:process";
 import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { FatalError } from "workflow";
@@ -20,6 +19,7 @@ import { db } from "@/lib/db";
 import { members, notifications, subscriptions, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/client";
+import { env as serverEnv } from "@/lib/env/server";
 import { trialReminderWorkflow } from "./trial-reminders";
 
 // =============================================================================
@@ -67,7 +67,7 @@ async function sendSubscriptionEmail(
     buttonUrl: string;
   },
 ): Promise<void> {
-  const fromEmail = process.env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+  const fromEmail = serverEnv.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
 
   await resend.emails.send({
     from: fromEmail,

@@ -18,9 +18,9 @@
 import { FatalError } from "workflow";
 import type { ActionItem, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
 import { env } from "@/lib/env/server";
-import { createLogger } from "@/lib/logger";
+import { createWorkflowLogger } from "./workflow-logger";
 
-const log = createLogger("video-processing");
+const log = createWorkflowLogger("video-processing");
 
 // =============================================================================
 // Types
@@ -433,7 +433,7 @@ async function sendCompletionNotification(
       `,
     });
   } catch (error) {
-    log.error({ videoId, status, err: error }, "Failed to send notification");
+    log.error({ videoId, status, error }, "Failed to send notification");
   }
 }
 

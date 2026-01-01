@@ -14,9 +14,9 @@
  */
 
 import { sleep } from "workflow";
-import { createLogger } from "@/lib/logger";
+import { createWorkflowLogger } from "./workflow-logger";
 
-const log = createLogger("uptime-monitor");
+const log = createWorkflowLogger("uptime-monitor");
 
 // =============================================================================
 // Types
@@ -196,7 +196,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
     });
 
     if (adminUsers.length === 0) {
-      log.warn("No admin users found to notify");
+      log.warn({}, "No admin users found to notify");
       return;
     }
 
@@ -237,7 +237,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
       }
     }
   } catch (error) {
-    log.error({ err: error, failedServiceCount: failedServices.length }, "Failed to send admin notifications");
+    log.error({ error, failedServiceCount: failedServices.length }, "Failed to send admin notifications");
   }
 }
 
