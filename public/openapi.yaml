@@ -60,6 +60,24 @@ tags:
     name: Sharing
     description: Content sharing
 paths:
+  /activity:
+    get:
+      tags:
+        - Activity
+      summary: List activity
+      operationId: listActivity
+      responses:
+        200:
+          description: Success
+  /activity/stats:
+    get:
+      tags:
+        - Activity
+      summary: List stats
+      operationId: listActivityStat
+      responses:
+        200:
+          description: Success
   /ai/analyze:
     post:
       tags:
@@ -664,6 +682,56 @@ paths:
           description: Unauthorized
         404:
           description: Not found
+  /embed/{id}:
+    get:
+      tags:
+        - Embed
+      summary: Get embed
+      operationId: getEmbed
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+  /embed/{id}/view:
+    post:
+      tags:
+        - Embed
+      summary: Create view
+      operationId: createEmbedView
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
   /health:
     get:
       tags:
@@ -687,6 +755,33 @@ paths:
                   timestamp:
                     type: string
                 additionalProperties: false
+  /health/ai:
+    get:
+      tags:
+        - Health
+      summary: List ai
+      operationId: listHealthAi
+      responses:
+        200:
+          description: Success
+  /health/db:
+    get:
+      tags:
+        - Health
+      summary: List db
+      operationId: listHealthDb
+      responses:
+        200:
+          description: Success
+  /health/r2:
+    get:
+      tags:
+        - Health
+      summary: List r2
+      operationId: listHealthR2
+      responses:
+        200:
+          description: Success
   /integrations:
     delete:
       tags:
@@ -771,6 +866,23 @@ paths:
       responses:
         200:
           description: Success
+  /integrations/google/drive:
+    get:
+      tags:
+        - Integrations
+      summary: List drive
+      operationId: listIntegrationGoogleDrive
+      responses:
+        200:
+          description: Success
+    post:
+      tags:
+        - Integrations
+      summary: Create drive
+      operationId: createIntegrationGoogleDrive
+      responses:
+        201:
+          description: Created successfully
   /integrations/google/recordings:
     get:
       tags:
@@ -822,6 +934,69 @@ paths:
       responses:
         201:
           description: Created successfully
+  /integrations/slack/authorize:
+    get:
+      tags:
+        - Integrations
+      summary: List authorize
+      operationId: listIntegrationSlackAuthorize
+      responses:
+        200:
+          description: Success
+  /integrations/slack/callback:
+    get:
+      tags:
+        - Integrations
+      summary: List callback
+      operationId: listIntegrationSlackCallback
+      responses:
+        200:
+          description: Success
+  /integrations/slack/channels:
+    get:
+      tags:
+        - Integrations
+      summary: List channels
+      operationId: listIntegrationSlackChannel
+      responses:
+        200:
+          description: Success
+  /integrations/slack/webhook:
+    post:
+      tags:
+        - Integrations
+      summary: Create webhook
+      operationId: createIntegrationSlackWebhook
+      responses:
+        201:
+          description: Created successfully
+  /integrations/teams/authorize:
+    get:
+      tags:
+        - Integrations
+      summary: List authorize
+      operationId: listIntegrationTeamAuthorize
+      responses:
+        200:
+          description: Success
+  /integrations/teams/callback:
+    get:
+      tags:
+        - Integrations
+      summary: List callback
+      operationId: listIntegrationTeamCallback
+      responses:
+        200:
+          description: Success
+  /integrations/teams/channels:
+    get:
+      tags:
+        - Integrations
+      summary: List channels
+      operationId: listIntegrationTeamChannel
+      responses:
+        200:
+          description: Success
   /integrations/zoom/authorize:
     get:
       tags:
@@ -1323,6 +1498,118 @@ paths:
           description: Unauthorized
         404:
           description: Not found
+  /organizations/{id}/audit-logs:
+    get:
+      tags:
+        - Organizations
+      summary: Get audit-log
+      operationId: getOrganizationAudit-log
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Organizations
+      summary: Create audit-log
+      operationId: createOrganizationAudit-log
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
+  /organizations/{id}/audit-logs/exports/{exportId}:
+    get:
+      tags:
+        - Organizations
+      summary: Get export
+      operationId: getOrganizationAudit-logExport
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: exportId
+          in: path
+          description: ExportId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+  /organizations/{id}/audit-logs/stats:
+    get:
+      tags:
+        - Organizations
+      summary: Get stat
+      operationId: getOrganizationAudit-logStat
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
   /organizations/{id}/members:
     delete:
       tags:
@@ -1453,6 +1740,279 @@ paths:
           description: Success
         404:
           description: Not found
+  /organizations/{id}/members/{userId}/permissions:
+    delete:
+      tags:
+        - Organizations
+      summary: Delete permission
+      operationId: deleteOrganizationMemberPermission
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: userId
+          in: path
+          description: UserId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Organizations
+      summary: Get permission
+      operationId: getOrganizationMemberPermission
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: userId
+          in: path
+          description: UserId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Organizations
+      summary: Create permission
+      operationId: createOrganizationMemberPermission
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: userId
+          in: path
+          description: UserId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
+  /organizations/{id}/roles:
+    get:
+      tags:
+        - Organizations
+      summary: Get rol
+      operationId: getOrganizationRol
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Organizations
+      summary: Create rol
+      operationId: createOrganizationRol
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
+  /organizations/{id}/roles/{roleId}:
+    delete:
+      tags:
+        - Organizations
+      summary: Delete rol
+      operationId: deleteOrganizationRol
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: roleId
+          in: path
+          description: RoleId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Organizations
+      summary: Get rol
+      operationId: getOrganizationRol
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: roleId
+          in: path
+          description: RoleId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    patch:
+      tags:
+        - Organizations
+      summary: Patch rol
+      operationId: patchOrganizationRol
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: roleId
+          in: path
+          description: RoleId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
   /organizations/{id}/settings:
     get:
       tags:
@@ -1483,6 +2043,152 @@ paths:
         - Organizations
       summary: Patch setting
       operationId: patchOrganizationSetting
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+  /organizations/{id}/sso:
+    delete:
+      tags:
+        - Organizations
+      summary: Delete sso
+      operationId: deleteOrganizationSso
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Organizations
+      summary: Get sso
+      operationId: getOrganizationSso
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    patch:
+      tags:
+        - Organizations
+      summary: Patch sso
+      operationId: patchOrganizationSso
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Organizations
+      summary: Create sso
+      operationId: createOrganizationSso
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
+  /organizations/{id}/storage:
+    get:
+      tags:
+        - Organizations
+      summary: Get storage
+      operationId: getOrganizationStorage
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    put:
+      tags:
+        - Organizations
+      summary: Update storage
+      operationId: updateOrganizationStorage
       parameters:
         - 
           name: id
@@ -2452,6 +3158,15 @@ paths:
           description: Created successfully
         404:
           description: Not found
+  /status:
+    get:
+      tags:
+        - Status
+      summary: List status
+      operationId: listStatu
+      responses:
+        200:
+          description: Success
   /user/export:
     post:
       tags:
@@ -2461,6 +3176,22 @@ paths:
       responses:
         201:
           description: Created successfully
+  /user/password:
+    post:
+      tags:
+        - User
+      summary: Create password
+      operationId: createUserPassword
+      security:
+        - 
+          bearerAuth:[]
+      responses:
+        201:
+          description: Created successfully
+        400:
+          description: Invalid request
+        401:
+          description: Unauthorized
   /user/preferences:
     get:
       tags:
@@ -2478,6 +3209,63 @@ paths:
       responses:
         200:
           description: Success
+  /user/sessions:
+    delete:
+      tags:
+        - User
+      summary: Delete session
+      operationId: deleteUserSession
+      security:
+        - 
+          bearerAuth:[]
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+    get:
+      tags:
+        - User
+      summary: List sessions
+      operationId: listUserSession
+      security:
+        - 
+          bearerAuth:[]
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+  /user/sessions/{sessionId}:
+    delete:
+      tags:
+        - User
+      summary: Delete session
+      operationId: deleteUserSession
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: sessionId
+          in: path
+          description: SessionId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
   /users/me:
     delete:
       tags:
@@ -4190,6 +4978,277 @@ paths:
       responses:
         201:
           description: Created successfully
+  /videos/upload/confirm:
+    post:
+      tags:
+        - Videos
+      summary: Create confirm
+      operationId: createVideoUploadConfirm
+      responses:
+        201:
+          description: Created successfully
+  /videos/upload/presigned:
+    post:
+      tags:
+        - Videos
+      summary: Create presigned
+      operationId: createVideoUploadPresigned
+      responses:
+        201:
+          description: Created successfully
+  /webhooks/zapier:
+    get:
+      tags:
+        - Webhooks
+      summary: List zapier
+      operationId: listWebhookZapier
+      responses:
+        200:
+          description: Success
+    post:
+      tags:
+        - Webhooks
+      summary: Create zapier
+      operationId: createWebhookZapier
+      responses:
+        201:
+          description: Created successfully
+  /webhooks/zapier/{webhookId}:
+    delete:
+      tags:
+        - Webhooks
+      summary: Delete zapier
+      operationId: deleteWebhookZapier
+      parameters:
+        - 
+          name: webhookId
+          in: path
+          description: WebhookId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Webhooks
+      summary: Get zapier
+      operationId: getWebhookZapier
+      parameters:
+        - 
+          name: webhookId
+          in: path
+          description: WebhookId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    patch:
+      tags:
+        - Webhooks
+      summary: Patch zapier
+      operationId: patchWebhookZapier
+      parameters:
+        - 
+          name: webhookId
+          in: path
+          description: WebhookId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+  /webhooks/zapier/{webhookId}/deliveries:
+    get:
+      tags:
+        - Webhooks
+      summary: Get delivery
+      operationId: getWebhookZapierDelivery
+      parameters:
+        - 
+          name: webhookId
+          in: path
+          description: WebhookId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Webhooks
+      summary: Create delivery
+      operationId: createWebhookZapierDelivery
+      parameters:
+        - 
+          name: webhookId
+          in: path
+          description: WebhookId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
+  /workflow-templates:
+    get:
+      tags:
+        - Workflow-templates
+      summary: List workflow-templates
+      operationId: listWorkflow-templat
+      responses:
+        200:
+          description: Success
+    post:
+      tags:
+        - Workflow-templates
+      summary: Create workflow-templat
+      operationId: createWorkflow-templat
+      responses:
+        201:
+          description: Created successfully
+  /workflow-templates/{id}:
+    delete:
+      tags:
+        - Workflow-templates
+      summary: Delete workflow-templat
+      operationId: deleteWorkflow-templat
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Workflow-templates
+      summary: Get workflow-templat
+      operationId: getWorkflow-templat
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    patch:
+      tags:
+        - Workflow-templates
+      summary: Patch workflow-templat
+      operationId: patchWorkflow-templat
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Workflow-templates
+      summary: Create workflow-templat
+      operationId: createWorkflow-templat
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
 components:
   schemas: {}
   parameters:
