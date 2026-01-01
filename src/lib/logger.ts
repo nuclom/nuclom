@@ -10,8 +10,8 @@
  * - Child loggers for component-specific logging
  */
 
-import process from "node:process";
 import { Logger } from "tslog";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -68,9 +68,9 @@ export interface LogEntry {
 // =============================================================================
 
 const SERVICE_NAME = "nuclom";
-const ENVIRONMENT = (process.env.NODE_ENV ?? "development") as "development" | "test" | "production";
+const ENVIRONMENT = env.NODE_ENV;
 const LOG_LEVEL_MAP = { debug: 0, info: 2, warn: 3, error: 4 } as const;
-const LOG_LEVEL = (process.env.LOG_LEVEL as LogLevel) || (ENVIRONMENT === "production" ? "info" : "debug");
+const LOG_LEVEL = env.LOG_LEVEL || (ENVIRONMENT === "production" ? "info" : "debug");
 
 // =============================================================================
 // tslog Logger Instance

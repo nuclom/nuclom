@@ -1,7 +1,7 @@
-import process from "node:process";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from "@/lib/effect";
+import { env } from "@/lib/env/server";
 import { SeriesListClient } from "./series-list-client";
 
 export default async function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
@@ -30,12 +30,9 @@ export default async function SeriesListPage({ params }: { params: Promise<{ org
     if (session?.user) {
       seriesData = await getCachedSeriesWithProgress(organizationData.id, session.user.id);
     } else {
-      const result = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || ""}/api/series?organizationId=${organizationData.id}`,
-        {
-          cache: "no-store",
-        },
-      );
+      const result = await fetch(`${env.APP_URL}/api/series?organizationId=${organizationData.id}`, {
+        cache: "no-store",
+      });
       if (result.ok) {
         const data = await result.json();
         seriesData = data.data || [];

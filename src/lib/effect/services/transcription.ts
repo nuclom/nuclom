@@ -17,8 +17,8 @@ import type { TranscriptSegment } from "@/lib/db/schema";
 // Error Types
 // =============================================================================
 
-import process from "node:process";
 import { Data } from "effect";
+import { env } from "@/lib/env/server";
 
 export class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
   readonly message: string;
@@ -80,7 +80,7 @@ const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a
 // =============================================================================
 
 const makeTranscriptionService = Effect.gen(function* () {
-  const apiToken = process.env.REPLICATE_API_TOKEN;
+  const apiToken = env.REPLICATE_API_TOKEN;
   const isConfigured = !!apiToken;
 
   // Create Replicate client only if configured

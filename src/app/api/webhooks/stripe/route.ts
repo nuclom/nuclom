@@ -22,7 +22,6 @@ import { Database, type DrizzleDB } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
 
 // Events that Better Auth needs to handle for subscription management
@@ -42,7 +41,7 @@ const BETTER_AUTH_EVENTS = new Set([
 // =============================================================================
 
 async function forwardToBetterAuth(body: string, signature: string): Promise<void> {
-  const baseUrl = env.APP_URL || clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = env.APP_URL || env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const betterAuthWebhookUrl = `${baseUrl}/api/auth/stripe/webhook`;
 
   try {
@@ -375,7 +374,7 @@ const sendPaymentNotification = (
       payment_failed: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
     };
 
-    const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of ownerMembers) {
       const user = (member as { user: { id: string; email: string; name: string } }).user;
@@ -437,7 +436,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     });
 
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
-    const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of members) {
       const user = (member as { user: { id: string; email: string; name: string } }).user;

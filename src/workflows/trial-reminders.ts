@@ -22,8 +22,7 @@ import { FatalError, sleep } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
-import { env } from "@/lib/env/client";
-import { env as serverEnv } from "@/lib/env/server";
+import { env } from "@/lib/env/server";
 import { createWorkflowLogger } from "./workflow-logger";
 
 const log = createWorkflowLogger("trial-reminders");
@@ -96,7 +95,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     });
 
     // Send email notification
-    const fromEmail = serverEnv.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
 
     await resend.emails.send({
       from: fromEmail,

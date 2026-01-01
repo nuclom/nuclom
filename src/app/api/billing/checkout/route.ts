@@ -6,7 +6,6 @@
  * For new implementations, use the authClient.subscription.upgrade() method.
  */
 
-import process from "node:process";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -17,6 +16,7 @@ import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Database } from "@/lib/effect/services/database";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // POST /api/billing/checkout - Create checkout session (legacy)
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build URLs
-    const baseUrl = request.headers.get("origin") || process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const baseUrl = request.headers.get("origin") || env.APP_URL;
     const successUrl = `${baseUrl}/${org.slug}/settings/billing?success=true`;
     const cancelUrl = `${baseUrl}/${org.slug}/settings/billing?canceled=true`;
 

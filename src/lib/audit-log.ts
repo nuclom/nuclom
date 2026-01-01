@@ -1,4 +1,3 @@
-import process from "node:process";
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "./db";
@@ -9,6 +8,7 @@ import {
   auditLogs,
   type NewAuditLog,
 } from "./db/schema";
+import { env } from "./env/server";
 
 export interface AuditLogContext {
   actorId?: string;
@@ -90,7 +90,7 @@ export class AuditLogger {
     await db.insert(auditLogs).values(auditLog);
 
     // Log to console in development
-    if (process.env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
       console.log(`[Audit] ${entry.category}.${entry.action}: ${entry.description || "No description"}`);
     }
 
