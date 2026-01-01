@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logClientError } from "@/lib/error-logging";
+import { logErrorBoundary } from "@/lib/error-logging";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -21,13 +21,9 @@ export default function OrganizationErrorPage({ error, reset }: ErrorPageProps) 
   const organization = params?.organization as string;
 
   useEffect(() => {
-    logClientError({
-      error,
-      context: "OrganizationErrorPage",
-      metadata: {
-        digest: error.digest,
-        organization,
-      },
+    logErrorBoundary(error, {
+      digest: error.digest,
+      organizationId: organization,
     });
   }, [error, organization]);
 
