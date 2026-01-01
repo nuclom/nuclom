@@ -4,7 +4,10 @@ import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { createLogger } from "@/lib/logger";
 import { triggerImportMeeting } from "@/lib/workflow/import-meeting";
+
+const log = createLogger("zoom-webhook");
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +58,7 @@ interface ZoomWebhookPayload {
 function verifyZoomWebhook(request: NextRequest, body: string): boolean {
   const webhookSecret = process.env.ZOOM_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.warn("ZOOM_WEBHOOK_SECRET not configured, skipping verification");
+    log.warn("ZOOM_WEBHOOK_SECRET not configured, skipping verification");
     return true; // Skip verification if secret not configured
   }
 
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
 
   // Verify webhook signature
   if (!verifyZoomWebhook(request, body)) {
-    console.error("Invalid Zoom webhook signature");
+    log.error("Invalid Zoom webhook signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  console.log(`[Zoom Webhook] Received event: ${payload.event}`);
+  log.info({ event: payload.event }, "Received webhook event");
 
   // Handle recording completed event for auto-import
   if (payload.event === "recording.completed") {
@@ -125,21 +128,21 @@ export async function POST(request: NextRequest) {
       });
 
       if (!integration) {
-        console.log(`[Zoom Webhook] No integration found for account ${account_id}`);
+        log.debug({ accountId: account_id }, "No integration found for account");
         return { processed: false, reason: "No matching integration" };
       }
 
       // Check if auto-import is enabled
       const metadata = (integration.metadata as Record<string, unknown>) || {};
       if (!metadata.autoImport) {
-        console.log(`[Zoom Webhook] Auto-import disabled for integration ${integration.id}`);
+        log.debug({ integrationId: integration.id }, "Auto-import disabled for integration");
         return { processed: false, reason: "Auto-import disabled" };
       }
 
       // Check minimum duration
       const minDuration = (metadata.importMinDuration as number) || 0;
       if (object.duration < minDuration) {
-        console.log(`[Zoom Webhook] Recording too short: ${object.duration} < ${minDuration}`);
+        log.debug({ duration: object.duration, minDuration }, "Recording too short");
         return { processed: false, reason: "Recording below minimum duration" };
       }
 
@@ -150,7 +153,7 @@ export async function POST(request: NextRequest) {
         ) || object.recording_files?.find((f) => f.file_type === "MP4");
 
       if (!videoFile) {
-        console.log(`[Zoom Webhook] No video file found in recording`);
+        log.debug({ meetingId: object.id }, "No video file found in recording");
         return { processed: false, reason: "No video file" };
       }
 
@@ -178,7 +181,7 @@ export async function POST(request: NextRequest) {
         accessToken: integration.accessToken,
       });
 
-      console.log(`[Zoom Webhook] Auto-import triggered for meeting: ${object.topic}`);
+      log.info({ meetingTopic: object.topic, importId: importedMeeting.id }, "Auto-import triggered for meeting");
       return { processed: true, importId: importedMeeting.id };
     });
 
@@ -188,7 +191,7 @@ export async function POST(request: NextRequest) {
       onFailure: (cause) => {
         const error = Cause.failureOption(cause);
         if (Option.isSome(error)) {
-          console.error("[Zoom Webhook Error]", error.value);
+          log.error({ err: error.value }, "Webhook processing failed");
         }
         return NextResponse.json({ success: false, error: "Webhook processing failed" }, { status: 500 });
       },

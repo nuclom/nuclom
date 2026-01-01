@@ -3,10 +3,12 @@
  *
  * Handles:
  * - Rate limiting for API routes
- * - Request logging
+ * - Request logging with structured output
+ * - Request ID generation and propagation
  */
 
 import { type NextRequest, NextResponse } from "next/server";
+import { createLogger } from "@/lib/logger";
 import {
   API_RATE_LIMIT,
   AUTH_RATE_LIMIT,
@@ -123,20 +125,75 @@ function isPublicApiRoute(pathname: string): boolean {
 }
 
 // =============================================================================
+// Request Logging
+// =============================================================================
+
+const requestLogger = createLogger("http");
+
+function generateRequestId(): string {
+  return crypto.randomUUID();
+}
+
+function getClientIp(request: NextRequest): string | undefined {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    undefined
+  );
+}
+
+// =============================================================================
 // Middleware
 // =============================================================================
 
 export function middleware(request: NextRequest) {
+  const startTime = Date.now();
   const { pathname } = request.nextUrl;
+  const method = request.method;
 
-  // Skip non-API routes
+  // Generate or use existing request ID
+  const requestId = request.headers.get("x-request-id") || generateRequestId();
+
+  // Skip non-API routes (no logging or rate limiting)
   if (!isApiRoute(pathname)) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+    return response;
   }
 
-  // Skip public endpoints (no rate limiting needed)
+  // Log incoming request
+  const clientIp = getClientIp(request);
+  const userAgent = request.headers.get("user-agent") || undefined;
+
+  requestLogger.info(
+    {
+      requestId,
+      method,
+      path: pathname,
+      ip: clientIp,
+      userAgent,
+    },
+    `→ ${method} ${pathname}`,
+  );
+
+  // Skip public endpoints (no rate limiting needed, but still log)
   if (isPublicApiRoute(pathname)) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-request-id", requestId);
+
+    // Log completion for public routes
+    const durationMs = Date.now() - startTime;
+    requestLogger.info(
+      {
+        requestId,
+        method,
+        path: pathname,
+        durationMs,
+      },
+      `← ${method} ${pathname} (${durationMs}ms)`,
+    );
+
+    return response;
   }
 
   // Get client identifier
@@ -166,6 +223,24 @@ export function middleware(request: NextRequest) {
   // If rate limited, return 429
   if (!result.success) {
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
+    const durationMs = Date.now() - startTime;
+
+    requestLogger.warn(
+      {
+        requestId,
+        method,
+        path: pathname,
+        status: 429,
+        durationMs,
+        rateLimit: {
+          type: prefix,
+          limit: config.maxRequests,
+          remaining: 0,
+          retryAfter,
+        },
+      },
+      `← ${method} ${pathname} 429 Rate Limited (${durationMs}ms)`,
+    );
 
     return new NextResponse(
       JSON.stringify({
@@ -177,6 +252,7 @@ export function middleware(request: NextRequest) {
         status: 429,
         headers: {
           "Content-Type": "application/json",
+          "x-request-id": requestId,
           "X-RateLimit-Limit": String(config.maxRequests),
           "X-RateLimit-Remaining": "0",
           "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
@@ -186,8 +262,9 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Continue with rate limit headers
+  // Continue with rate limit headers and request ID
   const response = NextResponse.next();
+  response.headers.set("x-request-id", requestId);
   response.headers.set("X-RateLimit-Limit", String(config.maxRequests));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
   response.headers.set("X-RateLimit-Reset", String(Math.ceil(result.resetAt / 1000)));
