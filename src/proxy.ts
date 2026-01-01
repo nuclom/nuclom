@@ -11,12 +11,10 @@
  * database access.
  */
 
-// Use Node.js runtime for database access in auth validation
-export const runtime = "nodejs";
-
 import process from "node:process";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createLogger } from "@/lib/logger";
@@ -197,6 +195,8 @@ function isPublicPageRoute(pathname: string): boolean {
     "/auth",
     "/sign-in",
     "/sign-up",
+    "/login", // Legacy route alias
+    "/register", // Legacy route alias
     "/reset-password",
     "/verify-email",
     "/accept-invitation",
@@ -212,6 +212,7 @@ function isPublicPageRoute(pathname: string): boolean {
     "/contact",
     "/help",
     "/docs",
+    "/support",
   ];
   return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
 }
@@ -256,7 +257,53 @@ export async function proxy(request: NextRequest) {
   const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
 
   if (needsAuth) {
-    // Validate session using better-auth
+    // Fast check: if no session cookie exists, reject immediately without DB lookup
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
+      // For API routes, return 401 Unauthorized
+      if (isApiRoute(pathname)) {
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized (no session cookie)`,
+        );
+
+        return new NextResponse(
+          JSON.stringify({
+            error: "Unauthorized",
+            message: "Authentication required",
+          }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              "x-request-id": requestId,
+            },
+          },
+        );
+      }
+
+      // For page routes, redirect to sign-in
+      const signInUrl = new URL("/auth/sign-in", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+
+      requestLogger.info(
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
+        `Redirecting unauthenticated user to sign-in (no session cookie)`,
+      );
+
+      return NextResponse.redirect(signInUrl);
+    }
+
+    // Full session validation using better-auth (validates against DB)
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -436,7 +483,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - Public assets (images, fonts, etc.)
+     * - public folder assets
      */
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
+    "/((?!_next/static|_next/image|public|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };
