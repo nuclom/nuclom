@@ -26,7 +26,7 @@ import {
 } from "@/lib/rate-limit";
 
 // =============================================================================
-// In-Memory Rate Limit Store (Edge Runtime Compatible)
+// In-Memory Rate Limit Store
 // =============================================================================
 
 interface RateLimitEntry {
@@ -34,11 +34,11 @@ interface RateLimitEntry {
   resetAt: number;
 }
 
-// Simple in-memory store for Edge runtime
+// Simple in-memory store
 // Note: This is per-instance, so in a distributed environment you'd want Redis
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries periodically (simple approach for Edge)
+// Clean up expired entries periodically (simple approach)
 function cleanup() {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore) {
@@ -198,7 +198,7 @@ function getClientIp(request: NextRequest): string | undefined {
 // Middleware
 // =============================================================================
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
   const method = request.method;
