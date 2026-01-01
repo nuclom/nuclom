@@ -25,9 +25,10 @@ import { ThemeToggle } from "./theme-toggle";
 interface TopNavProps {
   organization: string;
   organizationId?: string;
+  children?: React.ReactNode;
 }
 
-export function TopNav({ organization, organizationId }: TopNavProps) {
+export function TopNav({ organization, organizationId, children }: TopNavProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -54,8 +55,11 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4 md:px-6">
-        {/* Left section - Logo and Organization */}
-        <div className="flex items-center gap-4">
+        {/* Left section - Mobile menu, Logo and Organization */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile sidebar trigger */}
+          {children}
+
           <Link href={`/${organization}`} className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
               <Film className="h-5 w-5 text-white" />
@@ -73,7 +77,7 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
         </div>
 
         {/* Center section - Search */}
-        <div className="flex-1 flex justify-center max-w-xl mx-4">
+        <div className="flex-1 flex justify-center max-w-xl mx-2 sm:mx-4">
           <CommandBar organization={organization} organizationId={organizationId} />
         </div>
 
@@ -152,8 +156,8 @@ export function TopNav({ organization, organizationId }: TopNavProps) {
         </div>
       </div>
 
-      {/* Mobile organization switcher */}
-      <div className="px-4 pb-3 md:hidden">
+      {/* Mobile organization switcher - visible below header on mobile */}
+      <div className="px-4 pb-2 md:hidden border-t pt-2 bg-background/95 backdrop-blur">
         <OrganizationSwitcher currentOrganization={organization} />
       </div>
     </header>

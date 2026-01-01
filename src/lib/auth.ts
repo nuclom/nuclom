@@ -11,6 +11,7 @@ import { env } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { resend } from "./email";
+import { enforceSessionLimit, generateFingerprint, getSecureCookieOptions } from "./session-security";
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -18,16 +19,45 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 
-// Build trusted origins from environment
-const trustedOrigins = [env.APP_URL];
-// Add Vercel preview URL if available
-if (process.env.VERCEL_URL) {
-  trustedOrigins.push(`https://${process.env.VERCEL_URL}`);
+// =============================================================================
+// CORS Configuration - Strictly define allowed origins
+// =============================================================================
+
+/**
+ * Build trusted origins from environment with strict validation
+ * Only explicitly allowed origins are trusted for cross-origin requests
+ */
+function buildTrustedOrigins(): string[] {
+  const origins: string[] = [];
+
+  // Always trust the main app URL
+  if (env.APP_URL) {
+    origins.push(env.APP_URL);
+  }
+
+  // Add Vercel preview URL only in non-production environments
+  if (process.env.VERCEL_URL && process.env.NODE_ENV !== "production") {
+    origins.push(`https://${process.env.VERCEL_URL}`);
+  }
+
+  // Add production Vercel URL if set
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+
+  // Add localhost only in development
+  if (process.env.NODE_ENV === "development") {
+    origins.push("http://localhost:3000");
+    origins.push("http://127.0.0.1:3000");
+  }
+
+  return origins.filter(Boolean);
 }
-// Add localhost for development
-if (process.env.NODE_ENV === "development") {
-  trustedOrigins.push("http://localhost:3000");
-}
+
+const trustedOrigins = buildTrustedOrigins();
+
+// Get secure cookie settings
+const cookieOptions = getSecureCookieOptions();
 
 export const auth = betterAuth({
   trustedOrigins,
@@ -140,6 +170,21 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes cache
+    },
+  },
+  // Secure cookie settings
+  advanced: {
+    cookiePrefix: "nuclom",
+    useSecureCookies: process.env.NODE_ENV === "production",
+    defaultCookieAttributes: {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      path: cookieOptions.path,
+    },
   },
   databaseHooks: {
     session: {
@@ -150,12 +195,39 @@ export const auth = betterAuth({
 
           const activeOrganizationId = userMembership[0]?.organizationId || null;
 
+          // Generate session fingerprint from IP and user agent
+          const fingerprint = await generateFingerprint(session.ipAddress || null, session.userAgent || null);
+
           return {
             data: {
               ...session,
               activeOrganizationId,
+              fingerprint,
+              lastFingerprintCheck: new Date(),
             },
           };
+        },
+        after: async (session) => {
+          // Enforce concurrent session limits after creating new session
+          try {
+            const removedCount = await enforceSessionLimit(session.userId, session.id);
+            if (removedCount > 0) {
+              console.log(
+                `[Session Security] Removed ${removedCount} old sessions for user ${session.userId} (limit enforcement)`,
+              );
+            }
+          } catch (error) {
+            console.error("[Session Security] Failed to enforce session limit:", error);
+          }
+        },
+      },
+    },
+    user: {
+      update: {
+        after: async (user) => {
+          // Check if password was updated (we'll handle this in a custom hook)
+          // For now, log the update for security audit
+          console.log(`[Security Audit] User ${user.id} updated`);
         },
       },
     },

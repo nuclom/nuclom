@@ -30,6 +30,9 @@ export const ServerEnv = Schema.Struct({
   NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => "development" as const }),
   STRIPE_SECRET_KEY: Schema.String,
   STRIPE_WEBHOOK_SECRET: Schema.String,
+  // Upstash Redis (for rate limiting)
+  UPSTASH_REDIS_REST_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  UPSTASH_REDIS_REST_TOKEN: Schema.optional(Schema.String),
 });
 
 export type ServerEnvType = typeof ServerEnv.Type;

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logClientError } from "@/lib/error-logging";
+import { logErrorBoundary } from "@/lib/error-logging";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -18,12 +18,8 @@ const IS_DEV = typeof window !== "undefined" && window.location.hostname === "lo
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
-    logClientError({
-      error,
-      context: "RootErrorPage",
-      metadata: {
-        digest: error.digest,
-      },
+    logErrorBoundary(error, {
+      digest: error.digest,
     });
   }, [error]);
 
