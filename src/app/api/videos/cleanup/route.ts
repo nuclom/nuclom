@@ -1,10 +1,10 @@
-import process from "node:process";
 import { Effect } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { VideoRepository } from "@/lib/effect";
+import { env } from "@/lib/env/server";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -22,7 +22,7 @@ import type { ApiResponse } from "@/lib/types";
 export async function POST(request: NextRequest) {
   // Check for cron secret (for automated cleanup)
   const cronSecret = request.headers.get("x-cron-secret");
-  const expectedCronSecret = process.env.CRON_SECRET;
+  const expectedCronSecret = env.CRON_SECRET;
 
   if (cronSecret && expectedCronSecret && cronSecret === expectedCronSecret) {
     // Valid cron request, proceed with cleanup

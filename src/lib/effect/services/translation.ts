@@ -5,9 +5,9 @@
  * using DeepL API for high-quality translations.
  */
 
-import process from "node:process";
 import { Context, Data, Effect, Layer, Schema } from "effect";
 import type { TranscriptSegment } from "@/lib/db/schema";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Error Types
@@ -217,7 +217,7 @@ interface DeepLResponse {
 // =============================================================================
 
 const makeTranslationService = Effect.gen(function* () {
-  const apiKey = process.env.DEEPL_API_KEY;
+  const apiKey = env.DEEPL_API_KEY;
   const isConfigured = !!apiKey;
 
   // DeepL API endpoint (use free or pro based on key format)

@@ -18,8 +18,7 @@ import { FatalError } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, subscriptions, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
-import { env } from "@/lib/env/client";
-import { env as serverEnv } from "@/lib/env/server";
+import { env } from "@/lib/env/server";
 import { trialReminderWorkflow } from "./trial-reminders";
 
 // =============================================================================
@@ -67,7 +66,7 @@ async function sendSubscriptionEmail(
     buttonUrl: string;
   },
 ): Promise<void> {
-  const fromEmail = serverEnv.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+  const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
 
   await resend.emails.send({
     from: fromEmail,

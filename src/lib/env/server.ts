@@ -30,9 +30,25 @@ export const ServerEnv = Schema.Struct({
   NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => "development" as const }),
   STRIPE_SECRET_KEY: Schema.String,
   STRIPE_WEBHOOK_SECRET: Schema.String,
+  STRIPE_PRICE_ID_PRO_MONTHLY: Schema.optional(Schema.String),
+  STRIPE_PRICE_ID_PRO_YEARLY: Schema.optional(Schema.String),
+  STRIPE_PRICE_ID_ENTERPRISE_MONTHLY: Schema.optional(Schema.String),
+  STRIPE_PRICE_ID_ENTERPRISE_YEARLY: Schema.optional(Schema.String),
   // Upstash Redis (for rate limiting)
   UPSTASH_REDIS_REST_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   UPSTASH_REDIS_REST_TOKEN: Schema.optional(Schema.String),
+  // Zoom webhook
+  ZOOM_WEBHOOK_SECRET: Schema.optional(Schema.String),
+  // DeepL translation API
+  DEEPL_API_KEY: Schema.optional(Schema.String),
+  // Cron job authentication
+  CRON_SECRET: Schema.optional(Schema.String),
+  // Logging configuration
+  LOG_LEVEL: Schema.optional(Schema.Literal("debug", "info", "warn", "error")),
+  // Vercel auto-provided environment variables (server-side only)
+  VERCEL_URL: Schema.optional(Schema.String),
+  VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
+  VERCEL_GIT_COMMIT_SHA: Schema.optional(Schema.String),
 });
 
 export type ServerEnvType = typeof ServerEnv.Type;

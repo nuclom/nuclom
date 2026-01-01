@@ -1,6 +1,6 @@
-import process from "node:process";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env/server";
 import { logger } from "@/lib/logger";
 
 export interface HealthStatus {
@@ -49,7 +49,7 @@ export async function GET() {
     status,
     checks,
     timestamp: new Date().toISOString(),
-    version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
+    version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
   };
 
   logger.info("Health check completed", {

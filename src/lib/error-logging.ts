@@ -15,7 +15,8 @@
 // Types
 // =============================================================================
 
-import process from "node:process";
+import { env } from "@/lib/env/server";
+
 export interface ErrorContext {
   /** Unique request ID for tracing */
   requestId?: string;
@@ -85,7 +86,7 @@ const SERVICE_NAME = "nuclom";
 
 // Detect environment
 const IS_SERVER = typeof window === "undefined";
-const IS_PROD = IS_SERVER ? process.env.NODE_ENV === "production" : !window.location.hostname.includes("localhost");
+const IS_PROD = IS_SERVER ? env.NODE_ENV === "production" : !window.location.hostname.includes("localhost");
 const ENVIRONMENT = IS_PROD ? "production" : "development";
 
 // =============================================================================

@@ -5,7 +5,6 @@
  * Following Effect-TS + Next.js best practices for managing stateful services.
  */
 
-import process from "node:process";
 import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from "effect";
 import { globalValue } from "effect/GlobalValue";
 import { NextResponse } from "next/server";
@@ -13,6 +12,7 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("effect-runtime");
 
+import { env } from "@/lib/env/server";
 // Services
 import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
@@ -369,9 +369,7 @@ export const DevLoggerLive = Logger.replace(Logger.defaultLogger, Logger.prettyL
 /**
  * Minimum log level layer
  */
-export const LogLevelLive = Logger.minimumLogLevel(
-  process.env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info,
-);
+export const LogLevelLive = Logger.minimumLogLevel(env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info);
 
 /**
  * Full logging configuration

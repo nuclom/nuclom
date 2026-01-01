@@ -11,12 +11,12 @@
  * database access.
  */
 
-import process from "node:process";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { env } from "@/lib/env/server";
 import { createLogger } from "@/lib/logger";
 import {
   API_RATE_LIMIT,
@@ -31,7 +31,7 @@ import {
 // =============================================================================
 
 function isRedisConfigured(): boolean {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return Boolean(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 }
 
 function createRedisClient(): Redis | null {
@@ -40,8 +40,8 @@ function createRedisClient(): Redis | null {
   }
 
   return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL as string,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+    url: env.UPSTASH_REDIS_REST_URL as string,
+    token: env.UPSTASH_REDIS_REST_TOKEN as string,
   });
 }
 

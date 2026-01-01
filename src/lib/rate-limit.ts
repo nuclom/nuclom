@@ -9,10 +9,10 @@
  * - Sliding window rate limiting algorithm
  */
 
-import process from "node:process";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -40,7 +40,7 @@ interface RateLimitResult {
  * Check if Redis is configured for rate limiting
  */
 function isRedisConfigured(): boolean {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return Boolean(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 }
 
 /**
@@ -52,8 +52,8 @@ function createRedisClient(): Redis | null {
   }
 
   return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL as string,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+    url: env.UPSTASH_REDIS_REST_URL as string,
+    token: env.UPSTASH_REDIS_REST_TOKEN as string,
   });
 }
 

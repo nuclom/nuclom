@@ -1,4 +1,3 @@
-import process from "node:process";
 import { Cause, Effect, Exit, Layer } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -7,6 +6,7 @@ import { mapErrorToResponse } from "@/lib/effect/runtime";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // POST /api/billing/portal - Create Stripe billing portal session
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const org = yield* orgRepo.getOrganization(organizationId);
 
     // Build return URL
-    const baseUrl = request.headers.get("origin") || process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const baseUrl = request.headers.get("origin") || env.APP_URL;
     const returnUrl = `${baseUrl}/${org.slug}/settings/billing`;
 
     // Create portal session

@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
-import process from "node:process";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { env } from "@/lib/env/server";
 import { createLogger } from "@/lib/logger";
 import { triggerImportMeeting } from "@/lib/workflow/import-meeting";
 
@@ -56,7 +56,7 @@ interface ZoomWebhookPayload {
 
 // Verify Zoom webhook signature
 function verifyZoomWebhook(request: NextRequest, body: string): boolean {
-  const webhookSecret = process.env.ZOOM_WEBHOOK_SECRET;
+  const webhookSecret = env.ZOOM_WEBHOOK_SECRET;
   if (!webhookSecret) {
     log.warn("ZOOM_WEBHOOK_SECRET not configured, skipping verification");
     return true; // Skip verification if secret not configured
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   // Handle Zoom URL verification challenge
   if ((payload as unknown as { event: string; payload: { plainToken: string } }).event === "endpoint.url_validation") {
     const plainToken = (payload as unknown as { payload: { plainToken: string } }).payload.plainToken;
-    const webhookSecret = process.env.ZOOM_WEBHOOK_SECRET || "";
+    const webhookSecret = env.ZOOM_WEBHOOK_SECRET || "";
     const encryptedToken = crypto.createHmac("sha256", webhookSecret).update(plainToken).digest("hex");
 
     return NextResponse.json({

@@ -8,10 +8,10 @@
  * - Secure cookie settings
  */
 
-import process from "node:process";
 import { and, count, desc, eq, gt, lt, ne } from "drizzle-orm";
 import { db } from "./db";
 import { sessions, users } from "./db/schema";
+import { env } from "./env/server";
 
 // =============================================================================
 // Configuration
@@ -300,7 +300,7 @@ export function getSecureCookieOptions(): {
   path: string;
   maxAge: number;
 } {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.NODE_ENV === "production";
 
   return {
     httpOnly: true, // Prevent JavaScript access
@@ -321,7 +321,7 @@ export function getStrictCookieOptions(): {
   path: string;
   maxAge: number;
 } {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = env.NODE_ENV === "production";
 
   return {
     httpOnly: true,

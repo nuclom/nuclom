@@ -1,4 +1,3 @@
-import process from "node:process";
 import { passkey } from "@better-auth/passkey";
 import { stripe } from "@better-auth/stripe";
 import { betterAuth } from "better-auth";
@@ -6,7 +5,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
-import { env as clientEnv } from "@/lib/env/client";
 import { env } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
@@ -36,17 +34,17 @@ function buildTrustedOrigins(): string[] {
   }
 
   // Add Vercel preview URL only in non-production environments
-  if (process.env.VERCEL_URL && process.env.NODE_ENV !== "production") {
-    origins.push(`https://${process.env.VERCEL_URL}`);
+  if (env.VERCEL_URL && env.NODE_ENV !== "production") {
+    origins.push(`https://${env.VERCEL_URL}`);
   }
 
   // Add production Vercel URL if set
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    origins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  if (env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origins.push(`https://${env.VERCEL_PROJECT_PRODUCTION_URL}`);
   }
 
   // Add localhost only in development
-  if (process.env.NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     origins.push("http://localhost:3000");
     origins.push("http://127.0.0.1:3000");
   }
@@ -178,7 +176,7 @@ export const auth = betterAuth({
   // Secure cookie settings
   advanced: {
     cookiePrefix: "nuclom",
-    useSecureCookies: process.env.NODE_ENV === "production",
+    useSecureCookies: env.NODE_ENV === "production",
     defaultCookieAttributes: {
       httpOnly: cookieOptions.httpOnly,
       secure: cookieOptions.secure,
@@ -250,7 +248,7 @@ export const auth = betterAuth({
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
       async sendInvitationEmail(data) {
-        const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
+        const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
         const inviteLink = `${baseUrl}/accept-invitation/${data.id}`;
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
         const inviterName = data.inviter.user.name || "Someone";
@@ -341,8 +339,8 @@ export const auth = betterAuth({
           },
           {
             name: "pro",
-            priceId: process.env.STRIPE_PRICE_ID_PRO_MONTHLY,
-            annualDiscountPriceId: process.env.STRIPE_PRICE_ID_PRO_YEARLY,
+            priceId: env.STRIPE_PRICE_ID_PRO_MONTHLY,
+            annualDiscountPriceId: env.STRIPE_PRICE_ID_PRO_YEARLY,
             limits: {
               storage: 100 * 1024 * 1024 * 1024, // 100GB
               videos: -1, // unlimited
@@ -355,8 +353,8 @@ export const auth = betterAuth({
           },
           {
             name: "enterprise",
-            priceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY,
-            annualDiscountPriceId: process.env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
+            priceId: env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY,
+            annualDiscountPriceId: env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
             limits: {
               storage: -1, // unlimited
               videos: -1, // unlimited
@@ -397,7 +395,7 @@ export const auth = betterAuth({
         plan: { name: string };
         user: { id: string; email: string; name?: string | null };
       }) => {
-        const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
+        const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
 
         // Create in-app notification
@@ -517,7 +515,7 @@ export const auth = betterAuth({
               <p>Hi ${user.name || "there"},</p>
               <p>Your 14-day free trial has ended. We hope you enjoyed exploring Nuclom's features!</p>
               <p>To continue using all the pro features, please upgrade your subscription.</p>
-              <p><a href="${clientEnv.NEXT_PUBLIC_APP_URL}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
+              <p><a href="${env.NEXT_PUBLIC_APP_URL}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
             </div>
           `,
         });

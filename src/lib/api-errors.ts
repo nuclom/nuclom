@@ -1,5 +1,5 @@
-import process from "node:process";
 import { NextResponse } from "next/server";
+import { env } from "@/lib/env/server";
 
 /**
  * Standardized API Error Codes
@@ -226,7 +226,7 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
     console.error("[Error]", error);
     return createErrorResponse(
       ErrorCodes.INTERNAL_ERROR,
-      process.env.NODE_ENV === "development" ? error.message : "An unexpected error occurred",
+      env.NODE_ENV === "development" ? error.message : "An unexpected error occurred",
       500,
     );
   }
