@@ -43,6 +43,7 @@ export interface GoogleDriveFile {
   readonly size?: string;
   readonly webViewLink?: string;
   readonly webContentLink?: string;
+  readonly thumbnailLink?: string;
   readonly parents?: string[];
 }
 
@@ -81,6 +82,45 @@ export interface GoogleMeetRecording {
   readonly fileSize: number;
   readonly downloadUrl: string;
   readonly mimeType: string;
+}
+
+export interface GoogleDriveFolder {
+  readonly id: string;
+  readonly name: string;
+  readonly parentId?: string;
+  readonly modifiedTime: string;
+}
+
+export interface GoogleDriveFoldersResponse {
+  readonly folders: GoogleDriveFolder[];
+  readonly nextPageToken?: string;
+}
+
+export interface GoogleDriveVideoFile {
+  readonly id: string;
+  readonly name: string;
+  readonly mimeType: string;
+  readonly size: number;
+  readonly createdTime: string;
+  readonly modifiedTime: string;
+  readonly thumbnailLink?: string;
+  readonly webViewLink?: string;
+  readonly parentId?: string;
+}
+
+export interface GoogleDriveVideosResponse {
+  readonly files: GoogleDriveVideoFile[];
+  readonly nextPageToken?: string;
+  readonly totalCount?: number;
+}
+
+export interface GoogleDriveSearchOptions {
+  readonly query?: string;
+  readonly folderId?: string;
+  readonly pageSize?: number;
+  readonly pageToken?: string;
+  readonly orderBy?: "createdTime" | "modifiedTime" | "name";
+  readonly orderDirection?: "asc" | "desc";
 }
 
 // =============================================================================
@@ -152,6 +192,34 @@ export interface GoogleMeetServiceInterface {
    * Parse Drive files response into a simplified format
    */
   readonly parseRecordings: (response: GoogleDriveFilesResponse) => GoogleMeetRecording[];
+
+  /**
+   * List all video files from Google Drive (not just Meet recordings)
+   */
+  readonly listVideoFiles: (
+    accessToken: string,
+    options?: GoogleDriveSearchOptions,
+  ) => Effect.Effect<GoogleDriveVideosResponse, HttpError>;
+
+  /**
+   * List folders in Google Drive
+   */
+  readonly listFolders: (
+    accessToken: string,
+    parentId?: string,
+    pageSize?: number,
+    pageToken?: string,
+  ) => Effect.Effect<GoogleDriveFoldersResponse, HttpError>;
+
+  /**
+   * Search for video files by name
+   */
+  readonly searchVideos: (
+    accessToken: string,
+    query: string,
+    pageSize?: number,
+    pageToken?: string,
+  ) => Effect.Effect<GoogleDriveVideosResponse, HttpError>;
 }
 
 // =============================================================================
@@ -495,6 +563,211 @@ const makeGoogleMeetService = Effect.gen(function* () {
     });
   };
 
+  // Video MIME types supported
+  const VIDEO_MIME_TYPES = [
+    "video/mp4",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/x-matroska",
+    "video/webm",
+    "video/x-flv",
+    "video/x-ms-wmv",
+    "video/3gpp",
+    "video/mpeg",
+    "video/ogg",
+  ];
+
+  const listVideoFiles = (
+    accessToken: string,
+    options: GoogleDriveSearchOptions = {},
+  ): Effect.Effect<GoogleDriveVideosResponse, HttpError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const { folderId, pageSize = 50, pageToken, orderBy = "modifiedTime", orderDirection = "desc" } = options;
+
+        // Build query for all video files
+        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(" or ");
+        let query = `(${mimeTypeQuery}) and trashed=false`;
+
+        // Add folder filter if specified
+        if (folderId) {
+          query += ` and '${folderId}' in parents`;
+        }
+
+        const params = new URLSearchParams({
+          q: query,
+          fields:
+            "kind,nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)",
+          orderBy: `${orderBy} ${orderDirection}`,
+          pageSize: pageSize.toString(),
+          supportsAllDrives: "true",
+          includeItemsFromAllDrives: "true",
+        });
+
+        if (pageToken) {
+          params.set("pageToken", pageToken);
+        }
+
+        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
+        }
+
+        const response = (await res.json()) as GoogleDriveFilesResponse & {
+          files: Array<GoogleDriveFile & { thumbnailLink?: string }>;
+        };
+
+        return {
+          files: response.files.map((file) => ({
+            id: file.id,
+            name: file.name,
+            mimeType: file.mimeType,
+            size: file.size ? Number.parseInt(file.size, 10) : 0,
+            createdTime: file.createdTime,
+            modifiedTime: file.modifiedTime,
+            thumbnailLink: file.thumbnailLink,
+            webViewLink: file.webViewLink,
+            parentId: file.parents?.[0],
+          })),
+          nextPageToken: response.nextPageToken,
+        };
+      },
+      catch: (error) =>
+        new HttpError({
+          message: `Failed to list video files: ${error instanceof Error ? error.message : "Unknown error"}`,
+          status: 500,
+        }),
+    });
+
+  const listFolders = (
+    accessToken: string,
+    parentId?: string,
+    pageSize = 100,
+    pageToken?: string,
+  ): Effect.Effect<GoogleDriveFoldersResponse, HttpError> =>
+    Effect.tryPromise({
+      try: async () => {
+        let query = "mimeType='application/vnd.google-apps.folder' and trashed=false";
+        if (parentId) {
+          query += ` and '${parentId}' in parents`;
+        } else {
+          // Root level folders
+          query += " and 'root' in parents";
+        }
+
+        const params = new URLSearchParams({
+          q: query,
+          fields: "nextPageToken,files(id,name,modifiedTime,parents)",
+          orderBy: "name",
+          pageSize: pageSize.toString(),
+          supportsAllDrives: "true",
+          includeItemsFromAllDrives: "true",
+        });
+
+        if (pageToken) {
+          params.set("pageToken", pageToken);
+        }
+
+        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
+        }
+
+        const response = (await res.json()) as { files: GoogleDriveFile[]; nextPageToken?: string };
+
+        return {
+          folders: response.files.map((file) => ({
+            id: file.id,
+            name: file.name,
+            parentId: file.parents?.[0],
+            modifiedTime: file.modifiedTime,
+          })),
+          nextPageToken: response.nextPageToken,
+        };
+      },
+      catch: (error) =>
+        new HttpError({
+          message: `Failed to list folders: ${error instanceof Error ? error.message : "Unknown error"}`,
+          status: 500,
+        }),
+    });
+
+  const searchVideos = (
+    accessToken: string,
+    searchQuery: string,
+    pageSize = 50,
+    pageToken?: string,
+  ): Effect.Effect<GoogleDriveVideosResponse, HttpError> =>
+    Effect.tryPromise({
+      try: async () => {
+        // Build query for video files matching search term
+        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(" or ");
+        const escapedQuery = searchQuery.replace(/'/g, "\\'");
+        const query = `(${mimeTypeQuery}) and trashed=false and name contains '${escapedQuery}'`;
+
+        const params = new URLSearchParams({
+          q: query,
+          fields:
+            "nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)",
+          orderBy: "modifiedTime desc",
+          pageSize: pageSize.toString(),
+          supportsAllDrives: "true",
+          includeItemsFromAllDrives: "true",
+        });
+
+        if (pageToken) {
+          params.set("pageToken", pageToken);
+        }
+
+        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
+        }
+
+        const response = (await res.json()) as GoogleDriveFilesResponse & {
+          files: Array<GoogleDriveFile & { thumbnailLink?: string }>;
+        };
+
+        return {
+          files: response.files.map((file) => ({
+            id: file.id,
+            name: file.name,
+            mimeType: file.mimeType,
+            size: file.size ? Number.parseInt(file.size, 10) : 0,
+            createdTime: file.createdTime,
+            modifiedTime: file.modifiedTime,
+            thumbnailLink: file.thumbnailLink,
+            webViewLink: file.webViewLink,
+            parentId: file.parents?.[0],
+          })),
+          nextPageToken: response.nextPageToken,
+        };
+      },
+      catch: (error) =>
+        new HttpError({
+          message: `Failed to search videos: ${error instanceof Error ? error.message : "Unknown error"}`,
+          status: 500,
+        }),
+    });
+
   return {
     isConfigured,
     getAuthorizationUrl,
@@ -507,6 +780,9 @@ const makeGoogleMeetService = Effect.gen(function* () {
     downloadFile,
     listCalendarEvents,
     parseRecordings,
+    listVideoFiles,
+    listFolders,
+    searchVideos,
   } satisfies GoogleMeetServiceInterface;
 });
 
@@ -563,4 +839,35 @@ export const downloadGoogleFile = (
   Effect.gen(function* () {
     const google = yield* GoogleMeet;
     return yield* google.downloadFile(accessToken, fileId);
+  });
+
+export const listGoogleDriveVideos = (
+  accessToken: string,
+  options?: GoogleDriveSearchOptions,
+): Effect.Effect<GoogleDriveVideosResponse, HttpError, GoogleMeet> =>
+  Effect.gen(function* () {
+    const google = yield* GoogleMeet;
+    return yield* google.listVideoFiles(accessToken, options);
+  });
+
+export const listGoogleDriveFolders = (
+  accessToken: string,
+  parentId?: string,
+  pageSize?: number,
+  pageToken?: string,
+): Effect.Effect<GoogleDriveFoldersResponse, HttpError, GoogleMeet> =>
+  Effect.gen(function* () {
+    const google = yield* GoogleMeet;
+    return yield* google.listFolders(accessToken, parentId, pageSize, pageToken);
+  });
+
+export const searchGoogleDriveVideos = (
+  accessToken: string,
+  query: string,
+  pageSize?: number,
+  pageToken?: string,
+): Effect.Effect<GoogleDriveVideosResponse, HttpError, GoogleMeet> =>
+  Effect.gen(function* () {
+    const google = yield* GoogleMeet;
+    return yield* google.searchVideos(accessToken, query, pageSize, pageToken);
   });
