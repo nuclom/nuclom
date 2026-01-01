@@ -1,8 +1,8 @@
 "use client";
 
-import { MoreHorizontal, Plus, Shield, UserMinus } from "lucide-react";
+import { Loader2, MoreHorizontal, Plus, Shield, UserMinus } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ type MemberWithUser = Member & {
   user: User;
 };
 
-export default function MembersSettingsPage() {
+function MembersSettingsContent() {
   const params = useParams();
   const { toast } = useToast();
   const [members, setMembers] = useState<MemberWithUser[]>([]);
@@ -339,5 +339,29 @@ export default function MembersSettingsPage() {
         </Table>
       </CardContent>
     </Card>
+  );
+}
+
+function MembersSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Members</CardTitle>
+        <CardDescription>Loading organization members...</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function MembersSettingsPage() {
+  return (
+    <Suspense fallback={<MembersSkeleton />}>
+      <MembersSettingsContent />
+    </Suspense>
   );
 }
