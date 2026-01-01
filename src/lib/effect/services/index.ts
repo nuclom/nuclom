@@ -4,6 +4,27 @@
  * All Effect-TS services are exported from this file.
  */
 
+// Activity Feed Repository
+export type {
+  ActivityFeedFilters,
+  ActivityFeedRepositoryService,
+  ActivityWithActor,
+  CreateActivityInput,
+} from "./activity-feed-repository";
+export {
+  ActivityFeedRepository,
+  ActivityFeedRepositoryLive,
+  createActivity,
+  getActivityFeed,
+  getActivityStats,
+  logCommentAdded,
+  logIntegrationConnected,
+  logMemberJoined,
+  logVideoProcessed,
+  logVideoShared,
+  logVideoUploaded,
+} from "./activity-feed-repository";
+
 export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
 // AI Service
 export {
@@ -476,6 +497,73 @@ export {
   WatchLaterService,
   WatchLaterServiceLive,
 } from "./watch-later";
+// Microsoft Teams Service
+export type {
+  MicrosoftTeamsConfig,
+  MicrosoftTeamsServiceInterface,
+  MicrosoftTokenResponse,
+  MicrosoftUserInfo,
+  TeamsChannel,
+  TeamsChannelsResponse,
+  TeamsMessagePayload,
+  TeamsMessageResponse,
+  TeamsTeam,
+  TeamsTeamsResponse,
+} from "./microsoft-teams";
+export {
+  exchangeMicrosoftTeamsCodeForToken,
+  getMicrosoftTeamsAuthorizationUrl,
+  getMicrosoftTeamsUserInfo,
+  listMicrosoftTeams,
+  listMicrosoftTeamsChannels,
+  MicrosoftTeams,
+  MicrosoftTeamsLive,
+  refreshMicrosoftTeamsToken,
+  sendMicrosoftTeamsMessage,
+  sendMicrosoftTeamsVideoNotification,
+} from "./microsoft-teams";
+// Slack Service
+export type {
+  SlackChannel,
+  SlackChannelsResponse,
+  SlackConfig,
+  SlackMessagePayload,
+  SlackMessageResponse,
+  SlackServiceInterface,
+  SlackTokenResponse,
+  SlackUserInfo,
+} from "./slack";
+export {
+  exchangeSlackCodeForToken,
+  getSlackAuthorizationUrl,
+  getSlackUserInfo,
+  listSlackChannels,
+  sendSlackMessage,
+  sendSlackVideoNotification,
+  Slack,
+  SlackLive,
+  verifySlackSignature,
+} from "./slack";
+// Zapier Webhooks Service
+export type {
+  CreateWebhookInput,
+  UpdateWebhookInput,
+  WebhookDeliveryResult,
+  WebhookPayload,
+  WebhookWithStats,
+  ZapierWebhooksServiceInterface,
+} from "./zapier-webhooks";
+export {
+  createZapierWebhook,
+  deleteZapierWebhook,
+  getZapierWebhookDeliveries,
+  getZapierWebhooks,
+  retryZapierWebhookDelivery,
+  triggerZapierWebhooks,
+  updateZapierWebhook,
+  ZapierWebhooksService,
+  ZapierWebhooksServiceLive,
+} from "./zapier-webhooks";
 // Zoom Service
 export type {
   ZoomConfig,
