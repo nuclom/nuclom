@@ -14,9 +14,6 @@ import {
 } from "@/lib/validation";
 import { processVideoWorkflow } from "@/workflows/video-processing";
 
-// Handle file upload size limit
-export const maxDuration = 300; // 5 minutes
-
 // =============================================================================
 // Types
 // =============================================================================
