@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videoCodeSnippets, videos } from "@/lib/db/schema";

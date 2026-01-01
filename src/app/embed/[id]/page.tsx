@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Loader2, Play, Volume2, VolumeX, Maximize } from "lucide-react";
+import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -53,7 +53,7 @@ export default function EmbedPage() {
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
-  const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Fetch video data
   const { data, error, isLoading } = useSWR<{ success: boolean; data: EmbedVideoData; error?: string }>(
@@ -186,7 +186,7 @@ export default function EmbedPage() {
 
   // Format time helper
   const formatTime = (seconds: number): string => {
-    if (!isFinite(seconds) || seconds < 0) return "0:00";
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -219,8 +219,11 @@ export default function EmbedPage() {
       className="fixed inset-0 bg-black overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      role="application"
+      aria-label="Video player"
     >
       {/* Video Element */}
+      {/* biome-ignore lint/a11y/useMediaCaption: captions loaded dynamically if available */}
       <video
         ref={videoRef}
         src={video.videoUrl}
@@ -238,6 +241,7 @@ export default function EmbedPage() {
       {/* Play Button Overlay (before first play) */}
       {!hasStarted && !isPlaying && (
         <button
+          type="button"
           className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
           onClick={togglePlay}
           aria-label="Play video"
@@ -264,14 +268,18 @@ export default function EmbedPage() {
         )}
 
         {/* Progress Bar */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: video seek bar is mouse-only */}
         <div
           className="relative h-1 bg-white/30 rounded-full cursor-pointer mb-2 group"
           onClick={handleSeek}
+          role="slider"
+          aria-label="Video progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          tabIndex={0}
         >
-          <div
-            className="absolute inset-y-0 left-0 bg-white rounded-full"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="absolute inset-y-0 left-0 bg-white rounded-full" style={{ width: `${progress}%` }} />
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             style={{ left: `${progress}%`, marginLeft: "-6px" }}
@@ -283,12 +291,13 @@ export default function EmbedPage() {
           <div className="flex items-center gap-3">
             {/* Play/Pause */}
             <button
+              type="button"
               className="text-white hover:text-white/80 transition-colors"
               onClick={togglePlay}
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="6" y="4" width="4" height="16" rx="1" />
                   <rect x="14" y="4" width="4" height="16" rx="1" />
                 </svg>
@@ -299,6 +308,7 @@ export default function EmbedPage() {
 
             {/* Mute/Unmute */}
             <button
+              type="button"
               className="text-white hover:text-white/80 transition-colors"
               onClick={toggleMute}
               aria-label={isMuted ? "Unmute" : "Mute"}
@@ -315,6 +325,7 @@ export default function EmbedPage() {
           <div className="flex items-center gap-3">
             {/* Fullscreen */}
             <button
+              type="button"
               className="text-white hover:text-white/80 transition-colors"
               onClick={toggleFullscreen}
               aria-label="Toggle fullscreen"

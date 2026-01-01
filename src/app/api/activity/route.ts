@@ -1,16 +1,10 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import type { ActivityType } from "@/lib/db/schema";
-import {
-  ActivityFeedRepository,
-  ActivityFeedRepositoryLive,
-} from "@/lib/effect/services/activity-feed-repository";
+import { ActivityFeedRepository, ActivityFeedRepositoryLive } from "@/lib/effect/services/activity-feed-repository";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-} from "@/lib/effect/services/organization-repository";
+import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
 
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -24,12 +18,10 @@ export async function GET(request: Request) {
   const actorId = searchParams.get("actorId") ?? undefined;
   const resourceType = searchParams.get("resourceType") ?? undefined;
   const resourceId = searchParams.get("resourceId") ?? undefined;
-  const startDate = searchParams.get("startDate")
-    ? new Date(searchParams.get("startDate")!)
-    : undefined;
-  const endDate = searchParams.get("endDate")
-    ? new Date(searchParams.get("endDate")!)
-    : undefined;
+  const startDateParam = searchParams.get("startDate");
+  const startDate = startDateParam ? new Date(startDateParam) : undefined;
+  const endDateParam = searchParams.get("endDate");
+  const endDate = endDateParam ? new Date(endDateParam) : undefined;
 
   // Verify the user is authenticated
   const session = await auth.api.getSession({
@@ -45,26 +37,23 @@ export async function GET(request: Request) {
     const orgRepo = yield* OrganizationRepository;
 
     // Get the user's active organization
-    const activeOrg = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
-    if (!activeOrg) {
+    if (Option.isNone(activeOrgOption)) {
       return { data: [], total: 0, page, limit };
     }
 
+    const activeOrg = activeOrgOption.value;
+
     // Fetch activity feed
-    const result = yield* activityRepo.getActivityFeed(
-      activeOrg.id,
-      page,
-      limit,
-      {
-        activityTypes: types,
-        actorId,
-        resourceType,
-        resourceId,
-        startDate,
-        endDate,
-      },
-    );
+    const result = yield* activityRepo.getActivityFeed(activeOrg.id, page, limit, {
+      activityTypes: types,
+      actorId,
+      resourceType,
+      resourceId,
+      startDate,
+      endDate,
+    });
 
     return {
       ...result,
@@ -79,9 +68,6 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Activity Feed Error]", err);
-    return NextResponse.json(
-      { error: "Failed to fetch activity feed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch activity feed" }, { status: 500 });
   }
 }

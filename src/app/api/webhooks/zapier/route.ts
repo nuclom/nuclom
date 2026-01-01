@@ -1,16 +1,10 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import type { ZapierWebhookEvent } from "@/lib/db/schema";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  OrganizationRepository,
-  OrganizationRepositoryLive,
-} from "@/lib/effect/services/organization-repository";
-import {
-  ZapierWebhooksService,
-  ZapierWebhooksServiceLive,
-} from "@/lib/effect/services/zapier-webhooks";
+import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
+import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -30,11 +24,13 @@ export async function GET(request: Request) {
     const zapierService = yield* ZapierWebhooksService;
     const orgRepo = yield* OrganizationRepository;
 
-    const activeOrg = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
-    if (!activeOrg) {
+    if (Option.isNone(activeOrgOption)) {
       return { webhooks: [] };
     }
+
+    const activeOrg = activeOrgOption.value;
 
     const webhooks = yield* zapierService.getWebhooks(activeOrg.id);
 
@@ -46,10 +42,7 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[Zapier Webhooks GET Error]", err);
-    return NextResponse.json(
-      { error: "Failed to fetch webhooks" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch webhooks" }, { status: 500 });
   }
 }
 
@@ -71,21 +64,20 @@ export async function POST(request: Request) {
   }
 
   if (!body.targetUrl || !body.events || !Array.isArray(body.events)) {
-    return NextResponse.json(
-      { error: "Missing required fields: targetUrl, events" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing required fields: targetUrl, events" }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
     const zapierService = yield* ZapierWebhooksService;
     const orgRepo = yield* OrganizationRepository;
 
-    const activeOrg = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
-    if (!activeOrg) {
+    if (Option.isNone(activeOrgOption)) {
       return yield* Effect.fail(new Error("No active organization"));
     }
+
+    const activeOrg = activeOrgOption.value;
 
     const webhook = yield* zapierService.createWebhook({
       organizationId: activeOrg.id,
@@ -102,9 +94,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
     console.error("[Zapier Webhooks POST Error]", err);
-    return NextResponse.json(
-      { error: "Failed to create webhook" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create webhook" }, { status: 500 });
   }
 }

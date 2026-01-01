@@ -163,10 +163,7 @@ export interface SlackServiceInterface {
   /**
    * List channels the bot has access to
    */
-  readonly listChannels: (
-    accessToken: string,
-    cursor?: string,
-  ) => Effect.Effect<SlackChannelsResponse, HttpError>;
+  readonly listChannels: (accessToken: string, cursor?: string) => Effect.Effect<SlackChannelsResponse, HttpError>;
 
   /**
    * Send a message to a channel
@@ -191,11 +188,7 @@ export interface SlackServiceInterface {
   /**
    * Verify a webhook signature from Slack
    */
-  readonly verifySignature: (
-    signature: string,
-    timestamp: string,
-    body: string,
-  ) => Effect.Effect<boolean, never>;
+  readonly verifySignature: (signature: string, timestamp: string, body: string) => Effect.Effect<boolean, never>;
 }
 
 // =============================================================================
@@ -248,13 +241,7 @@ const makeSlackService = Effect.gen(function* () {
         throw new Error("Slack is not configured");
       }
 
-      const scopes = [
-        "channels:read",
-        "chat:write",
-        "incoming-webhook",
-        "users:read",
-        "users:read.email",
-      ].join(",");
+      const scopes = ["channels:read", "chat:write", "incoming-webhook", "users:read", "users:read.email"].join(",");
 
       const params = new URLSearchParams({
         client_id: cfg.clientId,
@@ -343,10 +330,7 @@ const makeSlackService = Effect.gen(function* () {
         }),
     });
 
-  const listChannels = (
-    accessToken: string,
-    cursor?: string,
-  ): Effect.Effect<SlackChannelsResponse, HttpError> =>
+  const listChannels = (accessToken: string, cursor?: string): Effect.Effect<SlackChannelsResponse, HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
@@ -467,11 +451,7 @@ const makeSlackService = Effect.gen(function* () {
     });
   };
 
-  const verifySignature = (
-    signature: string,
-    timestamp: string,
-    body: string,
-  ): Effect.Effect<boolean, never> =>
+  const verifySignature = (signature: string, timestamp: string, body: string): Effect.Effect<boolean, never> =>
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) return false;
@@ -491,10 +471,7 @@ const makeSlackService = Effect.gen(function* () {
 
       // Compare signatures using timing-safe comparison
       try {
-        return crypto.timingSafeEqual(
-          Buffer.from(signature),
-          Buffer.from(expectedSignature),
-        );
+        return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
       } catch {
         return false;
       }
@@ -528,17 +505,13 @@ export const getSlackAuthorizationUrl = (state: string): Effect.Effect<string, n
     return yield* slack.getAuthorizationUrl(state);
   });
 
-export const exchangeSlackCodeForToken = (
-  code: string,
-): Effect.Effect<SlackTokenResponse, HttpError, Slack> =>
+export const exchangeSlackCodeForToken = (code: string): Effect.Effect<SlackTokenResponse, HttpError, Slack> =>
   Effect.gen(function* () {
     const slack = yield* Slack;
     return yield* slack.exchangeCodeForToken(code);
   });
 
-export const getSlackUserInfo = (
-  accessToken: string,
-): Effect.Effect<SlackUserInfo, HttpError, Slack> =>
+export const getSlackUserInfo = (accessToken: string): Effect.Effect<SlackUserInfo, HttpError, Slack> =>
   Effect.gen(function* () {
     const slack = yield* Slack;
     return yield* slack.getUserInfo(accessToken);
@@ -572,14 +545,7 @@ export const sendSlackVideoNotification = (
 ): Effect.Effect<SlackMessageResponse, HttpError, Slack> =>
   Effect.gen(function* () {
     const slack = yield* Slack;
-    return yield* slack.sendVideoNotification(
-      accessToken,
-      channel,
-      videoTitle,
-      videoUrl,
-      thumbnailUrl,
-      authorName,
-    );
+    return yield* slack.sendVideoNotification(accessToken, channel, videoTitle, videoUrl, thumbnailUrl, authorName);
   });
 
 export const verifySlackSignature = (

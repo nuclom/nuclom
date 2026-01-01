@@ -1,4 +1,4 @@
-import { Effect, Layer } from "effect";
+import { Effect } from "effect";
 import { NextResponse } from "next/server";
 import { Slack, SlackLive } from "@/lib/effect/services/slack";
 

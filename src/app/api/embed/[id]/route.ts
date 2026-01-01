@@ -1,16 +1,13 @@
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { organizations, videos, videoShareLinks } from "@/lib/db/schema";
+import { organizations, videoShareLinks, videos } from "@/lib/db/schema";
 
 // =============================================================================
 // GET /api/embed/[id] - Get embed video data
 // =============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
@@ -34,24 +31,15 @@ export async function GET(
     if (shareLink) {
       // Validate share link
       if (shareLink.status !== "active") {
-        return NextResponse.json(
-          { success: false, error: "This video is no longer available" },
-          { status: 410 },
-        );
+        return NextResponse.json({ success: false, error: "This video is no longer available" }, { status: 410 });
       }
 
       if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
-        return NextResponse.json(
-          { success: false, error: "This video link has expired" },
-          { status: 410 },
-        );
+        return NextResponse.json({ success: false, error: "This video link has expired" }, { status: 410 });
       }
 
-      if (shareLink.maxViews && shareLink.viewCount >= shareLink.maxViews) {
-        return NextResponse.json(
-          { success: false, error: "This video has reached its view limit" },
-          { status: 410 },
-        );
+      if (shareLink.maxViews && (shareLink.viewCount ?? 0) >= shareLink.maxViews) {
+        return NextResponse.json({ success: false, error: "This video has reached its view limit" }, { status: 410 });
       }
 
       videoId = shareLink.videoId;
@@ -72,10 +60,7 @@ export async function GET(
       .where(eq(videos.id, videoId));
 
     if (!video || !video.videoUrl) {
-      return NextResponse.json(
-        { success: false, error: "Video not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
     }
 
     // Get organization
@@ -112,10 +97,7 @@ export async function GET(
     return response;
   } catch (error) {
     console.error("Embed API error:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
 

@@ -2,20 +2,13 @@ import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DatabaseLive } from "@/lib/effect/services/database";
-import {
-  IntegrationRepository,
-  IntegrationRepositoryLive,
-} from "@/lib/effect/services/integration-repository";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { MicrosoftTeams, MicrosoftTeamsLive } from "@/lib/effect/services/microsoft-teams";
 
 export const dynamic = "force-dynamic";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const CallbackLayer = Layer.mergeAll(
-  MicrosoftTeamsLive,
-  IntegrationRepositoryWithDeps,
-  DatabaseLive,
-);
+const CallbackLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
 
 interface OAuthState {
   userId: string;
@@ -78,10 +71,7 @@ export async function GET(request: Request) {
     const userInfo = yield* teams.getUserInfo(tokens.access_token);
 
     // Check if integration already exists
-    const existingIntegration = yield* integrationRepo.getIntegrationByProvider(
-      userId,
-      "microsoft_teams",
-    );
+    const existingIntegration = yield* integrationRepo.getIntegrationByProvider(userId, "microsoft_teams");
 
     const metadata = {
       userId: userInfo.id,

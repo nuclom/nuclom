@@ -1,11 +1,10 @@
 import { Effect, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { ForbiddenError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // GET /api/channels/[id] - Get channel details

@@ -1,11 +1,12 @@
+import process from "node:process";
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "./db";
 import {
-  auditLogExports,
-  auditLogs,
   type AuditLogCategory,
   type AuditLogSeverity,
+  auditLogExports,
+  auditLogs,
   type NewAuditLog,
 } from "./db/schema";
 
@@ -63,8 +64,9 @@ export class AuditLogger {
     const userAgent = headerList.get("user-agent");
     const requestId = headerList.get("x-request-id") || crypto.randomUUID();
 
+    const id = crypto.randomUUID();
     const auditLog: NewAuditLog = {
-      id: crypto.randomUUID(),
+      id,
       actorId: context.actorId || null,
       actorEmail: context.actorEmail || null,
       actorType: context.actorType || "user",
@@ -92,7 +94,7 @@ export class AuditLogger {
       console.log(`[Audit] ${entry.category}.${entry.action}: ${entry.description || "No description"}`);
     }
 
-    return auditLog.id;
+    return id;
   }
 
   /**
@@ -113,7 +115,7 @@ export class AuditLogger {
       sso_login: "User logged in via SSO",
     };
 
-    return this.log(
+    return AuditLogger.log(
       {
         category: "authentication",
         action: `user.${action}`,
@@ -147,7 +149,7 @@ export class AuditLogger {
       role_removed: `Role removed: ${details.roleName}`,
     };
 
-    return this.log(
+    return AuditLogger.log(
       {
         category: "authorization",
         action: `access.${action}`,
@@ -176,7 +178,7 @@ export class AuditLogger {
       newValue?: Record<string, unknown>;
     },
   ): Promise<string> {
-    return this.log(
+    return AuditLogger.log(
       {
         category: "content_management",
         action: `${resourceType}.${action}`,
@@ -212,7 +214,7 @@ export class AuditLogger {
       storage_configured: "Storage configuration updated",
     };
 
-    return this.log(
+    return AuditLogger.log(
       {
         category: "organization_management",
         action: `org.${action}`,
@@ -248,7 +250,7 @@ export class AuditLogger {
       permission_escalation: "critical",
     };
 
-    return this.log(
+    return AuditLogger.log(
       {
         category: "security",
         action: `security.${action}`,
@@ -351,7 +353,7 @@ export class AuditLogger {
 
     // In a real implementation, this would trigger a background job
     // For now, we'll process it synchronously for smaller datasets
-    void this.processExport(exportId);
+    void AuditLogger.processExport(exportId);
 
     return exportId;
   }
@@ -398,7 +400,7 @@ export class AuditLogger {
       const batchSize = 1000;
 
       while (true) {
-        const result = await this.query(exportRequest.organizationId, {
+        const result = await AuditLogger.query(exportRequest.organizationId, {
           ...filters,
           limit: batchSize,
           offset,

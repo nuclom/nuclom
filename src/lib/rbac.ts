@@ -1,20 +1,20 @@
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
+import { AuditLogger } from "./audit-log";
 import { db } from "./db";
 import {
+  type CustomRole,
   customRoles,
   members,
-  resourcePermissions,
-  rolePermissions,
-  userRoleAssignments,
-  type CustomRole,
   type NewCustomRole,
   type NewRolePermission,
   type NewUserRoleAssignment,
   type PermissionAction,
   type PermissionResource,
   type RolePermission,
+  resourcePermissions,
+  rolePermissions,
+  userRoleAssignments,
 } from "./db/schema";
-import { AuditLogger } from "./audit-log";
 
 export interface PermissionCheck {
   resource: PermissionResource;
@@ -210,7 +210,7 @@ export class RBACService {
 
     for (const check of checks) {
       const key = `${check.resource}:${check.action}:${check.resourceId || "*"}`;
-      const result = await this.checkPermission(check);
+      const result = await RBACService.checkPermission(check);
       results.set(key, result);
     }
 
