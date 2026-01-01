@@ -87,6 +87,8 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
         warningReason: users.warningReason,
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
+        maxSessions: users.maxSessions,
+        passwordChangedAt: users.passwordChangedAt,
       })
       .from(users)
       .innerJoin(videos, eq(videos.authorId, users.id))

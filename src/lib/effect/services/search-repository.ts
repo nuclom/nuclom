@@ -240,6 +240,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             author_suspended_until: Date | null;
             author_suspension_reason: string | null;
             author_stripe_customer_id: string | null;
+            author_max_sessions: number | null;
+            author_password_changed_at: Date | null;
             headline_title: string | null;
             headline_description: string | null;
             headline_transcript: string | null;
@@ -272,6 +274,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               u.suspended_until as author_suspended_until,
               u.suspension_reason as author_suspension_reason,
               u.stripe_customer_id as author_stripe_customer_id,
+              u.max_sessions as author_max_sessions,
+              u.password_changed_at as author_password_changed_at,
               ts_headline('english', COALESCE(v.title, ''), plainto_tsquery('english', ${query}),
                 'StartSel=<mark>, StopSel=</mark>, MaxWords=50, MinWords=25') as headline_title,
               ts_headline('english', COALESCE(v.description, ''), plainto_tsquery('english', ${query}),
@@ -358,6 +362,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 suspendedUntil: row.author_suspended_until,
                 suspensionReason: row.author_suspension_reason,
                 stripeCustomerId: row.author_stripe_customer_id,
+                maxSessions: row.author_max_sessions,
+                passwordChangedAt: row.author_password_changed_at,
               },
             } as VideoWithAuthor,
             rank: row.rank,
@@ -439,6 +445,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
                 stripeCustomerId: users.stripeCustomerId,
+                maxSessions: users.maxSessions,
+                passwordChangedAt: users.passwordChangedAt,
               },
             })
             .from(videos)
@@ -860,6 +868,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)

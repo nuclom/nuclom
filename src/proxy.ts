@@ -2,12 +2,20 @@
  * Next.js Middleware
  *
  * Handles:
+ * - Authentication checks for protected routes
  * - Rate limiting for API routes
  * - Request logging with structured output
  * - Request ID generation and propagation
+ *
+ * Uses Node.js runtime for better-auth session validation which requires
+ * database access.
  */
 
+// Use Node.js runtime for database access in auth validation
+export const runtime = "nodejs";
+
 import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { createLogger } from "@/lib/logger";
 import {
   API_RATE_LIMIT,
@@ -124,6 +132,54 @@ function isPublicApiRoute(pathname: string): boolean {
   return publicPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
+function isBetterAuthRoute(pathname: string): boolean {
+  // Better-auth handles its own routes - don't interfere with auth flow
+  return pathname.startsWith("/api/auth/");
+}
+
+function isProtectedApiRoute(pathname: string): boolean {
+  // API routes that require authentication
+  // Exclude: public routes, auth routes (handled by better-auth), webhooks
+  if (!isApiRoute(pathname)) return false;
+  if (isPublicApiRoute(pathname)) return false;
+  if (isBetterAuthRoute(pathname)) return false;
+  if (pathname.startsWith("/api/webhooks/")) return false;
+
+  return true;
+}
+
+function isPublicPageRoute(pathname: string): boolean {
+  // Routes that should be accessible without authentication
+  const publicPatterns = [
+    "/",
+    "/auth",
+    "/sign-in",
+    "/sign-up",
+    "/reset-password",
+    "/verify-email",
+    "/accept-invitation",
+    "/share",
+    "/pricing",
+    "/about",
+    "/terms",
+    "/privacy",
+    "/cookies",
+    "/features",
+    "/changelog",
+    "/blog",
+    "/contact",
+    "/help",
+    "/docs",
+  ];
+  return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
+}
+
+function isProtectedPageRoute(pathname: string): boolean {
+  // All non-API routes are protected unless explicitly public
+  if (isApiRoute(pathname)) return false;
+  return !isPublicPageRoute(pathname);
+}
+
 // =============================================================================
 // Request Logging
 // =============================================================================
@@ -142,7 +198,7 @@ function getClientIp(request: NextRequest): string | undefined {
 // Middleware
 // =============================================================================
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
   const method = request.method;
@@ -150,7 +206,68 @@ export function proxy(request: NextRequest) {
   // Generate or use existing request ID
   const requestId = request.headers.get("x-request-id") || generateRequestId();
 
-  // Skip non-API routes (no logging or rate limiting)
+  // =============================================================================
+  // Authentication Check for Protected Routes
+  // =============================================================================
+
+  // Check if route requires authentication
+  const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
+
+  if (needsAuth) {
+    // Validate session using better-auth
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session) {
+      // For API routes, return 401 Unauthorized
+      if (isApiRoute(pathname)) {
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized`,
+        );
+
+        return new NextResponse(
+          JSON.stringify({
+            error: "Unauthorized",
+            message: "Authentication required",
+          }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              "x-request-id": requestId,
+            },
+          },
+        );
+      }
+
+      // For page routes, redirect to sign-in
+      const signInUrl = new URL("/auth/sign-in", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+
+      requestLogger.info(
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
+        `Redirecting unauthenticated user to sign-in`,
+      );
+
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
+  // =============================================================================
+  // Non-API Routes - Skip rate limiting and detailed logging
+  // =============================================================================
+
   if (!isApiRoute(pathname)) {
     const response = NextResponse.next();
     response.headers.set("x-request-id", requestId);
@@ -271,7 +388,13 @@ export function proxy(request: NextRequest) {
 // Configure which routes the middleware applies to
 export const config = {
   matcher: [
-    // Match all API routes except static files
-    "/api/:path*",
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     * - Public assets (images, fonts, etc.)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };

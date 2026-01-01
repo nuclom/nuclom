@@ -21,7 +21,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "openapi": "npx tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "3.0.4",
@@ -133,6 +134,7 @@
     "lefthook": "^1.11.5",
     "postcss": "~8.5.6",
     "tailwindcss": "4.1.18",
+    "ts-morph": "^27.0.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
   },
