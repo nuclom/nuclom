@@ -580,7 +580,12 @@ export const notificationTypeEnum = pgEnum("NotificationType", [
 ]);
 
 // Integration provider enum
-export const integrationProviderEnum = pgEnum("IntegrationProvider", ["zoom", "google_meet"]);
+export const integrationProviderEnum = pgEnum("IntegrationProvider", [
+  "zoom",
+  "google_meet",
+  "slack",
+  "microsoft_teams",
+]);
 
 // Import status enum
 export const importStatusEnum = pgEnum("ImportStatus", ["pending", "downloading", "processing", "completed", "failed"]);
@@ -626,7 +631,27 @@ export type GoogleIntegrationMetadata = {
   readonly scope?: string;
 };
 
-export type IntegrationMetadata = ZoomIntegrationMetadata | GoogleIntegrationMetadata;
+export type SlackIntegrationMetadata = {
+  readonly teamId?: string;
+  readonly teamName?: string;
+  readonly userId?: string;
+  readonly email?: string;
+  readonly botUserId?: string;
+  readonly webhookUrl?: string;
+};
+
+export type MicrosoftTeamsIntegrationMetadata = {
+  readonly tenantId?: string;
+  readonly userId?: string;
+  readonly email?: string;
+  readonly displayName?: string;
+};
+
+export type IntegrationMetadata =
+  | ZoomIntegrationMetadata
+  | GoogleIntegrationMetadata
+  | SlackIntegrationMetadata
+  | MicrosoftTeamsIntegrationMetadata;
 
 // Types for meeting participants
 export type MeetingParticipant = {
@@ -1447,6 +1472,124 @@ export type HealthCheckStatus = (typeof healthCheckStatusEnum.enumValues)[number
 export type HealthCheck = typeof healthChecks.$inferSelect;
 export type NewHealthCheck = typeof healthChecks.$inferInsert;
 
+// =====================
+// Activity Feed Tables
+// =====================
+
+export const activityTypeEnum = pgEnum("ActivityType", [
+  "video_uploaded",
+  "video_processed",
+  "video_shared",
+  "comment_added",
+  "comment_reply",
+  "reaction_added",
+  "member_joined",
+  "member_left",
+  "integration_connected",
+  "integration_disconnected",
+  "video_imported",
+]);
+
+export const activityFeed = pgTable(
+  "activity_feed",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    activityType: activityTypeEnum("activity_type").notNull(),
+    resourceType: text("resource_type"), // 'video', 'comment', 'member', 'integration'
+    resourceId: text("resource_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgCreatedIdx: index("activity_feed_org_created_idx").on(table.organizationId, table.createdAt),
+    actorIdx: index("activity_feed_actor_idx").on(table.actorId),
+    resourceIdx: index("activity_feed_resource_idx").on(table.resourceType, table.resourceId),
+  }),
+);
+
+// =====================
+// Zapier Webhooks Tables
+// =====================
+
+export const zapierWebhookEventEnum = pgEnum("ZapierWebhookEvent", [
+  "video.uploaded",
+  "video.processed",
+  "video.shared",
+  "comment.created",
+  "comment.replied",
+  "member.joined",
+  "member.left",
+]);
+
+export const zapierWebhooks = pgTable(
+  "zapier_webhooks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    targetUrl: text("target_url").notNull(),
+    events: jsonb("events").$type<string[]>().notNull(), // Array of ZapierWebhookEvent
+    secret: text("secret").notNull(), // For HMAC signature verification
+    isActive: boolean("is_active").default(true).notNull(),
+    lastTriggeredAt: timestamp("last_triggered_at"),
+    failureCount: integer("failure_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("zapier_webhooks_org_idx").on(table.organizationId),
+    activeIdx: index("zapier_webhooks_active_idx").on(table.isActive),
+  }),
+);
+
+export const zapierWebhookDeliveries = pgTable(
+  "zapier_webhook_deliveries",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => zapierWebhooks.id, { onDelete: "cascade" }),
+    event: text("event").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    responseStatus: integer("response_status"),
+    responseBody: text("response_body"),
+    success: boolean("success").notNull(),
+    attemptCount: integer("attempt_count").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    deliveredAt: timestamp("delivered_at"),
+  },
+  (table) => ({
+    webhookIdx: index("zapier_webhook_deliveries_webhook_idx").on(table.webhookId),
+    createdIdx: index("zapier_webhook_deliveries_created_idx").on(table.createdAt),
+  }),
+);
+
+// Activity Feed types
+export type ActivityType = (typeof activityTypeEnum.enumValues)[number];
+export type ActivityFeed = typeof activityFeed.$inferSelect;
+export type NewActivityFeed = typeof activityFeed.$inferInsert;
+
+// Zapier Webhook types
+export type ZapierWebhookEvent = (typeof zapierWebhookEventEnum.enumValues)[number];
+export type ZapierWebhook = typeof zapierWebhooks.$inferSelect;
+export type NewZapierWebhook = typeof zapierWebhooks.$inferInsert;
+export type ZapierWebhookDelivery = typeof zapierWebhookDeliveries.$inferSelect;
+export type NewZapierWebhookDelivery = typeof zapierWebhookDeliveries.$inferInsert;
+
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
   user: one(users, {
@@ -1538,6 +1681,38 @@ export const dataExportRequestsRelations = relations(dataExportRequests, ({ one 
   user: one(users, {
     fields: [dataExportRequests.userId],
     references: [users.id],
+  }),
+}));
+
+// Activity Feed relations
+export const activityFeedRelations = relations(activityFeed, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [activityFeed.organizationId],
+    references: [organizations.id],
+  }),
+  actor: one(users, {
+    fields: [activityFeed.actorId],
+    references: [users.id],
+  }),
+}));
+
+// Zapier Webhook relations
+export const zapierWebhooksRelations = relations(zapierWebhooks, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [zapierWebhooks.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [zapierWebhooks.userId],
+    references: [users.id],
+  }),
+  deliveries: many(zapierWebhookDeliveries),
+}));
+
+export const zapierWebhookDeliveriesRelations = relations(zapierWebhookDeliveries, ({ one }) => ({
+  webhook: one(zapierWebhooks, {
+    fields: [zapierWebhookDeliveries.webhookId],
+    references: [zapierWebhooks.id],
   }),
 }));
 
