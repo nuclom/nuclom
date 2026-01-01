@@ -2,9 +2,8 @@ import { allEndpoints, apiInfo, apiServers, apiTags } from "./endpoints";
 import { generateOpenApiSpec } from "./generator";
 
 /**
- * OpenAPI spec automatically generated from Effect Schema definitions.
- * Schemas are derived from the same Effect Schemas used for request/response
- * validation in route handlers, ensuring documentation stays in sync.
+ * OpenAPI spec from manually maintained endpoint definitions.
+ * For auto-generated spec from route files, use generateAutoSpec() from auto-endpoints.ts
  */
 export const openApiSpec = generateOpenApiSpec({
   info: apiInfo,
@@ -13,9 +12,23 @@ export const openApiSpec = generateOpenApiSpec({
   endpoints: allEndpoints,
 });
 
-// Re-export types and utilities
+// Re-export auto-generation utilities (for build-time generation)
+export {
+  apiInfo as autoApiInfo,
+  apiServers as autoApiServers,
+  apiTags as autoApiTags,
+  descriptionOverrides,
+  generateAutoEndpoints,
+  generateAutoSpec,
+  responseOverrides,
+  schemaNameMapping,
+} from "./auto-endpoints";
+// Re-export manual endpoint definitions
 export { allEndpoints, apiInfo, apiServers, apiTags } from "./endpoints";
 export { type ApiEndpoint, type ApiTag, generateOpenApiSpec } from "./generator";
+
+// Re-export route parser for custom usage
+export { generateEndpointsFromRoutes, type ParsedMethod, type ParsedRoute, RouteParser } from "./route-parser";
 
 /**
  * Convert OpenAPI spec to YAML format
