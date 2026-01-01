@@ -1,5 +1,6 @@
 import process from "node:process";
 import { sql } from "drizzle-orm";
+import { connection } from "next/server";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
@@ -15,6 +16,8 @@ export interface HealthStatus {
 }
 
 export async function GET() {
+  await connection();
+
   const startTime = performance.now();
   const checks = {
     database: false,
