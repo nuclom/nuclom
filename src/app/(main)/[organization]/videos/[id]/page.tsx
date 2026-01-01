@@ -43,18 +43,20 @@ import type { VideoWithDetails } from "@/lib/types";
 
 function VideoDetailSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-      <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
-        <div className="h-10 bg-muted animate-pulse rounded w-3/4" />
-        <div className="h-6 bg-muted animate-pulse rounded w-1/4" />
-        <div className="h-64 bg-muted animate-pulse rounded-lg" />
-        <div className="h-48 bg-muted animate-pulse rounded-lg" />
-      </div>
-      <aside className="w-full lg:col-span-1 space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+      {/* Video player skeleton - shows first on mobile */}
+      <aside className="w-full lg:col-span-1 xl:col-span-1 space-y-4 lg:space-y-6 order-first lg:order-last">
         <div className="aspect-video bg-muted animate-pulse rounded-lg" />
         <div className="h-8 bg-muted animate-pulse rounded" />
         <div className="h-48 bg-muted animate-pulse rounded-lg" />
       </aside>
+      {/* Main content skeleton */}
+      <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4 lg:gap-6">
+        <div className="h-8 lg:h-10 bg-muted animate-pulse rounded w-3/4" />
+        <div className="h-5 lg:h-6 bg-muted animate-pulse rounded w-1/4" />
+        <div className="h-48 lg:h-64 bg-muted animate-pulse rounded-lg" />
+        <div className="h-36 lg:h-48 bg-muted animate-pulse rounded-lg" />
+      </div>
     </div>
   );
 }
@@ -321,16 +323,158 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
   const threadedComments = transformCommentsToThreaded(video.comments);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+      {/* Sidebar: Video Player and AI Insights - shows first on mobile */}
+      <aside className="w-full lg:col-span-1 xl:col-span-1 space-y-4 lg:space-y-6 order-first lg:order-last lg:sticky lg:top-20 lg:self-start">
+        {/* Video Player */}
+        {video.videoUrl ? (
+          <VideoPlayerWithProgress
+            videoId={video.id}
+            url={video.videoUrl}
+            title={video.title}
+            thumbnailUrl={video.thumbnailUrl || undefined}
+            duration={video.duration}
+            chapters={chapters.map((c) => ({
+              id: c.id,
+              title: c.title,
+              startTime: c.startTime,
+              endTime: c.endTime ?? undefined,
+              summary: c.summary ?? undefined,
+            }))}
+          />
+        ) : (
+          <div className="aspect-video bg-card rounded-lg overflow-hidden border">
+            {video.thumbnailUrl ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={video.thumbnailUrl}
+                  alt={video.title}
+                  width={640}
+                  height={360}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <div className="flex flex-col items-center gap-2 text-white">
+                    <Play className="h-12 w-12" />
+                    <span className="text-sm">Video not available</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-muted-foreground">No video available</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons - more touch-friendly on mobile */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-9">
+              <ThumbsUp className="h-4 w-4 mr-2" /> Like
+            </Button>
+            <Button variant="ghost" size="icon" className="text-muted-foreground h-9 w-9">
+              <Bookmark className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="text-muted-foreground h-9">
+              <Share2 className="h-4 w-4 mr-2" /> Share
+            </Button>
+            <VideoActions
+              videoId={video.id}
+              videoTitle={video.title}
+              organizationSlug={organizationSlug}
+              canDelete={canDelete}
+            />
+          </div>
+        </div>
+
+        {/* AI Insights Tabs - hidden on mobile, shown on desktop sidebar */}
+        <div className="hidden lg:block">
+          <Tabs defaultValue="insights">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="insights">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Insights
+              </TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+            </TabsList>
+            <TabsContent value="insights" className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">AI Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  {video.aiSummary ? (
+                    <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
+                  ) : video.processingStatus === "analyzing" ? (
+                    <div className="flex items-center gap-2 text-muted-foreground py-4 justify-center">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Generating summary...</span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No AI summary available.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ListTodo className="h-4 w-4" />
+                    Action Items
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ActionItemsList items={actionItems} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="details">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Description</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {video.description || "No description available."}
+                </CardContent>
+              </Card>
+
+              {tags.length > 0 && (
+                <Card className="mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Tags
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag, i) => (
+                        <Badge key={i} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </aside>
+
       {/* Main Content: Transcript and Comments */}
-      <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
+      <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-4 lg:gap-6">
         <header>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
             <ProcessingStatus status={video.processingStatus} error={video.processingError} />
             {tags.length > 0 && (
               <div className="flex items-center gap-1">
                 <Tag className="h-3 w-3 text-muted-foreground" />
-                <div className="flex gap-1">
+                <div className="flex gap-1 flex-wrap">
                   {tags.slice(0, 3).map((tag, i) => (
                     <Badge key={i} variant="outline" className="text-xs">
                       {tag}
@@ -345,8 +489,8 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
               </div>
             )}
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{video.title}</h1>
-          <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">{video.title}</h1>
+          <div className="flex items-center gap-2 sm:gap-3 mt-3 text-sm text-muted-foreground flex-wrap">
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
                 <AvatarImage src={video.author.image || undefined} alt={video.author.name || "Author"} />
@@ -354,12 +498,88 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
               </Avatar>
               <span>{video.author.name || "Unknown Author"}</span>
             </div>
-            <span>-</span>
+            <span className="hidden sm:inline">-</span>
             <span>{new Date(video.createdAt).toLocaleDateString()}</span>
-            <span>-</span>
+            <span className="hidden sm:inline">-</span>
             <span>{video.duration}</span>
           </div>
         </header>
+
+        {/* Mobile-only AI Insights section */}
+        <div className="lg:hidden">
+          <Tabs defaultValue="insights">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="insights" className="text-sm">
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                AI Insights
+              </TabsTrigger>
+              <TabsTrigger value="details" className="text-sm">
+                Details
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="insights" className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">AI Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  {video.aiSummary ? (
+                    <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
+                  ) : video.processingStatus === "analyzing" ? (
+                    <div className="flex items-center gap-2 text-muted-foreground py-4 justify-center">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Generating summary...</span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No AI summary available.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ListTodo className="h-4 w-4" />
+                    Action Items
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ActionItemsList items={actionItems} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="details">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Description</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {video.description || "No description available."}
+                </CardContent>
+              </Card>
+
+              {tags.length > 0 && (
+                <Card className="mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Tags
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag, i) => (
+                        <Badge key={i} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Chapters Section */}
         {chapters.length > 0 && (
@@ -425,144 +645,6 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
           currentUser={currentUser}
         />
       </div>
-
-      {/* Sidebar: Video Player and AI Insights */}
-      <aside className="w-full lg:col-span-1 xl:col-span-1 space-y-6 lg:sticky top-20 self-start">
-        {/* Video Player */}
-        {video.videoUrl ? (
-          <VideoPlayerWithProgress
-            videoId={video.id}
-            url={video.videoUrl}
-            title={video.title}
-            thumbnailUrl={video.thumbnailUrl || undefined}
-            duration={video.duration}
-            chapters={chapters.map((c) => ({
-              id: c.id,
-              title: c.title,
-              startTime: c.startTime,
-              endTime: c.endTime ?? undefined,
-              summary: c.summary ?? undefined,
-            }))}
-          />
-        ) : (
-          <div className="aspect-video bg-card rounded-lg overflow-hidden border">
-            {video.thumbnailUrl ? (
-              <div className="relative w-full h-full">
-                <Image
-                  src={video.thumbnailUrl}
-                  alt={video.title}
-                  width={640}
-                  height={360}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                  <div className="flex flex-col items-center gap-2 text-white">
-                    <Play className="h-12 w-12" />
-                    <span className="text-sm">Video not available</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <span className="text-muted-foreground">No video available</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm">
-              <ThumbsUp className="h-4 w-4 mr-2" /> Like
-            </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Bookmark className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              <Share2 className="h-4 w-4 mr-2" /> Share
-            </Button>
-            <VideoActions
-              videoId={video.id}
-              videoTitle={video.title}
-              organizationSlug={organizationSlug}
-              canDelete={canDelete}
-            />
-          </div>
-        </div>
-
-        <Tabs defaultValue="insights">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="insights">
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI Insights
-            </TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-          </TabsList>
-          <TabsContent value="insights" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">AI Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm">
-                {video.aiSummary ? (
-                  <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
-                ) : video.processingStatus === "analyzing" ? (
-                  <div className="flex items-center gap-2 text-muted-foreground py-4 justify-center">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Generating summary...</span>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No AI summary available.</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ListTodo className="h-4 w-4" />
-                  Action Items
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ActionItemsList items={actionItems} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="details">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Description</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {video.description || "No description available."}
-              </CardContent>
-            </Card>
-
-            {tags.length > 0 && (
-              <Card className="mt-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Tags
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag, i) => (
-                      <Badge key={i} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </aside>
     </div>
   );
 }

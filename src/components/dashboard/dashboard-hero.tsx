@@ -14,9 +14,9 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
   const greeting = getGreeting();
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-8">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-30">
+    <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-4 sm:p-6 md:p-8">
+      {/* Background pattern - hidden on small screens for better performance */}
+      <div className="absolute inset-0 opacity-30 hidden sm:block">
         <svg
           className="absolute right-0 top-0 h-full w-1/2"
           viewBox="0 0 400 400"
@@ -31,24 +31,24 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
       </div>
 
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
           {greeting}
           {userName ? `, ${userName.split(" ")[0]}` : ""}!
         </h1>
-        <p className="text-muted-foreground mb-6 max-w-lg">
+        <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-lg">
           {hasVideos
             ? "Pick up where you left off or explore new videos from your team."
             : "Get started by uploading your first video or recording a quick update."}
         </p>
 
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button asChild size="default" className="sm:size-lg w-full sm:w-auto">
             <Link href={`/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Video
             </Link>
           </Button>
-          <Button variant="outline" size="lg" asChild>
+          <Button variant="outline" size="default" className="sm:size-lg w-full sm:w-auto" asChild>
             <Link href={`/${organization}/record`}>
               <div className="mr-2 h-4 w-4 rounded-full bg-red-500 animate-pulse" />
               Record
