@@ -5,8 +5,6 @@ import { auth } from "@/lib/auth";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { env } from "@/lib/env/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const organizationId = searchParams.get("organizationId");

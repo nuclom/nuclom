@@ -464,6 +464,3 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     }
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
-// Disable body parsing so we can access the raw body for signature verification
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";

@@ -16,7 +16,6 @@ import { processVideoWorkflow } from "@/workflows/video-processing";
 
 // Handle file upload size limit
 export const maxDuration = 300; // 5 minutes
-export const dynamic = "force-dynamic";
 
 // =============================================================================
 // Types
