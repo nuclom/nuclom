@@ -14,8 +14,6 @@ import type { ApiResponse } from "@/lib/types";
 import { sanitizeDescription, sanitizeTitle } from "@/lib/validation";
 import { processVideoWorkflow } from "@/workflows/video-processing";
 
-export const dynamic = "force-dynamic";
-
 // =============================================================================
 // Types
 // =============================================================================

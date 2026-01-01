@@ -5,8 +5,6 @@ import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { MicrosoftTeams, MicrosoftTeamsLive } from "@/lib/effect/services/microsoft-teams";
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CallbackLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
 

@@ -5,8 +5,6 @@ import { auth } from "@/lib/auth";
 import { Slack, SlackLive } from "@/lib/effect/services/slack";
 import { env } from "@/lib/env/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const organizationId = searchParams.get("organizationId");
