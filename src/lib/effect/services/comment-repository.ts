@@ -131,6 +131,8 @@ const selectCommentWithAuthor = {
     suspendedUntil: users.suspendedUntil,
     suspensionReason: users.suspensionReason,
     stripeCustomerId: users.stripeCustomerId,
+    maxSessions: users.maxSessions,
+    passwordChangedAt: users.passwordChangedAt,
   },
 };
 

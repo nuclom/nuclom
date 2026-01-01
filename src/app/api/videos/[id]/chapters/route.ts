@@ -1,11 +1,10 @@
 import { asc, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videoChapters, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // GET /api/videos/[id]/chapters - Get video chapters

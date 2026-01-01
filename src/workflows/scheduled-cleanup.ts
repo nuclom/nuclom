@@ -12,14 +12,14 @@
  * - Consumes no resources during sleep
  */
 
-import process from "node:process";
 import { and, isNotNull, lt } from "drizzle-orm";
 import { sleep } from "workflow";
 import { db } from "@/lib/db";
 import { videos } from "@/lib/db/schema";
-import { createLogger } from "@/lib/logger";
+import { env } from "@/lib/env/server";
+import { createWorkflowLogger } from "./workflow-logger";
 
-const log = createLogger("cleanup-workflow");
+const log = createWorkflowLogger("cleanup-workflow");
 
 // =============================================================================
 // Types
@@ -50,10 +50,10 @@ async function cleanupExpiredVideos(): Promise<number> {
   // Delete videos from R2 storage
   const { S3Client, DeleteObjectCommand } = await import("@aws-sdk/client-s3");
 
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucketName = process.env.R2_BUCKET_NAME;
+  const accountId = env.R2_ACCOUNT_ID;
+  const accessKeyId = env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
+  const bucketName = env.R2_BUCKET_NAME;
 
   if (accountId && accessKeyId && secretAccessKey && bucketName) {
     const client = new S3Client({
@@ -80,7 +80,7 @@ async function cleanupExpiredVideos(): Promise<number> {
             }),
           );
         } catch (error) {
-          log.error({ videoId: video.id, err: error }, "Failed to delete file for video");
+          log.error({ videoId: video.id, error }, "Failed to delete file for video");
         }
       }
     }
@@ -111,15 +111,15 @@ async function cleanupExpiredVideos(): Promise<number> {
 export async function scheduledCleanupWorkflow(): Promise<never> {
   "use workflow";
 
-  log.info("Starting scheduled video cleanup workflow");
+  log.info({}, "Starting scheduled video cleanup workflow");
 
   while (true) {
     try {
       const deletedCount = await cleanupExpiredVideos();
-      log.info({ deletedCount, timestamp: new Date().toISOString() }, "Deleted expired videos");
+      log.info({ deletedCount: deletedCount, timestamp: new Date().toISOString() }, "Deleted expired videos");
       ("use step");
     } catch (error) {
-      log.error({ err: error }, "Error during cleanup");
+      log.error({ error }, "Error during cleanup");
       ("use step");
     }
 

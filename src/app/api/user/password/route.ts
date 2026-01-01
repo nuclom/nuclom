@@ -13,7 +13,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect";
 import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-import { rateLimitSensitive } from "@/lib/rate-limit";
+import { rateLimitSensitiveAsync } from "@/lib/rate-limit";
 import { revokeSessionsBeforeDate } from "@/lib/session-security";
 
 // =============================================================================
@@ -29,8 +29,8 @@ const SessionRevocationSchema = Schema.Struct({
 // =============================================================================
 
 export async function POST(request: NextRequest) {
-  // Apply strict rate limiting for password changes
-  const rateLimitResult = rateLimitSensitive(request);
+  // Apply strict rate limiting for password changes (disabled if Redis not configured)
+  const rateLimitResult = await rateLimitSensitiveAsync(request);
   if (rateLimitResult) return rateLimitResult;
 
   const AuthLayer = makeAuthLayer(auth);

@@ -11,3 +11,7 @@ pre-commit:
     tsc:
       glob: "*.{ts,tsx}"
       run: pnpm tsc
+    openapi:
+      glob: "src/app/api/**/route.ts"
+      run: pnpm openapi
+      stage_fixed: true

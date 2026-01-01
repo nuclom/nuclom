@@ -298,6 +298,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -389,6 +391,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -472,6 +476,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
                 stripeCustomerId: users.stripeCustomerId,
+                maxSessions: users.maxSessions,
+                passwordChangedAt: users.passwordChangedAt,
               },
               organization: {
                 id: organizations.id,
@@ -577,6 +583,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
                 stripeCustomerId: users.stripeCustomerId,
+                maxSessions: users.maxSessions,
+                passwordChangedAt: users.passwordChangedAt,
               },
             })
             .from(comments)
@@ -892,6 +900,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -1019,6 +1029,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -1113,6 +1125,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -1205,6 +1219,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)

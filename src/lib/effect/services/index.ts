@@ -4,6 +4,27 @@
  * All Effect-TS services are exported from this file.
  */
 
+// Activity Feed Repository
+export type {
+  ActivityFeedFilters,
+  ActivityFeedRepositoryService,
+  ActivityWithActor,
+  CreateActivityInput,
+} from "./activity-feed-repository";
+export {
+  ActivityFeedRepository,
+  ActivityFeedRepositoryLive,
+  createActivity,
+  getActivityFeed,
+  getActivityStats,
+  logCommentAdded,
+  logIntegrationConnected,
+  logMemberJoined,
+  logVideoProcessed,
+  logVideoShared,
+  logVideoUploaded,
+} from "./activity-feed-repository";
+
 export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
 // AI Service
 export {
@@ -223,6 +244,31 @@ export {
   updateImportedMeeting,
   updateIntegration,
 } from "./integration-repository";
+// Microsoft Teams Service
+export type {
+  MicrosoftTeamsConfig,
+  MicrosoftTeamsServiceInterface,
+  MicrosoftTokenResponse,
+  MicrosoftUserInfo,
+  TeamsChannel,
+  TeamsChannelsResponse,
+  TeamsMessagePayload,
+  TeamsMessageResponse,
+  TeamsTeam,
+  TeamsTeamsResponse,
+} from "./microsoft-teams";
+export {
+  exchangeMicrosoftTeamsCodeForToken,
+  getMicrosoftTeamsAuthorizationUrl,
+  getMicrosoftTeamsUserInfo,
+  listMicrosoftTeams,
+  listMicrosoftTeamsChannels,
+  MicrosoftTeams,
+  MicrosoftTeamsLive,
+  refreshMicrosoftTeamsToken,
+  sendMicrosoftTeamsMessage,
+  sendMicrosoftTeamsVideoNotification,
+} from "./microsoft-teams";
 export type {
   CreateNotificationInput,
   NotificationRepositoryService,
@@ -358,6 +404,28 @@ export {
   updateSeries,
   updateSeriesProgress,
 } from "./series-repository";
+// Slack Service
+export type {
+  SlackChannel,
+  SlackChannelsResponse,
+  SlackConfig,
+  SlackMessagePayload,
+  SlackMessageResponse,
+  SlackServiceInterface,
+  SlackTokenResponse,
+  SlackUserInfo,
+} from "./slack";
+export {
+  exchangeSlackCodeForToken,
+  getSlackAuthorizationUrl,
+  getSlackUserInfo,
+  listSlackChannels,
+  Slack,
+  SlackLive,
+  sendSlackMessage,
+  sendSlackVideoNotification,
+  verifySlackSignature,
+} from "./slack";
 export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
 // Storage Service
 export {
@@ -476,6 +544,26 @@ export {
   WatchLaterService,
   WatchLaterServiceLive,
 } from "./watch-later";
+// Zapier Webhooks Service
+export type {
+  CreateWebhookInput,
+  UpdateWebhookInput,
+  WebhookDeliveryResult,
+  WebhookPayload,
+  WebhookWithStats,
+  ZapierWebhooksServiceInterface,
+} from "./zapier-webhooks";
+export {
+  createZapierWebhook,
+  deleteZapierWebhook,
+  getZapierWebhookDeliveries,
+  getZapierWebhooks,
+  retryZapierWebhookDelivery,
+  triggerZapierWebhooks,
+  updateZapierWebhook,
+  ZapierWebhooksService,
+  ZapierWebhooksServiceLive,
+} from "./zapier-webhooks";
 // Zoom Service
 export type {
   ZoomConfig,

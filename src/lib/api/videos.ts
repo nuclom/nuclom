@@ -52,6 +52,8 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
         warningReason: users.warningReason,
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
+        maxSessions: users.maxSessions,
+        passwordChangedAt: users.passwordChangedAt,
       },
     })
     .from(videos)
@@ -124,6 +126,8 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
         stripeCustomerId: users.stripeCustomerId,
+        maxSessions: users.maxSessions,
+        passwordChangedAt: users.passwordChangedAt,
       },
       organization: {
         id: organizations.id,
@@ -199,6 +203,8 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
         stripeCustomerId: users.stripeCustomerId,
+        maxSessions: users.maxSessions,
+        passwordChangedAt: users.passwordChangedAt,
       },
     })
     .from(comments)

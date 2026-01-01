@@ -1,12 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { commentReactions, comments, type ReactionType } from "@/lib/db/schema";
 import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
 
 // Valid reaction types
 const VALID_REACTIONS: ReactionType[] = ["like", "love", "laugh", "surprised", "sad", "angry", "thinking", "celebrate"];

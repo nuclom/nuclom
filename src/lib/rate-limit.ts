@@ -3,12 +3,13 @@
  *
  * Provides rate limiting for API routes with:
  * - Redis-based rate limiting (Upstash) for distributed environments
- * - In-memory fallback when Redis is not configured
+ * - Rate limiting is disabled when Redis is not configured
  * - Different limits for auth endpoints vs general API
  * - Proper 429 responses with Retry-After header
  * - Sliding window rate limiting algorithm
  */
 
+import process from "node:process";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
@@ -16,11 +17,6 @@ import { NextResponse } from "next/server";
 // =============================================================================
 // Types
 // =============================================================================
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
 
 export interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
@@ -56,51 +52,10 @@ function createRedisClient(): Redis | null {
   }
 
   return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: process.env.UPSTASH_REDIS_REST_URL as string,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
   });
 }
-
-// =============================================================================
-// In-Memory Fallback Store
-// =============================================================================
-
-class InMemoryRateLimitStore {
-  private store: Map<string, RateLimitEntry> = new Map();
-  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
-
-  constructor() {
-    // Clean up expired entries every minute
-    if (typeof setInterval !== "undefined") {
-      this.cleanupInterval = setInterval(() => this.cleanup(), 60_000);
-    }
-  }
-
-  get(key: string): RateLimitEntry | undefined {
-    const entry = this.store.get(key);
-    if (entry && entry.resetAt < Date.now()) {
-      this.store.delete(key);
-      return undefined;
-    }
-    return entry;
-  }
-
-  set(key: string, entry: RateLimitEntry): void {
-    this.store.set(key, entry);
-  }
-
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.store) {
-      if (entry.resetAt < now) {
-        this.store.delete(key);
-      }
-    }
-  }
-}
-
-// Global in-memory store instance (used as fallback)
-const memoryStore = new InMemoryRateLimitStore();
 
 // =============================================================================
 // Rate Limit Configurations
@@ -216,71 +171,17 @@ function getUploadRateLimiter(): Ratelimit | null {
 // =============================================================================
 
 /**
- * Check rate limit using in-memory store (fallback)
- */
-function checkRateLimitMemory(identifier: string, config: RateLimitConfig): RateLimitResult {
-  const now = Date.now();
-  const key = identifier;
-  const entry = memoryStore.get(key);
-
-  if (!entry) {
-    // First request in this window
-    memoryStore.set(key, {
-      count: 1,
-      resetAt: now + config.windowMs,
-    });
-    return {
-      success: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests - 1,
-      resetAt: now + config.windowMs,
-    };
-  }
-
-  if (entry.count >= config.maxRequests) {
-    // Rate limit exceeded
-    return {
-      success: false,
-      limit: config.maxRequests,
-      remaining: 0,
-      resetAt: entry.resetAt,
-    };
-  }
-
-  // Increment counter
-  entry.count++;
-  memoryStore.set(key, entry);
-
-  return {
-    success: true,
-    limit: config.maxRequests,
-    remaining: config.maxRequests - entry.count,
-    resetAt: entry.resetAt,
-  };
-}
-
-/**
  * Check rate limit using Redis (Upstash)
  */
-async function checkRateLimitRedis(
-  identifier: string,
-  rateLimiter: Ratelimit,
-  config: RateLimitConfig,
-): Promise<RateLimitResult> {
-  try {
-    const result = await rateLimiter.limit(identifier);
+async function checkRateLimitRedis(identifier: string, rateLimiter: Ratelimit): Promise<RateLimitResult> {
+  const result = await rateLimiter.limit(identifier);
 
-    return {
-      success: result.success,
-      limit: result.limit,
-      remaining: result.remaining,
-      resetAt: result.reset,
-    };
-  } catch (error) {
-    // If Redis fails, fall back to in-memory
-    console.warn("[Rate Limit] Redis error, falling back to in-memory:", error);
-    return checkRateLimitMemory(identifier, config);
-  }
+  return {
+    success: result.success,
+    limit: result.limit,
+    remaining: result.remaining,
+    resetAt: result.reset,
+  };
 }
 
 /**
@@ -345,11 +246,12 @@ function createRateLimitResponse(result: RateLimitResult): NextResponse {
 // =============================================================================
 
 /**
- * Rate limiting middleware for API routes (async, uses Redis when available)
+ * Rate limiting middleware for API routes (async, uses Redis)
+ * Returns null if rate limiting is disabled (Redis not configured) or if allowed
  *
  * @param request - The incoming request
  * @param config - Rate limit configuration (defaults to API_RATE_LIMIT)
- * @returns null if allowed, NextResponse if rate limited
+ * @returns null if allowed or disabled, NextResponse if rate limited
  *
  * @example
  * export async function GET(request: NextRequest) {
@@ -360,14 +262,18 @@ function createRateLimitResponse(result: RateLimitResult): NextResponse {
  */
 export async function rateLimitAsync(
   request: Request,
-  config: RateLimitConfig = API_RATE_LIMIT,
+  _config: RateLimitConfig = API_RATE_LIMIT,
 ): Promise<NextResponse | null> {
-  const identifier = getClientIdentifier(request);
+  // Note: _config is reserved for future custom rate limit support
   const rateLimiter = getApiRateLimiter();
 
-  const result = rateLimiter
-    ? await checkRateLimitRedis(identifier, rateLimiter, config)
-    : checkRateLimitMemory(identifier, config);
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
+  }
+
+  const identifier = getClientIdentifier(request);
+  const result = await checkRateLimitRedis(identifier, rateLimiter);
 
   if (!result.success) {
     return createRateLimitResponse(result);
@@ -378,14 +284,18 @@ export async function rateLimitAsync(
 
 /**
  * Rate limiting for authentication endpoints (async, stricter limits)
+ * Returns null if rate limiting is disabled (Redis not configured)
  */
 export async function rateLimitAuthAsync(request: Request): Promise<NextResponse | null> {
-  const identifier = getClientIdentifier(request);
   const rateLimiter = getAuthRateLimiter();
 
-  const result = rateLimiter
-    ? await checkRateLimitRedis(`auth:${identifier}`, rateLimiter, AUTH_RATE_LIMIT)
-    : checkRateLimitMemory(`auth:${identifier}`, AUTH_RATE_LIMIT);
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
+  }
+
+  const identifier = getClientIdentifier(request);
+  const result = await checkRateLimitRedis(`auth:${identifier}`, rateLimiter);
 
   if (!result.success) {
     return createRateLimitResponse(result);
@@ -396,14 +306,18 @@ export async function rateLimitAuthAsync(request: Request): Promise<NextResponse
 
 /**
  * Rate limiting for sensitive operations (async, password reset, etc.)
+ * Returns null if rate limiting is disabled (Redis not configured)
  */
 export async function rateLimitSensitiveAsync(request: Request): Promise<NextResponse | null> {
-  const identifier = getClientIdentifier(request);
   const rateLimiter = getSensitiveRateLimiter();
 
-  const result = rateLimiter
-    ? await checkRateLimitRedis(`sensitive:${identifier}`, rateLimiter, SENSITIVE_RATE_LIMIT)
-    : checkRateLimitMemory(`sensitive:${identifier}`, SENSITIVE_RATE_LIMIT);
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
+  }
+
+  const identifier = getClientIdentifier(request);
+  const result = await checkRateLimitRedis(`sensitive:${identifier}`, rateLimiter);
 
   if (!result.success) {
     return createRateLimitResponse(result);
@@ -414,79 +328,18 @@ export async function rateLimitSensitiveAsync(request: Request): Promise<NextRes
 
 /**
  * Rate limiting for file uploads (async)
+ * Returns null if rate limiting is disabled (Redis not configured)
  */
 export async function rateLimitUploadAsync(request: Request): Promise<NextResponse | null> {
-  const identifier = getClientIdentifier(request);
   const rateLimiter = getUploadRateLimiter();
 
-  const result = rateLimiter
-    ? await checkRateLimitRedis(`upload:${identifier}`, rateLimiter, UPLOAD_RATE_LIMIT)
-    : checkRateLimitMemory(`upload:${identifier}`, UPLOAD_RATE_LIMIT);
-
-  if (!result.success) {
-    return createRateLimitResponse(result);
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
   }
 
-  return null;
-}
-
-// =============================================================================
-// Sync Rate Limit Functions (for middleware - in-memory only)
-// =============================================================================
-
-/**
- * Rate limiting middleware for API routes (sync, in-memory only)
- * Use this in Next.js middleware where async Redis calls may not be ideal
- *
- * @param request - The incoming request
- * @param config - Rate limit configuration (defaults to API_RATE_LIMIT)
- * @returns null if allowed, NextResponse if rate limited
- */
-export function rateLimit(request: Request, config: RateLimitConfig = API_RATE_LIMIT): NextResponse | null {
   const identifier = getClientIdentifier(request);
-  const result = checkRateLimitMemory(identifier, config);
-
-  if (!result.success) {
-    return createRateLimitResponse(result);
-  }
-
-  return null;
-}
-
-/**
- * Rate limiting for authentication endpoints (sync, stricter limits)
- */
-export function rateLimitAuth(request: Request): NextResponse | null {
-  const identifier = getClientIdentifier(request);
-  const result = checkRateLimitMemory(`auth:${identifier}`, AUTH_RATE_LIMIT);
-
-  if (!result.success) {
-    return createRateLimitResponse(result);
-  }
-
-  return null;
-}
-
-/**
- * Rate limiting for sensitive operations (sync, password reset, etc.)
- */
-export function rateLimitSensitive(request: Request): NextResponse | null {
-  const identifier = getClientIdentifier(request);
-  const result = checkRateLimitMemory(`sensitive:${identifier}`, SENSITIVE_RATE_LIMIT);
-
-  if (!result.success) {
-    return createRateLimitResponse(result);
-  }
-
-  return null;
-}
-
-/**
- * Rate limiting for file uploads (sync)
- */
-export function rateLimitUpload(request: Request): NextResponse | null {
-  const identifier = getClientIdentifier(request);
-  const result = checkRateLimitMemory(`upload:${identifier}`, UPLOAD_RATE_LIMIT);
+  const result = await checkRateLimitRedis(`upload:${identifier}`, rateLimiter);
 
   if (!result.success) {
     return createRateLimitResponse(result);
@@ -498,25 +351,6 @@ export function rateLimitUpload(request: Request): NextResponse | null {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-/**
- * Add rate limit headers to an existing response
- */
-export function addRateLimitHeaders(
-  response: NextResponse,
-  request: Request,
-  config: RateLimitConfig = API_RATE_LIMIT,
-): NextResponse {
-  const identifier = getClientIdentifier(request);
-  const result = checkRateLimitMemory(identifier, config);
-
-  const headers = createRateLimitHeaders(result);
-  for (const [key, value] of Object.entries(headers)) {
-    response.headers.set(key, value);
-  }
-
-  return response;
-}
 
 /**
  * Wrapper function to apply rate limiting to an API handler (async)
@@ -539,38 +373,11 @@ export function withRateLimitAsync(
 }
 
 /**
- * Wrapper function to apply rate limiting to an API handler (sync)
- */
-export function withRateLimit(
-  handler: (request: Request) => Promise<Response>,
-  config: RateLimitConfig = API_RATE_LIMIT,
-) {
-  return async (request: Request): Promise<Response> => {
-    const rateLimitResult = rateLimit(request, config);
-    if (rateLimitResult) return rateLimitResult;
-
-    return handler(request);
-  };
-}
-
-/**
  * Wrapper function for auth endpoints with stricter rate limiting (async)
  */
 export function withAuthRateLimitAsync(handler: (request: Request) => Promise<Response>) {
   return async (request: Request): Promise<Response> => {
     const rateLimitResult = await rateLimitAuthAsync(request);
-    if (rateLimitResult) return rateLimitResult;
-
-    return handler(request);
-  };
-}
-
-/**
- * Wrapper function for auth endpoints with stricter rate limiting (sync)
- */
-export function withAuthRateLimit(handler: (request: Request) => Promise<Response>) {
-  return async (request: Request): Promise<Response> => {
-    const rateLimitResult = rateLimitAuth(request);
     if (rateLimitResult) return rateLimitResult;
 
     return handler(request);

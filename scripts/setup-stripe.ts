@@ -17,8 +17,9 @@
  *   --force      Update existing resources instead of skipping
  */
 
-import Stripe from "stripe";
+import process from "node:process";
 import dotenv from "dotenv";
+import Stripe from "stripe";
 
 dotenv.config({ path: [".env.local", ".env"] });
 
@@ -69,8 +70,7 @@ const PRODUCTS: ProductConfig[] = [
   {
     id: "prod_nuclom_pro",
     name: "Nuclom Pro",
-    description:
-      "Video collaboration platform with AI-powered features, transcription, and team collaboration tools.",
+    description: "Video collaboration platform with AI-powered features, transcription, and team collaboration tools.",
     metadata: {
       plan_type: "pro",
       trial_days: "14",
@@ -196,10 +196,7 @@ async function findExistingProduct(productId: string): Promise<Stripe.Product | 
   }
 }
 
-async function findExistingPrice(
-  productId: string,
-  interval: string,
-): Promise<Stripe.Price | null> {
+async function findExistingPrice(productId: string, interval: string): Promise<Stripe.Price | null> {
   try {
     const prices = await stripe.prices.list({
       limit: 100,
@@ -272,11 +269,7 @@ async function createProduct(config: ProductConfig): Promise<Stripe.Product> {
   return product;
 }
 
-async function createPrice(
-  productId: string,
-  config: PriceConfig,
-  productConfigId: string,
-): Promise<Stripe.Price> {
+async function createPrice(productId: string, config: PriceConfig, productConfigId: string): Promise<Stripe.Price> {
   const billingPeriod = config.metadata.billing_period;
   const existingPrice = await findExistingPrice(productConfigId, billingPeriod);
 
@@ -366,7 +359,7 @@ async function main() {
   console.log("   • Monthly: $49/user/month (prorated daily refund)");
   console.log("   • Yearly:  $41/user/month ($492/year, 16% off, non-refundable)");
   console.log("   Trial:   14 days (no credit card required)\n");
-  console.log("=".repeat(50) + "\n");
+  console.log(`${"=".repeat(50)}\n`);
 
   const createdResources: {
     products: Array<{ name: string; id: string }>;
@@ -400,7 +393,7 @@ async function main() {
   await setupBillingPortal();
 
   // Summary
-  console.log("\n" + "=".repeat(50));
+  console.log(`\n${"=".repeat(50)}`);
   console.log("📊 Summary\n");
 
   if (!DRY_RUN) {
@@ -420,7 +413,7 @@ async function main() {
     const enterpriseMonthly = createdResources.prices.find((p) => p.nickname === "Enterprise Monthly");
     const enterpriseYearly = createdResources.prices.find((p) => p.nickname === "Enterprise Yearly");
 
-    console.log("\n" + "=".repeat(50));
+    console.log(`\n${"=".repeat(50)}`);
     console.log("🔐 Required Environment Variables\n");
     console.log("Add these to your .env file:\n");
     console.log("# Stripe Configuration");

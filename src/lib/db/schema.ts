@@ -580,7 +580,12 @@ export const notificationTypeEnum = pgEnum("NotificationType", [
 ]);
 
 // Integration provider enum
-export const integrationProviderEnum = pgEnum("IntegrationProvider", ["zoom", "google_meet"]);
+export const integrationProviderEnum = pgEnum("IntegrationProvider", [
+  "zoom",
+  "google_meet",
+  "slack",
+  "microsoft_teams",
+]);
 
 // Import status enum
 export const importStatusEnum = pgEnum("ImportStatus", ["pending", "downloading", "processing", "completed", "failed"]);
@@ -626,7 +631,27 @@ export type GoogleIntegrationMetadata = {
   readonly scope?: string;
 };
 
-export type IntegrationMetadata = ZoomIntegrationMetadata | GoogleIntegrationMetadata;
+export type SlackIntegrationMetadata = {
+  readonly teamId?: string;
+  readonly teamName?: string;
+  readonly userId?: string;
+  readonly email?: string;
+  readonly botUserId?: string;
+  readonly webhookUrl?: string;
+};
+
+export type MicrosoftTeamsIntegrationMetadata = {
+  readonly tenantId?: string;
+  readonly userId?: string;
+  readonly email?: string;
+  readonly displayName?: string;
+};
+
+export type IntegrationMetadata =
+  | ZoomIntegrationMetadata
+  | GoogleIntegrationMetadata
+  | SlackIntegrationMetadata
+  | MicrosoftTeamsIntegrationMetadata;
 
 // Types for meeting participants
 export type MeetingParticipant = {
@@ -1410,6 +1435,83 @@ export const videoShareLinks = pgTable(
 );
 
 // =====================
+// Video Workflow Templates
+// =====================
+
+export const workflowTemplateTypeEnum = pgEnum("WorkflowTemplateType", [
+  "onboarding",
+  "tutorial",
+  "meeting_recap",
+  "product_demo",
+  "training",
+  "marketing",
+  "custom",
+]);
+
+// Predefined workflow templates
+export const workflowTemplates = pgTable("workflow_templates", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: workflowTemplateTypeEnum("type").default("custom").notNull(),
+  icon: text("icon"), // Lucide icon name
+  // Template configuration
+  config: jsonb("config")
+    .$type<{
+      autoTranscribe?: boolean;
+      generateSummary?: boolean;
+      extractChapters?: boolean;
+      extractActionItems?: boolean;
+      detectCodeSnippets?: boolean;
+      subtitleLanguages?: string[];
+      defaultChannel?: string;
+      autoShareSettings?: {
+        enabled?: boolean;
+        accessLevel?: "view" | "comment" | "download";
+        expiresInDays?: number;
+      };
+      notifyOnComplete?: boolean;
+      customPrompts?: {
+        summaryPrompt?: string;
+        actionItemsPrompt?: string;
+      };
+    }>()
+    .notNull(),
+  // Ownership - null means system template
+  organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+  createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  isSystem: boolean("is_system").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  usageCount: integer("usage_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Track which template was used for a video
+export const videoWorkflowHistory = pgTable(
+  "video_workflow_history",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    templateId: text("template_id").references(() => workflowTemplates.id, { onDelete: "set null" }),
+    templateName: text("template_name").notNull(), // Denormalized for history
+    appliedConfig: jsonb("applied_config").notNull(),
+    appliedAt: timestamp("applied_at").defaultNow().notNull(),
+    appliedById: text("applied_by_id").references(() => users.id, { onDelete: "set null" }),
+  },
+  (table) => ({
+    videoIdx: index("video_workflow_history_video_idx").on(table.videoId),
+    templateIdx: index("video_workflow_history_template_idx").on(table.templateId),
+  }),
+);
+
+// =====================
 // Health Check Tables
 // =====================
 
@@ -1446,6 +1548,124 @@ export type HealthCheckService = (typeof healthCheckServiceEnum.enumValues)[numb
 export type HealthCheckStatus = (typeof healthCheckStatusEnum.enumValues)[number];
 export type HealthCheck = typeof healthChecks.$inferSelect;
 export type NewHealthCheck = typeof healthChecks.$inferInsert;
+
+// =====================
+// Activity Feed Tables
+// =====================
+
+export const activityTypeEnum = pgEnum("ActivityType", [
+  "video_uploaded",
+  "video_processed",
+  "video_shared",
+  "comment_added",
+  "comment_reply",
+  "reaction_added",
+  "member_joined",
+  "member_left",
+  "integration_connected",
+  "integration_disconnected",
+  "video_imported",
+]);
+
+export const activityFeed = pgTable(
+  "activity_feed",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    activityType: activityTypeEnum("activity_type").notNull(),
+    resourceType: text("resource_type"), // 'video', 'comment', 'member', 'integration'
+    resourceId: text("resource_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgCreatedIdx: index("activity_feed_org_created_idx").on(table.organizationId, table.createdAt),
+    actorIdx: index("activity_feed_actor_idx").on(table.actorId),
+    resourceIdx: index("activity_feed_resource_idx").on(table.resourceType, table.resourceId),
+  }),
+);
+
+// =====================
+// Zapier Webhooks Tables
+// =====================
+
+export const zapierWebhookEventEnum = pgEnum("ZapierWebhookEvent", [
+  "video.uploaded",
+  "video.processed",
+  "video.shared",
+  "comment.created",
+  "comment.replied",
+  "member.joined",
+  "member.left",
+]);
+
+export const zapierWebhooks = pgTable(
+  "zapier_webhooks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    targetUrl: text("target_url").notNull(),
+    events: jsonb("events").$type<string[]>().notNull(), // Array of ZapierWebhookEvent
+    secret: text("secret").notNull(), // For HMAC signature verification
+    isActive: boolean("is_active").default(true).notNull(),
+    lastTriggeredAt: timestamp("last_triggered_at"),
+    failureCount: integer("failure_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("zapier_webhooks_org_idx").on(table.organizationId),
+    activeIdx: index("zapier_webhooks_active_idx").on(table.isActive),
+  }),
+);
+
+export const zapierWebhookDeliveries = pgTable(
+  "zapier_webhook_deliveries",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    webhookId: text("webhook_id")
+      .notNull()
+      .references(() => zapierWebhooks.id, { onDelete: "cascade" }),
+    event: text("event").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    responseStatus: integer("response_status"),
+    responseBody: text("response_body"),
+    success: boolean("success").notNull(),
+    attemptCount: integer("attempt_count").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    deliveredAt: timestamp("delivered_at"),
+  },
+  (table) => ({
+    webhookIdx: index("zapier_webhook_deliveries_webhook_idx").on(table.webhookId),
+    createdIdx: index("zapier_webhook_deliveries_created_idx").on(table.createdAt),
+  }),
+);
+
+// Activity Feed types
+export type ActivityType = (typeof activityTypeEnum.enumValues)[number];
+export type ActivityFeed = typeof activityFeed.$inferSelect;
+export type NewActivityFeed = typeof activityFeed.$inferInsert;
+
+// Zapier Webhook types
+export type ZapierWebhookEvent = (typeof zapierWebhookEventEnum.enumValues)[number];
+export type ZapierWebhook = typeof zapierWebhooks.$inferSelect;
+export type NewZapierWebhook = typeof zapierWebhooks.$inferInsert;
+export type ZapierWebhookDelivery = typeof zapierWebhookDeliveries.$inferSelect;
+export type NewZapierWebhookDelivery = typeof zapierWebhookDeliveries.$inferInsert;
 
 // Search relations
 export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
@@ -1538,6 +1758,38 @@ export const dataExportRequestsRelations = relations(dataExportRequests, ({ one 
   user: one(users, {
     fields: [dataExportRequests.userId],
     references: [users.id],
+  }),
+}));
+
+// Activity Feed relations
+export const activityFeedRelations = relations(activityFeed, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [activityFeed.organizationId],
+    references: [organizations.id],
+  }),
+  actor: one(users, {
+    fields: [activityFeed.actorId],
+    references: [users.id],
+  }),
+}));
+
+// Zapier Webhook relations
+export const zapierWebhooksRelations = relations(zapierWebhooks, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [zapierWebhooks.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [zapierWebhooks.userId],
+    references: [users.id],
+  }),
+  deliveries: many(zapierWebhookDeliveries),
+}));
+
+export const zapierWebhookDeliveriesRelations = relations(zapierWebhookDeliveries, ({ one }) => ({
+  webhook: one(zapierWebhooks, {
+    fields: [zapierWebhookDeliveries.webhookId],
+    references: [zapierWebhooks.id],
   }),
 }));
 
@@ -1672,3 +1924,546 @@ export type Report = typeof reports.$inferSelect;
 export type NewReport = typeof reports.$inferInsert;
 export type DataExportRequest = typeof dataExportRequests.$inferSelect;
 export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
+
+// =====================
+// Enterprise Security: SSO/SAML Configuration
+// =====================
+
+export const ssoProviderTypeEnum = pgEnum("SSOProviderType", ["saml", "oidc"]);
+
+export const ssoConfigurations = pgTable(
+  "sso_configurations",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .unique(),
+    providerType: ssoProviderTypeEnum("provider_type").notNull(),
+    enabled: boolean("enabled").default(false).notNull(),
+    // SAML specific fields
+    entityId: text("entity_id"), // SP Entity ID
+    ssoUrl: text("sso_url"), // IdP SSO URL
+    sloUrl: text("slo_url"), // IdP Single Logout URL
+    certificate: text("certificate"), // IdP X.509 Certificate
+    // OIDC specific fields
+    issuer: text("issuer"),
+    clientId: text("client_id"),
+    clientSecret: text("client_secret"),
+    discoveryUrl: text("discovery_url"),
+    // Common settings
+    autoProvision: boolean("auto_provision").default(true).notNull(),
+    defaultRole: organizationRoleEnum("default_role").default("member").notNull(),
+    allowedDomains: jsonb("allowed_domains").$type<string[]>(),
+    attributeMapping: jsonb("attribute_mapping").$type<{
+      email?: string;
+      name?: string;
+      firstName?: string;
+      lastName?: string;
+      groups?: string;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("sso_configurations_org_idx").on(table.organizationId),
+  }),
+);
+
+export const ssoSessions = pgTable(
+  "sso_sessions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    ssoConfigId: text("sso_config_id")
+      .notNull()
+      .references(() => ssoConfigurations.id, { onDelete: "cascade" }),
+    externalUserId: text("external_user_id").notNull(),
+    nameId: text("name_id"), // SAML NameID
+    sessionIndex: text("session_index"), // SAML Session Index
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    sessionIdx: index("sso_sessions_session_idx").on(table.sessionId),
+  }),
+);
+
+// =====================
+// Enterprise Security: Advanced RBAC
+// =====================
+
+// Permission actions enum
+export const permissionActionEnum = pgEnum("PermissionAction", [
+  "create",
+  "read",
+  "update",
+  "delete",
+  "share",
+  "comment",
+  "download",
+  "manage",
+  "invite",
+  "admin",
+]);
+
+// Resource types for permissions
+export const permissionResourceEnum = pgEnum("PermissionResource", [
+  "video",
+  "channel",
+  "collection",
+  "comment",
+  "member",
+  "settings",
+  "billing",
+  "analytics",
+  "integration",
+  "audit_log",
+]);
+
+// Custom roles per organization
+export const customRoles = pgTable(
+  "custom_roles",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    color: text("color"), // For UI display
+    isDefault: boolean("is_default").default(false).notNull(),
+    isSystemRole: boolean("is_system_role").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("custom_roles_org_idx").on(table.organizationId),
+    uniqueOrgName: unique("custom_roles_org_name_unique").on(table.organizationId, table.name),
+  }),
+);
+
+// Role permissions - what actions a role can perform on resources
+export const rolePermissions = pgTable(
+  "role_permissions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => customRoles.id, { onDelete: "cascade" }),
+    resource: permissionResourceEnum("resource").notNull(),
+    action: permissionActionEnum("action").notNull(),
+    conditions: jsonb("conditions").$type<{
+      ownOnly?: boolean; // Only own resources
+      channelIds?: string[]; // Specific channels
+      collectionIds?: string[]; // Specific collections
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    roleIdx: index("role_permissions_role_idx").on(table.roleId),
+    uniqueRoleResourceAction: unique("role_permissions_unique").on(table.roleId, table.resource, table.action),
+  }),
+);
+
+// User role assignments (custom roles)
+export const userRoleAssignments = pgTable(
+  "user_role_assignments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => customRoles.id, { onDelete: "cascade" }),
+    assignedBy: text("assigned_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userOrgIdx: index("user_role_assignments_user_org_idx").on(table.userId, table.organizationId),
+    uniqueUserOrgRole: unique("user_role_assignments_unique").on(table.userId, table.organizationId, table.roleId),
+  }),
+);
+
+// Resource-level permissions (for specific videos, channels, etc.)
+export const resourcePermissions = pgTable(
+  "resource_permissions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    resourceType: permissionResourceEnum("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    roleId: text("role_id").references(() => customRoles.id, { onDelete: "cascade" }),
+    action: permissionActionEnum("action").notNull(),
+    grantedBy: text("granted_by").references(() => users.id, { onDelete: "set null" }),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    resourceIdx: index("resource_permissions_resource_idx").on(table.resourceType, table.resourceId),
+    userIdx: index("resource_permissions_user_idx").on(table.userId),
+    roleIdx: index("resource_permissions_role_idx").on(table.roleId),
+  }),
+);
+
+// =====================
+// Enterprise Security: Comprehensive Audit Logs
+// =====================
+
+export const auditLogCategoryEnum = pgEnum("AuditLogCategory", [
+  "authentication",
+  "authorization",
+  "user_management",
+  "organization_management",
+  "content_management",
+  "billing",
+  "security",
+  "integration",
+  "system",
+]);
+
+export const auditLogSeverityEnum = pgEnum("AuditLogSeverity", ["info", "warning", "error", "critical"]);
+
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // Who performed the action
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    actorEmail: text("actor_email"),
+    actorType: text("actor_type").notNull().default("user"), // user, system, api_key, sso
+    // Organization context
+    organizationId: text("organization_id").references(() => organizations.id, { onDelete: "set null" }),
+    // What happened
+    category: auditLogCategoryEnum("category").notNull(),
+    action: text("action").notNull(), // e.g., "user.login", "video.delete", "role.assign"
+    description: text("description"),
+    severity: auditLogSeverityEnum("severity").default("info").notNull(),
+    // Target resource
+    resourceType: text("resource_type"),
+    resourceId: text("resource_id"),
+    resourceName: text("resource_name"),
+    // Changes (for update operations)
+    previousValue: jsonb("previous_value").$type<Record<string, unknown>>(),
+    newValue: jsonb("new_value").$type<Record<string, unknown>>(),
+    // Request context
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    requestId: text("request_id"),
+    sessionId: text("session_id"),
+    // Additional metadata
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    actorIdx: index("audit_logs_actor_idx").on(table.actorId),
+    orgIdx: index("audit_logs_org_idx").on(table.organizationId),
+    categoryIdx: index("audit_logs_category_idx").on(table.category),
+    actionIdx: index("audit_logs_action_idx").on(table.action),
+    resourceIdx: index("audit_logs_resource_idx").on(table.resourceType, table.resourceId),
+    createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
+    // Composite index for common queries
+    orgCreatedIdx: index("audit_logs_org_created_idx").on(table.organizationId, table.createdAt),
+  }),
+);
+
+// Audit log export requests
+export const auditLogExports = pgTable(
+  "audit_log_exports",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    requestedBy: text("requested_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    format: text("format").notNull().default("csv"), // csv, json, pdf
+    status: text("status").notNull().default("pending"), // pending, processing, completed, failed
+    filters: jsonb("filters").$type<{
+      startDate?: string;
+      endDate?: string;
+      categories?: string[];
+      actions?: string[];
+      actorIds?: string[];
+      severity?: string[];
+    }>(),
+    downloadUrl: text("download_url"),
+    expiresAt: timestamp("expires_at"),
+    errorMessage: text("error_message"),
+    recordCount: integer("record_count"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => ({
+    orgIdx: index("audit_log_exports_org_idx").on(table.organizationId),
+    statusIdx: index("audit_log_exports_status_idx").on(table.status),
+  }),
+);
+
+// =====================
+// Enterprise Security: Multi-Region Storage
+// =====================
+
+export const storageRegionEnum = pgEnum("StorageRegion", [
+  "us-east-1",
+  "us-west-2",
+  "eu-west-1",
+  "eu-central-1",
+  "ap-southeast-1",
+  "ap-northeast-1",
+  "auto",
+]);
+
+export const organizationStorageConfigs = pgTable(
+  "organization_storage_configs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" })
+      .unique(),
+    primaryRegion: storageRegionEnum("primary_region").default("auto").notNull(),
+    replicationRegions: jsonb("replication_regions").$type<string[]>(),
+    dataResidency: text("data_residency"), // e.g., "EU", "US", "APAC"
+    encryptionKeyId: text("encryption_key_id"), // Customer-managed encryption key
+    retentionDays: integer("retention_days").default(30), // Default retention for deleted content
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("org_storage_configs_org_idx").on(table.organizationId),
+  }),
+);
+
+// Track file locations across regions
+export const fileRegionLocations = pgTable(
+  "file_region_locations",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    fileKey: text("file_key").notNull(),
+    region: storageRegionEnum("region").notNull(),
+    bucketName: text("bucket_name").notNull(),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    replicationStatus: text("replication_status").default("pending"), // pending, synced, failed
+    lastSyncedAt: timestamp("last_synced_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    fileKeyIdx: index("file_region_locations_file_key_idx").on(table.fileKey),
+    orgIdx: index("file_region_locations_org_idx").on(table.organizationId),
+    uniqueFileRegion: unique("file_region_locations_unique").on(table.fileKey, table.region),
+  }),
+);
+
+// SSO Relations
+export const ssoConfigurationsRelations = relations(ssoConfigurations, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [ssoConfigurations.organizationId],
+    references: [organizations.id],
+  }),
+  sessions: many(ssoSessions),
+}));
+
+export const ssoSessionsRelations = relations(ssoSessions, ({ one }) => ({
+  session: one(sessions, {
+    fields: [ssoSessions.sessionId],
+    references: [sessions.id],
+  }),
+  ssoConfig: one(ssoConfigurations, {
+    fields: [ssoSessions.ssoConfigId],
+    references: [ssoConfigurations.id],
+  }),
+}));
+
+// RBAC Relations
+export const customRolesRelations = relations(customRoles, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [customRoles.organizationId],
+    references: [organizations.id],
+  }),
+  permissions: many(rolePermissions),
+  userAssignments: many(userRoleAssignments),
+  resourcePermissions: many(resourcePermissions),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(customRoles, {
+    fields: [rolePermissions.roleId],
+    references: [customRoles.id],
+  }),
+}));
+
+export const userRoleAssignmentsRelations = relations(userRoleAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoleAssignments.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [userRoleAssignments.organizationId],
+    references: [organizations.id],
+  }),
+  role: one(customRoles, {
+    fields: [userRoleAssignments.roleId],
+    references: [customRoles.id],
+  }),
+  assignedByUser: one(users, {
+    fields: [userRoleAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const resourcePermissionsRelations = relations(resourcePermissions, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [resourcePermissions.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [resourcePermissions.userId],
+    references: [users.id],
+  }),
+  role: one(customRoles, {
+    fields: [resourcePermissions.roleId],
+    references: [customRoles.id],
+  }),
+  grantedByUser: one(users, {
+    fields: [resourcePermissions.grantedBy],
+    references: [users.id],
+  }),
+}));
+
+// Workflow template relations
+export const workflowTemplatesRelations = relations(workflowTemplates, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [workflowTemplates.organizationId],
+    references: [organizations.id],
+  }),
+  createdBy: one(users, {
+    fields: [workflowTemplates.createdById],
+    references: [users.id],
+  }),
+  history: many(videoWorkflowHistory),
+}));
+
+export const videoWorkflowHistoryRelations = relations(videoWorkflowHistory, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoWorkflowHistory.videoId],
+    references: [videos.id],
+  }),
+  template: one(workflowTemplates, {
+    fields: [videoWorkflowHistory.templateId],
+    references: [workflowTemplates.id],
+  }),
+  appliedBy: one(users, {
+    fields: [videoWorkflowHistory.appliedById],
+    references: [users.id],
+  }),
+}));
+
+// Workflow template types
+export type WorkflowTemplateType = (typeof workflowTemplateTypeEnum.enumValues)[number];
+export type WorkflowTemplate = typeof workflowTemplates.$inferSelect;
+export type NewWorkflowTemplate = typeof workflowTemplates.$inferInsert;
+export type VideoWorkflowHistory = typeof videoWorkflowHistory.$inferSelect;
+export type NewVideoWorkflowHistory = typeof videoWorkflowHistory.$inferInsert;
+
+// Audit Log Relations
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  actor: one(users, {
+    fields: [auditLogs.actorId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [auditLogs.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const auditLogExportsRelations = relations(auditLogExports, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [auditLogExports.organizationId],
+    references: [organizations.id],
+  }),
+  requestedByUser: one(users, {
+    fields: [auditLogExports.requestedBy],
+    references: [users.id],
+  }),
+}));
+
+// Storage Config Relations
+export const organizationStorageConfigsRelations = relations(organizationStorageConfigs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [organizationStorageConfigs.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const fileRegionLocationsRelations = relations(fileRegionLocations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [fileRegionLocations.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// Enterprise Security Types
+export type SSOProviderType = (typeof ssoProviderTypeEnum.enumValues)[number];
+export type SSOConfiguration = typeof ssoConfigurations.$inferSelect;
+export type NewSSOConfiguration = typeof ssoConfigurations.$inferInsert;
+export type SSOSession = typeof ssoSessions.$inferSelect;
+export type NewSSOSession = typeof ssoSessions.$inferInsert;
+
+export type PermissionAction = (typeof permissionActionEnum.enumValues)[number];
+export type PermissionResource = (typeof permissionResourceEnum.enumValues)[number];
+export type CustomRole = typeof customRoles.$inferSelect;
+export type NewCustomRole = typeof customRoles.$inferInsert;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type NewRolePermission = typeof rolePermissions.$inferInsert;
+export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect;
+export type NewUserRoleAssignment = typeof userRoleAssignments.$inferInsert;
+export type ResourcePermission = typeof resourcePermissions.$inferSelect;
+export type NewResourcePermission = typeof resourcePermissions.$inferInsert;
+
+export type AuditLogCategory = (typeof auditLogCategoryEnum.enumValues)[number];
+export type AuditLogSeverity = (typeof auditLogSeverityEnum.enumValues)[number];
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;
+export type AuditLogExport = typeof auditLogExports.$inferSelect;
+export type NewAuditLogExport = typeof auditLogExports.$inferInsert;
+
+export type StorageRegion = (typeof storageRegionEnum.enumValues)[number];
+export type OrganizationStorageConfig = typeof organizationStorageConfigs.$inferSelect;
+export type NewOrganizationStorageConfig = typeof organizationStorageConfigs.$inferInsert;
+export type FileRegionLocation = typeof fileRegionLocations.$inferSelect;
+export type NewFileRegionLocation = typeof fileRegionLocations.$inferInsert;

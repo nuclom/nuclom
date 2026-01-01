@@ -1,9 +1,8 @@
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { NotificationRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
 // PATCH /api/notifications/[id] - Mark notification as read

@@ -17,16 +17,16 @@
  * - Resource-efficient sleep
  */
 
-import process from "node:process";
 import { eq } from "drizzle-orm";
 import { FatalError, sleep } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/client";
-import { createLogger } from "@/lib/logger";
+import { env as serverEnv } from "@/lib/env/server";
+import { createWorkflowLogger } from "./workflow-logger";
 
-const log = createLogger("trial-reminders");
+const log = createWorkflowLogger("trial-reminders");
 
 // =============================================================================
 // Types
@@ -96,7 +96,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     });
 
     // Send email notification
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = serverEnv.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
 
     await resend.emails.send({
       from: fromEmail,
@@ -177,7 +177,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Skip if this reminder time has already passed
     if (reminderTime <= now) {
-      log.debug({ subscriptionId, daysBeforeEnd }, "Skipping reminder (already passed)");
+      log.debug({ subscriptionId, daysBeforeEnd: daysBeforeEnd }, "Skipping reminder (already passed)");
       continue;
     }
 
@@ -185,7 +185,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     const sleepDuration = reminderTime - now;
     const sleepHours = Math.round(sleepDuration / 1000 / 60 / 60);
 
-    log.info({ subscriptionId, daysBeforeEnd, sleepHours }, "Sleeping until next reminder");
+    log.info({ subscriptionId, daysBeforeEnd: daysBeforeEnd, sleepHours }, "Sleeping until next reminder");
 
     // Sleep until reminder time
     await sleep(sleepDuration);
@@ -197,7 +197,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     });
 
     if (!subscription) {
-      log.info({ subscriptionId }, "Subscription no longer exists, stopping workflow");
+      log.info({ subscriptionId: subscriptionId }, "Subscription no longer exists, stopping workflow");
       break;
     }
 
@@ -215,7 +215,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
       remindersSent++;
       ("use step");
     } catch (error) {
-      log.error({ subscriptionId, daysBeforeEnd, err: error }, "Failed to send reminder");
+      log.error({ subscriptionId, daysBeforeEnd, error }, "Failed to send reminder");
       // Continue to next reminder even if this one fails
     }
   }

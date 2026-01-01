@@ -242,6 +242,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -343,6 +345,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
             currentTime: videoProgresses.currentTime,
             completed: videoProgresses.completed,
@@ -488,6 +492,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -599,6 +605,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
@@ -695,6 +703,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videoProgresses)
@@ -820,6 +830,8 @@ const makeRecommendationsService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
+              maxSessions: users.maxSessions,
+              passwordChangedAt: users.passwordChangedAt,
             },
           })
           .from(videos)
