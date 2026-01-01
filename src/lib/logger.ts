@@ -1,16 +1,19 @@
 /**
- * Structured Logging Utility
+ * Structured Logging Utility (Pino-based)
  *
  * Provides a centralized logging system with:
  * - Log levels (debug, info, warn, error)
- * - Structured JSON format for Vercel log ingestion
+ * - Structured JSON format for production log ingestion
+ * - Pretty-printed output for development
  * - Request context for tracing
  * - Timestamps and correlation IDs
+ * - Child loggers for component-specific logging
  */
 
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 import process from "node:process";
+import pino from "pino";
 
 // =============================================================================
 // Types
@@ -66,17 +69,42 @@ export interface LogEntry {
 // Configuration
 // =============================================================================
 
-const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
-
 const SERVICE_NAME = "nuclom";
 const ENVIRONMENT = (process.env.NODE_ENV ?? "development") as "development" | "test" | "production";
-const MIN_LOG_LEVEL: LogLevel =
-  (process.env.LOG_LEVEL as LogLevel) || (ENVIRONMENT === "production" ? "info" : "debug");
+const LOG_LEVEL = (process.env.LOG_LEVEL as LogLevel) || (ENVIRONMENT === "production" ? "info" : "debug");
+
+// =============================================================================
+// Pino Logger Instance
+// =============================================================================
+
+/**
+ * Create the base pino logger instance
+ * - In production: JSON output for log aggregation
+ * - In development/test: Pretty-printed colorized output
+ */
+const baseLogger = pino({
+  level: LOG_LEVEL,
+  base: {
+    service: SERVICE_NAME,
+    environment: ENVIRONMENT,
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+  formatters: {
+    level: (label) => ({ level: label }),
+  },
+  ...(ENVIRONMENT !== "production" && {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        colorize: true,
+        translateTime: "SYS:standard",
+        ignore: "pid,hostname,service,environment",
+        messageFormat: "{msg}",
+        singleLine: false,
+      },
+    },
+  }),
+});
 
 // =============================================================================
 // Request Context Storage (AsyncLocalStorage for request-scoped context)
@@ -109,131 +137,28 @@ export function generateRequestId(): string {
 // Logger Implementation
 // =============================================================================
 
-function shouldLog(level: LogLevel): boolean {
-  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[MIN_LOG_LEVEL];
-}
-
-function formatLogEntry(entry: LogEntry): string {
-  // In production, output JSON for Vercel log ingestion
-  if (ENVIRONMENT === "production") {
-    return JSON.stringify(entry);
-  }
-
-  // In development, output human-readable format
-  const levelColors: Record<LogLevel, string> = {
-    debug: "\x1b[36m", // cyan
-    info: "\x1b[32m", // green
-    warn: "\x1b[33m", // yellow
-    error: "\x1b[31m", // red
-  };
-  const reset = "\x1b[0m";
-  const color = levelColors[entry.level];
-
-  let output = `${color}[${entry.level.toUpperCase()}]${reset} ${entry.timestamp} ${entry.message}`;
-
-  if (entry.context?.requestId) {
-    output += ` ${"\x1b[90m"}(${entry.context.requestId})${reset}`;
-  }
-
-  if (entry.durationMs !== undefined) {
-    output += ` ${"\x1b[90m"}[${entry.durationMs}ms]${reset}`;
-  }
-
-  if (entry.error) {
-    output += `\n  Error: ${entry.error.name}: ${entry.error.message}`;
-    // Already in non-production branch, so show stack trace
-    if (entry.error.stack) {
-      output += `\n${entry.error.stack}`;
-    }
-  }
-
-  if (entry.data && Object.keys(entry.data).length > 0) {
-    output += `\n  Data: ${JSON.stringify(entry.data)}`;
-  }
-
-  return output;
-}
-
-function createLogEntry(
-  level: LogLevel,
-  message: string,
-  options?: {
-    context?: LogContext;
-    error?: Error & { digest?: string; code?: string };
-    data?: Record<string, unknown>;
-    durationMs?: number;
-  },
-): LogEntry {
+function mergeContext(context?: LogContext): Record<string, unknown> {
   const requestContext = getRequestContext();
+  const merged = {
+    ...requestContext,
+    ...context,
+  };
 
-  const entry: LogEntry = {
-    timestamp: new Date().toISOString(),
-    level,
-    message,
-    service: SERVICE_NAME,
-    environment: ENVIRONMENT,
-    context: {
-      ...requestContext,
-      ...options?.context,
+  // Remove undefined values
+  return Object.fromEntries(Object.entries(merged).filter(([, v]) => v !== undefined));
+}
+
+function formatError(error?: Error & { digest?: string; code?: string }): Record<string, unknown> | undefined {
+  if (!error) return undefined;
+  return {
+    err: {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      digest: error.digest,
     },
   };
-
-  if (options?.error) {
-    entry.error = {
-      name: options.error.name,
-      message: options.error.message,
-      stack: options.error.stack,
-      code: options.error.code,
-      digest: options.error.digest,
-    };
-  }
-
-  if (options?.data) {
-    entry.data = options.data;
-  }
-
-  if (options?.durationMs !== undefined) {
-    entry.durationMs = options.durationMs;
-  }
-
-  // Remove empty context
-  if (entry.context && Object.keys(entry.context).length === 0) {
-    // biome-ignore lint/performance/noDelete: Cleanup empty context
-    delete entry.context;
-  }
-
-  return entry;
-}
-
-function log(
-  level: LogLevel,
-  message: string,
-  options?: {
-    context?: LogContext;
-    error?: Error & { digest?: string; code?: string };
-    data?: Record<string, unknown>;
-    durationMs?: number;
-  },
-): void {
-  if (!shouldLog(level)) {
-    return;
-  }
-
-  const entry = createLogEntry(level, message, options);
-  const formatted = formatLogEntry(entry);
-
-  switch (level) {
-    case "debug":
-    case "info":
-      console.log(formatted);
-      break;
-    case "warn":
-      console.warn(formatted);
-      break;
-    case "error":
-      console.error(formatted);
-      break;
-  }
 }
 
 // =============================================================================
@@ -242,24 +167,32 @@ function log(
 
 export const logger = {
   /**
+   * Access the underlying pino logger for advanced use cases
+   */
+  pino: baseLogger,
+
+  /**
    * Log a debug message (development only by default)
    */
   debug(message: string, data?: Record<string, unknown>, context?: LogContext): void {
-    log("debug", message, { data, context });
+    const ctx = mergeContext(context);
+    baseLogger.debug({ ...ctx, ...data }, message);
   },
 
   /**
    * Log an informational message
    */
   info(message: string, data?: Record<string, unknown>, context?: LogContext): void {
-    log("info", message, { data, context });
+    const ctx = mergeContext(context);
+    baseLogger.info({ ...ctx, ...data }, message);
   },
 
   /**
    * Log a warning message
    */
   warn(message: string, data?: Record<string, unknown>, context?: LogContext): void {
-    log("warn", message, { data, context });
+    const ctx = mergeContext(context);
+    baseLogger.warn({ ...ctx, ...data }, message);
   },
 
   /**
@@ -271,7 +204,9 @@ export const logger = {
     data?: Record<string, unknown>,
     context?: LogContext,
   ): void {
-    log("error", message, { error, data, context });
+    const ctx = mergeContext(context);
+    const errorData = formatError(error);
+    baseLogger.error({ ...ctx, ...data, ...errorData }, message);
   },
 
   /**
@@ -297,32 +232,28 @@ export const logger = {
         return result
           .then((value) => {
             const durationMs = Math.round(performance.now() - start);
-            log(level, message, { durationMs, data: options?.data, context: options?.context });
+            const ctx = mergeContext(options?.context);
+            baseLogger[level]({ ...ctx, ...options?.data, durationMs }, message);
             return value;
           })
           .catch((error) => {
             const durationMs = Math.round(performance.now() - start);
-            log("error", `${message} (failed)`, {
-              durationMs,
-              error,
-              data: options?.data,
-              context: options?.context,
-            });
+            const ctx = mergeContext(options?.context);
+            const errorData = formatError(error instanceof Error ? error : new Error(String(error)));
+            baseLogger.error({ ...ctx, ...options?.data, ...errorData, durationMs }, `${message} (failed)`);
             throw error;
           }) as T;
       }
 
       const durationMs = Math.round(performance.now() - start);
-      log(level, message, { durationMs, data: options?.data, context: options?.context });
+      const ctx = mergeContext(options?.context);
+      baseLogger[level]({ ...ctx, ...options?.data, durationMs }, message);
       return result;
     } catch (error) {
       const durationMs = Math.round(performance.now() - start);
-      log("error", `${message} (failed)`, {
-        durationMs,
-        error: error instanceof Error ? error : new Error(String(error)),
-        data: options?.data,
-        context: options?.context,
-      });
+      const ctx = mergeContext(options?.context);
+      const errorData = formatError(error instanceof Error ? error : new Error(String(error)));
+      baseLogger.error({ ...ctx, ...options?.data, ...errorData, durationMs }, `${message} (failed)`);
       throw error;
     }
   },
@@ -331,12 +262,15 @@ export const logger = {
    * Create a child logger with preset context
    */
   child(context: LogContext) {
+    const childPino = baseLogger.child(context);
     return {
-      debug: (message: string, data?: Record<string, unknown>) => logger.debug(message, data, context),
-      info: (message: string, data?: Record<string, unknown>) => logger.info(message, data, context),
-      warn: (message: string, data?: Record<string, unknown>) => logger.warn(message, data, context),
-      error: (message: string, error?: Error & { digest?: string; code?: string }, data?: Record<string, unknown>) =>
-        logger.error(message, error, data, context),
+      debug: (message: string, data?: Record<string, unknown>) => childPino.debug(data || {}, message),
+      info: (message: string, data?: Record<string, unknown>) => childPino.info(data || {}, message),
+      warn: (message: string, data?: Record<string, unknown>) => childPino.warn(data || {}, message),
+      error: (message: string, error?: Error & { digest?: string; code?: string }, data?: Record<string, unknown>) => {
+        const errorData = formatError(error);
+        childPino.error({ ...data, ...errorData }, message);
+      },
       timed: <T>(message: string, fn: () => T, options?: { data?: Record<string, unknown>; level?: LogLevel }) =>
         logger.timed(message, fn, { ...options, context }),
     };
@@ -364,20 +298,19 @@ export interface RequestLogData {
 export function logRequest(data: RequestLogData): void {
   const level: LogLevel = data.status >= 500 ? "error" : data.status >= 400 ? "warn" : "info";
 
-  log(level, `${data.method} ${data.path} ${data.status}`, {
-    durationMs: data.durationMs,
-    context: {
-      userId: data.userId,
-      organizationId: data.organizationId,
+  baseLogger[level](
+    {
       method: data.method,
       path: data.path,
-    },
-    data: {
       status: data.status,
+      durationMs: data.durationMs,
       userAgent: data.userAgent,
       ip: data.ip,
+      userId: data.userId,
+      organizationId: data.organizationId,
     },
-  });
+    `${data.method} ${data.path} ${data.status}`,
+  );
 }
 
 /**
@@ -391,3 +324,20 @@ export function createRequestContext(headers: Headers, requestId?: string): LogC
     method: headers.get("x-invoke-method") || undefined,
   };
 }
+
+// =============================================================================
+// Convenience Exports for Direct Pino Access
+// =============================================================================
+
+/**
+ * Get a pino child logger for a specific component/module
+ * Useful for creating loggers scoped to specific parts of the application
+ */
+export function createLogger(name: string, bindings?: Record<string, unknown>) {
+  return baseLogger.child({ component: name, ...bindings });
+}
+
+/**
+ * Export the base pino logger for advanced use cases
+ */
+export { baseLogger as pinoLogger };

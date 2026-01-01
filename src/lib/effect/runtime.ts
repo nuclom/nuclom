@@ -9,6 +9,10 @@ import process from "node:process";
 import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from "effect";
 import { globalValue } from "effect/GlobalValue";
 import { NextResponse } from "next/server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("effect-runtime");
+
 // Services
 import { type AI, AILive } from "./services/ai";
 import { makeAuthLayer } from "./services/auth";
@@ -210,17 +214,17 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case "StripeApiError":
       case "UsageTrackingError":
       case "TranslationApiError":
-        console.error(`[${taggedError._tag}]`, taggedError);
+        log.error({ tag: taggedError._tag, message: taggedError.message }, "Service error");
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 
       default:
-        console.error("[UnknownTaggedError]", error);
+        log.error({ tag: taggedError._tag, err: error }, "Unknown tagged error");
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
     }
   }
 
   // Handle regular errors
-  console.error("[Error]", error);
+  log.error({ err: error }, "Unhandled error");
   return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
 };
 
@@ -246,7 +250,7 @@ export const createHandler = <A, E extends { _tag: string; message: string }>(
         // Handle defects (unexpected errors)
         const defect = Cause.dieOption(cause);
         if (Option.isSome(defect)) {
-          console.error("[Defect]", defect.value);
+          log.error({ defect: defect.value }, "Effect defect");
         }
         return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
       },
