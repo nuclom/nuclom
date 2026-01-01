@@ -1,93 +1,293 @@
-# AI/LLM Documentation Instructions
+# AI/LLM Coding Agent Instructions
 
-This file contains specific instructions for AI/LLM systems when working with the project documentation.
+This file contains instructions for AI/LLM systems when working with the Nuclom codebase. See also:
+- `CLAUDE.md` (root) - Quick reference for commands and project structure
+- `AI.md` (root) - Detailed coding guidelines and patterns
 
-## General Principles
+## Core Principles
 
-1. **Always read before writing** - Check existing documentation before making changes
-2. **Maintain consistency** - Follow established formats and structures
-3. **Cross-reference** - Link related documentation sections
-4. **Verify accuracy** - Check code when documenting technical details
-5. **Use clear language** - Write for both humans and AI systems
+1. **Read before writing** - Always read existing code and documentation first
+2. **Match existing patterns** - Follow conventions already in the codebase
+3. **Minimal changes** - Only modify what's necessary for the task
+4. **Verify with tools** - Run `pnpm tsc` and `pnpm lint` before finishing
+5. **Update documentation** - Keep docs in sync with code changes
 
-## Before Making Changes
+## Quick Start Workflow
 
-1. **Read the main README** in the docs folder
-2. **Check existing files** in the relevant section
-3. **Understand the current structure** and organization
-4. **Look for related documentation** that might need updates
+```bash
+# 1. Understand the codebase structure
+# Read CLAUDE.md and relevant docs
+
+# 2. Make changes following existing patterns
+
+# 3. Verify changes
+pnpm tsc           # Type check
+pnpm lint          # Code quality
+pnpm test          # Run tests
+pnpm build         # Verify build
+
+# 4. Update documentation if needed
+```
+
+## Codebase Navigation
+
+### Where to Find Things
+
+| Need | Location | Notes |
+|------|----------|-------|
+| Database schema | `src/lib/db/schema/` | Drizzle ORM definitions |
+| API endpoints | `src/lib/openapi/endpoints.ts` | OpenAPI route handlers |
+| Auth logic | `src/lib/auth/` | better-auth configuration |
+| React components | `src/components/` | UI and feature components |
+| App routes | `src/app/` | Next.js App Router pages |
+| Custom hooks | `src/hooks/` | React hooks |
+| Utilities | `src/lib/utils/` | Helper functions |
+| Types | `src/lib/types/` | TypeScript type definitions |
+| Tests | `src/test/` and `*.test.ts` | Vitest and Playwright |
+
+### Key Architectural Decisions
+
+1. **Next.js 16 App Router** - Use Server Components by default
+2. **Drizzle ORM** - Type-safe database queries
+3. **better-auth** - Authentication with OAuth support
+4. **Effect-TS** - Error handling in API routes
+5. **Zod** - Schema validation
+6. **shadcn/ui** - UI component library
+
+## Code Modification Guidelines
+
+### Before Making Changes
+
+1. Read the file(s) you're about to modify
+2. Check related files that might need updates
+3. Look for existing patterns to follow
+4. Understand the data flow
+
+### During Development
+
+1. Use TypeScript properly - no `any` types
+2. Follow component patterns in `src/components/ui/`
+3. Use Effect-TS patterns for API error handling
+4. Validate inputs with Zod schemas
+
+### After Making Changes
+
+1. Run `pnpm tsc` - catch type errors
+2. Run `pnpm lint` - check code quality
+3. Run `pnpm test` - verify tests pass
+4. Update documentation if APIs changed
 
 ## Documentation Standards
 
-### Format
-- Use Markdown for all documentation
-- Include clear headings and structure
-- Use code blocks for examples
-- Add links to related files and code
+### When to Update Documentation
 
-### Content
-- Start with a brief overview
-- Include prerequisites where applicable
-- Provide step-by-step instructions
-- Add troubleshooting information
-- Include code examples
+Update docs when you:
+- Add new API endpoints
+- Change existing API behavior
+- Add new database tables or columns
+- Create new components with public APIs
+- Change environment variables
+- Modify authentication flows
 
-### Updates
-- Update multiple related files when making changes
-- Keep table of contents current
-- Test examples and instructions
-- Update cross-references and links
+### Documentation Locations
 
-## Section-Specific Instructions
+| Type | Location |
+|------|----------|
+| API reference | `docs/public/api/` |
+| User guides | `docs/public/guides/` |
+| Architecture | `docs/internal/architecture/` |
+| Dev reference | `docs/internal/reference/` |
+| Database schema | `docs/internal/architecture/database.md` |
 
-### API Documentation (`docs/api/`)
-- Verify endpoints exist in the codebase
-- Include request/response examples
-- Document all parameters and types
-- Update schemas when models change
+### Documentation Format
 
-### Guides (`docs/guides/`)
-- Use step-by-step format
-- Include prerequisites
-- Provide working code examples
-- Add troubleshooting tips
+```markdown
+# Feature Name
 
-### Reference (`docs/reference/`)
-- Extract information from actual code
-- Use consistent formatting
-- Include default values
-- Link to source code
+Brief description.
 
-### Architecture (`docs/architecture/`)
-- Create diagrams when helpful
-- Document decisions with rationale
-- Include context and trade-offs
-- Update with major system changes
+## Overview
+What it does and why.
 
-## File Naming
+## Usage
 
-- Use lowercase with hyphens: `getting-started.md`
-- Be descriptive: `database-schema.md` not `db.md`
-- Group related files in subdirectories
-- Use README.md for section overviews
+\`\`\`typescript
+// Code example
+\`\`\`
 
-## When to Update Documentation
+## API Reference
+Parameters, return values, errors.
 
-- When adding new features
-- When changing APIs or interfaces
-- When fixing bugs that affect usage
-- When updating dependencies
-- When changing deployment procedures
-- When making architectural decisions
+## Examples
+Real-world usage examples.
+```
 
-## Quality Checklist
+## API Development
 
-Before completing documentation updates:
+### Creating New Endpoints
 
-- [ ] Read existing documentation
-- [ ] Verify technical accuracy
-- [ ] Test code examples
-- [ ] Update cross-references
-- [ ] Check formatting and links
-- [ ] Update table of contents
-- [ ] Consider related sections that need updates
+1. Define route in `src/lib/openapi/endpoints.ts`:
+```typescript
+export const newEndpoint = createRoute({
+  method: "post",
+  path: "/api/resource",
+  request: { body: { content: { "application/json": { schema: inputSchema } } } },
+  responses: { 200: { description: "Success", content: { "application/json": { schema: outputSchema } } } }
+})
+```
+
+2. Implement handler with proper error handling
+3. Add authentication checks
+4. Document in `docs/public/api/`
+
+### Error Handling Pattern
+
+```typescript
+import { Effect } from "effect"
+
+// Wrap async operations
+const result = await Effect.runPromise(
+  Effect.tryPromise({
+    try: () => db.query.items.findFirst({ where: eq(items.id, id) }),
+    catch: (error) => new DatabaseError("Failed to fetch item", { cause: error })
+  })
+)
+
+// Return proper HTTP status codes
+if (!result) {
+  return Response.json({ error: "Not found" }, { status: 404 })
+}
+```
+
+## Database Operations
+
+### Schema Changes
+
+1. Modify schema in `src/lib/db/schema/[table].ts`
+2. Export from `src/lib/db/schema/index.ts`
+3. Generate migration: `pnpm db:generate`
+4. Apply migration: `pnpm db:migrate`
+5. Update `docs/internal/architecture/database.md`
+
+### Query Patterns
+
+```typescript
+// Simple query
+const item = await db.query.items.findFirst({
+  where: eq(items.id, itemId)
+})
+
+// With relations
+const itemWithRelations = await db.query.items.findFirst({
+  where: eq(items.id, itemId),
+  with: { user: true, comments: { with: { author: true } } }
+})
+
+// Transactions
+await db.transaction(async (tx) => {
+  await tx.insert(items).values({ ... })
+  await tx.update(users).set({ ... }).where(eq(users.id, userId))
+})
+```
+
+## Component Development
+
+### Component Structure
+
+```typescript
+// Server Component (default)
+export default async function Component({ id }: { id: string }) {
+  const data = await fetchData(id)
+  return <div>{data.name}</div>
+}
+
+// Client Component (when interactivity needed)
+"use client"
+export function InteractiveComponent() {
+  const [state, setState] = useState(...)
+  return <button onClick={() => setState(...)}>Click</button>
+}
+```
+
+### Styling
+
+```typescript
+import { cn } from "@/lib/utils"
+
+// Use cn() for conditional classes
+<div className={cn(
+  "base-classes",
+  isActive && "active-classes",
+  variant === "primary" && "primary-variant"
+)}>
+```
+
+## Testing
+
+### Unit Tests
+
+```typescript
+import { describe, it, expect } from "vitest"
+
+describe("functionName", () => {
+  it("should handle normal case", () => {
+    expect(functionName("input")).toBe("expected")
+  })
+
+  it("should handle edge case", () => {
+    expect(() => functionName(null)).toThrow()
+  })
+})
+```
+
+### E2E Tests
+
+```typescript
+import { test, expect } from "@playwright/test"
+
+test("user flow", async ({ page }) => {
+  await page.goto("/path")
+  await page.click("button")
+  await expect(page.locator("result")).toBeVisible()
+})
+```
+
+## Common Mistakes to Avoid
+
+1. **Using `any` types** - Always use proper types or `unknown`
+2. **Skipping type checks** - Always run `pnpm tsc`
+3. **Ignoring lint errors** - Fix them, don't disable rules
+4. **Hardcoding values** - Use environment variables
+5. **Not updating docs** - Keep documentation in sync
+6. **Bypassing auth** - All protected routes need auth checks
+7. **Direct DB mutations** - Use Drizzle ORM methods
+8. **Over-engineering** - Keep solutions simple and focused
+
+## Verification Checklist
+
+Before completing any task:
+
+- [ ] Code compiles: `pnpm tsc` passes
+- [ ] Code quality: `pnpm lint` passes
+- [ ] Tests pass: `pnpm test` passes
+- [ ] Build works: `pnpm build` succeeds
+- [ ] No debug code (console.log, debugger)
+- [ ] No hardcoded secrets
+- [ ] Documentation updated where needed
+- [ ] Follows existing code patterns
+
+## File Naming Conventions
+
+- Components: `PascalCase.tsx` (e.g., `VideoPlayer.tsx`)
+- Hooks: `camelCase.ts` starting with `use` (e.g., `useVideo.ts`)
+- Utilities: `kebab-case.ts` (e.g., `format-date.ts`)
+- Tests: `*.test.ts` next to source file
+- Schemas: `kebab-case.ts` (e.g., `video-schema.ts`)
+
+## Getting Help
+
+- **Architecture overview**: `docs/internal/architecture/summary.md`
+- **Component reference**: `docs/internal/reference/components.md`
+- **Database schema**: `docs/internal/architecture/database.md`
+- **API documentation**: `docs/public/api/README.md`
+- **Development setup**: `docs/internal/reference/development-setup.md`
