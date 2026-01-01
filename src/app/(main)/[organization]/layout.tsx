@@ -1,18 +1,27 @@
 import { eq } from "drizzle-orm";
 import type React from "react";
+import { Suspense } from "react";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { TopNav } from "@/components/top-nav";
+import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
 import { organizations } from "@/lib/db/schema";
 
-export default async function MainLayout({
-  children,
-  params,
-}: {
+interface LayoutProps {
   children: React.ReactNode;
   params: Promise<{ organization: string }>;
-}) {
+}
+
+function NavSkeleton() {
+  return (
+    <div className="h-14 border-b bg-background flex items-center px-4">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  );
+}
+
+async function LayoutContent({ children, params }: LayoutProps) {
   const { organization } = await params;
 
   // Get organization ID for search functionality
@@ -35,5 +44,13 @@ export default async function MainLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function MainLayout({ children, params }: LayoutProps) {
+  return (
+    <Suspense fallback={<NavSkeleton />}>
+      <LayoutContent params={params}>{children}</LayoutContent>
+    </Suspense>
   );
 }

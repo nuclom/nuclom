@@ -1,5 +1,6 @@
 import { Play } from "lucide-react";
 import Link from "next/link";
+import { CopyrightYear } from "@/components/copyright-year";
 
 export function MarketingFooter() {
   return (
@@ -95,7 +96,7 @@ export function MarketingFooter() {
         </div>
 
         <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Nuclom. All rights reserved.
+          © <CopyrightYear /> Nuclom. All rights reserved.
         </div>
       </div>
     </footer>

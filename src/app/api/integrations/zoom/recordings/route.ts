@@ -6,8 +6,6 @@ import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Zoom, ZoomLive, type ZoomRecording } from "@/lib/effect/services/zoom";
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const RecordingsLayer = Layer.mergeAll(ZoomLive, IntegrationRepositoryWithDeps, DatabaseLive);
 

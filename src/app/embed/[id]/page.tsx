@@ -3,7 +3,7 @@
 import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +30,22 @@ interface EmbedVideoData {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // =============================================================================
-// Embed Player Component
+// Loading Skeleton
 // =============================================================================
 
-export default function EmbedPage() {
+function EmbedSkeleton() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
+      <Loader2 className="h-12 w-12 animate-spin text-white/50" />
+    </div>
+  );
+}
+
+// =============================================================================
+// Embed Player Content
+// =============================================================================
+
+function EmbedContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const videoId = params.id as string;
@@ -351,5 +363,17 @@ export default function EmbedPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// =============================================================================
+// Embed Page with Suspense
+// =============================================================================
+
+export default function EmbedPage() {
+  return (
+    <Suspense fallback={<EmbedSkeleton />}>
+      <EmbedContent />
+    </Suspense>
   );
 }

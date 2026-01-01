@@ -1,7 +1,8 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +28,7 @@ type Organization = {
   logo?: string | null;
 };
 
-export default function OrganizationSettingsPage() {
+function OrganizationSettingsContent() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -222,5 +223,29 @@ export default function OrganizationSettingsPage() {
         </AlertDialog>
       </CardFooter>
     </Card>
+  );
+}
+
+function OrganizationSettingsSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Organization</CardTitle>
+        <CardDescription>Manage your organization settings.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function OrganizationSettingsPage() {
+  return (
+    <Suspense fallback={<OrganizationSettingsSkeleton />}>
+      <OrganizationSettingsContent />
+    </Suspense>
   );
 }

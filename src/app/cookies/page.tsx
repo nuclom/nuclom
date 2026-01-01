@@ -1,5 +1,6 @@
 import { ArrowLeft, Play } from "lucide-react";
 import Link from "next/link";
+import { CopyrightYear } from "@/components/copyright-year";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -377,7 +378,7 @@ export default function CookiePolicyPage() {
             </div>
           </div>
           <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Nuclom. All rights reserved.
+            © <CopyrightYear /> Nuclom. All rights reserved.
           </div>
         </div>
       </footer>

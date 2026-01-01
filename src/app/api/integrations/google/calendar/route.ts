@@ -6,8 +6,6 @@ import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CalendarLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);
 
