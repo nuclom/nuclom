@@ -23,7 +23,7 @@
     "test:e2e:report": "playwright show-report",
     "prepare": "lefthook install",
     "openapi:generate": "npx tsx scripts/generate-openapi.ts",
-    "openapi:generate:yaml": "npx tsx scripts/generate-openapi.ts --format yaml"
+    "openapi:update": "npx tsx scripts/update-openapi-spec.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "3.0.4",

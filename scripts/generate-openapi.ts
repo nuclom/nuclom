@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+
 /**
  * OpenAPI Spec Generator CLI
  *
@@ -13,11 +14,12 @@
  *   --verbose       Print detailed parsing info
  */
 
-import * as path from "node:path";
 import * as fs from "node:fs";
+import * as path from "node:path";
+import process from "node:process";
+import { specToYaml } from "../src/lib/openapi";
 import { generateAutoSpec } from "../src/lib/openapi/auto-endpoints";
 import { RouteParser } from "../src/lib/openapi/route-parser";
-import { specToYaml } from "../src/lib/openapi";
 
 // =============================================================================
 // CLI Implementation
