@@ -574,14 +574,22 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
 interface VideoLoaderProps {
   videoId: string;
   organizationSlug: string;
-  currentUser?: {
-    id: string;
-    name?: string | null;
-    image?: string | null;
-  };
 }
 
-async function VideoLoader({ videoId, organizationSlug, currentUser }: VideoLoaderProps) {
+async function VideoLoader({ videoId, organizationSlug }: VideoLoaderProps) {
+  // Get current user session (optional - allows anonymous viewing)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const currentUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image,
+      }
+    : undefined;
+
   // Fetch video details and related data in parallel
   const [video, chapters, codeSnippets] = await Promise.all([
     getCachedVideo(videoId),
@@ -616,22 +624,9 @@ async function VideoLoader({ videoId, organizationSlug, currentUser }: VideoLoad
 export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   const { organization, id } = await params;
 
-  // Get current user session (optional - allows anonymous viewing)
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const currentUser = session?.user
-    ? {
-        id: session.user.id,
-        name: session.user.name,
-        image: session.user.image,
-      }
-    : undefined;
-
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} organizationSlug={organization} currentUser={currentUser} />
+      <VideoLoader videoId={id} organizationSlug={organization} />
     </Suspense>
   );
 }
