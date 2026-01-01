@@ -4,8 +4,10 @@ This document describes the architecture of the Zoom and Google Meet integration
 
 ## Overview
 
-Nuclom provides deep integrations with video conferencing platforms, allowing users to:
+Nuclom provides deep integrations with video conferencing and cloud storage platforms, allowing users to:
 - Import meeting recordings from Zoom and Google Meet
+- Browse and import any video from Google Drive
+- Bulk upload videos from local files with no size limits
 - View calendar events with meeting links
 - Auto-import recordings when meetings end
 - Track import progress in real-time
@@ -38,21 +40,31 @@ src/app/api/integrations/
 ├── google/
 │   ├── authorize/route.ts    # OAuth initiation
 │   ├── callback/route.ts     # OAuth callback
-│   ├── recordings/route.ts   # List Drive recordings
+│   ├── recordings/route.ts   # List Meet recordings
 │   ├── calendar/route.ts     # List calendar events
+│   ├── drive/route.ts        # Browse/import Google Drive videos
 │   └── webhook/route.ts      # Google push notification handler
 └── [integrationId]/
     └── settings/route.ts     # Integration settings management
+
+src/app/api/videos/upload/
+├── route.ts             # Single video upload
+├── presigned/route.ts   # Generate presigned URLs for direct upload
+└── confirm/route.ts     # Confirm upload and create video record
 ```
 
 ### UI Components
 
 ```
-src/components/integrations/
-├── recording-browser.tsx       # Browse and select recordings to import
-├── meeting-calendar.tsx        # Calendar view of meetings
-├── import-progress-tracker.tsx # Real-time import status tracking
-└── integration-settings.tsx    # Per-integration settings dialog
+src/components/
+├── import-hub.tsx              # Unified import dialog with all sources
+├── bulk-video-upload.tsx       # Multi-file upload with presigned URLs
+└── integrations/
+    ├── recording-browser.tsx       # Browse and select recordings to import
+    ├── google-drive-picker.tsx     # Browse and import from Google Drive
+    ├── meeting-calendar.tsx        # Calendar view of meetings
+    ├── import-progress-tracker.tsx # Real-time import status tracking
+    └── integration-settings.tsx    # Per-integration settings dialog
 ```
 
 ## Database Schema
@@ -213,10 +225,75 @@ NEXT_PUBLIC_URL=
 4. **Scope Minimization**: Request only necessary OAuth scopes
 5. **Token Refresh**: Auto-refresh to minimize user interruption
 
+## Presigned URL Upload
+
+The presigned URL upload feature bypasses Next.js/Vercel API route size limits (typically 4.5MB) by allowing direct uploads to Cloudflare R2.
+
+### Flow
+
+1. **Request Presigned URL**: Client requests upload URL with file metadata
+2. **Generate URL**: Server generates presigned PUT URL (expires in 1 hour)
+3. **Direct Upload**: Client uploads file directly to R2 storage
+4. **Confirm Upload**: Client confirms upload, server creates video record
+
+### API Endpoints
+
+- `POST /api/videos/upload/presigned` - Generate presigned URL(s)
+- `POST /api/videos/upload/confirm` - Confirm upload and create video
+
+### Benefits
+
+- No file size limits (up to 5GB per file)
+- Faster uploads (direct to storage)
+- Reduced server load
+- Progress tracking support
+- Bulk upload support (up to 20 files)
+
+## Google Drive Integration
+
+The Google Drive integration allows users to browse and import any video file from their Google Drive, not just Meet recordings.
+
+### Capabilities
+
+- Browse folders and navigate directory structure
+- Search for videos by name
+- Preview thumbnails
+- Select multiple videos for import
+- Supports all common video formats
+
+### API Endpoints
+
+- `GET /api/integrations/google/drive?action=list` - List files and folders
+- `GET /api/integrations/google/drive?action=search&query=...` - Search videos
+- `GET /api/integrations/google/drive?action=folders` - List folders only
+- `POST /api/integrations/google/drive` - Prepare import
+
+### Service Methods
+
+The `google-meet.ts` service includes:
+
+- `listVideoFiles()` - List all video files with filtering
+- `listFolders()` - List folders for navigation
+- `searchVideos()` - Search videos by name
+
+## Import Hub
+
+The Import Hub provides a unified interface for all import sources:
+
+- **Local Files**: Bulk upload from computer
+- **Google Drive**: Browse and import any video
+- **Google Meet**: Import meeting recordings
+- **Zoom**: Import meeting recordings
+
+Future sources (coming soon):
+- Dropbox
+- OneDrive
+
 ## Future Enhancements
 
 - Microsoft Teams integration
+- Dropbox and OneDrive integration
 - Slack integration for notifications
 - Meeting scheduling from Nuclom
 - Participant analytics
-- Bulk import by date range
+- Background import queue visualization
