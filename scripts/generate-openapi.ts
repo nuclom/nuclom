@@ -6,11 +6,11 @@
  * Automatically generates OpenAPI spec by parsing all route.ts files in the API directory.
  *
  * Usage:
- *   pnpm openapi:generate [options]
+ *   pnpm openapi [options]
  *
  * Options:
- *   --output, -o    Output file path (default: prints to stdout)
- *   --format, -f    Output format: json or yaml (default: json)
+ *   --stdout        Output to stdout instead of files (use with --format)
+ *   --format, -f    Output format for stdout: json or yaml (default: json)
  *   --verbose       Print detailed parsing info
  */
 
@@ -28,7 +28,7 @@ import { RouteParser } from "../src/lib/openapi/route-parser";
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    output: undefined as string | undefined,
+    stdout: false,
     format: "json" as "json" | "yaml",
     verbose: false,
   };
@@ -36,9 +36,8 @@ function parseArgs() {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     switch (arg) {
-      case "--output":
-      case "-o":
-        options.output = args[++i];
+      case "--stdout":
+        options.stdout = true;
         break;
       case "--format":
       case "-f":
@@ -56,40 +55,78 @@ function parseArgs() {
 function main() {
   const options = parseArgs();
   const projectRoot = path.resolve(import.meta.dirname, "..");
+  const jsonPath = path.join(projectRoot, "public", "openapi.json");
+  const yamlPath = path.join(projectRoot, "public", "openapi.yaml");
 
-  console.error("🔍 Parsing route files...\n");
+  // Use console.error for status messages so stdout remains clean for --stdout mode
+  const log = options.stdout ? console.error : console.log;
+
+  log("🔍 Parsing route files...");
 
   if (options.verbose) {
     const parser = new RouteParser({ projectRoot });
     const routes = parser.parseAllRoutes();
 
-    console.error(`Found ${routes.length} route files:\n`);
+    log(`\nFound ${routes.length} route files:\n`);
     for (const route of routes) {
-      console.error(`  ${route.apiPath}`);
+      log(`  ${route.apiPath}`);
       for (const method of route.methods) {
-        console.error(`    ${method.method.toUpperCase()} - auth: ${method.requiresAuth}`);
-        if (method.requestSchema) console.error(`      request: ${method.requestSchema}`);
-        if (method.querySchema) console.error(`      query: ${method.querySchema}`);
+        log(`    ${method.method.toUpperCase()} - auth: ${method.requiresAuth}`);
+        if (method.requestSchema) log(`      request: ${method.requestSchema}`);
+        if (method.querySchema) log(`      query: ${method.querySchema}`);
       }
     }
-    console.error("");
+    log("");
   }
-
-  console.error("📝 Generating OpenAPI spec...\n");
 
   // Generate spec
   const spec = generateAutoSpec(projectRoot);
+  const jsonOutput = JSON.stringify(spec, null, 2);
+  const yamlOutput = specToYaml(spec);
 
-  console.error(`✅ Generated spec with ${Object.keys(spec.paths).length} paths\n`);
+  log(`📝 Generated spec with ${Object.keys(spec.paths).length} paths`);
 
-  // Format output
-  const output = options.format === "yaml" ? specToYaml(spec) : JSON.stringify(spec, null, 2);
+  // Output to stdout if requested
+  if (options.stdout) {
+    console.log(options.format === "yaml" ? yamlOutput : jsonOutput);
+    return;
+  }
 
-  if (options.output) {
-    fs.writeFileSync(options.output, output);
-    console.error(`📄 Written to ${options.output}`);
+  // Otherwise, update files in public/
+  const publicDir = path.dirname(jsonPath);
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  // Check if files need updating
+  let jsonChanged = true;
+  let yamlChanged = true;
+
+  if (fs.existsSync(jsonPath)) {
+    const existingJson = fs.readFileSync(jsonPath, "utf-8");
+    jsonChanged = existingJson !== jsonOutput;
+  }
+
+  if (fs.existsSync(yamlPath)) {
+    const existingYaml = fs.readFileSync(yamlPath, "utf-8");
+    yamlChanged = existingYaml !== yamlOutput;
+  }
+
+  // Write files if changed
+  if (jsonChanged) {
+    fs.writeFileSync(jsonPath, jsonOutput);
+    log("📄 Updated public/openapi.json");
+  }
+
+  if (yamlChanged) {
+    fs.writeFileSync(yamlPath, yamlOutput);
+    log("📄 Updated public/openapi.yaml");
+  }
+
+  if (!jsonChanged && !yamlChanged) {
+    log("✅ OpenAPI specs are up to date");
   } else {
-    console.log(output);
+    log("✅ OpenAPI specs regenerated");
   }
 }
 
