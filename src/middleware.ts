@@ -2,12 +2,20 @@
  * Next.js Middleware
  *
  * Handles:
+ * - Authentication checks for protected routes
  * - Rate limiting for API routes
  * - Request logging with structured output
  * - Request ID generation and propagation
+ *
+ * Uses Node.js runtime for better-auth session validation which requires
+ * database access.
  */
 
+// Use Node.js runtime for database access in auth validation
+export const runtime = "nodejs";
+
 import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { createLogger } from "@/lib/logger";
 import {
   API_RATE_LIMIT,
@@ -124,6 +132,40 @@ function isPublicApiRoute(pathname: string): boolean {
   return publicPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
+function isBetterAuthRoute(pathname: string): boolean {
+  // Better-auth handles its own routes - don't interfere with auth flow
+  return pathname.startsWith("/api/auth/");
+}
+
+function isProtectedApiRoute(pathname: string): boolean {
+  // API routes that require authentication
+  // Exclude: public routes, auth routes (handled by better-auth), webhooks
+  if (!isApiRoute(pathname)) return false;
+  if (isPublicApiRoute(pathname)) return false;
+  if (isBetterAuthRoute(pathname)) return false;
+  if (pathname.startsWith("/api/webhooks/")) return false;
+
+  return true;
+}
+
+function isProtectedPageRoute(pathname: string): boolean {
+  // App routes that require authentication
+  const protectedPatterns = [
+    "/dashboard",
+    "/videos",
+    "/settings",
+    "/channels",
+    "/notifications",
+    "/watch-later",
+    "/billing",
+    "/organization",
+    "/profile",
+    "/series",
+    "/search",
+  ];
+  return protectedPatterns.some((pattern) => pathname.startsWith(pattern));
+}
+
 // =============================================================================
 // Request Logging
 // =============================================================================
@@ -135,18 +177,14 @@ function generateRequestId(): string {
 }
 
 function getClientIp(request: NextRequest): string | undefined {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    undefined
-  );
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || undefined;
 }
 
 // =============================================================================
 // Middleware
 // =============================================================================
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
   const method = request.method;
@@ -154,7 +192,68 @@ export function middleware(request: NextRequest) {
   // Generate or use existing request ID
   const requestId = request.headers.get("x-request-id") || generateRequestId();
 
-  // Skip non-API routes (no logging or rate limiting)
+  // =============================================================================
+  // Authentication Check for Protected Routes
+  // =============================================================================
+
+  // Check if route requires authentication
+  const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
+
+  if (needsAuth) {
+    // Validate session using better-auth
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session) {
+      // For API routes, return 401 Unauthorized
+      if (isApiRoute(pathname)) {
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized`,
+        );
+
+        return new NextResponse(
+          JSON.stringify({
+            error: "Unauthorized",
+            message: "Authentication required",
+          }),
+          {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              "x-request-id": requestId,
+            },
+          },
+        );
+      }
+
+      // For page routes, redirect to sign-in
+      const signInUrl = new URL("/auth/sign-in", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+
+      requestLogger.info(
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
+        `Redirecting unauthenticated user to sign-in`,
+      );
+
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
+  // =============================================================================
+  // Non-API Routes - Skip rate limiting and detailed logging
+  // =============================================================================
+
   if (!isApiRoute(pathname)) {
     const response = NextResponse.next();
     response.headers.set("x-request-id", requestId);
@@ -275,7 +374,19 @@ export function middleware(request: NextRequest) {
 // Configure which routes the middleware applies to
 export const config = {
   matcher: [
-    // Match all API routes except static files
+    // Match all API routes
     "/api/:path*",
+    // Match protected page routes for auth checks
+    "/dashboard/:path*",
+    "/videos/:path*",
+    "/settings/:path*",
+    "/channels/:path*",
+    "/notifications/:path*",
+    "/watch-later/:path*",
+    "/billing/:path*",
+    "/organization/:path*",
+    "/profile/:path*",
+    "/series/:path*",
+    "/search/:path*",
   ],
 };
