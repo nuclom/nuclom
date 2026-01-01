@@ -148,22 +148,36 @@ function isProtectedApiRoute(pathname: string): boolean {
   return true;
 }
 
-function isProtectedPageRoute(pathname: string): boolean {
-  // App routes that require authentication
-  const protectedPatterns = [
-    "/dashboard",
-    "/videos",
-    "/settings",
-    "/channels",
-    "/notifications",
-    "/watch-later",
-    "/billing",
-    "/organization",
-    "/profile",
-    "/series",
-    "/search",
+function isPublicPageRoute(pathname: string): boolean {
+  // Routes that should be accessible without authentication
+  const publicPatterns = [
+    "/",
+    "/auth",
+    "/sign-in",
+    "/sign-up",
+    "/reset-password",
+    "/verify-email",
+    "/accept-invitation",
+    "/share",
+    "/pricing",
+    "/about",
+    "/terms",
+    "/privacy",
+    "/cookies",
+    "/features",
+    "/changelog",
+    "/blog",
+    "/contact",
+    "/help",
+    "/docs",
   ];
-  return protectedPatterns.some((pattern) => pathname.startsWith(pattern));
+  return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
+}
+
+function isProtectedPageRoute(pathname: string): boolean {
+  // All non-API routes are protected unless explicitly public
+  if (isApiRoute(pathname)) return false;
+  return !isPublicPageRoute(pathname);
 }
 
 // =============================================================================
@@ -374,19 +388,13 @@ export async function middleware(request: NextRequest) {
 // Configure which routes the middleware applies to
 export const config = {
   matcher: [
-    // Match all API routes
-    "/api/:path*",
-    // Match protected page routes for auth checks
-    "/dashboard/:path*",
-    "/videos/:path*",
-    "/settings/:path*",
-    "/channels/:path*",
-    "/notifications/:path*",
-    "/watch-later/:path*",
-    "/billing/:path*",
-    "/organization/:path*",
-    "/profile/:path*",
-    "/series/:path*",
-    "/search/:path*",
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     * - Public assets (images, fonts, etc.)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };
