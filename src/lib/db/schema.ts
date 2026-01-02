@@ -720,13 +720,7 @@ export const importedMeetings = pgTable(
 // GitHub Context Integration
 // =====================
 
-export const codeLinkTypeEnum = pgEnum("CodeLinkType", [
-  "pr",
-  "issue",
-  "commit",
-  "file",
-  "directory",
-]);
+export const codeLinkTypeEnum = pgEnum("CodeLinkType", ["pr", "issue", "commit", "file", "directory"]);
 
 // Cached repository info for connected repos
 export type GitHubRepositoryInfo = {

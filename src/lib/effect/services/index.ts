@@ -137,20 +137,6 @@ export {
   getChannels,
   updateChannel,
 } from "./channel-repository";
-// Comment Reactions Service
-export type {
-  CommentReactionsServiceInterface,
-  CommentWithReactions,
-  ReactionCount,
-  ReactionUser,
-} from "./comment-reactions";
-export {
-  CommentReactionsService,
-  CommentReactionsServiceLive,
-  getReactionCounts,
-  getReactionsForComments,
-  toggleReaction,
-} from "./comment-reactions";
 // Code Links Repository
 export type {
   CodeLinksRepositoryService,
@@ -196,6 +182,20 @@ export {
   detectCodeReferencesInTranscript,
   generateCodeReferenceUrls,
 } from "./code-reference-detector";
+// Comment Reactions Service
+export type {
+  CommentReactionsServiceInterface,
+  CommentWithReactions,
+  ReactionCount,
+  ReactionUser,
+} from "./comment-reactions";
+export {
+  CommentReactionsService,
+  CommentReactionsServiceLive,
+  getReactionCounts,
+  getReactionsForComments,
+  toggleReaction,
+} from "./comment-reactions";
 export type {
   CommentEvent,
   CommentRepositoryService,
@@ -261,14 +261,14 @@ export type {
 } from "./github";
 export {
   exchangeGitHubCodeForToken,
+  GitHub,
+  GitHubLive,
   getGitHubCommit,
   getGitHubContextAuthorizationUrl,
   getGitHubIssue,
   getGitHubPullRequest,
   getGitHubRepository,
   getGitHubUserInfo,
-  GitHub,
-  GitHubLive,
   listGitHubRepositories,
   refreshGitHubAccessToken,
 } from "./github";

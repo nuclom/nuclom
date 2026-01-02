@@ -178,7 +178,11 @@ export interface GitHubServiceInterface {
   /**
    * Get a specific repository
    */
-  readonly getRepository: (accessToken: string, owner: string, repo: string) => Effect.Effect<GitHubRepository, HttpError>;
+  readonly getRepository: (
+    accessToken: string,
+    owner: string,
+    repo: string,
+  ) => Effect.Effect<GitHubRepository, HttpError>;
 
   /**
    * Get a pull request
@@ -486,7 +490,11 @@ const makeGitHubService = Effect.gen(function* () {
         }),
     });
 
-  const getRepository = (accessToken: string, owner: string, repo: string): Effect.Effect<GitHubRepository, HttpError> =>
+  const getRepository = (
+    accessToken: string,
+    owner: string,
+    repo: string,
+  ): Effect.Effect<GitHubRepository, HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, {

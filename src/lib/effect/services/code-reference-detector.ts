@@ -6,8 +6,7 @@
  */
 
 import { Context, Effect, Layer } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import type { CodeLinkType } from "@/lib/db/schema";
+import type { CodeLinkType, TranscriptSegment } from "@/lib/db/schema";
 
 // =============================================================================
 // Types
@@ -134,7 +133,8 @@ const CODE_PATTERNS: CodeReferencePattern[] = [
 
   // File patterns - look for common file extensions
   {
-    pattern: /\b([a-zA-Z_][a-zA-Z0-9_-]*\.(ts|tsx|js|jsx|py|go|rs|java|rb|cpp|c|h|hpp|swift|kt|scala|vue|svelte|astro))\b/g,
+    pattern:
+      /\b([a-zA-Z_][a-zA-Z0-9_-]*\.(ts|tsx|js|jsx|py|go|rs|java|rb|cpp|c|h|hpp|swift|kt|scala|vue|svelte|astro))\b/g,
     type: "file",
     extractReference: (match) => match[1],
     baseConfidence: 70,
@@ -265,10 +265,13 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
 
       for (const pattern of CODE_PATTERNS) {
         const regex = new RegExp(pattern.pattern.source, pattern.pattern.flags);
-        let match: RegExpExecArray | null;
+        let match: RegExpExecArray | null = regex.exec(text);
 
-        while ((match = regex.exec(text)) !== null) {
-          const reference = pattern.extractReference(match);
+        while (match !== null) {
+          const currentMatch = match;
+          match = regex.exec(text); // Get next match early for safe continue
+
+          const reference = pattern.extractReference(currentMatch);
           let confidence = pattern.baseConfidence;
 
           // Boost confidence if we have a default repo context
@@ -277,7 +280,7 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
           }
 
           // Boost confidence for explicit URL matches
-          if (match[0].includes("github.com")) {
+          if (currentMatch[0].includes("github.com")) {
             confidence = 100;
           }
 
@@ -288,11 +291,11 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
           let suggestedRepo = options.defaultRepo;
           let suggestedUrl: string | undefined;
 
-          if (match[0].includes("github.com/")) {
-            const repoMatch = match[0].match(/github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)/);
+          if (currentMatch[0].includes("github.com/")) {
+            const repoMatch = currentMatch[0].match(/github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)/);
             if (repoMatch) {
               suggestedRepo = repoMatch[1];
-              suggestedUrl = match[0];
+              suggestedUrl = currentMatch[0];
             }
           } else if (suggestedRepo) {
             // Generate URL from repo
@@ -305,7 +308,7 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
             timestamp: timestampStart,
             timestampEnd,
             confidence,
-            rawMatch: match[0],
+            rawMatch: currentMatch[0],
             suggestedRepo,
             suggestedUrl,
           });
@@ -326,12 +329,7 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
       if (segments && segments.length > 0) {
         // Process each segment with its timestamp
         for (const segment of segments) {
-          const refs = yield* detectInText(
-            segment.text,
-            segment.start,
-            segment.end,
-            options,
-          );
+          const refs = yield* detectInText(segment.text, segment.startTime, segment.endTime, options);
           allReferences.push(...refs);
         }
       } else {
@@ -357,9 +355,7 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
       }
 
       const averageConfidence =
-        allReferences.length > 0
-          ? allReferences.reduce((sum, r) => sum + r.confidence, 0) / allReferences.length
-          : 0;
+        allReferences.length > 0 ? allReferences.reduce((sum, r) => sum + r.confidence, 0) / allReferences.length : 0;
 
       return {
         references: allReferences,
@@ -412,9 +408,7 @@ const makeCodeReferenceDetector = Effect.gen(function* () {
       };
     });
 
-  const deduplicateReferences = (
-    references: DetectedCodeReference[],
-  ): Effect.Effect<DetectedCodeReference[], never> =>
+  const deduplicateReferences = (references: DetectedCodeReference[]): Effect.Effect<DetectedCodeReference[], never> =>
     Effect.sync(() => {
       const seen = new Map<string, DetectedCodeReference>();
 
@@ -487,10 +481,7 @@ function generateGitHubUrl(repo: string, type: CodeLinkType, reference: string):
 // Code Reference Detector Layer
 // =============================================================================
 
-export const CodeReferenceDetectorLive = Layer.effect(
-  CodeReferenceDetector,
-  makeCodeReferenceDetector,
-);
+export const CodeReferenceDetectorLive = Layer.effect(CodeReferenceDetector, makeCodeReferenceDetector);
 
 // =============================================================================
 // Exported Helper Functions

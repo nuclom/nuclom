@@ -5,23 +5,21 @@
  * This enables bidirectional linking between videos and code artifacts.
  */
 
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import {
-  codeLinks,
-  githubConnections,
-  videos,
-  users,
   type CodeLink,
   type CodeLinkMetadata,
   type CodeLinkType,
+  codeLinks,
   type GitHubConnection,
   type GitHubRepositoryInfo,
-  type NewCodeLink,
-  type NewGitHubConnection,
+  githubConnections,
+  users,
+  videos,
 } from "@/lib/db/schema";
-import { Database, type DrizzleDB } from "./database";
 import { DatabaseError, NotFoundError } from "../errors";
+import { Database, type DrizzleDB } from "./database";
 
 // =============================================================================
 // Types
@@ -87,7 +85,7 @@ export interface CodeLinkWithVideo extends CodeLink {
 export interface GitHubConnectionWithUser extends GitHubConnection {
   readonly connectedByUser: {
     readonly id: string;
-    readonly name: string;
+    readonly name: string | null;
     readonly image: string | null;
   };
 }
@@ -125,9 +123,7 @@ export interface CodeLinksRepositoryService {
     data: UpdateGitHubConnectionInput,
   ) => Effect.Effect<GitHubConnection, DatabaseError | NotFoundError>;
 
-  readonly deleteGitHubConnection: (
-    organizationId: string,
-  ) => Effect.Effect<void, DatabaseError>;
+  readonly deleteGitHubConnection: (organizationId: string) => Effect.Effect<void, DatabaseError>;
 
   readonly syncRepositories: (
     organizationId: string,
@@ -135,9 +131,7 @@ export interface CodeLinksRepositoryService {
   ) => Effect.Effect<GitHubConnection, DatabaseError | NotFoundError>;
 
   // Code Links
-  readonly getCodeLinks: (
-    videoId: string,
-  ) => Effect.Effect<CodeLinkWithVideo[], DatabaseError>;
+  readonly getCodeLinks: (videoId: string) => Effect.Effect<CodeLinkWithVideo[], DatabaseError>;
 
   readonly getCodeLinksByRepo: (
     repo: string,
@@ -149,30 +143,20 @@ export interface CodeLinksRepositoryService {
     },
   ) => Effect.Effect<CodeLinkWithVideo[], DatabaseError>;
 
-  readonly getCodeLink: (
-    id: string,
-  ) => Effect.Effect<CodeLinkWithVideo | undefined, DatabaseError>;
+  readonly getCodeLink: (id: string) => Effect.Effect<CodeLinkWithVideo | undefined, DatabaseError>;
 
-  readonly createCodeLink: (
-    data: CreateCodeLinkInput,
-  ) => Effect.Effect<CodeLink, DatabaseError>;
+  readonly createCodeLink: (data: CreateCodeLinkInput) => Effect.Effect<CodeLink, DatabaseError>;
 
-  readonly createCodeLinksBatch: (
-    data: CreateCodeLinkInput[],
-  ) => Effect.Effect<CodeLink[], DatabaseError>;
+  readonly createCodeLinksBatch: (data: CreateCodeLinkInput[]) => Effect.Effect<CodeLink[], DatabaseError>;
 
   readonly updateCodeLink: (
     id: string,
     data: UpdateCodeLinkInput,
   ) => Effect.Effect<CodeLink, DatabaseError | NotFoundError>;
 
-  readonly deleteCodeLink: (
-    id: string,
-  ) => Effect.Effect<void, DatabaseError>;
+  readonly deleteCodeLink: (id: string) => Effect.Effect<void, DatabaseError>;
 
-  readonly deleteCodeLinksByVideo: (
-    videoId: string,
-  ) => Effect.Effect<void, DatabaseError>;
+  readonly deleteCodeLinksByVideo: (videoId: string) => Effect.Effect<void, DatabaseError>;
 
   // Query helpers
   readonly getVideosByCodeArtifact: (
@@ -181,9 +165,7 @@ export interface CodeLinksRepositoryService {
     ref: string,
   ) => Effect.Effect<CodeLinkWithVideo[], DatabaseError>;
 
-  readonly getRepoContextSummary: (
-    repo: string,
-  ) => Effect.Effect<RepoContextSummary, DatabaseError>;
+  readonly getRepoContextSummary: (repo: string) => Effect.Effect<RepoContextSummary, DatabaseError>;
 
   readonly searchCodeLinks: (
     query: string,
@@ -239,7 +221,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         const { connection, user } = result[0];
         return {
           ...connection,
-          connectedByUser: user!,
+          connectedByUser: user ?? { id: connection.connectedByUserId, name: null, image: null },
         };
       },
       catch: (error) =>
@@ -248,9 +230,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         }),
     });
 
-  const createGitHubConnection = (
-    data: CreateGitHubConnectionInput,
-  ): Effect.Effect<GitHubConnection, DatabaseError> =>
+  const createGitHubConnection = (data: CreateGitHubConnectionInput): Effect.Effect<GitHubConnection, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -292,7 +272,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
           .returning();
 
         if (!result) {
-          throw new NotFoundError({ message: `GitHub connection not found: ${id}` });
+          throw new NotFoundError({ message: `GitHub connection not found: ${id}`, entity: "GitHubConnection", id });
         }
 
         return result;
@@ -305,15 +285,11 @@ const makeCodeLinksRepository = Effect.gen(function* () {
       },
     });
 
-  const deleteGitHubConnection = (
-    organizationId: string,
-  ): Effect.Effect<void, DatabaseError> =>
+  const deleteGitHubConnection = (organizationId: string): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
-        await db
-          .delete(githubConnections)
-          .where(eq(githubConnections.organizationId, organizationId));
+        await db.delete(githubConnections).where(eq(githubConnections.organizationId, organizationId));
       },
       catch: (error) =>
         new DatabaseError({
@@ -339,7 +315,11 @@ const makeCodeLinksRepository = Effect.gen(function* () {
           .returning();
 
         if (!result) {
-          throw new NotFoundError({ message: `GitHub connection not found for org: ${organizationId}` });
+          throw new NotFoundError({
+            message: `GitHub connection not found for org: ${organizationId}`,
+            entity: "GitHubConnection",
+            id: organizationId,
+          });
         }
 
         return result;
@@ -353,9 +333,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
     });
 
   // Code Links
-  const getCodeLinks = (
-    videoId: string,
-  ): Effect.Effect<CodeLinkWithVideo[], DatabaseError> =>
+  const getCodeLinks = (videoId: string): Effect.Effect<CodeLinkWithVideo[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -450,9 +428,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         }),
     });
 
-  const getCodeLink = (
-    id: string,
-  ): Effect.Effect<CodeLinkWithVideo | undefined, DatabaseError> =>
+  const getCodeLink = (id: string): Effect.Effect<CodeLinkWithVideo | undefined, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -493,9 +469,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         }),
     });
 
-  const createCodeLink = (
-    data: CreateCodeLinkInput,
-  ): Effect.Effect<CodeLink, DatabaseError> =>
+  const createCodeLink = (data: CreateCodeLinkInput): Effect.Effect<CodeLink, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -543,9 +517,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         }),
     });
 
-  const createCodeLinksBatch = (
-    data: CreateCodeLinkInput[],
-  ): Effect.Effect<CodeLink[], DatabaseError> =>
+  const createCodeLinksBatch = (data: CreateCodeLinkInput[]): Effect.Effect<CodeLink[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -597,7 +569,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
           .returning();
 
         if (!result) {
-          throw new NotFoundError({ message: `Code link not found: ${id}` });
+          throw new NotFoundError({ message: `Code link not found: ${id}`, entity: "CodeLink", id });
         }
 
         return result;
@@ -610,9 +582,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
       },
     });
 
-  const deleteCodeLink = (
-    id: string,
-  ): Effect.Effect<void, DatabaseError> =>
+  const deleteCodeLink = (id: string): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -624,9 +594,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
         }),
     });
 
-  const deleteCodeLinksByVideo = (
-    videoId: string,
-  ): Effect.Effect<void, DatabaseError> =>
+  const deleteCodeLinksByVideo = (videoId: string): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -643,12 +611,9 @@ const makeCodeLinksRepository = Effect.gen(function* () {
     repo: string,
     type: CodeLinkType,
     ref: string,
-  ): Effect.Effect<CodeLinkWithVideo[], DatabaseError> =>
-    getCodeLinksByRepo(repo, { type, ref });
+  ): Effect.Effect<CodeLinkWithVideo[], DatabaseError> => getCodeLinksByRepo(repo, { type, ref });
 
-  const getRepoContextSummary = (
-    repo: string,
-  ): Effect.Effect<RepoContextSummary, DatabaseError> =>
+  const getRepoContextSummary = (repo: string): Effect.Effect<RepoContextSummary, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const db = getDb();
@@ -685,10 +650,10 @@ const makeCodeLinksRepository = Effect.gen(function* () {
 
         return {
           repo,
-          prCount: countMap["pr"] || 0,
-          issueCount: countMap["issue"] || 0,
-          commitCount: countMap["commit"] || 0,
-          fileCount: (countMap["file"] || 0) + (countMap["directory"] || 0),
+          prCount: countMap.pr || 0,
+          issueCount: countMap.issue || 0,
+          commitCount: countMap.commit || 0,
+          fileCount: (countMap.file || 0) + (countMap.directory || 0),
           totalLinks,
           latestVideo: latestVideoResult[0],
         };
@@ -785,10 +750,7 @@ const makeCodeLinksRepository = Effect.gen(function* () {
 // Code Links Repository Layer
 // =============================================================================
 
-export const CodeLinksRepositoryLive = Layer.effect(
-  CodeLinksRepository,
-  makeCodeLinksRepository,
-);
+export const CodeLinksRepositoryLive = Layer.effect(CodeLinksRepository, makeCodeLinksRepository);
 
 // =============================================================================
 // Helper Functions
@@ -836,9 +798,7 @@ export const syncGitHubRepositories = (
     return yield* repo.syncRepositories(organizationId, repositories);
   });
 
-export const getCodeLinks = (
-  videoId: string,
-): Effect.Effect<CodeLinkWithVideo[], DatabaseError, CodeLinksRepository> =>
+export const getCodeLinks = (videoId: string): Effect.Effect<CodeLinkWithVideo[], DatabaseError, CodeLinksRepository> =>
   Effect.gen(function* () {
     const repo = yield* CodeLinksRepository;
     return yield* repo.getCodeLinks(videoId);
@@ -891,9 +851,7 @@ export const updateCodeLink = (
     return yield* repo.updateCodeLink(id, data);
   });
 
-export const deleteCodeLink = (
-  id: string,
-): Effect.Effect<void, DatabaseError, CodeLinksRepository> =>
+export const deleteCodeLink = (id: string): Effect.Effect<void, DatabaseError, CodeLinksRepository> =>
   Effect.gen(function* () {
     const repo = yield* CodeLinksRepository;
     return yield* repo.deleteCodeLink(id);
