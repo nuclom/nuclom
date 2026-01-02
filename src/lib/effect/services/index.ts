@@ -584,3 +584,40 @@ export {
   Zoom,
   ZoomLive,
 } from "./zoom";
+
+// Decision Extraction Service
+export type {
+  DecisionExtractionResult,
+  DecisionExtractionServiceInterface,
+  DecisionStatus as ExtractedDecisionStatus,
+  DecisionType as ExtractedDecisionType,
+  ExtractedDecision,
+  ExternalReference,
+  Participant,
+} from "./decision-extraction";
+export {
+  DecisionExtraction,
+  DecisionExtractionLive,
+  DecisionExtractionResultSchema,
+  DecisionStatusSchema,
+  DecisionTypeSchema,
+  ExtractedDecisionSchema,
+  extractDecisionsFromSegments,
+  extractDecisionsFromTranscript,
+  ExternalReferenceSchema,
+  ParticipantSchema,
+} from "./decision-extraction";
+
+// Knowledge Graph Repository
+export type {
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
+  GraphQueryOptions,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
+} from "./knowledge-graph-repository";
+export {
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
+} from "./knowledge-graph-repository";
