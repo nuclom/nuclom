@@ -4,6 +4,18 @@
  * Export all video-related components from this file.
  */
 
+export {
+  getSpeakerColor,
+  type Speaker,
+  SpeakerLegend,
+  type SpeakerLegendProps,
+} from "./speaker-legend";
+export {
+  SpeakerTimeline,
+  type SpeakerTimelineProps,
+  type TimelineSegment,
+} from "./speaker-timeline";
+export { TalkTimeChart, type TalkTimeChartProps } from "./talk-time-chart";
 export { TranscriptDisplay, type TranscriptDisplayProps } from "./transcript-display";
 export { TranscriptEditor, type TranscriptEditorProps } from "./transcript-editor";
 export { VideoActions, type VideoActionsProps } from "./video-actions";
