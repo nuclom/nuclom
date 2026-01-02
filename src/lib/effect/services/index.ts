@@ -426,6 +426,46 @@ export {
   sendSlackVideoNotification,
   verifySlackSignature,
 } from "./slack";
+// Speaker Diarization Service
+export type {
+  DiarizationOptions,
+  DiarizationResult,
+  DiarizedSegment,
+  SpeakerDiarizationServiceInterface,
+  SpeakerSummary,
+} from "./speaker-diarization";
+export {
+  calculateBalanceScore,
+  DiarizationError,
+  DiarizationNotConfiguredError,
+  diarizeFromUrl,
+  isDiarizationAvailable,
+  SpeakerDiarization,
+  SpeakerDiarizationLive,
+} from "./speaker-diarization";
+// Speaker Repository Service
+export type {
+  CreateSpeakerProfileInput,
+  CreateSpeakerSegmentInput,
+  CreateVideoSpeakerInput,
+  SpeakerProfileWithUser,
+  SpeakerRepositoryService,
+  SpeakerTrend,
+  TalkTimeDistribution,
+  UpdateSpeakerProfileInput,
+  VideoSpeakerWithProfile,
+} from "./speaker-repository";
+export {
+  createSpeakerProfile,
+  getSpeakerProfile,
+  getSpeakerProfiles,
+  getTalkTimeDistribution,
+  getVideoSpeakers,
+  linkVideoSpeakerToProfile,
+  SpeakerRepository,
+  SpeakerRepositoryError,
+  SpeakerRepositoryLive,
+} from "./speaker-repository";
 export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
 // Storage Service
 export {
