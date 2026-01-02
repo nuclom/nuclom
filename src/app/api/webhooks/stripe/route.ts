@@ -462,4 +462,3 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
         .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     }
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-

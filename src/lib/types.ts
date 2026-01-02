@@ -3,12 +3,8 @@ import type {
   Collection,
   Comment,
   Decision,
-  DecisionEdit,
   DecisionLink,
   DecisionParticipant,
-  DecisionSubscription,
-  DecisionTag,
-  DecisionTagAssignment,
   Member,
   Organization,
   SavedSearch,
@@ -147,104 +143,30 @@ export type PaginationParams =
   | { type: "cursor"; cursor?: string; limit: number; direction?: "forward" | "backward" };
 
 // =============================================================================
-// Decision Registry Types
+// Knowledge Graph Decision Types
 // =============================================================================
 
-// Omit internal fields from decision types
-type DecisionBase = Omit<Decision, "searchVector">;
-
 /**
- * Decision with participant users
+ * Decision with participant users (for knowledge graph)
  */
-export type DecisionWithParticipants = DecisionBase & {
-  participants: (DecisionParticipant & { user: User })[];
+export type DecisionWithParticipants = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
 };
 
 /**
- * Decision tag with assignment details
+ * Decision with full details including participants, links, and related data
  */
-export type DecisionTagWithAssignment = DecisionTag & {
-  assignment?: DecisionTagAssignment;
-};
-
-/**
- * Decision with full details including participants, tags, links, and related data
- */
-export type DecisionWithDetails = DecisionBase & {
-  participants: (DecisionParticipant & { user: User })[];
-  tagAssignments: (DecisionTagAssignment & { tag: DecisionTag })[];
+export type DecisionWithDetails = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
   links: DecisionLink[];
   video?: Video | null;
-  createdBy?: User | null;
-  supersededBy?: Decision | null;
-  edits?: DecisionEdit[];
 };
 
 /**
  * Decision with summary info for list views
  */
-export type DecisionWithSummary = DecisionBase & {
-  participants: (DecisionParticipant & { user: User })[];
-  tagAssignments: (DecisionTagAssignment & { tag: DecisionTag })[];
+export type DecisionWithSummary = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
   video?: Video | null;
-  createdBy?: User | null;
   participantCount: number;
-  tagCount: number;
-};
-
-/**
- * Decision filters for querying
- */
-export type DecisionFilters = {
-  readonly topics?: string[];
-  readonly participants?: string[];
-  readonly status?: "decided" | "proposed" | "superseded";
-  readonly source?: "meeting" | "adhoc" | "manual";
-  readonly from?: Date;
-  readonly to?: Date;
-  readonly search?: string;
-  readonly videoId?: string;
-};
-
-/**
- * Decision search result with relevance info
- */
-export type DecisionSearchResult = {
-  decision: DecisionWithSummary;
-  rank?: number;
-  highlights?: {
-    summary?: string;
-    context?: string;
-  };
-};
-
-/**
- * Decision subscription with user details
- */
-export type DecisionSubscriptionWithUser = DecisionSubscription & {
-  user: User;
-};
-
-/**
- * Decision edit with user details
- */
-export type DecisionEditWithUser = DecisionEdit & {
-  user: User;
-};
-
-/**
- * Decision export format options
- */
-export type DecisionExportFormat = "markdown" | "json" | "csv";
-
-/**
- * Decision export options
- */
-export type DecisionExportOptions = {
-  readonly format: DecisionExportFormat;
-  readonly includeContext?: boolean;
-  readonly includeParticipants?: boolean;
-  readonly includeTags?: boolean;
-  readonly includeLinks?: boolean;
-  readonly filters?: DecisionFilters;
 };
