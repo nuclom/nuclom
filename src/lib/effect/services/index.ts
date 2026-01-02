@@ -137,6 +137,46 @@ export {
   getChannels,
   updateChannel,
 } from "./channel-repository";
+// Clip Repository
+export type {
+  ClipRepositoryService,
+  CreateClipInput,
+  CreateHighlightReelInput,
+  CreateMomentInput,
+  CreateQuoteCardInput,
+  HighlightReelWithCreator,
+  QuoteCardWithCreator,
+  UpdateClipInput,
+  UpdateHighlightReelInput,
+  UpdateQuoteCardInput,
+  VideoClipWithCreator,
+  VideoMomentWithVideo,
+} from "./clip-repository";
+export {
+  ClipRepository,
+  ClipRepositoryLive,
+  createClip,
+  createHighlightReel,
+  createMoment,
+  createMomentsBatch,
+  createQuoteCard,
+  deleteClip,
+  deleteHighlightReel,
+  deleteMomentsByVideoId,
+  deleteQuoteCard,
+  getClip,
+  getClips,
+  getClipsByOrganization,
+  getHighlightReel,
+  getHighlightReels,
+  getMoments,
+  getMomentsByType,
+  getQuoteCard,
+  getQuoteCards,
+  updateClip,
+  updateHighlightReel,
+  updateQuoteCard,
+} from "./clip-repository";
 // Code Links Repository
 export type {
   CodeLinksByArtifact,

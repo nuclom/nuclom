@@ -98,9 +98,75 @@ erDiagram
     users ||--o{ video_progress : "tracks"
     videos ||--o{ comments : "has"
     videos ||--o{ video_progress : "has"
+    videos ||--o{ video_moments : "has"
+    videos ||--o{ video_clips : "has"
+    videos ||--o{ quote_cards : "has"
+    video_moments ||--o{ video_clips : "creates"
     channels ||--o{ videos : "organizes"
     series ||--o{ videos : "organizes"
     comments ||--o{ comments : "replies to"
+
+    video_moments {
+        id text PK
+        video_id text FK
+        organization_id text FK
+        title text
+        description text
+        start_time integer
+        end_time integer
+        moment_type MomentType
+        confidence integer
+        transcript_excerpt text
+        created_at timestamp
+    }
+
+    video_clips {
+        id text PK
+        video_id text FK
+        organization_id text FK
+        moment_id text FK
+        title text
+        description text
+        start_time integer
+        end_time integer
+        clip_type ClipType
+        moment_type MomentType
+        storage_key text
+        thumbnail_url text
+        status ClipStatus
+        created_by text FK
+        created_at timestamp
+        updated_at timestamp
+    }
+
+    highlight_reels {
+        id text PK
+        organization_id text FK
+        title text
+        description text
+        clip_ids jsonb
+        storage_key text
+        thumbnail_url text
+        duration integer
+        status HighlightReelStatus
+        created_by text FK
+        created_at timestamp
+        updated_at timestamp
+    }
+
+    quote_cards {
+        id text PK
+        video_id text FK
+        organization_id text FK
+        quote_text text
+        speaker text
+        timestamp_seconds integer
+        template jsonb
+        image_url text
+        storage_key text
+        created_by text FK
+        created_at timestamp
+    }
 ```
 
 ## Core Tables
