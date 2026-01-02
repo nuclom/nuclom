@@ -210,6 +210,24 @@ export {
   query,
   transaction,
 } from "./database";
+// Decision Repository
+export type {
+  CreateDecisionInput,
+  CreateDecisionLinkInput,
+  CreateDecisionTagInput,
+  DecisionRepositoryService,
+  UpdateDecisionInput,
+} from "./decision-repository";
+export {
+  createDecision,
+  DecisionRepository,
+  DecisionRepositoryLive,
+  deleteDecision,
+  getDecisionById,
+  getDecisions,
+  searchDecisions,
+  updateDecision,
+} from "./decision-repository";
 // Email Notifications Service
 export type {
   CommentNotificationData,

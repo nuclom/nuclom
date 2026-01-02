@@ -75,12 +75,11 @@ async function SharedVideosContent({ userId, organizationId, organizationSlug }:
 }
 
 // =============================================================================
-// Main Page Component
+// Shared Videos Loader Component
 // =============================================================================
 
-export default async function SharedVideosPage({ params }: { params: Promise<{ organization: string }> }) {
+async function SharedVideosLoader({ params }: { params: Promise<{ organization: string }> }) {
   const { organization: organizationSlug } = await params;
-
   // Authenticate user
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -105,13 +104,23 @@ export default async function SharedVideosPage({ params }: { params: Promise<{ o
         <h1 className="text-3xl font-bold">Shared with me</h1>
       </div>
 
-      <Suspense fallback={<SharedVideosSkeleton />}>
-        <SharedVideosContent
-          userId={session.user.id}
-          organizationId={organization.id}
-          organizationSlug={organizationSlug}
-        />
-      </Suspense>
+      <SharedVideosContent
+        userId={session.user.id}
+        organizationId={organization.id}
+        organizationSlug={organizationSlug}
+      />
     </div>
+  );
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
+
+export default function SharedVideosPage({ params }: { params: Promise<{ organization: string }> }) {
+  return (
+    <Suspense fallback={<SharedVideosSkeleton />}>
+      <SharedVideosLoader params={params} />
+    </Suspense>
   );
 }

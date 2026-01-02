@@ -15,7 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { ImportProgressTracker } from "@/components/integrations/import-progress-tracker";
 import { IntegrationSettings } from "@/components/integrations/integration-settings";
 import { MeetingCalendar } from "@/components/integrations/meeting-calendar";
@@ -142,7 +142,7 @@ const INTEGRATIONS_CONFIG = [
   },
 ] as const;
 
-export default function IntegrationsPage() {
+function IntegrationsPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -619,5 +619,44 @@ export default function IntegrationsPage() {
         />
       )}
     </div>
+  );
+}
+
+function IntegrationsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-7 w-32 bg-muted rounded animate-pulse" />
+          <div className="h-4 w-64 bg-muted rounded animate-pulse mt-2" />
+        </div>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {[1, 2].map((i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 bg-muted rounded-xl animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-24 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="h-20 bg-muted rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function IntegrationsPage() {
+  return (
+    <Suspense fallback={<IntegrationsSkeleton />}>
+      <IntegrationsPageContent />
+    </Suspense>
   );
 }

@@ -3,7 +3,7 @@
 import { AlertCircle, Download, Loader2, Video } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +68,7 @@ function LoadingState() {
   );
 }
 
-export default function SharePage() {
+function SharePageContent() {
   const params = useParams();
   const shareLinkId = params.id as string;
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
@@ -221,5 +221,13 @@ export default function SharePage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function SharePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <SharePageContent />
+    </Suspense>
   );
 }
