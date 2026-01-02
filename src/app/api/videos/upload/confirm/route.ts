@@ -179,6 +179,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       videoId: data.videoId,
       videoUrl: data.videoUrl,
       videoTitle: data.videoTitle,
+      organizationId: body.organizationId,
     }).catch((err) => {
       console.error("[Video Processing Workflow Error]", err);
     });
@@ -264,6 +265,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
             videoId: video.id,
             videoUrl,
             videoTitle: sanitizedTitle,
+            organizationId,
           }).catch((err) => {
             console.error(`[Video Processing Workflow Error for ${video.id}]`, err);
           });

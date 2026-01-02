@@ -246,6 +246,7 @@ export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<
       videoId: video.id,
       videoUrl: uploadResult.url,
       videoTitle: meetingTitle,
+      organizationId,
     });
 
     return {
