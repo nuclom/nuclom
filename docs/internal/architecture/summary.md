@@ -66,6 +66,12 @@ This document provides a high-level summary of the Nuclom video collaboration pl
 - CI/CD pipeline configuration
 - Monitoring and scaling strategies
 
+### 6. [Knowledge Graph](./knowledge-graph.md)
+
+- Decision extraction from video transcripts
+- Knowledge graph data model and relationships
+- API endpoints and UI components
+
 ## Key Architectural Decisions
 
 ### 1. Next.js 16 App Router
@@ -210,6 +216,7 @@ This document provides a high-level summary of the Nuclom video collaboration pl
 
 ### Newly Implemented Features
 
+- **Knowledge Graph**: Automatic decision extraction and knowledge graph building
 - **Structured AI Outputs**: Zod schemas for type-safe AI responses
 - **Video Recommendations**: Personalized feeds based on watch history
 - **Continue Watching**: Resume playback with progress tracking
@@ -221,6 +228,11 @@ This document provides a high-level summary of the Nuclom video collaboration pl
 
 ### New Database Tables
 
+- `decisions` - Extracted decisions from videos
+- `decision_participants` - People involved in decisions
+- `knowledge_nodes` - Graph nodes (people, topics, artifacts)
+- `knowledge_edges` - Relationships between nodes
+- `decision_links` - Links to external artifacts
 - `comment_reactions` - Comment engagement
 - `watch_later` - User bookmarks
 - `user_presence` - Real-time presence

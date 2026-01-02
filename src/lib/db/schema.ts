@@ -586,7 +586,11 @@ export const integrationProviderEnum = pgEnum("IntegrationProvider", [
   "google_meet",
   "slack",
   "microsoft_teams",
+  "github",
 ]);
+
+// Code link type enum for GitHub context integration
+export const codeLinkTypeEnum = pgEnum("CodeLinkType", ["pr", "issue", "commit", "file", "directory"]);
 
 // Import status enum
 export const importStatusEnum = pgEnum("ImportStatus", ["pending", "downloading", "processing", "completed", "failed"]);
@@ -648,11 +652,24 @@ export type MicrosoftTeamsIntegrationMetadata = {
   readonly displayName?: string;
 };
 
+export type GitHubIntegrationMetadata = {
+  readonly login?: string;
+  readonly email?: string;
+  readonly avatarUrl?: string;
+  readonly repositories?: Array<{
+    readonly id: number;
+    readonly fullName: string;
+    readonly private: boolean;
+  }>;
+  readonly installationId?: string;
+};
+
 export type IntegrationMetadata =
   | ZoomIntegrationMetadata
   | GoogleIntegrationMetadata
   | SlackIntegrationMetadata
-  | MicrosoftTeamsIntegrationMetadata;
+  | MicrosoftTeamsIntegrationMetadata
+  | GitHubIntegrationMetadata;
 
 // Types for meeting participants
 export type MeetingParticipant = {
@@ -714,6 +731,85 @@ export const importedMeetings = pgTable(
   },
   (table) => ({
     uniqueIntegrationExternalId: unique().on(table.integrationId, table.externalId),
+  }),
+);
+
+// =====================
+// GitHub Context Tables
+// =====================
+
+// Types for detected code references
+export type DetectedCodeRef = {
+  readonly type: "pr" | "issue" | "commit" | "file" | "module";
+  readonly reference: string;
+  readonly timestamp: number;
+  readonly confidence: number;
+  readonly suggestedRepo?: string;
+};
+
+export type CodeLinkType = "pr" | "issue" | "commit" | "file" | "directory";
+
+// GitHub connections - stores repository access per organization
+export const githubConnections = pgTable(
+  "github_connections",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    integrationId: text("integration_id")
+      .notNull()
+      .references(() => integrations.id, { onDelete: "cascade" }),
+    installationId: text("installation_id"), // GitHub App installation ID
+    repositories:
+      jsonb("repositories").$type<
+        Array<{
+          id: number;
+          fullName: string;
+          private: boolean;
+          defaultBranch: string;
+        }>
+      >(),
+    connectedAt: timestamp("connected_at").defaultNow().notNull(),
+    lastSync: timestamp("last_sync"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("github_connections_org_idx").on(table.organizationId),
+    integrationIdx: index("github_connections_integration_idx").on(table.integrationId),
+  }),
+);
+
+// Code links - bidirectional links between videos and code artifacts
+export const codeLinks = pgTable(
+  "code_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    linkType: codeLinkTypeEnum("link_type").notNull(),
+    githubRepo: text("github_repo").notNull(), // owner/repo format
+    githubRef: text("github_ref").notNull(), // PR number, commit SHA, or file path
+    githubUrl: text("github_url"),
+    context: text("context"), // why this was linked
+    autoDetected: boolean("auto_detected").default(false).notNull(),
+    timestampStart: integer("timestamp_start"), // video timestamp in seconds
+    timestampEnd: integer("timestamp_end"), // optional end timestamp
+    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("code_links_video_idx").on(table.videoId),
+    repoIdx: index("code_links_repo_idx").on(table.githubRepo),
+    refIdx: index("code_links_ref_idx").on(table.githubRepo, table.linkType, table.githubRef),
+    typeIdx: index("code_links_type_idx").on(table.linkType),
   }),
 );
 
@@ -1047,6 +1143,184 @@ export const dataExportRequests = pgTable(
   }),
 );
 
+// =====================
+// Knowledge Graph Tables
+// =====================
+
+// Enums for knowledge graph
+export const decisionStatusEnum = pgEnum("DecisionStatus", ["proposed", "decided", "revisited", "superseded"]);
+
+export const participantRoleEnum = pgEnum("ParticipantRole", ["decider", "participant", "mentioned"]);
+
+export const knowledgeNodeTypeEnum = pgEnum("KnowledgeNodeType", ["person", "topic", "artifact", "decision", "video"]);
+
+export const decisionTypeEnum = pgEnum("DecisionType", ["technical", "process", "product", "team", "other"]);
+
+// Decisions extracted from videos
+export const decisions = pgTable(
+  "decisions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    timestampStart: integer("timestamp_start"), // seconds into video
+    timestampEnd: integer("timestamp_end"),
+    summary: text("summary").notNull(), // "We decided to use PostgreSQL instead of MongoDB"
+    context: text("context"), // surrounding discussion that led to decision
+    reasoning: text("reasoning"), // why the decision was made
+    status: decisionStatusEnum("status").default("decided").notNull(),
+    decisionType: decisionTypeEnum("decision_type").default("other").notNull(),
+    confidence: integer("confidence"), // AI confidence score 0-100
+    tags: jsonb("tags").$type<string[]>().default([]),
+    // Embedding for semantic search (stored as JSON array for pgvector compatibility)
+    embedding: jsonb("embedding").$type<number[]>(),
+    metadata: jsonb("metadata").$type<{
+      alternatives?: string[];
+      relatedDecisionIds?: string[];
+      externalRefs?: Array<{ type: string; id: string; url?: string }>;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("decisions_org_idx").on(table.organizationId, table.createdAt),
+    videoIdx: index("decisions_video_idx").on(table.videoId),
+    statusIdx: index("decisions_status_idx").on(table.status),
+    typeIdx: index("decisions_type_idx").on(table.decisionType),
+  }),
+);
+
+// Participants in a decision
+export const decisionParticipants = pgTable(
+  "decision_participants",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    role: participantRoleEnum("role").default("participant").notNull(),
+    speakerName: text("speaker_name"), // name from transcript if not linked to user
+    attributedText: text("attributed_text"), // what they said
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_participants_decision_idx").on(table.decisionId),
+    userIdx: index("decision_participants_user_idx").on(table.userId),
+  }),
+);
+
+// Knowledge graph nodes - entities that can be connected
+export const knowledgeNodes = pgTable(
+  "knowledge_nodes",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    type: knowledgeNodeTypeEnum("type").notNull(),
+    externalId: text("external_id"), // github:pr:123, linear:issue:ABC, etc.
+    name: text("name").notNull(),
+    description: text("description"),
+    // Embedding for semantic search
+    embedding: jsonb("embedding").$type<number[]>(),
+    metadata: jsonb("metadata").$type<{
+      url?: string;
+      attributes?: Record<string, unknown>;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("knowledge_nodes_org_idx").on(table.organizationId),
+    typeIdx: index("knowledge_nodes_type_idx").on(table.type),
+    externalIdx: index("knowledge_nodes_external_idx").on(table.externalId),
+    uniqueOrgExternal: unique("knowledge_nodes_org_external_unique").on(table.organizationId, table.externalId),
+  }),
+);
+
+// Knowledge graph edges - relationships between nodes
+export const knowledgeEdges = pgTable(
+  "knowledge_edges",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    sourceNodeId: text("source_node_id")
+      .notNull()
+      .references(() => knowledgeNodes.id, { onDelete: "cascade" }),
+    targetNodeId: text("target_node_id")
+      .notNull()
+      .references(() => knowledgeNodes.id, { onDelete: "cascade" }),
+    relationship: text("relationship").notNull(), // decided, mentioned, references, supersedes, related_to
+    weight: integer("weight").default(100), // 0-100 for relationship strength
+    metadata: jsonb("metadata").$type<{
+      videoId?: string;
+      timestamp?: number;
+      context?: string;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    sourceIdx: index("knowledge_edges_source_idx").on(table.sourceNodeId),
+    targetIdx: index("knowledge_edges_target_idx").on(table.targetNodeId),
+    relationshipIdx: index("knowledge_edges_relationship_idx").on(table.relationship),
+    uniqueEdge: unique("knowledge_edges_unique").on(table.sourceNodeId, table.targetNodeId, table.relationship),
+  }),
+);
+
+// Links between decisions and external entities (polymorphic linking)
+export const decisionLinks = pgTable(
+  "decision_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    // Polymorphic reference - can link to various entity types
+    entityType: text("entity_type").notNull(), // video, document, code, issue
+    entityId: text("entity_id").notNull(), // ID of the entity
+    entityRef: text("entity_ref"), // human-readable ref like "PR #123"
+    linkType: text("link_type").notNull(), // implements, references, supersedes, relates_to
+    url: text("url"), // external URL if applicable
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_links_decision_idx").on(table.decisionId),
+    entityIdx: index("decision_links_entity_idx").on(table.entityType, table.entityId),
+    uniqueLink: unique("decision_links_unique").on(table.decisionId, table.entityType, table.entityId, table.linkType),
+  }),
+);
+
+// Types for knowledge graph
+export type DecisionStatus = (typeof decisionStatusEnum.enumValues)[number];
+export type ParticipantRole = (typeof participantRoleEnum.enumValues)[number];
+export type KnowledgeNodeType = (typeof knowledgeNodeTypeEnum.enumValues)[number];
+export type DecisionType = (typeof decisionTypeEnum.enumValues)[number];
+
+export type Decision = typeof decisions.$inferSelect;
+export type NewDecision = typeof decisions.$inferInsert;
+export type DecisionParticipant = typeof decisionParticipants.$inferSelect;
+export type NewDecisionParticipant = typeof decisionParticipants.$inferInsert;
+export type KnowledgeNode = typeof knowledgeNodes.$inferSelect;
+export type NewKnowledgeNode = typeof knowledgeNodes.$inferInsert;
+export type KnowledgeEdge = typeof knowledgeEdges.$inferSelect;
+export type NewKnowledgeEdge = typeof knowledgeEdges.$inferInsert;
+export type DecisionLink = typeof decisionLinks.$inferSelect;
+export type NewDecisionLink = typeof decisionLinks.$inferInsert;
+
 // Relations
 export const userRelations = relations(users, ({ one, many }) => ({
   videos: many(videos),
@@ -1094,6 +1368,8 @@ export const organizationRelations = relations(organizations, ({ one, many }) =>
   usageRecords: many(usage),
   invoices: many(invoices),
   paymentMethods: many(paymentMethods),
+  decisions: many(decisions),
+  knowledgeNodes: many(knowledgeNodes),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -1117,6 +1393,8 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
   codeSnippets: many(videoCodeSnippets),
+  codeLinks: many(codeLinks),
+  decisions: many(decisions),
   speakers: many(videoSpeakers),
   speakerSegments: many(speakerSegments),
 }));
@@ -1299,6 +1577,83 @@ export const importedMeetingRelations = relations(importedMeetings, ({ one }) =>
   video: one(videos, {
     fields: [importedMeetings.videoId],
     references: [videos.id],
+  }),
+}));
+
+// GitHub context relations
+export const githubConnectionRelations = relations(githubConnections, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [githubConnections.organizationId],
+    references: [organizations.id],
+  }),
+  integration: one(integrations, {
+    fields: [githubConnections.integrationId],
+    references: [integrations.id],
+  }),
+}));
+
+export const codeLinkRelations = relations(codeLinks, ({ one }) => ({
+  video: one(videos, {
+    fields: [codeLinks.videoId],
+    references: [videos.id],
+  }),
+  createdBy: one(users, {
+    fields: [codeLinks.createdById],
+    references: [users.id],
+  }),
+}));
+
+// Knowledge Graph Relations
+export const decisionsRelations = relations(decisions, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [decisions.organizationId],
+    references: [organizations.id],
+  }),
+  video: one(videos, {
+    fields: [decisions.videoId],
+    references: [videos.id],
+  }),
+  participants: many(decisionParticipants),
+  links: many(decisionLinks),
+}));
+
+export const decisionParticipantsRelations = relations(decisionParticipants, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionParticipants.decisionId],
+    references: [decisions.id],
+  }),
+  user: one(users, {
+    fields: [decisionParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const knowledgeNodesRelations = relations(knowledgeNodes, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [knowledgeNodes.organizationId],
+    references: [organizations.id],
+  }),
+  outgoingEdges: many(knowledgeEdges, { relationName: "SourceNode" }),
+  incomingEdges: many(knowledgeEdges, { relationName: "TargetNode" }),
+}));
+
+export const knowledgeEdgesRelations = relations(knowledgeEdges, ({ one }) => ({
+  sourceNode: one(knowledgeNodes, {
+    fields: [knowledgeEdges.sourceNodeId],
+    references: [knowledgeNodes.id],
+    relationName: "SourceNode",
+  }),
+  targetNode: one(knowledgeNodes, {
+    fields: [knowledgeEdges.targetNodeId],
+    references: [knowledgeNodes.id],
+    relationName: "TargetNode",
+  }),
+}));
+
+export const decisionLinksRelations = relations(decisionLinks, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionLinks.decisionId],
+    references: [decisions.id],
   }),
 }));
 

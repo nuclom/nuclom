@@ -177,6 +177,34 @@ export {
   updateHighlightReel,
   updateQuoteCard,
 } from "./clip-repository";
+// Code Links Repository
+export type {
+  CodeLinksByArtifact,
+  CodeLinksRepositoryService,
+  CodeLinkWithVideo,
+  CreateCodeLinkInput,
+  UpdateCodeLinkInput,
+} from "./code-links-repository";
+export {
+  CodeLinksRepository,
+  CodeLinksRepositoryLive,
+  createCodeLink,
+  deleteCodeLink,
+  getCodeLinksByArtifact,
+  getCodeLinksForVideo,
+} from "./code-links-repository";
+// Code Reference Detector
+export type {
+  CodeReferenceDetectorConfig,
+  CodeReferenceDetectorInterface,
+  DetectionResult,
+} from "./code-reference-detector";
+export {
+  CodeReferenceDetector,
+  CodeReferenceDetectorLive,
+  detectCodeRefsInText,
+  detectCodeRefsInTranscript,
+} from "./code-reference-detector";
 // Comment Reactions Service
 export type {
   CommentReactionsServiceInterface,
@@ -222,24 +250,28 @@ export {
   query,
   transaction,
 } from "./database";
-// Decision Repository
+// Decision Extraction Service
 export type {
-  CreateDecisionInput,
-  CreateDecisionLinkInput,
-  CreateDecisionTagInput,
-  DecisionRepositoryService,
-  UpdateDecisionInput,
-} from "./decision-repository";
+  DecisionExtractionResult,
+  DecisionExtractionServiceInterface,
+  DecisionStatus as ExtractedDecisionStatus,
+  DecisionType as ExtractedDecisionType,
+  ExternalReference,
+  ExtractedDecision,
+  Participant,
+} from "./decision-extraction";
 export {
-  createDecision,
-  DecisionRepository,
-  DecisionRepositoryLive,
-  deleteDecision,
-  getDecisionById,
-  getDecisions,
-  searchDecisions,
-  updateDecision,
-} from "./decision-repository";
+  DecisionExtraction,
+  DecisionExtractionLive,
+  DecisionExtractionResultSchema,
+  DecisionStatusSchema,
+  DecisionTypeSchema,
+  ExternalReferenceSchema,
+  ExtractedDecisionSchema,
+  extractDecisionsFromSegments,
+  extractDecisionsFromTranscript,
+  ParticipantSchema,
+} from "./decision-extraction";
 // Email Notifications Service
 export type {
   CommentNotificationData,
@@ -259,6 +291,32 @@ export {
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
 } from "./email-notifications";
+// GitHub Service
+export type {
+  GitHubCommit,
+  GitHubConfig,
+  GitHubFile,
+  GitHubIssue,
+  GitHubPullRequest,
+  GitHubRepositoriesResponse,
+  GitHubRepository,
+  GitHubServiceInterface,
+  GitHubTokenResponse,
+  GitHubUserInfo,
+} from "./github";
+export {
+  exchangeGitHubCodeForToken,
+  GitHub,
+  GitHubLive,
+  getGitHubAuthorizationUrl,
+  getGitHubCommit,
+  getGitHubIssue,
+  getGitHubPullRequest,
+  getGitHubRepository,
+  getGitHubUserInfo,
+  listGitHubRepositories,
+  refreshGitHubAccessToken,
+} from "./github";
 // Google Meet Service
 export type {
   GoogleConfig,
@@ -302,6 +360,19 @@ export {
   updateImportedMeeting,
   updateIntegration,
 } from "./integration-repository";
+// Knowledge Graph Repository
+export type {
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
+  GraphQueryOptions,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
+} from "./knowledge-graph-repository";
+export {
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
+} from "./knowledge-graph-repository";
 // Microsoft Teams Service
 export type {
   MicrosoftTeamsConfig,

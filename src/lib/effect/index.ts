@@ -103,17 +103,24 @@ export type {
   // SeriesRepository
   CreateSeriesInput,
   DatabaseService,
+  // Knowledge Graph
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
   // Database
   DrizzleDB,
   GoogleDriveFilesResponse,
   GoogleMeetRecording,
   // Google Meet
   GoogleMeetServiceInterface,
+  GraphQueryOptions,
   HighlightReelWithCreator,
   ImportedMeetingWithVideo,
   // Integration Repository
   IntegrationRepositoryService,
   IntegrationWithUser,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
   LanguageInfo,
   // NotificationRepository
   NotificationRepositoryService,
@@ -184,6 +191,9 @@ export {
   // ClipRepository
   ClipRepository,
   ClipRepositoryLive,
+  // CodeLinksRepository
+  CodeLinksRepository,
+  CodeLinksRepositoryLive,
   // CommentRepository
   CommentRepository,
   CommentRepositoryLive,
@@ -289,6 +299,9 @@ export {
   isMember,
   isSupportedVideoFormat,
   isTranslationAvailable,
+  // Knowledge Graph Repository
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
   listGoogleMeetRecordings,
   listZoomRecordings,
   makeAuthLayer,
