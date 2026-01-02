@@ -259,12 +259,12 @@ export {
   IntegrationRepository,
   IntegrationRepositoryLive,
   insertUnique,
-  // Knowledge Graph Repository
-  KnowledgeGraphRepository,
-  KnowledgeGraphRepositoryLive,
   isMember,
   isSupportedVideoFormat,
   isTranslationAvailable,
+  // Knowledge Graph Repository
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
   listGoogleMeetRecordings,
   listZoomRecordings,
   makeAuthLayer,

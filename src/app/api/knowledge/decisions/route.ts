@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       decisionType: data.decisionType,
       status: data.status,
       confidence: data.confidence ?? null,
-      tags: data.tags,
+      tags: data.tags ? [...data.tags] : [],
     });
 
     return decision;

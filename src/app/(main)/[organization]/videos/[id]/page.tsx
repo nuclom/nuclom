@@ -7,6 +7,7 @@ import {
   Code,
   FileText,
   Layers,
+  Lightbulb,
   ListTodo,
   Loader2,
   MessageSquarePlus,
@@ -22,6 +23,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentList } from "@/components/comments";
+import { VideoDecisionsSidebar } from "@/components/knowledge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -394,10 +396,14 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
         {/* AI Insights Tabs - hidden on mobile, shown on desktop sidebar */}
         <div className="hidden lg:block">
           <Tabs defaultValue="insights">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="insights">
                 <Sparkles className="h-4 w-4 mr-2" />
-                AI Insights
+                Insights
+              </TabsTrigger>
+              <TabsTrigger value="decisions">
+                <Lightbulb className="h-4 w-4 mr-2" />
+                Decisions
               </TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
             </TabsList>
@@ -431,6 +437,9 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                   <ActionItemsList items={actionItems} />
                 </CardContent>
               </Card>
+            </TabsContent>
+            <TabsContent value="decisions">
+              <VideoDecisionsSidebar videoId={video.id} />
             </TabsContent>
             <TabsContent value="details">
               <Card>
@@ -508,10 +517,14 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
         {/* Mobile-only AI Insights section */}
         <div className="lg:hidden">
           <Tabs defaultValue="insights">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="insights" className="text-sm">
                 <Sparkles className="h-4 w-4 mr-1.5" />
-                AI Insights
+                Insights
+              </TabsTrigger>
+              <TabsTrigger value="decisions" className="text-sm">
+                <Lightbulb className="h-4 w-4 mr-1.5" />
+                Decisions
               </TabsTrigger>
               <TabsTrigger value="details" className="text-sm">
                 Details
@@ -547,6 +560,9 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                   <ActionItemsList items={actionItems} />
                 </CardContent>
               </Card>
+            </TabsContent>
+            <TabsContent value="decisions">
+              <VideoDecisionsSidebar videoId={video.id} />
             </TabsContent>
             <TabsContent value="details">
               <Card>

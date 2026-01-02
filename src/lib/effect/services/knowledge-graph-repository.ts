@@ -22,15 +22,7 @@ import type {
   NewKnowledgeEdge,
   NewKnowledgeNode,
 } from "@/lib/db/schema";
-import {
-  decisionLinks,
-  decisionParticipants,
-  decisions,
-  knowledgeEdges,
-  knowledgeNodes,
-  users,
-  videos,
-} from "@/lib/db/schema";
+import { decisionLinks, decisionParticipants, decisions, knowledgeEdges, knowledgeNodes } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "../errors";
 import { Database } from "./database";
 
@@ -151,10 +143,7 @@ export interface KnowledgeGraphRepositoryInterface {
   readonly createEdge: (data: NewKnowledgeEdge) => Effect.Effect<KnowledgeEdge, DatabaseError>;
   readonly createEdges: (data: NewKnowledgeEdge[]) => Effect.Effect<KnowledgeEdge[], DatabaseError>;
   readonly deleteEdge: (id: string) => Effect.Effect<void, DatabaseError>;
-  readonly getEdgesBetween: (
-    sourceId: string,
-    targetId: string,
-  ) => Effect.Effect<KnowledgeEdge[], DatabaseError>;
+  readonly getEdgesBetween: (sourceId: string, targetId: string) => Effect.Effect<KnowledgeEdge[], DatabaseError>;
 
   // Graph Queries
   readonly getGraph: (
@@ -270,7 +259,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       Effect.flatMap((decision) =>
         decision
           ? Effect.succeed(decision as DecisionWithRelations)
-          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found` })),
+          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: "Decision", id })),
       ),
     );
 
@@ -296,7 +285,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       Effect.flatMap((decision) =>
         decision
           ? Effect.succeed(decision)
-          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found` })),
+          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: "Decision", id })),
       ),
     );
 
@@ -331,10 +320,8 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
         }
         if (options.search) {
           conditions.push(
-            or(
-              ilike(decisions.summary, `%${options.search}%`),
-              ilike(decisions.context, `%${options.search}%`),
-            ) ?? sql`true`,
+            or(ilike(decisions.summary, `%${options.search}%`), ilike(decisions.context, `%${options.search}%`)) ??
+              sql`true`,
           );
         }
         if (options.topic) {
@@ -521,7 +508,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       Effect.flatMap((node) =>
         node
           ? Effect.succeed(node as KnowledgeNodeWithEdges)
-          : Effect.fail(new NotFoundError({ message: `Node ${id} not found` })),
+          : Effect.fail(new NotFoundError({ message: `Node ${id} not found`, entity: "KnowledgeNode", id })),
       ),
     );
 
@@ -614,11 +601,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         if (data.length === 0) return [];
-        const edges = await db
-          .insert(knowledgeEdges)
-          .values(data)
-          .onConflictDoNothing()
-          .returning();
+        const edges = await db.insert(knowledgeEdges).values(data).onConflictDoNothing().returning();
         return edges;
       },
       catch: (error) =>
@@ -836,14 +819,6 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
 
         const savedDecisions: Decision[] = [];
 
-        // Get members to potentially match participants to users
-        const orgMembers = await db.query.members.findMany({
-          where: (m, { eq: eqOp }) => eqOp(m.organizationId, organizationId),
-          with: {
-            user: true,
-          },
-        });
-
         for (const extracted of extractedDecisions) {
           // Create the decision
           const [decision] = await db
@@ -860,9 +835,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
               status: extracted.status,
               confidence: extracted.confidence,
               tags: extracted.tags,
-              metadata: extracted.externalRefs
-                ? { externalRefs: extracted.externalRefs }
-                : undefined,
+              metadata: extracted.externalRefs ? { externalRefs: extracted.externalRefs } : undefined,
             })
             .returning();
 
@@ -870,19 +843,15 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
 
           // Add participants
           if (extracted.participants.length > 0) {
-            const participantData = extracted.participants.map((p) => {
-              // Try to match to a user in the organization
-              const matchedMember = orgMembers.find(
-                (m) => m.user?.name?.toLowerCase() === p.name.toLowerCase(),
-              );
-              return {
+            const participantData = extracted.participants.map(
+              (p: { name: string; role: "decider" | "participant" | "mentioned"; attributedText?: string }) => ({
                 decisionId: decision.id,
-                userId: matchedMember?.userId ?? null,
+                userId: null,
                 speakerName: p.name,
                 role: p.role,
                 attributedText: p.attributedText,
-              };
-            });
+              }),
+            );
             await db.insert(decisionParticipants).values(participantData);
           }
 

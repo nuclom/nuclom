@@ -7,12 +7,12 @@
  * Integrates with video player for seeking to decision timestamps.
  */
 
-import { ChevronDown, ChevronUp, Clock, ExternalLink, Lightbulb, Users } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp, Clock, Lightbulb, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,14 +49,12 @@ export interface VideoDecision {
 }
 
 export interface VideoDecisionsSidebarProps {
-  /** Decisions for the video */
-  decisions: VideoDecision[];
+  /** Video ID to fetch decisions for */
+  videoId: string;
   /** Current video playback time */
   currentTime?: number;
   /** Callback when user wants to seek to a timestamp */
   onSeek?: (time: number) => void;
-  /** Whether data is loading */
-  isLoading?: boolean;
   /** Optional className */
   className?: string;
 }
@@ -110,19 +108,11 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
   }, [decision.timestampStart, onSeek]);
 
   return (
-    <Card
-      className={cn(
-        "transition-all border-l-4",
-        statusColors[decision.status],
-        isActive && "ring-2 ring-primary",
-      )}
-    >
+    <Card className={cn("transition-all border-l-4", statusColors[decision.status], isActive && "ring-2 ring-primary")}>
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CardHeader className="pb-2 space-y-1">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-sm font-medium leading-tight flex-1">
-              {decision.summary}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium leading-tight flex-1">{decision.summary}</CardTitle>
             <Badge
               variant="secondary"
               className={cn("shrink-0 text-xs capitalize", decisionTypeColors[decision.decisionType])}
@@ -156,11 +146,7 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
 
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="sm" className="w-full rounded-none h-6">
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             <span className="sr-only">{isExpanded ? "Hide details" : "Show details"}</span>
           </Button>
         </CollapsibleTrigger>
@@ -204,9 +190,7 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
                           </Badge>
                         </p>
                         {p.attributedText && (
-                          <p className="text-muted-foreground italic truncate">
-                            &ldquo;{p.attributedText}&rdquo;
-                          </p>
+                          <p className="text-muted-foreground italic truncate">&ldquo;{p.attributedText}&rdquo;</p>
                         )}
                       </div>
                     </div>
@@ -228,9 +212,7 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
 
             {/* Confidence indicator */}
             {decision.confidence !== null && (
-              <div className="text-xs text-muted-foreground">
-                Confidence: {decision.confidence}%
-              </div>
+              <div className="text-xs text-muted-foreground">Confidence: {decision.confidence}%</div>
             )}
           </CardContent>
         </CollapsibleContent>
@@ -267,9 +249,7 @@ function EmptyState() {
     <div className="flex flex-col items-center justify-center py-8 text-center px-4">
       <Lightbulb className="h-10 w-10 text-muted-foreground mb-3" />
       <h3 className="text-sm font-semibold">No decisions extracted</h3>
-      <p className="text-xs text-muted-foreground mt-1">
-        Decisions will appear here once the video has been analyzed.
-      </p>
+      <p className="text-xs text-muted-foreground mt-1">Decisions will appear here once the video has been analyzed.</p>
     </div>
   );
 }
@@ -278,13 +258,30 @@ function EmptyState() {
 // Main Component
 // =============================================================================
 
-export function VideoDecisionsSidebar({
-  decisions,
-  currentTime = 0,
-  onSeek,
-  isLoading = false,
-  className,
-}: VideoDecisionsSidebarProps) {
+export function VideoDecisionsSidebar({ videoId, currentTime = 0, onSeek, className }: VideoDecisionsSidebarProps) {
+  const [decisions, setDecisions] = useState<VideoDecision[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch decisions for the video
+  useEffect(() => {
+    async function fetchDecisions() {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/videos/${videoId}/decisions`);
+        if (response.ok) {
+          const data = await response.json();
+          setDecisions(data.decisions || []);
+        }
+      } catch {
+        // Silently fail - decisions are supplementary
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchDecisions();
+  }, [videoId]);
+
   // Sort decisions by timestamp
   const sortedDecisions = useMemo(
     () =>

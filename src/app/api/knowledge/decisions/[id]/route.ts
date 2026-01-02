@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       decisionType: data.decisionType,
       status: data.status,
       confidence: data.confidence,
-      tags: data.tags,
+      tags: data.tags ? [...data.tags] : undefined,
     });
   });
 

@@ -403,10 +403,7 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
   }
 }
 
-async function extractDecisions(
-  segments: TranscriptSegment[],
-  videoTitle?: string,
-): Promise<ExtractedDecisionResult> {
+async function extractDecisions(segments: TranscriptSegment[], videoTitle?: string): Promise<ExtractedDecisionResult> {
   const { gateway } = await import("@ai-sdk/gateway");
   const { generateObject, jsonSchema } = await import("ai");
 
@@ -550,17 +547,9 @@ async function saveDecisions(
   }
 
   const { db } = await import("@/lib/db");
-  const { decisions, decisionParticipants, decisionLinks, members } = await import("@/lib/db/schema");
+  const { decisions, decisionParticipants, decisionLinks } = await import("@/lib/db/schema");
 
   try {
-    // Get organization members to match participants to users
-    const orgMembers = await db.query.members.findMany({
-      where: (m, { eq: eqOp }) => eqOp(m.organizationId, organizationId),
-      with: {
-        user: true,
-      },
-    });
-
     for (const extracted of extractedDecisions.decisions) {
       // Only save decisions with sufficient confidence
       if (extracted.confidence < 50) {
@@ -588,19 +577,15 @@ async function saveDecisions(
 
       // Add participants
       if (extracted.participants.length > 0) {
-        const participantData = extracted.participants.map((p) => {
-          // Try to match to a user in the organization
-          const matchedMember = orgMembers.find(
-            (m) => m.user?.name?.toLowerCase() === p.name.toLowerCase(),
-          );
-          return {
+        const participantData = extracted.participants.map(
+          (p: { name: string; role: "decider" | "participant" | "mentioned"; attributedText?: string }) => ({
             decisionId: decision.id,
-            userId: matchedMember?.userId ?? null,
+            userId: null,
             speakerName: p.name,
             role: p.role,
             attributedText: p.attributedText,
-          };
-        });
+          }),
+        );
         await db.insert(decisionParticipants).values(participantData);
       }
 

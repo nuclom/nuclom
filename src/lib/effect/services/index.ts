@@ -182,6 +182,28 @@ export {
   query,
   transaction,
 } from "./database";
+// Decision Extraction Service
+export type {
+  DecisionExtractionResult,
+  DecisionExtractionServiceInterface,
+  DecisionStatus as ExtractedDecisionStatus,
+  DecisionType as ExtractedDecisionType,
+  ExternalReference,
+  ExtractedDecision,
+  Participant,
+} from "./decision-extraction";
+export {
+  DecisionExtraction,
+  DecisionExtractionLive,
+  DecisionExtractionResultSchema,
+  DecisionStatusSchema,
+  DecisionTypeSchema,
+  ExternalReferenceSchema,
+  ExtractedDecisionSchema,
+  extractDecisionsFromSegments,
+  extractDecisionsFromTranscript,
+  ParticipantSchema,
+} from "./decision-extraction";
 // Email Notifications Service
 export type {
   CommentNotificationData,
@@ -244,6 +266,19 @@ export {
   updateImportedMeeting,
   updateIntegration,
 } from "./integration-repository";
+// Knowledge Graph Repository
+export type {
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
+  GraphQueryOptions,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
+} from "./knowledge-graph-repository";
+export {
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
+} from "./knowledge-graph-repository";
 // Microsoft Teams Service
 export type {
   MicrosoftTeamsConfig,
@@ -584,40 +619,3 @@ export {
   Zoom,
   ZoomLive,
 } from "./zoom";
-
-// Decision Extraction Service
-export type {
-  DecisionExtractionResult,
-  DecisionExtractionServiceInterface,
-  DecisionStatus as ExtractedDecisionStatus,
-  DecisionType as ExtractedDecisionType,
-  ExtractedDecision,
-  ExternalReference,
-  Participant,
-} from "./decision-extraction";
-export {
-  DecisionExtraction,
-  DecisionExtractionLive,
-  DecisionExtractionResultSchema,
-  DecisionStatusSchema,
-  DecisionTypeSchema,
-  ExtractedDecisionSchema,
-  extractDecisionsFromSegments,
-  extractDecisionsFromTranscript,
-  ExternalReferenceSchema,
-  ParticipantSchema,
-} from "./decision-extraction";
-
-// Knowledge Graph Repository
-export type {
-  DecisionQueryOptions,
-  DecisionTimelineItem,
-  DecisionWithRelations,
-  GraphQueryOptions,
-  KnowledgeGraphRepositoryInterface,
-  KnowledgeNodeWithEdges,
-} from "./knowledge-graph-repository";
-export {
-  KnowledgeGraphRepository,
-  KnowledgeGraphRepositoryLive,
-} from "./knowledge-graph-repository";

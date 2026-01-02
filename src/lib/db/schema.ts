@@ -1051,34 +1051,13 @@ export const dataExportRequests = pgTable(
 // =====================
 
 // Enums for knowledge graph
-export const decisionStatusEnum = pgEnum("DecisionStatus", [
-  "proposed",
-  "decided",
-  "revisited",
-  "superseded",
-]);
+export const decisionStatusEnum = pgEnum("DecisionStatus", ["proposed", "decided", "revisited", "superseded"]);
 
-export const participantRoleEnum = pgEnum("ParticipantRole", [
-  "decider",
-  "participant",
-  "mentioned",
-]);
+export const participantRoleEnum = pgEnum("ParticipantRole", ["decider", "participant", "mentioned"]);
 
-export const knowledgeNodeTypeEnum = pgEnum("KnowledgeNodeType", [
-  "person",
-  "topic",
-  "artifact",
-  "decision",
-  "video",
-]);
+export const knowledgeNodeTypeEnum = pgEnum("KnowledgeNodeType", ["person", "topic", "artifact", "decision", "video"]);
 
-export const decisionTypeEnum = pgEnum("DecisionType", [
-  "technical",
-  "process",
-  "product",
-  "team",
-  "other",
-]);
+export const decisionTypeEnum = pgEnum("DecisionType", ["technical", "process", "product", "team", "other"]);
 
 // Decisions extracted from videos
 export const decisions = pgTable(
@@ -1169,10 +1148,7 @@ export const knowledgeNodes = pgTable(
     orgIdx: index("knowledge_nodes_org_idx").on(table.organizationId),
     typeIdx: index("knowledge_nodes_type_idx").on(table.type),
     externalIdx: index("knowledge_nodes_external_idx").on(table.externalId),
-    uniqueOrgExternal: unique("knowledge_nodes_org_external_unique").on(
-      table.organizationId,
-      table.externalId,
-    ),
+    uniqueOrgExternal: unique("knowledge_nodes_org_external_unique").on(table.organizationId, table.externalId),
   }),
 );
 
@@ -1202,11 +1178,7 @@ export const knowledgeEdges = pgTable(
     sourceIdx: index("knowledge_edges_source_idx").on(table.sourceNodeId),
     targetIdx: index("knowledge_edges_target_idx").on(table.targetNodeId),
     relationshipIdx: index("knowledge_edges_relationship_idx").on(table.relationship),
-    uniqueEdge: unique("knowledge_edges_unique").on(
-      table.sourceNodeId,
-      table.targetNodeId,
-      table.relationship,
-    ),
+    uniqueEdge: unique("knowledge_edges_unique").on(table.sourceNodeId, table.targetNodeId, table.relationship),
   }),
 );
 
@@ -1231,12 +1203,7 @@ export const decisionLinks = pgTable(
   (table) => ({
     decisionIdx: index("decision_links_decision_idx").on(table.decisionId),
     entityIdx: index("decision_links_entity_idx").on(table.entityType, table.entityId),
-    uniqueLink: unique("decision_links_unique").on(
-      table.decisionId,
-      table.entityType,
-      table.entityId,
-      table.linkType,
-    ),
+    uniqueLink: unique("decision_links_unique").on(table.decisionId, table.entityType, table.entityId, table.linkType),
   }),
 );
 

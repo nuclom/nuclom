@@ -12,22 +12,16 @@
  */
 
 import { Calendar, ChevronRight, Clock, Lightbulb, MessageSquare, Settings, Users, Wrench } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { DecisionStatus, DecisionType } from "@/lib/db/schema";
-import { formatDistanceToNow } from "@/lib/format-utils";
+import { formatRelativeTime } from "@/lib/format-utils";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
@@ -72,10 +66,7 @@ export interface DecisionTimelineProps {
 // Helper Functions
 // =============================================================================
 
-const decisionTypeConfig: Record<
-  DecisionType,
-  { icon: React.ElementType; label: string; color: string }
-> = {
+const decisionTypeConfig: Record<DecisionType, { icon: React.ElementType; label: string; color: string }> = {
   technical: {
     icon: Wrench,
     label: "Technical",
@@ -161,7 +152,7 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
               <CardDescription className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  {formatDistanceToNow(decision.createdAt)} ago
+                  {formatRelativeTime(decision.createdAt)}
                 </span>
                 {decision.timestampStart !== null && (
                   <span className="flex items-center gap-1">
@@ -194,9 +185,11 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {decision.video.thumbnailUrl && (
-              <img
+              <Image
                 src={decision.video.thumbnailUrl}
                 alt=""
+                width={48}
+                height={32}
                 className="h-8 w-12 rounded object-cover"
               />
             )}
@@ -218,9 +211,7 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
             </div>
           )}
           {decision.confidence !== null && decision.confidence < 80 && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Confidence: {decision.confidence}%
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground">Confidence: {decision.confidence}%</p>
           )}
         </CardContent>
       </Card>
@@ -340,11 +331,7 @@ export function DecisionTimeline({
         ) : (
           <div className="pr-4">
             {filteredDecisions.map((decision) => (
-              <DecisionItem
-                key={decision.id}
-                decision={decision}
-                onClick={() => handleDecisionClick(decision)}
-              />
+              <DecisionItem key={decision.id} decision={decision} onClick={() => handleDecisionClick(decision)} />
             ))}
             {hasMore && (
               <div className="flex justify-center pt-4">
