@@ -717,6 +717,150 @@ export const importedMeetings = pgTable(
 );
 
 // =====================
+// GitHub Context Integration
+// =====================
+
+export const codeLinkTypeEnum = pgEnum("CodeLinkType", [
+  "pr",
+  "issue",
+  "commit",
+  "file",
+  "directory",
+]);
+
+// Cached repository info for connected repos
+export type GitHubRepositoryInfo = {
+  readonly id: number;
+  readonly name: string;
+  readonly fullName: string;
+  readonly private: boolean;
+  readonly defaultBranch: string;
+  readonly updatedAt: string;
+};
+
+// GitHub connections at the organization level
+export const githubConnections = pgTable(
+  "github_connections",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // GitHub App installation ID (if using GitHub App)
+    installationId: text("installation_id"),
+    // User who connected the integration
+    connectedByUserId: text("connected_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Access tokens for API calls (stored encrypted in production)
+    accessToken: text("access_token").notNull(),
+    refreshToken: text("refresh_token"),
+    tokenExpiresAt: timestamp("token_expires_at"),
+    // Cached list of accessible repositories
+    repositories: jsonb("repositories").$type<GitHubRepositoryInfo[]>(),
+    // Additional scopes granted
+    scopes: text("scopes"),
+    // Connection metadata
+    connectedAt: timestamp("connected_at").defaultNow().notNull(),
+    lastSyncAt: timestamp("last_sync_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("github_connections_org_idx").on(table.organizationId),
+    // One connection per organization
+    uniqueOrg: unique().on(table.organizationId),
+  }),
+);
+
+// Video code reference metadata
+export type CodeLinkMetadata = {
+  // PR/Issue metadata
+  readonly title?: string;
+  readonly state?: string; // "open", "closed", "merged"
+  readonly author?: string;
+  readonly createdAt?: string;
+  // Commit metadata
+  readonly message?: string;
+  readonly sha?: string;
+  // File metadata
+  readonly lineStart?: number;
+  readonly lineEnd?: number;
+  readonly language?: string;
+};
+
+// Links between videos and code artifacts (PRs, issues, commits, files)
+export const codeLinks = pgTable(
+  "code_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    // Type of code artifact
+    linkType: codeLinkTypeEnum("link_type").notNull(),
+    // GitHub repository (format: "owner/repo")
+    githubRepo: text("github_repo").notNull(),
+    // Reference to the artifact (PR number, commit SHA, file path, etc.)
+    githubRef: text("github_ref").notNull(),
+    // Full GitHub URL
+    githubUrl: text("github_url"),
+    // User-provided context for why this is linked
+    context: text("context"),
+    // Whether this was auto-detected from transcript
+    autoDetected: boolean("auto_detected").default(false).notNull(),
+    // Confidence score for auto-detected links (0-1)
+    confidence: integer("confidence"),
+    // Video timestamp where the reference was detected (in seconds)
+    timestampStart: integer("timestamp_start"),
+    timestampEnd: integer("timestamp_end"),
+    // Cached metadata from GitHub API
+    metadata: jsonb("metadata").$type<CodeLinkMetadata>(),
+    // User who created the link (null if auto-detected)
+    createdByUserId: text("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("code_links_video_idx").on(table.videoId),
+    repoIdx: index("code_links_repo_idx").on(table.githubRepo),
+    typeIdx: index("code_links_type_idx").on(table.linkType),
+    // Index for querying by repo + type + ref
+    repoTypeRefIdx: index("code_links_repo_type_ref_idx").on(table.githubRepo, table.linkType, table.githubRef),
+    // Unique constraint: one link per video + type + repo + ref
+    uniqueLink: unique().on(table.videoId, table.linkType, table.githubRepo, table.githubRef),
+  }),
+);
+
+// Relations for GitHub connections
+export const githubConnectionsRelations = relations(githubConnections, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [githubConnections.organizationId],
+    references: [organizations.id],
+  }),
+  connectedByUser: one(users, {
+    fields: [githubConnections.connectedByUserId],
+    references: [users.id],
+  }),
+}));
+
+// Relations for code links
+export const codeLinksRelations = relations(codeLinks, ({ one }) => ({
+  video: one(videos, {
+    fields: [codeLinks.videoId],
+    references: [videos.id],
+  }),
+  createdByUser: one(users, {
+    fields: [codeLinks.createdByUserId],
+    references: [users.id],
+  }),
+}));
+
+// =====================
 // Billing Tables
 // =====================
 
@@ -1116,6 +1260,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
   codeSnippets: many(videoCodeSnippets),
+  codeLinks: many(codeLinks),
 }));
 
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
@@ -1830,6 +1975,13 @@ export type Integration = typeof integrations.$inferSelect;
 export type NewIntegration = typeof integrations.$inferInsert;
 export type ImportedMeeting = typeof importedMeetings.$inferSelect;
 export type NewImportedMeeting = typeof importedMeetings.$inferInsert;
+
+// GitHub Context types
+export type CodeLinkType = (typeof codeLinkTypeEnum.enumValues)[number];
+export type GitHubConnection = typeof githubConnections.$inferSelect;
+export type NewGitHubConnection = typeof githubConnections.$inferInsert;
+export type CodeLink = typeof codeLinks.$inferSelect;
+export type NewCodeLink = typeof codeLinks.$inferInsert;
 
 // Billing types
 export type Plan = typeof plans.$inferSelect;

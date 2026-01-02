@@ -151,6 +151,51 @@ export {
   getReactionsForComments,
   toggleReaction,
 } from "./comment-reactions";
+// Code Links Repository
+export type {
+  CodeLinksRepositoryService,
+  CodeLinkWithVideo,
+  CreateCodeLinkInput,
+  CreateGitHubConnectionInput,
+  GitHubConnectionWithUser,
+  RepoContextSummary,
+  UpdateCodeLinkInput,
+  UpdateGitHubConnectionInput,
+} from "./code-links-repository";
+export {
+  CodeLinksRepository,
+  CodeLinksRepositoryLive,
+  createCodeLink,
+  createCodeLinksBatch,
+  createGitHubConnection,
+  deleteCodeLink,
+  deleteGitHubConnection,
+  getCodeLink,
+  getCodeLinks,
+  getCodeLinksByRepo,
+  getGitHubConnection,
+  getRepoContextSummary,
+  getVideosByCodeArtifact,
+  searchCodeLinks,
+  syncGitHubRepositories,
+  updateCodeLink,
+  updateGitHubConnection,
+} from "./code-links-repository";
+// Code Reference Detector
+export type {
+  CodeReferenceDetectorService,
+  CodeReferencePattern,
+  DetectedCodeReference,
+  DetectionOptions,
+  DetectionResult,
+} from "./code-reference-detector";
+export {
+  CodeReferenceDetector,
+  CodeReferenceDetectorLive,
+  detectCodeReferencesInText,
+  detectCodeReferencesInTranscript,
+  generateCodeReferenceUrls,
+} from "./code-reference-detector";
 export type {
   CommentEvent,
   CommentRepositoryService,
@@ -201,6 +246,32 @@ export {
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
 } from "./email-notifications";
+// GitHub Context Integration Service
+export type {
+  GitHubCommit,
+  GitHubConfig,
+  GitHubFile,
+  GitHubFileContent,
+  GitHubIssue,
+  GitHubPullRequest,
+  GitHubRepository,
+  GitHubServiceInterface,
+  GitHubTokenResponse,
+  GitHubUserInfo,
+} from "./github";
+export {
+  exchangeGitHubCodeForToken,
+  getGitHubCommit,
+  getGitHubContextAuthorizationUrl,
+  getGitHubIssue,
+  getGitHubPullRequest,
+  getGitHubRepository,
+  getGitHubUserInfo,
+  GitHub,
+  GitHubLive,
+  listGitHubRepositories,
+  refreshGitHubAccessToken,
+} from "./github";
 // Google Meet Service
 export type {
   GoogleConfig,
