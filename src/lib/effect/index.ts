@@ -168,6 +168,9 @@ export {
   // Auth
   Auth,
   addVideoToSeries,
+  // CodeLinksRepository
+  CodeLinksRepository,
+  CodeLinksRepositoryLive,
   // CommentRepository
   CommentRepository,
   CommentRepositoryLive,

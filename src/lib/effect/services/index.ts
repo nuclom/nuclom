@@ -137,6 +137,34 @@ export {
   getChannels,
   updateChannel,
 } from "./channel-repository";
+// Code Links Repository
+export type {
+  CodeLinksByArtifact,
+  CodeLinksRepositoryService,
+  CodeLinkWithVideo,
+  CreateCodeLinkInput,
+  UpdateCodeLinkInput,
+} from "./code-links-repository";
+export {
+  CodeLinksRepository,
+  CodeLinksRepositoryLive,
+  createCodeLink,
+  deleteCodeLink,
+  getCodeLinksByArtifact,
+  getCodeLinksForVideo,
+} from "./code-links-repository";
+// Code Reference Detector
+export type {
+  CodeReferenceDetectorConfig,
+  CodeReferenceDetectorInterface,
+  DetectionResult,
+} from "./code-reference-detector";
+export {
+  CodeReferenceDetector,
+  CodeReferenceDetectorLive,
+  detectCodeRefsInText,
+  detectCodeRefsInTranscript,
+} from "./code-reference-detector";
 // Comment Reactions Service
 export type {
   CommentReactionsServiceInterface,
@@ -201,6 +229,32 @@ export {
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
 } from "./email-notifications";
+// GitHub Service
+export type {
+  GitHubCommit,
+  GitHubConfig,
+  GitHubFile,
+  GitHubIssue,
+  GitHubPullRequest,
+  GitHubRepositoriesResponse,
+  GitHubRepository,
+  GitHubServiceInterface,
+  GitHubTokenResponse,
+  GitHubUserInfo,
+} from "./github";
+export {
+  exchangeGitHubCodeForToken,
+  GitHub,
+  GitHubLive,
+  getGitHubAuthorizationUrl,
+  getGitHubCommit,
+  getGitHubIssue,
+  getGitHubPullRequest,
+  getGitHubRepository,
+  getGitHubUserInfo,
+  listGitHubRepositories,
+  refreshGitHubAccessToken,
+} from "./github";
 // Google Meet Service
 export type {
   GoogleConfig,
