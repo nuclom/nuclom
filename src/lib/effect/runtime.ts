@@ -20,13 +20,11 @@ import { type Billing, BillingLive } from "./services/billing";
 import { type BillingRepository, BillingRepositoryLive } from "./services/billing-repository";
 import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
 import { type CodeLinksRepository, CodeLinksRepositoryLive } from "./services/code-links-repository";
-import { type CodeReferenceDetector, CodeReferenceDetectorLive } from "./services/code-reference-detector";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
-import { type DecisionRepository, DecisionRepositoryLive } from "./services/decision-repository";
 import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
-import { type GitHub, GitHubLive } from "./services/github";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
+import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from "./services/knowledge-graph-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
@@ -57,8 +55,6 @@ const BaseServicesLive = Layer.mergeAll(
   StripeServiceLive,
   TranslationLive,
   EmailNotificationsLive,
-  GitHubLive,
-  CodeReferenceDetectorLive,
 );
 
 // VideoProcessor depends on Storage - provide its dependency
@@ -77,7 +73,7 @@ const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(Databas
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const DecisionRepositoryWithDeps = DecisionRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const KnowledgeGraphRepositoryWithDeps = KnowledgeGraphRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
 const BillingWithDeps = BillingLive.pipe(
@@ -99,7 +95,7 @@ const AppServicesLive = Layer.mergeAll(
   SeriesRepositoryWithDeps,
   ChannelRepositoryWithDeps,
   CodeLinksRepositoryWithDeps,
-  DecisionRepositoryWithDeps,
+  KnowledgeGraphRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -126,12 +122,10 @@ export type AppServices =
   | SearchRepository
   | SeriesRepository
   | ChannelRepository
-  | DecisionRepository
+  | CodeLinksRepository
+  | KnowledgeGraphRepository
   | StripeServiceTag
-  | Translation
-  | GitHub
-  | CodeReferenceDetector
-  | CodeLinksRepository;
+  | Translation;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

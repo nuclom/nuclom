@@ -1,15 +1,13 @@
 import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { GitHubRepositoryInfo } from "@/lib/db/schema";
-import { CodeLinksRepository, CodeLinksRepositoryLive } from "@/lib/effect/services/code-links-repository";
+import { connection } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { GitHub, GitHubLive } from "@/lib/effect/services/github";
+import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 
-export const dynamic = "force-dynamic";
-
-const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const CallbackLayer = Layer.mergeAll(GitHubLive, CodeLinksRepositoryWithDeps, DatabaseLive);
+const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const CallbackLayer = Layer.mergeAll(GitHubLive, IntegrationRepositoryWithDeps, DatabaseLive);
 
 interface OAuthState {
   userId: string;
@@ -18,6 +16,7 @@ interface OAuthState {
 }
 
 export async function GET(request: Request) {
+  await connection();
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -26,102 +25,99 @@ export async function GET(request: Request) {
 
   // Handle OAuth errors
   if (error) {
-    console.error("[GitHub Context OAuth Error]", error, errorDescription);
-    return redirect("/settings/integrations?error=github_context_oauth_failed");
+    console.error("[GitHub OAuth Error]", error, errorDescription);
+    return redirect("/settings/integrations?error=github_oauth_failed");
   }
 
   if (!code || !state) {
-    return redirect("/settings/integrations?error=github_context_invalid_response");
+    return redirect("/settings/integrations?error=github_invalid_response");
   }
 
   // Verify state
   const cookieStore = await cookies();
-  const storedState = cookieStore.get("github_context_oauth_state")?.value;
+  const storedState = cookieStore.get("github_oauth_state")?.value;
 
   if (!storedState || storedState !== state) {
-    return redirect("/settings/integrations?error=github_context_state_mismatch");
+    return redirect("/settings/integrations?error=github_state_mismatch");
   }
 
   // Clear the state cookie
-  cookieStore.delete("github_context_oauth_state");
+  cookieStore.delete("github_oauth_state");
 
   // Parse state
   let parsedState: OAuthState;
   try {
     parsedState = JSON.parse(Buffer.from(state, "base64url").toString());
   } catch {
-    return redirect("/settings/integrations?error=github_context_invalid_state");
+    return redirect("/settings/integrations?error=github_invalid_state");
   }
 
   // Verify state is not too old (10 minutes)
   if (Date.now() - parsedState.timestamp > 600000) {
-    return redirect("/settings/integrations?error=github_context_state_expired");
+    return redirect("/settings/integrations?error=github_state_expired");
   }
 
   const { userId, organizationId } = parsedState;
 
-  // Exchange code for tokens and save GitHub connection
+  // Exchange code for tokens and save integration
   const effect = Effect.gen(function* () {
     const github = yield* GitHub;
-    const codeLinksRepo = yield* CodeLinksRepository;
+    const integrationRepo = yield* IntegrationRepository;
 
     // Exchange code for tokens
     const tokens = yield* github.exchangeCodeForToken(code);
 
-    // Get user info from GitHub (used for validation)
-    const _userInfo = yield* github.getUserInfo(tokens.access_token);
+    // Get user info from GitHub
+    const userInfo = yield* github.getUserInfo(tokens.access_token);
 
-    // List repositories accessible to the user
-    const repos = yield* github.listRepositories(tokens.access_token, {
-      type: "all",
-      sort: "updated",
-      per_page: 100,
-    });
+    // Get initial list of repositories
+    const reposResponse = yield* github.listRepositories(tokens.access_token, 1, 100);
 
-    // Map to our repository format
-    const repositoryInfo: GitHubRepositoryInfo[] = repos.map((repo) => ({
-      id: repo.id,
-      name: repo.name,
-      fullName: repo.full_name,
-      private: repo.private,
-      defaultBranch: repo.default_branch,
-      updatedAt: repo.updated_at,
-    }));
+    // Check if integration already exists
+    const existingIntegration = yield* integrationRepo.getIntegrationByProvider(userId, "github");
 
-    // Check if connection already exists
-    const existingConnection = yield* codeLinksRepo.getGitHubConnection(organizationId);
+    const metadata = {
+      login: userInfo.login,
+      email: userInfo.email ?? undefined,
+      avatarUrl: userInfo.avatar_url,
+      repositories: reposResponse.repositories.map((repo) => ({
+        id: repo.id,
+        fullName: repo.full_name,
+        private: repo.private,
+      })),
+    };
 
-    if (existingConnection) {
-      // Update existing connection
-      yield* codeLinksRepo.updateGitHubConnection(existingConnection.id, {
+    if (existingIntegration) {
+      // Update existing integration
+      yield* integrationRepo.updateIntegration(existingIntegration.id, {
         accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined,
-        repositories: repositoryInfo,
-        scopes: tokens.scope,
-        lastSyncAt: new Date(),
+        refreshToken: tokens.refresh_token ?? existingIntegration.refreshToken ?? undefined,
+        expiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined,
+        scope: tokens.scope,
+        metadata,
       });
     } else {
-      // Create new connection
-      yield* codeLinksRepo.createGitHubConnection({
+      // Create new integration
+      yield* integrationRepo.createIntegration({
+        userId,
         organizationId,
-        connectedByUserId: userId,
+        provider: "github",
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
-        tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined,
-        repositories: repositoryInfo,
-        scopes: tokens.scope,
+        expiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined,
+        scope: tokens.scope,
+        metadata,
       });
     }
 
-    return { success: true, repoCount: repositoryInfo.length };
+    return { success: true };
   });
 
   try {
-    const result = await Effect.runPromise(Effect.provide(effect, CallbackLayer));
-    return redirect(`/${organizationId}/settings/integrations?success=github_context&repos=${result.repoCount}`);
+    await Effect.runPromise(Effect.provide(effect, CallbackLayer));
+    return redirect(`/${organizationId}/settings/integrations?success=github`);
   } catch (err) {
-    console.error("[GitHub Context Callback Error]", err);
-    return redirect(`/${organizationId}/settings/integrations?error=github_context_callback_failed`);
+    console.error("[GitHub Callback Error]", err);
+    return redirect(`/${organizationId}/settings/integrations?error=github_callback_failed`);
   }
 }

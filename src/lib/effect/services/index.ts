@@ -139,48 +139,31 @@ export {
 } from "./channel-repository";
 // Code Links Repository
 export type {
+  CodeLinksByArtifact,
   CodeLinksRepositoryService,
   CodeLinkWithVideo,
   CreateCodeLinkInput,
-  CreateGitHubConnectionInput,
-  GitHubConnectionWithUser,
-  RepoContextSummary,
   UpdateCodeLinkInput,
-  UpdateGitHubConnectionInput,
 } from "./code-links-repository";
 export {
   CodeLinksRepository,
   CodeLinksRepositoryLive,
   createCodeLink,
-  createCodeLinksBatch,
-  createGitHubConnection,
   deleteCodeLink,
-  deleteGitHubConnection,
-  getCodeLink,
-  getCodeLinks,
-  getCodeLinksByRepo,
-  getGitHubConnection,
-  getRepoContextSummary,
-  getVideosByCodeArtifact,
-  searchCodeLinks,
-  syncGitHubRepositories,
-  updateCodeLink,
-  updateGitHubConnection,
+  getCodeLinksByArtifact,
+  getCodeLinksForVideo,
 } from "./code-links-repository";
 // Code Reference Detector
 export type {
-  CodeReferenceDetectorService,
-  CodeReferencePattern,
-  DetectedCodeReference,
-  DetectionOptions,
+  CodeReferenceDetectorConfig,
+  CodeReferenceDetectorInterface,
   DetectionResult,
 } from "./code-reference-detector";
 export {
   CodeReferenceDetector,
   CodeReferenceDetectorLive,
-  detectCodeReferencesInText,
-  detectCodeReferencesInTranscript,
-  generateCodeReferenceUrls,
+  detectCodeRefsInText,
+  detectCodeRefsInTranscript,
 } from "./code-reference-detector";
 // Comment Reactions Service
 export type {
@@ -227,24 +210,28 @@ export {
   query,
   transaction,
 } from "./database";
-// Decision Repository
+// Decision Extraction Service
 export type {
-  CreateDecisionInput,
-  CreateDecisionLinkInput,
-  CreateDecisionTagInput,
-  DecisionRepositoryService,
-  UpdateDecisionInput,
-} from "./decision-repository";
+  DecisionExtractionResult,
+  DecisionExtractionServiceInterface,
+  DecisionStatus as ExtractedDecisionStatus,
+  DecisionType as ExtractedDecisionType,
+  ExternalReference,
+  ExtractedDecision,
+  Participant,
+} from "./decision-extraction";
 export {
-  createDecision,
-  DecisionRepository,
-  DecisionRepositoryLive,
-  deleteDecision,
-  getDecisionById,
-  getDecisions,
-  searchDecisions,
-  updateDecision,
-} from "./decision-repository";
+  DecisionExtraction,
+  DecisionExtractionLive,
+  DecisionExtractionResultSchema,
+  DecisionStatusSchema,
+  DecisionTypeSchema,
+  ExternalReferenceSchema,
+  ExtractedDecisionSchema,
+  extractDecisionsFromSegments,
+  extractDecisionsFromTranscript,
+  ParticipantSchema,
+} from "./decision-extraction";
 // Email Notifications Service
 export type {
   CommentNotificationData,
@@ -264,14 +251,14 @@ export {
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
 } from "./email-notifications";
-// GitHub Context Integration Service
+// GitHub Service
 export type {
   GitHubCommit,
   GitHubConfig,
   GitHubFile,
-  GitHubFileContent,
   GitHubIssue,
   GitHubPullRequest,
+  GitHubRepositoriesResponse,
   GitHubRepository,
   GitHubServiceInterface,
   GitHubTokenResponse,
@@ -281,8 +268,8 @@ export {
   exchangeGitHubCodeForToken,
   GitHub,
   GitHubLive,
+  getGitHubAuthorizationUrl,
   getGitHubCommit,
-  getGitHubContextAuthorizationUrl,
   getGitHubIssue,
   getGitHubPullRequest,
   getGitHubRepository,
@@ -333,6 +320,19 @@ export {
   updateImportedMeeting,
   updateIntegration,
 } from "./integration-repository";
+// Knowledge Graph Repository
+export type {
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
+  GraphQueryOptions,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
+} from "./knowledge-graph-repository";
+export {
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
+} from "./knowledge-graph-repository";
 // Microsoft Teams Service
 export type {
   MicrosoftTeamsConfig,

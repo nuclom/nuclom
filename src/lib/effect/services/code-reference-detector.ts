@@ -1,242 +1,112 @@
 /**
  * Code Reference Detection Service using Effect-TS
  *
- * Detects code references (PRs, issues, commits, files) in video transcripts
- * and generates suggestions for linking videos to code artifacts.
+ * Analyzes video transcripts to automatically detect references to:
+ * - Pull requests (PR #123, pull request 123)
+ * - Issues (issue #456)
+ * - Commits (commit abc1234)
+ * - Files (user.ts, src/lib/auth.ts)
+ * - Modules/Services (the auth module, UserService class)
  */
 
 import { Context, Effect, Layer } from "effect";
-import type { CodeLinkType, TranscriptSegment } from "@/lib/db/schema";
+import type { DetectedCodeRef, TranscriptSegment } from "@/lib/db/schema";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-export interface DetectedCodeReference {
-  readonly type: CodeLinkType;
-  readonly reference: string;
-  readonly timestamp: number;
-  readonly timestampEnd?: number;
-  readonly confidence: number;
-  readonly rawMatch: string;
-  readonly suggestedRepo?: string;
-  readonly suggestedUrl?: string;
-}
-
-export interface CodeReferencePattern {
-  readonly pattern: RegExp;
-  readonly type: CodeLinkType;
-  readonly extractReference: (match: RegExpMatchArray) => string;
-  readonly baseConfidence: number;
-}
-
-export interface DetectionOptions {
-  readonly defaultRepo?: string;
-  readonly organizationRepos?: string[];
-  readonly minConfidence?: number;
+export interface CodeReferenceDetectorConfig {
+  readonly suggestedRepo?: string; // Default repo to suggest for detected refs
+  readonly minConfidence?: number; // Minimum confidence threshold (0-1)
 }
 
 export interface DetectionResult {
-  readonly references: DetectedCodeReference[];
-  readonly stats: {
-    readonly totalReferences: number;
-    readonly byType: Record<CodeLinkType, number>;
-    readonly averageConfidence: number;
+  readonly references: DetectedCodeRef[];
+  readonly metadata: {
+    readonly totalSegmentsAnalyzed: number;
+    readonly totalReferencesFound: number;
+    readonly detectionTimeMs: number;
   };
 }
 
 // =============================================================================
-// Code Reference Patterns
+// Code Patterns
 // =============================================================================
 
-const CODE_PATTERNS: CodeReferencePattern[] = [
-  // PR patterns - highest confidence
-  {
-    pattern: /\bPR\s*#?(\d+)\b/gi,
-    type: "pr",
-    extractReference: (match) => match[1],
-    baseConfidence: 95,
-  },
-  {
-    pattern: /\bpull\s+request\s*#?(\d+)\b/gi,
-    type: "pr",
-    extractReference: (match) => match[1],
-    baseConfidence: 98,
-  },
-  {
-    pattern: /\bmerge\s+request\s*#?(\d+)\b/gi,
-    type: "pr",
-    extractReference: (match) => match[1],
-    baseConfidence: 95,
-  },
-  // GitHub PR URL pattern
-  {
-    pattern: /github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)\/pull\/(\d+)/gi,
-    type: "pr",
-    extractReference: (match) => match[2],
-    baseConfidence: 100,
-  },
+const CODE_PATTERNS = {
+  // PR patterns: "PR 123", "PR #123", "pull request 123", "pull request #123"
+  pr: [/\bPR\s*#?(\d+)\b/gi, /\bpull\s*request\s*#?(\d+)\b/gi, /\bmerge\s*request\s*#?(\d+)\b/gi],
 
-  // Issue patterns
-  {
-    pattern: /\bissue\s*#?(\d+)\b/gi,
-    type: "issue",
-    extractReference: (match) => match[1],
-    baseConfidence: 90,
-  },
-  {
-    pattern: /\bbug\s*#?(\d+)\b/gi,
-    type: "issue",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
-  {
-    pattern: /\bticket\s*#?(\d+)\b/gi,
-    type: "issue",
-    extractReference: (match) => match[1],
-    baseConfidence: 80,
-  },
-  // GitHub Issue URL pattern
-  {
-    pattern: /github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)\/issues\/(\d+)/gi,
-    type: "issue",
-    extractReference: (match) => match[2],
-    baseConfidence: 100,
-  },
+  // Issue patterns: "issue 456", "issue #456", "bug #789"
+  issue: [/\bissue\s*#?(\d+)\b/gi, /\bbug\s*#?(\d+)\b/gi, /\bticket\s*#?(\d+)\b/gi, /\bfeature\s*#?(\d+)\b/gi],
 
-  // Commit patterns
-  {
-    pattern: /\bcommit\s+([a-f0-9]{7,40})\b/gi,
-    type: "commit",
-    extractReference: (match) => match[1],
-    baseConfidence: 95,
-  },
-  {
-    pattern: /\b([a-f0-9]{40})\b/g,
-    type: "commit",
-    extractReference: (match) => match[1],
-    baseConfidence: 70, // Lower confidence for bare SHA
-  },
-  {
-    pattern: /\bsha\s+([a-f0-9]{7,40})\b/gi,
-    type: "commit",
-    extractReference: (match) => match[1],
-    baseConfidence: 90,
-  },
-  // GitHub Commit URL pattern
-  {
-    pattern: /github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)\/commit\/([a-f0-9]{7,40})/gi,
-    type: "commit",
-    extractReference: (match) => match[2],
-    baseConfidence: 100,
-  },
+  // Commit patterns: "commit abc1234", "SHA abc1234f"
+  commit: [
+    /\bcommit\s+([a-f0-9]{7,40})\b/gi,
+    /\bsha\s+([a-f0-9]{7,40})\b/gi,
+    /\b([a-f0-9]{7,40})\b/gi, // Standalone SHA (lower confidence)
+  ],
 
-  // File patterns - look for common file extensions
-  {
-    pattern:
-      /\b([a-zA-Z_][a-zA-Z0-9_-]*\.(ts|tsx|js|jsx|py|go|rs|java|rb|cpp|c|h|hpp|swift|kt|scala|vue|svelte|astro))\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 70,
-  },
-  // File paths
-  {
-    pattern: /\b(src\/[a-zA-Z0-9_\-./]+\.[a-z]+)\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
-  {
-    pattern: /\b(lib\/[a-zA-Z0-9_\-./]+\.[a-z]+)\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
-  {
-    pattern: /\b(app\/[a-zA-Z0-9_\-./]+\.[a-z]+)\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
-  {
-    pattern: /\b(components\/[a-zA-Z0-9_\-./]+\.[a-z]+)\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
-  {
-    pattern: /\b(pages\/[a-zA-Z0-9_\-./]+\.[a-z]+)\b/g,
-    type: "file",
-    extractReference: (match) => match[1],
-    baseConfidence: 85,
-  },
+  // File patterns: "user.ts", "auth.py", "src/lib/utils.ts"
+  file: [
+    /\b([a-zA-Z_][a-zA-Z0-9_]*\.(ts|tsx|js|jsx|py|go|rs|java|rb|php|cs|cpp|c|h|hpp|swift|kt|scala|ex|exs|clj|vue|svelte|md|json|yaml|yml|toml|xml|html|css|scss|sass|less))\b/g,
+    /\b(src\/[a-zA-Z0-9_\-/]+\.[a-z]+)\b/g,
+    /\b(lib\/[a-zA-Z0-9_\-/]+\.[a-z]+)\b/g,
+    /\b(app\/[a-zA-Z0-9_\-/]+\.[a-z]+)\b/g,
+    /\b(components\/[a-zA-Z0-9_\-/]+\.[a-z]+)\b/g,
+  ],
 
-  // Directory patterns
-  {
-    pattern: /\b(src\/[a-zA-Z0-9_\-/]+)\b(?!\.)/g,
-    type: "directory",
-    extractReference: (match) => match[1],
-    baseConfidence: 60,
-  },
-  {
-    pattern: /\bthe\s+([a-zA-Z_][a-zA-Z0-9_-]+)\s+(module|service|component|class|folder|directory)\b/gi,
-    type: "directory",
-    extractReference: (match) => match[1],
-    baseConfidence: 50,
-  },
-];
+  // Module/service patterns: "the auth module", "UserService class"
+  module: [
+    /\bthe\s+(\w+)\s+(module|service|component|class|controller|middleware|handler|repository|provider)\b/gi,
+    /\b(\w+)(Service|Repository|Controller|Module|Component|Handler|Middleware|Provider)\b/g,
+  ],
+};
+
+// Confidence levels for different pattern types
+const CONFIDENCE_LEVELS: Record<string, number> = {
+  pr_explicit: 0.95, // "PR #123"
+  pr_text: 0.85, // "pull request 123"
+  issue_explicit: 0.95, // "issue #123"
+  issue_text: 0.85, // "bug 123"
+  commit_explicit: 0.9, // "commit abc1234"
+  commit_sha_only: 0.6, // Standalone SHA
+  file_path: 0.85, // "src/lib/auth.ts"
+  file_name: 0.7, // "auth.ts" (might be just mentioning)
+  module_explicit: 0.8, // "the auth module"
+  module_class: 0.75, // "UserService"
+};
 
 // =============================================================================
 // Code Reference Detector Interface
 // =============================================================================
 
-export interface CodeReferenceDetectorService {
+export interface CodeReferenceDetectorInterface {
   /**
-   * Detect code references in a transcript
-   */
-  readonly detectInTranscript: (
-    transcript: string,
-    segments?: TranscriptSegment[],
-    options?: DetectionOptions,
-  ) => Effect.Effect<DetectionResult, never>;
-
-  /**
-   * Detect code references in text with a known timestamp range
+   * Detect code references in transcript text
    */
   readonly detectInText: (
     text: string,
-    timestampStart: number,
-    timestampEnd?: number,
-    options?: DetectionOptions,
-  ) => Effect.Effect<DetectedCodeReference[], never>;
+    timestamp?: number,
+    config?: CodeReferenceDetectorConfig,
+  ) => Effect.Effect<DetectedCodeRef[], never>;
 
   /**
-   * Get all supported patterns
+   * Detect code references in transcript segments
    */
-  readonly getPatterns: () => CodeReferencePattern[];
+  readonly detectInTranscript: (
+    segments: TranscriptSegment[],
+    config?: CodeReferenceDetectorConfig,
+  ) => Effect.Effect<DetectionResult, never>;
 
   /**
-   * Validate a detected reference
+   * Detect code references in plain transcript text with timestamps
    */
-  readonly validateReference: (
-    reference: DetectedCodeReference,
-    options?: DetectionOptions,
-  ) => Effect.Effect<DetectedCodeReference, never>;
-
-  /**
-   * Deduplicate and merge overlapping references
-   */
-  readonly deduplicateReferences: (
-    references: DetectedCodeReference[],
-  ) => Effect.Effect<DetectedCodeReference[], never>;
-
-  /**
-   * Generate GitHub URLs for detected references
-   */
-  readonly generateUrls: (
-    references: DetectedCodeReference[],
-    repo: string,
-  ) => Effect.Effect<DetectedCodeReference[], never>;
+  readonly detectInTranscriptText: (
+    transcript: string,
+    config?: CodeReferenceDetectorConfig,
+  ) => Effect.Effect<DetectedCodeRef[], never>;
 }
 
 // =============================================================================
@@ -245,274 +115,218 @@ export interface CodeReferenceDetectorService {
 
 export class CodeReferenceDetector extends Context.Tag("CodeReferenceDetector")<
   CodeReferenceDetector,
-  CodeReferenceDetectorService
+  CodeReferenceDetectorInterface
 >() {}
 
 // =============================================================================
 // Code Reference Detector Implementation
 // =============================================================================
 
-const makeCodeReferenceDetector = Effect.gen(function* () {
+const makeCodeReferenceDetectorService = Effect.gen(function* () {
   const detectInText = (
     text: string,
-    timestampStart: number,
-    timestampEnd?: number,
-    options: DetectionOptions = {},
-  ): Effect.Effect<DetectedCodeReference[], never> =>
+    timestamp = 0,
+    config?: CodeReferenceDetectorConfig,
+  ): Effect.Effect<DetectedCodeRef[], never> =>
     Effect.sync(() => {
-      const references: DetectedCodeReference[] = [];
-      const minConfidence = options.minConfidence ?? 50;
+      const references: DetectedCodeRef[] = [];
+      const minConfidence = config?.minConfidence ?? 0.5;
+      const suggestedRepo = config?.suggestedRepo;
 
-      for (const pattern of CODE_PATTERNS) {
-        const regex = new RegExp(pattern.pattern.source, pattern.pattern.flags);
-        let match: RegExpExecArray | null = regex.exec(text);
+      // Detect PR references
+      for (const pattern of CODE_PATTERNS.pr) {
+        pattern.lastIndex = 0; // Reset regex state
+        for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
+          const isExplicit = match[0].toLowerCase().includes("pr");
+          const confidence = isExplicit ? CONFIDENCE_LEVELS.pr_explicit : CONFIDENCE_LEVELS.pr_text;
 
-        while (match !== null) {
-          const currentMatch = match;
-          match = regex.exec(text); // Get next match early for safe continue
-
-          const reference = pattern.extractReference(currentMatch);
-          let confidence = pattern.baseConfidence;
-
-          // Boost confidence if we have a default repo context
-          if (options.defaultRepo && pattern.type !== "file" && pattern.type !== "directory") {
-            confidence = Math.min(confidence + 5, 100);
-          }
-
-          // Boost confidence for explicit URL matches
-          if (currentMatch[0].includes("github.com")) {
-            confidence = 100;
-          }
-
-          // Skip if below minimum confidence
-          if (confidence < minConfidence) continue;
-
-          // Extract repo from GitHub URL if present
-          let suggestedRepo = options.defaultRepo;
-          let suggestedUrl: string | undefined;
-
-          if (currentMatch[0].includes("github.com/")) {
-            const repoMatch = currentMatch[0].match(/github\.com\/([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)/);
-            if (repoMatch) {
-              suggestedRepo = repoMatch[1];
-              suggestedUrl = currentMatch[0];
-            }
-          } else if (suggestedRepo) {
-            // Generate URL from repo
-            suggestedUrl = generateGitHubUrl(suggestedRepo, pattern.type, reference);
-          }
-
-          references.push({
-            type: pattern.type,
-            reference,
-            timestamp: timestampStart,
-            timestampEnd,
-            confidence,
-            rawMatch: currentMatch[0],
-            suggestedRepo,
-            suggestedUrl,
-          });
-        }
-      }
-
-      return references;
-    });
-
-  const detectInTranscript = (
-    transcript: string,
-    segments?: TranscriptSegment[],
-    options: DetectionOptions = {},
-  ): Effect.Effect<DetectionResult, never> =>
-    Effect.gen(function* () {
-      let allReferences: DetectedCodeReference[] = [];
-
-      if (segments && segments.length > 0) {
-        // Process each segment with its timestamp
-        for (const segment of segments) {
-          const refs = yield* detectInText(segment.text, segment.startTime, segment.endTime, options);
-          allReferences.push(...refs);
-        }
-      } else {
-        // Process entire transcript without segment timestamps
-        const refs = yield* detectInText(transcript, 0, undefined, options);
-        allReferences.push(...refs);
-      }
-
-      // Deduplicate
-      allReferences = yield* deduplicateReferences(allReferences);
-
-      // Calculate stats
-      const byType: Record<CodeLinkType, number> = {
-        pr: 0,
-        issue: 0,
-        commit: 0,
-        file: 0,
-        directory: 0,
-      };
-
-      for (const ref of allReferences) {
-        byType[ref.type]++;
-      }
-
-      const averageConfidence =
-        allReferences.length > 0 ? allReferences.reduce((sum, r) => sum + r.confidence, 0) / allReferences.length : 0;
-
-      return {
-        references: allReferences,
-        stats: {
-          totalReferences: allReferences.length,
-          byType,
-          averageConfidence,
-        },
-      };
-    });
-
-  const getPatterns = (): CodeReferencePattern[] => [...CODE_PATTERNS];
-
-  const validateReference = (
-    reference: DetectedCodeReference,
-    options: DetectionOptions = {},
-  ): Effect.Effect<DetectedCodeReference, never> =>
-    Effect.sync(() => {
-      let adjustedConfidence = reference.confidence;
-
-      // Validate PR/Issue numbers (usually reasonable range)
-      if ((reference.type === "pr" || reference.type === "issue") && reference.reference) {
-        const num = parseInt(reference.reference, 10);
-        if (num > 100000) {
-          adjustedConfidence -= 20; // Unusually high number
-        }
-      }
-
-      // Validate commit SHAs
-      if (reference.type === "commit") {
-        if (reference.reference.length < 7) {
-          adjustedConfidence -= 30; // Too short
-        }
-        if (!/^[a-f0-9]+$/.test(reference.reference)) {
-          adjustedConfidence = 0; // Invalid characters
-        }
-      }
-
-      // Validate file paths
-      if (reference.type === "file" || reference.type === "directory") {
-        // Check if repo list includes this path structure
-        if (options.organizationRepos && options.organizationRepos.length > 0) {
-          // Could enhance by checking if file matches known repo structure
-        }
-      }
-
-      return {
-        ...reference,
-        confidence: Math.max(0, Math.min(100, adjustedConfidence)),
-      };
-    });
-
-  const deduplicateReferences = (references: DetectedCodeReference[]): Effect.Effect<DetectedCodeReference[], never> =>
-    Effect.sync(() => {
-      const seen = new Map<string, DetectedCodeReference>();
-
-      for (const ref of references) {
-        const key = `${ref.type}:${ref.reference}:${ref.suggestedRepo || ""}`;
-
-        const existing = seen.get(key);
-        if (!existing || ref.confidence > existing.confidence) {
-          seen.set(key, ref);
-        } else if (ref.confidence === existing.confidence) {
-          // Merge timestamps to get the earliest occurrence
-          if (ref.timestamp < existing.timestamp) {
-            seen.set(key, {
-              ...existing,
-              timestamp: ref.timestamp,
+          if (confidence >= minConfidence) {
+            references.push({
+              type: "pr",
+              reference: match[1],
+              timestamp,
+              confidence,
+              suggestedRepo,
             });
           }
         }
       }
 
-      return Array.from(seen.values()).sort((a, b) => a.timestamp - b.timestamp);
+      // Detect issue references
+      for (const pattern of CODE_PATTERNS.issue) {
+        pattern.lastIndex = 0;
+        for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
+          const isExplicit = match[0].toLowerCase().includes("issue");
+          const confidence = isExplicit ? CONFIDENCE_LEVELS.issue_explicit : CONFIDENCE_LEVELS.issue_text;
+
+          if (confidence >= minConfidence) {
+            references.push({
+              type: "issue",
+              reference: match[1],
+              timestamp,
+              confidence,
+              suggestedRepo,
+            });
+          }
+        }
+      }
+
+      // Detect commit references
+      for (let i = 0; i < CODE_PATTERNS.commit.length; i++) {
+        const pattern = CODE_PATTERNS.commit[i];
+        pattern.lastIndex = 0;
+        for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
+          // Lower confidence for standalone SHAs (last pattern)
+          const confidence =
+            i < CODE_PATTERNS.commit.length - 1 ? CONFIDENCE_LEVELS.commit_explicit : CONFIDENCE_LEVELS.commit_sha_only;
+
+          if (confidence >= minConfidence) {
+            references.push({
+              type: "commit",
+              reference: match[1],
+              timestamp,
+              confidence,
+              suggestedRepo,
+            });
+          }
+        }
+      }
+
+      // Detect file references
+      for (let i = 0; i < CODE_PATTERNS.file.length; i++) {
+        const pattern = CODE_PATTERNS.file[i];
+        pattern.lastIndex = 0;
+        for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
+          // Higher confidence for full paths
+          const isPath = match[1].includes("/");
+          const confidence = isPath ? CONFIDENCE_LEVELS.file_path : CONFIDENCE_LEVELS.file_name;
+
+          if (confidence >= minConfidence) {
+            references.push({
+              type: "file",
+              reference: match[1],
+              timestamp,
+              confidence,
+              suggestedRepo,
+            });
+          }
+        }
+      }
+
+      // Detect module references
+      for (let i = 0; i < CODE_PATTERNS.module.length; i++) {
+        const pattern = CODE_PATTERNS.module[i];
+        pattern.lastIndex = 0;
+        for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
+          const isExplicit = match[0].toLowerCase().includes("the ");
+          const confidence = isExplicit ? CONFIDENCE_LEVELS.module_explicit : CONFIDENCE_LEVELS.module_class;
+
+          if (confidence >= minConfidence) {
+            const moduleName = match[1];
+            // Skip common words that aren't likely to be code references
+            const skipWords = ["the", "a", "an", "this", "that", "my", "your", "our"];
+            if (!skipWords.includes(moduleName.toLowerCase())) {
+              references.push({
+                type: "module",
+                reference: moduleName,
+                timestamp,
+                confidence,
+                suggestedRepo,
+              });
+            }
+          }
+        }
+      }
+
+      // Deduplicate references (same type + reference)
+      const uniqueRefs = new Map<string, DetectedCodeRef>();
+      for (const ref of references) {
+        const key = `${ref.type}:${ref.reference}`;
+        const existing = uniqueRefs.get(key);
+        if (!existing || ref.confidence > existing.confidence) {
+          uniqueRefs.set(key, ref);
+        }
+      }
+
+      return Array.from(uniqueRefs.values()).sort((a, b) => b.confidence - a.confidence);
     });
 
-  const generateUrls = (
-    references: DetectedCodeReference[],
-    repo: string,
-  ): Effect.Effect<DetectedCodeReference[], never> =>
-    Effect.sync(() =>
-      references.map((ref) => ({
-        ...ref,
-        suggestedRepo: ref.suggestedRepo || repo,
-        suggestedUrl: ref.suggestedUrl || generateGitHubUrl(repo, ref.type, ref.reference),
-      })),
-    );
+  const detectInTranscript = (
+    segments: TranscriptSegment[],
+    config?: CodeReferenceDetectorConfig,
+  ): Effect.Effect<DetectionResult, never> =>
+    Effect.sync(() => {
+      const startTime = Date.now();
+      const allReferences: DetectedCodeRef[] = [];
+
+      for (const segment of segments) {
+        const refs = Effect.runSync(detectInText(segment.text, segment.startTime, config));
+        allReferences.push(...refs);
+      }
+
+      // Deduplicate across segments (keep earliest timestamp for each ref)
+      const uniqueRefs = new Map<string, DetectedCodeRef>();
+      for (const ref of allReferences) {
+        const key = `${ref.type}:${ref.reference}`;
+        const existing = uniqueRefs.get(key);
+        if (!existing || ref.timestamp < existing.timestamp) {
+          uniqueRefs.set(key, ref);
+        }
+      }
+
+      const references = Array.from(uniqueRefs.values()).sort((a, b) => a.timestamp - b.timestamp);
+
+      return {
+        references,
+        metadata: {
+          totalSegmentsAnalyzed: segments.length,
+          totalReferencesFound: references.length,
+          detectionTimeMs: Date.now() - startTime,
+        },
+      };
+    });
+
+  const detectInTranscriptText = (
+    transcript: string,
+    config?: CodeReferenceDetectorConfig,
+  ): Effect.Effect<DetectedCodeRef[], never> =>
+    Effect.sync(() => {
+      // For plain text transcripts, detect references without timestamps
+      return Effect.runSync(detectInText(transcript, 0, config));
+    });
 
   return {
-    detectInTranscript,
     detectInText,
-    getPatterns,
-    validateReference,
-    deduplicateReferences,
-    generateUrls,
-  } satisfies CodeReferenceDetectorService;
+    detectInTranscript,
+    detectInTranscriptText,
+  } satisfies CodeReferenceDetectorInterface;
 });
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-function generateGitHubUrl(repo: string, type: CodeLinkType, reference: string): string {
-  const baseUrl = `https://github.com/${repo}`;
-
-  switch (type) {
-    case "pr":
-      return `${baseUrl}/pull/${reference}`;
-    case "issue":
-      return `${baseUrl}/issues/${reference}`;
-    case "commit":
-      return `${baseUrl}/commit/${reference}`;
-    case "file":
-      return `${baseUrl}/blob/main/${reference}`;
-    case "directory":
-      return `${baseUrl}/tree/main/${reference}`;
-    default:
-      return baseUrl;
-  }
-}
 
 // =============================================================================
 // Code Reference Detector Layer
 // =============================================================================
 
-export const CodeReferenceDetectorLive = Layer.effect(CodeReferenceDetector, makeCodeReferenceDetector);
+export const CodeReferenceDetectorLive = Layer.effect(CodeReferenceDetector, makeCodeReferenceDetectorService);
 
 // =============================================================================
-// Exported Helper Functions
+// Code Reference Detector Helper Functions
 // =============================================================================
 
-export const detectCodeReferencesInTranscript = (
-  transcript: string,
-  segments?: TranscriptSegment[],
-  options?: DetectionOptions,
+export const detectCodeRefsInText = (
+  text: string,
+  timestamp?: number,
+  config?: CodeReferenceDetectorConfig,
+): Effect.Effect<DetectedCodeRef[], never, CodeReferenceDetector> =>
+  Effect.gen(function* () {
+    const detector = yield* CodeReferenceDetector;
+    return yield* detector.detectInText(text, timestamp, config);
+  });
+
+export const detectCodeRefsInTranscript = (
+  segments: TranscriptSegment[],
+  config?: CodeReferenceDetectorConfig,
 ): Effect.Effect<DetectionResult, never, CodeReferenceDetector> =>
   Effect.gen(function* () {
     const detector = yield* CodeReferenceDetector;
-    return yield* detector.detectInTranscript(transcript, segments, options);
-  });
-
-export const detectCodeReferencesInText = (
-  text: string,
-  timestampStart: number,
-  timestampEnd?: number,
-  options?: DetectionOptions,
-): Effect.Effect<DetectedCodeReference[], never, CodeReferenceDetector> =>
-  Effect.gen(function* () {
-    const detector = yield* CodeReferenceDetector;
-    return yield* detector.detectInText(text, timestampStart, timestampEnd, options);
-  });
-
-export const generateCodeReferenceUrls = (
-  references: DetectedCodeReference[],
-  repo: string,
-): Effect.Effect<DetectedCodeReference[], never, CodeReferenceDetector> =>
-  Effect.gen(function* () {
-    const detector = yield* CodeReferenceDetector;
-    return yield* detector.generateUrls(references, repo);
+    return yield* detector.detectInTranscript(segments, config);
   });

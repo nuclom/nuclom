@@ -1,27 +1,27 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import type { CodeLinkType } from "@/lib/db/schema";
-import { CodeLinksRepository, CodeReferenceDetector, VideoRepository } from "@/lib/effect";
+import { Cause, Effect, Exit, Layer } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
+import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
+import type { CodeLinkType, DetectedCodeRef } from "@/lib/db/schema";
+import { CodeLinksRepository, NotFoundError, VideoRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { CodeReferenceDetector, CodeReferenceDetectorLive } from "@/lib/effect/services/code-reference-detector";
 
 // =============================================================================
-// Validation Schemas
-// =============================================================================
-
-const DetectOptionsSchema = Schema.Struct({
-  defaultRepo: Schema.optional(Schema.String),
-  minConfidence: Schema.optional(
-    Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(100)),
-  ),
-  autoSave: Schema.optional(Schema.Boolean),
-});
-
-// =============================================================================
-// POST /api/videos/[id]/detect-code-refs - Detect code references in transcript
+// POST /api/videos/[id]/detect-code-refs - Detect code references in video transcript
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // Parse options from request body (optional) - do this before the Effect
+  let suggestedRepo: string | undefined;
+  let autoLink = false;
+  try {
+    const body = await request.json();
+    suggestedRepo = body.suggestedRepo;
+    autoLink = body.autoLink === true;
+  } catch {
+    // No body or invalid JSON - that's fine, use defaults
+  }
+
   const effect = Effect.gen(function* () {
     // Authenticate user
     const authService = yield* Auth;
@@ -29,152 +29,133 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { id: videoId } = yield* Effect.promise(() => params);
 
-    // Parse options from request body with defaults
-    let options = { defaultRepo: undefined as string | undefined, minConfidence: 60, autoSave: false };
-    const bodyResult = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () => null, // Use defaults if body is empty or invalid
-    });
+    // Get the video with its transcript
+    const videoRepo = yield* VideoRepository;
+    const video = yield* videoRepo.getVideo(videoId);
 
-    if (bodyResult) {
-      const parseResult = Schema.decodeUnknownEither(DetectOptionsSchema)(bodyResult);
-      if (parseResult._tag === "Right") {
-        options = {
-          defaultRepo: parseResult.right.defaultRepo,
-          minConfidence: parseResult.right.minConfidence ?? 60,
-          autoSave: parseResult.right.autoSave ?? false,
-        };
+    if (!video) {
+      return yield* Effect.fail(
+        new NotFoundError({
+          message: "Video not found",
+          entity: "Video",
+          id: videoId,
+        }),
+      );
+    }
+
+    // Get the transcript - first try transcript segments, then fall back to raw transcript
+    const transcriptSegments = (video as { transcriptSegments?: unknown }).transcriptSegments;
+    const transcriptText = (video as { transcript?: string }).transcript;
+
+    if (!transcriptSegments && !transcriptText) {
+      return {
+        success: true,
+        data: {
+          videoId,
+          references: [],
+          message: "No transcript available for this video",
+        },
+      };
+    }
+
+    // Detect code references
+    const detector = yield* CodeReferenceDetector;
+
+    let references: DetectedCodeRef[] = [];
+    if (transcriptSegments && Array.isArray(transcriptSegments)) {
+      const result = yield* detector.detectInTranscript(transcriptSegments, {
+        suggestedRepo,
+        minConfidence: 0.6,
+      });
+      references = result.references;
+    } else if (transcriptText) {
+      references = yield* detector.detectInTranscriptText(transcriptText, {
+        suggestedRepo,
+        minConfidence: 0.6,
+      });
+    } else {
+      references = [];
+    }
+
+    // If autoLink is true and suggestedRepo is provided, create code links for high-confidence detections
+    let createdLinks: unknown[] = [];
+    if (autoLink && suggestedRepo && references.length > 0) {
+      const codeLinksRepo = yield* CodeLinksRepository;
+
+      // First, delete any existing auto-detected links for this video
+      yield* codeLinksRepo.deleteAutoDetectedLinks(videoId);
+
+      // Filter to only high-confidence references that can be linked (PR, issue, commit, file)
+      const linkableRefs = references.filter(
+        (ref) => ref.confidence >= 0.75 && ["pr", "issue", "commit", "file"].includes(ref.type) && ref.suggestedRepo,
+      );
+
+      if (linkableRefs.length > 0) {
+        const linksToCreate = linkableRefs.map((ref) => ({
+          videoId,
+          linkType: ref.type as CodeLinkType,
+          githubRepo: ref.suggestedRepo!,
+          githubRef: ref.reference,
+          githubUrl: generateGitHubUrl(ref.suggestedRepo!, ref.type as CodeLinkType, ref.reference),
+          context: `Auto-detected from transcript`,
+          autoDetected: true,
+          timestampStart: ref.timestamp,
+          createdById: user.id,
+        }));
+
+        createdLinks = yield* codeLinksRepo.createCodeLinks(linksToCreate);
       }
     }
 
-    // Get video with transcript
-    const videoRepo = yield* VideoRepository;
-    const video = yield* videoRepo.getVideo(videoId);
-
-    if (!video.transcript) {
-      return {
-        success: true,
-        data: {
-          references: [],
-          stats: {
-            totalReferences: 0,
-            byType: { pr: 0, issue: 0, commit: 0, file: 0, directory: 0 },
-            averageConfidence: 0,
-          },
-          message: "No transcript available for this video",
-        },
-      };
-    }
-
-    // Detect code references
-    const detector = yield* CodeReferenceDetector;
-    const result = yield* detector.detectInTranscript(video.transcript, video.transcriptSegments || undefined, {
-      defaultRepo: options.defaultRepo,
-      minConfidence: options.minConfidence,
-    });
-
-    // If autoSave is enabled, save the detected references as code links
-    if (options.autoSave && result.references.length > 0 && options.defaultRepo) {
-      const defaultRepo = options.defaultRepo; // Capture for type narrowing
-      const codeLinksRepo = yield* CodeLinksRepository;
-
-      // Generate URLs for references
-      const referencesWithUrls = yield* detector.generateUrls(result.references, defaultRepo);
-
-      // Create code links for each detected reference
-      const codeLinksToCreate = referencesWithUrls.map((ref) => ({
-        videoId,
-        linkType: ref.type as CodeLinkType,
-        githubRepo: ref.suggestedRepo || defaultRepo,
-        githubRef: ref.reference,
-        githubUrl: ref.suggestedUrl,
-        autoDetected: true,
-        confidence: Math.round(ref.confidence),
-        timestampStart: ref.timestamp,
-        timestampEnd: ref.timestampEnd,
-        createdByUserId: user.id,
-      }));
-
-      yield* codeLinksRepo.createCodeLinksBatch(codeLinksToCreate);
-
-      return {
-        success: true,
-        data: {
-          ...result,
-          saved: true,
-          savedCount: codeLinksToCreate.length,
-        },
-      };
-    }
-
     return {
       success: true,
-      data: result,
+      data: {
+        videoId,
+        references,
+        autoLinked: autoLink,
+        createdLinksCount: createdLinks.length,
+      },
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
+  // Add CodeReferenceDetectorLive to the layer
+  const FullLayerWithDetector = Layer.merge(createFullLayer(), CodeReferenceDetectorLive);
+  const runnable = Effect.provide(effect, FullLayerWithDetector);
   const exit = await Effect.runPromiseExit(runnable);
-  return handleEffectExit(exit);
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        return mapErrorToApiResponse(error.value);
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (data) => {
+      return NextResponse.json(data, { status: 200 });
+    },
+  });
 }
 
 // =============================================================================
-// GET /api/videos/[id]/detect-code-refs - Preview code references without saving
+// Helper Functions
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { searchParams } = new URL(request.url);
-  const defaultRepo = searchParams.get("defaultRepo") || undefined;
-  const minConfidence = Number.parseInt(searchParams.get("minConfidence") || "60", 10);
+function generateGitHubUrl(repo: string, type: CodeLinkType, ref: string): string {
+  const baseUrl = `https://github.com/${repo}`;
 
-  const effect = Effect.gen(function* () {
-    const { id: videoId } = yield* Effect.promise(() => params);
-
-    // Get video with transcript
-    const videoRepo = yield* VideoRepository;
-    const video = yield* videoRepo.getVideo(videoId);
-
-    if (!video.transcript) {
-      return {
-        success: true,
-        data: {
-          references: [],
-          stats: {
-            totalReferences: 0,
-            byType: { pr: 0, issue: 0, commit: 0, file: 0, directory: 0 },
-            averageConfidence: 0,
-          },
-          message: "No transcript available for this video",
-        },
-      };
-    }
-
-    // Detect code references
-    const detector = yield* CodeReferenceDetector;
-    const result = yield* detector.detectInTranscript(video.transcript, video.transcriptSegments || undefined, {
-      defaultRepo,
-      minConfidence,
-    });
-
-    // Generate URLs if we have a default repo
-    if (defaultRepo && result.references.length > 0) {
-      const referencesWithUrls = yield* detector.generateUrls(result.references, defaultRepo);
-      return {
-        success: true,
-        data: {
-          ...result,
-          references: referencesWithUrls,
-        },
-      };
-    }
-
-    return {
-      success: true,
-      data: result,
-    };
-  });
-
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-  return handleEffectExit(exit);
+  switch (type) {
+    case "pr":
+      return `${baseUrl}/pull/${ref}`;
+    case "issue":
+      return `${baseUrl}/issues/${ref}`;
+    case "commit":
+      return `${baseUrl}/commit/${ref}`;
+    case "file":
+      return `${baseUrl}/blob/main/${ref}`;
+    case "directory":
+      return `${baseUrl}/tree/main/${ref}`;
+    default:
+      return baseUrl;
+  }
 }

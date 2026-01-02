@@ -1,8 +1,8 @@
 /**
  * GitHub Integration Service using Effect-TS
  *
- * Provides type-safe GitHub API operations for repository access,
- * pull requests, issues, commits, and file information.
+ * Provides type-safe GitHub OAuth and API operations for accessing repositories,
+ * pull requests, issues, commits, and files.
  */
 
 import { Config, Context, Effect, Layer, Option } from "effect";
@@ -33,6 +33,7 @@ export interface GitHubUserInfo {
   readonly name: string | null;
   readonly email: string | null;
   readonly avatar_url: string;
+  readonly html_url: string;
 }
 
 export interface GitHubRepository {
@@ -40,10 +41,9 @@ export interface GitHubRepository {
   readonly name: string;
   readonly full_name: string;
   readonly private: boolean;
-  readonly default_branch: string;
-  readonly updated_at: string;
-  readonly description: string | null;
   readonly html_url: string;
+  readonly description: string | null;
+  readonly default_branch: string;
   readonly owner: {
     readonly login: string;
     readonly avatar_url: string;
@@ -54,22 +54,21 @@ export interface GitHubPullRequest {
   readonly id: number;
   readonly number: number;
   readonly title: string;
+  readonly body: string | null;
   readonly state: "open" | "closed";
-  readonly merged: boolean;
   readonly html_url: string;
-  readonly created_at: string;
-  readonly updated_at: string;
-  readonly merged_at: string | null;
   readonly user: {
     readonly login: string;
     readonly avatar_url: string;
   };
-  readonly body: string | null;
-  readonly base: {
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly merged_at: string | null;
+  readonly head: {
     readonly ref: string;
     readonly sha: string;
   };
-  readonly head: {
+  readonly base: {
     readonly ref: string;
     readonly sha: string;
   };
@@ -79,20 +78,20 @@ export interface GitHubIssue {
   readonly id: number;
   readonly number: number;
   readonly title: string;
+  readonly body: string | null;
   readonly state: "open" | "closed";
   readonly html_url: string;
-  readonly created_at: string;
-  readonly updated_at: string;
-  readonly closed_at: string | null;
   readonly user: {
     readonly login: string;
     readonly avatar_url: string;
   };
-  readonly body: string | null;
   readonly labels: Array<{
     readonly name: string;
     readonly color: string;
   }>;
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly closed_at: string | null;
 }
 
 export interface GitHubCommit {
@@ -122,14 +121,10 @@ export interface GitHubFile {
   readonly download_url: string | null;
 }
 
-export interface GitHubFileContent {
-  readonly name: string;
-  readonly path: string;
-  readonly sha: string;
-  readonly size: number;
-  readonly encoding: string;
-  readonly content: string;
-  readonly html_url: string;
+export interface GitHubRepositoriesResponse {
+  readonly repositories: GitHubRepository[];
+  readonly nextPage?: number;
+  readonly totalCount?: number;
 }
 
 // =============================================================================
@@ -143,9 +138,9 @@ export interface GitHubServiceInterface {
   readonly isConfigured: boolean;
 
   /**
-   * Get the OAuth authorization URL with extended scopes for repository access
+   * Get the OAuth authorization URL
    */
-  readonly getAuthorizationUrl: (state: string, scopes?: string[]) => Effect.Effect<string, never>;
+  readonly getAuthorizationUrl: (state: string) => Effect.Effect<string, never>;
 
   /**
    * Exchange authorization code for access token
@@ -153,27 +148,23 @@ export interface GitHubServiceInterface {
   readonly exchangeCodeForToken: (code: string) => Effect.Effect<GitHubTokenResponse, HttpError>;
 
   /**
-   * Refresh an access token (if refresh token is available)
+   * Refresh an access token (if using GitHub App)
    */
   readonly refreshAccessToken: (refreshToken: string) => Effect.Effect<GitHubTokenResponse, HttpError>;
 
   /**
-   * Get the authenticated user's info
+   * Get the current user's info
    */
   readonly getUserInfo: (accessToken: string) => Effect.Effect<GitHubUserInfo, HttpError>;
 
   /**
-   * List repositories accessible to the authenticated user
+   * List repositories the user has access to
    */
   readonly listRepositories: (
     accessToken: string,
-    options?: {
-      type?: "all" | "owner" | "public" | "private" | "member";
-      sort?: "created" | "updated" | "pushed" | "full_name";
-      per_page?: number;
-      page?: number;
-    },
-  ) => Effect.Effect<GitHubRepository[], HttpError>;
+    page?: number,
+    perPage?: number,
+  ) => Effect.Effect<GitHubRepositoriesResponse, HttpError>;
 
   /**
    * Get a specific repository
@@ -191,7 +182,7 @@ export interface GitHubServiceInterface {
     accessToken: string,
     owner: string,
     repo: string,
-    pullNumber: number,
+    prNumber: number,
   ) => Effect.Effect<GitHubPullRequest, HttpError>;
 
   /**
@@ -201,11 +192,8 @@ export interface GitHubServiceInterface {
     accessToken: string,
     owner: string,
     repo: string,
-    options?: {
-      state?: "open" | "closed" | "all";
-      per_page?: number;
-      page?: number;
-    },
+    state?: "open" | "closed" | "all",
+    page?: number,
   ) => Effect.Effect<GitHubPullRequest[], HttpError>;
 
   /**
@@ -225,25 +213,33 @@ export interface GitHubServiceInterface {
     accessToken: string,
     owner: string,
     repo: string,
-    options?: {
-      state?: "open" | "closed" | "all";
-      per_page?: number;
-      page?: number;
-    },
+    state?: "open" | "closed" | "all",
+    page?: number,
   ) => Effect.Effect<GitHubIssue[], HttpError>;
 
   /**
-   * Get a specific commit
+   * Get a commit
    */
   readonly getCommit: (
     accessToken: string,
     owner: string,
     repo: string,
-    commitSha: string,
+    sha: string,
   ) => Effect.Effect<GitHubCommit, HttpError>;
 
   /**
-   * Get file or directory contents
+   * List commits for a repository
+   */
+  readonly listCommits: (
+    accessToken: string,
+    owner: string,
+    repo: string,
+    page?: number,
+    sha?: string,
+  ) => Effect.Effect<GitHubCommit[], HttpError>;
+
+  /**
+   * Get repository contents (file or directory)
    */
   readonly getContents: (
     accessToken: string,
@@ -251,18 +247,30 @@ export interface GitHubServiceInterface {
     repo: string,
     path: string,
     ref?: string,
-  ) => Effect.Effect<GitHubFile | GitHubFile[] | GitHubFileContent, HttpError>;
+  ) => Effect.Effect<GitHubFile | GitHubFile[], HttpError>;
 
   /**
-   * Post a comment on a PR (for GitHub App integration)
+   * Search for code in repositories
    */
-  readonly postPRComment: (
+  readonly searchCode: (
     accessToken: string,
-    owner: string,
-    repo: string,
-    pullNumber: number,
-    body: string,
-  ) => Effect.Effect<void, HttpError>;
+    query: string,
+    page?: number,
+  ) => Effect.Effect<
+    {
+      items: Array<{
+        name: string;
+        path: string;
+        sha: string;
+        html_url: string;
+        repository: {
+          full_name: string;
+        };
+      }>;
+      total_count: number;
+    },
+    HttpError
+  >;
 }
 
 // =============================================================================
@@ -275,11 +283,11 @@ export class GitHub extends Context.Tag("GitHub")<GitHub, GitHubServiceInterface
 // GitHub Configuration
 // =============================================================================
 
-const GITHUB_API_BASE = "https://api.github.com";
 const GITHUB_AUTH_BASE = "https://github.com";
+const GITHUB_API_BASE = "https://api.github.com";
 
-// Default scopes for repository context integration
-const DEFAULT_SCOPES = ["read:user", "repo", "read:org"];
+// Scopes needed for GitHub repository access
+const GITHUB_SCOPES = ["read:user", "user:email", "repo", "read:org"].join(" ");
 
 const GitHubConfigEffect = Config.all({
   clientId: Config.string("GITHUB_CLIENT_ID").pipe(Config.option),
@@ -306,7 +314,7 @@ const makeGitHubService = Effect.gen(function* () {
     };
   };
 
-  const getAuthorizationUrl = (state: string, scopes: string[] = DEFAULT_SCOPES): Effect.Effect<string, never> =>
+  const getAuthorizationUrl = (state: string): Effect.Effect<string, never> =>
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
@@ -316,8 +324,9 @@ const makeGitHubService = Effect.gen(function* () {
       const params = new URLSearchParams({
         client_id: cfg.clientId,
         redirect_uri: cfg.redirectUri,
-        scope: scopes.join(" "),
+        scope: GITHUB_SCOPES,
         state,
+        allow_signup: "false",
       });
 
       return `${GITHUB_AUTH_BASE}/login/oauth/authorize?${params.toString()}`;
@@ -356,13 +365,12 @@ const makeGitHubService = Effect.gen(function* () {
             throw new Error(`GitHub token exchange failed: ${res.status} - ${error}`);
           }
 
-          const data = (await res.json()) as GitHubTokenResponse | { error: string; error_description: string };
-
-          if ("error" in data) {
-            throw new Error(`GitHub token exchange failed: ${data.error_description}`);
+          const data = await res.json();
+          if (data.error) {
+            throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
           }
 
-          return data;
+          return data as GitHubTokenResponse;
         },
         catch: (error) =>
           new HttpError({
@@ -407,13 +415,12 @@ const makeGitHubService = Effect.gen(function* () {
             throw new Error(`GitHub token refresh failed: ${res.status} - ${error}`);
           }
 
-          const data = (await res.json()) as GitHubTokenResponse | { error: string; error_description: string };
-
-          if ("error" in data) {
-            throw new Error(`GitHub token refresh failed: ${data.error_description}`);
+          const data = await res.json();
+          if (data.error) {
+            throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
           }
 
-          return data;
+          return data as GitHubTokenResponse;
         },
         catch: (error) =>
           new HttpError({
@@ -452,20 +459,17 @@ const makeGitHubService = Effect.gen(function* () {
 
   const listRepositories = (
     accessToken: string,
-    options: {
-      type?: "all" | "owner" | "public" | "private" | "member";
-      sort?: "created" | "updated" | "pushed" | "full_name";
-      per_page?: number;
-      page?: number;
-    } = {},
-  ): Effect.Effect<GitHubRepository[], HttpError> =>
+    page = 1,
+    perPage = 30,
+  ): Effect.Effect<GitHubRepositoriesResponse, HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          type: options.type || "all",
-          sort: options.sort || "updated",
-          per_page: (options.per_page || 100).toString(),
-          page: (options.page || 1).toString(),
+          type: "all",
+          sort: "updated",
+          direction: "desc",
+          per_page: perPage.toString(),
+          page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/user/repos?${params.toString()}`, {
@@ -481,7 +485,22 @@ const makeGitHubService = Effect.gen(function* () {
           throw new Error(`GitHub API error: ${res.status} - ${error}`);
         }
 
-        return res.json() as Promise<GitHubRepository[]>;
+        const repositories = (await res.json()) as GitHubRepository[];
+
+        // Check for pagination
+        const linkHeader = res.headers.get("Link");
+        let nextPage: number | undefined;
+        if (linkHeader?.includes('rel="next"')) {
+          const match = linkHeader.match(/page=(\d+)>; rel="next"/);
+          if (match) {
+            nextPage = parseInt(match[1], 10);
+          }
+        }
+
+        return {
+          repositories,
+          nextPage,
+        };
       },
       catch: (error) =>
         new HttpError({
@@ -523,11 +542,11 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    pullNumber: number,
+    prNumber: number,
   ): Effect.Effect<GitHubPullRequest, HttpError> =>
     Effect.tryPromise({
       try: async () => {
-        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls/${pullNumber}`, {
+        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/vnd.github+json",
@@ -553,18 +572,17 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    options: {
-      state?: "open" | "closed" | "all";
-      per_page?: number;
-      page?: number;
-    } = {},
+    state: "open" | "closed" | "all" = "open",
+    page = 1,
   ): Effect.Effect<GitHubPullRequest[], HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          state: options.state || "all",
-          per_page: (options.per_page || 30).toString(),
-          page: (options.page || 1).toString(),
+          state,
+          sort: "updated",
+          direction: "desc",
+          per_page: "30",
+          page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls?${params.toString()}`, {
@@ -623,18 +641,17 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    options: {
-      state?: "open" | "closed" | "all";
-      per_page?: number;
-      page?: number;
-    } = {},
+    state: "open" | "closed" | "all" = "open",
+    page = 1,
   ): Effect.Effect<GitHubIssue[], HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          state: options.state || "all",
-          per_page: (options.per_page || 30).toString(),
-          page: (options.page || 1).toString(),
+          state,
+          sort: "updated",
+          direction: "desc",
+          per_page: "30",
+          page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/issues?${params.toString()}`, {
@@ -663,11 +680,11 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    commitSha: string,
+    sha: string,
   ): Effect.Effect<GitHubCommit, HttpError> =>
     Effect.tryPromise({
       try: async () => {
-        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits/${commitSha}`, {
+        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits/${sha}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/vnd.github+json",
@@ -689,17 +706,24 @@ const makeGitHubService = Effect.gen(function* () {
         }),
     });
 
-  const getContents = (
+  const listCommits = (
     accessToken: string,
     owner: string,
     repo: string,
-    path: string,
-    ref?: string,
-  ): Effect.Effect<GitHubFile | GitHubFile[] | GitHubFileContent, HttpError> =>
+    page = 1,
+    sha?: string,
+  ): Effect.Effect<GitHubCommit[], HttpError> =>
     Effect.tryPromise({
       try: async () => {
-        const params = ref ? `?ref=${encodeURIComponent(ref)}` : "";
-        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}${params}`, {
+        const params = new URLSearchParams({
+          per_page: "30",
+          page: page.toString(),
+        });
+        if (sha) {
+          params.set("sha", sha);
+        }
+
+        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/vnd.github+json",
@@ -712,7 +736,44 @@ const makeGitHubService = Effect.gen(function* () {
           throw new Error(`GitHub API error: ${res.status} - ${error}`);
         }
 
-        return res.json() as Promise<GitHubFile | GitHubFile[] | GitHubFileContent>;
+        return res.json() as Promise<GitHubCommit[]>;
+      },
+      catch: (error) =>
+        new HttpError({
+          message: `Failed to list commits: ${error instanceof Error ? error.message : "Unknown error"}`,
+          status: 500,
+        }),
+    });
+
+  const getContents = (
+    accessToken: string,
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+  ): Effect.Effect<GitHubFile | GitHubFile[], HttpError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const params = new URLSearchParams();
+        if (ref) {
+          params.set("ref", ref);
+        }
+
+        const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}${params.toString() ? `?${params.toString()}` : ""}`;
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`GitHub API error: ${res.status} - ${error}`);
+        }
+
+        return res.json() as Promise<GitHubFile | GitHubFile[]>;
       },
       catch: (error) =>
         new HttpError({
@@ -721,34 +782,51 @@ const makeGitHubService = Effect.gen(function* () {
         }),
     });
 
-  const postPRComment = (
+  const searchCode = (
     accessToken: string,
-    owner: string,
-    repo: string,
-    pullNumber: number,
-    body: string,
-  ): Effect.Effect<void, HttpError> =>
+    query: string,
+    page = 1,
+  ): Effect.Effect<
+    {
+      items: Array<{
+        name: string;
+        path: string;
+        sha: string;
+        html_url: string;
+        repository: {
+          full_name: string;
+        };
+      }>;
+      total_count: number;
+    },
+    HttpError
+  > =>
     Effect.tryPromise({
       try: async () => {
-        const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${pullNumber}/comments`, {
-          method: "POST",
+        const params = new URLSearchParams({
+          q: query,
+          per_page: "30",
+          page: page.toString(),
+        });
+
+        const res = await fetch(`${GITHUB_API_BASE}/search/code?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
-            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ body }),
         });
 
         if (!res.ok) {
           const error = await res.text();
           throw new Error(`GitHub API error: ${res.status} - ${error}`);
         }
+
+        return res.json();
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to post PR comment: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to search code: ${error instanceof Error ? error.message : "Unknown error"}`,
           status: 500,
         }),
     });
@@ -766,8 +844,9 @@ const makeGitHubService = Effect.gen(function* () {
     getIssue,
     listIssues,
     getCommit,
+    listCommits,
     getContents,
-    postPRComment,
+    searchCode,
   } satisfies GitHubServiceInterface;
 });
 
@@ -781,13 +860,10 @@ export const GitHubLive = Layer.effect(GitHub, makeGitHubService);
 // GitHub Helper Functions
 // =============================================================================
 
-export const getGitHubContextAuthorizationUrl = (
-  state: string,
-  scopes?: string[],
-): Effect.Effect<string, never, GitHub> =>
+export const getGitHubAuthorizationUrl = (state: string): Effect.Effect<string, never, GitHub> =>
   Effect.gen(function* () {
     const github = yield* GitHub;
-    return yield* github.getAuthorizationUrl(state, scopes);
+    return yield* github.getAuthorizationUrl(state);
   });
 
 export const exchangeGitHubCodeForToken = (code: string): Effect.Effect<GitHubTokenResponse, HttpError, GitHub> =>
@@ -810,16 +886,12 @@ export const getGitHubUserInfo = (accessToken: string): Effect.Effect<GitHubUser
 
 export const listGitHubRepositories = (
   accessToken: string,
-  options?: {
-    type?: "all" | "owner" | "public" | "private" | "member";
-    sort?: "created" | "updated" | "pushed" | "full_name";
-    per_page?: number;
-    page?: number;
-  },
-): Effect.Effect<GitHubRepository[], HttpError, GitHub> =>
+  page?: number,
+  perPage?: number,
+): Effect.Effect<GitHubRepositoriesResponse, HttpError, GitHub> =>
   Effect.gen(function* () {
     const github = yield* GitHub;
-    return yield* github.listRepositories(accessToken, options);
+    return yield* github.listRepositories(accessToken, page, perPage);
   });
 
 export const getGitHubRepository = (
@@ -836,11 +908,11 @@ export const getGitHubPullRequest = (
   accessToken: string,
   owner: string,
   repo: string,
-  pullNumber: number,
+  prNumber: number,
 ): Effect.Effect<GitHubPullRequest, HttpError, GitHub> =>
   Effect.gen(function* () {
     const github = yield* GitHub;
-    return yield* github.getPullRequest(accessToken, owner, repo, pullNumber);
+    return yield* github.getPullRequest(accessToken, owner, repo, prNumber);
   });
 
 export const getGitHubIssue = (
@@ -858,9 +930,9 @@ export const getGitHubCommit = (
   accessToken: string,
   owner: string,
   repo: string,
-  commitSha: string,
+  sha: string,
 ): Effect.Effect<GitHubCommit, HttpError, GitHub> =>
   Effect.gen(function* () {
     const github = yield* GitHub;
-    return yield* github.getCommit(accessToken, owner, repo, commitSha);
+    return yield* github.getCommit(accessToken, owner, repo, sha);
   });

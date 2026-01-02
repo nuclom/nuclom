@@ -1,16 +1,13 @@
 import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { auth } from "@/lib/auth";
 import { GitHub, GitHubLive } from "@/lib/effect/services/github";
 import { env } from "@/lib/env/server";
 
-export const dynamic = "force-dynamic";
-
-// Extended scopes for GitHub Context Integration
-const GITHUB_CONTEXT_SCOPES = ["read:user", "repo", "read:org"];
-
 export async function GET(request: Request) {
+  await connection();
   const { searchParams } = new URL(request.url);
   const organizationId = searchParams.get("organizationId");
 
@@ -38,7 +35,7 @@ export async function GET(request: Request) {
 
   // Store state in a cookie for verification
   const cookieStore = await cookies();
-  cookieStore.set("github_context_oauth_state", state, {
+  cookieStore.set("github_oauth_state", state, {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "lax",
@@ -46,10 +43,10 @@ export async function GET(request: Request) {
     path: "/",
   });
 
-  // Get authorization URL with extended scopes
+  // Get authorization URL
   const effect = Effect.gen(function* () {
     const github = yield* GitHub;
-    return yield* github.getAuthorizationUrl(state, GITHUB_CONTEXT_SCOPES);
+    return yield* github.getAuthorizationUrl(state);
   });
 
   const authUrl = await Effect.runPromise(Effect.provide(effect, GitHubLive));

@@ -1,70 +1,78 @@
-import { Effect, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import { Effect } from "effect";
+import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import type { CodeLinkType } from "@/lib/db/schema";
 import { CodeLinksRepository } from "@/lib/effect";
-
-// =============================================================================
-// Validation Schemas
-// =============================================================================
-
-const QuerySchema = Schema.Struct({
-  repo: Schema.String.pipe(Schema.minLength(1)),
-  type: Schema.optional(Schema.Literal("pr", "issue", "commit", "file", "directory")),
-  ref: Schema.optional(Schema.String),
-  limit: Schema.optional(
-    Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)),
-  ),
-  offset: Schema.optional(Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-});
 
 // =============================================================================
 // GET /api/code-context - Get videos linked to a code artifact
 // =============================================================================
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-
-  const queryParams = {
-    repo: searchParams.get("repo"),
-    type: searchParams.get("type") || undefined,
-    ref: searchParams.get("ref") || undefined,
-    limit: searchParams.get("limit") || undefined,
-    offset: searchParams.get("offset") || undefined,
-  };
-
-  const parseResult = Schema.decodeUnknownEither(QuerySchema)(queryParams);
-  if (parseResult._tag === "Left") {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Validation error",
-      },
-      { status: 400 },
-    );
-  }
-
-  const { repo, type, ref, limit = 20, offset = 0 } = parseResult.right;
-
   const effect = Effect.gen(function* () {
+    const { searchParams } = new URL(request.url);
+    const repo = searchParams.get("repo");
+    const type = searchParams.get("type") as CodeLinkType | null;
+    const ref = searchParams.get("ref");
+
+    // Validate required parameters
+    if (!repo) {
+      return yield* Effect.fail({
+        _tag: "ValidationError" as const,
+        message: "repo query parameter is required (format: owner/repo)",
+      });
+    }
+
+    if (!type) {
+      return yield* Effect.fail({
+        _tag: "ValidationError" as const,
+        message: "type query parameter is required (pr, issue, commit, file, directory)",
+      });
+    }
+
+    if (!ref) {
+      return yield* Effect.fail({
+        _tag: "ValidationError" as const,
+        message: "ref query parameter is required (PR number, commit SHA, or file path)",
+      });
+    }
+
+    // Validate type
+    const validTypes: CodeLinkType[] = ["pr", "issue", "commit", "file", "directory"];
+    if (!validTypes.includes(type)) {
+      return yield* Effect.fail({
+        _tag: "ValidationError" as const,
+        message: `Invalid type. Must be one of: ${validTypes.join(", ")}`,
+      });
+    }
+
+    // Get code links for the artifact
     const codeLinksRepo = yield* CodeLinksRepository;
+    const result = yield* codeLinksRepo.getCodeLinksByArtifact(repo, type, ref);
 
-    // Get code links for the repository
-    const codeLinks = yield* codeLinksRepo.getCodeLinksByRepo(repo, {
-      type: type as CodeLinkType | undefined,
-      ref,
-      limit,
-      offset,
-    });
-
-    // Get repository context summary
-    const summary = yield* codeLinksRepo.getRepoContextSummary(repo);
+    // Format the response with video information
+    const videos = result.links.map((link) => ({
+      videoId: link.videoId,
+      videoTitle: link.video.title,
+      thumbnailUrl: link.video.thumbnailUrl,
+      duration: link.video.duration,
+      organizationId: link.video.organizationId,
+      timestamp: link.timestampStart,
+      timestampEnd: link.timestampEnd,
+      context: link.context,
+      autoDetected: link.autoDetected,
+      createdAt: link.createdAt,
+      createdBy: link.createdBy,
+    }));
 
     return {
       success: true,
       data: {
-        codeLinks,
-        summary,
+        repo,
+        type,
+        ref,
+        videos,
+        totalCount: result.totalCount,
       },
     };
   });
