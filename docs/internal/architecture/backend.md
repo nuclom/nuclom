@@ -150,3 +150,47 @@ All API responses and database models are fully typed:
 - API routes return standardized error responses
 - Client-side hooks handle loading and error states
 - Graceful fallbacks for offline/error scenarios
+
+## API Route Patterns
+
+### Dynamic Route Rendering
+
+**Important**: API routes that access the database or require authentication must call `await connection()` at the start of the handler to prevent static generation during builds.
+
+```typescript
+import { connection, type NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+
+export async function GET(request: NextRequest) {
+  await connection(); // Required: prevents static generation
+
+  // Your route logic here...
+  const data = await db.query.videos.findMany();
+  return NextResponse.json(data);
+}
+```
+
+**Why this is needed**: Next.js attempts to statically generate API routes during the build process. Routes that access databases, require authentication, or need request-specific data will fail during static generation because these resources aren't available at build time.
+
+**Important**: Do NOT use `export const dynamic = "force-dynamic"` as this pattern no longer works correctly on Vercel deployments. The `await connection()` pattern is the recommended approach.
+
+### Effect-TS Routes
+
+For routes using Effect-TS, add `await connection()` before running the Effect:
+
+```typescript
+import { Effect } from "effect";
+import { connection, type NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  await connection(); // Required: prevents static generation
+
+  const effect = Effect.gen(function* () {
+    // Your Effect logic here...
+  });
+
+  const runnable = Effect.provide(effect, AppLive);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
+}
+```

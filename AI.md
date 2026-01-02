@@ -51,19 +51,24 @@ src/
 
 ### API Routes
 
-API routes use Effect-TS for type-safe error handling. Pattern:
+API routes use Effect-TS for type-safe error handling. **All API routes that access the database or authentication must call `await connection()` at the start of the handler.**
 
 ```typescript
-// src/lib/openapi/endpoints.ts defines route handlers
-export const getVideo = createRoute({...})
-
-// Use Effect for async operations with proper error handling
 import { Effect } from "effect"
+import { connection, type NextRequest, NextResponse } from "next/server"
 
-const result = await Effect.runPromise(
-  Effect.tryPromise(() => db.query.videos.findFirst({...}))
-)
+export async function GET(request: NextRequest) {
+  await connection() // Required: prevents static generation during builds
+
+  // Use Effect for async operations with proper error handling
+  const result = await Effect.runPromise(
+    Effect.tryPromise(() => db.query.videos.findFirst({...}))
+  )
+  return NextResponse.json(result)
+}
 ```
+
+> **Important**: Do NOT use `export const dynamic = "force-dynamic"` - this pattern no longer works on Vercel deployments. Always use `await connection()` instead.
 
 ### Database Queries
 
