@@ -1,5 +1,5 @@
 import { eq, sql } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { videoShareLinks, videos, videoViews } from "@/lib/db/schema";
 
@@ -8,6 +8,8 @@ import { videoShareLinks, videos, videoViews } from "@/lib/db/schema";
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await connection();
+
   const { id } = await params;
 
   try {

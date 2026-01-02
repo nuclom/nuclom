@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import type { NextRequest } from "next/server";
+import { connection } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import type { CodeLinkType } from "@/lib/db/schema";
 import { CodeLinksRepository } from "@/lib/effect";
@@ -9,6 +10,8 @@ import { CodeLinksRepository } from "@/lib/effect";
 // =============================================================================
 
 export async function GET(request: NextRequest) {
+  await connection();
+
   const effect = Effect.gen(function* () {
     const { searchParams } = new URL(request.url);
     const repo = searchParams.get("repo");

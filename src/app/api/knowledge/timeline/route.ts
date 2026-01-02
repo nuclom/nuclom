@@ -1,5 +1,5 @@
 import { Cause, Effect, Exit, Layer, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { auth } from "@/lib/auth";
@@ -29,6 +29,8 @@ const getTimelineQuerySchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest) {
+  await connection();
+
   const AuthLayer = makeAuthLayer(auth);
   const FullLayer = Layer.merge(AppLive, AuthLayer);
 
