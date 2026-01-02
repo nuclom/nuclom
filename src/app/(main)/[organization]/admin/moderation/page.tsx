@@ -15,7 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/auth/auth-guard";
 import {
   AlertDialog,
@@ -539,10 +539,26 @@ function ModerationDashboard() {
   );
 }
 
+function ModerationSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="h-8 w-64 bg-muted rounded animate-pulse" />
+        <div className="h-4 w-96 bg-muted rounded animate-pulse mt-2" />
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    </div>
+  );
+}
+
 export default function ModerationPage() {
   return (
     <RequireAuth>
-      <ModerationDashboard />
+      <Suspense fallback={<ModerationSkeleton />}>
+        <ModerationDashboard />
+      </Suspense>
     </RequireAuth>
   );
 }

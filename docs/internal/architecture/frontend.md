@@ -489,6 +489,57 @@ export default {
 
 ## Performance Optimizations
 
+### Partial Prerendering (PPR)
+
+Nuclom uses Next.js Partial Prerendering to combine static and dynamic rendering in the same route. PPR is enabled globally via `cacheComponents` in `next.config.ts`:
+
+```typescript
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  // ... other config
+};
+```
+
+#### How PPR Works
+
+PPR allows the static shell of a page to be served instantly from the CDN, while dynamic content streams in progressively:
+
+1. **Static Shell**: Layout, navigation, and skeleton UI are prerendered at build time
+2. **Dynamic Holes**: Content wrapped in `<Suspense>` boundaries streams in after the initial load
+3. **Instant TTFB**: Users see the page structure immediately
+
+#### PPR in Practice
+
+```typescript
+// Dashboard page with PPR
+export default async function DashboardPage() {
+  return (
+    <div className="space-y-8">
+      {/* Static: Hero section can be prerendered */}
+      <DashboardHero />
+
+      {/* Dynamic: Video content streams in */}
+      <Suspense fallback={<VideoGridSkeleton />}>
+        <DynamicVideoContent />
+      </Suspense>
+
+      {/* Dynamic: Personalized activity feed */}
+      <Suspense fallback={<ActivitySkeleton />}>
+        <ActivityFeed />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+#### Best Practices
+
+- Wrap all data-fetching components in `<Suspense>` boundaries
+- Use skeleton components that match the layout of actual content
+- Keep the static shell minimal for fastest TTFB
+- Nest Suspense boundaries for granular loading states
+- Combine with loading.tsx files for route-level fallbacks
+
 ### Code Splitting
 
 ```typescript

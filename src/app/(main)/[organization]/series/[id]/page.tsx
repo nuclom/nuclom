@@ -1,13 +1,28 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/lib/auth";
 import { getCachedOrganizationBySlug, getCachedSeriesProgress, getCachedSeriesWithVideos } from "@/lib/effect";
 import type { SeriesProgressWithDetails, SeriesWithVideos } from "@/lib/types";
 import { SeriesDetailClient } from "./series-detail-client";
 
-export default async function SeriesDetailPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization, id } = await params;
+function SeriesDetailSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Skeleton className="h-48 w-full rounded-lg" />
+      <Skeleton className="h-9 w-64" />
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={`skeleton-${i}`} className="h-20 w-full rounded-lg" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
+async function SeriesDetailLoader({ params }: { params: Promise<{ organization: string; id: string }> }) {
+  const { organization, id } = await params;
   // Get the current user session
   const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
@@ -50,5 +65,13 @@ export default async function SeriesDetailPage({ params }: { params: Promise<{ o
       series={seriesData}
       progress={progressData}
     />
+  );
+}
+
+export default function SeriesDetailPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
+  return (
+    <Suspense fallback={<SeriesDetailSkeleton />}>
+      <SeriesDetailLoader params={params} />
+    </Suspense>
   );
 }

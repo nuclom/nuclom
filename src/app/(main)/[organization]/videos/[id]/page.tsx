@@ -670,16 +670,24 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
 // =============================================================================
 
 interface VideoLoaderProps {
-  videoId: string;
-  organizationSlug: string;
-  currentUser?: {
-    id: string;
-    name?: string | null;
-    image?: string | null;
-  };
+  params: Promise<{ organization: string; id: string }>;
 }
 
-async function VideoLoader({ videoId, organizationSlug, currentUser }: VideoLoaderProps) {
+async function VideoLoader({ params }: VideoLoaderProps) {
+  const { organization: organizationSlug, id: videoId } = await params;
+  // Get current user session (optional - allows anonymous viewing)
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const currentUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image,
+      }
+    : undefined;
+
   // Fetch video details and related data in parallel
   const [video, chapters, codeSnippets] = await Promise.all([
     getCachedVideo(videoId),
@@ -711,25 +719,10 @@ async function VideoLoader({ videoId, organizationSlug, currentUser }: VideoLoad
 // Main Page Component
 // =============================================================================
 
-export default async function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization, id } = await params;
-
-  // Get current user session (optional - allows anonymous viewing)
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const currentUser = session?.user
-    ? {
-        id: session.user.id,
-        name: session.user.name,
-        image: session.user.image,
-      }
-    : undefined;
-
+export default function VideoPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
   return (
     <Suspense fallback={<VideoDetailSkeleton />}>
-      <VideoLoader videoId={id} organizationSlug={organization} currentUser={currentUser} />
+      <VideoLoader params={params} />
     </Suspense>
   );
 }

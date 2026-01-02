@@ -68,6 +68,3 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     },
   });
 }
-
-// Disable body parsing for SSE
-export const dynamic = "force-dynamic";

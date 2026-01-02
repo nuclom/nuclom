@@ -1,6 +1,8 @@
 import { Effect, Exit, Layer, Option } from "effect";
+import { Loader2 } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { BillingDashboard } from "@/components/billing";
 import { auth } from "@/lib/auth";
 import { AppLive } from "@/lib/effect";
@@ -12,6 +14,14 @@ import { OrganizationRepository } from "@/lib/effect/services/organization-repos
 interface BillingPageProps {
   params: Promise<{ organization: string }>;
   searchParams: Promise<{ success?: string; canceled?: string }>;
+}
+
+function BillingSkeleton() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
 }
 
 async function getBillingData(organizationSlug: string) {
@@ -70,7 +80,7 @@ async function getBillingData(organizationSlug: string) {
   });
 }
 
-export default async function BillingPage({ params, searchParams }: BillingPageProps) {
+async function BillingContent({ params, searchParams }: BillingPageProps) {
   const { organization } = await params;
   const { success, canceled } = await searchParams;
 
@@ -106,5 +116,13 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
         usageSummary={data.usageSummary}
       />
     </div>
+  );
+}
+
+export default function BillingPage({ params, searchParams }: BillingPageProps) {
+  return (
+    <Suspense fallback={<BillingSkeleton />}>
+      <BillingContent params={params} searchParams={searchParams} />
+    </Suspense>
   );
 }

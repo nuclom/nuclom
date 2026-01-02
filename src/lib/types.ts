@@ -2,6 +2,9 @@ import type {
   Channel,
   Collection,
   Comment,
+  Decision,
+  DecisionLink,
+  DecisionParticipant,
   Member,
   Organization,
   SavedSearch,
@@ -138,3 +141,32 @@ export type CursorPaginatedResponse<T> = {
 export type PaginationParams =
   | { type: "offset"; page: number; limit: number }
   | { type: "cursor"; cursor?: string; limit: number; direction?: "forward" | "backward" };
+
+// =============================================================================
+// Knowledge Graph Decision Types
+// =============================================================================
+
+/**
+ * Decision with participant users (for knowledge graph)
+ */
+export type DecisionWithParticipants = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
+};
+
+/**
+ * Decision with full details including participants, links, and related data
+ */
+export type DecisionWithDetails = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
+  links: DecisionLink[];
+  video?: Video | null;
+};
+
+/**
+ * Decision with summary info for list views
+ */
+export type DecisionWithSummary = Decision & {
+  participants: (DecisionParticipant & { user?: User | null })[];
+  video?: Video | null;
+  participantCount: number;
+};
