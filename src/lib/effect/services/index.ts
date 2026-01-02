@@ -182,24 +182,28 @@ export {
   query,
   transaction,
 } from "./database";
-// Decision Repository
+// Decision Extraction Service
 export type {
-  CreateDecisionInput,
-  CreateDecisionLinkInput,
-  CreateDecisionTagInput,
-  DecisionRepositoryService,
-  UpdateDecisionInput,
-} from "./decision-repository";
+  DecisionExtractionResult,
+  DecisionExtractionServiceInterface,
+  DecisionStatus as ExtractedDecisionStatus,
+  DecisionType as ExtractedDecisionType,
+  ExternalReference,
+  ExtractedDecision,
+  Participant,
+} from "./decision-extraction";
 export {
-  createDecision,
-  DecisionRepository,
-  DecisionRepositoryLive,
-  deleteDecision,
-  getDecisionById,
-  getDecisions,
-  searchDecisions,
-  updateDecision,
-} from "./decision-repository";
+  DecisionExtraction,
+  DecisionExtractionLive,
+  DecisionExtractionResultSchema,
+  DecisionStatusSchema,
+  DecisionTypeSchema,
+  ExternalReferenceSchema,
+  ExtractedDecisionSchema,
+  extractDecisionsFromSegments,
+  extractDecisionsFromTranscript,
+  ParticipantSchema,
+} from "./decision-extraction";
 // Email Notifications Service
 export type {
   CommentNotificationData,
@@ -262,6 +266,19 @@ export {
   updateImportedMeeting,
   updateIntegration,
 } from "./integration-repository";
+// Knowledge Graph Repository
+export type {
+  DecisionQueryOptions,
+  DecisionTimelineItem,
+  DecisionWithRelations,
+  GraphQueryOptions,
+  KnowledgeGraphRepositoryInterface,
+  KnowledgeNodeWithEdges,
+} from "./knowledge-graph-repository";
+export {
+  KnowledgeGraphRepository,
+  KnowledgeGraphRepositoryLive,
+} from "./knowledge-graph-repository";
 // Microsoft Teams Service
 export type {
   MicrosoftTeamsConfig,
