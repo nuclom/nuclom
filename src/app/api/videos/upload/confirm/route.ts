@@ -14,8 +14,6 @@ import type { ApiResponse } from "@/lib/types";
 import { sanitizeDescription, sanitizeTitle } from "@/lib/validation";
 import { processVideoWorkflow } from "@/workflows/video-processing";
 
-export const dynamic = "force-dynamic";
-
 // =============================================================================
 // Types
 // =============================================================================
@@ -181,6 +179,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       videoId: data.videoId,
       videoUrl: data.videoUrl,
       videoTitle: data.videoTitle,
+      organizationId: body.organizationId,
     }).catch((err) => {
       console.error("[Video Processing Workflow Error]", err);
     });
@@ -266,6 +265,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
             videoId: video.id,
             videoUrl,
             videoTitle: sanitizedTitle,
+            organizationId,
           }).catch((err) => {
             console.error(`[Video Processing Workflow Error for ${video.id}]`, err);
           });

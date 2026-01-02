@@ -5,8 +5,6 @@ import { auth } from "@/lib/auth";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 import { env } from "@/lib/env/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const organizationId = searchParams.get("organizationId");

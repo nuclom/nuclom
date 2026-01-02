@@ -1,5 +1,6 @@
 import { gateway } from "@ai-sdk/gateway";
 import { generateText } from "ai";
+import { connection } from "next/server";
 import { logger } from "@/lib/logger";
 
 export interface AIHealthStatus {
@@ -14,6 +15,8 @@ export interface AIHealthStatus {
 }
 
 export async function GET() {
+  await connection();
+
   const startTime = performance.now();
 
   try {

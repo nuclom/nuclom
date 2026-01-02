@@ -2,6 +2,7 @@
 
 import { BarChart3, Loader2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import useSWR from "swr";
 import { AnalyticsOverview } from "@/components/analytics/analytics-overview";
 import { TopVideosTable } from "@/components/analytics/top-videos-table";
@@ -44,7 +45,30 @@ interface OrganizationData {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function AnalyticsPage() {
+function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="h-9 w-48 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-64 bg-muted animate-pulse rounded mt-2" />
+        </div>
+        <div className="h-10 w-[150px] bg-muted animate-pulse rounded" />
+      </div>
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={`skeleton-${i}`} className="h-32 rounded-lg bg-muted animate-pulse" />
+          ))}
+        </div>
+        <div className="h-[300px] rounded-lg bg-muted animate-pulse" />
+        <div className="h-[400px] rounded-lg bg-muted animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -142,5 +166,13 @@ export default function AnalyticsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<AnalyticsSkeleton />}>
+      <AnalyticsContent />
+    </Suspense>
   );
 }

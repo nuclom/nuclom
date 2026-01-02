@@ -41,6 +41,8 @@ export const ServerEnv = Schema.Struct({
   ZOOM_WEBHOOK_SECRET: Schema.optional(Schema.String),
   // DeepL translation API
   DEEPL_API_KEY: Schema.optional(Schema.String),
+  // AssemblyAI for speaker diarization
+  ASSEMBLYAI_API_KEY: Schema.optional(Schema.String),
   // Cron job authentication
   CRON_SECRET: Schema.optional(Schema.String),
   // Logging configuration

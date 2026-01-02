@@ -9,8 +9,6 @@ import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/s
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 import { importMeetingWorkflow } from "@/workflows/import-meeting";
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ImportLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive, GoogleMeetLive);
 
