@@ -1,6 +1,7 @@
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { DocsMarkdown } from "@/components/docs/docs-markdown";
 import { getAllDocsPaths, getDocsContent } from "@/lib/docs/markdown";
 
@@ -39,7 +40,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function InternalDocsPage({ params }: PageProps) {
+function DocsContentSkeleton() {
+  return (
+    <DocsPage>
+      <div className="h-8 w-64 bg-muted animate-pulse rounded mb-4" />
+      <div className="h-4 w-96 bg-muted animate-pulse rounded mb-8" />
+      <div className="space-y-3">
+        <div className="h-4 w-full bg-muted animate-pulse rounded" />
+        <div className="h-4 w-full bg-muted animate-pulse rounded" />
+        <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+      </div>
+    </DocsPage>
+  );
+}
+
+async function InternalDocsContent({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug = [] } = await params;
   const fullSlug = ["internal", ...slug];
   const content = await getDocsContent(fullSlug);
@@ -56,5 +71,13 @@ export default async function InternalDocsPage({ params }: PageProps) {
         <DocsMarkdown content={content.content} />
       </DocsBody>
     </DocsPage>
+  );
+}
+
+export default function InternalDocsPage({ params }: PageProps) {
+  return (
+    <Suspense fallback={<DocsContentSkeleton />}>
+      <InternalDocsContent params={params} />
+    </Suspense>
   );
 }

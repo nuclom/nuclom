@@ -99,12 +99,10 @@ async function ChannelContent({ channelId, organizationSlug }: ChannelContentPro
 }
 
 // =============================================================================
-// Main Page Component
+// Channel Loader Component
 // =============================================================================
 
-export default async function ChannelPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
-  const { organization: organizationSlug, id: channelId } = await params;
-
+async function ChannelLoader({ channelId, organizationSlug }: { channelId: string; organizationSlug: string }) {
   // Authenticate user
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -121,9 +119,19 @@ export default async function ChannelPage({ params }: { params: Promise<{ organi
     notFound();
   }
 
+  return <ChannelContent channelId={channelId} organizationSlug={organizationSlug} />;
+}
+
+// =============================================================================
+// Main Page Component
+// =============================================================================
+
+export default async function ChannelPage({ params }: { params: Promise<{ organization: string; id: string }> }) {
+  const { organization: organizationSlug, id: channelId } = await params;
+
   return (
     <Suspense fallback={<ChannelSkeleton />}>
-      <ChannelContent channelId={channelId} organizationSlug={organizationSlug} />
+      <ChannelLoader channelId={channelId} organizationSlug={organizationSlug} />
     </Suspense>
   );
 }

@@ -14,8 +14,6 @@ import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import type { ApiResponse } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
-
 // =============================================================================
 // Types
 // =============================================================================

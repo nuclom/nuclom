@@ -9,8 +9,6 @@ import { triggerImportMeeting } from "@/lib/workflow/import-meeting";
 
 const log = createLogger("zoom-webhook");
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const WebhookLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
 

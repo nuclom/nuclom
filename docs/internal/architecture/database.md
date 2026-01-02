@@ -476,6 +476,129 @@ NODE_ENV=production pnpm db:migrate
 - **Query Health**: Performance threshold monitoring
 - **Storage Health**: Disk space and I/O monitoring
 
+## Decision Registry Tables
+
+The Decision Registry tracks team decisions extracted from meetings or manually added.
+
+### Decisions Table
+
+Stores decision records with context and metadata.
+
+```sql
+CREATE TABLE decisions (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    summary TEXT NOT NULL,
+    context TEXT,
+    source TEXT NOT NULL, -- 'meeting' | 'adhoc' | 'manual'
+    video_id TEXT REFERENCES videos(id),
+    video_timestamp INTEGER,
+    status TEXT NOT NULL DEFAULT 'decided', -- 'decided' | 'proposed' | 'superseded'
+    decided_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    created_by_id TEXT REFERENCES users(id),
+    superseded_by_id TEXT REFERENCES decisions(id),
+    search_vector TSVECTOR,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+```
+
+**Key Features:**
+
+- Full-text search via `search_vector`
+- Video timestamp linking for context
+- Supersession tracking for decision evolution
+- Source tracking (meeting vs manual)
+
+### Decision Participants
+
+Links users to decisions they participated in.
+
+```sql
+CREATE TABLE decision_participants (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    decision_id TEXT NOT NULL REFERENCES decisions(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(decision_id, user_id)
+);
+```
+
+### Decision Tags
+
+Organization-scoped tags for categorizing decisions.
+
+```sql
+CREATE TABLE decision_tags (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    color TEXT,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(organization_id, name)
+);
+```
+
+### Decision Tag Assignments
+
+Many-to-many relationship between decisions and tags.
+
+```sql
+CREATE TABLE decision_tag_assignments (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    decision_id TEXT NOT NULL REFERENCES decisions(id) ON DELETE CASCADE,
+    tag_id TEXT NOT NULL REFERENCES decision_tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(decision_id, tag_id)
+);
+```
+
+### Decision Links
+
+Links between related decisions.
+
+```sql
+CREATE TABLE decision_links (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    decision_id TEXT NOT NULL REFERENCES decisions(id) ON DELETE CASCADE,
+    target_decision_id TEXT NOT NULL REFERENCES decisions(id) ON DELETE CASCADE,
+    link_type TEXT NOT NULL DEFAULT 'related', -- 'related' | 'supersedes' | 'depends_on'
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(decision_id, target_decision_id)
+);
+```
+
+### Decision Subscriptions
+
+User subscriptions to decision topics for notifications.
+
+```sql
+CREATE TABLE decision_subscriptions (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tag_id TEXT NOT NULL REFERENCES decision_tags(id) ON DELETE CASCADE,
+    frequency TEXT NOT NULL DEFAULT 'instant', -- 'instant' | 'daily' | 'weekly'
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(user_id, tag_id)
+);
+```
+
+### Decision Edits
+
+Audit trail for decision modifications.
+
+```sql
+CREATE TABLE decision_edits (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    decision_id TEXT NOT NULL REFERENCES decisions(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    field_changed TEXT NOT NULL,
+    old_value TEXT,
+    new_value TEXT,
+    edited_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+```
+
 ## Future Enhancements
 
 ### Scaling Considerations

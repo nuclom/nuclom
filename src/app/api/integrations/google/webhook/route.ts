@@ -3,8 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 
-export const dynamic = "force-dynamic";
-
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const WebhookLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
 

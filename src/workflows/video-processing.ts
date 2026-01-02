@@ -3,10 +3,11 @@
  *
  * Handles the complete video processing pipeline with durable execution:
  * 1. Transcription (audio to text)
- * 2. AI Analysis (summary, tags, action items)
- * 3. Code snippet detection
- * 4. Chapter generation
- * 5. Database storage of results
+ * 2. Speaker Diarization (who spoke when)
+ * 3. AI Analysis (summary, tags, action items)
+ * 4. Code snippet detection
+ * 5. Chapter generation
+ * 6. Database storage of results
  *
  * Benefits over fire-and-forget:
  * - Automatic retries on transient failures
@@ -30,6 +31,8 @@ export interface VideoProcessingInput {
   readonly videoId: string;
   readonly videoUrl: string;
   readonly videoTitle?: string;
+  readonly organizationId?: string;
+  readonly skipDiarization?: boolean;
 }
 
 export interface VideoProcessingResult {
@@ -43,6 +46,30 @@ interface TranscriptionResult {
   segments: TranscriptSegment[];
   duration: number;
   language?: string;
+}
+
+interface DiarizedSegment {
+  speaker: string;
+  start: number; // milliseconds
+  end: number; // milliseconds
+  text: string;
+  confidence: number;
+}
+
+interface SpeakerSummary {
+  speaker: string;
+  totalSpeakingTime: number; // milliseconds
+  segmentCount: number;
+  speakingPercentage: number;
+}
+
+interface DiarizationResult {
+  transcript: string;
+  segments: DiarizedSegment[];
+  speakers: SpeakerSummary[];
+  duration: number;
+  language?: string;
+  speakerCount: number;
 }
 
 interface AIAnalysisResult {
@@ -501,6 +528,190 @@ async function getVideoOrganizationId(videoId: string): Promise<string | null> {
   return video?.organizationId ?? null;
 }
 
+/**
+ * Perform speaker diarization using AssemblyAI
+ * Falls back gracefully if not configured
+ */
+async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null> {
+  const apiKey = env.ASSEMBLYAI_API_KEY;
+  if (!apiKey) {
+    log.info({}, "AssemblyAI not configured, skipping speaker diarization");
+    return null;
+  }
+
+  const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
+  const POLLING_INTERVAL_MS = 3000;
+  const MAX_POLLING_ATTEMPTS = 200;
+
+  try {
+    // Submit transcription request with speaker labels
+    const submitResponse = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
+      method: "POST",
+      headers: {
+        Authorization: apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        audio_url: videoUrl,
+        speaker_labels: true,
+        punctuate: true,
+        format_text: true,
+      }),
+    });
+
+    if (!submitResponse.ok) {
+      const errorText = await submitResponse.text();
+      throw new Error(`AssemblyAI submit error: ${submitResponse.status} - ${errorText}`);
+    }
+
+    const { id: transcriptId } = (await submitResponse.json()) as { id: string };
+
+    // Poll for completion
+    for (let attempt = 0; attempt < MAX_POLLING_ATTEMPTS; attempt++) {
+      const statusResponse = await fetch(`${ASSEMBLYAI_API_URL}/transcript/${transcriptId}`, {
+        headers: { Authorization: apiKey },
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`AssemblyAI status error: ${statusResponse.status}`);
+      }
+
+      const result = (await statusResponse.json()) as {
+        status: "queued" | "processing" | "completed" | "error";
+        text?: string;
+        utterances?: Array<{
+          speaker: string;
+          start: number;
+          end: number;
+          text: string;
+          confidence: number;
+        }>;
+        audio_duration?: number;
+        language_code?: string;
+        error?: string;
+      };
+
+      if (result.status === "completed") {
+        const utterances = result.utterances || [];
+        const durationMs = (result.audio_duration || 0) * 1000;
+
+        // Convert to our format
+        const segments: DiarizedSegment[] = utterances.map((u) => ({
+          speaker: u.speaker,
+          start: u.start,
+          end: u.end,
+          text: u.text,
+          confidence: u.confidence,
+        }));
+
+        // Calculate speaker stats
+        const speakerStats = new Map<string, { time: number; count: number }>();
+        for (const segment of segments) {
+          const duration = segment.end - segment.start;
+          const existing = speakerStats.get(segment.speaker) || { time: 0, count: 0 };
+          speakerStats.set(segment.speaker, {
+            time: existing.time + duration,
+            count: existing.count + 1,
+          });
+        }
+
+        const totalSpeakingTime = Array.from(speakerStats.values()).reduce((sum, s) => sum + s.time, 0);
+
+        const speakers: SpeakerSummary[] = Array.from(speakerStats.entries())
+          .map(([speaker, stats]) => ({
+            speaker,
+            totalSpeakingTime: stats.time,
+            segmentCount: stats.count,
+            speakingPercentage: totalSpeakingTime > 0 ? Math.round((stats.time / totalSpeakingTime) * 100) : 0,
+          }))
+          .sort((a, b) => b.totalSpeakingTime - a.totalSpeakingTime);
+
+        return {
+          transcript: result.text || "",
+          segments,
+          speakers,
+          duration: durationMs,
+          language: result.language_code,
+          speakerCount: speakers.length,
+        };
+      }
+
+      if (result.status === "error") {
+        throw new Error(result.error || "Diarization failed");
+      }
+
+      // Wait before next poll
+      await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
+    }
+
+    throw new Error("Diarization timed out");
+  } catch (error) {
+    log.error({ error }, "Speaker diarization failed, continuing without speaker data");
+    return null;
+  }
+}
+
+/**
+ * Save speaker diarization results to the database
+ */
+async function saveSpeakerData(videoId: string, organizationId: string, diarization: DiarizationResult): Promise<void> {
+  const { db } = await import("@/lib/db");
+  const { speakerProfiles, videoSpeakers, speakerSegments } = await import("@/lib/db/schema");
+
+  // Create video speakers and map speaker labels to IDs
+  const speakerMap = new Map<string, string>();
+
+  for (const speakerSummary of diarization.speakers) {
+    // Check if a speaker profile already exists for this organization with matching label pattern
+    // For now, we create anonymous speaker profiles that can be linked to users later
+    const [profile] = await db
+      .insert(speakerProfiles)
+      .values({
+        organizationId,
+        displayName: `Speaker ${speakerSummary.speaker}`,
+      })
+      .returning();
+
+    // Create the video speaker record
+    const [videoSpeaker] = await db
+      .insert(videoSpeakers)
+      .values({
+        videoId,
+        speakerProfileId: profile.id,
+        speakerLabel: speakerSummary.speaker,
+        totalSpeakingTime: Math.round(speakerSummary.totalSpeakingTime / 1000), // Convert to seconds
+        segmentCount: speakerSummary.segmentCount,
+        speakingPercentage: speakerSummary.speakingPercentage,
+      })
+      .returning();
+
+    speakerMap.set(speakerSummary.speaker, videoSpeaker.id);
+  }
+
+  // Save individual segments in batches
+  const BATCH_SIZE = 100;
+  const segmentsToInsert = diarization.segments
+    .filter((seg) => speakerMap.has(seg.speaker))
+    .map((seg) => ({
+      videoId,
+      videoSpeakerId: speakerMap.get(seg.speaker) as string,
+      startTime: seg.start,
+      endTime: seg.end,
+      transcriptText: seg.text,
+      confidence: Math.round(seg.confidence * 100),
+    }));
+
+  for (let i = 0; i < segmentsToInsert.length; i += BATCH_SIZE) {
+    const batch = segmentsToInsert.slice(i, i + BATCH_SIZE);
+    await db.insert(speakerSegments).values(batch);
+  }
+
+  log.info(
+    { videoId, speakerCount: diarization.speakerCount, segmentCount: diarization.segments.length },
+    "Saved speaker diarization data",
+  );
+}
+
 async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
   const { eq } = await import("drizzle-orm");
   const { db } = await import("@/lib/db");
@@ -619,12 +830,15 @@ async function sendCompletionNotification(
  * 1. Updates status to transcribing
  * 2. Transcribes the video using OpenAI Whisper
  * 3. Saves the transcript to the database
- * 4. Updates status to analyzing
- * 5. Runs AI analysis (summary, tags, action items, chapters, code snippets)
- * 6. Saves all AI results to the database
- * 7. Detects and saves key moments for clip extraction
- * 8. Updates status to completed
- * 9. Sends completion notification
+ * 4. Updates status to diarizing
+ * 5. Runs speaker diarization (if configured)
+ * 6. Saves speaker data to the database
+ * 7. Updates status to analyzing
+ * 8. Runs AI analysis (summary, tags, action items, chapters, code snippets)
+ * 9. Saves all AI results to the database
+ * 10. Detects and saves key moments for clip extraction
+ * 11. Updates status to completed
+ * 12. Sends completion notification
  *
  * Each step is checkpointed, so if the server restarts, processing resumes
  * from the last successful step.
@@ -632,7 +846,7 @@ async function sendCompletionNotification(
 export async function processVideoWorkflow(input: VideoProcessingInput): Promise<VideoProcessingResult> {
   "use workflow";
 
-  const { videoId, videoUrl, videoTitle } = input;
+  const { videoId, videoUrl, videoTitle, organizationId, skipDiarization } = input;
 
   try {
     // Step 1: Update status to transcribing
@@ -647,34 +861,51 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     await saveTranscript(videoId, transcription.transcript, transcription.segments);
     ("use step");
 
-    // Step 4: Update status to analyzing
+    // Step 4: Speaker diarization (if enabled and configured)
+    let diarization: DiarizationResult | null = null;
+    if (!skipDiarization && organizationId) {
+      // Update status to diarizing
+      await updateProcessingStatus(videoId, "diarizing");
+      ("use step");
+
+      // Run speaker diarization
+      diarization = await diarizeVideo(videoUrl);
+      ("use step");
+
+      // Save speaker data if diarization succeeded
+      if (diarization) {
+        await saveSpeakerData(videoId, organizationId, diarization);
+        ("use step");
+      }
+    }
+
+    // Step 5: Update status to analyzing
     await updateProcessingStatus(videoId, "analyzing");
     ("use step");
 
-    // Step 5: Run AI analysis
+    // Step 6: Run AI analysis
     const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
     ("use step");
 
-    // Step 6: Save AI analysis results
+    // Step 7: Save AI analysis results
     await saveAIAnalysis(videoId, analysis);
     ("use step");
 
-    // Step 7: Detect key moments for clip extraction
+    // Step 8: Detect key moments for clip extraction
     const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
     ("use step");
 
-    // Step 8: Get organization ID and save moments
-    const organizationId = await getVideoOrganizationId(videoId);
+    // Step 9: Save key moments
     if (organizationId && moments.length > 0) {
       await saveKeyMoments(videoId, organizationId, moments);
     }
     ("use step");
 
-    // Step 9: Update status to completed
+    // Step 10: Update status to completed
     await updateProcessingStatus(videoId, "completed");
     ("use step");
 
-    // Step 10: Send completion notification
+    // Step 11: Send completion notification
     await sendCompletionNotification(videoId, "completed");
 
     return {

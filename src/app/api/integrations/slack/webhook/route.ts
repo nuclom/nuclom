@@ -2,8 +2,6 @@ import { Effect } from "effect";
 import { NextResponse } from "next/server";
 import { Slack, SlackLive } from "@/lib/effect/services/slack";
 
-export const dynamic = "force-dynamic";
-
 interface SlackEventPayload {
   type: string;
   token?: string;

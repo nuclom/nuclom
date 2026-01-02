@@ -1,12 +1,30 @@
 import { headers } from "next/headers";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/lib/auth";
 import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from "@/lib/effect";
 import { env } from "@/lib/env/server";
 import { SeriesListClient } from "./series-list-client";
 
-export default async function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
-  const { organization } = await params;
+function SeriesListSkeleton() {
+  return (
+    <div className="space-y-8">
+      <Skeleton className="h-9 w-32" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="space-y-3">
+            <Skeleton className="aspect-video rounded-lg" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
+async function SeriesListLoader({ params }: { params: Promise<{ organization: string }> }) {
+  const { organization } = await params;
   // Get the current user session
   const headersList = await headers();
   const session = await auth.api.getSession({ headers: headersList });
@@ -44,5 +62,13 @@ export default async function SeriesListPage({ params }: { params: Promise<{ org
 
   return (
     <SeriesListClient organization={organization} organizationId={organizationData.id} initialSeries={seriesData} />
+  );
+}
+
+export default function SeriesListPage({ params }: { params: Promise<{ organization: string }> }) {
+  return (
+    <Suspense fallback={<SeriesListSkeleton />}>
+      <SeriesListLoader params={params} />
+    </Suspense>
   );
 }

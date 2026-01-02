@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { connection } from "next/server";
 import { db } from "@/lib/db";
 import { type HealthCheckService, type HealthCheckStatus, healthChecks } from "@/lib/db/schema";
 import { logger } from "@/lib/logger";
@@ -95,6 +96,8 @@ async function getStatusHistory(): Promise<StatusResponse["history"]> {
 }
 
 export async function GET() {
+  await connection();
+
   const startTime = performance.now();
 
   try {

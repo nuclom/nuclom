@@ -6,6 +6,7 @@ export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member
 export const processingStatusEnum = pgEnum("ProcessingStatus", [
   "pending",
   "transcribing",
+  "diarizing",
   "analyzing",
   "completed",
   "failed",
@@ -1116,6 +1117,8 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
   codeSnippets: many(videoCodeSnippets),
+  speakers: many(videoSpeakers),
+  speakerSegments: many(speakerSegments),
 }));
 
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
@@ -1389,6 +1392,138 @@ export const videoAnalyticsDaily = pgTable(
   },
   (table) => ({
     videoDateIdx: unique("video_analytics_video_date_idx").on(table.videoId, table.date),
+  }),
+);
+
+// =====================
+// Speaker Diarization Tables
+// =====================
+
+// Types for speaker segments with diarization
+export type SpeakerSegment = {
+  readonly startTime: number; // seconds
+  readonly endTime: number; // seconds
+  readonly text: string;
+  readonly speakerId: string; // references speaker_profiles.id
+  readonly speakerLabel: string; // "Speaker 1", "Speaker 2", etc.
+  readonly confidence?: number;
+};
+
+// Speaker profiles for an organization (can be linked to org members)
+export const speakerProfiles = pgTable(
+  "speaker_profiles",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // Optional link to org member
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    displayName: text("display_name").notNull(),
+    // Voice embedding for voice matching (optional, stored as JSON array)
+    voiceEmbedding: jsonb("voice_embedding").$type<number[]>(),
+    // Metadata for the speaker
+    metadata: jsonb("metadata").$type<{
+      jobTitle?: string;
+      department?: string;
+      avatarUrl?: string;
+    }>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("speaker_profiles_org_idx").on(table.organizationId),
+    userIdx: index("speaker_profiles_user_idx").on(table.userId),
+    uniqueOrgUser: unique("speaker_profiles_org_user_unique").on(table.organizationId, table.userId),
+  }),
+);
+
+// Video-level speaker information (speakers detected in a specific video)
+export const videoSpeakers = pgTable(
+  "video_speakers",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    // Links to speaker profile (may be created or matched during diarization)
+    speakerProfileId: text("speaker_profile_id").references(() => speakerProfiles.id, { onDelete: "set null" }),
+    // Original label from diarization ("Speaker A", "Speaker 1", etc.)
+    speakerLabel: text("speaker_label").notNull(),
+    // Computed stats
+    totalSpeakingTime: integer("total_speaking_time").default(0).notNull(), // seconds
+    segmentCount: integer("segment_count").default(0).notNull(),
+    // Speaking percentage of total video duration
+    speakingPercentage: integer("speaking_percentage").default(0), // 0-100
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("video_speakers_video_idx").on(table.videoId),
+    profileIdx: index("video_speakers_profile_idx").on(table.speakerProfileId),
+    uniqueVideoLabel: unique("video_speakers_video_label_unique").on(table.videoId, table.speakerLabel),
+  }),
+);
+
+// Individual speaker segments within a video
+export const speakerSegments = pgTable(
+  "speaker_segments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    videoSpeakerId: text("video_speaker_id")
+      .notNull()
+      .references(() => videoSpeakers.id, { onDelete: "cascade" }),
+    startTime: integer("start_time").notNull(), // milliseconds for precision
+    endTime: integer("end_time").notNull(), // milliseconds
+    transcriptText: text("transcript_text"),
+    confidence: integer("confidence"), // 0-100
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("speaker_segments_video_idx").on(table.videoId),
+    speakerIdx: index("speaker_segments_speaker_idx").on(table.videoSpeakerId),
+    timeIdx: index("speaker_segments_time_idx").on(table.videoId, table.startTime),
+  }),
+);
+
+// Aggregated speaker analytics per organization (for trends)
+export const speakerAnalytics = pgTable(
+  "speaker_analytics",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    speakerProfileId: text("speaker_profile_id")
+      .notNull()
+      .references(() => speakerProfiles.id, { onDelete: "cascade" }),
+    // Aggregation period
+    periodStart: timestamp("period_start").notNull(),
+    periodEnd: timestamp("period_end").notNull(),
+    // Aggregated stats
+    videoCount: integer("video_count").default(0).notNull(),
+    totalSpeakingTime: integer("total_speaking_time").default(0).notNull(), // seconds
+    avgSpeakingPercentage: integer("avg_speaking_percentage").default(0), // 0-100
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    orgPeriodIdx: index("speaker_analytics_org_period_idx").on(table.organizationId, table.periodStart),
+    profileIdx: index("speaker_analytics_profile_idx").on(table.speakerProfileId),
+    uniqueProfilePeriod: unique("speaker_analytics_profile_period_unique").on(
+      table.speakerProfileId,
+      table.periodStart,
+    ),
   }),
 );
 
@@ -1964,6 +2099,54 @@ export const videoAnalyticsDailyRelations = relations(videoAnalyticsDaily, ({ on
   }),
 }));
 
+// Speaker Diarization relations
+export const speakerProfilesRelations = relations(speakerProfiles, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [speakerProfiles.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [speakerProfiles.userId],
+    references: [users.id],
+  }),
+  videoSpeakers: many(videoSpeakers),
+  analytics: many(speakerAnalytics),
+}));
+
+export const videoSpeakersRelations = relations(videoSpeakers, ({ one, many }) => ({
+  video: one(videos, {
+    fields: [videoSpeakers.videoId],
+    references: [videos.id],
+  }),
+  speakerProfile: one(speakerProfiles, {
+    fields: [videoSpeakers.speakerProfileId],
+    references: [speakerProfiles.id],
+  }),
+  segments: many(speakerSegments),
+}));
+
+export const speakerSegmentsRelations = relations(speakerSegments, ({ one }) => ({
+  video: one(videos, {
+    fields: [speakerSegments.videoId],
+    references: [videos.id],
+  }),
+  videoSpeaker: one(videoSpeakers, {
+    fields: [speakerSegments.videoSpeakerId],
+    references: [videoSpeakers.id],
+  }),
+}));
+
+export const speakerAnalyticsRelations = relations(speakerAnalytics, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [speakerAnalytics.organizationId],
+    references: [organizations.id],
+  }),
+  speakerProfile: one(speakerProfiles, {
+    fields: [speakerAnalytics.speakerProfileId],
+    references: [speakerProfiles.id],
+  }),
+}));
+
 // Video Share Links relations
 export const videoShareLinksRelations = relations(videoShareLinks, ({ one }) => ({
   video: one(videos, {
@@ -2069,6 +2252,16 @@ export type SeriesVideo = typeof seriesVideos.$inferSelect;
 export type NewSeriesVideo = typeof seriesVideos.$inferInsert;
 export type SeriesProgress = typeof seriesProgress.$inferSelect;
 export type NewSeriesProgress = typeof seriesProgress.$inferInsert;
+
+// Speaker diarization types
+export type SpeakerProfile = typeof speakerProfiles.$inferSelect;
+export type NewSpeakerProfile = typeof speakerProfiles.$inferInsert;
+export type VideoSpeaker = typeof videoSpeakers.$inferSelect;
+export type NewVideoSpeaker = typeof videoSpeakers.$inferInsert;
+export type SpeakerSegmentRecord = typeof speakerSegments.$inferSelect;
+export type NewSpeakerSegmentRecord = typeof speakerSegments.$inferInsert;
+export type SpeakerAnalyticsRecord = typeof speakerAnalytics.$inferSelect;
+export type NewSpeakerAnalyticsRecord = typeof speakerAnalytics.$inferInsert;
 
 // Processing status type
 export type ProcessingStatus = (typeof processingStatusEnum.enumValues)[number];
@@ -2732,3 +2925,311 @@ export type HighlightReel = typeof highlightReels.$inferSelect;
 export type NewHighlightReel = typeof highlightReels.$inferInsert;
 export type QuoteCard = typeof quoteCards.$inferSelect;
 export type NewQuoteCard = typeof quoteCards.$inferInsert;
+
+// =====================
+// Decision Registry Tables
+// =====================
+
+export const decisionStatusEnum = pgEnum("DecisionStatus", ["decided", "proposed", "superseded"]);
+
+export const decisionSourceEnum = pgEnum("DecisionSource", ["meeting", "adhoc", "manual"]);
+
+export const subscriptionFrequencyEnum = pgEnum("SubscriptionFrequency", ["immediate", "daily", "weekly"]);
+
+export const decisionLinkTypeEnum = pgEnum("DecisionLinkType", ["supersedes", "related", "outcome"]);
+
+// Main decisions table
+export const decisions = pgTable(
+  "decisions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    // Decision content
+    summary: text("summary").notNull(),
+    context: text("context"), // Full context/rationale
+    // Source tracking
+    source: decisionSourceEnum("source").default("manual").notNull(),
+    videoId: text("video_id").references(() => videos.id, { onDelete: "set null" }),
+    videoTimestamp: integer("video_timestamp"), // seconds into video where decision was made
+    // Status and supersession
+    status: decisionStatusEnum("status").default("decided").notNull(),
+    supersededById: text("superseded_by_id"), // Self-reference handled after table creation
+    // Metadata
+    decidedAt: timestamp("decided_at").defaultNow().notNull(),
+    // Who created/extracted this decision
+    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    // Full-text search vector
+    searchVector: text("search_vector"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    organizationIdx: index("decisions_organization_idx").on(table.organizationId),
+    videoIdx: index("decisions_video_idx").on(table.videoId),
+    statusIdx: index("decisions_status_idx").on(table.status),
+    sourceIdx: index("decisions_source_idx").on(table.source),
+    decidedAtIdx: index("decisions_decided_at_idx").on(table.decidedAt),
+    orgDecidedAtIdx: index("decisions_org_decided_at_idx").on(table.organizationId, table.decidedAt),
+  }),
+);
+
+// Decision participants - who was involved in the decision
+export const decisionParticipants = pgTable(
+  "decision_participants",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_participants_decision_idx").on(table.decisionId),
+    userIdx: index("decision_participants_user_idx").on(table.userId),
+    uniqueDecisionUser: unique("decision_participants_unique").on(table.decisionId, table.userId),
+  }),
+);
+
+// Decision tags - reusable tags within an organization
+export const decisionTags = pgTable(
+  "decision_tags",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    color: text("color"), // Optional color for UI display
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    organizationIdx: index("decision_tags_organization_idx").on(table.organizationId),
+    uniqueOrgTag: unique("decision_tags_unique").on(table.organizationId, table.name),
+  }),
+);
+
+// Junction table for decision-tag relationships
+export const decisionTagAssignments = pgTable(
+  "decision_tag_assignments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => decisionTags.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_tag_assignments_decision_idx").on(table.decisionId),
+    tagIdx: index("decision_tag_assignments_tag_idx").on(table.tagId),
+    uniqueDecisionTag: unique("decision_tag_assignments_unique").on(table.decisionId, table.tagId),
+  }),
+);
+
+// Decision links - relationships between decisions and external artifacts
+export const decisionLinks = pgTable(
+  "decision_links",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    linkType: decisionLinkTypeEnum("link_type").notNull(),
+    // For decision-to-decision links
+    targetDecisionId: text("target_decision_id").references(() => decisions.id, { onDelete: "cascade" }),
+    // For external artifact links
+    targetType: text("target_type"), // 'pr', 'issue', 'doc', etc.
+    targetUrl: text("target_url"),
+    targetTitle: text("target_title"),
+    // Metadata
+    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_links_decision_idx").on(table.decisionId),
+    targetDecisionIdx: index("decision_links_target_decision_idx").on(table.targetDecisionId),
+  }),
+);
+
+// Decision subscriptions - users subscribing to topics for notifications
+export const decisionSubscriptions = pgTable(
+  "decision_subscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    topics: jsonb("topics").$type<string[]>().notNull(), // Array of tag names to subscribe to
+    frequency: subscriptionFrequencyEnum("frequency").default("weekly").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userOrgIdx: index("decision_subscriptions_user_org_idx").on(table.userId, table.organizationId),
+    uniqueUserOrg: unique("decision_subscriptions_unique").on(table.userId, table.organizationId),
+  }),
+);
+
+// Decision edits - audit trail for tracking changes
+export const decisionEdits = pgTable(
+  "decision_edits",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    decisionId: text("decision_id")
+      .notNull()
+      .references(() => decisions.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    fieldChanged: text("field_changed").notNull(),
+    oldValue: text("old_value"),
+    newValue: text("new_value"),
+    editedAt: timestamp("edited_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    decisionIdx: index("decision_edits_decision_idx").on(table.decisionId),
+    userIdx: index("decision_edits_user_idx").on(table.userId),
+    editedAtIdx: index("decision_edits_edited_at_idx").on(table.editedAt),
+  }),
+);
+
+// Decision Relations
+export const decisionsRelations = relations(decisions, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [decisions.organizationId],
+    references: [organizations.id],
+  }),
+  video: one(videos, {
+    fields: [decisions.videoId],
+    references: [videos.id],
+  }),
+  createdBy: one(users, {
+    fields: [decisions.createdById],
+    references: [users.id],
+  }),
+  supersededBy: one(decisions, {
+    fields: [decisions.supersededById],
+    references: [decisions.id],
+    relationName: "DecisionSupersession",
+  }),
+  supersedes: many(decisions, {
+    relationName: "DecisionSupersession",
+  }),
+  participants: many(decisionParticipants),
+  tagAssignments: many(decisionTagAssignments),
+  links: many(decisionLinks),
+  edits: many(decisionEdits),
+}));
+
+export const decisionParticipantsRelations = relations(decisionParticipants, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionParticipants.decisionId],
+    references: [decisions.id],
+  }),
+  user: one(users, {
+    fields: [decisionParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const decisionTagsRelations = relations(decisionTags, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [decisionTags.organizationId],
+    references: [organizations.id],
+  }),
+  assignments: many(decisionTagAssignments),
+}));
+
+export const decisionTagAssignmentsRelations = relations(decisionTagAssignments, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionTagAssignments.decisionId],
+    references: [decisions.id],
+  }),
+  tag: one(decisionTags, {
+    fields: [decisionTagAssignments.tagId],
+    references: [decisionTags.id],
+  }),
+}));
+
+export const decisionLinksRelations = relations(decisionLinks, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionLinks.decisionId],
+    references: [decisions.id],
+  }),
+  targetDecision: one(decisions, {
+    fields: [decisionLinks.targetDecisionId],
+    references: [decisions.id],
+    relationName: "DecisionLinkTarget",
+  }),
+  createdBy: one(users, {
+    fields: [decisionLinks.createdById],
+    references: [users.id],
+  }),
+}));
+
+export const decisionSubscriptionsRelations = relations(decisionSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [decisionSubscriptions.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [decisionSubscriptions.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const decisionEditsRelations = relations(decisionEdits, ({ one }) => ({
+  decision: one(decisions, {
+    fields: [decisionEdits.decisionId],
+    references: [decisions.id],
+  }),
+  user: one(users, {
+    fields: [decisionEdits.userId],
+    references: [users.id],
+  }),
+}));
+
+// Decision Registry Types
+export type DecisionStatus = (typeof decisionStatusEnum.enumValues)[number];
+export type DecisionSource = (typeof decisionSourceEnum.enumValues)[number];
+export type SubscriptionFrequency = (typeof subscriptionFrequencyEnum.enumValues)[number];
+export type DecisionLinkType = (typeof decisionLinkTypeEnum.enumValues)[number];
+
+export type Decision = typeof decisions.$inferSelect;
+export type NewDecision = typeof decisions.$inferInsert;
+export type DecisionParticipant = typeof decisionParticipants.$inferSelect;
+export type NewDecisionParticipant = typeof decisionParticipants.$inferInsert;
+export type DecisionTag = typeof decisionTags.$inferSelect;
+export type NewDecisionTag = typeof decisionTags.$inferInsert;
+export type DecisionTagAssignment = typeof decisionTagAssignments.$inferSelect;
+export type NewDecisionTagAssignment = typeof decisionTagAssignments.$inferInsert;
+export type DecisionLink = typeof decisionLinks.$inferSelect;
+export type NewDecisionLink = typeof decisionLinks.$inferInsert;
+export type DecisionSubscription = typeof decisionSubscriptions.$inferSelect;
+export type NewDecisionSubscription = typeof decisionSubscriptions.$inferInsert;
+export type DecisionEdit = typeof decisionEdits.$inferSelect;
+export type NewDecisionEdit = typeof decisionEdits.$inferInsert;
