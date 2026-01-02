@@ -21,6 +21,7 @@ import { type BillingRepository, BillingRepositoryLive } from "./services/billin
 import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
+import { type DecisionRepository, DecisionRepositoryLive } from "./services/decision-repository";
 import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
@@ -70,6 +71,7 @@ const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(Datab
 const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const DecisionRepositoryWithDeps = DecisionRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
 const BillingWithDeps = BillingLive.pipe(
@@ -90,6 +92,7 @@ const AppServicesLive = Layer.mergeAll(
   SearchRepositoryWithDeps,
   SeriesRepositoryWithDeps,
   ChannelRepositoryWithDeps,
+  DecisionRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -116,6 +119,7 @@ export type AppServices =
   | SearchRepository
   | SeriesRepository
   | ChannelRepository
+  | DecisionRepository
   | StripeServiceTag
   | Translation;
 
