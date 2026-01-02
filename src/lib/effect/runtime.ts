@@ -73,7 +73,6 @@ const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(Datab
 const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const DecisionRepositoryWithDeps = DecisionRepositoryLive.pipe(Layer.provide(DatabaseLive));
 // ClipRepository depends on Database and Storage
 const ClipRepositoryWithDeps = ClipRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
 const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -98,7 +97,6 @@ const AppServicesLive = Layer.mergeAll(
   SearchRepositoryWithDeps,
   SeriesRepositoryWithDeps,
   ChannelRepositoryWithDeps,
-  DecisionRepositoryWithDeps,
   ClipRepositoryWithDeps,
   CodeLinksRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
@@ -128,7 +126,6 @@ export type AppServices =
   | SearchRepository
   | SeriesRepository
   | ChannelRepository
-  | DecisionRepository
   | ClipRepository
   | CodeLinksRepository
   | KnowledgeGraphRepository
