@@ -466,6 +466,128 @@ export const UpdateNotificationSchema = Schema.Struct({
 });
 
 // =============================================================================
+// Clip Schemas
+// =============================================================================
+
+export const MomentTypeSchema = Schema.Literal(
+  "decision",
+  "action_item",
+  "question",
+  "answer",
+  "emphasis",
+  "demonstration",
+  "conclusion",
+  "highlight",
+);
+
+export const ClipTypeSchema = Schema.Literal("auto", "manual");
+
+export const ClipStatusSchema = Schema.Literal("pending", "processing", "ready", "failed");
+
+export const HighlightReelStatusSchema = Schema.Literal("draft", "rendering", "ready", "failed");
+
+export const CreateClipSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+  ),
+  description: Schema.optionalWith(
+    Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    { nullable: true },
+  ),
+  startTime: Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Start time must be non-negative" })),
+  endTime: Schema.Number.pipe(Schema.greaterThan(0, { message: () => "End time must be positive" })),
+  momentId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
+  momentType: Schema.optional(MomentTypeSchema),
+  transcriptExcerpt: Schema.optionalWith(
+    Schema.String.pipe(Schema.maxLength(5000, { message: () => "Transcript excerpt too long" })),
+    { nullable: true },
+  ),
+}).pipe(
+  Schema.filter((data) => data.endTime > data.startTime, {
+    message: () => "End time must be greater than start time",
+  }),
+);
+
+export const UpdateClipSchema = Schema.Struct({
+  title: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Title is required" }),
+      Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    ),
+    { nullable: true },
+  ),
+  startTime: Schema.optional(
+    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Start time must be non-negative" })),
+  ),
+  endTime: Schema.optional(Schema.Number.pipe(Schema.greaterThan(0, { message: () => "End time must be positive" }))),
+});
+
+export const CreateHighlightReelSchema = Schema.Struct({
+  title: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Title is required" }),
+    Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+  ),
+  description: Schema.optionalWith(
+    Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    { nullable: true },
+  ),
+  clipIds: Schema.optionalWith(Schema.Array(UuidSchema), { default: () => [] }),
+});
+
+export const UpdateHighlightReelSchema = Schema.Struct({
+  title: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Title is required" }),
+      Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+    ),
+  ),
+  description: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    ),
+    { nullable: true },
+  ),
+  clipIds: Schema.optional(Schema.Array(UuidSchema)),
+});
+
+export const CreateQuoteCardSchema = Schema.Struct({
+  quoteText: Schema.Trim.pipe(
+    Schema.minLength(1, { message: () => "Quote text is required" }),
+    Schema.maxLength(500, { message: () => "Quote text must be less than 500 characters" }),
+  ),
+  speaker: Schema.optionalWith(
+    Schema.String.pipe(Schema.maxLength(100, { message: () => "Speaker name must be less than 100 characters" })),
+    { nullable: true },
+  ),
+  timestampSeconds: Schema.optionalWith(
+    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Timestamp must be non-negative" })),
+    { nullable: true },
+  ),
+  templateId: Schema.optional(Schema.String),
+});
+
+export const UpdateQuoteCardSchema = Schema.Struct({
+  quoteText: Schema.optional(
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => "Quote text is required" }),
+      Schema.maxLength(500, { message: () => "Quote text must be less than 500 characters" }),
+    ),
+  ),
+  speaker: Schema.optionalWith(
+    Schema.NullOr(
+      Schema.String.pipe(Schema.maxLength(100, { message: () => "Speaker name must be less than 100 characters" })),
+    ),
+    { nullable: true },
+  ),
+});
+
+// =============================================================================
 // Billing Schemas
 // =============================================================================
 
@@ -620,3 +742,11 @@ export const updateNotificationSchema = UpdateNotificationSchema;
 export const createCheckoutSchema = CreateCheckoutSchema;
 export const importMeetingSchema = ImportMeetingSchema;
 export const analyzeVideoSchema = AnalyzeVideoSchema;
+
+// Clip schemas
+export const createClipSchema = CreateClipSchema;
+export const updateClipSchema = UpdateClipSchema;
+export const createHighlightReelSchema = CreateHighlightReelSchema;
+export const updateHighlightReelSchema = UpdateHighlightReelSchema;
+export const createQuoteCardSchema = CreateQuoteCardSchema;
+export const updateQuoteCardSchema = UpdateQuoteCardSchema;

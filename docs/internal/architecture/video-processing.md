@@ -12,6 +12,7 @@ Videos in Nuclom go through a multi-stage processing pipeline:
 4. **Thumbnail Generation** - Multiple thumbnails at different timestamps
 5. **Transcription** - Audio-to-text using Whisper
 6. **AI Analysis** - Summary and insights generation
+7. **Moment Detection** - AI identifies key moments for clip extraction (decisions, action items, Q&A, demos, etc.)
 
 ## Architecture
 
@@ -123,11 +124,22 @@ export async function processVideoWorkflow(
   await saveAIAnalysis(videoId, analysis);
   "use step";
 
-  // Step 7: Update status to completed
+  // Step 7: Detect key moments for clip extraction
+  const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
+  "use step";
+
+  // Step 8: Save key moments
+  const organizationId = await getVideoOrganizationId(videoId);
+  if (organizationId && moments.length > 0) {
+    await saveKeyMoments(videoId, organizationId, moments);
+  }
+  "use step";
+
+  // Step 9: Update status to completed
   await updateProcessingStatus(videoId, "completed");
   "use step";
 
-  // Step 8: Send completion notification
+  // Step 10: Send completion notification
   await sendCompletionNotification(videoId, "completed");
 
   return { videoId, success: true };
