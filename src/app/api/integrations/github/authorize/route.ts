@@ -1,13 +1,13 @@
 import { Effect } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { auth } from "@/lib/auth";
 import { GitHub, GitHubLive } from "@/lib/effect/services/github";
 import { env } from "@/lib/env/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
+  await connection();
   const { searchParams } = new URL(request.url);
   const organizationId = searchParams.get("organizationId");
 

@@ -1,11 +1,10 @@
 import { Effect, Layer } from "effect";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { GitHub, GitHubLive } from "@/lib/effect/services/github";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-
-export const dynamic = "force-dynamic";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CallbackLayer = Layer.mergeAll(GitHubLive, IntegrationRepositoryWithDeps, DatabaseLive);
@@ -17,6 +16,7 @@ interface OAuthState {
 }
 
 export async function GET(request: Request) {
+  await connection();
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
