@@ -10,14 +10,15 @@ import {
   decisionEdits,
   decisionLinks,
   decisionParticipants,
-  decisions,
   decisionSubscriptions,
+  decisions,
   decisionTagAssignments,
   decisionTags,
   users,
   videos,
 } from "@/lib/db/schema";
 import type {
+  DecisionEditWithUser,
   DecisionFilters,
   DecisionWithDetails,
   DecisionWithSummary,
@@ -146,7 +147,9 @@ export interface DecisionRepositoryService {
   /**
    * Create a link between decisions or to external artifacts
    */
-  readonly createLink: (data: CreateDecisionLinkInput) => Effect.Effect<typeof decisionLinks.$inferSelect, DatabaseError>;
+  readonly createLink: (
+    data: CreateDecisionLinkInput,
+  ) => Effect.Effect<typeof decisionLinks.$inferSelect, DatabaseError>;
 
   /**
    * Delete a link
@@ -259,10 +262,8 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
 
         if (filters?.search) {
           conditions.push(
-            or(
-              ilike(decisions.summary, `%${filters.search}%`),
-              ilike(decisions.context, `%${filters.search}%`),
-            ) ?? sql`true`,
+            or(ilike(decisions.summary, `%${filters.search}%`), ilike(decisions.context, `%${filters.search}%`)) ??
+              sql`true`,
           );
         }
 
@@ -347,22 +348,14 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
             // Get video if exists
             let video = null;
             if (decision.videoId) {
-              const videoResult = await db
-                .select()
-                .from(videos)
-                .where(eq(videos.id, decision.videoId))
-                .limit(1);
+              const videoResult = await db.select().from(videos).where(eq(videos.id, decision.videoId)).limit(1);
               video = videoResult[0] ?? null;
             }
 
             // Get creator if exists
             let createdBy = null;
             if (decision.createdById) {
-              const creatorResult = await db
-                .select()
-                .from(users)
-                .where(eq(users.id, decision.createdById))
-                .limit(1);
+              const creatorResult = await db.select().from(users).where(eq(users.id, decision.createdById)).limit(1);
               createdBy = creatorResult[0] ?? null;
             }
 
@@ -554,11 +547,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
       if (decision.supersededById) {
         const supersededByResult = yield* Effect.tryPromise({
           try: async () => {
-            return await db
-              .select()
-              .from(decisions)
-              .where(eq(decisions.id, decision.supersededById!))
-              .limit(1);
+            return await db.select().from(decisions).where(eq(decisions.id, decision.supersededById!)).limit(1);
           },
           catch: (error) =>
             new DatabaseError({
@@ -596,12 +585,10 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
         createdBy,
         supersededBy,
         edits: editsData,
-      } as DecisionWithDetails;
+      } as unknown as DecisionWithDetails;
     });
 
-  const createDecision = (
-    data: CreateDecisionInput,
-  ): Effect.Effect<typeof decisions.$inferSelect, DatabaseError> =>
+  const createDecision = (data: CreateDecisionInput): Effect.Effect<typeof decisions.$inferSelect, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const [newDecision] = await db
@@ -818,10 +805,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
         }
 
         // Create new tag
-        const [newTag] = await db
-          .insert(decisionTags)
-          .values({ organizationId, name, color })
-          .returning();
+        const [newTag] = await db.insert(decisionTags).values({ organizationId, name, color }).returning();
         return newTag;
       },
       catch: (error) =>
@@ -832,9 +816,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const getTags = (
-    organizationId: string,
-  ): Effect.Effect<(typeof decisionTags.$inferSelect)[], DatabaseError> =>
+  const getTags = (organizationId: string): Effect.Effect<(typeof decisionTags.$inferSelect)[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         return await db
@@ -877,9 +859,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
       try: async () => {
         await db
           .delete(decisionTagAssignments)
-          .where(
-            and(eq(decisionTagAssignments.decisionId, decisionId), eq(decisionTagAssignments.tagId, tagId)),
-          );
+          .where(and(eq(decisionTagAssignments.decisionId, decisionId), eq(decisionTagAssignments.tagId, tagId)));
       },
       catch: (error) =>
         new DatabaseError({
@@ -889,9 +869,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const createLink = (
-    data: CreateDecisionLinkInput,
-  ): Effect.Effect<typeof decisionLinks.$inferSelect, DatabaseError> =>
+  const createLink = (data: CreateDecisionLinkInput): Effect.Effect<typeof decisionLinks.$inferSelect, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         const [link] = await db.insert(decisionLinks).values(data).returning();
@@ -970,10 +948,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
           .select()
           .from(decisionSubscriptions)
           .where(
-            and(
-              eq(decisionSubscriptions.userId, userId),
-              eq(decisionSubscriptions.organizationId, organizationId),
-            ),
+            and(eq(decisionSubscriptions.userId, userId), eq(decisionSubscriptions.organizationId, organizationId)),
           )
           .limit(1);
 
@@ -1019,10 +994,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
               updatedAt: new Date(),
             })
             .where(
-              and(
-                eq(decisionSubscriptions.userId, userId),
-                eq(decisionSubscriptions.organizationId, organizationId),
-              ),
+              and(eq(decisionSubscriptions.userId, userId), eq(decisionSubscriptions.organizationId, organizationId)),
             )
             .returning();
         },
@@ -1057,10 +1029,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
           .select()
           .from(decisionSubscriptions)
           .where(
-            and(
-              eq(decisionSubscriptions.userId, userId),
-              eq(decisionSubscriptions.organizationId, organizationId),
-            ),
+            and(eq(decisionSubscriptions.userId, userId), eq(decisionSubscriptions.organizationId, organizationId)),
           )
           .limit(1);
         return result[0] ?? null;
@@ -1081,12 +1050,10 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
   ): Effect.Effect<PaginatedResponse<DecisionWithSummary>, DatabaseError> =>
     getDecisions(organizationId, { search: query }, page, limit);
 
-  const getDecisionEdits = (
-    decisionId: string,
-  ): Effect.Effect<(typeof decisionEdits.$inferSelect & { user: typeof users.$inferSelect })[], DatabaseError> =>
+  const getDecisionEdits = (decisionId: string): Effect.Effect<DecisionEditWithUser[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        return await db
+        const results = await db
           .select({
             id: decisionEdits.id,
             decisionId: decisionEdits.decisionId,
@@ -1114,6 +1081,7 @@ const makeDecisionRepositoryService = Effect.gen(function* () {
           .innerJoin(users, eq(decisionEdits.userId, users.id))
           .where(eq(decisionEdits.decisionId, decisionId))
           .orderBy(desc(decisionEdits.editedAt));
+        return results as unknown as DecisionEditWithUser[];
       },
       catch: (error) =>
         new DatabaseError({
@@ -1193,9 +1161,7 @@ export const updateDecision = (
     return yield* repo.updateDecision(id, data, userId);
   });
 
-export const deleteDecision = (
-  id: string,
-): Effect.Effect<void, DatabaseError | NotFoundError, DecisionRepository> =>
+export const deleteDecision = (id: string): Effect.Effect<void, DatabaseError | NotFoundError, DecisionRepository> =>
   Effect.gen(function* () {
     const repo = yield* DecisionRepository;
     return yield* repo.deleteDecision(id);

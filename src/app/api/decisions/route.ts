@@ -3,8 +3,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from "@/lib/api-utils";
 import { MissingFieldError } from "@/lib/effect";
-import { DecisionRepository } from "@/lib/effect/services/decision-repository";
 import { Auth } from "@/lib/effect/services/auth";
+import { DecisionRepository } from "@/lib/effect/services/decision-repository";
 import type { DecisionFilters } from "@/lib/types";
 
 // =============================================================================
@@ -32,47 +32,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Build filters
-    const filters: DecisionFilters = {};
-
     const status = searchParams.get("status");
-    if (status === "decided" || status === "proposed" || status === "superseded") {
-      filters.status = status;
-    }
-
     const source = searchParams.get("source");
-    if (source === "meeting" || source === "adhoc" || source === "manual") {
-      filters.source = source;
-    }
-
     const topics = searchParams.get("topics");
-    if (topics) {
-      filters.topics = topics.split(",").map((t) => t.trim());
-    }
-
     const participants = searchParams.get("participants");
-    if (participants) {
-      filters.participants = participants.split(",").map((p) => p.trim());
-    }
-
     const from = searchParams.get("from");
-    if (from) {
-      filters.from = new Date(from);
-    }
-
     const to = searchParams.get("to");
-    if (to) {
-      filters.to = new Date(to);
-    }
-
     const search = searchParams.get("search");
-    if (search) {
-      filters.search = search;
-    }
-
     const videoId = searchParams.get("videoId");
-    if (videoId) {
-      filters.videoId = videoId;
-    }
+
+    const filters: DecisionFilters = {
+      ...(status === "decided" || status === "proposed" || status === "superseded" ? { status } : {}),
+      ...(source === "meeting" || source === "adhoc" || source === "manual" ? { source } : {}),
+      ...(topics ? { topics: topics.split(",").map((t) => t.trim()) } : {}),
+      ...(participants ? { participants: participants.split(",").map((p) => p.trim()) } : {}),
+      ...(from ? { from: new Date(from) } : {}),
+      ...(to ? { to: new Date(to) } : {}),
+      ...(search ? { search } : {}),
+      ...(videoId ? { videoId } : {}),
+    };
 
     // Fetch decisions using repository
     const decisionRepo = yield* DecisionRepository;

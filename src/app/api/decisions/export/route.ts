@@ -2,8 +2,8 @@ import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { MissingFieldError, ValidationError } from "@/lib/effect";
-import { DecisionRepository } from "@/lib/effect/services/decision-repository";
 import { Auth } from "@/lib/effect/services/auth";
+import { DecisionRepository } from "@/lib/effect/services/decision-repository";
 import type { DecisionFilters, DecisionWithSummary } from "@/lib/types";
 
 // =============================================================================
@@ -96,32 +96,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Build filters
-    const filters: DecisionFilters = {};
-
     const status = searchParams.get("status");
-    if (status === "decided" || status === "proposed" || status === "superseded") {
-      filters.status = status;
-    }
-
     const source = searchParams.get("source");
-    if (source === "meeting" || source === "adhoc" || source === "manual") {
-      filters.source = source;
-    }
-
     const topics = searchParams.get("topics");
-    if (topics) {
-      filters.topics = topics.split(",").map((t) => t.trim());
-    }
-
     const from = searchParams.get("from");
-    if (from) {
-      filters.from = new Date(from);
-    }
-
     const to = searchParams.get("to");
-    if (to) {
-      filters.to = new Date(to);
-    }
+
+    const filters: DecisionFilters = {
+      ...(status === "decided" || status === "proposed" || status === "superseded" ? { status } : {}),
+      ...(source === "meeting" || source === "adhoc" || source === "manual" ? { source } : {}),
+      ...(topics ? { topics: topics.split(",").map((t) => t.trim()) } : {}),
+      ...(from ? { from: new Date(from) } : {}),
+      ...(to ? { to: new Date(to) } : {}),
+    };
 
     // Fetch all decisions (with high limit)
     const decisionRepo = yield* DecisionRepository;
