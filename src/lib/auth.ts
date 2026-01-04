@@ -329,12 +329,17 @@ export const auth = betterAuth({
         cancelImmediately: false,
         plans: [
           {
-            name: "free",
+            name: "scale",
+            priceId: env.STRIPE_PRICE_ID_SCALE_MONTHLY,
+            annualDiscountPriceId: env.STRIPE_PRICE_ID_SCALE_YEARLY,
             limits: {
-              storage: 1024 * 1024 * 1024, // 1GB
-              videos: 10,
-              members: 3,
-              bandwidth: 5 * 1024 * 1024 * 1024, // 5GB/month
+              storage: 5 * 1024 * 1024 * 1024, // 5GB/user
+              videos: 25, // 25/user/month
+              members: 25,
+              bandwidth: 25 * 1024 * 1024 * 1024, // 25GB/month
+            },
+            freeTrial: {
+              days: 14, // 14-day trial, no credit card required
             },
           },
           {
@@ -342,24 +347,13 @@ export const auth = betterAuth({
             priceId: env.STRIPE_PRICE_ID_PRO_MONTHLY,
             annualDiscountPriceId: env.STRIPE_PRICE_ID_PRO_YEARLY,
             limits: {
-              storage: 100 * 1024 * 1024 * 1024, // 100GB
-              videos: -1, // unlimited
-              members: 25,
-              bandwidth: 100 * 1024 * 1024 * 1024, // 100GB/month
+              storage: 25 * 1024 * 1024 * 1024, // 25GB/user
+              videos: 100, // 100/user/month
+              members: -1, // Unlimited
+              bandwidth: 250 * 1024 * 1024 * 1024, // 250GB/month
             },
             freeTrial: {
-              days: 14,
-            },
-          },
-          {
-            name: "enterprise",
-            priceId: env.STRIPE_PRICE_ID_ENTERPRISE_MONTHLY,
-            annualDiscountPriceId: env.STRIPE_PRICE_ID_ENTERPRISE_YEARLY,
-            limits: {
-              storage: -1, // unlimited
-              videos: -1, // unlimited
-              members: -1, // unlimited
-              bandwidth: -1, // unlimited
+              days: 14, // 14-day trial, no credit card required
             },
           },
         ],

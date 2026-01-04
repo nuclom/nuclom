@@ -12,7 +12,7 @@ Simple, transparent two-tier pricing for our video collaboration platform.
 
 ## Pricing Tiers
 
-### Pro Plan
+### Scale Plan
 
 | Billing | Price | Savings |
 |---------|-------|---------|
@@ -21,14 +21,14 @@ Simple, transparent two-tier pricing for our video collaboration platform.
 
 Annual billing: $228/user/year (vs $300 monthly)
 
-### Enterprise Plan
+### Pro Plan
 
 | Billing | Price | Savings |
 |---------|-------|---------|
-| **Monthly** | $49/user/month | - |
-| **Annual** | $41/user/month | 16% off |
+| **Monthly** | $45/user/month | - |
+| **Annual** | $39/user/month | 13% off |
 
-Annual billing: $492/user/year (vs $588 monthly)
+Annual billing: $468/user/year (vs $540 monthly)
 
 ---
 
@@ -36,19 +36,22 @@ Annual billing: $492/user/year (vs $588 monthly)
 
 ### Limits
 
-| Feature | Pro | Enterprise |
-|---------|-----|------------|
-| Storage | 10 GB/user | **Unlimited** |
-| Video uploads | Unlimited | Unlimited |
+| Feature | Scale | Pro |
+|---------|-------|-----|
+| Storage | 5 GB/user | 25 GB/user |
+| Additional storage | $0.03/GB/month | $0.03/GB/month |
+| Video uploads | 25/user/month | 100/user/month |
+| Additional videos | $0.10/video | $0.10/video |
 | Max file size | 500 MB | 2 GB |
-| Team members | Up to 25 | **Unlimited** |
-| Monthly bandwidth | 50 GB | **Unlimited** |
+| Team members | Up to 25 | Unlimited |
+| Monthly bandwidth | 25 GB | 250 GB |
+| Additional bandwidth | $0.05/GB | $0.05/GB |
 
 ### Features
 
-| Feature | Pro | Enterprise |
-|---------|-----|------------|
-| AI transcription | 120 min/user/mo | **Unlimited** |
+| Feature | Scale | Pro |
+|---------|-------|-----|
+| AI transcription | 60 min/user/mo | 300 min/user/mo |
 | AI summaries | Yes | Yes |
 | Chapter detection | Yes | Yes |
 | Action item extraction | Yes | Yes |
@@ -97,11 +100,11 @@ Annual billing: $492/user/year (vs $588 monthly)
 - Google Meet recording import
 - Slack notifications
 
-### Support (Pro)
+### Support (Scale)
 - Email support
 - Help documentation
 
-### Support (Enterprise)
+### Support (Pro)
 - Priority email & chat support
 - Dedicated account manager
 - Custom onboarding
@@ -141,7 +144,7 @@ Annual billing: $492/user/year (vs $588 monthly)
 
 ### Margin Analysis
 
-#### Pro Plan
+#### Scale Plan
 
 | Billing | Price | Cost | Margin |
 |---------|-------|------|--------|
@@ -150,18 +153,18 @@ Annual billing: $492/user/year (vs $588 monthly)
 
 **Blended margin** (assuming 60% annual / 40% monthly): **26.7%**
 
-#### Enterprise Plan
+#### Pro Plan
 
 | Billing | Price | Estimated Cost | Margin |
 |---------|-------|----------------|--------|
-| Monthly ($49) | $49.00 | $25.00 | **49.0%** |
-| Annual ($41) | $41.00 | $25.00 | **39.0%** |
+| Monthly ($45) | $45.00 | $22.00 | **51.1%** |
+| Annual ($39) | $39.00 | $22.00 | **43.6%** |
 
-*Enterprise costs include priority support overhead and additional storage/bandwidth costs.*
+*Pro costs include priority support overhead and higher storage/bandwidth allocations.*
 
-**Blended margin** (assuming 70% annual / 30% monthly): **42.0%**
+**Blended margin** (assuming 70% annual / 30% monthly): **45.8%**
 
-*Note: Pro margins are lower than typical SaaS to prioritize market share. Enterprise margins target ~50% for sustainable growth while remaining competitive.*
+*Note: Scale margins are lower than typical SaaS to prioritize market share. Pro margins target ~50% for sustainable growth while remaining competitive.*
 
 ---
 
@@ -269,16 +272,16 @@ STRIPE_SECRET_KEY=sk_... npx tsx scripts/setup-stripe.ts --force
 
 | Product | Price ID Nickname | Amount | Interval | Refund Policy |
 |---------|-------------------|--------|----------|---------------|
-| Nuclom Pro | Pro Monthly | $25.00 | month | Prorated daily |
-| Nuclom Pro | Pro Yearly | $228.00 | year | Non-refundable |
-| Nuclom Enterprise | Enterprise Monthly | $49.00 | month | Prorated daily |
-| Nuclom Enterprise | Enterprise Yearly | $492.00 | year | Non-refundable |
+| Nuclom Scale | Scale Monthly | $25.00 | month | Prorated daily |
+| Nuclom Scale | Scale Yearly | $228.00 | year | Non-refundable |
+| Nuclom Pro | Pro Monthly | $45.00 | month | Prorated daily |
+| Nuclom Pro | Pro Yearly | $468.00 | year | Non-refundable |
 
 ---
 
-## Enterprise-Only Features
+## Pro-Only Features
 
-These features are exclusive to the Enterprise plan and represent key differentiators:
+These features are exclusive to the Pro plan and represent key differentiators:
 
 ### Security & Compliance
 - **SSO / SAML authentication**: Integrate with identity providers (Okta, Azure AD, Google Workspace)

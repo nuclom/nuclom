@@ -106,8 +106,8 @@ export function SubscriptionManager({
   // Get active subscription
   const activeSubscription = subscriptions.find((sub) => sub.status === "active" || sub.status === "trialing");
 
-  // Get current plan name
-  const currentPlan: SubscriptionPlan = activeSubscription?.plan || "free";
+  // Get current plan name (null if no active subscription / trial expired)
+  const currentPlan: SubscriptionPlan | null = activeSubscription?.plan || null;
   const isTrialing = activeSubscription?.status === "trialing";
   const isCanceledAtPeriodEnd = activeSubscription?.cancelAtPeriodEnd;
 
@@ -239,8 +239,8 @@ export function SubscriptionManager({
               </CardTitle>
               <CardDescription>Your current subscription and billing status</CardDescription>
             </div>
-            <Badge variant={currentPlan === "free" ? "secondary" : "default"} className="capitalize">
-              {currentPlan}
+            <Badge variant={!currentPlan ? "secondary" : "default"} className="capitalize">
+              {currentPlan || "No Active Plan"}
               {isTrialing && " (Trial)"}
             </Badge>
           </div>
@@ -347,10 +347,10 @@ export function SubscriptionManager({
               )}
             </>
           )}
-          {isOwner && currentPlan !== "enterprise" && (
+          {isOwner && currentPlan !== "pro" && (
             <Button onClick={() => setUpgradeDialogOpen(true)} disabled={isPending}>
               <Sparkles className="mr-2 h-4 w-4" />
-              {currentPlan === "free" ? "Upgrade to Pro" : "Upgrade to Enterprise"}
+              {!currentPlan ? "Start Subscription" : currentPlan === "scale" ? "Upgrade to Pro" : "Subscribe"}
             </Button>
           )}
         </CardFooter>
@@ -375,7 +375,7 @@ export function SubscriptionManager({
 interface UpgradeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentPlan: SubscriptionPlan;
+  currentPlan: SubscriptionPlan | null;
   onSelectPlan: (plan: SubscriptionPlan, annual: boolean) => void;
   isPending: boolean;
 }
@@ -385,32 +385,32 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
 
   const plans = [
     {
-      name: "pro" as const,
-      displayName: "Pro",
+      name: "scale" as const,
+      displayName: "Scale",
       monthlyPrice: 25,
       yearlyPrice: 228,
-      features: ["100GB storage", "Unlimited videos", "25 team members", "AI-powered insights", "Priority support"],
+      features: ["10GB storage/user", "100 videos/user/mo", "25 team members", "AI-powered insights", "Email support"],
     },
     {
-      name: "enterprise" as const,
-      displayName: "Enterprise",
-      monthlyPrice: 99,
-      yearlyPrice: 990,
+      name: "pro" as const,
+      displayName: "Pro",
+      monthlyPrice: 45,
+      yearlyPrice: 468,
       features: [
-        "Unlimited storage",
-        "Unlimited videos",
-        "Unlimited team members",
+        "50GB storage/user",
+        "500 videos/user/mo",
+        "100 team members",
         "Advanced AI features",
         "SSO integration",
-        "Dedicated support",
+        "Priority support",
       ],
     },
   ];
 
   const availablePlans = plans.filter((p) => {
-    if (currentPlan === "free") return true;
-    if (currentPlan === "pro") return p.name === "enterprise";
-    return false;
+    if (!currentPlan) return true; // Show all plans if no active subscription
+    if (currentPlan === "scale") return p.name === "pro"; // Only show Pro for Scale users
+    return false; // Pro users can't upgrade further within the app
   });
 
   return (

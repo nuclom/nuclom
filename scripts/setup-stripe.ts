@@ -68,17 +68,17 @@ interface ProductConfig {
 
 const PRODUCTS: ProductConfig[] = [
   {
-    id: "prod_nuclom_pro",
-    name: "Nuclom Pro",
+    id: "prod_nuclom_scale",
+    name: "Nuclom Scale",
     description: "Video collaboration platform with AI-powered features, transcription, and team collaboration tools.",
     metadata: {
-      plan_type: "pro",
+      plan_type: "scale",
       trial_days: "14",
       features: "ai_insights,transcription,collaboration,integrations",
     },
     prices: [
       {
-        nickname: "Pro Monthly",
+        nickname: "Scale Monthly",
         unit_amount: 2500, // $25.00
         recurring: {
           interval: "month",
@@ -91,7 +91,7 @@ const PRODUCTS: ProductConfig[] = [
         },
       },
       {
-        nickname: "Pro Yearly",
+        nickname: "Scale Yearly",
         unit_amount: 22800, // $228.00/year = $19/month
         recurring: {
           interval: "year",
@@ -107,19 +107,18 @@ const PRODUCTS: ProductConfig[] = [
     ],
   },
   {
-    id: "prod_nuclom_enterprise",
-    name: "Nuclom Enterprise",
-    description:
-      "Enterprise video collaboration with unlimited storage, SSO integration, advanced AI, and dedicated support.",
+    id: "prod_nuclom_pro",
+    name: "Nuclom Pro",
+    description: "Pro video collaboration with higher limits, SSO integration, advanced AI, and dedicated support.",
     metadata: {
-      plan_type: "enterprise",
+      plan_type: "pro",
       trial_days: "14",
-      features: "unlimited_storage,sso,advanced_ai,dedicated_support,custom_branding",
+      features: "higher_limits,sso,advanced_ai,dedicated_support,custom_branding",
     },
     prices: [
       {
-        nickname: "Enterprise Monthly",
-        unit_amount: 4900, // $49.00
+        nickname: "Pro Monthly",
+        unit_amount: 4500, // $45.00
         recurring: {
           interval: "month",
           interval_count: 1,
@@ -127,12 +126,12 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: "monthly",
           refund_policy: "prorated_daily",
-          price_per_user: "49.00",
+          price_per_user: "45.00",
         },
       },
       {
-        nickname: "Enterprise Yearly",
-        unit_amount: 49200, // $492.00/year = ~$41/month
+        nickname: "Pro Yearly",
+        unit_amount: 46800, // $468.00/year = $39/month
         recurring: {
           interval: "year",
           interval_count: 1,
@@ -140,8 +139,8 @@ const PRODUCTS: ProductConfig[] = [
         metadata: {
           billing_period: "yearly",
           refund_policy: "non_refundable",
-          price_per_user: "41.00",
-          yearly_savings: "16%",
+          price_per_user: "39.00",
+          yearly_savings: "13%",
         },
       },
     ],
@@ -352,12 +351,12 @@ async function main() {
   }
 
   console.log("📋 Pricing Configuration:");
-  console.log("   Pro Plan:");
+  console.log("   Scale Plan:");
   console.log("   • Monthly: $25/user/month (prorated daily refund)");
   console.log("   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)");
-  console.log("   Enterprise Plan:");
-  console.log("   • Monthly: $49/user/month (prorated daily refund)");
-  console.log("   • Yearly:  $41/user/month ($492/year, 16% off, non-refundable)");
+  console.log("   Pro Plan:");
+  console.log("   • Monthly: $45/user/month (prorated daily refund)");
+  console.log("   • Yearly:  $39/user/month ($468/year, 13% off, non-refundable)");
   console.log("   Trial:   14 days (no credit card required)\n");
   console.log(`${"=".repeat(50)}\n`);
 
@@ -408,10 +407,10 @@ async function main() {
     }
 
     // Find price IDs for environment variables
+    const scaleMonthly = createdResources.prices.find((p) => p.nickname === "Scale Monthly");
+    const scaleYearly = createdResources.prices.find((p) => p.nickname === "Scale Yearly");
     const proMonthly = createdResources.prices.find((p) => p.nickname === "Pro Monthly");
     const proYearly = createdResources.prices.find((p) => p.nickname === "Pro Yearly");
-    const enterpriseMonthly = createdResources.prices.find((p) => p.nickname === "Enterprise Monthly");
-    const enterpriseYearly = createdResources.prices.find((p) => p.nickname === "Enterprise Yearly");
 
     console.log(`\n${"=".repeat(50)}`);
     console.log("🔐 Required Environment Variables\n");
@@ -422,10 +421,10 @@ async function main() {
     console.log("STRIPE_WEBHOOK_SECRET=whsec_...");
     console.log("");
     console.log("# Better Auth Stripe Price IDs");
+    console.log(`STRIPE_PRICE_ID_SCALE_MONTHLY=${scaleMonthly?.id || "price_xxx"}`);
+    console.log(`STRIPE_PRICE_ID_SCALE_YEARLY=${scaleYearly?.id || "price_xxx"}`);
     console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || "price_xxx"}`);
     console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || "price_xxx"}`);
-    console.log(`STRIPE_PRICE_ID_ENTERPRISE_MONTHLY=${enterpriseMonthly?.id || "price_xxx"}`);
-    console.log(`STRIPE_PRICE_ID_ENTERPRISE_YEARLY=${enterpriseYearly?.id || "price_xxx"}`);
     console.log("");
     console.log("# Application URLs");
     console.log("NEXT_PUBLIC_APP_URL=https://your-app.com");

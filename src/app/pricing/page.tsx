@@ -27,8 +27,8 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 const pricingPlans = {
-  pro: {
-    name: "Pro",
+  scale: {
+    name: "Scale",
     description: "For growing teams that need powerful video collaboration",
     icon: Zap,
     monthlyPrice: 25,
@@ -39,10 +39,10 @@ const pricingPlans = {
     cta: "Start Free Trial",
     ctaLink: "/register",
     limits: {
-      storage: "10 GB/user",
-      videos: "Unlimited",
+      storage: "5 GB/user",
+      videos: "25/user/month",
       members: "Up to 25",
-      bandwidth: "50 GB/month",
+      bandwidth: "25 GB/month",
     },
     features: [
       { name: "AI-powered transcription", included: true, highlight: true },
@@ -61,22 +61,22 @@ const pricingPlans = {
       { name: "Dedicated account manager", included: false },
     ],
   },
-  enterprise: {
-    name: "Enterprise",
-    description: "For organizations that need unlimited scale and premium features",
+  pro: {
+    name: "Pro",
+    description: "For organizations that need premium features and higher limits",
     icon: Building2,
-    monthlyPrice: 49,
-    yearlyPrice: 41,
-    yearlyTotal: 492,
-    savings: "16%",
+    monthlyPrice: 45,
+    yearlyPrice: 39,
+    yearlyTotal: 468,
+    savings: "13%",
     popular: true,
     cta: "Start Free Trial",
-    ctaLink: "/register?plan=enterprise",
+    ctaLink: "/register?plan=pro",
     limits: {
-      storage: "Unlimited",
-      videos: "Unlimited",
+      storage: "25 GB/user",
+      videos: "100/user/month",
       members: "Unlimited",
-      bandwidth: "Unlimited",
+      bandwidth: "250 GB/month",
     },
     features: [
       { name: "AI-powered transcription", included: true, highlight: true },
@@ -102,67 +102,66 @@ const featureComparison = [
     category: "AI & Automation",
     icon: Bot,
     features: [
-      { name: "Automatic transcription", pro: "120 min/user/mo", enterprise: "Unlimited" },
-      { name: "AI summaries", pro: true, enterprise: true },
-      { name: "Chapter detection", pro: true, enterprise: true },
-      { name: "Action item extraction", pro: true, enterprise: true },
-      { name: "Code snippet detection", pro: true, enterprise: true },
-      { name: "Semantic search", pro: true, enterprise: true },
+      { name: "Automatic transcription", scale: "60 min/user/mo", pro: "300 min/user/mo" },
+      { name: "AI summaries", scale: true, pro: true },
+      { name: "Chapter detection", scale: true, pro: true },
+      { name: "Action item extraction", scale: true, pro: true },
+      { name: "Code snippet detection", scale: true, pro: true },
+      { name: "Semantic search", scale: true, pro: true },
     ],
   },
   {
     category: "Storage & Limits",
     icon: HardDrive,
     features: [
-      { name: "Storage per user", pro: "10 GB", enterprise: "Unlimited" },
-      { name: "Video uploads", pro: "Unlimited", enterprise: "Unlimited" },
-      { name: "Max file size", pro: "500 MB", enterprise: "2 GB" },
-      { name: "Team members", pro: "Up to 25", enterprise: "Unlimited" },
-      { name: "Bandwidth", pro: "50 GB/mo", enterprise: "Unlimited" },
+      { name: "Storage per user", scale: "5 GB", pro: "25 GB" },
+      { name: "Video uploads", scale: "25/user/mo", pro: "100/user/mo" },
+      { name: "Max file size", scale: "500 MB", pro: "2 GB" },
+      { name: "Team members", scale: "Up to 25", pro: "Unlimited" },
+      { name: "Bandwidth", scale: "25 GB/mo", pro: "250 GB/mo" },
     ],
   },
   {
     category: "Collaboration",
     icon: Users,
     features: [
-      { name: "Time-stamped comments", pro: true, enterprise: true },
-      { name: "@mentions & notifications", pro: true, enterprise: true },
-      { name: "Threaded discussions", pro: true, enterprise: true },
-      { name: "Channels & series", pro: true, enterprise: true },
-      { name: "Guest access", pro: "Limited", enterprise: "Unlimited" },
+      { name: "Time-stamped comments", scale: true, pro: true },
+      { name: "@mentions & notifications", scale: true, pro: true },
+      { name: "Threaded discussions", scale: true, pro: true },
+      { name: "Channels & series", scale: true, pro: true },
     ],
   },
   {
     category: "Security & Compliance",
     icon: Shield,
     features: [
-      { name: "SSO / SAML", pro: false, enterprise: true },
-      { name: "Advanced permissions", pro: "Basic", enterprise: "Advanced" },
-      { name: "Audit logs", pro: false, enterprise: true },
-      { name: "Data retention controls", pro: false, enterprise: true },
-      { name: "SOC 2 compliance", pro: true, enterprise: true },
+      { name: "SSO / SAML", scale: false, pro: true },
+      { name: "Advanced permissions", scale: "Basic", pro: "Advanced" },
+      { name: "Audit logs", scale: false, pro: true },
+      { name: "Data retention controls", scale: false, pro: true },
+      { name: "SOC 2 compliance", scale: true, pro: true },
     ],
   },
   {
     category: "Customization & API",
     icon: Palette,
     features: [
-      { name: "API access", pro: true, enterprise: true },
-      { name: "Webhooks", pro: true, enterprise: true },
-      { name: "Custom branding", pro: false, enterprise: true },
-      { name: "Custom domain", pro: false, enterprise: true },
-      { name: "White-label options", pro: false, enterprise: true },
+      { name: "API access", scale: true, pro: true },
+      { name: "Webhooks", scale: true, pro: true },
+      { name: "Custom branding", scale: false, pro: true },
+      { name: "Custom domain", scale: false, pro: true },
+      { name: "White-label options", scale: false, pro: true },
     ],
   },
   {
     category: "Support",
     icon: Headphones,
     features: [
-      { name: "Email support", pro: true, enterprise: true },
-      { name: "Priority support", pro: false, enterprise: true },
-      { name: "Dedicated account manager", pro: false, enterprise: true },
-      { name: "Custom onboarding", pro: false, enterprise: true },
-      { name: "SLA guarantee", pro: "99.5%", enterprise: "99.9%" },
+      { name: "Email support", scale: true, pro: true },
+      { name: "Priority support", scale: false, pro: true },
+      { name: "Dedicated account manager", scale: false, pro: true },
+      { name: "Custom onboarding", scale: false, pro: true },
+      { name: "SLA guarantee", scale: "99.5%", pro: "99.9%" },
     ],
   },
 ];
@@ -174,14 +173,14 @@ const faqs = [
       "You get full access to all features of your chosen plan during the trial. No credit card required to start. At the end of the trial, you can choose to subscribe or your account will be converted to read-only mode.",
   },
   {
-    question: "Can I switch between Pro and Enterprise?",
+    question: "Can I switch between Scale and Pro?",
     answer:
-      "Yes! You can upgrade from Pro to Enterprise at any time. When you upgrade, you'll be charged a prorated amount for the remainder of your billing period. Downgrades take effect at the end of your current billing period.",
+      "Yes! You can upgrade from Scale to Pro at any time. When you upgrade, you'll be charged a prorated amount for the remainder of your billing period. Downgrades take effect at the end of your current billing period.",
   },
   {
-    question: "What happens if I exceed my storage limit?",
+    question: "What happens if I exceed my limits?",
     answer:
-      "We'll notify you when you reach 80% of your storage limit. If you exceed it, you can either upgrade to Enterprise for unlimited storage or delete some videos to free up space. We won't delete your content without warning.",
+      "We'll notify you when you reach 80% of any limit. If you exceed storage, bandwidth, or video upload limits, overage charges will apply automatically. You can also upgrade to Pro for higher limits or delete some content to free up space. We won't delete your content without warning.",
   },
   {
     question: "Do you offer discounts for nonprofits or education?",
@@ -386,13 +385,24 @@ export default function PricingPage() {
                     {/* Header row */}
                     <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 font-medium text-sm">
                       <div>Feature</div>
+                      <div className="text-center">Scale</div>
                       <div className="text-center">Pro</div>
-                      <div className="text-center">Enterprise</div>
                     </div>
                     {/* Feature rows */}
                     {category.features.map((feature) => (
                       <div key={feature.name} className="grid grid-cols-3 gap-4 p-4 items-center">
                         <div className="text-sm">{feature.name}</div>
+                        <div className="text-center">
+                          {typeof feature.scale === "boolean" ? (
+                            feature.scale ? (
+                              <Check className="w-5 h-5 text-primary mx-auto" />
+                            ) : (
+                              <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-medium">{feature.scale}</span>
+                          )}
+                        </div>
                         <div className="text-center">
                           {typeof feature.pro === "boolean" ? (
                             feature.pro ? (
@@ -401,18 +411,7 @@ export default function PricingPage() {
                               <X className="w-5 h-5 text-muted-foreground mx-auto" />
                             )
                           ) : (
-                            <span className="text-sm font-medium">{feature.pro}</span>
-                          )}
-                        </div>
-                        <div className="text-center">
-                          {typeof feature.enterprise === "boolean" ? (
-                            feature.enterprise ? (
-                              <Check className="w-5 h-5 text-primary mx-auto" />
-                            ) : (
-                              <X className="w-5 h-5 text-muted-foreground mx-auto" />
-                            )
-                          ) : (
-                            <span className="text-sm font-medium text-primary">{feature.enterprise}</span>
+                            <span className="text-sm font-medium text-primary">{feature.pro}</span>
                           )}
                         </div>
                       </div>
@@ -425,7 +424,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Enterprise Callout */}
+      {/* Custom Plans Callout */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl mx-auto">
           <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/20">
@@ -436,7 +435,7 @@ export default function PricingPage() {
                     <Building2 className="w-3 h-3 mr-1" />
                     Enterprise
                   </Badge>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4">Need more than Enterprise?</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">Need more than Pro?</h3>
                   <p className="text-muted-foreground mb-6">
                     For large organizations with specific requirements, we offer custom plans with volume pricing,
                     dedicated infrastructure, and white-glove onboarding.
