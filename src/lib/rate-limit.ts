@@ -85,6 +85,12 @@ export const UPLOAD_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 60 * 1000, // per hour
 };
 
+/** Rate limit for billing operations (checkout, portal, subscription changes) */
+export const BILLING_RATE_LIMIT: RateLimitConfig = {
+  maxRequests: 10, // 10 requests
+  windowMs: 15 * 60 * 1000, // per 15 minutes
+};
+
 // =============================================================================
 // Upstash Ratelimit Instances
 // =============================================================================
@@ -94,6 +100,7 @@ let apiRateLimiter: Ratelimit | null = null;
 let authRateLimiter: Ratelimit | null = null;
 let sensitiveRateLimiter: Ratelimit | null = null;
 let uploadRateLimiter: Ratelimit | null = null;
+let billingRateLimiter: Ratelimit | null = null;
 
 /**
  * Convert config to Upstash sliding window duration
@@ -164,6 +171,16 @@ function getUploadRateLimiter(): Ratelimit | null {
     uploadRateLimiter = getRateLimiter(UPLOAD_RATE_LIMIT, "upload");
   }
   return uploadRateLimiter;
+}
+
+/**
+ * Get the billing rate limiter (lazily initialized)
+ */
+function getBillingRateLimiter(): Ratelimit | null {
+  if (billingRateLimiter === null) {
+    billingRateLimiter = getRateLimiter(BILLING_RATE_LIMIT, "billing");
+  }
+  return billingRateLimiter;
 }
 
 // =============================================================================
@@ -340,6 +357,29 @@ export async function rateLimitUploadAsync(request: Request): Promise<NextRespon
 
   const identifier = getClientIdentifier(request);
   const result = await checkRateLimitRedis(`upload:${identifier}`, rateLimiter);
+
+  if (!result.success) {
+    return createRateLimitResponse(result);
+  }
+
+  return null;
+}
+
+/**
+ * Rate limiting for billing operations (async)
+ * Applies to checkout, portal, subscription changes
+ * Returns null if rate limiting is disabled (Redis not configured)
+ */
+export async function rateLimitBillingAsync(request: Request): Promise<NextResponse | null> {
+  const rateLimiter = getBillingRateLimiter();
+
+  // Rate limiting disabled when Redis is not configured
+  if (!rateLimiter) {
+    return null;
+  }
+
+  const identifier = getClientIdentifier(request);
+  const result = await checkRateLimitRedis(`billing:${identifier}`, rateLimiter);
 
   if (!result.success) {
     return createRateLimitResponse(result);

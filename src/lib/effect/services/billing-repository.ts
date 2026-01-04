@@ -194,11 +194,42 @@ export class BillingRepository extends Context.Tag("BillingRepository")<
 // Helper Functions
 // =============================================================================
 
+/**
+ * Get the current billing period (calendar month) with UTC normalization.
+ * Uses UTC to ensure consistent period boundaries across all timezones.
+ * This prevents issues where a request at 11:59 PM UTC-12 and one at
+ * 12:01 AM UTC+14 might be counted in different periods.
+ */
 const getCurrentPeriod = () => {
   const now = new Date();
-  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  // Create UTC-normalized start of month (day 1, 00:00:00.000 UTC)
+  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+
+  // Create UTC-normalized end of month (last day, 23:59:59.999 UTC)
+  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+
   return { periodStart, periodEnd };
+};
+
+/**
+ * Get a specific billing period for a given date with UTC normalization.
+ * Useful for historical lookups or testing.
+ * @internal Exported for testing purposes
+ */
+export const getPeriodForDate = (date: Date) => {
+  const periodStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0, 0));
+  const periodEnd = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+  return { periodStart, periodEnd };
+};
+
+/**
+ * Check if a given date falls within the current billing period.
+ * @internal Exported for testing purposes
+ */
+export const isInCurrentPeriod = (date: Date): boolean => {
+  const { periodStart, periodEnd } = getCurrentPeriod();
+  return date >= periodStart && date <= periodEnd;
 };
 
 const calculatePercentage = (used: number, limit: number): number => {
