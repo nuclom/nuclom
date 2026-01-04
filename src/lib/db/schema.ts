@@ -857,7 +857,7 @@ export const subscriptions = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     // Better Auth Stripe fields
-    plan: text("plan").notNull(), // Plan name (e.g., "pro", "enterprise")
+    plan: text("plan").notNull(), // Plan name (e.g., "scale", "pro")
     referenceId: text("reference_id").notNull(), // Organization ID for org-based billing
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),

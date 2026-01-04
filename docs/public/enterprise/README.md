@@ -269,34 +269,6 @@ Contact sales for volume pricing: **enterprise@nuclom.com**
 
 ---
 
-## Case Studies
-
-### TechCorp: Engineering Training
-> "Nuclom reduced our onboarding time by 40%. New engineers can watch recorded sessions and get up to speed faster than ever."
-
-**Results:**
-- 40% faster onboarding
-- 500+ training videos
-- 2,000 active users
-
-### GlobalSales Inc: Sales Enablement
-> "Our sales team uses Nuclom for demo recordings and training. The AI summaries save hours of meeting notes."
-
-**Results:**
-- 60% reduction in meeting recap time
-- 3x increase in demo sharing
-- 15% improvement in close rate
-
-### DesignStudio: Client Presentations
-> "We share client review videos through Nuclom. The commenting features make async feedback seamless."
-
-**Results:**
-- 50% faster client feedback cycles
-- Eliminated timezone coordination
-- Professional branded experience
-
----
-
 ## Getting Started
 
 ### Request a Demo
