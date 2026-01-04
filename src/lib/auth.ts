@@ -67,7 +67,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    disableSignUp: true,
+    disableSignUp: env.DISABLE_SIGNUPS,
     async sendVerificationEmail({
       user,
       token,
