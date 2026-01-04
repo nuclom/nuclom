@@ -1,17 +1,25 @@
 "use client";
 
-import { Brain, Loader2, RefreshCw } from "lucide-react";
+import { Brain, Download, Loader2, RefreshCw } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback } from "react";
+import { Suspense, useCallback, useState } from "react";
 import useSWR from "swr";
 import {
   ActionItemTracker,
   InsightsOverview,
+  InsightsSummary,
   KeywordCloud,
   MeetingEffectiveness,
+  MeetingPatterns,
   TopicTrends,
 } from "@/components/insights";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -116,6 +124,28 @@ function InsightsContent() {
     { refreshInterval: 120000 },
   );
 
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    mutate: mutateSummary,
+  } = useSWR(
+    organizationId ? `/api/insights/summary?organizationId=${organizationId}&period=${period}` : null,
+    fetcher,
+    { refreshInterval: 120000 },
+  );
+
+  const {
+    data: patternsData,
+    isLoading: isPatternsLoading,
+    mutate: mutatePatterns,
+  } = useSWR(
+    organizationId ? `/api/insights/patterns?organizationId=${organizationId}&period=${period}` : null,
+    fetcher,
+    { refreshInterval: 120000 },
+  );
+
+  const [isExporting, setIsExporting] = useState(false);
+
   const handlePeriodChange = (newPeriod: string) => {
     router.push(`/${organizationSlug}/dashboard/insights?period=${newPeriod}&tab=${tab}`);
   };
@@ -130,7 +160,46 @@ function InsightsContent() {
     mutateActionItems();
     mutateEffectiveness();
     mutateKeywords();
-  }, [mutateOverview, mutateTopics, mutateActionItems, mutateEffectiveness, mutateKeywords]);
+    mutateSummary();
+    mutatePatterns();
+  }, [
+    mutateOverview,
+    mutateTopics,
+    mutateActionItems,
+    mutateEffectiveness,
+    mutateKeywords,
+    mutateSummary,
+    mutatePatterns,
+  ]);
+
+  const handleExport = async (format: "csv" | "json", type: string = "all") => {
+    if (!organizationId) return;
+
+    setIsExporting(true);
+    try {
+      const response = await fetch(
+        `/api/insights/export?organizationId=${organizationId}&period=${period}&format=${format}&type=${type}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `insights-export-${type}-${period}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleActionItemStatusChange = async (id: string, status: string) => {
     try {
@@ -155,7 +224,9 @@ function InsightsContent() {
     isTopicsLoading ||
     isActionItemsLoading ||
     isEffectivenessLoading ||
-    isKeywordsLoading;
+    isKeywordsLoading ||
+    isSummaryLoading ||
+    isPatternsLoading;
 
   if (isOrgLoading) {
     return (
@@ -170,6 +241,8 @@ function InsightsContent() {
   const actionItems = actionItemsData?.data;
   const effectiveness = effectivenessData?.data;
   const keywords = keywordsData?.data;
+  const summary = summaryData?.data;
+  const patterns = patternsData?.data;
 
   return (
     <div className="space-y-8">
@@ -199,6 +272,28 @@ function InsightsContent() {
               <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={isExporting}>
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv", "all")}>Export All (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("json", "all")}>Export All (JSON)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv", "videos")}>Videos Only (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv", "decisions")}>Decisions Only (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv", "action-items")}>
+                Action Items (CSV)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -207,12 +302,33 @@ function InsightsContent() {
 
       {/* Tabbed Content */}
       <Tabs value={tab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsTrigger value="summary">Summary</TabsTrigger>
           <TabsTrigger value="overview">Topics</TabsTrigger>
+          <TabsTrigger value="patterns">Patterns</TabsTrigger>
           <TabsTrigger value="action-items">Action Items</TabsTrigger>
           <TabsTrigger value="effectiveness">Effectiveness</TabsTrigger>
           <TabsTrigger value="keywords">Keywords</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="summary" className="mt-6">
+          {isSummaryLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : summary ? (
+            <InsightsSummary
+              summary={summary.summary}
+              stats={summary.stats}
+              highlights={summary.highlights}
+              recommendations={summary.recommendations}
+              topSpeakers={summary.topSpeakers}
+              topVideos={summary.topVideos}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">No summary data available</div>
+          )}
+        </TabsContent>
 
         <TabsContent value="overview" className="mt-6">
           {isTopicsLoading ? (
@@ -223,6 +339,24 @@ function InsightsContent() {
             <TopicTrends topics={topics.topics} trending={topics.trending} summary={topics.summary} />
           ) : (
             <div className="flex items-center justify-center h-64 text-muted-foreground">No topic data available</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="patterns" className="mt-6">
+          {isPatternsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : patterns ? (
+            <MeetingPatterns
+              timeDistribution={patterns.timeDistribution}
+              speakerPatterns={patterns.speakerPatterns}
+              meetingFrequency={patterns.meetingFrequency}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              No patterns data available
+            </div>
           )}
         </TabsContent>
 

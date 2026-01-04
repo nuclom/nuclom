@@ -301,6 +301,150 @@ GET /api/insights/keywords
 }
 ```
 
+## Summary
+
+### Get Weekly/Monthly Summary
+
+Retrieves a digest-style summary with highlights and recommendations.
+
+```http
+GET /api/insights/summary
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| organizationId | string | Yes | Organization ID |
+| period | string | No | Time period: 7d, 30d, 90d, all (default: 7d) |
+
+**Response:**
+
+```json
+{
+  "summary": {
+    "period": "7d",
+    "periodLabel": "Last 7 days",
+    "generatedAt": "2024-01-15T10:30:00Z"
+  },
+  "stats": {
+    "totalVideos": 12,
+    "totalHours": 8.5,
+    "totalDecisions": 28,
+    "actionItems": {
+      "total": 34,
+      "completed": 18,
+      "pending": 12,
+      "completionRate": 53
+    }
+  },
+  "highlights": [
+    "Analyzed 12 videos (8.5 hours of content)",
+    "Captured 28 key decisions",
+    "Completed 18 action items (53% completion rate)"
+  ],
+  "recommendations": [
+    "Consider balancing speaking time. Speaker A contributed most this period."
+  ],
+  "topSpeakers": [
+    { "name": "Speaker A", "speakingTime": 12000, "videoCount": 8 },
+    { "name": "Speaker B", "speakingTime": 8500, "videoCount": 6 }
+  ],
+  "topVideos": [
+    { "id": "video-1", "title": "Team Standup", "views": 45 }
+  ]
+}
+```
+
+## Patterns
+
+### Get Meeting Patterns
+
+Analyzes team meeting patterns including time distribution and speaker collaboration.
+
+```http
+GET /api/insights/patterns
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| organizationId | string | Yes | Organization ID |
+| period | string | No | Time period: 7d, 30d, 90d, all (default: 30d) |
+
+**Response:**
+
+```json
+{
+  "timeDistribution": {
+    "heatmap": [
+      {
+        "day": "Monday",
+        "hours": [
+          { "hour": 0, "count": 0 },
+          { "hour": 9, "count": 5 },
+          { "hour": 14, "count": 3 }
+        ]
+      }
+    ],
+    "peakTimes": [
+      { "day": "Monday", "hour": 9, "count": 5 },
+      { "day": "Tuesday", "hour": 10, "count": 4 }
+    ]
+  },
+  "speakerPatterns": {
+    "participants": [
+      { "name": "Speaker A", "videoCount": 12, "totalSpeakingTime": 15000, "avgSpeakingPercent": 35 }
+    ],
+    "coAppearances": [
+      { "speaker1": "Speaker A", "speaker2": "Speaker B", "count": 8 }
+    ],
+    "participationBalance": 75
+  },
+  "meetingFrequency": {
+    "weekly": [
+      { "week": "2024-01-08", "count": 5, "totalDuration": 7200 }
+    ],
+    "stats": {
+      "avgDurationMinutes": 45,
+      "minDurationMinutes": 15,
+      "maxDurationMinutes": 90,
+      "totalMeetings": 20
+    }
+  }
+}
+```
+
+## Export
+
+### Export Meeting Data
+
+Exports meeting data in CSV or JSON format.
+
+```http
+GET /api/insights/export
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| organizationId | string | Yes | Organization ID |
+| period | string | No | Time period: 7d, 30d, 90d, all (default: 30d) |
+| format | string | No | Export format: csv, json (default: csv) |
+| type | string | No | Data type: all, videos, decisions, action-items, speakers (default: all) |
+
+**Response:**
+
+Returns a file download with the requested data format.
+
+For CSV format, the file includes sections for each data type with headers:
+- Videos: ID, Title, Description, Duration, Created At, Has Summary
+- Decisions: ID, Summary, Context, Status, Type, Video ID, Created At
+- Action Items: ID, Title, Description, Assignee, Status, Priority, Due Date, Completed At, Video ID, Confidence, Created At
+- Speakers: Video ID, Speaker Label, Speaking Time, Speaking %, Segment Count
+
 ## Database Schema
 
 The insights feature uses the following tables:
