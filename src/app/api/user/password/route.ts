@@ -5,14 +5,12 @@
  */
 
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Layer, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { auth } from "@/lib/auth";
+import { Effect, Schema } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { AppLive } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { Auth } from "@/lib/effect/services/auth";
 import { rateLimitSensitiveAsync } from "@/lib/rate-limit";
 import { revokeSessionsBeforeDate } from "@/lib/session-security";
 
@@ -32,9 +30,6 @@ export async function POST(request: NextRequest) {
   // Apply strict rate limiting for password changes (disabled if Redis not configured)
   const rateLimitResult = await rateLimitSensitiveAsync(request);
   if (rateLimitResult) return rateLimitResult;
-
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     const authService = yield* Auth;
@@ -91,17 +86,8 @@ export async function POST(request: NextRequest) {
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }

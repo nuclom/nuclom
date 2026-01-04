@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
+import { createFullLayer } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { auth } from "@/lib/auth";
-import { AppLive, KnowledgeGraphRepository, VideoRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { KnowledgeGraphRepository, VideoRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // GET /api/videos/[id]/decisions - Get decisions extracted from this video
@@ -12,8 +12,6 @@ import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: videoId } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -39,9 +37,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
+  // Custom handling for cache headers
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);

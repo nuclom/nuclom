@@ -1,8 +1,8 @@
 "use client";
 
 import { Calendar, CheckCircle, Clock, FileVideo, Lightbulb, Sparkles, TrendingUp, User } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SummaryStats {
   totalVideos: number;

@@ -40,7 +40,13 @@ src/
 ├── lib/                   # Core utilities and services
 │   ├── auth/             # Authentication configuration
 │   ├── db/               # Database schema and queries
-│   ├── openapi/          # OpenAPI route definitions
+│   ├── effect/           # Effect-TS services and layers
+│   │   ├── services/    # Repository and service implementations
+│   │   ├── runtime.ts   # Application layer composition
+│   │   └── server.ts    # Server-side Effect utilities
+│   ├── api-handler.ts   # Standardized API route helpers
+│   ├── api-errors.ts    # Error codes and response mapping
+│   ├── validation/      # Effect Schema validation utilities
 │   └── utils/            # Shared utilities
 ├── hooks/                # Custom React hooks
 ├── workflows/            # Background job workflows
@@ -51,24 +57,40 @@ src/
 
 ### API Routes
 
-API routes use Effect-TS for type-safe error handling. **All API routes that access the database or authentication must call `await connection()` at the start of the handler.**
+API routes use Effect-TS with dependency injection layers for type-safe error handling. Use the standardized helpers from `@/lib/api-handler`:
 
 ```typescript
-import { Effect } from "effect"
-import { connection, type NextRequest, NextResponse } from "next/server"
+import { Effect } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
+import { Auth } from "@/lib/effect/services/auth";
 
 export async function GET(request: NextRequest) {
-  await connection() // Required: prevents static generation during builds
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-  // Use Effect for async operations with proper error handling
-  const result = await Effect.runPromise(
-    Effect.tryPromise(() => db.query.videos.findFirst({...}))
-  )
-  return NextResponse.json(result)
+    // Use repository services for database operations
+    const repo = yield* SomeRepository;
+    return yield* repo.getData(user.id);
+  });
+
+  const runnable = Effect.provide(effect, createFullLayer());
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return handleEffectExit(exit); // For GET requests
+  // return handleEffectExitWithStatus(exit, 201); // For POST (201 Created)
 }
 ```
 
-> **Important**: Do NOT use `export const dynamic = "force-dynamic"` - this pattern no longer works on Vercel deployments. Always use `await connection()` instead.
+**Key helpers:**
+- `createFullLayer()` - Creates the full application layer with authentication
+- `handleEffectExit(exit)` - Standard response handling for GET/PUT/DELETE
+- `handleEffectExitWithStatus(exit, 201)` - For POST requests returning 201
+- `mapErrorToApiResponse(error)` - Maps Effect errors to standardized API responses
+
+> **Important**: Do NOT use `export const dynamic = "force-dynamic"` - this pattern no longer works on Vercel deployments. The Effect layer system handles database connections automatically.
 
 ### Database Queries
 
@@ -99,15 +121,23 @@ Components follow this pattern:
 
 ### Form Handling
 
-Use react-hook-form with Zod validation:
+Use react-hook-form with Effect Schema validation (preferred) or Zod:
 
 ```typescript
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { Schema } from "effect"
+import { validateRequestBody, validateQueryParams } from "@/lib/validation"
 
-const schema = z.object({...})
-const form = useForm({ resolver: zodResolver(schema) })
+// Define schema with Effect Schema (recommended for API routes)
+const createVideoSchema = Schema.Struct({
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+  organizationId: Schema.String,
+});
+
+// In API routes, use validation helpers
+const data = yield* validateRequestBody(createVideoSchema, request);
+const params = yield* validateQueryParams(querySchema, request.url);
 ```
 
 ### AI Integration

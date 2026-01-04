@@ -1,9 +1,8 @@
-import { Cause, Effect, Exit, Layer, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { auth } from "@/lib/auth";
-import { AppLive, KnowledgeGraphRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { Effect, Schema } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
+import { KnowledgeGraphRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
@@ -28,8 +27,6 @@ const updateDecisionSchema = Schema.Struct({
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -41,19 +38,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return yield* repo.getDecision(id);
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -62,8 +50,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -88,19 +74,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -109,8 +86,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -123,17 +98,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return { success: true };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }

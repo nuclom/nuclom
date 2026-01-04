@@ -5,14 +5,12 @@
  */
 
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Layer } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { auth } from "@/lib/auth";
+import { Effect } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { sessions } from "@/lib/db/schema";
-import { AppLive } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { Auth } from "@/lib/effect/services/auth";
 
 // =============================================================================
 // DELETE /api/user/sessions/:sessionId - Revoke a specific session
@@ -20,8 +18,6 @@ import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
 
   const effect = Effect.gen(function* () {
     const authService = yield* Auth;
@@ -67,17 +63,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }

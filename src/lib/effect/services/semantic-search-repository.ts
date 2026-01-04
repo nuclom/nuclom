@@ -5,18 +5,11 @@
  * Supports storing transcript chunks with embeddings and performing similarity searches.
  */
 
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import {
-  decisions,
-  type NewTranscriptChunk,
-  type TranscriptChunk,
-  transcriptChunks,
-  users,
-  videos,
-} from "@/lib/db/schema";
+import { type NewTranscriptChunk, type TranscriptChunk, transcriptChunks, users, videos } from "@/lib/db/schema";
 import type { VideoWithAuthor } from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
+import { DatabaseError } from "../errors";
 import { Database } from "./database";
 import type { ChunkEmbedding } from "./embedding";
 
