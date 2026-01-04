@@ -21,6 +21,7 @@ import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Database, type DrizzleDB } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
+import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
 import { env } from "@/lib/env/server";
 
@@ -258,6 +259,17 @@ const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRe
 
     // Send payment succeeded notification
     yield* sendPaymentNotification(organizationId, "payment_succeeded", db);
+
+    // Send Slack monitoring notification
+    const slackMonitoring = yield* SlackMonitoring;
+    yield* slackMonitoring
+      .sendBillingEvent("payment_succeeded", {
+        organizationId,
+        organizationName: organizationId, // We'll get the actual name in the notification
+        amount: stripeInvoice.amount_paid,
+        currency: stripeInvoice.currency,
+      })
+      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
 const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: DbType) =>
@@ -270,6 +282,17 @@ const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: DbType) =>
 
     // Send payment failed notification
     yield* sendPaymentNotification(organizationId, "payment_failed", db);
+
+    // Send Slack monitoring notification
+    const slackMonitoring = yield* SlackMonitoring;
+    yield* slackMonitoring
+      .sendBillingEvent("payment_failed", {
+        organizationId,
+        organizationName: organizationId,
+        amount: stripeInvoice.amount_due,
+        currency: stripeInvoice.currency,
+      })
+      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
 const handleInvoiceCreated = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRepoType) =>
@@ -461,4 +484,14 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
         })
         .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     }
+
+    // Send Slack monitoring notification
+    const slackMonitoring = yield* SlackMonitoring;
+    yield* slackMonitoring
+      .sendBillingEvent("trial_ending", {
+        organizationId,
+        organizationName: org.name,
+        trialEndsAt,
+      })
+      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));

@@ -8,6 +8,7 @@ import Stripe from "stripe";
 import { env } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
+import { notifySlackMonitoring } from "./effect/services/slack-monitoring";
 import { resend } from "./email";
 import { enforceSessionLimit, generateFingerprint, getSecureCookieOptions } from "./session-security";
 
@@ -422,6 +423,14 @@ export const auth = betterAuth({
             </div>
           `,
         });
+
+        // Send Slack monitoring notification
+        await notifySlackMonitoring("subscription_created", {
+          userId: user.id,
+          userName: user.name || undefined,
+          userEmail: user.email,
+          planName: plan.name,
+        });
       },
       onSubscriptionUpdate: async ({
         subscription,
@@ -479,6 +488,13 @@ export const auth = betterAuth({
               <p>We'd love to hear your feedback on how we can improve.</p>
             </div>
           `,
+        });
+
+        // Send Slack monitoring notification
+        await notifySlackMonitoring("subscription_canceled", {
+          userId: user.id,
+          userName: user.name || undefined,
+          userEmail: user.email,
         });
       },
       onTrialEnd: async ({

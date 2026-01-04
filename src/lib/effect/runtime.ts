@@ -31,6 +31,7 @@ import { type OrganizationRepository, OrganizationRepositoryLive } from "./servi
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
 import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
+import { type SlackMonitoring, SlackMonitoringLive } from "./services/slack-monitoring";
 import { type Storage, StorageLive } from "./services/storage";
 import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
 import { type Translation, TranslationLive } from "./services/translation";
@@ -56,6 +57,7 @@ const BaseServicesLive = Layer.mergeAll(
   StripeServiceLive,
   TranslationLive,
   EmailNotificationsLive,
+  SlackMonitoringLive,
 );
 
 // VideoProcessor depends on Storage - provide its dependency
@@ -130,7 +132,8 @@ export type AppServices =
   | CodeLinksRepository
   | KnowledgeGraphRepository
   | StripeServiceTag
-  | Translation;
+  | Translation
+  | SlackMonitoring;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

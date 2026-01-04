@@ -555,6 +555,22 @@ export {
   sendSlackVideoNotification,
   verifySlackSignature,
 } from "./slack";
+// Slack Monitoring Service
+export type {
+  MonitoringEvent,
+  MonitoringEventType,
+  SlackMonitoringServiceInterface,
+} from "./slack-monitoring";
+export {
+  notifySlackMonitoring,
+  SlackMonitoring,
+  SlackMonitoringLive,
+  sendSlackAccountEvent,
+  sendSlackBillingEvent,
+  sendSlackErrorEvent,
+  sendSlackMonitoringEvent,
+  sendSlackVideoEvent,
+} from "./slack-monitoring";
 // Speaker Diarization Service
 export type {
   DiarizationOptions,
