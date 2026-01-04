@@ -10,12 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createMockDatabaseService,
   createMockStorageService,
-  createMockVideoWithFullAuthor,
   type MockDatabaseService,
   type MockStorageService,
 } from "@/test/effect-test-utils";
-import { createMockOrganization, createMockVideo } from "@/test/mocks";
-import { DeleteError } from "../errors";
 import { Database } from "./database";
 import { Storage } from "./storage";
 import {

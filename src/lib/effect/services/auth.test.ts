@@ -35,8 +35,11 @@ describe("Auth Service", () => {
     session: mockSession,
   } as unknown as UserSession;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mockAuthInstance: any;
+  let mockAuthInstance: {
+    api: {
+      getSession: ReturnType<typeof vi.fn<(options: { headers: Headers }) => Promise<UserSession | null>>>;
+    };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
