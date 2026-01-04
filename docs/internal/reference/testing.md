@@ -951,6 +951,87 @@ jobs:
         uses: codecov/codecov-action@v3
 ```
 
+## Load Testing
+
+Nuclom includes a load testing infrastructure using k6 for performance validation and capacity planning.
+
+### k6 Setup
+
+```bash
+# Install k6
+brew install k6  # macOS
+# or
+sudo apt install k6  # Linux
+```
+
+### Running Load Tests
+
+```bash
+# Run smoke test (quick validation)
+k6 run tests/load/auth-flow.js --env PROFILE=smoke
+
+# Run load test (sustained load)
+k6 run tests/load/video-page.js --env PROFILE=load
+
+# Run stress test (find breaking point)
+k6 run tests/load/search.js --env PROFILE=stress
+
+# Run spike test (sudden traffic burst)
+k6 run tests/load/comments.js --env PROFILE=spike
+
+# Run soak test (extended duration)
+k6 run tests/load/auth-flow.js --env PROFILE=soak
+```
+
+### Test Profiles
+
+| Profile | Duration | VUs | Purpose |
+|---------|----------|-----|---------|
+| smoke | 1 min | 1-5 | Quick validation |
+| load | 5 min | 10-50 | Normal load |
+| stress | 10 min | 50-200 | Find limits |
+| spike | 3 min | 100-500 | Handle bursts |
+| soak | 30 min | 20-50 | Memory leaks |
+
+### Available Load Tests
+
+- `auth-flow.js` - Authentication flow (login/signup)
+- `video-page.js` - Video page loading
+- `search.js` - Search functionality
+- `comments.js` - Comments CRUD operations
+
+### Performance Thresholds
+
+```javascript
+export const options = {
+  thresholds: {
+    http_req_duration: ['p(95)<500'],  // 95% under 500ms
+    http_req_failed: ['rate<0.01'],    // <1% error rate
+    iterations: ['count>100'],          // Minimum iterations
+  },
+};
+```
+
+### Environment Configuration
+
+```bash
+# tests/load/config.js
+export const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+export const API_KEY = __ENV.API_KEY;
+```
+
+### CI/CD Integration
+
+```yaml
+# Run load tests in CI
+- name: Run Load Tests
+  run: |
+    k6 run tests/load/auth-flow.js --env PROFILE=smoke
+    k6 run tests/load/video-page.js --env PROFILE=smoke
+```
+
+For detailed load testing documentation, see `tests/load/README.md`.
+
 ## Next Steps
 
 - [Learn about the component library](./components.md)

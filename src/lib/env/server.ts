@@ -11,6 +11,7 @@ export const ServerEnv = Schema.Struct({
     default: () => "http://localhost:3000",
   }),
   DATABASE_URL: Schema.String,
+  DATABASE_REPLICA_URL: Schema.optional(Schema.String),
   OPENAI_API_KEY: Schema.optional(Schema.String),
   REPLICATE_API_TOKEN: Schema.optional(Schema.String),
   VERCEL_OIDC_TOKEN: Schema.optional(Schema.String),

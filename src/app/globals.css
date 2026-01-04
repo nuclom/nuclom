@@ -223,3 +223,142 @@ body {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500;
   }
 }
+
+/* =============================================================================
+   Mobile Experience Utilities
+   ============================================================================= */
+
+@layer utilities {
+  /* Safe area padding for notched devices */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+  .p-safe {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* Touch target minimum size (44px per Apple HIG) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Disable text selection on touch devices */
+  .touch-none {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Prevent iOS zoom on input focus */
+  .no-zoom {
+    font-size: 16px !important;
+  }
+
+  /* Touch manipulation for smooth scrolling */
+  .touch-smooth {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Momentum scrolling on iOS */
+  .scroll-momentum {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  /* Prevent pull-to-refresh on mobile */
+  .overscroll-none {
+    overscroll-behavior: none;
+  }
+
+  /* Tap highlight color */
+  .tap-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tap-highlight {
+    -webkit-tap-highlight-color: hsl(var(--primary) / 0.1);
+  }
+
+  /* Active state for touch */
+  .active-scale:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Touch-friendly spacing */
+  .gap-touch {
+    gap: 12px;
+  }
+
+  /* Mobile-only visibility */
+  @media (min-width: 768px) {
+    .mobile-only {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .desktop-only {
+      display: none !important;
+    }
+  }
+}
+
+/* Mobile-specific scrollbar behavior */
+@media (max-width: 767px) {
+  /* Hide scrollbars on mobile */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  /* Ensure inputs don't zoom on iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Better touch scrolling */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
