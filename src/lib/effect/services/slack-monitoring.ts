@@ -5,7 +5,6 @@
  * Sends notifications for account creation, billing events, platform usage, and errors.
  */
 
-import process from "node:process";
 import { Config, Context, Effect, Layer, Option } from "effect";
 
 // =============================================================================
