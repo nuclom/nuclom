@@ -1,15 +1,49 @@
 # Development Setup
 
-This guide will help you set up your local development environment for Nuclom.
+> **Time to complete:** 5-10 minutes
+>
+> Get your local development environment running.
+
+---
 
 ## Prerequisites
 
-- **Node.js** 18.x or higher
-- **pnpm** 8.x or higher
-- **PostgreSQL** 14.x or higher
-- **Git**
+Before you begin, install:
 
-## Installation
+| Requirement | Version | Check with |
+| ----------- | ------- | ---------- |
+| Node.js | 18.x+ | `node --version` |
+| pnpm | 8.x+ | `pnpm --version` |
+| PostgreSQL | 14.x+ | `psql --version` |
+| Git | Latest | `git --version` |
+
+---
+
+## Quick Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/SferaDev/nuclom.git
+cd nuclom
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Set up environment
+cp .env.example .env.local
+
+# 4. Run database migrations
+pnpm db:migrate
+
+# 5. Start development server
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) — you're ready to go.
+
+---
+
+## Step-by-Step Setup
 
 ### 1. Clone the Repository
 
@@ -24,32 +58,37 @@ cd nuclom
 pnpm install
 ```
 
-### 3. Environment Configuration
+### 3. Configure Environment
 
-Copy the environment template:
+Copy the template:
 
 ```bash
 cp .env.example .env.local
 ```
 
-See [Environment Configuration](./environment-config.md) for detailed setup instructions.
+Edit `.env.local` with your values. See [Environment Configuration](environment-config.md) for details.
 
-### 4. Database Setup
+**Required variables:**
 
-Set up your PostgreSQL database:
+| Variable | Description |
+| -------- | ----------- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Auth encryption key (generate random string) |
+
+### 4. Set Up Database
 
 ```bash
-# Generate database schema
+# Generate schema types
 pnpm db:generate
 
 # Run migrations
 pnpm db:migrate
 
-# Optional: Open database studio
+# (Optional) Open database GUI
 pnpm db:studio
 ```
 
-See [Database Setup](./database-setup.md) for detailed instructions.
+See [Database Setup](database-setup.md) for detailed instructions.
 
 ### 5. Start Development Server
 
@@ -57,316 +96,189 @@ See [Database Setup](./database-setup.md) for detailed instructions.
 pnpm dev
 ```
 
-The application will be available at `http://localhost:3000`.
+The app runs at [http://localhost:3000](http://localhost:3000).
 
-## Development Workflow
+---
 
-### Project Structure
+## Project Structure
 
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── (main)/            # Main application routes
-│   │   └── [organization]/   # Organization-scoped routes
-│   │       ├── channels/  # Channel management
-│   │       ├── series/    # Series management
-│   │       ├── videos/    # Video management
-│   │       ├── search/    # Search functionality
-│   │       ├── shared/    # Shared content
+│   ├── (main)/            # Main app routes
+│   │   └── [organization]/ # Organization-scoped routes
+│   │       ├── channels/  # Channel pages
+│   │       ├── series/    # Series pages
+│   │       ├── videos/    # Video pages
+│   │       ├── search/    # Search
 │   │       └── settings/  # Organization settings
-│   └── api/               # API routes
+│   └── api/               # API endpoints
 ├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── *.tsx             # Custom components
+│   ├── ui/               # shadcn/ui primitives
+│   └── *.tsx             # Feature components
 ├── hooks/                # Custom React hooks
-├── lib/                  # Utilities and configurations
-│   ├── db/              # Database schema and connection
-│   ├── auth.ts          # Authentication configuration
+├── lib/                  # Core utilities
+│   ├── db/              # Database schema & connection
+│   ├── auth.ts          # Auth configuration
 │   ├── api.ts           # API client
-│   └── utils.ts         # Utility functions
+│   └── utils.ts         # Utilities
+└── types/                # TypeScript types
 ```
 
-### Code Organization
-
-#### Components
-
-- **UI Components**: Use shadcn/ui components in `src/components/ui/`
-- **Custom Components**: Create reusable components in `src/components/`
-- **Page Components**: Keep page-specific components close to their routes
-
-#### Hooks
-
-- **API Hooks**: Use custom hooks in `src/hooks/use-api.ts`
-- **Utility Hooks**: Create custom hooks for reusable logic
-
-#### Utilities
-
-- **Database**: Schema and types in `src/lib/db/`
-- **API Client**: Type-safe API client in `src/lib/api.ts`
-- **Utils**: Common utilities in `src/lib/utils.ts`
-
-### Import Conventions
-
-Use the configured path aliases:
-
-```typescript
-// Components
-import { Button } from "@/components/ui/button";
-import { VideoCard } from "@/components/video-card";
-
-// Hooks
-import { useVideos } from "@/hooks/use-api";
-
-// Utilities
-import { cn } from "@/lib/utils";
-import { videoApi } from "@/lib/api";
-
-// Types
-import type { VideoWithAuthor } from "@/lib/types";
-```
+---
 
 ## Common Tasks
 
-### Adding a New Component
-
-1. Create the component file:
+### Adding a Component
 
 ```typescript
 // src/components/my-component.tsx
-import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-interface MyComponentProps {
-  readonly children: ReactNode;
-  readonly className?: string;
+interface Props {
+  readonly children: React.ReactNode
+  readonly className?: string
 }
 
-export function MyComponent({ children, className }: MyComponentProps) {
-  return <div className={cn("my-component-styles", className)}>{children}</div>;
+export function MyComponent({ children, className }: Props) {
+  return (
+    <div className={cn("base-styles", className)}>
+      {children}
+    </div>
+  )
 }
 ```
 
-2. Export from index if needed:
-
-```typescript
-// src/components/index.ts
-export { MyComponent } from "./my-component";
-```
-
-### Adding a New API Endpoint
-
-1. Define the API route:
+### Adding an API Endpoint
 
 ```typescript
 // src/app/api/my-endpoint/route.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { connection, NextResponse, type NextRequest } from "next/server"
 
 export async function GET(request: NextRequest) {
+  await connection()  // Required for database access
+
   try {
-    // Your logic here
-    return NextResponse.json({ success: true, data: result });
+    const result = await db.query.myTable.findMany()
+    return NextResponse.json({ success: true, data: result })
   } catch (error) {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 ```
 
-2. Add to API client:
-
-```typescript
-// src/lib/api.ts
-export const myApi = {
-  async getMyData(): Promise<MyDataType> {
-    return fetchApi("/my-endpoint");
-  },
-};
-```
-
-3. Create a custom hook:
-
-```typescript
-// src/hooks/use-api.ts
-export function useMyData() {
-  const [state, setState] = useState<UseApiState<MyDataType>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    // Fetch logic
-  }, []);
-
-  return state;
-}
-```
-
-### Adding a New Database Model
-
-1. Define the schema:
+### Adding a Database Table
 
 ```typescript
 // src/lib/db/schema.ts
 export const myTable = pgTable("my_table", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+})
 
-export type MyModel = typeof myTable.$inferSelect;
-export type NewMyModel = typeof myTable.$inferInsert;
+export type MyModel = typeof myTable.$inferSelect
+export type NewMyModel = typeof myTable.$inferInsert
 ```
 
-2. Add relations if needed:
-
-```typescript
-export const myTableRelations = relations(myTable, ({ one, many }) => ({
-  // Define relations
-}));
-```
-
-3. Generate and run migration:
+Then run:
 
 ```bash
 pnpm db:generate
 pnpm db:migrate
 ```
 
+---
+
 ## Code Quality
 
-### Linting and Formatting
+### Before Committing
 
 ```bash
-# Check code quality
-pnpm lint
-
-# Fix issues automatically
-pnpm lint:fix
-
-# Format code
-pnpm format
+pnpm tsc        # Type check
+pnpm lint       # Lint
+pnpm format     # Format
 ```
 
-### TypeScript
+### Import Aliases
 
-- Use strict TypeScript configuration
-- Import types with `import type`
-- Use readonly props for React components
-- Leverage type inference where possible
-
-### React Best Practices
-
-- Use functional components with hooks
-- Implement proper error boundaries
-- Use React.memo for expensive components
-- Handle loading and error states
-
-## Performance Optimization
-
-### Bundle Analysis
-
-```bash
-# Analyze bundle size
-pnpm build
-pnpm analyze
-```
-
-### Image Optimization
-
-Use Next.js Image component:
+Use the `@/` prefix for imports:
 
 ```typescript
-import Image from "next/image";
-
-<Image
-  src="/video-thumbnail.jpg"
-  alt="Video thumbnail"
-  width={400}
-  height={300}
-  priority={false}
-/>;
+import { Button } from "@/components/ui/button"
+import { useVideos } from "@/hooks/use-api"
+import { cn } from "@/lib/utils"
+import type { Video } from "@/lib/types"
 ```
 
-### API Optimization
-
-- Use React Query for caching (if implemented)
-- Implement proper pagination
-- Use database indexes for queries
-- Optimize database queries
+---
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Database Connection Issues
+### Database Connection Failed
 
 ```bash
-# Check if PostgreSQL is running
+# Check PostgreSQL is running
 sudo systemctl status postgresql
 
-# Verify connection string
+# Test connection
 psql $DATABASE_URL
 ```
 
-#### Node.js Version Issues
+### Node Version Issues
 
 ```bash
-# Check Node.js version
+# Check version
 node --version
 
-# Use nvm to switch versions
+# Use nvm to switch
 nvm use 18
 ```
 
-#### Package Installation Issues
+### Dependency Issues
 
 ```bash
-# Clear pnpm cache
-pnpm store prune
-
-# Reinstall dependencies
+# Clear cache and reinstall
 rm -rf node_modules pnpm-lock.yaml
+pnpm store prune
 pnpm install
 ```
 
-#### Build Issues
+### Build Errors
 
 ```bash
 # Clear Next.js cache
 rm -rf .next
 
-# Rebuild
+# Type check first
+pnpm tsc
+
+# Then build
 pnpm build
 ```
 
 ### Debug Mode
 
-Enable debug logging:
-
 ```bash
-# Set debug environment variable
+# Enable debug logging
 DEBUG=* pnpm dev
 
-# Or specific debug namespaces
+# Or specific namespaces
 DEBUG=nuclom:* pnpm dev
 ```
 
-### Getting Help
-
-1. Check the [troubleshooting guide](../guides/troubleshooting.md)
-2. Review existing [GitHub issues](https://github.com/SferaDev/nuclom/issues)
-3. Ask questions in the development channel
-4. Consult the [architecture documentation](../architecture/)
+---
 
 ## Next Steps
 
-- [Configure your environment](./environment-config.md)
-- [Set up the database](./database-setup.md)
-- [Learn about the component library](./components.md)
-- [Understand the styling system](./styling.md)
+| Topic | Guide |
+| ----- | ----- |
+| Environment variables | [Environment Configuration](environment-config.md) |
+| Database setup | [Database Setup](database-setup.md) |
+| Component library | [Components](components.md) |
+| Styling | [Styling Guide](styling.md) |
+| Testing | [Testing Guide](testing.md) |
+| Architecture | [Architecture Overview](../architecture/README.md) |

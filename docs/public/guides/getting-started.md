@@ -1,230 +1,236 @@
 # Getting Started with Nuclom
 
-Welcome to Nuclom! This guide will help you get up and running with our video collaboration platform in just a few minutes.
+> **Time to complete:** 10 minutes
+>
+> **What you'll learn:** Create your account, set up an organization, and upload your first video.
 
-## What You'll Learn
+---
 
-- How to create your Nuclom account
-- Setting up your first organization
-- Uploading your first video
-- Basic navigation and interface overview
-- Essential keyboard shortcuts
+## Overview
 
-## Creating Your Account
+By the end of this guide, you'll have:
 
-### Step 1: Sign Up
+1. A Nuclom account
+2. Your first organization
+3. Your first uploaded video
 
-1. Visit the [Nuclom homepage](https://nuclom.com)
+Let's get started.
+
+---
+
+## Step 1: Create Your Account
+
+### Sign Up
+
+1. Go to [nuclom.com](https://nuclom.com)
 2. Click **"Get Started"** or **"Sign Up"**
-3. Enter your email address and create a password
-4. Verify your email address
-5. Complete your profile setup
+3. Choose your sign-up method:
+   - **Email** — Enter email and create a password
+   - **GitHub** — Sign in with your GitHub account
+   - **Google** — Sign in with your Google account
+4. Verify your email (if using email sign-up)
 
-### Step 2: Profile Setup
+### Complete Your Profile
 
-After signing up, you'll be prompted to:
+After signing up, you'll set up your profile:
 
-- **Add your name** - This will be displayed to team members
-- **Upload a profile picture** - Helps with team recognition
-- **Set your timezone** - Ensures accurate timestamps
+| Field | Purpose |
+| ----- | ------- |
+| **Name** | Displayed to team members |
+| **Profile picture** | Helps with team recognition |
+| **Timezone** | Ensures accurate timestamps |
 
-## Your First Organization
+> **Tip:** You can update these later in Settings.
 
-### Creating a Organization
+---
 
-A organization is where you'll organize your videos and collaborate with your team.
+## Step 2: Create Your First Organization
+
+Organizations are workspaces where you store videos and collaborate with your team.
+
+### Create an Organization
 
 1. Click **"Create Organization"** from the organization switcher
-2. Enter a **organization name** (e.g., "Marketing Team", "Product Demos")
-3. Choose a **unique slug** (this will be part of your organization URL)
-4. Add a **description** (optional but recommended)
-5. Click **"Create Organization"**
+2. Fill in the details:
 
-### Organization Structure
+| Field | Example | Required |
+| ----- | ------- | -------- |
+| **Name** | "Marketing Team" | Yes |
+| **Slug** | `marketing-team` (used in URLs) | Yes |
+| **Description** | "Product demos and tutorials" | No |
 
-Your organization contains:
+3. Click **"Create Organization"**
 
-- **Videos** - Your main content
-- **Channels** - Organize videos by topic or project
-- **Series** - Group related videos in sequence
-- **Members** - Team members with access
-- **Settings** - Organization configuration
+### What's Inside an Organization
+
+| Element | Purpose |
+| ------- | ------- |
+| **Videos** | Your main content |
+| **Channels** | Organize videos by topic (e.g., "Tutorials", "Demos") |
+| **Series** | Group related videos in sequence |
+| **Members** | Team members with access |
+| **Settings** | Organization configuration |
+
+---
+
+## Step 3: Upload Your First Video
+
+### Start the Upload
+
+1. Click the **"New"** button (top right)
+2. Select **"New Video"**
+3. Choose your video file
+
+**Supported formats:** MP4 (recommended), MOV, AVI, MKV
+
+### Add Video Details
+
+While uploading, fill in:
+
+| Field | Tips |
+| ----- | ---- |
+| **Title** | Make it descriptive and searchable |
+| **Description** | Add context about the content |
+| **Channel** | Select or create one (optional) |
+| **Series** | Add to a series if part of a sequence (optional) |
+
+### Choose a Thumbnail
+
+- Nuclom auto-generates thumbnail options
+- Pick the one that best represents your video
+- Or upload a custom thumbnail
+
+### Publish
+
+1. Review your details
+2. Click **"Publish"**
+3. Wait for processing (usually 5-10 minutes)
+
+> **Note:** Transcripts are generated automatically during processing.
+
+---
 
 ## Understanding the Interface
 
 ### Top Navigation
 
-The top navigation bar contains:
+| Element | Function |
+| ------- | -------- |
+| **Nuclom logo** | Return to organization home |
+| **Organization switcher** | Switch between organizations |
+| **Search bar** | Find videos, channels, and series |
+| **New button** | Create new content |
+| **Notifications** | Activity updates |
+| **Profile menu** | Settings and account options |
 
-- **Nuclom logo** - Returns to organization home
-- **Organization switcher** - Switch between organizations
-- **Search bar** - Search videos, channels, and series
-- **New button** - Create new content
-- **Notifications** - Stay updated on activity
-- **Profile menu** - Access settings and account options
+### Sidebar Navigation
 
-### Main Navigation
-
-Use the sidebar or command bar to navigate:
-
-- **Home** - Organization overview
-- **My Videos** - Videos you've uploaded
-- **Channels** - Browse by channel
-- **Series** - Browse by series
-- **Shared** - Content shared with you
-- **Settings** - Organization and account settings
+| Section | What's there |
+| ------- | ------------ |
+| **Home** | Organization overview |
+| **My Videos** | Videos you've uploaded |
+| **Channels** | Browse by channel |
+| **Series** | Browse by series |
+| **Shared** | Content shared with you |
+| **Settings** | Organization and account settings |
 
 ### Command Bar
 
-Press **⌘K** (Mac) or **Ctrl+K** (Windows/Linux) to open the command bar for quick navigation:
+Press **`Cmd/Ctrl + K`** to open the command bar:
 
-- Search for videos, channels, or series
-- Quick navigation to any section
+- Search for anything
+- Navigate quickly
 - Create new content
 - Access settings
 
-## Uploading Your First Video
-
-### Step 1: Start Upload
-
-1. Click the **"New"** button in the top navigation
-2. Select **"New Video"** from the dropdown
-3. Choose your video file (supported formats: MP4, MOV, AVI, MKV)
-
-### Step 2: Add Video Details
-
-While your video uploads, add:
-
-- **Title** - Make it descriptive and searchable
-- **Description** - Add context about the video content
-- **Channel** - Select or create a channel (optional)
-- **Series** - Add to a series if applicable (optional)
-
-### Step 3: Thumbnail Selection
-
-- Nuclom will generate thumbnail options automatically
-- Choose the best thumbnail that represents your video
-- You can also upload a custom thumbnail
-
-### Step 4: Review and Publish
-
-- Review all details
-- Click **"Publish"** to make the video available to your organization
-- The video will be processed and transcripts generated automatically
-
-## Basic Features Overview
-
-### Video Player
-
-The Nuclom video player includes:
-
-- **Playback controls** - Play, pause, seek, volume
-- **Quality settings** - Adjust video quality
-- **Speed controls** - Change playback speed
-- **Fullscreen mode** - Immersive viewing experience
-
-### Comments and Collaboration
-
-- **Time-stamped comments** - Leave feedback at specific moments
-- **Threaded discussions** - Reply to comments
-- **@mentions** - Notify specific team members
-- **Real-time updates** - See comments as they're added
-
-### Video Organization
-
-- **Channels** - Group videos by topic or project
-- **Series** - Create sequential video content
-- **Tags** - Add searchable labels
-- **Favorites** - Save videos for quick access
+---
 
 ## Essential Keyboard Shortcuts
 
 ### Navigation
 
-- **⌘K / Ctrl+K** - Open command bar
-- **G then H** - Go to Home
-- **G then V** - Go to My Videos
-- **G then S** - Go to Settings
+| Shortcut | Action |
+| -------- | ------ |
+| `Cmd/Ctrl + K` | Open command bar |
+| `G` then `H` | Go to Home |
+| `G` then `V` | Go to My Videos |
+| `G` then `S` | Go to Settings |
 
 ### Video Player
 
-- **Space** - Play/pause
-- **← →** - Seek backward/forward 10 seconds
-- **↑ ↓** - Volume up/down
-- **F** - Toggle fullscreen
-- **M** - Toggle mute
+| Shortcut | Action |
+| -------- | ------ |
+| `Space` | Play/pause |
+| `←` / `→` | Seek 10 seconds |
+| `↑` / `↓` | Volume up/down |
+| `F` | Toggle fullscreen |
+| `M` | Toggle mute |
 
 ### Comments
 
-- **C** - Add comment at current timestamp
-- **Enter** - Submit comment
-- **Escape** - Cancel comment
+| Shortcut | Action |
+| -------- | ------ |
+| `C` | Add comment at current timestamp |
+| `Enter` | Submit comment |
+| `Escape` | Cancel comment |
+
+---
 
 ## Next Steps
 
-Now that you're familiar with the basics:
+Now that you're set up:
 
-1. **[Set up your organization](organization-management.md)** - Learn advanced organization features
-2. **[Upload more videos](video-organization.md)** - Master video organization
-3. **[Invite team members](team-management.md)** - Start collaborating
-4. **[Explore collaboration features](collaboration.md)** - Make the most of teamwork
+| Next | Guide |
+| ---- | ----- |
+| **Invite your team** | [Team Management](team-management.md) |
+| **Learn collaboration features** | [Collaboration Guide](collaboration.md) |
+| **Organize your content** | [Video Organization](video-organization.md) |
+| **Explore advanced settings** | [Settings & Preferences](settings-preferences.md) |
+
+---
 
 ## Tips for Success
 
 ### Organization Best Practices
 
-- **Use descriptive titles** - Make videos easy to find
-- **Create logical channels** - Group related content
-- **Add detailed descriptions** - Include context and key points
-- **Use consistent naming** - Develop a naming convention
+- **Use descriptive titles** — Make videos easy to find
+- **Create logical channels** — Group related content
+- **Add detailed descriptions** — Include context and key points
+- **Use consistent naming** — Develop a naming convention
 
 ### Collaboration Tips
 
-- **@mention team members** - Ensure important feedback is seen
-- **Use time-stamped comments** - Reference specific moments
-- **Respond to comments** - Keep discussions active
-- **Share organization guidelines** - Establish team standards
-
-### Performance Optimization
-
-- **Upload during off-peak hours** - Faster processing
-- **Use supported formats** - MP4 recommended for best compatibility
-- **Optimize video size** - Balance quality and file size
-- **Close unused browser tabs** - Better playback performance
-
-## Getting Help
-
-### In-App Help
-
-- **Command bar** - Type "help" for quick assistance
-- **Tooltips** - Hover over interface elements
-- **Keyboard shortcuts** - Press **?** to see all shortcuts
-
-### Additional Resources
-
-- **[Troubleshooting Guide](troubleshooting.md)** - Common issues and solutions
-- **Email Support** - support@nuclom.com
-- **Community Forum** - Connect with other users
-
-## Common First-Time Questions
-
-**Q: How long does video processing take?**
-A: Processing time depends on video length and quality. Most videos are ready within 5-10 minutes.
-
-**Q: Can I edit videos after uploading?**
-A: Yes, you can edit titles, descriptions, and other metadata. Video files themselves cannot be edited but can be replaced.
-
-**Q: How many team members can I invite?**
-A: This depends on your plan. Check your organization settings for current limits.
-
-**Q: Are my videos secure?**
-A: Yes, all videos are stored securely and only accessible to organization members with appropriate permissions.
-
-**Q: Can I download videos?**
-A: Yes, organization members can download videos if download permissions are enabled in organization settings.
+- **@mention team members** — Ensure important feedback is seen
+- **Use time-stamped comments** — Reference specific moments
+- **Respond to comments** — Keep discussions active
 
 ---
 
-**Next:** [Organization Management Guide](organization-management.md)
+## Common Questions
 
-_Having trouble? Check our [Troubleshooting Guide](troubleshooting.md) or contact support._
+**How long does video processing take?**
+> Usually 5-10 minutes, depending on video length and quality.
+
+**Can I edit videos after uploading?**
+> You can edit titles, descriptions, and metadata. Video files can be replaced but not edited in-place.
+
+**How many team members can I invite?**
+> Depends on your plan. Check organization settings for limits.
+
+**Are my videos secure?**
+> Yes. Videos are only accessible to organization members with appropriate permissions.
+
+**Can I download videos?**
+> Yes, if download permissions are enabled in organization settings.
+
+---
+
+## Need Help?
+
+- **Stuck?** → [Troubleshooting Guide](troubleshooting.md)
+- **Questions?** → support@nuclom.com
+- **Shortcuts?** → Press `?` in the app
+
+---
+
+**Next up:** [Team Management →](team-management.md)

@@ -1,45 +1,84 @@
 # Nuclom Documentation
 
-Documentation for Nuclom, a video collaboration platform built with Next.js 16, React 19, and modern web technologies.
+> **Video collaboration for modern teams** — Upload, organize, and collaborate on video content with AI-powered insights.
 
-## Documentation Structure
+---
 
-### [Public Documentation](public/)
+## Quick Navigation
 
-User-facing documentation and API reference:
+| I want to...                          | Go to                                                        |
+| ------------------------------------- | ------------------------------------------------------------ |
+| **Get started as a user**             | [Getting Started Guide](public/guides/getting-started.md)    |
+| **Set up my development environment** | [Development Setup](internal/reference/development-setup.md) |
+| **Integrate with the API**            | [API Documentation](public/api/README.md)                    |
+| **Understand the architecture**       | [Architecture Overview](internal/architecture/README.md)     |
+| **Contribute to the project**         | [Contributing Guidelines](internal/reference/contributing.md)|
 
-- **[User Guides](public/guides/)** - Complete user documentation for end users
-- **[API Documentation](public/api/)** - Developer API reference for integrations
-- **[Getting Started](public/guides/getting-started.md)** - New user onboarding
+---
 
-### [Internal Documentation](internal/)
+## Documentation Overview
 
-Developer and contributor documentation:
+### For Users
 
-- **[Developer Reference](internal/reference/)** - Development setup, components, and code patterns
-- **[System Architecture](internal/architecture/)** - System design and architectural decisions
-- **[Contributing Guidelines](internal/reference/contributing.md)** - Development workflow and standards
+Everything you need to use Nuclom effectively.
 
-## Quick Start
+- **[User Guides](public/guides/)** — Step-by-step guides for all features
+- **[Getting Started](public/guides/getting-started.md)** — Create your account and upload your first video
+- **[Troubleshooting](public/guides/troubleshooting.md)** — Solutions to common issues
 
-| Audience | Start Here |
-|----------|------------|
-| **Users** | [Getting Started Guide](public/guides/getting-started.md) |
-| **Developers** | [Development Setup](internal/reference/development-setup.md) |
-| **API Integrators** | [API Documentation](public/api/README.md) |
+### For Developers
 
-## Tech Stack
+Build integrations and extend Nuclom.
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Next.js API Routes, Effect-TS, PostgreSQL, Drizzle ORM
-- **Authentication**: better-auth with OAuth (GitHub, Google)
-- **Storage**: Cloudflare R2
-- **AI**: OpenAI / Vercel AI SDK
-- **Testing**: Vitest, Playwright
-- **Deployment**: Vercel with CI/CD
+- **[API Reference](public/api/README.md)** — RESTful API documentation with examples
+- **[Authentication](public/api/authentication.md)** — OAuth and session-based auth
+- **[AI Features](public/api/ai.md)** — Video analysis, summaries, and insights
 
-## Documentation Updates
+### For Contributors
 
-This documentation is maintained alongside the codebase. When making code changes, please update relevant documentation in the same PR.
+Set up your environment and understand the codebase.
 
-See [AGENTS.md](AGENTS.md) for AI/LLM instructions when working with documentation.
+- **[Development Setup](internal/reference/development-setup.md)** — Get running locally in 5 minutes
+- **[Architecture](internal/architecture/README.md)** — System design and decisions
+- **[Code Patterns](internal/reference/)** — Components, hooks, and styling
+
+---
+
+## Tech Stack at a Glance
+
+| Layer          | Technologies                                      |
+| -------------- | ------------------------------------------------- |
+| **Frontend**   | Next.js 16, React 19, TypeScript, Tailwind CSS    |
+| **UI**         | shadcn/ui, Radix UI, Lucide Icons                 |
+| **Backend**    | Next.js API Routes, Effect-TS                     |
+| **Database**   | PostgreSQL, Drizzle ORM                           |
+| **Auth**       | Better-Auth (GitHub, Google OAuth)                |
+| **Storage**    | Cloudflare R2                                     |
+| **AI**         | OpenAI, Vercel AI SDK                             |
+| **Deployment** | Vercel with CI/CD                                 |
+
+---
+
+## Key Features
+
+- **Multi-organization support** — Separate workspaces for different teams
+- **AI-powered insights** — Automatic summaries and action item extraction
+- **Time-stamped comments** — Leave feedback at specific video moments
+- **Smart organization** — Channels, series, and tags for structure
+- **Role-based access** — Owner, Admin, and Member permissions
+
+---
+
+## Keeping Docs Updated
+
+> **Important:** When making code changes, update the relevant documentation in the same PR.
+
+- Architecture changes → Update `docs/internal/architecture/`
+- API changes → Update `docs/public/api/`
+- New features → Update `docs/public/guides/`
+
+See [AGENTS.md](AGENTS.md) for AI/LLM coding instructions.
+
+---
+
+**Need help?** Start with the [Getting Started Guide](public/guides/getting-started.md) or check [Troubleshooting](public/guides/troubleshooting.md).
