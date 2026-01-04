@@ -196,8 +196,11 @@ export function VideoPlayer({
         setSelectedCaptionTrack(defaultTrack.code);
       }
     } else if (videoId) {
+      // Use AbortController to cancel fetch on unmount (prevents memory leak)
+      const abortController = new AbortController();
+
       // Fetch available captions from API
-      fetch(`/api/videos/${videoId}/subtitles`)
+      fetch(`/api/videos/${videoId}/subtitles`, { signal: abortController.signal })
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data?.languages) {
@@ -213,8 +216,15 @@ export function VideoPlayer({
           }
         })
         .catch((err) => {
-          console.error("Failed to load caption tracks:", err);
+          // Ignore abort errors (expected on unmount)
+          if (err.name !== "AbortError") {
+            console.error("Failed to load caption tracks:", err);
+          }
         });
+
+      return () => {
+        abortController.abort();
+      };
     }
   }, [videoId, customCaptionTracks]);
 
