@@ -1502,6 +1502,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   speakers: many(videoSpeakers),
   speakerSegments: many(speakerSegments),
   aiActionItems: many(aiActionItems),
+  transcriptChunks: many(transcriptChunks),
 }));
 
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
@@ -2013,6 +2014,42 @@ export const speakerAnalytics = pgTable(
       table.speakerProfileId,
       table.periodStart,
     ),
+  }),
+);
+
+// =====================
+// Transcript Chunks for Semantic Search
+// =====================
+
+// Stores chunked transcript segments with vector embeddings for semantic search
+// Each video's transcript is chunked into ~500 token segments for better semantic matching
+export const transcriptChunks = pgTable(
+  "transcript_chunks",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    chunkIndex: integer("chunk_index").notNull(),
+    text: text("text").notNull(),
+    tokenCount: integer("token_count"),
+    timestampStart: integer("timestamp_start"), // seconds into video
+    timestampEnd: integer("timestamp_end"), // seconds into video
+    speakers: jsonb("speakers").$type<string[]>(), // speaker names if available
+    // Embedding stored as JSON array (compatible with pgvector via migration)
+    // The actual vector column is created in the migration
+    embedding: jsonb("embedding").$type<number[]>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    videoIdx: index("transcript_chunks_video_idx").on(table.videoId),
+    orgIdx: index("transcript_chunks_org_idx").on(table.organizationId),
+    uniqueChunkIndex: unique("transcript_chunks_unique_index").on(table.videoId, table.chunkIndex),
   }),
 );
 
@@ -2633,6 +2670,18 @@ export const speakerAnalyticsRelations = relations(speakerAnalytics, ({ one }) =
   speakerProfile: one(speakerProfiles, {
     fields: [speakerAnalytics.speakerProfileId],
     references: [speakerProfiles.id],
+  }),
+}));
+
+// Transcript Chunks relations
+export const transcriptChunksRelations = relations(transcriptChunks, ({ one }) => ({
+  video: one(videos, {
+    fields: [transcriptChunks.videoId],
+    references: [videos.id],
+  }),
+  organization: one(organizations, {
+    fields: [transcriptChunks.organizationId],
+    references: [organizations.id],
   }),
 }));
 
@@ -3414,3 +3463,7 @@ export type HighlightReel = typeof highlightReels.$inferSelect;
 export type NewHighlightReel = typeof highlightReels.$inferInsert;
 export type QuoteCard = typeof quoteCards.$inferSelect;
 export type NewQuoteCard = typeof quoteCards.$inferInsert;
+
+// Semantic Search Types
+export type TranscriptChunk = typeof transcriptChunks.$inferSelect;
+export type NewTranscriptChunk = typeof transcriptChunks.$inferInsert;

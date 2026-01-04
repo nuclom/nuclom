@@ -658,6 +658,61 @@ CREATE INDEX ai_action_items_video_idx ON ai_action_items(video_id);
 CREATE INDEX ai_action_items_status_idx ON ai_action_items(status, priority);
 ```
 
+## Semantic Search Tables
+
+Semantic search enables finding content by meaning rather than exact keywords. See [semantic-search.md](./semantic-search.md) for full documentation.
+
+### transcript_chunks Table
+
+Stores chunked transcript segments with vector embeddings for semantic search.
+
+```sql
+CREATE TABLE transcript_chunks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    chunk_index INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    token_count INTEGER,
+    timestamp_start INTEGER,  -- seconds into video
+    timestamp_end INTEGER,
+    speakers TEXT[],
+    embedding vector(1536),   -- OpenAI text-embedding-3-small
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(video_id, chunk_index)
+);
+
+-- HNSW index for fast similarity search
+CREATE INDEX transcript_chunks_embedding_idx
+    ON transcript_chunks
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+**Key Features:**
+
+- Vector embeddings for semantic similarity search
+- Timestamp mapping for video context
+- HNSW index for sub-linear search time
+- Organization isolation for multi-tenancy
+
+### pgvector Extension
+
+The semantic search functionality uses PostgreSQL's pgvector extension:
+
+```sql
+-- Enable vector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### Embedding Columns
+
+Additional embedding columns exist on related tables:
+
+- `decisions.embedding_vector vector(1536)` - Semantic search for decisions
+- `knowledge_nodes.embedding_vector vector(1536)` - Knowledge graph semantic search
+
+
 ## Future Enhancements
 
 ### Scaling Considerations
@@ -669,6 +724,8 @@ CREATE INDEX ai_action_items_status_idx ON ai_action_items(status, priority);
 ### Advanced Features
 
 - **Full-Text Search**: PostgreSQL full-text search
+- **Semantic Search**: Vector-based similarity search with pgvector
+- **Hybrid Search**: Combined keyword and semantic ranking
 - **JSON Columns**: Flexible metadata storage
 - **Triggers**: Automated data processing
 - **Views**: Simplified query interfaces
