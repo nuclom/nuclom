@@ -4,7 +4,6 @@ import {
   Bot,
   Brain,
   Check,
-  Clock,
   Github,
   Globe,
   Lock,
