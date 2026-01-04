@@ -349,7 +349,7 @@ export const auth = betterAuth({
             limits: {
               storage: 50 * 1024 * 1024 * 1024, // 50GB/user
               videos: 500, // 500/user/month
-              members: 100,
+              members: -1, // Unlimited
               bandwidth: 500 * 1024 * 1024 * 1024, // 500GB/month
             },
             freeTrial: {

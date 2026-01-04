@@ -43,12 +43,9 @@ Annual billing: $468/user/year (vs $540 monthly)
 | Video uploads | 100/user/month | 500/user/month |
 | Additional videos | $0.10/video | $0.10/video |
 | Max file size | 500 MB | 2 GB |
-| Team members | Up to 25 | Up to 100 |
-| Additional members | - | $39/user/month |
+| Team members | Up to 25 | Unlimited |
 | Monthly bandwidth | 50 GB | 500 GB |
 | Additional bandwidth | $0.05/GB | $0.05/GB |
-| Guest access | 5 guests | 25 guests |
-| Additional guests | $5/guest/month | $5/guest/month |
 
 ### Features
 

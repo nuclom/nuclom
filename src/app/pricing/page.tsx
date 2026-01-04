@@ -75,7 +75,7 @@ const pricingPlans = {
     limits: {
       storage: "50 GB/user",
       videos: "500/user/month",
-      members: "Up to 100",
+      members: "Unlimited",
       bandwidth: "500 GB/month",
     },
     features: [
@@ -117,7 +117,7 @@ const featureComparison = [
       { name: "Storage per user", scale: "10 GB", pro: "50 GB" },
       { name: "Video uploads", scale: "100/user/mo", pro: "500/user/mo" },
       { name: "Max file size", scale: "500 MB", pro: "2 GB" },
-      { name: "Team members", scale: "Up to 25", pro: "Up to 100" },
+      { name: "Team members", scale: "Up to 25", pro: "Unlimited" },
       { name: "Bandwidth", scale: "50 GB/mo", pro: "500 GB/mo" },
     ],
   },
@@ -129,7 +129,6 @@ const featureComparison = [
       { name: "@mentions & notifications", scale: true, pro: true },
       { name: "Threaded discussions", scale: true, pro: true },
       { name: "Channels & series", scale: true, pro: true },
-      { name: "Guest access", scale: "5 guests", pro: "25 guests" },
     ],
   },
   {
