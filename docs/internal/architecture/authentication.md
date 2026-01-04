@@ -1224,3 +1224,148 @@ To enable email verification in production:
 2. Add your domain to Resend and verify DNS records
 3. Set `RESEND_API_KEY` environment variable
 4. Configure sender address (e.g., `no-reply@nuclom.com`)
+
+## Enterprise SSO/SAML
+
+Nuclom supports enterprise Single Sign-On through SAML 2.0 and OIDC protocols.
+
+### SSO Configuration
+
+Organizations can configure SSO through the settings UI at `/settings/sso` or via the API:
+
+```typescript
+// src/lib/sso.ts
+import { SSOService } from "@/lib/sso";
+
+// Configure SAML SSO
+await SSOService.configure(organizationId, {
+  type: "saml",
+  entityId: "https://idp.example.com/metadata",
+  ssoUrl: "https://idp.example.com/sso",
+  certificate: "-----BEGIN CERTIFICATE-----...",
+  autoProvisionUsers: true,
+  defaultRole: "member",
+  allowedDomains: ["example.com"],
+});
+
+// Configure OIDC SSO
+await SSOService.configure(organizationId, {
+  type: "oidc",
+  issuerUrl: "https://accounts.google.com",
+  clientId: "your-client-id",
+  clientSecret: "your-client-secret",
+  autoProvisionUsers: true,
+});
+```
+
+### SSO Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/organizations/:id/sso/configure` | Configure SSO for organization |
+| `POST /api/organizations/:id/sso/enable` | Enable SSO |
+| `POST /api/organizations/:id/sso/disable` | Disable SSO |
+| `POST /api/organizations/:id/sso/test` | Test SSO configuration |
+| `GET /api/auth/sso/saml/acs/:orgId` | SAML Assertion Consumer Service |
+| `GET /api/auth/sso/saml/metadata/:orgId` | SAML SP Metadata |
+| `GET /api/auth/sso/oidc/callback/:orgId` | OIDC Callback |
+
+### Supported Identity Providers
+
+- Okta
+- Azure Active Directory
+- Google Workspace
+- OneLogin
+- PingIdentity
+- Any SAML 2.0 or OIDC compliant provider
+
+## Advanced RBAC
+
+Nuclom supports granular Role-Based Access Control for enterprise organizations.
+
+### Custom Roles
+
+Organizations can create custom roles with specific permissions:
+
+```typescript
+// src/lib/rbac.ts
+import { RBACService } from "@/lib/rbac";
+
+// Create a custom role
+await RBACService.createRole(organizationId, {
+  name: "Content Manager",
+  description: "Can manage videos and comments",
+  color: "#3b82f6",
+  permissions: [
+    { resource: "videos", action: "read" },
+    { resource: "videos", action: "create" },
+    { resource: "videos", action: "update" },
+    { resource: "videos", action: "delete" },
+    { resource: "comments", action: "read" },
+    { resource: "comments", action: "update" },
+    { resource: "comments", action: "delete" },
+  ],
+});
+
+// Check permission
+const canDelete = await RBACService.checkPermission(
+  userId,
+  organizationId,
+  "videos",
+  "delete"
+);
+```
+
+### Default Roles
+
+| Role | Description |
+|------|-------------|
+| Owner | Full access to all resources |
+| Admin | Can manage members and most settings |
+| Member | Standard access to organization resources |
+| Viewer | Read-only access |
+
+### Permission Resources
+
+- `videos` - Video management
+- `comments` - Comment moderation
+- `members` - Member management
+- `settings` - Organization settings
+- `billing` - Billing and subscriptions
+- `analytics` - View analytics
+- `api_keys` - API key management
+
+## Audit Logging
+
+All authentication and authorization events are logged for compliance:
+
+```typescript
+// src/lib/audit-log.ts
+import { AuditLogger } from "@/lib/audit-log";
+
+// Log authentication event
+await AuditLogger.logAuth({
+  action: "user.login",
+  actorId: userId,
+  organizationId,
+  ipAddress: request.headers.get("x-forwarded-for"),
+  userAgent: request.headers.get("user-agent"),
+  metadata: { provider: "saml" },
+});
+
+// Query audit logs
+const logs = await AuditLogger.query({
+  organizationId,
+  category: "authentication",
+  startDate: new Date("2024-01-01"),
+  limit: 100,
+});
+```
+
+### Audit Log Categories
+
+- `authentication` - Login/logout events
+- `authorization` - Permission changes
+- `content` - Video/comment operations
+- `organization` - Member management
+- `security` - Security settings changes

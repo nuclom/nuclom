@@ -1,5 +1,8 @@
+import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 import type { NextConfig } from "next";
+
+const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // Enable Partial Prerendering (PPR) via cache components
@@ -179,4 +182,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+// Apply plugins in sequence - workflow wraps the i18n-wrapped config
+const withI18n = withNextIntl(nextConfig);
+export default withWorkflow(withI18n);
