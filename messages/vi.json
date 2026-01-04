@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo",
+    "loading": "Đang tải...",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "export": "Xuất",
+    "import": "Nhập",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "close": "Đóng",
+    "refresh": "Làm mới",
+    "settings": "Cài đặt",
+    "actions": "Hành động",
+    "yes": "Có",
+    "no": "Không",
+    "all": "Tất cả",
+    "none": "Không có",
+    "submit": "Gửi",
+    "reset": "Đặt lại",
+    "clear": "Xóa",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép!",
+    "download": "Tải xuống",
+    "upload": "Tải lên",
+    "view": "Xem",
+    "enabled": "Đã bật",
+    "disabled": "Đã tắt",
+    "on": "Bật",
+    "off": "Tắt"
+  },
+  "auth": {
+    "signIn": "Đăng nhập",
+    "signOut": "Đăng xuất",
+    "signUp": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "resetPassword": "Đặt lại mật khẩu",
+    "createAccount": "Tạo tài khoản",
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "dontHaveAccount": "Chưa có tài khoản?",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "twoFactor": {
+      "title": "Xác thực hai yếu tố",
+      "enable": "Bật 2FA",
+      "disable": "Tắt 2FA",
+      "enterCode": "Nhập mã xác minh",
+      "scanQr": "Quét mã QR bằng ứng dụng xác thực của bạn",
+      "backupCodes": "Mã dự phòng"
+    },
+    "sso": {
+      "signInWith": "Đăng nhập bằng {provider}",
+      "configuredBy": "Được cấu hình bởi tổ chức của bạn"
+    }
+  },
+  "navigation": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "videos": "Video",
+    "channels": "Kênh",
+    "collections": "Bộ sưu tập",
+    "search": "Tìm kiếm",
+    "activity": "Hoạt động",
+    "settings": "Cài đặt",
+    "help": "Trợ giúp"
+  },
+  "videos": {
+    "upload": "Tải video lên",
+    "uploadDescription": "Kéo và thả tệp video hoặc nhấp để duyệt",
+    "processing": "Đang xử lý...",
+    "ready": "Sẵn sàng",
+    "failed": "Thất bại",
+    "title": "Tiêu đề",
+    "description": "Mô tả",
+    "duration": "Thời lượng",
+    "views": "lượt xem",
+    "viewCount": "{count, plural, =0 {Không có lượt xem} =1 {1 lượt xem} other {# lượt xem}}",
+    "uploadedBy": "Được tải lên bởi {name}",
+    "uploadedOn": "Được tải lên vào {date}",
+    "noVideos": "Không tìm thấy video",
+    "createFirst": "Tải video đầu tiên của bạn để bắt đầu",
+    "chapters": "Chương",
+    "transcript": "Phụ đề",
+    "comments": "Bình luận",
+    "share": "Chia sẻ",
+    "download": "Tải xuống",
+    "delete": "Xóa",
+    "deleteConfirmation": "Bạn có chắc chắn muốn xóa video này không?",
+    "player": {
+      "play": "Phát",
+      "pause": "Tạm dừng",
+      "mute": "Tắt tiếng",
+      "unmute": "Bật tiếng",
+      "fullscreen": "Toàn màn hình",
+      "exitFullscreen": "Thoát toàn màn hình",
+      "playbackSpeed": "Tốc độ phát",
+      "quality": "Chất lượng"
+    }
+  },
+  "comments": {
+    "addComment": "Thêm bình luận",
+    "placeholder": "Viết bình luận của bạn...",
+    "post": "Đăng",
+    "reply": "Trả lời",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "deleteConfirmation": "Bạn có chắc chắn muốn xóa bình luận này không?",
+    "noComments": "Chưa có bình luận",
+    "beFirst": "Hãy là người đầu tiên bình luận",
+    "reactions": {
+      "like": "Thích",
+      "love": "Yêu thích",
+      "helpful": "Hữu ích"
+    }
+  },
+  "channels": {
+    "create": "Tạo kênh",
+    "name": "Tên kênh",
+    "description": "Mô tả",
+    "noChannels": "Không tìm thấy kênh",
+    "createFirst": "Tạo kênh đầu tiên để sắp xếp video"
+  },
+  "collections": {
+    "create": "Tạo bộ sưu tập",
+    "name": "Tên bộ sưu tập",
+    "description": "Mô tả",
+    "noCollections": "Không tìm thấy bộ sưu tập",
+    "createFirst": "Tạo bộ sưu tập đầu tiên để nhóm các video"
+  },
+  "organization": {
+    "name": "Tên tổ chức",
+    "settings": "Cài đặt tổ chức",
+    "members": "Thành viên",
+    "invite": "Mời thành viên",
+    "remove": "Xóa thành viên",
+    "role": "Vai trò",
+    "roles": {
+      "owner": "Chủ sở hữu",
+      "admin": "Quản trị viên",
+      "member": "Thành viên",
+      "viewer": "Người xem"
+    },
+    "invitePending": "Lời mời đang chờ",
+    "noMembers": "Không tìm thấy thành viên"
+  },
+  "settings": {
+    "profile": {
+      "title": "Hồ sơ của bạn",
+      "name": "Tên hiển thị",
+      "bio": "Tiểu sử",
+      "avatar": "Ảnh đại diện",
+      "changeAvatar": "Thay đổi ảnh đại diện"
+    },
+    "account": {
+      "title": "Tài khoản",
+      "email": "Địa chỉ email",
+      "changeEmail": "Thay đổi email",
+      "deleteAccount": "Xóa tài khoản",
+      "deleteWarning": "Hành động này không thể hoàn tác"
+    },
+    "security": {
+      "title": "Bảo mật",
+      "password": "Mật khẩu",
+      "changePassword": "Thay đổi mật khẩu",
+      "sessions": "Phiên hoạt động",
+      "revokeSession": "Thu hồi phiên",
+      "revokeAllSessions": "Thu hồi tất cả phiên"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "email": "Thông báo email",
+      "push": "Thông báo đẩy",
+      "comments": "Bình luận mới trên video của bạn",
+      "mentions": "Khi ai đó nhắc đến bạn",
+      "uploads": "Khi có video mới được tải lên"
+    },
+    "billing": {
+      "title": "Thanh toán",
+      "plan": "Gói hiện tại",
+      "upgrade": "Nâng cấp",
+      "downgrade": "Hạ cấp",
+      "invoices": "Hóa đơn",
+      "paymentMethod": "Phương thức thanh toán"
+    },
+    "integrations": {
+      "title": "Tích hợp",
+      "connect": "Kết nối",
+      "disconnect": "Ngắt kết nối",
+      "connected": "Đã kết nối"
+    },
+    "apiKeys": {
+      "title": "Khóa API",
+      "create": "Tạo khóa API",
+      "revoke": "Thu hồi",
+      "lastUsed": "Sử dụng lần cuối",
+      "never": "Chưa bao giờ"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "Đăng nhập một lần",
+      "description": "Cấu hình xác thực SAML 2.0 hoặc OIDC cho tổ chức của bạn",
+      "configure": "Cấu hình SSO",
+      "test": "Kiểm tra cấu hình",
+      "enable": "Bật SSO",
+      "disable": "Tắt SSO",
+      "providerType": "Loại nhà cung cấp",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "ID thực thể",
+      "ssoUrl": "URL SSO",
+      "certificate": "Chứng chỉ X.509",
+      "issuer": "URL nhà phát hành",
+      "clientId": "ID khách hàng",
+      "clientSecret": "Bí mật khách hàng",
+      "autoProvision": "Tự động cung cấp người dùng",
+      "defaultRole": "Vai trò mặc định",
+      "allowedDomains": "Tên miền email được phép",
+      "spMetadata": "Siêu dữ liệu nhà cung cấp dịch vụ",
+      "callbackUrl": "URL gọi lại"
+    },
+    "roles": {
+      "title": "Vai trò và quyền",
+      "description": "Quản lý vai trò tùy chỉnh và quyền chi tiết",
+      "create": "Tạo vai trò",
+      "name": "Tên vai trò",
+      "permissions": "Quyền",
+      "default": "Vai trò mặc định",
+      "system": "Vai trò hệ thống",
+      "resources": {
+        "video": "Video",
+        "channel": "Kênh",
+        "collection": "Bộ sưu tập",
+        "comment": "Bình luận",
+        "member": "Thành viên",
+        "settings": "Cài đặt",
+        "billing": "Thanh toán",
+        "analytics": "Phân tích",
+        "integration": "Tích hợp",
+        "auditLog": "Nhật ký kiểm toán"
+      },
+      "actions": {
+        "create": "Tạo",
+        "read": "Đọc",
+        "update": "Cập nhật",
+        "delete": "Xóa",
+        "share": "Chia sẻ",
+        "download": "Tải xuống",
+        "comment": "Bình luận",
+        "manage": "Quản lý",
+        "invite": "Mời",
+        "admin": "Quản trị"
+      }
+    },
+    "auditLogs": {
+      "title": "Nhật ký kiểm toán",
+      "description": "Theo dõi và giám sát tất cả hoạt động trong tổ chức của bạn",
+      "export": "Xuất nhật ký",
+      "filter": "Lọc",
+      "timestamp": "Dấu thời gian",
+      "action": "Hành động",
+      "actor": "Người thực hiện",
+      "resource": "Tài nguyên",
+      "ipAddress": "Địa chỉ IP",
+      "noLogs": "Không tìm thấy nhật ký kiểm toán",
+      "categories": {
+        "authentication": "Xác thực",
+        "authorization": "Ủy quyền",
+        "userManagement": "Quản lý người dùng",
+        "organizationManagement": "Tổ chức",
+        "contentManagement": "Nội dung",
+        "billing": "Thanh toán",
+        "security": "Bảo mật",
+        "integration": "Tích hợp",
+        "system": "Hệ thống"
+      },
+      "severity": {
+        "info": "Thông tin",
+        "warning": "Cảnh báo",
+        "error": "Lỗi",
+        "critical": "Nghiêm trọng"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "notFound": "Không tìm thấy",
+    "unauthorized": "Bạn không được phép thực hiện hành động này",
+    "forbidden": "Truy cập bị từ chối",
+    "validation": "Vui lòng kiểm tra thông tin nhập và thử lại",
+    "network": "Lỗi mạng. Vui lòng kiểm tra kết nối của bạn.",
+    "rateLimit": "Quá nhiều yêu cầu. Vui lòng thử lại sau."
+  },
+  "success": {
+    "saved": "Đã lưu thay đổi thành công",
+    "created": "Đã tạo thành công",
+    "deleted": "Đã xóa thành công",
+    "updated": "Đã cập nhật thành công",
+    "copied": "Đã sao chép vào bộ nhớ tạm"
+  },
+  "metadata": {
+    "locale": "vi",
+    "language": "Tiếng Việt",
+    "direction": "ltr"
+  }
+}

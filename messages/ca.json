@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "Desa",
+    "cancel": "Cancel·la",
+    "delete": "Elimina",
+    "edit": "Edita",
+    "create": "Crea",
+    "loading": "Carregant...",
+    "search": "Cerca",
+    "filter": "Filtra",
+    "export": "Exporta",
+    "import": "Importa",
+    "confirm": "Confirma",
+    "back": "Enrere",
+    "next": "Següent",
+    "previous": "Anterior",
+    "close": "Tanca",
+    "refresh": "Actualitza",
+    "settings": "Configuració",
+    "actions": "Accions",
+    "yes": "Sí",
+    "no": "No",
+    "all": "Tot",
+    "none": "Cap",
+    "submit": "Envia",
+    "reset": "Restableix",
+    "clear": "Esborra",
+    "copy": "Copia",
+    "copied": "Copiat!",
+    "download": "Descarrega",
+    "upload": "Puja",
+    "view": "Visualitza",
+    "enabled": "Activat",
+    "disabled": "Desactivat",
+    "on": "Encès",
+    "off": "Apagat"
+  },
+  "auth": {
+    "signIn": "Inicia sessió",
+    "signOut": "Tanca sessió",
+    "signUp": "Registra't",
+    "email": "Correu electrònic",
+    "password": "Contrasenya",
+    "confirmPassword": "Confirma la contrasenya",
+    "forgotPassword": "Has oblidat la contrasenya?",
+    "resetPassword": "Restableix la contrasenya",
+    "createAccount": "Crea un compte",
+    "alreadyHaveAccount": "Ja tens un compte?",
+    "dontHaveAccount": "No tens un compte?",
+    "orContinueWith": "O continua amb",
+    "twoFactor": {
+      "title": "Autenticació de dos factors",
+      "enable": "Activa 2FA",
+      "disable": "Desactiva 2FA",
+      "enterCode": "Introdueix el codi de verificació",
+      "scanQr": "Escaneja el codi QR amb la teva aplicació d'autenticació",
+      "backupCodes": "Codis de seguretat"
+    },
+    "sso": {
+      "signInWith": "Inicia sessió amb {provider}",
+      "configuredBy": "Configurat per la teva organització"
+    }
+  },
+  "navigation": {
+    "home": "Inici",
+    "dashboard": "Tauler",
+    "videos": "Vídeos",
+    "channels": "Canals",
+    "collections": "Col·leccions",
+    "search": "Cerca",
+    "activity": "Activitat",
+    "settings": "Configuració",
+    "help": "Ajuda"
+  },
+  "videos": {
+    "upload": "Puja un vídeo",
+    "uploadDescription": "Arrossega i deixa anar un fitxer de vídeo o fes clic per navegar",
+    "processing": "Processant...",
+    "ready": "Preparat",
+    "failed": "Ha fallat",
+    "title": "Títol",
+    "description": "Descripció",
+    "duration": "Durada",
+    "views": "visualitzacions",
+    "viewCount": "{count, plural, =0 {Cap visualització} =1 {1 visualització} other {# visualitzacions}}",
+    "uploadedBy": "Pujat per {name}",
+    "uploadedOn": "Pujat el {date}",
+    "noVideos": "No s'han trobat vídeos",
+    "createFirst": "Puja el teu primer vídeo per començar",
+    "chapters": "Capítols",
+    "transcript": "Transcripció",
+    "comments": "Comentaris",
+    "share": "Comparteix",
+    "download": "Descarrega",
+    "delete": "Elimina",
+    "deleteConfirmation": "Estàs segur que vols eliminar aquest vídeo?",
+    "player": {
+      "play": "Reprodueix",
+      "pause": "Pausa",
+      "mute": "Silencia",
+      "unmute": "Activa el so",
+      "fullscreen": "Pantalla completa",
+      "exitFullscreen": "Surt de pantalla completa",
+      "playbackSpeed": "Velocitat de reproducció",
+      "quality": "Qualitat"
+    }
+  },
+  "comments": {
+    "addComment": "Afegeix un comentari",
+    "placeholder": "Escriu el teu comentari...",
+    "post": "Publica",
+    "reply": "Respon",
+    "edit": "Edita",
+    "delete": "Elimina",
+    "deleteConfirmation": "Estàs segur que vols eliminar aquest comentari?",
+    "noComments": "Encara no hi ha comentaris",
+    "beFirst": "Sigues el primer a comentar",
+    "reactions": {
+      "like": "M'agrada",
+      "love": "M'encanta",
+      "helpful": "Útil"
+    }
+  },
+  "channels": {
+    "create": "Crea un canal",
+    "name": "Nom del canal",
+    "description": "Descripció",
+    "noChannels": "No s'han trobat canals",
+    "createFirst": "Crea el teu primer canal per organitzar vídeos"
+  },
+  "collections": {
+    "create": "Crea una col·lecció",
+    "name": "Nom de la col·lecció",
+    "description": "Descripció",
+    "noCollections": "No s'han trobat col·leccions",
+    "createFirst": "Crea la teva primera col·lecció per agrupar vídeos"
+  },
+  "organization": {
+    "name": "Nom de l'organització",
+    "settings": "Configuració de l'organització",
+    "members": "Membres",
+    "invite": "Convida un membre",
+    "remove": "Elimina el membre",
+    "role": "Rol",
+    "roles": {
+      "owner": "Propietari",
+      "admin": "Administrador",
+      "member": "Membre",
+      "viewer": "Visualitzador"
+    },
+    "invitePending": "Invitació pendent",
+    "noMembers": "No s'han trobat membres"
+  },
+  "settings": {
+    "profile": {
+      "title": "El teu perfil",
+      "name": "Nom visible",
+      "bio": "Biografia",
+      "avatar": "Avatar",
+      "changeAvatar": "Canvia l'avatar"
+    },
+    "account": {
+      "title": "Compte",
+      "email": "Adreça de correu electrònic",
+      "changeEmail": "Canvia el correu electrònic",
+      "deleteAccount": "Elimina el compte",
+      "deleteWarning": "Aquesta acció no es pot desfer"
+    },
+    "security": {
+      "title": "Seguretat",
+      "password": "Contrasenya",
+      "changePassword": "Canvia la contrasenya",
+      "sessions": "Sessions actives",
+      "revokeSession": "Revoca la sessió",
+      "revokeAllSessions": "Revoca totes les sessions"
+    },
+    "notifications": {
+      "title": "Notificacions",
+      "email": "Notificacions per correu electrònic",
+      "push": "Notificacions push",
+      "comments": "Nous comentaris als teus vídeos",
+      "mentions": "Quan algú et menciona",
+      "uploads": "Quan es puja un nou vídeo"
+    },
+    "billing": {
+      "title": "Facturació",
+      "plan": "Pla actual",
+      "upgrade": "Millora",
+      "downgrade": "Redueix",
+      "invoices": "Factures",
+      "paymentMethod": "Mètode de pagament"
+    },
+    "integrations": {
+      "title": "Integracions",
+      "connect": "Connecta",
+      "disconnect": "Desconnecta",
+      "connected": "Connectat"
+    },
+    "apiKeys": {
+      "title": "Claus API",
+      "create": "Crea una clau API",
+      "revoke": "Revoca",
+      "lastUsed": "Últim ús",
+      "never": "Mai"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "Inici de sessió únic",
+      "description": "Configura l'autenticació SAML 2.0 o OIDC per a la teva organització",
+      "configure": "Configura SSO",
+      "test": "Prova la configuració",
+      "enable": "Activa SSO",
+      "disable": "Desactiva SSO",
+      "providerType": "Tipus de proveïdor",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "ID d'entitat",
+      "ssoUrl": "URL de SSO",
+      "certificate": "Certificat X.509",
+      "issuer": "URL de l'emissor",
+      "clientId": "ID de client",
+      "clientSecret": "Secret del client",
+      "autoProvision": "Aprovisionament automàtic d'usuaris",
+      "defaultRole": "Rol per defecte",
+      "allowedDomains": "Dominis de correu electrònic permesos",
+      "spMetadata": "Metadades del proveïdor de serveis",
+      "callbackUrl": "URL de retorn"
+    },
+    "roles": {
+      "title": "Rols i permisos",
+      "description": "Gestiona rols personalitzats i permisos granulars",
+      "create": "Crea un rol",
+      "name": "Nom del rol",
+      "permissions": "Permisos",
+      "default": "Rol per defecte",
+      "system": "Rol del sistema",
+      "resources": {
+        "video": "Vídeos",
+        "channel": "Canals",
+        "collection": "Col·leccions",
+        "comment": "Comentaris",
+        "member": "Membres",
+        "settings": "Configuració",
+        "billing": "Facturació",
+        "analytics": "Analítiques",
+        "integration": "Integracions",
+        "auditLog": "Registres d'auditoria"
+      },
+      "actions": {
+        "create": "Crea",
+        "read": "Llegeix",
+        "update": "Actualitza",
+        "delete": "Elimina",
+        "share": "Comparteix",
+        "download": "Descarrega",
+        "comment": "Comenta",
+        "manage": "Gestiona",
+        "invite": "Convida",
+        "admin": "Administra"
+      }
+    },
+    "auditLogs": {
+      "title": "Registres d'auditoria",
+      "description": "Rastreja i monitoritza tota l'activitat dins de la teva organització",
+      "export": "Exporta els registres",
+      "filter": "Filtra",
+      "timestamp": "Marca de temps",
+      "action": "Acció",
+      "actor": "Actor",
+      "resource": "Recurs",
+      "ipAddress": "Adreça IP",
+      "noLogs": "No s'han trobat registres d'auditoria",
+      "categories": {
+        "authentication": "Autenticació",
+        "authorization": "Autorització",
+        "userManagement": "Gestió d'usuaris",
+        "organizationManagement": "Organització",
+        "contentManagement": "Contingut",
+        "billing": "Facturació",
+        "security": "Seguretat",
+        "integration": "Integració",
+        "system": "Sistema"
+      },
+      "severity": {
+        "info": "Informació",
+        "warning": "Avís",
+        "error": "Error",
+        "critical": "Crític"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Alguna cosa ha anat malament. Si us plau, torna-ho a provar.",
+    "notFound": "No trobat",
+    "unauthorized": "No estàs autoritzat a realitzar aquesta acció",
+    "forbidden": "Accés denegat",
+    "validation": "Si us plau, comprova la teva entrada i torna-ho a provar",
+    "network": "Error de xarxa. Si us plau, comprova la teva connexió.",
+    "rateLimit": "Massa sol·licituds. Si us plau, torna-ho a provar més tard."
+  },
+  "success": {
+    "saved": "Canvis desats correctament",
+    "created": "Creat correctament",
+    "deleted": "Eliminat correctament",
+    "updated": "Actualitzat correctament",
+    "copied": "Copiat al porta-retalls"
+  },
+  "metadata": {
+    "locale": "ca",
+    "language": "Català",
+    "direction": "ltr"
+  }
+}

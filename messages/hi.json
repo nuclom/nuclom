@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "create": "बनाएं",
+    "loading": "लोड हो रहा है...",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "export": "निर्यात करें",
+    "import": "आयात करें",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "close": "बंद करें",
+    "refresh": "रीफ़्रेश करें",
+    "settings": "सेटिंग्स",
+    "actions": "क्रियाएं",
+    "yes": "हां",
+    "no": "नहीं",
+    "all": "सभी",
+    "none": "कोई नहीं",
+    "submit": "सबमिट करें",
+    "reset": "रीसेट करें",
+    "clear": "साफ़ करें",
+    "copy": "कॉपी करें",
+    "copied": "कॉपी हो गया!",
+    "download": "डाउनलोड करें",
+    "upload": "अपलोड करें",
+    "view": "देखें",
+    "enabled": "सक्षम",
+    "disabled": "अक्षम",
+    "on": "चालू",
+    "off": "बंद"
+  },
+  "auth": {
+    "signIn": "साइन इन करें",
+    "signOut": "साइन आउट करें",
+    "signUp": "साइन अप करें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "confirmPassword": "पासवर्ड की पुष्टि करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "resetPassword": "पासवर्ड रीसेट करें",
+    "createAccount": "खाता बनाएं",
+    "alreadyHaveAccount": "पहले से खाता है?",
+    "dontHaveAccount": "खाता नहीं है?",
+    "orContinueWith": "या जारी रखें",
+    "twoFactor": {
+      "title": "दो-कारक प्रमाणीकरण",
+      "enable": "2FA सक्षम करें",
+      "disable": "2FA अक्षम करें",
+      "enterCode": "सत्यापन कोड दर्ज करें",
+      "scanQr": "अपने प्रमाणक ऐप से QR कोड स्कैन करें",
+      "backupCodes": "बैकअप कोड"
+    },
+    "sso": {
+      "signInWith": "{provider} से साइन इन करें",
+      "configuredBy": "आपके संगठन द्वारा कॉन्फ़िगर किया गया"
+    }
+  },
+  "navigation": {
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "videos": "वीडियो",
+    "channels": "चैनल",
+    "collections": "संग्रह",
+    "search": "खोजें",
+    "activity": "गतिविधि",
+    "settings": "सेटिंग्स",
+    "help": "सहायता"
+  },
+  "videos": {
+    "upload": "वीडियो अपलोड करें",
+    "uploadDescription": "वीडियो फ़ाइल खींचें और छोड़ें या ब्राउज़ करने के लिए क्लिक करें",
+    "processing": "प्रोसेसिंग...",
+    "ready": "तैयार",
+    "failed": "विफल",
+    "title": "शीर्षक",
+    "description": "विवरण",
+    "duration": "अवधि",
+    "views": "व्यूज़",
+    "viewCount": "{count, plural, =0 {कोई व्यूज़ नहीं} =1 {1 व्यू} other {# व्यूज़}}",
+    "uploadedBy": "{name} द्वारा अपलोड किया गया",
+    "uploadedOn": "{date} को अपलोड किया गया",
+    "noVideos": "कोई वीडियो नहीं मिला",
+    "createFirst": "शुरू करने के लिए अपना पहला वीडियो अपलोड करें",
+    "chapters": "अध्याय",
+    "transcript": "ट्रांसक्रिप्ट",
+    "comments": "टिप्पणियां",
+    "share": "शेयर करें",
+    "download": "डाउनलोड करें",
+    "delete": "हटाएं",
+    "deleteConfirmation": "क्या आप वाकई इस वीडियो को हटाना चाहते हैं?",
+    "player": {
+      "play": "चलाएं",
+      "pause": "रोकें",
+      "mute": "म्यूट करें",
+      "unmute": "अनम्यूट करें",
+      "fullscreen": "फुलस्क्रीन",
+      "exitFullscreen": "फुलस्क्रीन से बाहर निकलें",
+      "playbackSpeed": "प्लेबैक स्पीड",
+      "quality": "क्वालिटी"
+    }
+  },
+  "comments": {
+    "addComment": "टिप्पणी जोड़ें",
+    "placeholder": "अपनी टिप्पणी लिखें...",
+    "post": "पोस्ट करें",
+    "reply": "जवाब दें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "deleteConfirmation": "क्या आप वाकई इस टिप्पणी को हटाना चाहते हैं?",
+    "noComments": "अभी तक कोई टिप्पणी नहीं",
+    "beFirst": "पहले टिप्पणी करने वाले बनें",
+    "reactions": {
+      "like": "पसंद",
+      "love": "प्यार",
+      "helpful": "सहायक"
+    }
+  },
+  "channels": {
+    "create": "चैनल बनाएं",
+    "name": "चैनल का नाम",
+    "description": "विवरण",
+    "noChannels": "कोई चैनल नहीं मिला",
+    "createFirst": "वीडियो व्यवस्थित करने के लिए अपना पहला चैनल बनाएं"
+  },
+  "collections": {
+    "create": "संग्रह बनाएं",
+    "name": "संग्रह का नाम",
+    "description": "विवरण",
+    "noCollections": "कोई संग्रह नहीं मिला",
+    "createFirst": "वीडियो ग्रुप करने के लिए अपना पहला संग्रह बनाएं"
+  },
+  "organization": {
+    "name": "संगठन का नाम",
+    "settings": "संगठन सेटिंग्स",
+    "members": "सदस्य",
+    "invite": "सदस्य आमंत्रित करें",
+    "remove": "सदस्य हटाएं",
+    "role": "भूमिका",
+    "roles": {
+      "owner": "मालिक",
+      "admin": "व्यवस्थापक",
+      "member": "सदस्य",
+      "viewer": "दर्शक"
+    },
+    "invitePending": "आमंत्रण लंबित",
+    "noMembers": "कोई सदस्य नहीं मिला"
+  },
+  "settings": {
+    "profile": {
+      "title": "आपकी प्रोफ़ाइल",
+      "name": "प्रदर्शन नाम",
+      "bio": "बायो",
+      "avatar": "अवतार",
+      "changeAvatar": "अवतार बदलें"
+    },
+    "account": {
+      "title": "खाता",
+      "email": "ईमेल पता",
+      "changeEmail": "ईमेल बदलें",
+      "deleteAccount": "खाता हटाएं",
+      "deleteWarning": "यह क्रिया पूर्ववत नहीं की जा सकती"
+    },
+    "security": {
+      "title": "सुरक्षा",
+      "password": "पासवर्ड",
+      "changePassword": "पासवर्ड बदलें",
+      "sessions": "सक्रिय सत्र",
+      "revokeSession": "सत्र रद्द करें",
+      "revokeAllSessions": "सभी सत्र रद्द करें"
+    },
+    "notifications": {
+      "title": "सूचनाएं",
+      "email": "ईमेल सूचनाएं",
+      "push": "पुश सूचनाएं",
+      "comments": "आपके वीडियो पर नई टिप्पणियां",
+      "mentions": "जब कोई आपको उल्लेख करे",
+      "uploads": "जब नया वीडियो अपलोड हो"
+    },
+    "billing": {
+      "title": "बिलिंग",
+      "plan": "वर्तमान प्लान",
+      "upgrade": "अपग्रेड करें",
+      "downgrade": "डाउनग्रेड करें",
+      "invoices": "इनवॉइस",
+      "paymentMethod": "भुगतान विधि"
+    },
+    "integrations": {
+      "title": "इंटीग्रेशन",
+      "connect": "कनेक्ट करें",
+      "disconnect": "डिस्कनेक्ट करें",
+      "connected": "कनेक्टेड"
+    },
+    "apiKeys": {
+      "title": "API कीज़",
+      "create": "API कुंजी बनाएं",
+      "revoke": "रद्द करें",
+      "lastUsed": "अंतिम उपयोग",
+      "never": "कभी नहीं"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "सिंगल साइन-ऑन",
+      "description": "अपने संगठन के लिए SAML 2.0 या OIDC प्रमाणीकरण कॉन्फ़िगर करें",
+      "configure": "SSO कॉन्फ़िगर करें",
+      "test": "कॉन्फ़िगरेशन टेस्ट करें",
+      "enable": "SSO सक्षम करें",
+      "disable": "SSO अक्षम करें",
+      "providerType": "प्रदाता प्रकार",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "एंटिटी ID",
+      "ssoUrl": "SSO URL",
+      "certificate": "X.509 प्रमाणपत्र",
+      "issuer": "जारीकर्ता URL",
+      "clientId": "क्लाइंट ID",
+      "clientSecret": "क्लाइंट सीक्रेट",
+      "autoProvision": "ऑटो-प्रोविजन उपयोगकर्ता",
+      "defaultRole": "डिफ़ॉल्ट भूमिका",
+      "allowedDomains": "अनुमत ईमेल डोमेन",
+      "spMetadata": "सर्विस प्रोवाइडर मेटाडेटा",
+      "callbackUrl": "कॉलबैक URL"
+    },
+    "roles": {
+      "title": "भूमिकाएं और अनुमतियां",
+      "description": "कस्टम भूमिकाएं और विस्तृत अनुमतियां प्रबंधित करें",
+      "create": "भूमिका बनाएं",
+      "name": "भूमिका का नाम",
+      "permissions": "अनुमतियां",
+      "default": "डिफ़ॉल्ट भूमिका",
+      "system": "सिस्टम भूमिका",
+      "resources": {
+        "video": "वीडियो",
+        "channel": "चैनल",
+        "collection": "संग्रह",
+        "comment": "टिप्पणियां",
+        "member": "सदस्य",
+        "settings": "सेटिंग्स",
+        "billing": "बिलिंग",
+        "analytics": "एनालिटिक्स",
+        "integration": "इंटीग्रेशन",
+        "auditLog": "ऑडिट लॉग"
+      },
+      "actions": {
+        "create": "बनाएं",
+        "read": "पढ़ें",
+        "update": "अपडेट करें",
+        "delete": "हटाएं",
+        "share": "शेयर करें",
+        "download": "डाउनलोड करें",
+        "comment": "टिप्पणी करें",
+        "manage": "प्रबंधित करें",
+        "invite": "आमंत्रित करें",
+        "admin": "व्यवस्थापन"
+      }
+    },
+    "auditLogs": {
+      "title": "ऑडिट लॉग",
+      "description": "अपने संगठन के भीतर सभी गतिविधियों को ट्रैक और मॉनिटर करें",
+      "export": "लॉग निर्यात करें",
+      "filter": "फ़िल्टर",
+      "timestamp": "टाइमस्टैम्प",
+      "action": "क्रिया",
+      "actor": "कर्ता",
+      "resource": "संसाधन",
+      "ipAddress": "IP पता",
+      "noLogs": "कोई ऑडिट लॉग नहीं मिला",
+      "categories": {
+        "authentication": "प्रमाणीकरण",
+        "authorization": "प्राधिकरण",
+        "userManagement": "उपयोगकर्ता प्रबंधन",
+        "organizationManagement": "संगठन",
+        "contentManagement": "सामग्री",
+        "billing": "बिलिंग",
+        "security": "सुरक्षा",
+        "integration": "इंटीग्रेशन",
+        "system": "सिस्टम"
+      },
+      "severity": {
+        "info": "जानकारी",
+        "warning": "चेतावनी",
+        "error": "त्रुटि",
+        "critical": "गंभीर"
+      }
+    }
+  },
+  "errors": {
+    "generic": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+    "notFound": "नहीं मिला",
+    "unauthorized": "आप इस क्रिया को करने के लिए अधिकृत नहीं हैं",
+    "forbidden": "पहुंच अस्वीकृत",
+    "validation": "कृपया अपना इनपुट जांचें और पुनः प्रयास करें",
+    "network": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "rateLimit": "बहुत सारे अनुरोध। कृपया बाद में पुनः प्रयास करें।"
+  },
+  "success": {
+    "saved": "परिवर्तन सफलतापूर्वक सहेजे गए",
+    "created": "सफलतापूर्वक बनाया गया",
+    "deleted": "सफलतापूर्वक हटाया गया",
+    "updated": "सफलतापूर्वक अपडेट किया गया",
+    "copied": "क्लिपबोर्ड पर कॉपी किया गया"
+  },
+  "metadata": {
+    "locale": "hi",
+    "language": "हिन्दी",
+    "direction": "ltr"
+  }
+}
