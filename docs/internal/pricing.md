@@ -38,20 +38,20 @@ Annual billing: $468/user/year (vs $540 monthly)
 
 | Feature | Scale | Pro |
 |---------|-------|-----|
-| Storage | 10 GB/user | 50 GB/user |
+| Storage | 5 GB/user | 25 GB/user |
 | Additional storage | $0.03/GB/month | $0.03/GB/month |
-| Video uploads | 100/user/month | 500/user/month |
+| Video uploads | 25/user/month | 100/user/month |
 | Additional videos | $0.10/video | $0.10/video |
 | Max file size | 500 MB | 2 GB |
 | Team members | Up to 25 | Unlimited |
-| Monthly bandwidth | 50 GB | 500 GB |
+| Monthly bandwidth | 25 GB | 250 GB |
 | Additional bandwidth | $0.05/GB | $0.05/GB |
 
 ### Features
 
 | Feature | Scale | Pro |
 |---------|-------|-----|
-| AI transcription | 120 min/user/mo | 500 min/user/mo |
+| AI transcription | 60 min/user/mo | 300 min/user/mo |
 | AI summaries | Yes | Yes |
 | Chapter detection | Yes | Yes |
 | Action item extraction | Yes | Yes |

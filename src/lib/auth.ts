@@ -333,10 +333,10 @@ export const auth = betterAuth({
             priceId: env.STRIPE_PRICE_ID_SCALE_MONTHLY,
             annualDiscountPriceId: env.STRIPE_PRICE_ID_SCALE_YEARLY,
             limits: {
-              storage: 10 * 1024 * 1024 * 1024, // 10GB/user
-              videos: 100, // 100/user/month
+              storage: 5 * 1024 * 1024 * 1024, // 5GB/user
+              videos: 25, // 25/user/month
               members: 25,
-              bandwidth: 50 * 1024 * 1024 * 1024, // 50GB/month
+              bandwidth: 25 * 1024 * 1024 * 1024, // 25GB/month
             },
             freeTrial: {
               days: 14, // 14-day trial, no credit card required
@@ -347,10 +347,10 @@ export const auth = betterAuth({
             priceId: env.STRIPE_PRICE_ID_PRO_MONTHLY,
             annualDiscountPriceId: env.STRIPE_PRICE_ID_PRO_YEARLY,
             limits: {
-              storage: 50 * 1024 * 1024 * 1024, // 50GB/user
-              videos: 500, // 500/user/month
+              storage: 25 * 1024 * 1024 * 1024, // 25GB/user
+              videos: 100, // 100/user/month
               members: -1, // Unlimited
-              bandwidth: 500 * 1024 * 1024 * 1024, // 500GB/month
+              bandwidth: 250 * 1024 * 1024 * 1024, // 250GB/month
             },
             freeTrial: {
               days: 14, // 14-day trial, no credit card required

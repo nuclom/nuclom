@@ -39,10 +39,10 @@ const pricingPlans = {
     cta: "Start Free Trial",
     ctaLink: "/register",
     limits: {
-      storage: "10 GB/user",
-      videos: "100/user/month",
+      storage: "5 GB/user",
+      videos: "25/user/month",
       members: "Up to 25",
-      bandwidth: "50 GB/month",
+      bandwidth: "25 GB/month",
     },
     features: [
       { name: "AI-powered transcription", included: true, highlight: true },
@@ -73,10 +73,10 @@ const pricingPlans = {
     cta: "Start Free Trial",
     ctaLink: "/register?plan=pro",
     limits: {
-      storage: "50 GB/user",
-      videos: "500/user/month",
+      storage: "25 GB/user",
+      videos: "100/user/month",
       members: "Unlimited",
-      bandwidth: "500 GB/month",
+      bandwidth: "250 GB/month",
     },
     features: [
       { name: "AI-powered transcription", included: true, highlight: true },
@@ -102,7 +102,7 @@ const featureComparison = [
     category: "AI & Automation",
     icon: Bot,
     features: [
-      { name: "Automatic transcription", scale: "120 min/user/mo", pro: "500 min/user/mo" },
+      { name: "Automatic transcription", scale: "60 min/user/mo", pro: "300 min/user/mo" },
       { name: "AI summaries", scale: true, pro: true },
       { name: "Chapter detection", scale: true, pro: true },
       { name: "Action item extraction", scale: true, pro: true },
@@ -114,11 +114,11 @@ const featureComparison = [
     category: "Storage & Limits",
     icon: HardDrive,
     features: [
-      { name: "Storage per user", scale: "10 GB", pro: "50 GB" },
-      { name: "Video uploads", scale: "100/user/mo", pro: "500/user/mo" },
+      { name: "Storage per user", scale: "5 GB", pro: "25 GB" },
+      { name: "Video uploads", scale: "25/user/mo", pro: "100/user/mo" },
       { name: "Max file size", scale: "500 MB", pro: "2 GB" },
       { name: "Team members", scale: "Up to 25", pro: "Unlimited" },
-      { name: "Bandwidth", scale: "50 GB/mo", pro: "500 GB/mo" },
+      { name: "Bandwidth", scale: "25 GB/mo", pro: "250 GB/mo" },
     ],
   },
   {
