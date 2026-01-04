@@ -317,7 +317,6 @@ export function VideoPlayer({
   const showPlayButton = (videoState === "ready" || videoState === "paused" || videoState === "idle") && !playing;
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveTabindex: Video player needs tabIndex for keyboard controls
     <div
       ref={containerRef}
       className={cn(
@@ -325,6 +324,7 @@ export function VideoPlayer({
         "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
         className,
       )}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
       tabIndex={0}
       role="application"
       aria-label={`Video player: ${title}`}

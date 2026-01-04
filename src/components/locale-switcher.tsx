@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Globe } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,22 +11,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { type Locale, localeFlags, localeNames, locales } from "@/lib/i18n";
+import { setLocale } from "@/lib/i18n/actions";
 
 interface LocaleSwitcherProps {
   currentLocale: Locale;
 }
 
 export function LocaleSwitcher({ currentLocale }: LocaleSwitcherProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleLocaleChange = (locale: Locale) => {
     if (locale === currentLocale) return;
 
-    startTransition(() => {
-      // Set locale cookie
-      document.cookie = `locale=${locale};path=/;max-age=31536000;samesite=strict`;
-      // Reload page to apply new locale
-      window.location.reload();
+    startTransition(async () => {
+      await setLocale(locale);
+      router.refresh();
     });
   };
 

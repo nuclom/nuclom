@@ -19,6 +19,7 @@
 
 import { FatalError } from "workflow";
 import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
+import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { env } from "@/lib/env/server";
 import { createWorkflowLogger } from "./workflow-logger";
 
@@ -544,17 +545,6 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
   );
 }
 
-async function getVideoOrganizationId(videoId: string): Promise<string | null> {
-  const { db } = await import("@/lib/db");
-
-  const video = await db.query.videos.findFirst({
-    where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
-    columns: { organizationId: true },
-  });
-
-  return video?.organizationId ?? null;
-}
-
 /**
  * Perform speaker diarization using AssemblyAI
  * Falls back gracefully if not configured
@@ -1049,6 +1039,16 @@ async function sendCompletionNotification(
         }</p>
         <p><a href="${baseUrl}/videos/${videoId}">View Video</a></p>
       `,
+    });
+
+    // Send Slack monitoring notification
+    await notifySlackMonitoring(status === "completed" ? "video_processed" : "video_processing_failed", {
+      videoId,
+      videoTitle: video.title,
+      organizationId: video.organizationId,
+      userId: user.id,
+      userName: user.name || undefined,
+      errorMessage: status === "failed" ? errorMessage : undefined,
     });
   } catch (error) {
     log.error({ videoId, status, error }, "Failed to send notification");
