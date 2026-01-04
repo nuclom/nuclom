@@ -1,329 +1,71 @@
 # Videos API
 
-The Videos API provides endpoints for managing video content, including CRUD operations, metadata management, comments, and progress tracking.
+The Videos API provides endpoints for managing video content, including CRUD operations, metadata management, comments, transcripts, and AI-powered processing.
 
-## Endpoints
+> **Note**: For complete endpoint documentation including request/response schemas, see the [OpenAPI specification](/openapi.json) or the [Interactive API Reference](/docs/api/reference).
 
-### List Videos
+## Overview
 
-Retrieve a paginated list of videos with optional filtering.
+Videos are the core content type in Nuclom. Each video belongs to an organization and can optionally be organized into channels and series.
 
-```http
-GET /api/videos
-```
+## Key Features
 
-**Query Parameters:**
+- **Video Management**: Upload, update, and delete videos
+- **AI Processing**: Automatic transcription, summarization, and action item extraction
+- **Comments**: Timestamped comments with threading and reactions
+- **Progress Tracking**: Track user viewing progress
+- **Sharing**: Public/password-protected share links
+- **Subtitles**: Multi-language subtitle support
 
-- `organizationId` (string, optional): Filter by organization ID
-- `channelId` (string, optional): Filter by channel ID
-- `seriesId` (string, optional): Filter by series ID
-- `page` (integer, optional): Page number (default: 1)
-- `limit` (integer, optional): Items per page (default: 20, max: 100)
+## API Endpoints
 
-**Example Request:**
+The following endpoints are available. See the OpenAPI spec for full details.
 
-```http
-GET /api/videos?organizationId=ws_123&page=1&limit=10
-```
+### Video CRUD
 
-**Response:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos` | List videos with filtering and pagination |
+| `POST /videos` | Create a new video |
+| `GET /videos/{id}` | Get video details with comments |
+| `PUT /videos/{id}` | Update video metadata |
+| `DELETE /videos/{id}` | Soft-delete video (30-day retention) |
+| `POST /videos/{id}/restore` | Restore soft-deleted video |
 
-```json
-{
-  "success": true,
-  "data": {
-    "videos": [
-      {
-        "id": "video_123",
-        "title": "Team Meeting - Q1 Planning",
-        "description": "Quarterly planning session with the development team",
-        "duration": "00:45:30",
-        "thumbnailUrl": "https://example.com/thumbnail.jpg",
-        "videoUrl": "https://example.com/video.mp4",
-        "authorId": "user_456",
-        "organizationId": "ws_123",
-        "channelId": "ch_789",
-        "seriesId": "series_012",
-        "transcript": "Meeting transcript...",
-        "aiSummary": "Key points discussed...",
-        "createdAt": "2024-01-01T10:00:00Z",
-        "updatedAt": "2024-01-01T10:00:00Z",
-        "author": {
-          "id": "user_456",
-          "name": "John Doe",
-          "email": "john@example.com",
-          "avatarUrl": "https://example.com/avatar.jpg"
-        },
-        "organization": {
-          "id": "ws_123",
-          "name": "Development Team",
-          "slug": "dev-team"
-        },
-        "channel": {
-          "id": "ch_789",
-          "name": "Meetings",
-          "description": "Team meetings and discussions"
-        },
-        "series": {
-          "id": "series_012",
-          "name": "Q1 Planning",
-          "description": "Quarterly planning sessions"
-        }
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 10,
-      "total": 25,
-      "totalPages": 3
-    }
-  }
-}
-```
+### Video Upload
 
-### Get Video
+| Endpoint | Description |
+|----------|-------------|
+| `POST /videos/upload` | Upload video file with metadata |
+| `GET /videos/upload/presigned` | Get presigned URL for direct upload |
+| `POST /videos/upload/confirm` | Confirm upload completion |
 
-Retrieve a specific video with full details including comments.
+### Transcripts & Subtitles
 
-```http
-GET /api/videos/{id}
-```
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos/{id}/transcript` | Get video transcript |
+| `PUT /videos/{id}/transcript` | Update transcript segments |
+| `GET /videos/{id}/subtitles` | List available subtitle languages |
+| `GET /videos/{id}/subtitles/{lang}` | Get subtitle file (VTT/SRT) |
 
-**Path Parameters:**
+### Comments
 
-- `id` (string, required): Video ID
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos/{id}/comments` | List comments for a video |
+| `POST /videos/{id}/comments` | Add a comment |
+| `PATCH /comments/{id}` | Update a comment |
+| `DELETE /comments/{id}` | Delete a comment |
+| `POST /comments/{id}/reactions` | Add reaction to comment |
 
-**Example Request:**
+### Progress & Analytics
 
-```http
-GET /api/videos/video_123
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "video_123",
-    "title": "Team Meeting - Q1 Planning",
-    "description": "Quarterly planning session with the development team",
-    "duration": "00:45:30",
-    "thumbnailUrl": "https://example.com/thumbnail.jpg",
-    "videoUrl": "https://example.com/video.mp4",
-    "authorId": "user_456",
-    "organizationId": "ws_123",
-    "channelId": "ch_789",
-    "seriesId": "series_012",
-    "transcript": "Meeting transcript...",
-    "aiSummary": "Key points discussed...",
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z",
-    "author": {
-      "id": "user_456",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "avatarUrl": "https://example.com/avatar.jpg"
-    },
-    "organization": {
-      "id": "ws_123",
-      "name": "Development Team",
-      "slug": "dev-team"
-    },
-    "channel": {
-      "id": "ch_789",
-      "name": "Meetings",
-      "description": "Team meetings and discussions"
-    },
-    "series": {
-      "id": "series_012",
-      "name": "Q1 Planning",
-      "description": "Quarterly planning sessions"
-    },
-    "comments": [
-      {
-        "id": "comment_123",
-        "content": "Great discussion on the new features",
-        "timestamp": "00:15:30",
-        "authorId": "user_789",
-        "videoId": "video_123",
-        "parentId": null,
-        "createdAt": "2024-01-01T11:00:00Z",
-        "updatedAt": "2024-01-01T11:00:00Z",
-        "author": {
-          "id": "user_789",
-          "name": "Jane Smith",
-          "email": "jane@example.com",
-          "avatarUrl": "https://example.com/avatar2.jpg"
-        },
-        "replies": []
-      }
-    ]
-  }
-}
-```
-
-### Create Video
-
-Create a new video in a organization.
-
-```http
-POST /api/videos
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "title": "Team Meeting - Q1 Planning",
-  "description": "Quarterly planning session with the development team",
-  "duration": "00:45:30",
-  "thumbnailUrl": "https://example.com/thumbnail.jpg",
-  "videoUrl": "https://example.com/video.mp4",
-  "authorId": "user_456",
-  "organizationId": "ws_123",
-  "channelId": "ch_789",
-  "seriesId": "series_012"
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "video_123",
-    "title": "Team Meeting - Q1 Planning",
-    "description": "Quarterly planning session with the development team",
-    "duration": "00:45:30",
-    "thumbnailUrl": "https://example.com/thumbnail.jpg",
-    "videoUrl": "https://example.com/video.mp4",
-    "authorId": "user_456",
-    "organizationId": "ws_123",
-    "channelId": "ch_789",
-    "seriesId": "series_012",
-    "transcript": null,
-    "aiSummary": null,
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T10:00:00Z",
-    "author": {
-      "id": "user_456",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "avatarUrl": "https://example.com/avatar.jpg"
-    },
-    "organization": {
-      "id": "ws_123",
-      "name": "Development Team",
-      "slug": "dev-team"
-    },
-    "channel": {
-      "id": "ch_789",
-      "name": "Meetings",
-      "description": "Team meetings and discussions"
-    },
-    "series": {
-      "id": "series_012",
-      "name": "Q1 Planning",
-      "description": "Quarterly planning sessions"
-    }
-  }
-}
-```
-
-### Update Video
-
-Update an existing video's metadata.
-
-```http
-PUT /api/videos/{id}
-Content-Type: application/json
-```
-
-**Path Parameters:**
-
-- `id` (string, required): Video ID
-
-**Request Body:**
-
-```json
-{
-  "title": "Updated Team Meeting - Q1 Planning",
-  "description": "Updated quarterly planning session with the development team",
-  "channelId": "ch_456",
-  "seriesId": "series_789"
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "video_123",
-    "title": "Updated Team Meeting - Q1 Planning",
-    "description": "Updated quarterly planning session with the development team",
-    "duration": "00:45:30",
-    "thumbnailUrl": "https://example.com/thumbnail.jpg",
-    "videoUrl": "https://example.com/video.mp4",
-    "authorId": "user_456",
-    "organizationId": "ws_123",
-    "channelId": "ch_456",
-    "seriesId": "series_789",
-    "transcript": null,
-    "aiSummary": null,
-    "createdAt": "2024-01-01T10:00:00Z",
-    "updatedAt": "2024-01-01T12:00:00Z",
-    "author": {
-      "id": "user_456",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "avatarUrl": "https://example.com/avatar.jpg"
-    },
-    "organization": {
-      "id": "ws_123",
-      "name": "Development Team",
-      "slug": "dev-team"
-    },
-    "channel": {
-      "id": "ch_456",
-      "name": "Announcements",
-      "description": "Team announcements"
-    },
-    "series": {
-      "id": "series_789",
-      "name": "Q2 Planning",
-      "description": "Second quarter planning sessions"
-    }
-  }
-}
-```
-
-### Delete Video
-
-Delete a video from the organization.
-
-```http
-DELETE /api/videos/{id}
-```
-
-**Path Parameters:**
-
-- `id` (string, required): Video ID
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Video deleted successfully"
-  }
-}
-```
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos/{id}/progress` | Get watch progress |
+| `POST /videos/{id}/progress` | Update watch progress |
+| `POST /videos/{id}/views` | Track video view |
 
 ## Data Models
 
@@ -331,32 +73,25 @@ DELETE /api/videos/{id}
 
 ```typescript
 interface Video {
-  id: string;
+  id: string;              // UUID
   title: string;
   description?: string;
-  duration: string;
+  duration: string;        // ISO 8601 duration or "HH:MM:SS"
   thumbnailUrl?: string;
   videoUrl?: string;
   authorId: string;
   organizationId: string;
   channelId?: string;
-  seriesId?: string;
+  collectionId?: string;
   transcript?: string;
   aiSummary?: string;
+  viewCount: number;
+  isPublic: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
+  retentionUntil?: string;
   createdAt: string;
   updatedAt: string;
-}
-```
-
-### Video with Details
-
-```typescript
-interface VideoWithDetails extends Video {
-  author: User;
-  organization: Organization;
-  channel?: Channel;
-  series?: Series;
-  comments: CommentWithReplies[];
 }
 ```
 
@@ -366,405 +101,118 @@ interface VideoWithDetails extends Video {
 interface Comment {
   id: string;
   content: string;
-  timestamp?: string;
+  timestamp?: string;      // Video timestamp "HH:MM:SS"
   authorId: string;
   videoId: string;
-  parentId?: string;
+  parentId?: string;       // For threaded replies
+  author?: User;
+  replies?: Comment[];
+  reactions?: Reaction[];
   createdAt: string;
   updatedAt: string;
 }
 ```
 
-### Comment with Replies
+### Transcript Segment
 
 ```typescript
-interface CommentWithReplies extends Comment {
-  author: User;
-  replies: CommentWithReplies[];
+interface TranscriptSegment {
+  startTime: number;       // Seconds
+  endTime: number;
+  text: string;
+  confidence?: number;     // 0-1
 }
 ```
 
-## Error Responses
+## Video Processing Pipeline
 
-### Video Not Found
+When a video is uploaded, it goes through these processing stages:
 
-```json
-{
-  "success": false,
-  "error": "Video not found"
-}
+1. **Upload**: Video file stored in R2
+2. **Thumbnail Generation**: Extract preview thumbnails
+3. **Transcription**: Audio-to-text using OpenAI Whisper
+4. **AI Analysis**: Generate summary, action items, chapters
+5. **Embeddings**: Generate vector embeddings for semantic search
+
+Processing status can be tracked via the `processingStatus` field.
+
+## Soft Delete & Retention
+
+Videos are soft-deleted by default with a 30-day retention period:
+
+```typescript
+// Soft delete (default)
+DELETE /api/videos/{id}
+
+// Permanent delete
+DELETE /api/videos/{id}?permanent=true
+
+// Custom retention period
+DELETE /api/videos/{id}?retentionDays=7
 ```
 
-### Invalid Request
-
-```json
-{
-  "success": false,
-  "error": "Title is required"
-}
-```
-
-### Server Error
-
-```json
-{
-  "success": false,
-  "error": "Failed to create video"
-}
-```
-
-## Authentication
-
-All video endpoints require authentication. Include the session cookie or authorization header:
-
-```http
-Authorization: Bearer <session_token>
-```
+Soft-deleted videos can be restored during the retention period.
 
 ## Permissions
 
-- **Create Video**: User must be a member of the organization
-- **Update Video**: User must be the video author or organization admin
-- **Delete Video**: User must be the video author or organization admin
-- **View Video**: User must have access to the organization
+| Action | Required Permission |
+|--------|---------------------|
+| View video | Organization member |
+| Create video | Organization member |
+| Update video | Video author or organization owner |
+| Delete video | Video author or organization owner |
+| Comment | Organization member |
 
-## Video Upload
+## Error Codes
 
-For video file uploads, use a separate upload endpoint with multipart/form-data:
+| Code | Description |
+|------|-------------|
+| `NOT_FOUND_VIDEO` | Video not found |
+| `VIDEO_UNSUPPORTED_FORMAT` | Unsupported video format |
+| `VIDEO_FILE_TOO_LARGE` | File exceeds size limit |
+| `VIDEO_PROCESSING_FAILED` | Processing failed |
 
-```http
-POST /api/videos/upload
-Content-Type: multipart/form-data
+## Supported Formats
 
-{
-  "file": <video_file>,
-  "organizationId": "ws_123",
-  "title": "Meeting Recording",
-  "description": "Team meeting from today"
-}
-```
+**Video formats**: MP4, MOV, AVI, MKV, WebM
 
-## Video Processing
+**Subtitle formats**: VTT, SRT
 
-Videos undergo processing after upload:
+**Subtitle languages**: en, es, fr, de, pt, it, nl, pl, ru, ja, zh, ko, ar, tr, sv, da, fi, nb, el, cs, ro, hu, uk, id, vi, th
 
-1. **Thumbnail Generation**: Automatic thumbnail extraction
-2. **Transcription**: Audio-to-text conversion
-3. **AI Analysis**: Summary and insights generation
-4. **Encoding**: Multiple quality formats
-
-## Video Progress Tracking
-
-Track user viewing progress:
-
-```http
-POST /api/videos/{id}/progress
-Content-Type: application/json
-
-{
-  "currentTime": "00:15:30",
-  "completed": false
-}
-```
-
-## Comments API
-
-### Add Comment
-
-```http
-POST /api/videos/{id}/comments
-Content-Type: application/json
-
-{
-  "content": "Great discussion on the new features",
-  "timestamp": "00:15:30",
-  "parentId": null
-}
-```
-
-### Reply to Comment
-
-```http
-POST /api/videos/{id}/comments
-Content-Type: application/json
-
-{
-  "content": "I agree with your point",
-  "parentId": "comment_123"
-}
-```
-
-### Update Comment
-
-```http
-PUT /api/videos/{id}/comments/{commentId}
-Content-Type: application/json
-
-{
-  "content": "Updated comment content"
-}
-```
-
-### Delete Comment
-
-```http
-DELETE /api/videos/{id}/comments/{commentId}
-```
-
-## Search and Filtering
-
-### Search Videos
-
-```http
-GET /api/videos/search?q=meeting&organizationId=ws_123
-```
-
-### Filter by Tags
-
-```http
-GET /api/videos?tags=meeting,planning&organizationId=ws_123
-```
-
-### Filter by Date Range
-
-```http
-GET /api/videos?startDate=2024-01-01&endDate=2024-01-31&organizationId=ws_123
-```
-
-## Analytics
-
-### Video Statistics
-
-```http
-GET /api/videos/{id}/stats
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "views": 42,
-    "uniqueViewers": 15,
-    "averageWatchTime": "00:22:15",
-    "comments": 8,
-    "likes": 12,
-    "shares": 3
-  }
-}
-```
-
-## Webhooks
-
-Subscribe to video events:
-
-- `video.created`: New video uploaded
-- `video.updated`: Video metadata changed
-- `video.deleted`: Video removed
-- `video.processed`: Video processing completed
-- `comment.created`: New comment added
-
-## Subtitles and Transcripts
-
-### List Subtitle Languages
-
-Get available subtitle languages for a video.
-
-```http
-GET /api/videos/{id}/subtitles
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "videoId": "video_123",
-    "hasTranscript": true,
-    "processingStatus": "completed",
-    "languages": [
-      {
-        "code": "en",
-        "name": "English",
-        "nativeName": "English",
-        "isOriginal": true,
-        "available": true,
-        "url": "/api/videos/video_123/subtitles/en.vtt"
-      },
-      {
-        "code": "es",
-        "name": "Spanish",
-        "nativeName": "Español",
-        "isOriginal": false,
-        "available": true,
-        "url": "/api/videos/video_123/subtitles/es.vtt"
-      }
-    ]
-  }
-}
-```
-
-### Get Subtitle File
-
-Get WebVTT or SRT subtitle file for a specific language.
-
-```http
-GET /api/videos/{id}/subtitles/{lang}.vtt
-GET /api/videos/{id}/subtitles/{lang}.srt
-```
-
-**Path Parameters:**
-
-- `id` (string, required): Video ID
-- `lang` (string, required): Language code (e.g., `en`, `es`, `fr`)
-
-**Response:** WebVTT file content
-
-```
-WEBVTT
-Kind: captions
-Language: en
-
-1
-00:00:00.000 --> 00:00:05.230
-Welcome to this video tutorial.
-
-2
-00:00:05.230 --> 00:00:10.450
-Today we'll be discussing the new features.
-```
-
-**Supported Languages:**
-
-English (en), Spanish (es), French (fr), German (de), Portuguese (pt), Italian (it), Dutch (nl), Polish (pl), Russian (ru), Japanese (ja), Chinese (zh), Korean (ko), Arabic (ar), Turkish (tr), Swedish (sv), Danish (da), Finnish (fi), Norwegian (nb), Greek (el), Czech (cs), Romanian (ro), Hungarian (hu), Ukrainian (uk), Indonesian (id), Vietnamese (vi), Thai (th)
-
-### Get Transcript
-
-Get transcript data for a video.
-
-```http
-GET /api/videos/{id}/transcript
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "videoId": "video_123",
-    "title": "Team Meeting",
-    "transcript": "Full transcript text...",
-    "segments": [
-      {
-        "startTime": 0,
-        "endTime": 5.23,
-        "text": "Welcome to this video tutorial.",
-        "confidence": 0.95
-      },
-      {
-        "startTime": 5.23,
-        "endTime": 10.45,
-        "text": "Today we'll be discussing the new features.",
-        "confidence": 0.92
-      }
-    ],
-    "processingStatus": "completed"
-  }
-}
-```
-
-### Update Transcript
-
-Update transcript segments (for corrections).
-
-```http
-PUT /api/videos/{id}/transcript
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "segments": [
-    {
-      "startTime": 0,
-      "endTime": 5.23,
-      "text": "Corrected transcript text.",
-      "confidence": 1.0
-    }
-  ]
-}
-```
-
-**Validation Rules:**
-
-- Segments must be in chronological order
-- Start time must be before end time
-- Text cannot be empty
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "videoId": "video_123",
-    "segments": [...],
-    "message": "Transcript updated successfully"
-  }
-}
-```
-
-## Rate Limits
-
-- **Video Upload**: 10 uploads per hour per user
-- **API Requests**: 100 requests per minute per user
-- **Comment Creation**: 30 comments per minute per user
-- **Translation Requests**: 100 per hour (requires DeepL API key)
-
-## Examples
+## Usage Examples
 
 ### JavaScript/TypeScript
 
 ```typescript
-// Fetch videos
-const response = await fetch("/api/videos?organizationId=ws_123");
+// List videos
+const response = await fetch("/api/videos?organizationId=org_123", {
+  headers: { "Authorization": `Bearer ${token}` }
+});
 const { data } = await response.json();
 
-// Create video
-const newVideo = await fetch("/api/videos", {
+// Upload video
+const formData = new FormData();
+formData.append("file", videoFile);
+formData.append("title", "Meeting Recording");
+formData.append("organizationId", "org_123");
+
+await fetch("/api/videos/upload", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    title: "Team Meeting",
-    duration: "00:45:30",
-    organizationId: "ws_123",
-    authorId: "user_456",
-  }),
+  headers: { "Authorization": `Bearer ${token}` },
+  body: formData
 });
-```
 
-### React Hook
-
-```typescript
-import { useVideos } from "@/hooks/useVideos";
-
-function VideoList({ organizationId }: { organizationId: string }) {
-  const { videos, loading, error } = useVideos({ organizationId });
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  return (
-    <div>
-      {videos.map((video) => (
-        <VideoCard key={video.id} video={video} />
-      ))}
-    </div>
-  );
-}
+// Add timestamped comment
+await fetch(`/api/videos/${videoId}/comments`, {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    content: "Great point here!",
+    timestamp: "00:15:30"
+  })
+});
 ```
