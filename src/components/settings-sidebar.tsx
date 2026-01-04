@@ -1,14 +1,30 @@
 "use client";
 
-import { Bell, Building, CreditCard, Globe, Key, Plug, Shield, User, UserCog, Users } from "lucide-react";
+import {
+  Bell,
+  Building,
+  ClipboardList,
+  CreditCard,
+  Globe,
+  Key,
+  Lock,
+  Plug,
+  Shield,
+  User,
+  UserCog,
+  UserSquare2,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
 };
 
 type NavSection = {
@@ -59,9 +75,31 @@ export function SettingsSidebar({ organization }: { organization: string }) {
           icon: Users,
         },
         {
+          href: `/${organization}/settings/roles`,
+          label: "Roles & Permissions",
+          icon: UserSquare2,
+        },
+        {
           href: `/${organization}/settings/billing`,
           label: "Billing",
           icon: CreditCard,
+        },
+      ],
+    },
+    {
+      title: "Enterprise",
+      items: [
+        {
+          href: `/${organization}/settings/sso`,
+          label: "Single Sign-On",
+          icon: Lock,
+          badge: "Enterprise",
+        },
+        {
+          href: `/${organization}/settings/audit-logs`,
+          label: "Audit Logs",
+          icon: ClipboardList,
+          badge: "Enterprise",
         },
       ],
     },
@@ -109,7 +147,12 @@ export function SettingsSidebar({ organization }: { organization: string }) {
                     )}
                   >
                     <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 </li>
               ))}

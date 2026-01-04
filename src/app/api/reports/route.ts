@@ -5,13 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
-import {
-  reportCategoryEnum,
-  reportResourceTypeEnum,
-  reports,
-  reportStatusEnum,
-  users,
-} from "@/lib/db/schema";
+import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from "@/lib/db/schema";
 import { safeParse } from "@/lib/validation";
 
 // Validate query parameters against enum values
