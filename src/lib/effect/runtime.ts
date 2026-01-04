@@ -24,12 +24,14 @@ import { type CodeLinksRepository, CodeLinksRepositoryLive } from "./services/co
 import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
 import { type Database, DatabaseLive } from "./services/database";
 import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
+import { type Embedding, EmbeddingLive } from "./services/embedding";
 import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from "./services/knowledge-graph-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
+import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from "./services/semantic-search-repository";
 import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
 import { type SlackMonitoring, SlackMonitoringLive } from "./services/slack-monitoring";
 import { type Storage, StorageLive } from "./services/storage";
@@ -53,6 +55,7 @@ const BaseServicesLive = Layer.mergeAll(
   DatabaseLive,
   StorageLive,
   AILive,
+  EmbeddingLive,
   ReplicateLive,
   StripeServiceLive,
   TranslationLive,
@@ -79,6 +82,7 @@ const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(Datab
 const ClipRepositoryWithDeps = ClipRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
 const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const KnowledgeGraphRepositoryWithDeps = KnowledgeGraphRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const SemanticSearchRepositoryWithDeps = SemanticSearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
 const BillingWithDeps = BillingLive.pipe(
@@ -97,6 +101,7 @@ const AppServicesLive = Layer.mergeAll(
   BillingRepositoryWithDeps,
   BillingWithDeps,
   SearchRepositoryWithDeps,
+  SemanticSearchRepositoryWithDeps,
   SeriesRepositoryWithDeps,
   ChannelRepositoryWithDeps,
   ClipRepositoryWithDeps,
@@ -114,6 +119,7 @@ export type AppServices =
   | Database
   | Storage
   | AI
+  | Embedding
   | ReplicateAPI
   | VideoProcessor
   | VideoRepository
@@ -126,6 +132,7 @@ export type AppServices =
   | BillingRepository
   | Billing
   | SearchRepository
+  | SemanticSearchRepository
   | SeriesRepository
   | ChannelRepository
   | ClipRepository
