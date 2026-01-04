@@ -52,7 +52,7 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
   const handleSelectPlan = async (planId: string) => {
-    if (planId === currentPlanId || planId === "free") return;
+    if (planId === currentPlanId) return;
 
     setLoadingPlanId(planId);
     try {
@@ -100,11 +100,11 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
               className={cn(
                 "relative flex flex-col",
                 isCurrentPlan && "border-primary ring-2 ring-primary ring-offset-2",
-                plan.id === "pro" && "border-primary/50",
+                (plan.id === "pro" || plan.name.toLowerCase() === "pro") && "border-primary/50",
               )}
             >
               {isCurrentPlan && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Current Plan</Badge>}
-              {plan.id === "pro" && !isCurrentPlan && (
+              {(plan.id === "pro" || plan.name.toLowerCase() === "pro") && !isCurrentPlan && (
                 <Badge variant="secondary" className="absolute -top-3 left-1/2 -translate-x-1/2">
                   Most Popular
                 </Badge>
@@ -167,12 +167,18 @@ export function PlanSelector({ plans, currentPlanId, onSelectPlan, isLoading }: 
               <CardFooter>
                 <Button
                   className="w-full"
-                  variant={isCurrentPlan ? "outline" : plan.id === "pro" ? "default" : "secondary"}
-                  disabled={isCurrentPlan || plan.id === "free" || isLoading || isPlanLoading}
+                  variant={
+                    isCurrentPlan
+                      ? "outline"
+                      : plan.id === "pro" || plan.name.toLowerCase() === "pro"
+                        ? "default"
+                        : "secondary"
+                  }
+                  disabled={isCurrentPlan || isLoading || isPlanLoading}
                   onClick={() => handleSelectPlan(plan.id)}
                 >
                   {isPlanLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isCurrentPlan ? "Current Plan" : plan.id === "free" ? "Free Tier" : "Upgrade"}
+                  {isCurrentPlan ? "Current Plan" : "Select Plan"}
                 </Button>
               </CardFooter>
             </Card>

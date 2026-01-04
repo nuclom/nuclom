@@ -30,10 +30,10 @@ export const ServerEnv = Schema.Struct({
   NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => "development" as const }),
   STRIPE_SECRET_KEY: Schema.String,
   STRIPE_WEBHOOK_SECRET: Schema.String,
+  STRIPE_PRICE_ID_SCALE_MONTHLY: Schema.optional(Schema.String),
+  STRIPE_PRICE_ID_SCALE_YEARLY: Schema.optional(Schema.String),
   STRIPE_PRICE_ID_PRO_MONTHLY: Schema.optional(Schema.String),
   STRIPE_PRICE_ID_PRO_YEARLY: Schema.optional(Schema.String),
-  STRIPE_PRICE_ID_ENTERPRISE_MONTHLY: Schema.optional(Schema.String),
-  STRIPE_PRICE_ID_ENTERPRISE_YEARLY: Schema.optional(Schema.String),
   // Upstash Redis (for rate limiting)
   UPSTASH_REDIS_REST_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   UPSTASH_REDIS_REST_TOKEN: Schema.optional(Schema.String),

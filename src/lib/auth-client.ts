@@ -41,7 +41,7 @@ export const authClient = createAuthClient({
 export const { useSession, signIn, signOut, signUp, useActiveOrganization, organization, subscription } = authClient;
 
 // Helper types for subscription management
-export type SubscriptionPlan = "free" | "pro" | "enterprise";
+export type SubscriptionPlan = "scale" | "pro";
 export type BillingPeriod = "monthly" | "yearly";
 
 // Helper function to upgrade subscription
