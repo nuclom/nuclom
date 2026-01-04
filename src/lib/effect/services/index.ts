@@ -291,6 +291,21 @@ export {
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
 } from "./email-notifications";
+// Embedding Service
+export type {
+  ChunkConfig,
+  ChunkEmbedding,
+  EmbeddingServiceInterface,
+  TextChunk,
+} from "./embedding";
+export {
+  chunkTranscript,
+  Embedding,
+  EmbeddingLive,
+  generateEmbedding,
+  generateEmbeddings,
+  processTranscript,
+} from "./embedding";
 // GitHub Service
 export type {
   GitHubCommit,
@@ -514,6 +529,23 @@ export {
   search,
   updateSavedSearch,
 } from "./search-repository";
+// Semantic Search Repository
+export type {
+  SemanticSearchParams,
+  SemanticSearchRepositoryService,
+  SemanticSearchResult,
+  SemanticSearchResultWithVideo,
+  SimilarVideoResult,
+  SimilarVideosParams,
+} from "./semantic-search-repository";
+export {
+  findSimilarVideos,
+  SemanticSearchRepository,
+  SemanticSearchRepositoryLive,
+  saveTranscriptChunks,
+  semanticSearch,
+  semanticSearchWithVideos,
+} from "./semantic-search-repository";
 export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from "./series-repository";
 // Series Repository
 export {
