@@ -124,7 +124,7 @@ function useForceSimulation(nodes: GraphNode[], edges: GraphEdge[], width: numbe
         // Final position update
         const finalPositions = new Map<string, { x: number; y: number }>();
         for (const node of nodesRef.current) {
-          finalPositions.set(node.id, { x: node.x!, y: node.y! });
+          finalPositions.set(node.id, { x: node.x ?? 0, y: node.y ?? 0 });
         }
         setPositions(finalPositions);
         return;
@@ -137,23 +137,27 @@ function useForceSimulation(nodes: GraphNode[], edges: GraphEdge[], width: numbe
         const node = nodeArray[i];
 
         // Center force
-        node.vx! += (width / 2 - node.x!) * centerStrength * currentAlpha;
-        node.vy! += (height / 2 - node.y!) * centerStrength * currentAlpha;
+        const nodeX = node.x ?? 0;
+        const nodeY = node.y ?? 0;
+        node.vx = (node.vx ?? 0) + (width / 2 - nodeX) * centerStrength * currentAlpha;
+        node.vy = (node.vy ?? 0) + (height / 2 - nodeY) * centerStrength * currentAlpha;
 
         // Repulsion force (between all nodes)
         for (let j = i + 1; j < nodeArray.length; j++) {
           const other = nodeArray[j];
-          const dx = node.x! - other.x!;
-          const dy = node.y! - other.y!;
+          const otherX = other.x ?? 0;
+          const otherY = other.y ?? 0;
+          const dx = nodeX - otherX;
+          const dy = nodeY - otherY;
           const distSq = dx * dx + dy * dy || 1;
           const dist = Math.sqrt(distSq);
           const force = (repulsionStrength * currentAlpha) / distSq;
           const fx = (dx / dist) * force;
           const fy = (dy / dist) * force;
-          node.vx! += fx;
-          node.vy! += fy;
-          other.vx! -= fx;
-          other.vy! -= fy;
+          node.vx = (node.vx ?? 0) + fx;
+          node.vy = (node.vy ?? 0) + fy;
+          other.vx = (other.vx ?? 0) - fx;
+          other.vy = (other.vy ?? 0) - fy;
         }
       }
 
@@ -163,16 +167,20 @@ function useForceSimulation(nodes: GraphNode[], edges: GraphEdge[], width: numbe
         const target = nodeMap.get(edge.targetNodeId);
         if (!source || !target) continue;
 
-        const dx = target.x! - source.x!;
-        const dy = target.y! - source.y!;
+        const sourceX = source.x ?? 0;
+        const sourceY = source.y ?? 0;
+        const targetX = target.x ?? 0;
+        const targetY = target.y ?? 0;
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
         const force = (dist - linkDistance) * attractionStrength * currentAlpha;
         const fx = (dx / dist) * force;
         const fy = (dy / dist) * force;
-        source.vx! += fx;
-        source.vy! += fy;
-        target.vx! -= fx;
-        target.vy! -= fy;
+        source.vx = (source.vx ?? 0) + fx;
+        source.vy = (source.vy ?? 0) + fy;
+        target.vx = (target.vx ?? 0) - fx;
+        target.vy = (target.vy ?? 0) - fy;
       }
 
       // Apply velocities and boundary constraints
@@ -180,24 +188,24 @@ function useForceSimulation(nodes: GraphNode[], edges: GraphEdge[], width: numbe
         if (node.fx !== null) {
           node.x = node.fx;
         } else {
-          node.vx! *= velocityDecay;
-          node.x! += node.vx!;
+          node.vx = (node.vx ?? 0) * velocityDecay;
+          node.x = (node.x ?? 0) + (node.vx ?? 0);
           // Boundary constraints with padding
-          node.x = Math.max(50, Math.min(width - 50, node.x!));
+          node.x = Math.max(50, Math.min(width - 50, node.x ?? 0));
         }
         if (node.fy !== null) {
           node.y = node.fy;
         } else {
-          node.vy! *= velocityDecay;
-          node.y! += node.vy!;
-          node.y = Math.max(50, Math.min(height - 50, node.y!));
+          node.vy = (node.vy ?? 0) * velocityDecay;
+          node.y = (node.y ?? 0) + (node.vy ?? 0);
+          node.y = Math.max(50, Math.min(height - 50, node.y ?? 0));
         }
       }
 
       // Update positions for rendering
       const newPositions = new Map<string, { x: number; y: number }>();
       for (const node of nodeArray) {
-        newPositions.set(node.id, { x: node.x!, y: node.y! });
+        newPositions.set(node.id, { x: node.x ?? 0, y: node.y ?? 0 });
       }
       setPositions(newPositions);
 
@@ -442,7 +450,10 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                 transform: `scale(${zoom})`,
                 transformOrigin: "center center",
               }}
+              role="img"
+              aria-label="Knowledge graph visualization"
             >
+              <title>Knowledge Graph</title>
               {/* Edges */}
               <g className="edges">
                 {filteredEdges.map((edge) => {
@@ -488,8 +499,17 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                       transform={`translate(${pos.x}, ${pos.y})`}
                       style={{ cursor: "pointer", opacity }}
                       onClick={() => handleNodeClick(node)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleNodeClick(node);
+                        }
+                      }}
                       onMouseEnter={() => setHoveredNode(node.id)}
                       onMouseLeave={() => setHoveredNode(null)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${node.type}: ${node.label}`}
                     >
                       <circle
                         r={radius}
@@ -595,6 +615,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                     <div className="space-y-2">
                       {connectedNodes.map((node) => (
                         <button
+                          type="button"
                           key={node.id}
                           onClick={() => handleNodeClick(node)}
                           className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors text-left"

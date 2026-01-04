@@ -272,6 +272,15 @@ export function SpeakerTimeline({
           ref={containerRef}
           className="mt-4 relative h-2 bg-muted rounded-full cursor-pointer group"
           onClick={handleTimelineClick}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowRight") {
+              e.preventDefault();
+              onSeek?.(Math.min(duration, currentTime + 5));
+            } else if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              onSeek?.(Math.max(0, currentTime - 5));
+            }
+          }}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoveredTime(null)}
           role="slider"

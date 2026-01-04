@@ -6,6 +6,7 @@
  */
 
 import { Config, Context, Effect, Layer, Option } from "effect";
+import { env } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -283,34 +284,6 @@ const getEventTitle = (type: MonitoringEventType): string => {
   return titleMap[type] || "Platform Event";
 };
 
-const getEventColor = (type: MonitoringEventType): string => {
-  // Success events (green)
-  if (
-    [
-      "user_registered",
-      "organization_created",
-      "member_joined",
-      "subscription_created",
-      "payment_succeeded",
-      "video_processed",
-    ].includes(type)
-  ) {
-    return "#36a64f";
-  }
-  // Warning events (yellow)
-  if (["trial_ending", "subscription_downgraded", "subscription_canceled"].includes(type)) {
-    return "#f2c744";
-  }
-  // Error events (red)
-  if (
-    ["payment_failed", "video_processing_failed", "api_error", "webhook_failed", "integration_error"].includes(type)
-  ) {
-    return "#dc3545";
-  }
-  // Info events (blue)
-  return "#2196f3";
-};
-
 const formatCurrency = (amount: number, currency: string): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -396,7 +369,6 @@ const makeSlackMonitoringService = Effect.gen(function* () {
   const buildEventBlocks = (event: MonitoringEvent): SlackBlock[] => {
     const emoji = getEventEmoji(event.type);
     const title = getEventTitle(event.type);
-    const color = getEventColor(event.type);
 
     const blocks: SlackBlock[] = [
       {
@@ -794,12 +766,12 @@ export async function notifySlackMonitoring(
 function getWebhookUrlForCategory(category: EventCategory): string | null {
   // Use process.env directly for standalone function
   const categoryMap: Record<EventCategory, string | undefined> = {
-    accounts: process.env.SLACK_MONITORING_WEBHOOK_ACCOUNTS,
-    billing: process.env.SLACK_MONITORING_WEBHOOK_BILLING,
-    usage: process.env.SLACK_MONITORING_WEBHOOK_USAGE,
-    errors: process.env.SLACK_MONITORING_WEBHOOK_ERRORS,
+    accounts: env.SLACK_MONITORING_WEBHOOK_ACCOUNTS,
+    billing: env.SLACK_MONITORING_WEBHOOK_BILLING,
+    usage: env.SLACK_MONITORING_WEBHOOK_USAGE,
+    errors: env.SLACK_MONITORING_WEBHOOK_ERRORS,
   };
 
   // Try category-specific first, then fall back to default
-  return categoryMap[category] || process.env.SLACK_MONITORING_WEBHOOK_URL || null;
+  return categoryMap[category] || env.SLACK_MONITORING_WEBHOOK_URL || null;
 }

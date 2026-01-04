@@ -157,25 +157,19 @@ export function SpeakerLegend({
             const isSelected = selectedSpeakerId === speaker.id;
             const isFiltering = showFilter && selectedSpeakerId !== null;
 
+            const ElementWrapper = showFilter ? "button" : "div";
             return (
-              <div
+              <ElementWrapper
+                type={showFilter ? "button" : undefined}
                 key={speaker.id}
                 className={cn(
-                  "flex items-center gap-3 p-2 rounded-lg transition-all",
+                  "flex items-center gap-3 p-2 rounded-lg transition-all text-left w-full",
                   showFilter && "cursor-pointer",
                   isSelected && color.light,
                   isFiltering && !isSelected && "opacity-50",
                   showFilter && !isSelected && "hover:bg-muted/50",
                 )}
                 onClick={() => handleSpeakerClick(speaker.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleSpeakerClick(speaker.id);
-                  }
-                }}
-                tabIndex={showFilter ? 0 : undefined}
-                role={showFilter ? "button" : undefined}
               >
                 {/* Color indicator */}
                 <div className={cn("w-3 h-3 rounded-full flex-shrink-0", color.bg)} />
@@ -213,7 +207,7 @@ export function SpeakerLegend({
                   <p className="text-sm font-medium">{speaker.speakingPercentage}%</p>
                   <p className="text-xs text-muted-foreground">{formatTime(speaker.totalSpeakingTime)}</p>
                 </div>
-              </div>
+              </ElementWrapper>
             );
           })}
         </div>

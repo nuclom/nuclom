@@ -545,17 +545,6 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
   );
 }
 
-async function getVideoOrganizationId(videoId: string): Promise<string | null> {
-  const { db } = await import("@/lib/db");
-
-  const video = await db.query.videos.findFirst({
-    where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
-    columns: { organizationId: true },
-  });
-
-  return video?.organizationId ?? null;
-}
-
 /**
  * Perform speaker diarization using AssemblyAI
  * Falls back gracefully if not configured
