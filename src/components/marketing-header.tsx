@@ -63,7 +63,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/#features" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link href="/features" className="text-sm font-medium hover:text-primary transition-colors">
             Features
           </Link>
           <Link href="/pricing" className="text-sm font-medium hover:text-primary transition-colors">
@@ -147,7 +147,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
         <div className="md:hidden border-t bg-background">
           <nav className="flex flex-col space-y-1 px-4 py-4">
             <Link
-              href="/#features"
+              href="/features"
               className="text-sm font-medium py-2 hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
