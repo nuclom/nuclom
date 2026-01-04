@@ -61,7 +61,7 @@ export const localeFlags: Record<Locale, string> = {
   vi: "🇻🇳",
   it: "🇮🇹",
   tr: "🇹🇷",
-  ca: "🏴󠁥󠁳󠁣󠁴󠁿",
+  ca: "🇪🇸",
 };
 
 /**
