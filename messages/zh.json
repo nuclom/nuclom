@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "loading": "加载中...",
+    "search": "搜索",
+    "filter": "筛选",
+    "export": "导出",
+    "import": "导入",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "close": "关闭",
+    "refresh": "刷新",
+    "settings": "设置",
+    "actions": "操作",
+    "yes": "是",
+    "no": "否",
+    "all": "全部",
+    "none": "无",
+    "submit": "提交",
+    "reset": "重置",
+    "clear": "清除",
+    "copy": "复制",
+    "copied": "已复制！",
+    "download": "下载",
+    "upload": "上传",
+    "view": "查看",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "on": "开",
+    "off": "关"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "signUp": "注册",
+    "email": "电子邮件",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码？",
+    "resetPassword": "重置密码",
+    "createAccount": "创建账户",
+    "alreadyHaveAccount": "已有账户？",
+    "dontHaveAccount": "没有账户？",
+    "orContinueWith": "或继续使用",
+    "twoFactor": {
+      "title": "双因素认证",
+      "enable": "启用双因素认证",
+      "disable": "禁用双因素认证",
+      "enterCode": "输入验证码",
+      "scanQr": "使用认证应用扫描二维码",
+      "backupCodes": "备份代码"
+    },
+    "sso": {
+      "signInWith": "使用 {provider} 登录",
+      "configuredBy": "由您的组织配置"
+    }
+  },
+  "navigation": {
+    "home": "首页",
+    "dashboard": "控制台",
+    "videos": "视频",
+    "channels": "频道",
+    "collections": "合集",
+    "search": "搜索",
+    "activity": "动态",
+    "settings": "设置",
+    "help": "帮助"
+  },
+  "videos": {
+    "upload": "上传视频",
+    "uploadDescription": "拖放视频文件或点击浏览",
+    "processing": "处理中...",
+    "ready": "就绪",
+    "failed": "失败",
+    "title": "标题",
+    "description": "描述",
+    "duration": "时长",
+    "views": "次观看",
+    "viewCount": "{count, plural, =0 {暂无观看} =1 {1次观看} other {#次观看}}",
+    "uploadedBy": "{name} 上传",
+    "uploadedOn": "上传于 {date}",
+    "noVideos": "未找到视频",
+    "createFirst": "上传您的第一个视频开始使用",
+    "chapters": "章节",
+    "transcript": "字幕",
+    "comments": "评论",
+    "share": "分享",
+    "download": "下载",
+    "delete": "删除",
+    "deleteConfirmation": "确定要删除此视频吗？",
+    "player": {
+      "play": "播放",
+      "pause": "暂停",
+      "mute": "静音",
+      "unmute": "取消静音",
+      "fullscreen": "全屏",
+      "exitFullscreen": "退出全屏",
+      "playbackSpeed": "播放速度",
+      "quality": "画质"
+    }
+  },
+  "comments": {
+    "addComment": "添加评论",
+    "placeholder": "写下您的评论...",
+    "post": "发布",
+    "reply": "回复",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleteConfirmation": "确定要删除此评论吗？",
+    "noComments": "暂无评论",
+    "beFirst": "成为第一个评论者",
+    "reactions": {
+      "like": "点赞",
+      "love": "喜欢",
+      "helpful": "有帮助"
+    }
+  },
+  "channels": {
+    "create": "创建频道",
+    "name": "频道名称",
+    "description": "描述",
+    "noChannels": "未找到频道",
+    "createFirst": "创建您的第一个频道来组织视频"
+  },
+  "collections": {
+    "create": "创建合集",
+    "name": "合集名称",
+    "description": "描述",
+    "noCollections": "未找到合集",
+    "createFirst": "创建您的第一个合集来分组视频"
+  },
+  "organization": {
+    "name": "组织名称",
+    "settings": "组织设置",
+    "members": "成员",
+    "invite": "邀请成员",
+    "remove": "移除成员",
+    "role": "角色",
+    "roles": {
+      "owner": "所有者",
+      "admin": "管理员",
+      "member": "成员",
+      "viewer": "查看者"
+    },
+    "invitePending": "邀请待处理",
+    "noMembers": "未找到成员"
+  },
+  "settings": {
+    "profile": {
+      "title": "个人资料",
+      "name": "显示名称",
+      "bio": "简介",
+      "avatar": "头像",
+      "changeAvatar": "更换头像"
+    },
+    "account": {
+      "title": "账户",
+      "email": "电子邮件地址",
+      "changeEmail": "更改邮箱",
+      "deleteAccount": "删除账户",
+      "deleteWarning": "此操作无法撤销"
+    },
+    "security": {
+      "title": "安全",
+      "password": "密码",
+      "changePassword": "更改密码",
+      "sessions": "活动会话",
+      "revokeSession": "撤销会话",
+      "revokeAllSessions": "撤销所有会话"
+    },
+    "notifications": {
+      "title": "通知",
+      "email": "邮件通知",
+      "push": "推送通知",
+      "comments": "视频的新评论",
+      "mentions": "有人提及您时",
+      "uploads": "有新视频上传时"
+    },
+    "billing": {
+      "title": "账单",
+      "plan": "当前方案",
+      "upgrade": "升级",
+      "downgrade": "降级",
+      "invoices": "发票",
+      "paymentMethod": "支付方式"
+    },
+    "integrations": {
+      "title": "集成",
+      "connect": "连接",
+      "disconnect": "断开",
+      "connected": "已连接"
+    },
+    "apiKeys": {
+      "title": "API密钥",
+      "create": "创建API密钥",
+      "revoke": "撤销",
+      "lastUsed": "上次使用",
+      "never": "从未使用"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "单点登录",
+      "description": "为您的组织配置SAML 2.0或OIDC身份验证",
+      "configure": "配置SSO",
+      "test": "测试配置",
+      "enable": "启用SSO",
+      "disable": "禁用SSO",
+      "providerType": "提供商类型",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "实体ID",
+      "ssoUrl": "SSO URL",
+      "certificate": "X.509证书",
+      "issuer": "发行者URL",
+      "clientId": "客户端ID",
+      "clientSecret": "客户端密钥",
+      "autoProvision": "自动配置用户",
+      "defaultRole": "默认角色",
+      "allowedDomains": "允许的邮箱域名",
+      "spMetadata": "服务提供商元数据",
+      "callbackUrl": "回调URL"
+    },
+    "roles": {
+      "title": "角色与权限",
+      "description": "管理自定义角色和细粒度权限",
+      "create": "创建角色",
+      "name": "角色名称",
+      "permissions": "权限",
+      "default": "默认角色",
+      "system": "系统角色",
+      "resources": {
+        "video": "视频",
+        "channel": "频道",
+        "collection": "合集",
+        "comment": "评论",
+        "member": "成员",
+        "settings": "设置",
+        "billing": "账单",
+        "analytics": "分析",
+        "integration": "集成",
+        "auditLog": "审计日志"
+      },
+      "actions": {
+        "create": "创建",
+        "read": "读取",
+        "update": "更新",
+        "delete": "删除",
+        "share": "分享",
+        "download": "下载",
+        "comment": "评论",
+        "manage": "管理",
+        "invite": "邀请",
+        "admin": "管理员"
+      }
+    },
+    "auditLogs": {
+      "title": "审计日志",
+      "description": "跟踪和监控组织内的所有活动",
+      "export": "导出日志",
+      "filter": "筛选",
+      "timestamp": "时间戳",
+      "action": "操作",
+      "actor": "执行者",
+      "resource": "资源",
+      "ipAddress": "IP地址",
+      "noLogs": "未找到审计日志",
+      "categories": {
+        "authentication": "身份验证",
+        "authorization": "授权",
+        "userManagement": "用户管理",
+        "organizationManagement": "组织",
+        "contentManagement": "内容",
+        "billing": "账单",
+        "security": "安全",
+        "integration": "集成",
+        "system": "系统"
+      },
+      "severity": {
+        "info": "信息",
+        "warning": "警告",
+        "error": "错误",
+        "critical": "严重"
+      }
+    }
+  },
+  "errors": {
+    "generic": "出了点问题。请重试。",
+    "notFound": "未找到",
+    "unauthorized": "您无权执行此操作",
+    "forbidden": "访问被拒绝",
+    "validation": "请检查您的输入并重试",
+    "network": "网络错误。请检查您的连接。",
+    "rateLimit": "请求过多。请稍后重试。"
+  },
+  "success": {
+    "saved": "更改已成功保存",
+    "created": "创建成功",
+    "deleted": "删除成功",
+    "updated": "更新成功",
+    "copied": "已复制到剪贴板"
+  },
+  "metadata": {
+    "locale": "zh",
+    "language": "中文",
+    "direction": "ltr"
+  }
+}

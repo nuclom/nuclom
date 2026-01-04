@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "loading": "جارٍ التحميل...",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق",
+    "refresh": "تحديث",
+    "settings": "الإعدادات",
+    "actions": "الإجراءات",
+    "yes": "نعم",
+    "no": "لا",
+    "all": "الكل",
+    "none": "لا شيء",
+    "submit": "إرسال",
+    "reset": "إعادة تعيين",
+    "clear": "مسح",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "download": "تحميل",
+    "upload": "رفع",
+    "view": "عرض",
+    "enabled": "مُفعّل",
+    "disabled": "معطّل",
+    "on": "تشغيل",
+    "off": "إيقاف"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "signUp": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "createAccount": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "orContinueWith": "أو المتابعة باستخدام",
+    "twoFactor": {
+      "title": "المصادقة الثنائية",
+      "enable": "تفعيل المصادقة الثنائية",
+      "disable": "تعطيل المصادقة الثنائية",
+      "enterCode": "أدخل رمز التحقق",
+      "scanQr": "امسح رمز QR بتطبيق المصادقة",
+      "backupCodes": "رموز الاحتياط"
+    },
+    "sso": {
+      "signInWith": "تسجيل الدخول باستخدام {provider}",
+      "configuredBy": "تم التكوين بواسطة مؤسستك"
+    }
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "videos": "الفيديوهات",
+    "channels": "القنوات",
+    "collections": "المجموعات",
+    "search": "بحث",
+    "activity": "النشاط",
+    "settings": "الإعدادات",
+    "help": "المساعدة"
+  },
+  "videos": {
+    "upload": "رفع فيديو",
+    "uploadDescription": "اسحب وأفلت ملف فيديو أو انقر للتصفح",
+    "processing": "جارٍ المعالجة...",
+    "ready": "جاهز",
+    "failed": "فشل",
+    "title": "العنوان",
+    "description": "الوصف",
+    "duration": "المدة",
+    "views": "مشاهدات",
+    "viewCount": "{count, plural, =0 {لا مشاهدات} =1 {مشاهدة واحدة} other {# مشاهدات}}",
+    "uploadedBy": "رفع بواسطة {name}",
+    "uploadedOn": "رفع في {date}",
+    "noVideos": "لم يتم العثور على فيديوهات",
+    "createFirst": "ارفع أول فيديو لك للبدء",
+    "chapters": "الفصول",
+    "transcript": "النص",
+    "comments": "التعليقات",
+    "share": "مشاركة",
+    "download": "تحميل",
+    "delete": "حذف",
+    "deleteConfirmation": "هل أنت متأكد أنك تريد حذف هذا الفيديو؟",
+    "player": {
+      "play": "تشغيل",
+      "pause": "إيقاف مؤقت",
+      "mute": "كتم الصوت",
+      "unmute": "إلغاء كتم الصوت",
+      "fullscreen": "ملء الشاشة",
+      "exitFullscreen": "الخروج من ملء الشاشة",
+      "playbackSpeed": "سرعة التشغيل",
+      "quality": "الجودة"
+    }
+  },
+  "comments": {
+    "addComment": "أضف تعليقًا",
+    "placeholder": "اكتب تعليقك...",
+    "post": "نشر",
+    "reply": "رد",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "deleteConfirmation": "هل أنت متأكد أنك تريد حذف هذا التعليق؟",
+    "noComments": "لا توجد تعليقات بعد",
+    "beFirst": "كن أول من يعلق",
+    "reactions": {
+      "like": "إعجاب",
+      "love": "حب",
+      "helpful": "مفيد"
+    }
+  },
+  "channels": {
+    "create": "إنشاء قناة",
+    "name": "اسم القناة",
+    "description": "الوصف",
+    "noChannels": "لم يتم العثور على قنوات",
+    "createFirst": "أنشئ أول قناة لتنظيم الفيديوهات"
+  },
+  "collections": {
+    "create": "إنشاء مجموعة",
+    "name": "اسم المجموعة",
+    "description": "الوصف",
+    "noCollections": "لم يتم العثور على مجموعات",
+    "createFirst": "أنشئ أول مجموعة لتجميع الفيديوهات"
+  },
+  "organization": {
+    "name": "اسم المؤسسة",
+    "settings": "إعدادات المؤسسة",
+    "members": "الأعضاء",
+    "invite": "دعوة عضو",
+    "remove": "إزالة عضو",
+    "role": "الدور",
+    "roles": {
+      "owner": "المالك",
+      "admin": "المسؤول",
+      "member": "عضو",
+      "viewer": "مشاهد"
+    },
+    "invitePending": "الدعوة معلقة",
+    "noMembers": "لم يتم العثور على أعضاء"
+  },
+  "settings": {
+    "profile": {
+      "title": "ملفك الشخصي",
+      "name": "الاسم المعروض",
+      "bio": "النبذة",
+      "avatar": "الصورة الرمزية",
+      "changeAvatar": "تغيير الصورة الرمزية"
+    },
+    "account": {
+      "title": "الحساب",
+      "email": "عنوان البريد الإلكتروني",
+      "changeEmail": "تغيير البريد الإلكتروني",
+      "deleteAccount": "حذف الحساب",
+      "deleteWarning": "لا يمكن التراجع عن هذا الإجراء"
+    },
+    "security": {
+      "title": "الأمان",
+      "password": "كلمة المرور",
+      "changePassword": "تغيير كلمة المرور",
+      "sessions": "الجلسات النشطة",
+      "revokeSession": "إلغاء الجلسة",
+      "revokeAllSessions": "إلغاء جميع الجلسات"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "email": "إشعارات البريد الإلكتروني",
+      "push": "الإشعارات الفورية",
+      "comments": "التعليقات الجديدة على فيديوهاتك",
+      "mentions": "عندما يذكرك أحد",
+      "uploads": "عندما يتم رفع فيديو جديد"
+    },
+    "billing": {
+      "title": "الفوترة",
+      "plan": "الخطة الحالية",
+      "upgrade": "ترقية",
+      "downgrade": "تخفيض",
+      "invoices": "الفواتير",
+      "paymentMethod": "طريقة الدفع"
+    },
+    "integrations": {
+      "title": "التكاملات",
+      "connect": "ربط",
+      "disconnect": "إلغاء الربط",
+      "connected": "متصل"
+    },
+    "apiKeys": {
+      "title": "مفاتيح API",
+      "create": "إنشاء مفتاح API",
+      "revoke": "إلغاء",
+      "lastUsed": "آخر استخدام",
+      "never": "أبدًا"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "تسجيل الدخول الموحد",
+      "description": "تكوين مصادقة SAML 2.0 أو OIDC لمؤسستك",
+      "configure": "تكوين SSO",
+      "test": "اختبار التكوين",
+      "enable": "تفعيل SSO",
+      "disable": "تعطيل SSO",
+      "providerType": "نوع المزود",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "معرف الكيان",
+      "ssoUrl": "رابط SSO",
+      "certificate": "شهادة X.509",
+      "issuer": "رابط المُصدر",
+      "clientId": "معرف العميل",
+      "clientSecret": "سر العميل",
+      "autoProvision": "تزويد المستخدمين تلقائيًا",
+      "defaultRole": "الدور الافتراضي",
+      "allowedDomains": "نطاقات البريد الإلكتروني المسموحة",
+      "spMetadata": "بيانات مزود الخدمة",
+      "callbackUrl": "رابط إعادة التوجيه"
+    },
+    "roles": {
+      "title": "الأدوار والصلاحيات",
+      "description": "إدارة الأدوار المخصصة والصلاحيات التفصيلية",
+      "create": "إنشاء دور",
+      "name": "اسم الدور",
+      "permissions": "الصلاحيات",
+      "default": "الدور الافتراضي",
+      "system": "دور النظام",
+      "resources": {
+        "video": "الفيديوهات",
+        "channel": "القنوات",
+        "collection": "المجموعات",
+        "comment": "التعليقات",
+        "member": "الأعضاء",
+        "settings": "الإعدادات",
+        "billing": "الفوترة",
+        "analytics": "التحليلات",
+        "integration": "التكاملات",
+        "auditLog": "سجلات التدقيق"
+      },
+      "actions": {
+        "create": "إنشاء",
+        "read": "قراءة",
+        "update": "تحديث",
+        "delete": "حذف",
+        "share": "مشاركة",
+        "download": "تحميل",
+        "comment": "تعليق",
+        "manage": "إدارة",
+        "invite": "دعوة",
+        "admin": "إدارة"
+      }
+    },
+    "auditLogs": {
+      "title": "سجلات التدقيق",
+      "description": "تتبع ومراقبة جميع الأنشطة داخل مؤسستك",
+      "export": "تصدير السجلات",
+      "filter": "تصفية",
+      "timestamp": "الطابع الزمني",
+      "action": "الإجراء",
+      "actor": "المنفذ",
+      "resource": "المورد",
+      "ipAddress": "عنوان IP",
+      "noLogs": "لم يتم العثور على سجلات تدقيق",
+      "categories": {
+        "authentication": "المصادقة",
+        "authorization": "التفويض",
+        "userManagement": "إدارة المستخدمين",
+        "organizationManagement": "المؤسسة",
+        "contentManagement": "المحتوى",
+        "billing": "الفوترة",
+        "security": "الأمان",
+        "integration": "التكامل",
+        "system": "النظام"
+      },
+      "severity": {
+        "info": "معلومات",
+        "warning": "تحذير",
+        "error": "خطأ",
+        "critical": "حرج"
+      }
+    }
+  },
+  "errors": {
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "notFound": "غير موجود",
+    "unauthorized": "غير مصرح لك بتنفيذ هذا الإجراء",
+    "forbidden": "تم رفض الوصول",
+    "validation": "يرجى التحقق من مدخلاتك والمحاولة مرة أخرى",
+    "network": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "rateLimit": "طلبات كثيرة جدًا. يرجى المحاولة لاحقًا."
+  },
+  "success": {
+    "saved": "تم حفظ التغييرات بنجاح",
+    "created": "تم الإنشاء بنجاح",
+    "deleted": "تم الحذف بنجاح",
+    "updated": "تم التحديث بنجاح",
+    "copied": "تم النسخ إلى الحافظة"
+  },
+  "metadata": {
+    "locale": "ar",
+    "language": "العربية",
+    "direction": "rtl"
+  }
+}

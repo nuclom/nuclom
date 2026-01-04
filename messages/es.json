@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "loading": "Cargando...",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "refresh": "Actualizar",
+    "settings": "Configuración",
+    "actions": "Acciones",
+    "yes": "Sí",
+    "no": "No",
+    "all": "Todos",
+    "none": "Ninguno",
+    "submit": "Enviar",
+    "reset": "Restablecer",
+    "clear": "Limpiar",
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
+    "download": "Descargar",
+    "upload": "Subir",
+    "view": "Ver",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "on": "Activado",
+    "off": "Desactivado"
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "signUp": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer contraseña",
+    "createAccount": "Crear cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "orContinueWith": "O continuar con",
+    "twoFactor": {
+      "title": "Autenticación de dos factores",
+      "enable": "Habilitar 2FA",
+      "disable": "Deshabilitar 2FA",
+      "enterCode": "Ingresa el código de verificación",
+      "scanQr": "Escanea el código QR con tu aplicación de autenticación",
+      "backupCodes": "Códigos de respaldo"
+    },
+    "sso": {
+      "signInWith": "Iniciar sesión con {provider}",
+      "configuredBy": "Configurado por tu organización"
+    }
+  },
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "videos": "Videos",
+    "channels": "Canales",
+    "collections": "Colecciones",
+    "search": "Buscar",
+    "activity": "Actividad",
+    "settings": "Configuración",
+    "help": "Ayuda"
+  },
+  "videos": {
+    "upload": "Subir video",
+    "uploadDescription": "Arrastra y suelta un archivo de video o haz clic para explorar",
+    "processing": "Procesando...",
+    "ready": "Listo",
+    "failed": "Fallido",
+    "title": "Título",
+    "description": "Descripción",
+    "duration": "Duración",
+    "views": "vistas",
+    "viewCount": "{count, plural, =0 {Sin vistas} =1 {1 vista} other {# vistas}}",
+    "uploadedBy": "Subido por {name}",
+    "uploadedOn": "Subido el {date}",
+    "noVideos": "No se encontraron videos",
+    "createFirst": "Sube tu primer video para comenzar",
+    "chapters": "Capítulos",
+    "transcript": "Transcripción",
+    "comments": "Comentarios",
+    "share": "Compartir",
+    "download": "Descargar",
+    "delete": "Eliminar",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar este video?",
+    "player": {
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "mute": "Silenciar",
+      "unmute": "Activar sonido",
+      "fullscreen": "Pantalla completa",
+      "exitFullscreen": "Salir de pantalla completa",
+      "playbackSpeed": "Velocidad de reproducción",
+      "quality": "Calidad"
+    }
+  },
+  "comments": {
+    "addComment": "Agregar un comentario",
+    "placeholder": "Escribe tu comentario...",
+    "post": "Publicar",
+    "reply": "Responder",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar este comentario?",
+    "noComments": "Aún no hay comentarios",
+    "beFirst": "Sé el primero en comentar",
+    "reactions": {
+      "like": "Me gusta",
+      "love": "Me encanta",
+      "helpful": "Útil"
+    }
+  },
+  "channels": {
+    "create": "Crear canal",
+    "name": "Nombre del canal",
+    "description": "Descripción",
+    "noChannels": "No se encontraron canales",
+    "createFirst": "Crea tu primer canal para organizar videos"
+  },
+  "collections": {
+    "create": "Crear colección",
+    "name": "Nombre de la colección",
+    "description": "Descripción",
+    "noCollections": "No se encontraron colecciones",
+    "createFirst": "Crea tu primera colección para agrupar videos"
+  },
+  "organization": {
+    "name": "Nombre de la organización",
+    "settings": "Configuración de la organización",
+    "members": "Miembros",
+    "invite": "Invitar miembro",
+    "remove": "Eliminar miembro",
+    "role": "Rol",
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "member": "Miembro",
+      "viewer": "Espectador"
+    },
+    "invitePending": "Invitación pendiente",
+    "noMembers": "No se encontraron miembros"
+  },
+  "settings": {
+    "profile": {
+      "title": "Tu Perfil",
+      "name": "Nombre para mostrar",
+      "bio": "Biografía",
+      "avatar": "Avatar",
+      "changeAvatar": "Cambiar avatar"
+    },
+    "account": {
+      "title": "Cuenta",
+      "email": "Dirección de correo electrónico",
+      "changeEmail": "Cambiar correo electrónico",
+      "deleteAccount": "Eliminar cuenta",
+      "deleteWarning": "Esta acción no se puede deshacer"
+    },
+    "security": {
+      "title": "Seguridad",
+      "password": "Contraseña",
+      "changePassword": "Cambiar contraseña",
+      "sessions": "Sesiones activas",
+      "revokeSession": "Revocar sesión",
+      "revokeAllSessions": "Revocar todas las sesiones"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "email": "Notificaciones por correo electrónico",
+      "push": "Notificaciones push",
+      "comments": "Nuevos comentarios en tus videos",
+      "mentions": "Cuando alguien te menciona",
+      "uploads": "Cuando se sube un nuevo video"
+    },
+    "billing": {
+      "title": "Facturación",
+      "plan": "Plan actual",
+      "upgrade": "Mejorar",
+      "downgrade": "Reducir",
+      "invoices": "Facturas",
+      "paymentMethod": "Método de pago"
+    },
+    "integrations": {
+      "title": "Integraciones",
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "connected": "Conectado"
+    },
+    "apiKeys": {
+      "title": "Claves API",
+      "create": "Crear clave API",
+      "revoke": "Revocar",
+      "lastUsed": "Último uso",
+      "never": "Nunca"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "Inicio de sesión único",
+      "description": "Configura la autenticación SAML 2.0 u OIDC para tu organización",
+      "configure": "Configurar SSO",
+      "test": "Probar configuración",
+      "enable": "Habilitar SSO",
+      "disable": "Deshabilitar SSO",
+      "providerType": "Tipo de proveedor",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "ID de entidad",
+      "ssoUrl": "URL de SSO",
+      "certificate": "Certificado X.509",
+      "issuer": "URL del emisor",
+      "clientId": "ID de cliente",
+      "clientSecret": "Secreto del cliente",
+      "autoProvision": "Aprovisionamiento automático de usuarios",
+      "defaultRole": "Rol predeterminado",
+      "allowedDomains": "Dominios de correo electrónico permitidos",
+      "spMetadata": "Metadatos del proveedor de servicios",
+      "callbackUrl": "URL de devolución de llamada"
+    },
+    "roles": {
+      "title": "Roles y permisos",
+      "description": "Gestiona roles personalizados y permisos granulares",
+      "create": "Crear rol",
+      "name": "Nombre del rol",
+      "permissions": "Permisos",
+      "default": "Rol predeterminado",
+      "system": "Rol del sistema",
+      "resources": {
+        "video": "Videos",
+        "channel": "Canales",
+        "collection": "Colecciones",
+        "comment": "Comentarios",
+        "member": "Miembros",
+        "settings": "Configuración",
+        "billing": "Facturación",
+        "analytics": "Analíticas",
+        "integration": "Integraciones",
+        "auditLog": "Registros de auditoría"
+      },
+      "actions": {
+        "create": "Crear",
+        "read": "Leer",
+        "update": "Actualizar",
+        "delete": "Eliminar",
+        "share": "Compartir",
+        "download": "Descargar",
+        "comment": "Comentar",
+        "manage": "Gestionar",
+        "invite": "Invitar",
+        "admin": "Administrar"
+      }
+    },
+    "auditLogs": {
+      "title": "Registros de auditoría",
+      "description": "Rastrea y monitorea toda la actividad dentro de tu organización",
+      "export": "Exportar registros",
+      "filter": "Filtrar",
+      "timestamp": "Marca de tiempo",
+      "action": "Acción",
+      "actor": "Actor",
+      "resource": "Recurso",
+      "ipAddress": "Dirección IP",
+      "noLogs": "No se encontraron registros de auditoría",
+      "categories": {
+        "authentication": "Autenticación",
+        "authorization": "Autorización",
+        "userManagement": "Gestión de usuarios",
+        "organizationManagement": "Organización",
+        "contentManagement": "Contenido",
+        "billing": "Facturación",
+        "security": "Seguridad",
+        "integration": "Integración",
+        "system": "Sistema"
+      },
+      "severity": {
+        "info": "Información",
+        "warning": "Advertencia",
+        "error": "Error",
+        "critical": "Crítico"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "notFound": "No encontrado",
+    "unauthorized": "No estás autorizado para realizar esta acción",
+    "forbidden": "Acceso denegado",
+    "validation": "Por favor, verifica tu entrada e inténtalo de nuevo",
+    "network": "Error de red. Por favor, verifica tu conexión.",
+    "rateLimit": "Demasiadas solicitudes. Por favor, inténtalo más tarde."
+  },
+  "success": {
+    "saved": "Cambios guardados exitosamente",
+    "created": "Creado exitosamente",
+    "deleted": "Eliminado exitosamente",
+    "updated": "Actualizado exitosamente",
+    "copied": "Copiado al portapapeles"
+  },
+  "metadata": {
+    "locale": "es",
+    "language": "Español",
+    "direction": "ltr"
+  }
+}

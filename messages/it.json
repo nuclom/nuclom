@@ -1,0 +1,314 @@
+{
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "create": "Crea",
+    "loading": "Caricamento...",
+    "search": "Cerca",
+    "filter": "Filtra",
+    "export": "Esporta",
+    "import": "Importa",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "next": "Avanti",
+    "previous": "Precedente",
+    "close": "Chiudi",
+    "refresh": "Aggiorna",
+    "settings": "Impostazioni",
+    "actions": "Azioni",
+    "yes": "Sì",
+    "no": "No",
+    "all": "Tutti",
+    "none": "Nessuno",
+    "submit": "Invia",
+    "reset": "Reimposta",
+    "clear": "Cancella",
+    "copy": "Copia",
+    "copied": "Copiato!",
+    "download": "Scarica",
+    "upload": "Carica",
+    "view": "Visualizza",
+    "enabled": "Abilitato",
+    "disabled": "Disabilitato",
+    "on": "Attivo",
+    "off": "Disattivo"
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signOut": "Esci",
+    "signUp": "Registrati",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Conferma password",
+    "forgotPassword": "Password dimenticata?",
+    "resetPassword": "Reimposta password",
+    "createAccount": "Crea account",
+    "alreadyHaveAccount": "Hai già un account?",
+    "dontHaveAccount": "Non hai un account?",
+    "orContinueWith": "Oppure continua con",
+    "twoFactor": {
+      "title": "Autenticazione a due fattori",
+      "enable": "Abilita 2FA",
+      "disable": "Disabilita 2FA",
+      "enterCode": "Inserisci il codice di verifica",
+      "scanQr": "Scansiona il codice QR con la tua app di autenticazione",
+      "backupCodes": "Codici di backup"
+    },
+    "sso": {
+      "signInWith": "Accedi con {provider}",
+      "configuredBy": "Configurato dalla tua organizzazione"
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "videos": "Video",
+    "channels": "Canali",
+    "collections": "Raccolte",
+    "search": "Cerca",
+    "activity": "Attività",
+    "settings": "Impostazioni",
+    "help": "Aiuto"
+  },
+  "videos": {
+    "upload": "Carica video",
+    "uploadDescription": "Trascina e rilascia un file video o clicca per sfogliare",
+    "processing": "Elaborazione...",
+    "ready": "Pronto",
+    "failed": "Fallito",
+    "title": "Titolo",
+    "description": "Descrizione",
+    "duration": "Durata",
+    "views": "visualizzazioni",
+    "viewCount": "{count, plural, =0 {Nessuna visualizzazione} =1 {1 visualizzazione} other {# visualizzazioni}}",
+    "uploadedBy": "Caricato da {name}",
+    "uploadedOn": "Caricato il {date}",
+    "noVideos": "Nessun video trovato",
+    "createFirst": "Carica il tuo primo video per iniziare",
+    "chapters": "Capitoli",
+    "transcript": "Trascrizione",
+    "comments": "Commenti",
+    "share": "Condividi",
+    "download": "Scarica",
+    "delete": "Elimina",
+    "deleteConfirmation": "Sei sicuro di voler eliminare questo video?",
+    "player": {
+      "play": "Riproduci",
+      "pause": "Pausa",
+      "mute": "Disattiva audio",
+      "unmute": "Attiva audio",
+      "fullscreen": "Schermo intero",
+      "exitFullscreen": "Esci da schermo intero",
+      "playbackSpeed": "Velocità di riproduzione",
+      "quality": "Qualità"
+    }
+  },
+  "comments": {
+    "addComment": "Aggiungi un commento",
+    "placeholder": "Scrivi il tuo commento...",
+    "post": "Pubblica",
+    "reply": "Rispondi",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "deleteConfirmation": "Sei sicuro di voler eliminare questo commento?",
+    "noComments": "Ancora nessun commento",
+    "beFirst": "Sii il primo a commentare",
+    "reactions": {
+      "like": "Mi piace",
+      "love": "Adoro",
+      "helpful": "Utile"
+    }
+  },
+  "channels": {
+    "create": "Crea canale",
+    "name": "Nome del canale",
+    "description": "Descrizione",
+    "noChannels": "Nessun canale trovato",
+    "createFirst": "Crea il tuo primo canale per organizzare i video"
+  },
+  "collections": {
+    "create": "Crea raccolta",
+    "name": "Nome della raccolta",
+    "description": "Descrizione",
+    "noCollections": "Nessuna raccolta trovata",
+    "createFirst": "Crea la tua prima raccolta per raggruppare i video"
+  },
+  "organization": {
+    "name": "Nome dell'organizzazione",
+    "settings": "Impostazioni dell'organizzazione",
+    "members": "Membri",
+    "invite": "Invita membro",
+    "remove": "Rimuovi membro",
+    "role": "Ruolo",
+    "roles": {
+      "owner": "Proprietario",
+      "admin": "Amministratore",
+      "member": "Membro",
+      "viewer": "Visualizzatore"
+    },
+    "invitePending": "Invito in sospeso",
+    "noMembers": "Nessun membro trovato"
+  },
+  "settings": {
+    "profile": {
+      "title": "Il tuo profilo",
+      "name": "Nome visualizzato",
+      "bio": "Biografia",
+      "avatar": "Avatar",
+      "changeAvatar": "Cambia avatar"
+    },
+    "account": {
+      "title": "Account",
+      "email": "Indirizzo email",
+      "changeEmail": "Cambia email",
+      "deleteAccount": "Elimina account",
+      "deleteWarning": "Questa azione non può essere annullata"
+    },
+    "security": {
+      "title": "Sicurezza",
+      "password": "Password",
+      "changePassword": "Cambia password",
+      "sessions": "Sessioni attive",
+      "revokeSession": "Revoca sessione",
+      "revokeAllSessions": "Revoca tutte le sessioni"
+    },
+    "notifications": {
+      "title": "Notifiche",
+      "email": "Notifiche email",
+      "push": "Notifiche push",
+      "comments": "Nuovi commenti sui tuoi video",
+      "mentions": "Quando qualcuno ti menziona",
+      "uploads": "Quando viene caricato un nuovo video"
+    },
+    "billing": {
+      "title": "Fatturazione",
+      "plan": "Piano attuale",
+      "upgrade": "Aggiorna",
+      "downgrade": "Declassa",
+      "invoices": "Fatture",
+      "paymentMethod": "Metodo di pagamento"
+    },
+    "integrations": {
+      "title": "Integrazioni",
+      "connect": "Connetti",
+      "disconnect": "Disconnetti",
+      "connected": "Connesso"
+    },
+    "apiKeys": {
+      "title": "Chiavi API",
+      "create": "Crea chiave API",
+      "revoke": "Revoca",
+      "lastUsed": "Ultimo utilizzo",
+      "never": "Mai"
+    }
+  },
+  "enterprise": {
+    "sso": {
+      "title": "Single Sign-On",
+      "description": "Configura l'autenticazione SAML 2.0 o OIDC per la tua organizzazione",
+      "configure": "Configura SSO",
+      "test": "Testa configurazione",
+      "enable": "Abilita SSO",
+      "disable": "Disabilita SSO",
+      "providerType": "Tipo di provider",
+      "saml": "SAML 2.0",
+      "oidc": "OpenID Connect",
+      "entityId": "ID entità",
+      "ssoUrl": "URL SSO",
+      "certificate": "Certificato X.509",
+      "issuer": "URL emittente",
+      "clientId": "ID client",
+      "clientSecret": "Segreto client",
+      "autoProvision": "Provisioning automatico utenti",
+      "defaultRole": "Ruolo predefinito",
+      "allowedDomains": "Domini email consentiti",
+      "spMetadata": "Metadati del service provider",
+      "callbackUrl": "URL di callback"
+    },
+    "roles": {
+      "title": "Ruoli e permessi",
+      "description": "Gestisci ruoli personalizzati e permessi granulari",
+      "create": "Crea ruolo",
+      "name": "Nome del ruolo",
+      "permissions": "Permessi",
+      "default": "Ruolo predefinito",
+      "system": "Ruolo di sistema",
+      "resources": {
+        "video": "Video",
+        "channel": "Canali",
+        "collection": "Raccolte",
+        "comment": "Commenti",
+        "member": "Membri",
+        "settings": "Impostazioni",
+        "billing": "Fatturazione",
+        "analytics": "Analisi",
+        "integration": "Integrazioni",
+        "auditLog": "Log di audit"
+      },
+      "actions": {
+        "create": "Crea",
+        "read": "Leggi",
+        "update": "Aggiorna",
+        "delete": "Elimina",
+        "share": "Condividi",
+        "download": "Scarica",
+        "comment": "Commenta",
+        "manage": "Gestisci",
+        "invite": "Invita",
+        "admin": "Amministra"
+      }
+    },
+    "auditLogs": {
+      "title": "Log di audit",
+      "description": "Traccia e monitora tutte le attività all'interno della tua organizzazione",
+      "export": "Esporta log",
+      "filter": "Filtra",
+      "timestamp": "Timestamp",
+      "action": "Azione",
+      "actor": "Attore",
+      "resource": "Risorsa",
+      "ipAddress": "Indirizzo IP",
+      "noLogs": "Nessun log di audit trovato",
+      "categories": {
+        "authentication": "Autenticazione",
+        "authorization": "Autorizzazione",
+        "userManagement": "Gestione utenti",
+        "organizationManagement": "Organizzazione",
+        "contentManagement": "Contenuti",
+        "billing": "Fatturazione",
+        "security": "Sicurezza",
+        "integration": "Integrazione",
+        "system": "Sistema"
+      },
+      "severity": {
+        "info": "Informazione",
+        "warning": "Avviso",
+        "error": "Errore",
+        "critical": "Critico"
+      }
+    }
+  },
+  "errors": {
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "notFound": "Non trovato",
+    "unauthorized": "Non sei autorizzato a eseguire questa azione",
+    "forbidden": "Accesso negato",
+    "validation": "Controlla i tuoi dati e riprova",
+    "network": "Errore di rete. Controlla la tua connessione.",
+    "rateLimit": "Troppe richieste. Riprova più tardi."
+  },
+  "success": {
+    "saved": "Modifiche salvate con successo",
+    "created": "Creato con successo",
+    "deleted": "Eliminato con successo",
+    "updated": "Aggiornato con successo",
+    "copied": "Copiato negli appunti"
+  },
+  "metadata": {
+    "locale": "it",
+    "language": "Italiano",
+    "direction": "ltr"
+  }
+}
