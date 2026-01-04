@@ -1,71 +1,97 @@
-# Nuclom User Guides
+# User Guides
 
-Welcome to the Nuclom video collaboration platform! This documentation will help you get started and make the most of our video collaboration tools.
-
-## Available Guides
-
-### Getting Started
-
-- [**Getting Started Guide**](getting-started.md) - New to Nuclom? Start here
-- [**Organization Management**](organization-management.md) - Learn to create and manage organizations
-- [**Video Organization**](video-organization.md) - Upload, organize, and manage your videos
-
-### Collaboration Features
-
-- [**Collaboration Guide**](collaboration.md) - Comments, sharing, and team workflows
-- [**Team Management**](team-management.md) - Invite members and manage permissions
-
-### Advanced Features
-
-- [**Settings & Preferences**](settings-preferences.md) - Customize your Nuclom experience
-- [**Troubleshooting**](troubleshooting.md) - Common issues and solutions
-
-## Quick Start
-
-1. **[Create an account](getting-started.md#creating-your-account)** on Nuclom
-2. **[Set up your first organization](organization-management.md#creating-a-organization)**
-3. **[Upload your first video](video-organization.md#uploading-videos)**
-4. **[Invite team members](team-management.md#inviting-members)**
-5. **[Start collaborating](collaboration.md#getting-started-with-collaboration)**
-
-## Key Features
-
-### Organization Management
-
-- Create unlimited organizations for different projects
-- Organize content with channels and series
-- Manage team access and permissions
-
-### Video Organization
-
-- Upload videos with rich metadata
-- Automatic transcript generation
-- AI-powered summaries and action items
-- Thumbnail management
-
-### Collaboration Tools
-
-- Time-stamped comments with reactions
-- Threaded discussions
-- Secure video sharing
-- Progress tracking and watch later lists
-
-### Security & Permissions
-
-- Role-based access control (Owner, Admin, Member)
-- Secure video sharing
-- OAuth authentication (GitHub, Google)
-
-## Need Help?
-
-- Check our [**Troubleshooting Guide**](troubleshooting.md)
-- Contact support through the platform
-- Review the [**API Documentation**](../api/README.md) for developers
-
-## Guide Navigation
-
-Each guide is designed to be read independently, but we recommend starting with the Getting Started guide if you're new to Nuclom.
+> Step-by-step guides to help you get the most out of Nuclom.
 
 ---
 
-_Last updated: December 2025_
+## Quick Start Checklist
+
+New to Nuclom? Complete these steps in order:
+
+- [ ] **1.** [Create your account](getting-started.md#creating-your-account) (2 min)
+- [ ] **2.** [Set up your first organization](getting-started.md#your-first-organization) (3 min)
+- [ ] **3.** [Upload your first video](getting-started.md#uploading-your-first-video) (5 min)
+- [ ] **4.** [Invite a team member](team-management.md#inviting-members) (2 min)
+- [ ] **5.** [Leave your first comment](collaboration.md#time-stamped-comments) (1 min)
+
+---
+
+## All Guides
+
+### Essentials
+
+Start here to learn the fundamentals.
+
+| Guide | What you'll learn | Time |
+| ----- | ----------------- | ---- |
+| [Getting Started](getting-started.md) | Account creation, first organization, first upload | 10 min |
+| [Organization Management](organization-management.md) | Create, configure, and manage organizations | 8 min |
+| [Video Organization](video-organization.md) | Upload, organize with channels and series, metadata | 10 min |
+
+### Team Collaboration
+
+Work together effectively.
+
+| Guide | What you'll learn | Time |
+| ----- | ----------------- | ---- |
+| [Collaboration](collaboration.md) | Comments, @mentions, sharing, discussion threads | 12 min |
+| [Team Management](team-management.md) | Invite members, assign roles, manage permissions | 8 min |
+
+### Advanced
+
+Customize and optimize your workflow.
+
+| Guide | What you'll learn | Time |
+| ----- | ----------------- | ---- |
+| [Settings & Preferences](settings-preferences.md) | Notifications, display options, account settings | 5 min |
+| [Workflow Templates](workflow-templates.md) | Pre-built workflows for common use cases | 8 min |
+| [Troubleshooting](troubleshooting.md) | Common issues and how to fix them | — |
+
+---
+
+## Feature Overview
+
+### What Nuclom Does
+
+| Feature | Description |
+| ------- | ----------- |
+| **Video hosting** | Upload and stream videos for your team |
+| **Organization** | Structure content with channels and series |
+| **Collaboration** | Time-stamped comments and threaded discussions |
+| **AI insights** | Automatic summaries and action item extraction |
+| **Access control** | Role-based permissions (Owner, Admin, Member) |
+
+### Supported Video Formats
+
+| Format | Extension | Notes |
+| ------ | --------- | ----- |
+| MP4 | `.mp4` | Recommended — best compatibility |
+| MOV | `.mov` | Apple QuickTime format |
+| AVI | `.avi` | Windows format |
+| MKV | `.mkv` | Open-source format |
+
+---
+
+## Keyboard Shortcuts
+
+Learn these shortcuts to work faster:
+
+| Shortcut | Action |
+| -------- | ------ |
+| `Cmd/Ctrl + K` | Open command bar |
+| `Space` | Play/pause video |
+| `C` | Add comment at current time |
+| `F` | Toggle fullscreen |
+| `?` | Show all shortcuts |
+
+---
+
+## Need Help?
+
+- **Can't find what you need?** → [Troubleshooting](troubleshooting.md)
+- **Technical integration?** → [API Documentation](../api/README.md)
+- **Contact support** → support@nuclom.com
+
+---
+
+**Start here:** [Getting Started Guide →](getting-started.md)

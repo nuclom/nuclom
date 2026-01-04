@@ -1,69 +1,97 @@
-# Nuclom Documentation
+# Nuclom User Documentation
 
-Welcome to Nuclom, a modern video collaboration platform designed for teams to upload, organize, and collaborate on video content efficiently.
-
-## Getting Started
-
-New to Nuclom? Start here:
-
-- **[Getting Started Guide](guides/getting-started.md)** - Complete onboarding for new users
-- **[Platform Overview](guides/README.md)** - Understand Nuclom's core features
-
-## User Guides
-
-### Essential Guides
-
-- **[Getting Started](guides/getting-started.md)** - Account setup and first steps
-- **[Organization Management](guides/organization-management.md)** - Create and organize organizations
-- **[Video Organization](guides/video-organization.md)** - Upload and structure your content
-- **[Collaboration Features](guides/collaboration.md)** - Work together with comments and sharing
-- **[Team Management](guides/team-management.md)** - Manage members and permissions
-
-### Additional Resources
-
-- **[Settings & Preferences](guides/settings-preferences.md)** - Customize your experience
-- **[Troubleshooting](guides/troubleshooting.md)** - Common issues and solutions
-
-## API Documentation
-
-For developers integrating with Nuclom:
-
-- **[API Overview](api/README.md)** - Introduction to the Nuclom API
-- **[Authentication](api/authentication.md)** - API authentication methods
-- **[Video Management](api/videos.md)** - Video CRUD operations and metadata
-- **[Organization APIs](api/organizations.md)** - Team and organization management
-- **[AI Integration](api/ai.md)** - Video analysis and AI features
-
-## Key Features
-
-### Video Management
-
-- Drag-and-drop video uploads
-- Automatic processing and optimization
-- Metadata management and tagging
-- Channel and series organization
-
-### Collaboration Tools
-
-- Time-stamped comments with reactions
-- Threaded discussions
-- Share videos with team members
-- Role-based permissions (Owner, Admin, Member)
-
-### Smart Features
-
-- AI-powered video summaries
-- Automatic transcription
-- Action item extraction
-- Progress tracking and watch later lists
-- Personalized recommendations
-
-## Getting Support
-
-- **[Troubleshooting Guide](guides/troubleshooting.md)** - Self-service solutions
-- **Contact Support** - Reach out through the platform
-- **[API Documentation](api/README.md)** - Technical integration support
+> Upload, organize, and collaborate on video content with your team.
 
 ---
 
-Ready to get started? Begin with our **[Getting Started Guide](guides/getting-started.md)** or explore the **[API Documentation](api/README.md)** for developers.
+## New to Nuclom?
+
+**Start here** → [Getting Started Guide](guides/getting-started.md)
+
+In 10 minutes, you'll learn to:
+- Create your account
+- Set up your first organization
+- Upload and share your first video
+
+---
+
+## User Guides
+
+### Getting Started
+
+| Guide | Description | Time |
+| ----- | ----------- | ---- |
+| [Getting Started](guides/getting-started.md) | Account setup and first steps | 10 min |
+| [Organization Management](guides/organization-management.md) | Create and manage organizations | 8 min |
+| [Video Organization](guides/video-organization.md) | Upload and structure content | 10 min |
+
+### Collaboration
+
+| Guide | Description | Time |
+| ----- | ----------- | ---- |
+| [Collaboration](guides/collaboration.md) | Comments, sharing, and workflows | 12 min |
+| [Team Management](guides/team-management.md) | Invite members and set permissions | 8 min |
+
+### Customization & Help
+
+| Guide | Description | Time |
+| ----- | ----------- | ---- |
+| [Settings & Preferences](guides/settings-preferences.md) | Customize your experience | 5 min |
+| [Workflow Templates](guides/workflow-templates.md) | Pre-built templates | 8 min |
+| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions | — |
+
+---
+
+## Feature Highlights
+
+### Video Management
+
+- **Drag-and-drop uploads** — Upload MP4, MOV, AVI, or MKV files
+- **Auto-processing** — Thumbnails and transcripts generated automatically
+- **Rich metadata** — Titles, descriptions, and tags for organization
+- **Channels & Series** — Group videos by topic or sequence
+
+### Smart Features
+
+- **AI summaries** — Get key points from any video
+- **Action items** — Automatically extract tasks and decisions
+- **Transcription** — Full searchable transcripts
+- **Recommendations** — Personalized video suggestions
+
+### Team Collaboration
+
+- **Time-stamped comments** — Discuss specific moments
+- **Threaded replies** — Keep conversations organized
+- **@mentions** — Notify team members directly
+- **Reactions** — Quick feedback with emoji reactions
+
+### Access Control
+
+| Role | Capabilities |
+| ---- | ------------ |
+| **Owner** | Full control, billing, delete organization |
+| **Admin** | Manage members, settings, all content |
+| **Member** | Upload, comment, view authorized content |
+
+---
+
+## API Documentation
+
+Building an integration? See the [API Documentation](api/README.md).
+
+Quick links:
+- [Authentication](api/authentication.md) — OAuth and API keys
+- [Videos API](api/videos.md) — Upload and manage videos
+- [AI Features](api/ai.md) — Summaries and analysis
+
+---
+
+## Get Help
+
+1. **Self-service** → [Troubleshooting Guide](guides/troubleshooting.md)
+2. **In-app** → Press `?` for keyboard shortcuts
+3. **Support** → support@nuclom.com
+
+---
+
+**Ready?** [Create your account →](guides/getting-started.md)

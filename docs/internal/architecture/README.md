@@ -1,232 +1,202 @@
-# Nuclom Platform Architecture
+# Platform Architecture
 
-Nuclom is a video collaboration platform built with modern web technologies, designed for teams to share, organize, and collaborate on video content.
+> High-level system design for the Nuclom video collaboration platform.
 
-## High-Level Architecture
+---
+
+## System Overview
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph "Frontend"
         A[Next.js 16 App Router]
         B[React 19 Components]
-        C[Tailwind CSS + shadcn/ui]
-        D[TypeScript]
+        C[Tailwind + shadcn/ui]
     end
 
     subgraph "API Layer"
-        E[Next.js API Routes]
-        F[Better-Auth]
-        G[AI Integration]
+        D[API Routes]
+        E[Better-Auth]
+        F[AI Integration]
     end
 
     subgraph "Data Layer"
-        H[PostgreSQL Database]
-        I[Drizzle ORM]
-        J[Cloudflare R2]
+        G[PostgreSQL]
+        H[Drizzle ORM]
+        I[Cloudflare R2]
     end
 
-    subgraph "External Services"
-        K[GitHub OAuth]
-        L[Google OAuth]
-        M[OpenAI API]
+    subgraph "External"
+        J[GitHub OAuth]
+        K[Google OAuth]
+        L[OpenAI]
     end
 
-    A --> E
-    B --> E
-    E --> F
-    E --> G
-    E --> I
-    F --> K
-    F --> L
-    G --> M
-    I --> H
-    E --> J
+    A --> D
+    B --> D
+    D --> E --> J & K
+    D --> F --> L
+    D --> H --> G
+    D --> I
 ```
+
+---
+
+## Architecture at a Glance
+
+| Layer | Technology | Purpose |
+| ----- | ---------- | ------- |
+| **Frontend** | Next.js 16, React 19 | Server Components, App Router |
+| **Styling** | Tailwind CSS, shadcn/ui | Utility-first CSS, accessible components |
+| **Backend** | Next.js API Routes | RESTful endpoints |
+| **Database** | PostgreSQL, Drizzle ORM | Relational data, type-safe queries |
+| **Auth** | Better-Auth | OAuth (GitHub, Google), sessions |
+| **Storage** | Cloudflare R2 | Video files, thumbnails |
+| **AI** | OpenAI, Vercel AI SDK | Video analysis, summaries |
+
+---
 
 ## Core Components
 
-### 1. Frontend Architecture
-
-- **Framework**: Next.js 16 with App Router
-- **Styling**: Tailwind CSS with shadcn/ui component library
-- **State Management**: React hooks and context
-- **Type Safety**: TypeScript with strict configuration
-- **Theme**: Dark-first design with next-themes
-
-### 2. Backend Architecture
-
-- **API**: Next.js API Routes with RESTful design
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Better-Auth with OAuth providers
-- **File Storage**: Cloudflare R2 for video assets
-- **AI Integration**: OpenAI for video analysis and summaries
-
-### 3. Data Architecture
-
-- **Database**: PostgreSQL hosted on cloud provider
-- **ORM**: Drizzle with type-safe queries
-- **Migrations**: Automated schema migrations
-- **Relationships**: Normalized relational design
-
-## Key Features
-
-### Video Collaboration
-
-- Video upload and streaming
-- Real-time comments with timestamps
-- AI-powered summaries and action items
-- Video progress tracking
-- Organization-based organization
-
-### User Management
-
-- Multi-organization support
-- Role-based access control (Owner, Admin, Member)
-- OAuth authentication (GitHub, Google)
-- Session management
-
-### Content Organization
-
-- Organizations for team collaboration
-- Channels for categorization
-- Series for sequential content
-- Search and filtering capabilities
-
-## Technology Stack
-
 ### Frontend
 
-- **Next.js 16**: React framework with App Router
-- **React 19**: UI library with Server Components
-- **TypeScript**: Type safety and developer experience
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Accessible UI components
-- **Lucide React**: Icon library
+- **Framework:** Next.js 16 with App Router
+- **UI Library:** React 19 with Server Components
+- **Styling:** Tailwind CSS with shadcn/ui components
+- **State:** React hooks and context
+- **Theme:** Dark-first design with next-themes
 
 ### Backend
 
-- **Next.js API Routes**: Server-side API endpoints
-- **Better-Auth**: Authentication and session management
-- **Drizzle ORM**: Type-safe database queries
-- **PostgreSQL**: Relational database
-- **Cloudflare R2**: Object storage for videos
+- **API:** RESTful endpoints via Next.js API Routes
+- **Validation:** Effect Schema for request validation
+- **Error Handling:** Effect-TS for type-safe errors
+- **Database:** Drizzle ORM with PostgreSQL
 
-### DevOps & Tools
+### Data
 
-- **Vercel**: Deployment platform
-- **Biome**: Code formatting and linting
-- **Drizzle Kit**: Database migrations
-- **pnpm**: Package manager
+- **Primary Database:** PostgreSQL (relational)
+- **ORM:** Drizzle with full type safety
+- **File Storage:** Cloudflare R2 (S3-compatible)
+- **Migrations:** Automated with Drizzle Kit
 
-## Security Considerations
+---
+
+## Key Features
+
+| Feature | Implementation |
+| ------- | -------------- |
+| **Multi-organization** | Organization-based routing with permissions |
+| **Video streaming** | R2 storage with CDN distribution |
+| **Real-time comments** | Time-stamped, threaded discussions |
+| **AI summaries** | OpenAI with structured outputs (Zod schemas) |
+| **Role-based access** | Owner, Admin, Member permissions |
+| **OAuth login** | GitHub and Google providers |
+
+---
+
+## Security
 
 ### Authentication
 
 - OAuth 2.0 with GitHub and Google
-- Session-based authentication
-- CSRF protection
-- Email verification (configurable)
+- Session-based auth with secure cookies
+- CSRF protection built-in
+- Email verification (optional)
 
-### Data Protection
+### Authorization
 
-- Input validation and sanitization
-- SQL injection prevention through ORM
-- Role-based access control
-- Secure file upload handling
+- Role-based access control per organization
+- Resource-level permission checks
+- Input validation on all endpoints
 
 ### Infrastructure
 
 - HTTPS everywhere
 - Environment variable management
 - Database connection pooling
-- Rate limiting (to be implemented)
+- SQL injection prevention via ORM
 
-## Performance Optimizations
+---
+
+## Performance
 
 ### Frontend
 
-- Server-side rendering with App Router
-- Component-level code splitting
-- Image optimization
-- Responsive design
+| Strategy | Implementation |
+| -------- | -------------- |
+| SSR | Server-side rendering with App Router |
+| Code splitting | Route-based automatic splitting |
+| Image optimization | Next.js Image component |
+| Caching | Static generation where possible |
 
 ### Backend
 
-- Database query optimization
+| Strategy | Implementation |
+| -------- | -------------- |
+| Database | Indexed queries, connection pooling |
+| Storage | CDN distribution via R2 |
+| API | Edge-optimized endpoints |
+
+---
+
+## Scalability
+
+### Horizontal
+
+- Serverless architecture (auto-scaling)
+- CDN for global content delivery
+- Stateless API design
+
+### Vertical
+
+- Query optimization
 - Connection pooling
-- Caching strategies (to be implemented)
-- File CDN distribution
+- Caching layers (planned)
 
-## Scalability Considerations
+---
 
-### Database
+## Documentation Index
 
-- Indexed queries for performance
-- Normalized schema design
-- Connection pooling
-- Read replicas (future)
+| Document | Description |
+| -------- | ----------- |
+| [Summary](summary.md) | Quick reference (20 key decisions) |
+| [Database](database.md) | Schema, relationships, indexes |
+| [Frontend](frontend.md) | Components, routing, state |
+| [Backend](backend.md) | API design, validation |
+| [Authentication](authentication.md) | Better-Auth, OAuth, sessions |
+| [Video Processing](video-processing.md) | Upload, streaming, thumbnails |
+| [Effect-TS](effect-ts.md) | Error handling patterns |
+| [Deployment](deployment.md) | Infrastructure, CI/CD |
+| [Security](security.md) | Security architecture |
 
-### File Storage
-
-- CDN distribution via Cloudflare R2
-- Streaming video delivery
-- Thumbnail generation
-- Compression optimization
+---
 
 ## Development Workflow
 
-### Local Development
+### Local Setup
 
-1. Clone repository
-2. Install dependencies with `pnpm install`
-3. Set up environment variables
-4. Run database migrations
-5. Start development server
+```bash
+git clone https://github.com/SferaDev/nuclom.git
+cd nuclom
+pnpm install
+cp .env.example .env.local
+pnpm db:migrate
+pnpm dev
+```
 
 ### Deployment
 
-1. Database migrations in production
-2. Environment configuration
-3. Vercel deployment
-4. CDN setup for assets
+1. Push to main branch
+2. CI/CD runs tests and type checks
+3. Deploy to Vercel
+4. Run database migrations
+5. Health checks verify deployment
 
-## Monitoring & Observability
-
-### Application Monitoring
-
-- Error tracking (to be implemented)
-- Performance monitoring
-- User analytics
-- API metrics
-
-### Database Monitoring
-
-- Query performance
-- Connection pool status
-- Storage utilization
-- Backup verification
-
-## Future Enhancements
-
-### Technical Improvements
-
-- Real-time collaboration features
-- Advanced caching strategies
-- Mobile application
-- Offline capabilities
-
-### Feature Enhancements
-
-- Video transcription
-- Advanced search capabilities
-- Integration with external tools
-- Analytics dashboard
+---
 
 ## Related Documentation
 
-- [Database Schema](./database.md) - Complete database design and relationships
-- [Frontend Architecture](./frontend.md) - Next.js App Router and component structure
-- [Authentication Flow](./authentication.md) - Better-Auth implementation and security
-- [Deployment Guide](./deployment.md) - Infrastructure and CI/CD pipeline
-- [Deployment Environments](./deployment-environments.md) - PROD and Staging setup process
-- [Architecture Summary](./summary.md) - Quick reference and overview
+- **Development:** [Development Setup](../reference/development-setup.md)
+- **API:** [API Documentation](../../public/api/README.md)
+- **User Guides:** [Getting Started](../../public/guides/getting-started.md)
