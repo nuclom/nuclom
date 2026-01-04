@@ -10,6 +10,12 @@ export const ServerEnv = Schema.Struct({
   APP_URL: Schema.optionalWith(Schema.String.pipe(Schema.filter((s) => URL.canParse(s))), {
     default: () => "http://localhost:3000",
   }),
+  // Auth secret - required for production security
+  BETTER_AUTH_SECRET: Schema.String.pipe(
+    Schema.filter((s) => s.length >= 32, {
+      message: () => "BETTER_AUTH_SECRET must be at least 32 characters for security",
+    }),
+  ),
   DATABASE_URL: Schema.String,
   DATABASE_REPLICA_URL: Schema.optional(Schema.String),
   OPENAI_API_KEY: Schema.optional(Schema.String),

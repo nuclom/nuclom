@@ -94,6 +94,47 @@ export async function validateSessionFingerprint(
 }
 
 /**
+ * Validate and enforce session fingerprint security
+ *
+ * If fingerprint mismatch is detected:
+ * - In strict mode: revokes the session immediately
+ * - In normal mode: logs warning and allows (for gradual rollout)
+ *
+ * @param strictMode - If true, revokes mismatched sessions. Default: true for production.
+ * @returns true if session is valid and should continue, false if session was revoked
+ */
+export async function enforceSessionFingerprint(
+  sessionId: string,
+  currentIp: string | null,
+  currentUserAgent: string | null,
+  strictMode: boolean = env.NODE_ENV === "production",
+): Promise<{ valid: boolean; revoked: boolean }> {
+  const result = await validateSessionFingerprint(sessionId, currentIp, currentUserAgent);
+
+  if (!result.valid) {
+    if (strictMode) {
+      // Revoke the potentially hijacked session
+      await db.delete(sessions).where(eq(sessions.id, sessionId));
+      console.error(
+        `[Session Security] REVOKED session ${sessionId} due to fingerprint mismatch (potential session hijacking)`,
+      );
+      return { valid: false, revoked: true };
+    } else {
+      // Log warning but allow (for gradual rollout or development)
+      console.warn(`[Session Security] Fingerprint mismatch detected for session ${sessionId} (strict mode disabled)`);
+      return { valid: true, revoked: false };
+    }
+  }
+
+  // Update fingerprint check timestamp if needed
+  if (result.requiresUpdate) {
+    await updateSessionFingerprint(sessionId, currentIp, currentUserAgent);
+  }
+
+  return { valid: true, revoked: false };
+}
+
+/**
  * Update session fingerprint and last check timestamp
  */
 export async function updateSessionFingerprint(
@@ -128,15 +169,29 @@ export async function updateSessionFingerprint(
  * - Account is compromised
  */
 export async function revokeUserSessions(userId: string, exceptSessionId?: string): Promise<{ revokedCount: number }> {
-  if (exceptSessionId) {
-    // Delete all sessions except the specified one
-    await db.delete(sessions).where(and(eq(sessions.userId, userId), ne(sessions.id, exceptSessionId)));
-  } else {
-    // Delete all sessions
-    await db.delete(sessions).where(eq(sessions.userId, userId));
+  // First count sessions to be revoked
+  const sessionsToRevoke = await db.query.sessions.findMany({
+    where: exceptSessionId
+      ? and(eq(sessions.userId, userId), ne(sessions.id, exceptSessionId))
+      : eq(sessions.userId, userId),
+    columns: { id: true },
+  });
+
+  const revokedCount = sessionsToRevoke.length;
+
+  if (revokedCount > 0) {
+    if (exceptSessionId) {
+      // Delete all sessions except the specified one
+      await db.delete(sessions).where(and(eq(sessions.userId, userId), ne(sessions.id, exceptSessionId)));
+    } else {
+      // Delete all sessions
+      await db.delete(sessions).where(eq(sessions.userId, userId));
+    }
+
+    console.log(`[Session Security] Revoked ${revokedCount} sessions for user ${userId}`);
   }
 
-  return { revokedCount: 0 }; // Drizzle doesn't return count easily
+  return { revokedCount };
 }
 
 /**

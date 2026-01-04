@@ -949,6 +949,36 @@ export const paymentMethods = pgTable("payment_methods", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Webhook idempotency table - prevents duplicate processing of webhook events
+export const processedWebhookEvents = pgTable(
+  "processed_webhook_events",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    eventId: text("event_id").notNull().unique(), // Stripe event ID (evt_xxx)
+    eventType: text("event_type").notNull(), // e.g., 'invoice.paid'
+    source: text("source").notNull().default("stripe"), // 'stripe', 'github', etc.
+    processedAt: timestamp("processed_at").defaultNow().notNull(),
+    // TTL: Events older than 30 days can be cleaned up
+    expiresAt: timestamp("expires_at")
+      .notNull()
+      .$defaultFn(() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 30);
+        return date;
+      }),
+  },
+  (table) => ({
+    eventIdIdx: index("processed_webhook_events_event_id_idx").on(table.eventId),
+    expiresAtIdx: index("processed_webhook_events_expires_at_idx").on(table.expiresAt),
+    sourceTypeIdx: index("processed_webhook_events_source_type_idx").on(table.source, table.eventType),
+  }),
+);
+
+export type ProcessedWebhookEvent = typeof processedWebhookEvents.$inferSelect;
+export type NewProcessedWebhookEvent = typeof processedWebhookEvents.$inferInsert;
+
 // =====================
 // Search Tables
 // =====================

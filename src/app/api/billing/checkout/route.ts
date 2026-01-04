@@ -16,12 +16,17 @@ import { Database } from "@/lib/effect/services/database";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
 import { env } from "@/lib/env/server";
+import { rateLimitBillingAsync } from "@/lib/rate-limit";
 
 // =============================================================================
 // POST /api/billing/checkout - Create checkout session (legacy)
 // =============================================================================
 
 export async function POST(request: NextRequest) {
+  // Rate limit billing operations to prevent abuse
+  const rateLimitResult = await rateLimitBillingAsync(request);
+  if (rateLimitResult) return rateLimitResult;
+
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;

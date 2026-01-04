@@ -1,252 +1,86 @@
 # Comments API
 
-The Comments API enables real-time commenting functionality on videos, including threaded replies, timestamped comments, and real-time updates via Server-Sent Events (SSE).
+The Comments API enables real-time commenting on videos, including threaded replies, timestamped comments, reactions, and live updates via Server-Sent Events.
+
+> **Note**: For complete endpoint documentation including request/response schemas, see the [OpenAPI specification](/openapi.json) or the [Interactive API Reference](/docs/api/reference).
 
 ## Overview
 
 Comments are associated with videos and can be organized in threads. Each comment can optionally include a timestamp that links to a specific moment in the video.
 
-## Endpoints
+## Key Features
 
-### List Comments for Video
+- **Timestamped Comments**: Link comments to specific moments in videos
+- **Threaded Replies**: Nested conversations with parent/child relationships
+- **Reactions**: 8 reaction types for quick feedback
+- **Real-time Updates**: Server-sent events for live comment streams
+- **Mentions**: Tag users with @mentions
 
-Retrieves all comments for a specific video in a threaded format.
+## API Endpoints
 
-```
-GET /api/videos/{videoId}/comments
-```
+### Comment Operations
 
-#### Response
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos/{id}/comments` | List comments for a video |
+| `POST /videos/{id}/comments` | Create a comment |
+| `GET /comments/{id}` | Get a single comment with replies |
+| `PATCH /comments/{id}` | Update comment content |
+| `DELETE /comments/{id}` | Delete a comment |
 
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "comment-uuid",
-      "content": "Great video!",
-      "timestamp": "00:01:30",
-      "authorId": "user-uuid",
-      "videoId": "video-uuid",
-      "parentId": null,
-      "createdAt": "2025-01-01T12:00:00Z",
-      "updatedAt": "2025-01-01T12:00:00Z",
-      "author": {
-        "id": "user-uuid",
-        "name": "John Doe",
-        "image": "https://example.com/avatar.jpg"
-      },
-      "replies": [
-        {
-          "id": "reply-uuid",
-          "content": "Thanks!",
-          "authorId": "user-uuid-2",
-          "videoId": "video-uuid",
-          "parentId": "comment-uuid",
-          "createdAt": "2025-01-01T12:05:00Z",
-          "updatedAt": "2025-01-01T12:05:00Z",
-          "author": {
-            "id": "user-uuid-2",
-            "name": "Jane Smith",
-            "image": "https://example.com/avatar2.jpg"
-          },
-          "replies": []
-        }
-      ]
-    }
-  ]
+### Reactions
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /comments/{id}/reactions` | Add reaction to comment |
+| `GET /comments/{id}/reactions` | List reactions on a comment |
+| `DELETE /comments/{id}/reactions` | Remove your reaction |
+
+### Real-time
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /videos/{id}/comments/stream` | Server-sent events stream |
+
+## Data Models
+
+### Comment
+
+```typescript
+interface Comment {
+  id: string;
+  content: string;
+  timestamp?: string;      // "HH:MM:SS" format
+  authorId: string;
+  videoId: string;
+  parentId?: string;       // Parent comment ID for replies
+  author?: User;
+  replies?: Comment[];
+  reactions?: Reaction[];
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
-### Create Comment
+### Reaction
 
-Creates a new comment on a video. Requires authentication.
-
-```
-POST /api/videos/{videoId}/comments
-Authorization: Bearer {token}
-Content-Type: application/json
-```
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `content` | string | Yes | The comment text |
-| `timestamp` | string | No | Video timestamp (e.g., "00:01:30") |
-| `parentId` | string | No | Parent comment ID for replies |
-
-#### Example Request
-
-```json
-{
-  "content": "Great explanation at this point!",
-  "timestamp": "00:02:45",
-  "parentId": null
-}
-```
-
-#### Response
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "new-comment-uuid",
-    "content": "Great explanation at this point!",
-    "timestamp": "00:02:45",
-    "authorId": "user-uuid",
-    "videoId": "video-uuid",
-    "parentId": null,
-    "createdAt": "2025-01-01T12:10:00Z",
-    "updatedAt": "2025-01-01T12:10:00Z",
-    "author": {
-      "id": "user-uuid",
-      "name": "John Doe",
-      "image": "https://example.com/avatar.jpg"
-    }
-  }
-}
-```
-
-### Get Single Comment
-
-Retrieves a single comment by ID.
-
-```
-GET /api/comments/{commentId}
-```
-
-#### Response
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "comment-uuid",
-    "content": "Great video!",
-    "timestamp": "00:01:30",
-    "authorId": "user-uuid",
-    "videoId": "video-uuid",
-    "parentId": null,
-    "createdAt": "2025-01-01T12:00:00Z",
-    "updatedAt": "2025-01-01T12:00:00Z",
-    "author": {
-      "id": "user-uuid",
-      "name": "John Doe",
-      "image": "https://example.com/avatar.jpg"
-    }
-  }
-}
-```
-
-### Update Comment
-
-Updates an existing comment. Only the comment author can edit.
-
-```
-PATCH /api/comments/{commentId}
-Authorization: Bearer {token}
-Content-Type: application/json
-```
-
-#### Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `content` | string | Yes | The updated comment text |
-
-#### Example Request
-
-```json
-{
-  "content": "Updated comment content"
-}
-```
-
-#### Response
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "comment-uuid",
-    "content": "Updated comment content",
-    "timestamp": "00:01:30",
-    "authorId": "user-uuid",
-    "videoId": "video-uuid",
-    "parentId": null,
-    "createdAt": "2025-01-01T12:00:00Z",
-    "updatedAt": "2025-01-01T12:15:00Z",
-    "author": {
-      "id": "user-uuid",
-      "name": "John Doe",
-      "image": "https://example.com/avatar.jpg"
-    }
-  }
-}
-```
-
-### Delete Comment
-
-Deletes a comment. Only the comment author or video owner can delete.
-
-```
-DELETE /api/comments/{commentId}
-Authorization: Bearer {token}
-```
-
-#### Response
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Comment deleted successfully",
-    "id": "comment-uuid"
-  }
+```typescript
+interface Reaction {
+  id: string;
+  type: "like" | "love" | "laugh" | "wow" | "sad" | "angry" | "thinking" | "custom";
+  customEmoji?: string;
+  userId: string;
+  commentId: string;
+  createdAt: string;
 }
 ```
 
 ## Real-time Updates
 
-### Comment Stream (SSE)
-
-Subscribe to real-time comment updates for a video using Server-Sent Events.
-
-```
-GET /api/videos/{videoId}/comments/stream
-```
-
-#### Event Types
-
-| Event | Description |
-|-------|-------------|
-| `connected` | Sent when connection is established |
-| `comment` | Sent when a comment is created, updated, or deleted |
-
-#### Event Format
-
-```
-event: connected
-data: {"videoId": "video-uuid"}
-
-event: comment
-data: {"type": "created", "comment": {...}, "videoId": "video-uuid"}
-```
-
-#### Comment Event Types
-
-| Type | Description |
-|------|-------------|
-| `created` | New comment was added |
-| `updated` | Existing comment was modified |
-| `deleted` | Comment was removed |
-
-#### Example Client Usage
+Subscribe to comment updates using Server-Sent Events:
 
 ```typescript
-const eventSource = new EventSource('/api/videos/{videoId}/comments/stream');
+const eventSource = new EventSource(`/api/videos/${videoId}/comments/stream`);
 
 eventSource.addEventListener('connected', (e) => {
   console.log('Connected to comment stream');
@@ -266,53 +100,41 @@ eventSource.addEventListener('comment', (e) => {
       break;
   }
 });
-
-eventSource.onerror = () => {
-  console.log('Connection lost, reconnecting...');
-};
 ```
 
-## Error Responses
+### Event Types
 
-### 400 Bad Request
+| Event | Description |
+|-------|-------------|
+| `connected` | Connection established |
+| `created` | New comment added |
+| `updated` | Comment modified |
+| `deleted` | Comment removed |
 
-```json
-{
-  "success": false,
-  "error": "Comment content is required"
-}
-```
+## Permissions
 
-### 401 Unauthorized
+| Action | Required Permission |
+|--------|---------------------|
+| View comments | Organization member |
+| Create comment | Organization member |
+| Update comment | Comment author only |
+| Delete comment | Comment author or video owner |
+| Add reaction | Organization member |
 
-```json
-{
-  "success": false,
-  "error": "Unauthorized"
-}
-```
+## Error Codes
 
-### 403 Forbidden
+| Code | Description |
+|------|-------------|
+| `NOT_FOUND_COMMENT` | Comment not found |
+| `VALIDATION_MISSING_FIELD` | Content is required |
+| `AUTH_FORBIDDEN` | Cannot modify others' comments |
 
-```json
-{
-  "success": false,
-  "error": "You can only edit your own comments"
-}
-```
+## Content Moderation
 
-### 404 Not Found
-
-```json
-{
-  "success": false,
-  "error": "Comment not found"
-}
-```
+Comments are sanitized to prevent XSS attacks. HTML tags, script content, and event handlers are stripped.
 
 ---
 
 **See Also:**
 - [Videos API](videos.md)
 - [Notifications API](notifications.md)
-- [Collaboration Guide](../guides/collaboration.md)

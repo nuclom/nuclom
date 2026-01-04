@@ -1,148 +1,174 @@
-# Nuclom Internal Documentation
+# Internal Documentation
 
-Internal documentation for developers, contributors, and maintainers of the Nuclom video collaboration platform.
+> Developer and contributor documentation for the Nuclom codebase.
 
-## Developer Resources
+---
 
-### Development Setup
+## Quick Start
 
-- **[Development Setup](reference/development-setup.md)** - Complete environment setup
-- **[Environment Configuration](reference/environment-config.md)** - Environment variables and config
-- **[Database Setup](reference/database-setup.md)** - Database configuration and migrations
+Get running in 5 minutes:
 
-### Technical Reference
+```bash
+git clone https://github.com/SferaDev/nuclom.git
+cd nuclom
+pnpm install
+cp .env.example .env.local  # Configure your environment
+pnpm db:migrate
+pnpm dev                    # → http://localhost:3000
+```
 
-- **[Component Library](reference/components.md)** - UI components and patterns
-- **[Hooks & Utilities](reference/hooks.md)** - Custom hooks and helper functions
-- **[Styling Guide](reference/styling.md)** - CSS, theming, and design system
+**Detailed setup:** [Development Setup](reference/development-setup.md)
 
-### Quality & Testing
+---
 
-- **[Testing Guide](reference/testing.md)** - Testing strategy and implementation (Vitest, Playwright)
-- **[Contributing Guidelines](reference/contributing.md)** - Code standards and workflow
+## Documentation Index
 
-## System Architecture
+### Development Reference
 
-### Architecture Overview
+| Guide | Description |
+| ----- | ----------- |
+| [Development Setup](reference/development-setup.md) | Environment setup and installation |
+| [Environment Config](reference/environment-config.md) | Environment variables |
+| [Database Setup](reference/database-setup.md) | PostgreSQL and migrations |
+| [Components](reference/components.md) | UI component library |
+| [Hooks](reference/hooks.md) | Custom React hooks |
+| [Styling](reference/styling.md) | Tailwind CSS and themes |
+| [Testing](reference/testing.md) | Vitest and Playwright |
+| [Contributing](reference/contributing.md) | Code standards and workflow |
 
-- **[System Design](architecture/README.md)** - High-level architecture overview
-- **[Architecture Summary](architecture/summary.md)** - Quick technical reference
-- **[Database Schema](architecture/database.md)** - Complete database design
-- **[Frontend Architecture](architecture/frontend.md)** - Next.js and React patterns
-- **[Backend Architecture](architecture/backend.md)** - API design and patterns
-- **[Authentication System](architecture/authentication.md)** - better-auth implementation
-- **[Video Processing](architecture/video-processing.md)** - Upload and streaming
-- **[Workflows](architecture/workflows.md)** - Application workflows
-- **[Integrations](architecture/integrations.md)** - External service integrations
-- **[Effect.js Integration](architecture/effect-ts.md)** - Effect-TS patterns
-- **[Deployment Strategy](architecture/deployment.md)** - Infrastructure and CI/CD
+### Architecture
 
-### Business
+| Guide | Description |
+| ----- | ----------- |
+| [Overview](architecture/README.md) | High-level system design |
+| [Summary](architecture/summary.md) | Quick technical reference |
+| [Database](architecture/database.md) | Schema and relationships |
+| [Frontend](architecture/frontend.md) | Next.js and React patterns |
+| [Backend](architecture/backend.md) | API design |
+| [Authentication](architecture/authentication.md) | Better-Auth implementation |
+| [Video Processing](architecture/video-processing.md) | Upload and streaming |
+| [Effect-TS](architecture/effect-ts.md) | Error handling patterns |
+| [Deployment](architecture/deployment.md) | Infrastructure and CI/CD |
 
-- **[Pricing Strategy](pricing.md)** - Pricing model and cost analysis
+---
 
 ## Tech Stack
 
-### Core Technologies
+| Layer | Technologies |
+| ----- | ------------ |
+| **Frontend** | Next.js 16, React 19, TypeScript |
+| **Styling** | Tailwind CSS, shadcn/ui, Radix UI |
+| **Backend** | Next.js API Routes, Effect-TS |
+| **Database** | PostgreSQL, Drizzle ORM |
+| **Auth** | Better-Auth (OAuth: GitHub, Google) |
+| **Storage** | Cloudflare R2 |
+| **AI** | OpenAI, Vercel AI SDK |
+| **Testing** | Vitest, Playwright |
+| **Build** | pnpm, Biome (lint/format) |
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Next.js API Routes, Effect-TS, PostgreSQL, Drizzle ORM
-- **Authentication**: better-auth with OAuth (GitHub, Google)
-- **Storage**: Cloudflare R2
-- **AI**: OpenAI / Vercel AI SDK
-- **Deployment**: Vercel with automated CI/CD
-
-### Development Tools
-
-- **Build**: pnpm, TypeScript, Biome (linting/formatting)
-- **Database**: Drizzle ORM, PostgreSQL, Drizzle Kit migrations
-- **UI**: shadcn/ui components, Tailwind CSS, Radix UI
-- **State**: React hooks, Context API
-- **Testing**: Vitest, React Testing Library, Playwright
+---
 
 ## Common Commands
 
+### Development
+
 ```bash
-# Development
-pnpm dev                 # Start development server
-pnpm build              # Build for production
-pnpm start              # Start production server
-
-# Code Quality
-pnpm tsc                # TypeScript type checking
-pnpm lint               # Run biome checker
-pnpm format             # Run biome formatter
-
-# Database
-pnpm db:generate        # Generate migrations
-pnpm db:migrate         # Run migrations
-pnpm db:push            # Push schema changes
-pnpm db:studio          # Open database GUI
-
-# Testing
-pnpm test               # Run unit tests (Vitest)
-pnpm test:e2e           # Run E2E tests (Playwright)
+pnpm dev              # Start dev server
+pnpm build            # Production build
+pnpm start            # Start production server
 ```
+
+### Code Quality
+
+```bash
+pnpm tsc              # Type check
+pnpm lint             # Lint with Biome
+pnpm format           # Format with Biome
+```
+
+### Database
+
+```bash
+pnpm db:generate      # Generate migration
+pnpm db:migrate       # Run migrations
+pnpm db:push          # Push schema (dev only)
+pnpm db:studio        # Open Drizzle Studio
+```
+
+### Testing
+
+```bash
+pnpm test             # Unit tests (Vitest)
+pnpm test:e2e         # E2E tests (Playwright)
+pnpm test:coverage    # Coverage report
+```
+
+---
 
 ## Project Structure
 
 ```
 src/
-├── app/                 # Next.js app router
-│   ├── (main)/         # Organization-based routes
-│   ├── api/            # API endpoints
-│   ├── docs/           # Documentation site
-│   └── globals.css     # Global styles
-├── components/         # React components
-│   ├── ui/            # shadcn/ui components
-│   └── *.tsx          # Custom components
-├── lib/               # Utilities and configuration
-│   ├── db/            # Database schema and connection
-│   ├── auth.ts        # Authentication config
-│   └── utils.ts       # Utility functions
-├── hooks/             # Custom React hooks
-└── types/             # TypeScript type definitions
+├── app/                    # Next.js App Router
+│   ├── (main)/            # Main app routes
+│   │   └── [organization]/ # Organization-scoped pages
+│   ├── api/               # API endpoints
+│   └── globals.css        # Global styles
+├── components/            # React components
+│   ├── ui/               # shadcn/ui primitives
+│   └── *.tsx             # Feature components
+├── hooks/                # Custom React hooks
+├── lib/                  # Core utilities
+│   ├── db/              # Database schema & connection
+│   ├── auth.ts          # Auth configuration
+│   └── utils.ts         # Utilities
+└── types/                # TypeScript types
 ```
-
-## Architecture Patterns
-
-### Frontend Patterns
-
-- **App Router**: Next.js 16 with organization-based routing
-- **Server Components**: React Server Components for performance
-- **Client Components**: Interactive components with hooks
-- **Type Safety**: Full TypeScript integration
-
-### Backend Patterns
-
-- **API Routes**: RESTful endpoints with proper error handling
-- **Database**: Drizzle ORM with PostgreSQL
-- **Authentication**: Session-based auth with better-auth
-- **Validation**: Effect Schema for request validation
-
-### Security Patterns
-
-- **CSRF Protection**: Built-in CSRF handling
-- **Role-Based Access**: Organization permissions (Owner, Admin, Member)
-- **Input Validation**: Server-side validation for all inputs
-- **Secure Sessions**: HTTP-only cookies with proper expiration
-
-## Contributing
-
-### Before Contributing
-
-1. Review **[Contributing Guidelines](reference/contributing.md)**
-2. Set up your **[Development Environment](reference/development-setup.md)**
-3. Understand the **[System Architecture](architecture/README.md)**
-
-### Development Process
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow coding standards and patterns
-4. Write tests for new functionality
-5. Submit a pull request
 
 ---
 
-**Need help?** Check the specific documentation sections or reach out to the development team.
+## Key Patterns
+
+### API Routes
+
+```typescript
+// Always call connection() first
+import { connection } from "next/server"
+
+export async function GET(request: NextRequest) {
+  await connection()  // Required for database access
+  // ... handler logic
+}
+```
+
+### Database Queries
+
+```typescript
+// Use Drizzle query builder
+const video = await db.query.videos.findFirst({
+  where: eq(videos.id, videoId),
+  with: { user: true, comments: true }
+})
+```
+
+### Components
+
+```typescript
+// Use cn() for conditional classes
+import { cn } from "@/lib/utils"
+
+<div className={cn("base-styles", isActive && "active-styles")} />
+```
+
+---
+
+## Contributing
+
+1. Read [Contributing Guidelines](reference/contributing.md)
+2. Set up [Development Environment](reference/development-setup.md)
+3. Understand [System Architecture](architecture/README.md)
+4. Follow established code patterns
+
+---
+
+**Need help?** Check [Troubleshooting](../public/guides/troubleshooting.md) or reach out to the team.
