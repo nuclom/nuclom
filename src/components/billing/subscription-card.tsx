@@ -55,11 +55,12 @@ const getStatusBadge = (status: string, cancelAtPeriodEnd: boolean) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-// Plan display names and prices (synced with auth.ts plan configuration)
+// Plan display names and prices (synced with pricing.md)
 const PLAN_DISPLAY_INFO: Record<string, { displayName: string; monthlyPrice: number }> = {
   free: { displayName: "Free", monthlyPrice: 0 },
-  pro: { displayName: "Pro", monthlyPrice: 2500 }, // $25.00 in cents
-  enterprise: { displayName: "Enterprise", monthlyPrice: 9900 }, // $99.00 in cents
+  scale: { displayName: "Scale", monthlyPrice: 2500 }, // $25.00/user/month
+  pro: { displayName: "Pro", monthlyPrice: 4500 }, // $45.00/user/month
+  enterprise: { displayName: "Enterprise", monthlyPrice: 0 }, // Custom pricing
 };
 
 export function SubscriptionCard({

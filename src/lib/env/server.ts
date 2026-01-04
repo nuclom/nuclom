@@ -11,6 +11,7 @@ export const ServerEnv = Schema.Struct({
     default: () => "http://localhost:3000",
   }),
   DATABASE_URL: Schema.String,
+  DATABASE_REPLICA_URL: Schema.optional(Schema.String),
   OPENAI_API_KEY: Schema.optional(Schema.String),
   REPLICATE_API_TOKEN: Schema.optional(Schema.String),
   VERCEL_OIDC_TOKEN: Schema.optional(Schema.String),
@@ -47,6 +48,12 @@ export const ServerEnv = Schema.Struct({
   CRON_SECRET: Schema.optional(Schema.String),
   // Logging configuration
   LOG_LEVEL: Schema.optional(Schema.Literal("debug", "info", "warn", "error")),
+  // Slack monitoring webhooks (different channels for different event types)
+  SLACK_MONITORING_WEBHOOK_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  SLACK_MONITORING_WEBHOOK_ACCOUNTS: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  SLACK_MONITORING_WEBHOOK_BILLING: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  SLACK_MONITORING_WEBHOOK_USAGE: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  SLACK_MONITORING_WEBHOOK_ERRORS: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
   VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),

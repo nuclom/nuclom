@@ -91,17 +91,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
 
       if (linkableRefs.length > 0) {
-        const linksToCreate = linkableRefs.map((ref) => ({
-          videoId,
-          linkType: ref.type as CodeLinkType,
-          githubRepo: ref.suggestedRepo!,
-          githubRef: ref.reference,
-          githubUrl: generateGitHubUrl(ref.suggestedRepo!, ref.type as CodeLinkType, ref.reference),
-          context: `Auto-detected from transcript`,
-          autoDetected: true,
-          timestampStart: ref.timestamp,
-          createdById: user.id,
-        }));
+        const linksToCreate = linkableRefs.map((ref) => {
+          const repo = ref.suggestedRepo as string; // Already filtered for existence
+          return {
+            videoId,
+            linkType: ref.type as CodeLinkType,
+            githubRepo: repo,
+            githubRef: ref.reference,
+            githubUrl: generateGitHubUrl(repo, ref.type as CodeLinkType, ref.reference),
+            context: `Auto-detected from transcript`,
+            autoDetected: true,
+            timestampStart: ref.timestamp,
+            createdById: user.id,
+          };
+        });
 
         createdLinks = yield* codeLinksRepo.createCodeLinks(linksToCreate);
       }

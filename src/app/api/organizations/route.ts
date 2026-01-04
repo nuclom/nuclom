@@ -4,6 +4,7 @@ import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { MissingFieldError, OrganizationRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 
 // =============================================================================
 // GET /api/organizations - Get user's organizations
@@ -56,12 +57,26 @@ export async function POST(request: NextRequest) {
     }
 
     const orgRepo = yield* OrganizationRepository;
-    return yield* orgRepo.createOrganization({
+    const org = yield* orgRepo.createOrganization({
       name,
       slug,
       logo,
       userId: user.id,
     });
+
+    // Send Slack monitoring notification
+    const slackMonitoring = yield* SlackMonitoring;
+    yield* slackMonitoring
+      .sendAccountEvent("organization_created", {
+        organizationId: org.id,
+        organizationName: org.name,
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+      })
+      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+
+    return org;
   });
 
   const FullLayer = createFullLayer();

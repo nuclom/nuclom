@@ -505,6 +505,96 @@ The activity feed provides a chronological view of organization activities.
 - `resourceId` - Filter by specific resource
 - `startDate` / `endDate` - Date range
 
+## Slack Monitoring
+
+The platform includes Slack webhook integration for monitoring platform events in real-time.
+
+### Purpose
+
+Send platform events to Slack channels for:
+- Real-time visibility into platform activity
+- Billing alerts (payment failures, subscription changes)
+- Error monitoring and debugging
+- New user/organization notifications
+
+### Event Categories
+
+Events are categorized and can be routed to different Slack channels:
+
+| Category | Events |
+|----------|--------|
+| **Accounts** | `user_registered`, `organization_created`, `member_invited`, `member_joined` |
+| **Billing** | `subscription_created`, `subscription_upgraded`, `subscription_downgraded`, `subscription_canceled`, `payment_succeeded`, `payment_failed`, `trial_started`, `trial_ending` |
+| **Usage** | `video_uploaded`, `video_processed`, `video_processing_failed` |
+| **Errors** | `api_error`, `webhook_failed`, `integration_error` |
+
+### Configuration
+
+Configure via environment variables:
+
+```env
+# Default webhook (fallback for all events)
+SLACK_MONITORING_WEBHOOK_URL=https://hooks.slack.com/services/xxx/xxx/xxx
+
+# Category-specific webhooks (optional, overrides default)
+SLACK_MONITORING_WEBHOOK_ACCOUNTS=https://hooks.slack.com/services/xxx/xxx/xxx
+SLACK_MONITORING_WEBHOOK_BILLING=https://hooks.slack.com/services/xxx/xxx/xxx
+SLACK_MONITORING_WEBHOOK_USAGE=https://hooks.slack.com/services/xxx/xxx/xxx
+SLACK_MONITORING_WEBHOOK_ERRORS=https://hooks.slack.com/services/xxx/xxx/xxx
+```
+
+### Implementation
+
+The monitoring service is implemented in `src/lib/effect/services/slack-monitoring.ts`:
+
+```typescript
+// Effect-TS service for type-safe monitoring
+import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
+
+// In Effect context
+const slackMonitoring = yield* SlackMonitoring;
+yield* slackMonitoring.sendBillingEvent("payment_failed", {
+  organizationId,
+  organizationName,
+  amount,
+  currency,
+});
+
+// Standalone function (for non-Effect contexts like auth hooks)
+import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
+
+await notifySlackMonitoring("subscription_created", {
+  userId,
+  userName,
+  userEmail,
+  planName,
+});
+```
+
+### Message Format
+
+Messages use Slack Block Kit for rich formatting:
+- Header with emoji and event title
+- Fields for context (organization, user, amount, etc.)
+- Timestamp with Slack date formatting
+- Action buttons for quick access to admin views
+
+### Integration Points
+
+Slack monitoring is integrated into:
+- **Stripe webhooks** (`src/app/api/webhooks/stripe/route.ts`) - Billing events
+- **Better-auth hooks** (`src/lib/auth.ts`) - Subscription lifecycle
+- **Video processing workflow** (`src/workflows/video-processing.ts`) - Processing events
+- **Organization creation** (`src/app/api/organizations/route.ts`) - Account events
+- **API error handling** (`src/lib/api-errors.ts`) - Error monitoring
+
+### Best Practices
+
+1. **Silent failures**: Monitoring never throws errors that could affect user operations
+2. **Fire-and-forget**: Webhook calls are non-blocking
+3. **Category routing**: Route critical events (billing, errors) to dedicated channels
+4. **Rich context**: Include relevant IDs and names for quick triage
+
 ## Future Enhancements
 
 - Dropbox and OneDrive integration

@@ -383,26 +383,33 @@ interface UpgradeDialogProps {
 function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPending }: UpgradeDialogProps) {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
 
+  // Plan pricing synced with pricing.md
   const plans = [
     {
       name: "scale" as const,
       displayName: "Scale",
       monthlyPrice: 25,
-      yearlyPrice: 228,
-      features: ["10GB storage/user", "100 videos/user/mo", "25 team members", "AI-powered insights", "Email support"],
+      yearlyPrice: 228, // $19/month annual (24% off)
+      features: [
+        "5GB storage/user",
+        "25 videos/user/mo",
+        "25 team members",
+        "60 min AI transcription/user",
+        "Email support",
+      ],
     },
     {
       name: "pro" as const,
       displayName: "Pro",
       monthlyPrice: 45,
-      yearlyPrice: 468,
+      yearlyPrice: 468, // $39/month annual (13% off)
       features: [
-        "50GB storage/user",
-        "500 videos/user/mo",
-        "100 team members",
-        "Advanced AI features",
-        "SSO integration",
-        "Priority support",
+        "25GB storage/user",
+        "100 videos/user/mo",
+        "Unlimited team members",
+        "300 min AI transcription/user",
+        "SSO/SAML + Custom branding",
+        "Priority support + Dedicated manager",
       ],
     },
   ];

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { env } from "@/lib/env/server";
 
 /**
@@ -208,9 +209,14 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
     if (mapping) {
       const details = extractErrorDetails(taggedError);
 
-      // Log non-client errors server-side
+      // Log non-client errors server-side and send to Slack
       if (mapping.status >= 500) {
         console.error(`[${taggedError._tag}]`, taggedError);
+        // Send Slack notification for server errors (fire-and-forget)
+        notifySlackMonitoring("api_error", {
+          errorMessage: taggedError.message,
+          errorCode: taggedError._tag,
+        }).catch(() => {});
       }
 
       return createErrorResponse(mapping.code, taggedError.message, mapping.status, details);
@@ -218,12 +224,20 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
 
     // Unknown tagged error - treat as internal error
     console.error(`[Unknown Error: ${taggedError._tag}]`, taggedError);
+    notifySlackMonitoring("api_error", {
+      errorMessage: taggedError.message,
+      errorCode: `Unknown: ${taggedError._tag}`,
+    }).catch(() => {});
     return createErrorResponse(ErrorCodes.INTERNAL_ERROR, "An unexpected error occurred", 500);
   }
 
   // Handle standard Error objects
   if (error instanceof Error) {
     console.error("[Error]", error);
+    notifySlackMonitoring("api_error", {
+      errorMessage: error.message,
+      errorCode: error.name,
+    }).catch(() => {});
     return createErrorResponse(
       ErrorCodes.INTERNAL_ERROR,
       env.NODE_ENV === "development" ? error.message : "An unexpected error occurred",
@@ -233,6 +247,10 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
 
   // Handle unknown error types
   console.error("[Unknown Error]", error);
+  notifySlackMonitoring("api_error", {
+    errorMessage: String(error),
+    errorCode: "Unknown",
+  }).catch(() => {});
   return createErrorResponse(ErrorCodes.INTERNAL_ERROR, "An unexpected error occurred", 500);
 }
 

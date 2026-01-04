@@ -25,6 +25,12 @@ export {
   type StripeWebhookResult,
 } from "./stripe-webhooks";
 
+// Subscription Enforcement (daily billing policy enforcement)
+export {
+  type EnforcementResult,
+  runEnforcementNow,
+  subscriptionEnforcementWorkflow,
+} from "./subscription-enforcement";
 // Trial Reminders
 export { type TrialReminderInput, type TrialReminderResult, trialReminderWorkflow } from "./trial-reminders";
 // Video Processing

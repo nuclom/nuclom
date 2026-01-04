@@ -138,12 +138,21 @@ export function TalkTimeChart({
               <TooltipProvider key={speaker.id}>
                 <Tooltip>
                   <TooltipTrigger asChild>
+                    {/* biome-ignore lint/a11y/noStaticElementInteractions: Interactive behavior is conditional based on onSpeakerClick prop */}
                     <div
                       className={cn(
                         "space-y-1.5",
                         onSpeakerClick && "cursor-pointer hover:opacity-80 transition-opacity",
                       )}
                       onClick={() => onSpeakerClick?.(speaker.id)}
+                      onKeyDown={(e) => {
+                        if ((e.key === "Enter" || e.key === " ") && onSpeakerClick) {
+                          e.preventDefault();
+                          onSpeakerClick(speaker.id);
+                        }
+                      }}
+                      role={onSpeakerClick ? "button" : undefined}
+                      tabIndex={onSpeakerClick ? 0 : undefined}
                     >
                       {/* Speaker info row */}
                       <div className="flex items-center justify-between gap-2">
