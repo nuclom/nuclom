@@ -508,7 +508,7 @@ export default function PricingPage() {
         <div className="w-full max-w-4xl mx-auto relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to transform your video workflow?</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of teams using Nuclom to collaborate more effectively. Start your 14-day free trial today.
+            Transform your video workflow with Nuclom. Start your 14-day free trial today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild className="px-8">
