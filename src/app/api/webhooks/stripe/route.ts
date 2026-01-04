@@ -9,13 +9,17 @@
  * - Forwards subscription/checkout events to Better Auth for processing
  *
  * Configure ONLY this endpoint in Stripe Dashboard with all required events.
+ *
+ * IDEMPOTENCY: Each event is tracked in processed_webhook_events table
+ * to prevent duplicate processing on webhook retries.
  */
 
+import { eq } from "drizzle-orm";
 import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import type { InvoiceStatus, NewInvoice, NewPaymentMethod } from "@/lib/db/schema";
+import { type InvoiceStatus, type NewInvoice, type NewPaymentMethod, processedWebhookEvents } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Database, type DrizzleDB } from "@/lib/effect/services/database";
@@ -85,6 +89,39 @@ export async function POST(request: Request) {
     const event = yield* stripe.constructWebhookEvent(body, signature);
     const billingRepo = yield* BillingRepository;
     const { db } = yield* Database;
+
+    // =============================================================================
+    // IDEMPOTENCY CHECK - Prevent duplicate processing
+    // =============================================================================
+    const existingEvent = yield* Effect.tryPromise({
+      try: () =>
+        db.query.processedWebhookEvents.findFirst({
+          where: eq(processedWebhookEvents.eventId, event.id),
+        }),
+      catch: (error) => new Error(`Failed to check event idempotency: ${error}`),
+    });
+
+    if (existingEvent) {
+      console.log(
+        `[Webhook] Event ${event.id} already processed at ${existingEvent.processedAt.toISOString()}, skipping`,
+      );
+      return { received: true, duplicate: true };
+    }
+
+    // Mark event as being processed (do this early to prevent race conditions)
+    yield* Effect.tryPromise({
+      try: () =>
+        db.insert(processedWebhookEvents).values({
+          eventId: event.id,
+          eventType: event.type,
+          source: "stripe",
+        }),
+      catch: (error) => {
+        // If insert fails due to unique constraint, another process is handling it
+        console.log(`[Webhook] Event ${event.id} is being processed by another handler`);
+        return error;
+      },
+    });
 
     // Forward subscription/checkout events to Better Auth
     if (BETTER_AUTH_EVENTS.has(event.type)) {

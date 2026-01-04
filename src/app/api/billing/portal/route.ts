@@ -7,12 +7,16 @@ import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { env } from "@/lib/env/server";
+import { rateLimitBillingAsync } from "@/lib/rate-limit";
 
 // =============================================================================
 // POST /api/billing/portal - Create Stripe billing portal session
 // =============================================================================
 
 export async function POST(request: NextRequest) {
+  // Rate limit billing operations to prevent abuse
+  const rateLimitResult = await rateLimitBillingAsync(request);
+  if (rateLimitResult) return rateLimitResult;
   const AuthLayer = makeAuthLayer(auth);
   const FullLayer = Layer.merge(AppLive, AuthLayer);
 
