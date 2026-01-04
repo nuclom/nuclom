@@ -2,6 +2,14 @@
  * Billing Middleware using Effect-TS
  *
  * Provides plan limits enforcement for API routes and business logic.
+ *
+ * Subscription Status Enforcement:
+ * - active: Full access
+ * - trialing: Full access (until trial ends)
+ * - past_due: Limited access (30-day grace period)
+ * - unpaid: Read-only access
+ * - canceled: No access after period ends
+ * - incomplete_expired: No access (trial expired without payment)
  */
 
 import { Effect, Option } from "effect";
@@ -22,12 +30,125 @@ export interface LimitCheckResult {
   percentage: number;
 }
 
+export interface SubscriptionAccessResult {
+  hasAccess: boolean;
+  isReadOnly: boolean;
+  isGracePeriod: boolean;
+  daysRemaining?: number;
+  status: string;
+  message?: string;
+}
+
+// Valid subscription statuses for different access levels
+const FULL_ACCESS_STATUSES = ["active", "trialing"];
+const LIMITED_ACCESS_STATUSES = ["past_due"]; // Can still use, but with warnings
+const READ_ONLY_STATUSES = ["unpaid"]; // Can view but not create/modify
+const NO_ACCESS_STATUSES = ["canceled", "incomplete_expired", "incomplete"];
+
 // =============================================================================
 // Middleware Functions
 // =============================================================================
 
 /**
+ * Check subscription access level without failing
+ * Returns detailed information about what access the organization has
+ */
+export const checkSubscriptionAccess = (
+  organizationId: string,
+): Effect.Effect<SubscriptionAccessResult, DatabaseError, Billing> =>
+  Effect.gen(function* () {
+    const billing = yield* Billing;
+    const subscriptionOption = yield* billing.getSubscriptionOption(organizationId);
+
+    if (Option.isNone(subscriptionOption)) {
+      return {
+        hasAccess: false,
+        isReadOnly: false,
+        isGracePeriod: false,
+        status: "none",
+        message: "No active subscription. Please subscribe to access this feature.",
+      };
+    }
+
+    const subscription = subscriptionOption.value;
+    const status = subscription.status;
+
+    // Full access
+    if (FULL_ACCESS_STATUSES.includes(status)) {
+      // Check if trial is about to expire
+      if (status === "trialing" && subscription.trialEnd) {
+        const daysRemaining = Math.ceil(
+          (new Date(subscription.trialEnd).getTime() - Date.now()) / (24 * 60 * 60 * 1000),
+        );
+        return {
+          hasAccess: true,
+          isReadOnly: false,
+          isGracePeriod: false,
+          daysRemaining,
+          status,
+          message:
+            daysRemaining <= 3 ? `Trial ends in ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}` : undefined,
+        };
+      }
+      return {
+        hasAccess: true,
+        isReadOnly: false,
+        isGracePeriod: false,
+        status,
+      };
+    }
+
+    // Limited access (grace period)
+    if (LIMITED_ACCESS_STATUSES.includes(status)) {
+      return {
+        hasAccess: true,
+        isReadOnly: false,
+        isGracePeriod: true,
+        status,
+        message: "Payment overdue. Please update your payment method to avoid service interruption.",
+      };
+    }
+
+    // Read-only access
+    if (READ_ONLY_STATUSES.includes(status)) {
+      return {
+        hasAccess: true,
+        isReadOnly: true,
+        isGracePeriod: true,
+        status,
+        message: "Account suspended. Update payment to restore full access.",
+      };
+    }
+
+    // No access
+    return {
+      hasAccess: false,
+      isReadOnly: false,
+      isGracePeriod: false,
+      status,
+      message: getNoAccessMessage(status),
+    };
+  });
+
+/**
+ * Get appropriate error message for no-access statuses
+ */
+function getNoAccessMessage(status: string): string {
+  switch (status) {
+    case "canceled":
+      return "Subscription has been canceled. Please subscribe again to access this feature.";
+    case "incomplete_expired":
+      return "Trial has expired. Please add a payment method to continue.";
+    case "incomplete":
+      return "Subscription setup incomplete. Please complete the checkout process.";
+    default:
+      return "Subscription is inactive. Please update your billing information.";
+  }
+}
+
+/**
  * Check if organization has a valid subscription (not on free plan or has active subscription)
+ * Fails if subscription is not valid for full access
  */
 export const requireActiveSubscription = (organizationId: string) =>
   Effect.gen(function* () {
@@ -44,17 +165,74 @@ export const requireActiveSubscription = (organizationId: string) =>
     }
 
     const subscription = subscriptionOption.value;
+    const status = subscription.status;
 
-    if (subscription.status !== "active" && subscription.status !== "trialing") {
+    // Allow full access statuses
+    if (FULL_ACCESS_STATUSES.includes(status)) {
+      return subscription;
+    }
+
+    // Allow limited access statuses (past_due gets a grace period)
+    if (LIMITED_ACCESS_STATUSES.includes(status)) {
+      return subscription;
+    }
+
+    // Deny access for all other statuses
+    return yield* Effect.fail(
+      new NoSubscriptionError({
+        message: getNoAccessMessage(status),
+        organizationId,
+      }),
+    );
+  });
+
+/**
+ * Require active subscription for write operations
+ * More strict than requireActiveSubscription - doesn't allow read-only statuses
+ */
+export const requireWriteAccess = (organizationId: string) =>
+  Effect.gen(function* () {
+    const billing = yield* Billing;
+    const subscriptionOption = yield* billing.getSubscriptionOption(organizationId);
+
+    if (Option.isNone(subscriptionOption)) {
       return yield* Effect.fail(
         new NoSubscriptionError({
-          message: `Subscription is ${subscription.status}. Please update your payment method.`,
+          message: "This organization requires an active subscription",
           organizationId,
         }),
       );
     }
 
-    return subscription;
+    const subscription = subscriptionOption.value;
+    const status = subscription.status;
+
+    // Only allow full access statuses for writes
+    if (FULL_ACCESS_STATUSES.includes(status)) {
+      return subscription;
+    }
+
+    // Past due gets limited write access (warn but allow)
+    if (LIMITED_ACCESS_STATUSES.includes(status)) {
+      return subscription;
+    }
+
+    // Read-only and no-access statuses cannot write
+    if (READ_ONLY_STATUSES.includes(status)) {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: "Account is in read-only mode due to payment issues. Please update your payment method.",
+          resource: "subscription",
+        }),
+      );
+    }
+
+    return yield* Effect.fail(
+      new NoSubscriptionError({
+        message: getNoAccessMessage(status),
+        organizationId,
+      }),
+    );
   });
 
 /**
@@ -244,18 +422,35 @@ export const trackVideoUpload = (organizationId: string, fileSize: number) =>
 
 /**
  * Track bandwidth usage (for video streaming)
+ *
+ * Policy: Users are contacted if exceeding >2x allocation (from pricing.md)
+ * - Up to 100%: Normal usage
+ * - 100-200%: Warning logged, usage allowed
+ * - >200%: Hard block - must upgrade or wait for next billing cycle
  */
 export const trackBandwidthUsage = (organizationId: string, bytes: number) =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
 
-    // Check limit but don't fail - just log warning
     const result = yield* checkResourceLimit(organizationId, "bandwidth", bytes);
 
+    // Hard limit at 2x allocation (200%)
+    if (result.limit !== -1 && result.percentage >= 200) {
+      return yield* Effect.fail(
+        new PlanLimitExceededError({
+          message:
+            "You have exceeded your bandwidth limit (2x allocation). Please upgrade your plan or wait for the next billing cycle.",
+          resource: "bandwidth",
+          currentUsage: result.currentUsage,
+          limit: result.limit,
+        }),
+      );
+    }
+
+    // Soft warning at 100%
     if (!result.allowed) {
-      // Log warning but allow - we might implement throttling later
       console.warn(
-        `[Billing] Organization ${organizationId} is exceeding bandwidth limit: ${result.currentUsage}/${result.limit}`,
+        `[Billing] Organization ${organizationId} is exceeding bandwidth limit: ${result.currentUsage}/${result.limit} (${result.percentage}%)`,
       );
     }
 
