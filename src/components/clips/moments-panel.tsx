@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { MomentType } from "@/lib/db/schema";
+import { copyToClipboard } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
 interface Moment {
@@ -157,7 +158,9 @@ export function MomentsPanel({ videoId, onSeek, onCreateClip }: MomentsPanelProp
                         className="h-7 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: Share functionality
+                          const url = new URL(window.location.href);
+                          url.searchParams.set("t", String(Math.floor(moment.startTime)));
+                          copyToClipboard(url.toString(), "Moment link copied");
                         }}
                       >
                         <Share2 className="h-3 w-3 mr-1" />

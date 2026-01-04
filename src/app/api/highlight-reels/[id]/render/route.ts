@@ -18,21 +18,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Get highlight reel to verify it exists and get clipIds
     const clipRepo = yield* ClipRepository;
-    yield* clipRepo.getHighlightReel(reelId);
+    const reel = yield* clipRepo.getHighlightReel(reelId);
 
-    // Update status to rendering
-    const updatedReel = yield* clipRepo.updateHighlightReel(reelId, {
-      status: "rendering",
-    });
-
-    // TODO: Trigger async workflow to render the highlight reel
-    // This would typically be handled by a background job/workflow
-    // using FFmpeg or a video processing service like Replicate
+    // Note: Full video rendering (combining clips into a single video) is a planned feature.
+    // Currently, highlight reels can be previewed by playing clips sequentially.
+    // Server-side video rendering will be added in a future release.
 
     return {
       success: true,
-      data: updatedReel,
-      message: "Highlight reel rendering started",
+      data: reel,
+      message: "Highlight reel preview available. Full video rendering coming soon.",
     };
   });
 
