@@ -599,6 +599,65 @@ CREATE TABLE decision_edits (
 );
 ```
 
+## AI Insights Tables
+
+### AI Topics
+
+Aggregated topic tracking for organization-wide trend analysis.
+
+```sql
+CREATE TABLE ai_topics (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL, -- lowercase for deduplication
+    description TEXT,
+    mention_count INTEGER NOT NULL DEFAULT 1,
+    video_count INTEGER NOT NULL DEFAULT 1,
+    last_mentioned_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    first_mentioned_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    trend "TopicTrend" NOT NULL DEFAULT 'stable', -- 'rising' | 'stable' | 'declining'
+    trend_score INTEGER DEFAULT 0, -- -100 to 100
+    keywords JSONB DEFAULT '[]',
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    UNIQUE(organization_id, normalized_name)
+);
+CREATE INDEX ai_topics_org_idx ON ai_topics(organization_id);
+CREATE INDEX ai_topics_trend_idx ON ai_topics(organization_id, trend);
+```
+
+### AI Action Items
+
+Organization-wide action items extracted from videos with completion tracking.
+
+```sql
+CREATE TABLE ai_action_items (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    assignee TEXT, -- speaker name or mention
+    assignee_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    status "ActionItemStatus" NOT NULL DEFAULT 'pending', -- 'pending' | 'in_progress' | 'completed' | 'cancelled'
+    priority "ActionItemPriority" NOT NULL DEFAULT 'medium', -- 'high' | 'medium' | 'low'
+    due_date TIMESTAMP,
+    completed_at TIMESTAMP,
+    completed_by_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    timestamp_start INTEGER, -- seconds into video
+    timestamp_end INTEGER,
+    confidence INTEGER, -- 0-100
+    extracted_from TEXT, -- transcript snippet
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+CREATE INDEX ai_action_items_org_idx ON ai_action_items(organization_id, status);
+CREATE INDEX ai_action_items_video_idx ON ai_action_items(video_id);
+CREATE INDEX ai_action_items_status_idx ON ai_action_items(status, priority);
+```
+
 ## Semantic Search Tables
 
 Semantic search enables finding content by meaning rather than exact keywords. See [semantic-search.md](./semantic-search.md) for full documentation.
@@ -652,6 +711,7 @@ Additional embedding columns exist on related tables:
 
 - `decisions.embedding_vector vector(1536)` - Semantic search for decisions
 - `knowledge_nodes.embedding_vector vector(1536)` - Knowledge graph semantic search
+
 
 ## Future Enhancements
 
