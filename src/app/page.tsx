@@ -594,36 +594,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Users className="w-10 h-10 text-primary" />
-              </div>
-              <h5 className="text-3xl font-bold mb-2">10,000+</h5>
-              <p className="text-muted-foreground">Teams Worldwide</p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Video className="w-10 h-10 text-primary" />
-              </div>
-              <h5 className="text-3xl font-bold mb-2">1M+</h5>
-              <p className="text-muted-foreground">Videos Processed</p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Globe className="w-10 h-10 text-primary" />
-              </div>
-              <h5 className="text-3xl font-bold mb-2">50+</h5>
-              <p className="text-muted-foreground">Countries Served</p>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-10 h-10 text-primary" />
-              </div>
-              <h5 className="text-3xl font-bold mb-2">99.9%</h5>
-              <p className="text-muted-foreground">Uptime SLA</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -636,7 +606,7 @@ export default function LandingPage() {
           </Badge>
           <h3 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Video Workflow?</h3>
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-            Join thousands of teams already using Nuclom to collaborate more effectively
+            Start collaborating more effectively with Nuclom today
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
