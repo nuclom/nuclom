@@ -177,6 +177,56 @@
         }
       }
     },
+    "/analytics/speakers": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "List speakers",
+        "operationId": "listAnalyticSpeaker",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/analytics/speakers/{speakerId}": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get speaker",
+        "operationId": "getAnalyticSpeaker",
+        "parameters": [
+          {
+            "name": "speakerId",
+            "in": "path",
+            "description": "SpeakerId ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/billing": {
       "get": {
         "tags": [
@@ -763,6 +813,143 @@
         }
       }
     },
+    "/clips/{id}": {
+      "delete": {
+        "tags": [
+          "Clips"
+        ],
+        "summary": "Delete clip",
+        "operationId": "deleteClip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Clips"
+        ],
+        "summary": "Get clip",
+        "operationId": "getClip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Clips"
+        ],
+        "summary": "Patch clip",
+        "operationId": "patchClip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/code-context": {
+      "get": {
+        "tags": [
+          "Code-context"
+        ],
+        "summary": "List code-context",
+        "operationId": "listCode-context",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/comments/{id}": {
       "delete": {
         "tags": [
@@ -1152,6 +1339,221 @@
         }
       }
     },
+    "/highlight-reels": {
+      "get": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "List highlight-reels",
+        "operationId": "listHighlight-reel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "Create highlight-reel",
+        "operationId": "createHighlight-reel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/highlight-reels/{id}": {
+      "delete": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "Delete highlight-reel",
+        "operationId": "deleteHighlight-reel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "Get highlight-reel",
+        "operationId": "getHighlight-reel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "Patch highlight-reel",
+        "operationId": "patchHighlight-reel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/highlight-reels/{id}/render": {
+      "post": {
+        "tags": [
+          "Highlight-reels"
+        ],
+        "summary": "Create render",
+        "operationId": "createHighlight-reelRender",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/integrations": {
       "delete": {
         "tags": [
@@ -1244,6 +1646,34 @@
           },
           "404": {
             "description": "Not found"
+          }
+        }
+      }
+    },
+    "/integrations/github/authorize": {
+      "get": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "List authorize",
+        "operationId": "listIntegrationGithubAuthorize",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/integrations/github/callback": {
+      "get": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "List callback",
+        "operationId": "listIntegrationGithubCallback",
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
@@ -1588,6 +2018,260 @@
           },
           "404": {
             "description": "Not found"
+          }
+        }
+      }
+    },
+    "/knowledge/context": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List context",
+        "operationId": "listKnowledgeContext",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/knowledge/decisions": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List decisions",
+        "operationId": "listKnowledgeDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Create decision",
+        "operationId": "createKnowledgeDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/knowledge/decisions/{id}": {
+      "delete": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Delete decision",
+        "operationId": "deleteKnowledgeDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get decision",
+        "operationId": "getKnowledgeDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Update decision",
+        "operationId": "updateKnowledgeDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/knowledge/graph": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List graph",
+        "operationId": "listKnowledgeGraph",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/knowledge/timeline": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List timeline",
+        "operationId": "listKnowledgeTimeline",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -3251,6 +3935,129 @@
         }
       }
     },
+    "/quote-cards/{id}": {
+      "delete": {
+        "tags": [
+          "Quote-cards"
+        ],
+        "summary": "Delete quote-card",
+        "operationId": "deleteQuote-card",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Quote-cards"
+        ],
+        "summary": "Get quote-card",
+        "operationId": "getQuote-card",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Quote-cards"
+        ],
+        "summary": "Patch quote-card",
+        "operationId": "patchQuote-card",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/reports": {
       "get": {
         "tags": [
@@ -3285,6 +4092,59 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          }
+        }
+      }
+    },
+    "/repos/{owner}/{repo}/context": {
+      "get": {
+        "tags": [
+          "Repos"
+        ],
+        "summary": "Get context",
+        "operationId": "getRepoContext",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "Owner ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "description": "Repo ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -5927,6 +6787,42 @@
         }
       }
     },
+    "/videos/{id}/analytics/talk-time": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get talk-time",
+        "operationId": "getVideoAnalyticTalk-time",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/chapters": {
       "get": {
         "tags": [
@@ -6025,6 +6921,210 @@
           },
           "404": {
             "description": "Video not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/clips": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get clip",
+        "operationId": "getVideoClip",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create clip",
+        "operationId": "createVideoClip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/code-links": {
+      "delete": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Delete code-link",
+        "operationId": "deleteVideoCode-link",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get code-link",
+        "operationId": "getVideoCode-link",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create code-link",
+        "operationId": "createVideoCode-link",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
           }
         }
       }
@@ -6549,6 +7649,130 @@
         }
       }
     },
+    "/videos/{id}/decisions": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get decision",
+        "operationId": "getVideoDecision",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/detect-code-refs": {
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create detect-code-ref",
+        "operationId": "createVideoDetect-code-ref",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/moments": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get moment",
+        "operationId": "getVideoMoment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/move": {
       "post": {
         "tags": [
@@ -6791,6 +8015,90 @@
         }
       }
     },
+    "/videos/{id}/quote-cards": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get quote-card",
+        "operationId": "getVideoQuote-card",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create quote-card",
+        "operationId": "createVideoQuote-card",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/restore": {
       "post": {
         "tags": [
@@ -6968,6 +8276,180 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/speakers": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get speaker",
+        "operationId": "getVideoSpeaker",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Patch speaker",
+        "operationId": "patchVideoSpeaker",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/speakers/{speakerId}": {
+      "delete": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Delete speaker",
+        "operationId": "deleteVideoSpeaker",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          },
+          {
+            "name": "speakerId",
+            "in": "path",
+            "description": "SpeakerId ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get speaker",
+        "operationId": "getVideoSpeaker",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          },
+          {
+            "name": "speakerId",
+            "in": "path",
+            "description": "SpeakerId ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           },
           "404": {
             "description": "Not found"

@@ -6,8 +6,7 @@
  */
 
 import { Effect } from "effect";
-import { connection } from "next/server";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { Storage, ValidationError, VideoRepository } from "@/lib/effect";

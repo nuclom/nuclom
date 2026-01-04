@@ -13,5 +13,4 @@ pre-commit:
       run: pnpm tsc
     openapi:
       glob: "src/app/api/**/route.ts"
-      run: pnpm openapi
-      stage_fixed: true
+      run: pnpm openapi && git add public/openapi.json public/openapi.yaml

@@ -4,7 +4,6 @@ import {
   Bot,
   Brain,
   Check,
-  Clock,
   Github,
   Globe,
   Lock,
@@ -593,7 +592,6 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
