@@ -58,21 +58,46 @@ export interface UsageSummary {
   };
 }
 
-// Default plan limits based on plan name (synced with auth.ts)
-// Note: Pro storage is 10GB per user, applied dynamically based on member count
+/**
+ * Default plan limits based on plan name (synced with pricing.md)
+ *
+ * Scale Plan: $25/user/month
+ * - 5 GB storage/user
+ * - 25 videos/user/month
+ * - 25 team members max
+ * - 25 GB bandwidth/month
+ * - 60 min AI transcription/user/month
+ *
+ * Pro Plan: $45/user/month
+ * - 25 GB storage/user
+ * - 100 videos/user/month
+ * - Unlimited team members
+ * - 250 GB bandwidth/month
+ * - 300 min AI transcription/user/month
+ */
 const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
+  // Free tier (for users without subscription - very limited)
   free: {
-    storage: 1024 * 1024 * 1024, // 1GB
-    videos: 10,
-    members: 3,
-    bandwidth: 5 * 1024 * 1024 * 1024, // 5GB/month
+    storage: 500 * 1024 * 1024, // 500MB
+    videos: 3,
+    members: 1,
+    bandwidth: 1024 * 1024 * 1024, // 1GB/month
   },
+  // Scale Plan - entry tier ($25/user/month)
+  scale: {
+    storage: 5 * 1024 * 1024 * 1024, // 5GB per user
+    videos: 25, // 25 per user per month
+    members: 25, // max team members
+    bandwidth: 25 * 1024 * 1024 * 1024, // 25GB/month
+  },
+  // Pro Plan - professional tier ($45/user/month)
   pro: {
-    storage: 10 * 1024 * 1024 * 1024, // 10GB per user (base, multiplied by member count)
-    videos: -1, // unlimited
-    members: 25,
-    bandwidth: 50 * 1024 * 1024 * 1024, // 50GB/month
+    storage: 25 * 1024 * 1024 * 1024, // 25GB per user
+    videos: 100, // 100 per user per month
+    members: -1, // unlimited
+    bandwidth: 250 * 1024 * 1024 * 1024, // 250GB/month
   },
+  // Enterprise Plan - custom pricing
   enterprise: {
     storage: -1, // unlimited
     videos: -1, // unlimited
@@ -83,7 +108,8 @@ const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
 
 // Get plan limits by plan name
 const getPlanLimitsByName = (planName: string): PlanLimits => {
-  return DEFAULT_PLAN_LIMITS[planName] || DEFAULT_PLAN_LIMITS.free;
+  const normalizedName = planName.toLowerCase();
+  return DEFAULT_PLAN_LIMITS[normalizedName] || DEFAULT_PLAN_LIMITS.free;
 };
 
 // =============================================================================
