@@ -228,4 +228,5 @@ graph TB
 - [Frontend Architecture](./frontend.md) - Next.js App Router and component structure
 - [Authentication Flow](./authentication.md) - Better-Auth implementation and security
 - [Deployment Guide](./deployment.md) - Infrastructure and CI/CD pipeline
+- [Deployment Environments](./deployment-environments.md) - PROD and Staging setup process
 - [Architecture Summary](./summary.md) - Quick reference and overview

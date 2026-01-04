@@ -87,6 +87,19 @@ graph TB
 
 ## Deployment Environments
 
+Nuclom uses two main deployment environments: **Staging** and **Production**.
+
+For comprehensive setup instructions and configuration details, see:
+- **[Deployment Environments Guide](./deployment-environments.md)** - Complete PROD and Staging setup process
+
+### Environment Summary
+
+| Environment | URL | Purpose | Database |
+|-------------|-----|---------|----------|
+| Development | `localhost:3000` | Local development | Local PostgreSQL |
+| Staging | `staging.nuclom.com` | Pre-release testing, QA | Isolated staging DB |
+| Production | `nuclom.com` | Live user traffic | Production DB + replicas |
+
 ### Development Environment
 
 ```yaml
@@ -115,7 +128,7 @@ database:
   port: 5432
   database: nuclom_staging
   ssl: true
-  connectionLimit: 10
+  connectionLimit: 20
 auth:
   secret: staging-secret-key
   requireEmailVerification: true
@@ -135,7 +148,7 @@ database:
   port: 5432
   database: nuclom_production
   ssl: true
-  connectionLimit: 50
+  connectionLimit: 100
   readReplicas:
     - prod-db-read-1.example.com
     - prod-db-read-2.example.com
