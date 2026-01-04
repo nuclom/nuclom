@@ -6,13 +6,13 @@
 
 import { Effect, Exit, Layer } from "effect";
 import { describe, expect, it, vi } from "vitest";
-import { DeleteError, PresignedUrlError, StorageNotConfiguredError, UploadError } from "../errors";
+import { DeleteError, PresignedUrlError, UploadError } from "../errors";
 import { Storage, type StorageService, type UploadResult } from "./storage";
 
 describe("Storage Service", () => {
   // Create a mock storage service for testing
   const createMockStorageService = (isConfigured = true): StorageService => ({
-    uploadFile: vi.fn().mockImplementation((buffer, key, options) =>
+    uploadFile: vi.fn().mockImplementation((_buffer, key, _options) =>
       isConfigured
         ? Effect.succeed({
             key,
@@ -22,7 +22,7 @@ describe("Storage Service", () => {
         : Effect.fail(new UploadError({ message: "Storage not configured", filename: key })),
     ),
 
-    uploadLargeFile: vi.fn().mockImplementation((buffer, key, options, onProgress) => {
+    uploadLargeFile: vi.fn().mockImplementation((_buffer, key, _options, onProgress) => {
       if (!isConfigured) {
         return Effect.fail(new UploadError({ message: "Storage not configured", filename: key }));
       }
@@ -45,7 +45,7 @@ describe("Storage Service", () => {
 
     generatePresignedUploadUrl: vi
       .fn()
-      .mockImplementation((key, contentType, expiresIn) =>
+      .mockImplementation((key, _contentType, expiresIn) =>
         isConfigured
           ? Effect.succeed(`https://storage.example.com/presigned/${key}?expires=${expiresIn ?? 3600}`)
           : Effect.fail(new PresignedUrlError({ message: "Storage not configured" })),
