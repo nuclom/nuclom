@@ -54,6 +54,14 @@ export const ServerEnv = Schema.Struct({
   SLACK_MONITORING_WEBHOOK_BILLING: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   SLACK_MONITORING_WEBHOOK_USAGE: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   SLACK_MONITORING_WEBHOOK_ERRORS: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
+  // Signup control (for staging deployments)
+  DISABLE_SIGNUPS: Schema.optionalWith(
+    Schema.transform(Schema.String, Schema.Boolean, {
+      decode: (s) => s === "true" || s === "1",
+      encode: (b) => (b ? "true" : "false"),
+    }),
+    { default: () => false },
+  ),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
   VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),

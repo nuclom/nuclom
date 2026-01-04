@@ -45,6 +45,9 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Disable new user signups (for staging environments)
+DISABLE_SIGNUPS="true"  # Set to "true" or "1" to disable signups
 ```
 
 ### AI Integration
