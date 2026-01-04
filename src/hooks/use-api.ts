@@ -56,6 +56,10 @@ const getErrorMessage = (error: unknown): string => {
 export function useVideos(
   params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
 ) {
+  // Destructure params to use individual values as dependencies
+  // This prevents infinite re-renders from object reference changes
+  const { organizationId, channelId, seriesId, page, limit } = params;
+
   const [state, setState] = useState<UseApiState<PaginatedResponse<VideoWithAuthor>>>({
     data: null,
     loading: true,
@@ -68,7 +72,9 @@ export function useVideos(
     const fetchVideos = async () => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const result = await runClientEffect(videoApiEffect.getVideos(params));
+      const result = await runClientEffect(
+        videoApiEffect.getVideos({ organizationId, channelId, seriesId, page, limit }),
+      );
 
       if (!isMounted) return;
 
@@ -95,7 +101,7 @@ export function useVideos(
     return () => {
       isMounted = false;
     };
-  }, [params]);
+  }, [organizationId, channelId, seriesId, page, limit]);
 
   return state;
 }

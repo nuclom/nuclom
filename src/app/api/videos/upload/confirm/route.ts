@@ -6,6 +6,7 @@
  */
 
 import { Effect } from "effect";
+import { connection } from "next/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
@@ -74,6 +75,8 @@ const PLACEHOLDER_DURATION = "0:00";
 // =============================================================================
 
 export async function POST(request: NextRequest) {
+  await connection(); // Required: prevents static generation during builds
+
   // Verify authentication
   const session = await auth.api.getSession({
     headers: request.headers,

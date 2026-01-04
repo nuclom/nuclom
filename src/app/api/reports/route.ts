@@ -5,8 +5,30 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
-import { reports, users } from "@/lib/db/schema";
+import {
+  reportCategoryEnum,
+  reportResourceTypeEnum,
+  reports,
+  reportStatusEnum,
+  users,
+} from "@/lib/db/schema";
 import { safeParse } from "@/lib/validation";
+
+// Validate query parameters against enum values
+function isValidReportStatus(value: string | null): value is ReportStatus {
+  if (!value) return false;
+  return (reportStatusEnum.enumValues as readonly string[]).includes(value);
+}
+
+function isValidReportCategory(value: string | null): value is ReportCategory {
+  if (!value) return false;
+  return (reportCategoryEnum.enumValues as readonly string[]).includes(value);
+}
+
+function isValidReportResourceType(value: string | null): value is ReportResourceType {
+  if (!value) return false;
+  return (reportResourceTypeEnum.enumValues as readonly string[]).includes(value);
+}
 
 // Effect Schema for creating a report
 const CreateReportSchema = Schema.Struct({
@@ -43,12 +65,17 @@ export async function GET(request: NextRequest) {
 
     // Parse query params for filtering
     const url = new URL(request.url);
-    const status = url.searchParams.get("status") as ReportStatus | null;
-    const category = url.searchParams.get("category") as ReportCategory | null;
-    const resourceType = url.searchParams.get("resourceType") as ReportResourceType | null;
+    const statusParam = url.searchParams.get("status");
+    const categoryParam = url.searchParams.get("category");
+    const resourceTypeParam = url.searchParams.get("resourceType");
     const page = Number.parseInt(url.searchParams.get("page") || "1", 10);
     const limit = Math.min(Number.parseInt(url.searchParams.get("limit") || "20", 10), 100);
     const offset = (page - 1) * limit;
+
+    // Validate query params before using them
+    const status = isValidReportStatus(statusParam) ? statusParam : null;
+    const category = isValidReportCategory(categoryParam) ? categoryParam : null;
+    const resourceType = isValidReportResourceType(resourceTypeParam) ? resourceTypeParam : null;
 
     // Build filter conditions
     const conditions = [];
