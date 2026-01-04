@@ -1,9 +1,8 @@
-import { Cause, Effect, Exit, Layer } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { AppLive, MissingFieldError } from "@/lib/effect";
-import { mapErrorToResponse } from "@/lib/effect/runtime";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { Effect } from "effect";
+import type { NextRequest } from "next/server";
+import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
+import { MissingFieldError } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { env } from "@/lib/env/server";
@@ -13,9 +12,6 @@ import { env } from "@/lib/env/server";
 // =============================================================================
 
 export async function POST(request: NextRequest) {
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
@@ -60,17 +56,8 @@ export async function POST(request: NextRequest) {
     return result;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToResponse(error.value);
-      }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    },
-    onSuccess: (data) => NextResponse.json(data),
-  });
+  return handleEffectExit(exit);
 }

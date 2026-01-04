@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer, Schema } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
+import { Cause, Effect, Exit, Schema } from "effect";
+import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
+import { createFullLayer } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { auth } from "@/lib/auth";
-import { AppLive, KnowledgeGraphRepository } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { KnowledgeGraphRepository } from "@/lib/effect";
+import { Auth } from "@/lib/effect/services/auth";
 import { validateQueryParams } from "@/lib/validation";
 
 // =============================================================================
@@ -29,11 +29,6 @@ const getTimelineQuerySchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest) {
-  await connection();
-
-  const AuthLayer = makeAuthLayer(auth);
-  const FullLayer = Layer.merge(AppLive, AuthLayer);
-
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
@@ -65,9 +60,10 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
+  // Custom handling for cache headers
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
