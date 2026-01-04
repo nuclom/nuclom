@@ -1,9 +1,8 @@
+import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
 import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { connection } from "next/server";
-import { and, eq, gte, count, sum, sql, desc } from "drizzle-orm";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { videos, decisions, aiActionItems, videoViews, videoSpeakers } from "@/lib/db/schema";
+import { aiActionItems, decisions, videoSpeakers, videos, videoViews } from "@/lib/db/schema";
 
 class DatabaseError {
   readonly _tag = "DatabaseError";

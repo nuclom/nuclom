@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    const { query, organizationId, limit = 20, threshold = 0.7, contentTypes, videoIds, channelIds } = body;
+    const { query, organizationId, limit = 20, threshold = 0.7, contentTypes, videoIds } = body;
 
     if (!query || !query.trim()) {
       return yield* Effect.fail(
