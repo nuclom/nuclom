@@ -1,13 +1,10 @@
 "use client";
 
-import { MessageSquare, Radio } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { startTransition, useCallback, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRealtimeComments } from "@/hooks/use-realtime-comments";
 import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
-import { cn } from "@/lib/utils";
 import { CommentForm } from "./comment-form";
 import { CommentThread } from "./comment-thread";
 
@@ -33,13 +30,6 @@ export function CommentList({
   const router = useRouter();
   const [_isSubmitting, setIsSubmitting] = useState(false);
 
-  // Real-time comments with optimistic updates
-  // Note: addComment, updateComment, removeComment are available for optimistic updates
-  const { comments, isConnected } = useRealtimeComments({
-    videoId,
-    initialComments,
-  });
-
   const handleCreateComment = useCallback(
     async (data: { content: string; timestamp?: string; parentId?: string }) => {
       if (!currentUser) {
@@ -60,7 +50,6 @@ export function CommentList({
           throw new Error(error.error || "Failed to create comment");
         }
 
-        // The real-time event will handle adding the comment
         startTransition(() => {
           router.refresh();
         });
@@ -109,7 +98,7 @@ export function CommentList({
     [router],
   );
 
-  const commentCount = comments.reduce((count, comment) => {
+  const commentCount = initialComments.reduce((count, comment) => {
     return count + 1 + (comment.replies?.length || 0);
   }, 0);
 
@@ -120,16 +109,6 @@ export function CommentList({
           <MessageSquare className="h-4 w-4" />
           Comments ({commentCount})
         </CardTitle>
-        <Badge
-          variant={isConnected ? "default" : "secondary"}
-          className={cn(
-            "text-xs",
-            isConnected && "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-          )}
-        >
-          <Radio className={cn("h-3 w-3 mr-1", isConnected && "animate-pulse")} />
-          {isConnected ? "Live" : "Offline"}
-        </Badge>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* New comment form */}
@@ -155,7 +134,7 @@ export function CommentList({
         )}
 
         {/* Comments list */}
-        {comments.length === 0 ? (
+        {initialComments.length === 0 ? (
           <div className="text-center py-8">
             <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground text-sm">No comments yet</p>
@@ -163,7 +142,7 @@ export function CommentList({
           </div>
         ) : (
           <div className="space-y-4">
-            {comments.map((comment) => (
+            {initialComments.map((comment) => (
               <CommentThread
                 key={comment.id}
                 comment={comment}

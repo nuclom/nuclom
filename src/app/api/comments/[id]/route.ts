@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { CommentRepository, MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
-import { commentEventEmitter } from "@/lib/realtime/comment-events";
 import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
@@ -58,13 +57,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       content: body.content.trim(),
     });
 
-    // Emit real-time event
-    commentEventEmitter.emit(updatedComment.videoId, {
-      type: "updated",
-      comment: updatedComment,
-      videoId: updatedComment.videoId,
-    });
-
     return updatedComment;
   });
 
@@ -88,13 +80,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // Delete comment using repository
     const commentRepo = yield* CommentRepository;
     const deletedComment = yield* commentRepo.deleteComment(id, user.id);
-
-    // Emit real-time event
-    commentEventEmitter.emit(deletedComment.videoId, {
-      type: "deleted",
-      comment: deletedComment,
-      videoId: deletedComment.videoId,
-    });
 
     return { message: "Comment deleted successfully", id: deletedComment.id };
   });

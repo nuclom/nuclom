@@ -19,13 +19,18 @@ vi.mock("@/lib/effect/client", () => ({
 import { runClientEffect } from "@/lib/effect/client";
 
 describe("useEffectQuery", () => {
-  it("should start with loading state when immediate is true", () => {
+  it("should start with loading state when immediate is true", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right({ data: "test" }));
 
     const { result } = renderHook(() => useEffectQuery(() => Effect.succeed({ data: "test" }), { immediate: true }));
 
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toBeNull();
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should not start loading when immediate is false", () => {

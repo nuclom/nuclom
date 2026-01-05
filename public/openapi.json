@@ -7854,42 +7854,6 @@
         }
       }
     },
-    "/videos/{id}/comments/stream": {
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Get stream",
-        "operationId": "getVideoCommentStream",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
     "/videos/{id}/decisions": {
       "get": {
         "tags": [
