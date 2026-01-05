@@ -5,7 +5,7 @@ pre-commit:
   parallel: true
   commands:
     lint:
-      glob: "*.{js,jsx,ts,tsx}"
+      glob: "{src,scripts,e2e}/**/*.{js,jsx,ts,tsx,json}"
       run: pnpm biome check --write {staged_files}
       stage_fixed: true
     tsc:

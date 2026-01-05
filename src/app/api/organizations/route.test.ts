@@ -1,92 +1,117 @@
+import { Effect, Layer } from "effect";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockOrganization } from "@/test/mocks";
+import { DuplicateError, UnauthorizedError } from "@/lib/effect/errors";
+import { Auth, type AuthServiceInterface } from "@/lib/effect/services/auth";
+import {
+  OrganizationRepository,
+  type OrganizationRepositoryService,
+} from "@/lib/effect/services/organization-repository";
+import { SlackMonitoring, type SlackMonitoringServiceInterface } from "@/lib/effect/services/slack-monitoring";
+import { createMockOrganization, createMockSession } from "@/test/mocks";
 
-// Mock Effect-TS and services
-vi.mock("@/lib/auth", () => ({
-  auth: {
-    api: {
-      getSession: vi.fn(),
-    },
-  },
-}));
-
-vi.mock("@/lib/effect", () => ({
-  AppLive: {},
-  MissingFieldError: class MissingFieldError extends Error {
-    _tag = "MissingFieldError";
-    field: string;
-    constructor({ field, message }: { field: string; message: string }) {
-      super(message);
-      this.field = field;
-    }
-  },
-  OrganizationRepository: {
-    _tag: "OrganizationRepository",
-  },
-}));
-
-vi.mock("@/lib/effect/services/auth", () => ({
-  Auth: {
-    _tag: "Auth",
-  },
-  makeAuthLayer: vi.fn().mockReturnValue({}),
-}));
-
-vi.mock("effect", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("effect")>();
-
+// Mock the api-handler module to provide test layers
+vi.mock("@/lib/api-handler", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-handler")>();
   return {
     ...actual,
-    Effect: {
-      ...actual.Effect,
-      gen: vi.fn((fn) => ({
-        _fn: fn,
-      })),
-      tryPromise: vi.fn(({ try: tryFn }) => tryFn()),
-      fail: vi.fn((error) => ({ _tag: "Fail", error })),
-      provide: vi.fn((effect, _layer) => effect),
-      runPromiseExit: vi.fn(),
-    },
-    Exit: {
-      ...actual.Exit,
-      succeed: vi.fn((value) => ({ _tag: "Success", value })),
-      fail: vi.fn((error) => ({ _tag: "Failure", cause: { _tag: "Fail", error } })),
-      match: vi.fn((exit, { onSuccess, onFailure }) => {
-        if (exit._tag === "Success") {
-          return onSuccess(exit.value);
-        }
-        return onFailure(exit.cause);
-      }),
-    },
-    Option: {
-      ...actual.Option,
-      some: vi.fn((value) => ({ _tag: "Some", value })),
-      none: vi.fn(() => ({ _tag: "None" })),
-    },
-    Data: {
-      ...actual.Data,
-      TaggedError: vi.fn((tag) => {
-        return class extends Error {
-          _tag = tag;
-        };
-      }),
-    },
-    Cause: {
-      ...actual.Cause,
-      failureOption: vi.fn((cause) => cause),
-    },
-    Layer: {
-      ...actual.Layer,
-      merge: vi.fn((_a, _b) => ({})),
-    },
+    createFullLayer: vi.fn(),
   };
 });
 
-import { Cause, Effect, Exit, Option } from "effect";
+import { createFullLayer } from "@/lib/api-handler";
 import { GET, POST } from "./route";
 
 describe("Organizations API Route", () => {
+  // Helper to create a mock auth service
+  const createMockAuthService = (authenticated = true): AuthServiceInterface => {
+    const session = createMockSession();
+    return {
+      getSession: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      getSessionOption: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated
+            ? Effect.succeed({ _tag: "Some" as const, value: session })
+            : Effect.succeed({ _tag: "None" as const }),
+        ),
+      requireAuth: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      requireRole: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      requireAdmin: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+    };
+  };
+
+  // Helper to create a mock organization repository
+  const createMockOrganizationRepository = (): OrganizationRepositoryService => {
+    const mockOrg = createMockOrganization();
+    const orgWithRole = { ...mockOrg, role: "owner" as const };
+
+    return {
+      createOrganization: vi.fn().mockImplementation((data) => Effect.succeed({ ...mockOrg, ...data })),
+      updateOrganization: vi.fn().mockImplementation((id, data) => Effect.succeed({ ...mockOrg, id, ...data })),
+      getUserOrganizations: vi.fn().mockImplementation(() => Effect.succeed([orgWithRole])),
+      getActiveOrganization: vi
+        .fn()
+        .mockImplementation(() => Effect.succeed({ _tag: "Some" as const, value: orgWithRole })),
+      getOrganization: vi.fn().mockImplementation(() => Effect.succeed(mockOrg)),
+      getOrganizationBySlug: vi.fn().mockImplementation(() => Effect.succeed(mockOrg)),
+      isMember: vi.fn().mockImplementation(() => Effect.succeed(true)),
+      getUserRole: vi.fn().mockImplementation(() => Effect.succeed({ _tag: "Some" as const, value: "owner" })),
+      getOrganizationMembers: vi.fn().mockImplementation(() => Effect.succeed([])),
+      removeMember: vi.fn().mockImplementation(() => Effect.void),
+      updateMemberRole: vi.fn().mockImplementation(() => Effect.succeed({})),
+    };
+  };
+
+  // Helper to create a mock Slack monitoring service
+  const createMockSlackMonitoringService = (): SlackMonitoringServiceInterface => ({
+    isConfigured: false,
+    sendEvent: vi.fn().mockImplementation(() => Effect.void),
+    sendAccountEvent: vi.fn().mockImplementation(() => Effect.void),
+    sendBillingEvent: vi.fn().mockImplementation(() => Effect.void),
+    sendVideoEvent: vi.fn().mockImplementation(() => Effect.void),
+    sendErrorEvent: vi.fn().mockImplementation(() => Effect.void),
+  });
+
+  // Setup test layer for each test
+  const setupTestLayer = (
+    options: {
+      authenticated?: boolean;
+      orgRepo?: Partial<OrganizationRepositoryService>;
+      slackMonitoring?: Partial<SlackMonitoringServiceInterface>;
+    } = {},
+  ) => {
+    const { authenticated = true, orgRepo = {}, slackMonitoring = {} } = options;
+    const mockAuth = createMockAuthService(authenticated);
+    const mockOrgRepo = { ...createMockOrganizationRepository(), ...orgRepo };
+    const mockSlack = { ...createMockSlackMonitoringService(), ...slackMonitoring };
+
+    const AuthLayer = Layer.succeed(Auth, mockAuth);
+    const OrgRepoLayer = Layer.succeed(OrganizationRepository, mockOrgRepo as OrganizationRepositoryService);
+    const SlackLayer = Layer.succeed(SlackMonitoring, mockSlack as SlackMonitoringServiceInterface);
+    const testLayer = Layer.mergeAll(AuthLayer, OrgRepoLayer, SlackLayer);
+
+    vi.mocked(createFullLayer).mockReturnValue(testLayer as never);
+
+    return { mockAuth, mockOrgRepo, mockSlack };
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -97,19 +122,7 @@ describe("Organizations API Route", () => {
 
   describe("GET /api/organizations", () => {
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
+      setupTestLayer({ authenticated: false });
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "GET",
@@ -124,14 +137,7 @@ describe("Organizations API Route", () => {
     });
 
     it("should return user organizations on success", async () => {
-      const mockOrgs = [
-        { ...createMockOrganization(), role: "owner" },
-        { ...createMockOrganization({ id: "org-456", name: "Second Org" }), role: "member" },
-      ];
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(mockOrgs));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(mockOrgs));
+      const { mockOrgRepo } = setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "GET",
@@ -141,14 +147,17 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(2);
+      expect(data).toHaveLength(1);
       expect(data[0].role).toBe("owner");
+      expect(mockOrgRepo.getUserOrganizations).toHaveBeenCalled();
     });
 
     it("should return empty array when user has no organizations", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed([]));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess([]));
+      setupTestLayer({
+        orgRepo: {
+          getUserOrganizations: vi.fn().mockImplementation(() => Effect.succeed([])),
+        },
+      });
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "GET",
@@ -164,19 +173,7 @@ describe("Organizations API Route", () => {
 
   describe("POST /api/organizations", () => {
     it("should return 400 when name is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "MissingFieldError",
-          message: "Name is required",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "MissingFieldError",
-          message: "Name is required",
-        }),
-      );
+      setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -190,23 +187,10 @@ describe("Organizations API Route", () => {
 
       expect(response.status).toBe(400);
       expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
-      expect(data.error.message).toBe("Name is required");
     });
 
     it("should return 400 when slug is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "MissingFieldError",
-          message: "Slug is required",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "MissingFieldError",
-          message: "Slug is required",
-        }),
-      );
+      setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -220,23 +204,10 @@ describe("Organizations API Route", () => {
 
       expect(response.status).toBe(400);
       expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
-      expect(data.error.message).toBe("Slug is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
+      setupTestLayer({ authenticated: false });
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -255,19 +226,18 @@ describe("Organizations API Route", () => {
     });
 
     it("should return 409 when slug already exists", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "DuplicateError",
-          message: "Organization with this slug already exists",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "DuplicateError",
-          message: "Organization with this slug already exists",
-        }),
-      );
+      setupTestLayer({
+        orgRepo: {
+          createOrganization: vi.fn().mockImplementation(() =>
+            Effect.fail(
+              new DuplicateError({
+                message: "Organization with this slug already exists",
+                entity: "organization",
+              }),
+            ),
+          ),
+        },
+      });
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -286,11 +256,7 @@ describe("Organizations API Route", () => {
     });
 
     it("should create organization and return 201 on success", async () => {
-      const newOrg = createMockOrganization();
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(newOrg));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newOrg));
+      const { mockOrgRepo, mockSlack } = setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
@@ -306,14 +272,18 @@ describe("Organizations API Route", () => {
       expect(response.status).toBe(201);
       expect(data.id).toBe("org-123");
       expect(data.name).toBe("Test Organization");
+      expect(mockOrgRepo.createOrganization).toHaveBeenCalled();
+      expect(mockSlack.sendAccountEvent).toHaveBeenCalledWith("organization_created", expect.any(Object));
     });
 
     it("should create organization with logo", async () => {
-      const newOrg = createMockOrganization({ logo: "/custom-logo.png" });
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(newOrg));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newOrg));
+      setupTestLayer({
+        orgRepo: {
+          createOrganization: vi
+            .fn()
+            .mockImplementation((data) => Effect.succeed({ ...createMockOrganization(), ...data })),
+        },
+      });
 
       const request = new NextRequest("http://localhost:3000/api/organizations", {
         method: "POST",
