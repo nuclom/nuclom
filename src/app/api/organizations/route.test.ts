@@ -33,8 +33,11 @@ vi.mock("@/lib/effect/services/auth", () => ({
   makeAuthLayer: vi.fn().mockReturnValue({}),
 }));
 
-vi.mock("effect", () => {
+vi.mock("effect", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("effect")>();
+
   return {
+    ...actual,
     Effect: {
       gen: vi.fn((fn) => ({
         _fn: fn,

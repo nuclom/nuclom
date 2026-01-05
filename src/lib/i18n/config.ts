@@ -69,11 +69,13 @@ export const localeFlags: Record<Locale, string> = {
  */
 export const rtlLocales: Locale[] = ["ar"];
 
+const localeSet = new Set<string>(locales);
+
 /**
  * Check if a locale is valid
  */
 export function isValidLocale(locale: string): locale is Locale {
-  return locales.includes(locale as Locale);
+  return localeSet.has(locale);
 }
 
 /**

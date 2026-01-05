@@ -196,14 +196,22 @@ interface TaggedError {
   [key: string]: unknown;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isTaggedError(value: unknown): value is TaggedError {
+  return isRecord(value) && typeof value._tag === "string" && typeof value.message === "string";
+}
+
 /**
  * Map any Effect-TS TaggedError to a standardized API response
  * This replaces the mapErrorToResponse function in API routes
  */
 export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResponse> {
   // Handle TaggedError from Effect-TS
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as TaggedError;
+  if (isTaggedError(error)) {
+    const taggedError = error;
     const mapping = errorTagMapping[taggedError._tag];
 
     if (mapping) {
@@ -258,13 +266,16 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
  * Helper to check if a response is an error response
  */
 export function isApiError(response: unknown): response is ApiErrorResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "error" in response &&
-    typeof (response as ApiErrorResponse).error === "object" &&
-    "code" in (response as ApiErrorResponse).error
-  );
+  if (!isRecord(response)) {
+    return false;
+  }
+
+  const errorValue = response.error;
+  if (!isRecord(errorValue)) {
+    return false;
+  }
+
+  return typeof errorValue.code === "string" && typeof errorValue.message === "string";
 }
 
 /**

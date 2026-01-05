@@ -27,13 +27,16 @@ export function isRedisConfigured(): boolean {
  * Returns null if Redis is not configured (falls back to in-memory)
  */
 export function getRedisClient(): Redis | null {
-  if (!isRedisConfigured()) {
+  const url = env.UPSTASH_REDIS_REST_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
     return null;
   }
 
   return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL as string,
-    token: env.UPSTASH_REDIS_REST_TOKEN as string,
+    url,
+    token,
   });
 }
 

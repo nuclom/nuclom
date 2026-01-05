@@ -23,6 +23,16 @@ export default defineConfig({
     },
     testTimeout: 10000,
     hookTimeout: 10000,
+    ...(process.env.CI === "true"
+      ? {
+          poolOptions: {
+            threads: {
+              minThreads: 1,
+              maxThreads: 2,
+            },
+          },
+        }
+      : {}),
   },
   resolve: {
     alias: {

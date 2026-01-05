@@ -19,7 +19,7 @@ import { Database } from "./database";
 export type CommentWithAuthor = Comment & { author: User };
 
 export type CommentWithReplies = CommentWithAuthor & {
-  replies: CommentWithAuthor[];
+  replies: CommentWithReplies[];
 };
 
 export interface CreateCommentInput {
@@ -150,7 +150,7 @@ const makeCommentRepositoryService = Effect.gen(function* () {
           commentMap.set(comment.id, {
             ...comment,
             replies: [],
-          } as CommentWithReplies);
+          });
         }
 
         // Second pass: build the tree structure

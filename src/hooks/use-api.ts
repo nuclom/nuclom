@@ -23,19 +23,25 @@ interface UseApiState<T> {
   error: string | null;
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+
+const isTaggedError = (error: unknown): error is { _tag: string; message: string; status?: number } =>
+  isRecord(error) &&
+  typeof error._tag === "string" &&
+  typeof error.message === "string" &&
+  (error.status === undefined || typeof error.status === "number");
+
 // =============================================================================
 // Helper: Effect Error to Message
 // =============================================================================
 
 const getErrorMessage = (error: unknown): string => {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string; status?: number };
-
-    if (taggedError._tag === "HttpError" && taggedError.status) {
-      return `Failed to fetch data (${taggedError.status})`;
+  if (isTaggedError(error)) {
+    if (error._tag === "HttpError" && error.status) {
+      return `Failed to fetch data (${error.status})`;
     }
 
-    return taggedError.message;
+    return error.message;
   }
 
   if (error instanceof ApiError) {

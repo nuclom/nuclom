@@ -1,4 +1,4 @@
-name: E2E Tests
+name: End-to-End Tests
 
 on:
   push:
@@ -27,15 +27,15 @@ concurrency:
 
 jobs:
   e2e-tests:
-    name: Playwright E2E Tests
+    name: Playwright End-to-End
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Wait for Vercel Preview
+      - name: Wait for Vercel preview
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.deployment_url == ''
         uses: patrickedqvist/wait-for-vercel-preview@v1.3.2
         id: vercel-preview
@@ -44,7 +44,7 @@ jobs:
           max_timeout: 600
           check_interval: 10
 
-      - name: Set deployment URL
+      - name: Resolve deployment URL
         id: deployment
         run: |
           if [ -n "${{ github.event.inputs.deployment_url }}" ]; then
@@ -69,22 +69,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Cache Playwright Browsers
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Run E2E tests
+      - name: Run Playwright tests
         run: pnpm test:e2e
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.deployment.outputs.url }}
           SKIP_AUTH_SETUP: true
 
-      - name: Upload Playwright Report
+      - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -92,7 +92,7 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-      - name: Upload Test Results
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -100,7 +100,7 @@ jobs:
           path: test-results/
           retention-days: 14
 
-      - name: Notify Vercel of E2E status
+      - name: Notify Vercel status
         if: always()
         uses: vercel/repository-dispatch/actions/status@v1
         with:

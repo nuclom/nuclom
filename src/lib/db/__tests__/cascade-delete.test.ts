@@ -14,9 +14,10 @@
  * Then run: pnpm vitest src/lib/db/__tests__/cascade-delete.test.ts
  */
 
+import process from "node:process";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { db } from "../index";
+
 import {
   channels,
   collections,
@@ -37,6 +38,8 @@ import {
   videos,
 } from "../schema";
 
+type DbInstance = typeof import("../index").db;
+
 // Test data IDs
 const testIds = {
   userId: "test-user-cascade-001",
@@ -50,7 +53,19 @@ const testIds = {
   planId: "test-plan-cascade-001",
 };
 
-describe("Cascade Delete Tests", () => {
+const shouldRunDbTests = process.env.RUN_DB_TESTS === "true";
+const describeDb = shouldRunDbTests ? describe : describe.skip;
+
+describeDb("Cascade Delete Tests", () => {
+  let db!: DbInstance;
+
+  beforeEach(async () => {
+    if (!db) {
+      const dbModule = await import("../index");
+      db = dbModule.db;
+    }
+  });
+
   // Setup test data before each test
   beforeEach(async () => {
     // Create test user

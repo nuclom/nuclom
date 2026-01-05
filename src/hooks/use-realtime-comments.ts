@@ -57,7 +57,7 @@ export function useRealtimeComments({
                 reply.id === newComment.parentId
                   ? {
                       ...reply,
-                      replies: [...((reply as CommentWithReplies).replies || []), { ...newComment, replies: [] }],
+                      replies: [...reply.replies, { ...newComment, replies: [] }],
                     }
                   : reply,
               ),
@@ -85,7 +85,7 @@ export function useRealtimeComments({
             return { ...comment, content, updatedAt: new Date() };
           }
           if (comment.replies?.length) {
-            return { ...comment, replies: updateInList(comment.replies as CommentWithReplies[]) };
+            return { ...comment, replies: updateInList(comment.replies) };
           }
           return comment;
         });
@@ -102,7 +102,7 @@ export function useRealtimeComments({
           .filter((comment) => comment.id !== commentId)
           .map((comment) => {
             if (comment.replies?.length) {
-              return { ...comment, replies: removeFromList(comment.replies as CommentWithReplies[]) };
+              return { ...comment, replies: removeFromList(comment.replies) };
             }
             return comment;
           });

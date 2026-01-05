@@ -30,18 +30,17 @@ import {
 // Redis Rate Limiting (disabled if not configured)
 // =============================================================================
 
-function isRedisConfigured(): boolean {
-  return Boolean(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
-}
-
 function createRedisClient(): Redis | null {
-  if (!isRedisConfigured()) {
+  const url = env.UPSTASH_REDIS_REST_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
     return null;
   }
 
   return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL as string,
-    token: env.UPSTASH_REDIS_REST_TOKEN as string,
+    url,
+    token,
   });
 }
 

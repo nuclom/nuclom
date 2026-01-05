@@ -8,7 +8,6 @@
 
 import { type Effect, Either } from "effect";
 import {
-  fetchEffect,
   organizationApiEffect,
   runClientEffect,
   type UploadResult,
@@ -49,21 +48,6 @@ const effectToPromise = async <T>(effect: Effect.Effect<T, HttpError | ParseErro
     onRight: (value) => value,
   });
 };
-
-// =============================================================================
-// Legacy API Functions (Promise-based, uses Effect internally)
-// =============================================================================
-
-const _API_BASE_URL = "/api";
-
-async function _fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const effect = fetchEffect<T>(endpoint, {
-    ...options,
-    body: options?.body ? JSON.parse(options.body as string) : undefined,
-  });
-
-  return effectToPromise(effect);
-}
 
 // =============================================================================
 // Video API Functions

@@ -71,11 +71,12 @@ export function parseQueryParams(url: string | URL): Record<string, unknown> {
 
   searchParams.forEach((value, key) => {
     // Handle array parameters (e.g., ?ids=1&ids=2)
-    if (params[key] !== undefined) {
-      if (Array.isArray(params[key])) {
-        (params[key] as unknown[]).push(value);
+    const existing = params[key];
+    if (existing !== undefined) {
+      if (Array.isArray(existing)) {
+        existing.push(value);
       } else {
-        params[key] = [params[key], value];
+        params[key] = [existing, value];
       }
     } else {
       params[key] = value;

@@ -273,9 +273,10 @@ export function useEffectMutation<T, E, TVariables>(
 export function useErrorMessage(error: unknown): string | null {
   if (!error) return null;
 
-  if (error && typeof error === "object" && "_tag" in error) {
-    const taggedError = error as { _tag: string; message: string };
-    return taggedError.message;
+  if (typeof error === "object" && error !== null && "_tag" in error) {
+    if ("message" in error && typeof error.message === "string") {
+      return error.message;
+    }
   }
 
   if (error instanceof Error) {

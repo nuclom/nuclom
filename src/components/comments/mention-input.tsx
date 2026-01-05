@@ -122,8 +122,10 @@ export function MentionInput({
 
   // Handle selection changes
   const handleSelect = useCallback((e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
-    setCursorPosition(target.selectionStart || 0);
+    const target = e.target;
+    if (target instanceof HTMLTextAreaElement) {
+      setCursorPosition(target.selectionStart || 0);
+    }
   }, []);
 
   // Insert mention at cursor position
@@ -198,11 +200,13 @@ export function MentionInput({
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target;
       if (
+        target instanceof Node &&
         suggestionsRef.current &&
-        !suggestionsRef.current.contains(e.target as Node) &&
+        !suggestionsRef.current.contains(target) &&
         textareaRef.current &&
-        !textareaRef.current.contains(e.target as Node)
+        !textareaRef.current.contains(target)
       ) {
         setShowSuggestions(false);
       }
