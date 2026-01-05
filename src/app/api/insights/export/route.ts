@@ -1,23 +1,10 @@
 import { and, desc, eq, gte } from "drizzle-orm";
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { connection, type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { createPublicLayer } from "@/lib/api-handler";
 import { aiActionItems, decisions, videoSpeakers, videos } from "@/lib/db/schema";
-
-class DatabaseError {
-  readonly _tag = "DatabaseError";
-  constructor(readonly message: string) {}
-}
-
-class UnauthorizedError {
-  readonly _tag = "UnauthorizedError";
-  constructor(readonly message: string) {}
-}
-
-class ValidationError {
-  readonly _tag = "ValidationError";
-  constructor(readonly message: string) {}
-}
+import { DatabaseError, UnauthorizedError, ValidationError } from "@/lib/effect/errors";
+import { Database } from "@/lib/effect/services/database";
 
 function validateQueryParams(searchParams: URLSearchParams) {
   const organizationId = searchParams.get("organizationId");
@@ -26,15 +13,15 @@ function validateQueryParams(searchParams: URLSearchParams) {
   const format = searchParams.get("format") || "csv";
 
   if (!organizationId) {
-    return Effect.fail(new UnauthorizedError("Organization ID is required"));
+    return Effect.fail(new UnauthorizedError({ message: "Organization ID is required" }));
   }
 
   if (!["csv", "json"].includes(format)) {
-    return Effect.fail(new ValidationError("Format must be csv or json"));
+    return Effect.fail(new ValidationError({ message: "Format must be csv or json" }));
   }
 
   if (!["all", "videos", "decisions", "action-items", "speakers"].includes(type)) {
-    return Effect.fail(new ValidationError("Invalid export type"));
+    return Effect.fail(new ValidationError({ message: "Invalid export type" }));
   }
 
   return Effect.succeed({ organizationId, period, type, format });
@@ -75,6 +62,7 @@ export async function GET(request: NextRequest) {
   const program = Effect.gen(function* () {
     const { organizationId, period, type, format } = yield* validateQueryParams(request.nextUrl.searchParams);
     const startDate = getDateRangeForPeriod(period);
+    const { db } = yield* Database;
 
     const exportData: Record<string, unknown> = {};
 
@@ -96,7 +84,7 @@ export async function GET(request: NextRequest) {
             .orderBy(desc(videos.createdAt));
           return result;
         },
-        catch: (error) => new DatabaseError(`Failed to fetch videos: ${error}`),
+        catch: (error) => new DatabaseError({ message: `Failed to fetch videos: ${error}`, operation: "exportVideos" }),
       });
 
       exportData.videos = videoData.map((v) => ({
@@ -129,7 +117,8 @@ export async function GET(request: NextRequest) {
             .orderBy(desc(decisions.createdAt));
           return result;
         },
-        catch: (error) => new DatabaseError(`Failed to fetch decisions: ${error}`),
+        catch: (error) =>
+          new DatabaseError({ message: `Failed to fetch decisions: ${error}`, operation: "exportDecisions" }),
       });
 
       exportData.decisions = decisionData.map((d) => ({
@@ -166,7 +155,8 @@ export async function GET(request: NextRequest) {
             .orderBy(desc(aiActionItems.createdAt));
           return result;
         },
-        catch: (error) => new DatabaseError(`Failed to fetch action items: ${error}`),
+        catch: (error) =>
+          new DatabaseError({ message: `Failed to fetch action items: ${error}`, operation: "exportActionItems" }),
       });
 
       exportData.actionItems = actionItemData.map((a) => ({
@@ -201,7 +191,8 @@ export async function GET(request: NextRequest) {
             .where(and(eq(videos.organizationId, organizationId), gte(videos.createdAt, startDate)));
           return result;
         },
-        catch: (error) => new DatabaseError(`Failed to fetch speakers: ${error}`),
+        catch: (error) =>
+          new DatabaseError({ message: `Failed to fetch speakers: ${error}`, operation: "exportSpeakers" }),
       });
 
       exportData.speakers = speakerData.map((s) => ({
@@ -216,161 +207,167 @@ export async function GET(request: NextRequest) {
     return { exportData, format, type, period };
   });
 
-  const result = await Effect.runPromise(
-    program.pipe(
-      Effect.catchAll((error) => {
-        if (error._tag === "UnauthorizedError") {
-          return Effect.succeed({ error: error.message, status: 401 });
+  // Run with proper layer and exit handling
+  const runnable = Effect.provide(program, createPublicLayer());
+  const exit = await Effect.runPromiseExit(runnable);
+
+  // Handle exit with custom response format for exports
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      if (error._tag === "Some") {
+        const err = error.value;
+        if ("_tag" in err && err._tag === "UnauthorizedError") {
+          return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
-        if (error._tag === "ValidationError") {
-          return Effect.succeed({ error: error.message, status: 400 });
+        if ("_tag" in err && err._tag === "ValidationError") {
+          return NextResponse.json({ success: false, error: err.message }, { status: 400 });
         }
-        return Effect.succeed({ error: error.message, status: 500 });
-      }),
-    ),
-  );
+        const message = "message" in err ? err.message : "Database error";
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
+      }
+      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    },
+    onSuccess: (result) => {
+      const { exportData, format, type, period } = result;
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `insights-export-${type}-${period}-${timestamp}`;
 
-  if ("error" in result) {
-    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
-  }
+      if (format === "json") {
+        return new NextResponse(JSON.stringify(exportData, null, 2), {
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Disposition": `attachment; filename="${filename}.json"`,
+          },
+        });
+      }
 
-  const { exportData, format, type, period } = result;
-  const timestamp = new Date().toISOString().split("T")[0];
-  const filename = `insights-export-${type}-${period}-${timestamp}`;
+      // CSV format - create separate sections or a single merged file
+      const csvSections: string[] = [];
 
-  if (format === "json") {
-    return new NextResponse(JSON.stringify(exportData, null, 2), {
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="${filename}.json"`,
-      },
-    });
-  }
+      if (exportData.videos && Array.isArray(exportData.videos) && exportData.videos.length > 0) {
+        const videosTyped = exportData.videos as Array<{
+          id: string;
+          title: string;
+          description: string;
+          durationSeconds: string;
+          durationMinutes: number;
+          createdAt: string;
+          hasSummary: boolean;
+        }>;
+        csvSections.push("# Videos");
+        csvSections.push(
+          toCSV(
+            ["ID", "Title", "Description", "Duration (min)", "Created At", "Has Summary"],
+            videosTyped.map((v) => [
+              v.id,
+              v.title,
+              v.description,
+              v.durationMinutes,
+              v.createdAt,
+              v.hasSummary ? "Yes" : "No",
+            ]),
+          ),
+        );
+      }
 
-  // CSV format - create separate sections or a single merged file
-  const csvSections: string[] = [];
+      if (exportData.decisions && Array.isArray(exportData.decisions) && exportData.decisions.length > 0) {
+        const decisionsTyped = exportData.decisions as Array<{
+          id: string;
+          summary: string;
+          context: string;
+          status: string;
+          decisionType: string;
+          videoId: string;
+          createdAt: string;
+        }>;
+        csvSections.push("\n# Decisions");
+        csvSections.push(
+          toCSV(
+            ["ID", "Summary", "Context", "Status", "Type", "Video ID", "Created At"],
+            decisionsTyped.map((d) => [d.id, d.summary, d.context, d.status, d.decisionType, d.videoId, d.createdAt]),
+          ),
+        );
+      }
 
-  if (exportData.videos && Array.isArray(exportData.videos) && exportData.videos.length > 0) {
-    const videosTyped = exportData.videos as Array<{
-      id: string;
-      title: string;
-      description: string;
-      durationSeconds: string;
-      durationMinutes: number;
-      createdAt: string;
-      hasSummary: boolean;
-    }>;
-    csvSections.push("# Videos");
-    csvSections.push(
-      toCSV(
-        ["ID", "Title", "Description", "Duration (min)", "Created At", "Has Summary"],
-        videosTyped.map((v) => [
-          v.id,
-          v.title,
-          v.description,
-          v.durationMinutes,
-          v.createdAt,
-          v.hasSummary ? "Yes" : "No",
-        ]),
-      ),
-    );
-  }
+      if (exportData.actionItems && Array.isArray(exportData.actionItems) && exportData.actionItems.length > 0) {
+        const actionItemsTyped = exportData.actionItems as Array<{
+          id: string;
+          title: string;
+          description: string;
+          assignee: string;
+          status: string;
+          priority: string;
+          dueDate: string;
+          completedAt: string;
+          videoId: string;
+          confidence: number | null;
+          createdAt: string;
+        }>;
+        csvSections.push("\n# Action Items");
+        csvSections.push(
+          toCSV(
+            [
+              "ID",
+              "Title",
+              "Description",
+              "Assignee",
+              "Status",
+              "Priority",
+              "Due Date",
+              "Completed At",
+              "Video ID",
+              "Confidence",
+              "Created At",
+            ],
+            actionItemsTyped.map((a) => [
+              a.id,
+              a.title,
+              a.description,
+              a.assignee,
+              a.status,
+              a.priority,
+              a.dueDate,
+              a.completedAt,
+              a.videoId,
+              a.confidence,
+              a.createdAt,
+            ]),
+          ),
+        );
+      }
 
-  if (exportData.decisions && Array.isArray(exportData.decisions) && exportData.decisions.length > 0) {
-    const decisionsTyped = exportData.decisions as Array<{
-      id: string;
-      summary: string;
-      context: string;
-      status: string;
-      decisionType: string;
-      videoId: string;
-      createdAt: string;
-    }>;
-    csvSections.push("\n# Decisions");
-    csvSections.push(
-      toCSV(
-        ["ID", "Summary", "Context", "Status", "Type", "Video ID", "Created At"],
-        decisionsTyped.map((d) => [d.id, d.summary, d.context, d.status, d.decisionType, d.videoId, d.createdAt]),
-      ),
-    );
-  }
+      if (exportData.speakers && Array.isArray(exportData.speakers) && exportData.speakers.length > 0) {
+        const speakersTyped = exportData.speakers as Array<{
+          videoId: string;
+          speakerLabel: string;
+          totalSpeakingTimeSeconds: number;
+          speakingPercentage: number | null;
+          segmentCount: number;
+        }>;
+        csvSections.push("\n# Speakers");
+        csvSections.push(
+          toCSV(
+            ["Video ID", "Speaker Label", "Speaking Time (sec)", "Speaking %", "Segment Count"],
+            speakersTyped.map((s) => [
+              s.videoId,
+              s.speakerLabel,
+              s.totalSpeakingTimeSeconds,
+              s.speakingPercentage,
+              s.segmentCount,
+            ]),
+          ),
+        );
+      }
 
-  if (exportData.actionItems && Array.isArray(exportData.actionItems) && exportData.actionItems.length > 0) {
-    const actionItemsTyped = exportData.actionItems as Array<{
-      id: string;
-      title: string;
-      description: string;
-      assignee: string;
-      status: string;
-      priority: string;
-      dueDate: string;
-      completedAt: string;
-      videoId: string;
-      confidence: number | null;
-      createdAt: string;
-    }>;
-    csvSections.push("\n# Action Items");
-    csvSections.push(
-      toCSV(
-        [
-          "ID",
-          "Title",
-          "Description",
-          "Assignee",
-          "Status",
-          "Priority",
-          "Due Date",
-          "Completed At",
-          "Video ID",
-          "Confidence",
-          "Created At",
-        ],
-        actionItemsTyped.map((a) => [
-          a.id,
-          a.title,
-          a.description,
-          a.assignee,
-          a.status,
-          a.priority,
-          a.dueDate,
-          a.completedAt,
-          a.videoId,
-          a.confidence,
-          a.createdAt,
-        ]),
-      ),
-    );
-  }
+      const csvContent = csvSections.join("\n");
 
-  if (exportData.speakers && Array.isArray(exportData.speakers) && exportData.speakers.length > 0) {
-    const speakersTyped = exportData.speakers as Array<{
-      videoId: string;
-      speakerLabel: string;
-      totalSpeakingTimeSeconds: number;
-      speakingPercentage: number | null;
-      segmentCount: number;
-    }>;
-    csvSections.push("\n# Speakers");
-    csvSections.push(
-      toCSV(
-        ["Video ID", "Speaker Label", "Speaking Time (sec)", "Speaking %", "Segment Count"],
-        speakersTyped.map((s) => [
-          s.videoId,
-          s.speakerLabel,
-          s.totalSpeakingTimeSeconds,
-          s.speakingPercentage,
-          s.segmentCount,
-        ]),
-      ),
-    );
-  }
-
-  const csvContent = csvSections.join("\n");
-
-  return new NextResponse(csvContent, {
-    headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="${filename}.csv"`,
+      return new NextResponse(csvContent, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": `attachment; filename="${filename}.csv"`,
+        },
+      });
     },
   });
 }

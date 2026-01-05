@@ -1,46 +1,46 @@
 import { Effect, Layer, Option } from "effect";
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import type { ActivityType } from "@/lib/db/schema";
+import { AppLive } from "@/lib/effect";
 import { ActivityFeedRepository, ActivityFeedRepositoryLive } from "@/lib/effect/services/activity-feed-repository";
+import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
 
+// Build layers with dependencies
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ActivityLayer = Layer.mergeAll(ActivityFeedRepoWithDeps, OrgRepoWithDeps, DatabaseLive);
+const ActivityLayer = Layer.mergeAll(AppLive, ActivityFeedRepoWithDeps, OrgRepoWithDeps);
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const page = Number.parseInt(searchParams.get("page") ?? "1", 10);
-  const limit = Number.parseInt(searchParams.get("limit") ?? "20", 10);
-  const types = searchParams.get("types")?.split(",") as ActivityType[] | undefined;
-  const actorId = searchParams.get("actorId") ?? undefined;
-  const resourceType = searchParams.get("resourceType") ?? undefined;
-  const resourceId = searchParams.get("resourceId") ?? undefined;
-  const startDateParam = searchParams.get("startDate");
-  const startDate = startDateParam ? new Date(startDateParam) : undefined;
-  const endDateParam = searchParams.get("endDate");
-  const endDate = endDateParam ? new Date(endDateParam) : undefined;
-
-  // Verify the user is authenticated
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function GET(request: NextRequest) {
   const effect = Effect.gen(function* () {
+    // Authenticate using Auth service
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Parse query params
+    const { searchParams } = new URL(request.url);
+    const page = Number.parseInt(searchParams.get("page") ?? "1", 10);
+    const limit = Number.parseInt(searchParams.get("limit") ?? "20", 10);
+    const types = searchParams.get("types")?.split(",") as ActivityType[] | undefined;
+    const actorId = searchParams.get("actorId") ?? undefined;
+    const resourceType = searchParams.get("resourceType") ?? undefined;
+    const resourceId = searchParams.get("resourceId") ?? undefined;
+    const startDateParam = searchParams.get("startDate");
+    const startDate = startDateParam ? new Date(startDateParam) : undefined;
+    const endDateParam = searchParams.get("endDate");
+    const endDate = endDateParam ? new Date(endDateParam) : undefined;
+
     const activityRepo = yield* ActivityFeedRepository;
     const orgRepo = yield* OrganizationRepository;
 
     // Get the user's active organization
-    const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
+    const activeOrgOption = yield* orgRepo.getActiveOrganization(user.id);
 
     if (Option.isNone(activeOrgOption)) {
-      return { data: [], total: 0, page, limit };
+      return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
     const activeOrg = activeOrgOption.value;
@@ -63,11 +63,11 @@ export async function GET(request: Request) {
     };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, ActivityLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[Activity Feed Error]", err);
-    return NextResponse.json({ error: "Failed to fetch activity feed" }, { status: 500 });
-  }
+  // Compose layers with authentication
+  const AuthLayer = makeAuthLayer(auth);
+  const FullLayer = Layer.merge(ActivityLayer, AuthLayer);
+  const runnable = Effect.provide(effect, FullLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+
+  return handleEffectExit(exit);
 }

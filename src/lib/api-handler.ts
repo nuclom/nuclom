@@ -109,6 +109,53 @@ export function handleEffectExitWithStatus<T>(exit: Exit.Exit<T, unknown>, succe
   });
 }
 
+/**
+ * Handle Effect exit with full custom response options
+ *
+ * Use this when you need custom headers, status codes, or other response options.
+ *
+ * @example
+ * return handleEffectExitWithOptions(exit, {
+ *   successStatus: 200,
+ *   successHeaders: { "Cache-Control": "public, max-age=60" },
+ *   errorHeaders: { "Cache-Control": "no-store" },
+ * });
+ */
+export function handleEffectExitWithOptions<T>(
+  exit: Exit.Exit<T, unknown>,
+  options: {
+    successStatus?: number;
+    successHeaders?: Record<string, string>;
+    errorStatus?: number;
+    errorHeaders?: Record<string, string>;
+  } = {},
+): NextResponse {
+  const { successStatus = 200, successHeaders, errorHeaders } = options;
+
+  return Exit.match(exit, {
+    onFailure: (cause) => {
+      const error = Cause.failureOption(cause);
+      const response =
+        error._tag === "Some"
+          ? mapErrorToApiResponse(error.value)
+          : mapErrorToApiResponse(new Error("Internal server error"));
+
+      // Add custom error headers if provided
+      if (errorHeaders) {
+        for (const [key, value] of Object.entries(errorHeaders)) {
+          response.headers.set(key, value);
+        }
+      }
+      return response;
+    },
+    onSuccess: (data) =>
+      NextResponse.json(data, {
+        status: successStatus,
+        headers: successHeaders,
+      }),
+  });
+}
+
 // =============================================================================
 // Re-export commonly used utilities
 // =============================================================================

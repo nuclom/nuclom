@@ -10,6 +10,9 @@ This document tracks Effect-TS pattern violations in the codebase and provides g
 | Manual `Exit.match` instead of `handleEffectExit` | ~46 files | Low |
 | `try/catch` instead of Effect | ~45 files | Medium |
 | `Cause.failureOption` manual handling | ~45 files | Low |
+| `Effect.runPromise` instead of `runPromiseExit` | ~25 files | Medium |
+| Plain class errors (not `Data.TaggedError`) | ~3 files | High |
+| Direct `auth.api.getSession()` instead of Auth service | ~10 files | Medium |
 
 ## Issue Categories
 
@@ -125,6 +128,91 @@ export async function GET() {
 3. Add layer provision and exit handling
 4. Replace catch blocks with Effect error handling
 
+### 4. Effect.runPromise vs runPromiseExit (Medium Priority)
+
+**Problem**: Using `Effect.runPromise` loses error type information and throws exceptions.
+
+**Files affected**: ~25 API routes
+
+**Examples**:
+```typescript
+// BAD: Effect.runPromise loses error information
+try {
+  const result = await Effect.runPromise(Effect.provide(effect, layer));
+  return NextResponse.json(result);
+} catch (err) {
+  return NextResponse.json({ error: "Failed" }, { status: 500 });
+}
+
+// GOOD: Effect.runPromiseExit preserves error information
+const exit = await Effect.runPromiseExit(Effect.provide(effect, layer));
+return handleEffectExit(exit);
+```
+
+**Migration steps**:
+1. Replace `Effect.runPromise` with `Effect.runPromiseExit`
+2. Remove surrounding try/catch
+3. Use `handleEffectExit` or `Exit.match` to handle the exit
+
+### 5. Plain Class Errors (High Priority)
+
+**Problem**: Using plain class errors instead of `Data.TaggedError` loses stack traces and Effect integration.
+
+**Files affected**:
+- ~~`/api/insights/export/route.ts`~~ ✅ Fixed
+- ~~`/lib/effect/services/email-notifications.ts`~~ ✅ Fixed
+- `/lib/api.ts` (acceptable - client-side backwards compatibility)
+
+**Examples**:
+```typescript
+// BAD: Plain class error
+class DatabaseError {
+  readonly _tag = "DatabaseError";
+  constructor(readonly message: string) {}
+}
+
+// GOOD: Data.TaggedError
+export class DatabaseError extends Data.TaggedError("DatabaseError")<{
+  readonly message: string;
+  readonly operation?: string;
+  readonly cause?: unknown;
+}> {}
+```
+
+**Benefits of Data.TaggedError**:
+- Automatically collects stack traces
+- Works with `catchTag`/`catchTags`
+- Integrates with Effect's error handling
+- Provides better debugging information
+
+### 6. Direct Auth Calls (Medium Priority)
+
+**Problem**: Calling `auth.api.getSession()` directly instead of using the Auth service.
+
+**Files affected**: ~10 API routes
+
+**Examples**:
+```typescript
+// BAD: Direct auth call outside Effect
+const session = await auth.api.getSession({ headers: request.headers });
+if (!session?.user) {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
+// GOOD: Auth service inside Effect
+const effect = Effect.gen(function* () {
+  const authService = yield* Auth;
+  const { user } = yield* authService.getSession(request.headers);
+  // user is now available
+});
+```
+
+**Benefits of Auth service**:
+- Consistent error handling with `UnauthorizedError`
+- Type-safe session data
+- Works with Effect's dependency injection
+- Testable with mock layers
+
 ## Priority Files to Migrate
 
 ### High Priority (User-Facing APIs)
@@ -204,9 +292,21 @@ const makeVideoRepository = Effect.gen(function* () {
 
 Update this document as migrations are completed:
 
+### Recently Completed ✅
+
+- [x] `/api/health/route.ts` - Converted to Effect pattern
+- [x] `/api/status/route.ts` - Converted to Effect pattern with Database service
+- [x] `/api/videos/[id]/process/route.ts` - Now uses VideoRepository and handleEffectExit
+- [x] `/api/activity/route.ts` - Now uses Auth service and handleEffectExit
+- [x] `/api/insights/export/route.ts` - Now uses Data.TaggedError and Database service
+- [x] `/lib/effect/services/email-notifications.ts` - EmailError now extends Data.TaggedError
+
+### Pending Migrations
+
 - [ ] `/api/insights/topics/route.ts`
 - [ ] `/api/insights/overview/route.ts`
 - [ ] `/api/insights/keywords/route.ts`
 - [ ] `/api/insights/effectiveness/route.ts`
-- [ ] `/api/status/route.ts`
+- [ ] `/api/insights/patterns/route.ts`
+- [ ] `/api/insights/summary/route.ts`
 - [ ] (Add more as identified)
