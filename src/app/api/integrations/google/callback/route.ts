@@ -7,6 +7,7 @@ import {
   successRedirect,
   validateOAuthCallback,
 } from "@/lib/integrations";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, "google");
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
     await Effect.runPromise(Effect.provide(effect, GoogleIntegrationLayer));
     return successRedirect(organizationId, "google");
   } catch (err) {
-    console.error("[Google Callback Error]", err);
+    logger.error("[Google Callback Error]", err instanceof Error ? err : new Error(String(err)));
     return errorRedirect(organizationId, "google");
   }
 }

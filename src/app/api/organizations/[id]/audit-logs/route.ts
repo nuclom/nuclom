@@ -6,6 +6,7 @@ import { type AuditLogFilters, AuditLogger } from "@/lib/audit-log";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type AuditLogCategory, type AuditLogSeverity, members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 import { safeParse } from "@/lib/validation";
 
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
   } catch (error) {
-    console.error("[Audit] Query error:", error);
+    logger.error("[Audit] Query error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to query audit logs" },
       { status: 500 },
@@ -215,7 +216,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    console.error("[Audit] Export request error:", error);
+    logger.error("[Audit] Export request error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to request export" },
       { status: 500 },

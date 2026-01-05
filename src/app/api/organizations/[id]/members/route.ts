@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
+import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members, users } from "@/lib/db/schema";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import type { ApiResponse } from "@/lib/types";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 const UpdateMemberRoleSchema = Schema.Struct({
@@ -63,7 +63,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(organizationMembers);
   } catch (error) {
-    console.error("Error fetching organization members:", error);
+    logger.error("Failed to fetch organization members", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to fetch organization members" }, { status: 500 });
   }
 }
@@ -100,22 +100,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -153,20 +138,5 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }

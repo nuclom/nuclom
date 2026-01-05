@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { apikeys, comments, notifications, userPreferences, users, videoProgresses, videos } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 
 // =============================================================================
 // POST /api/user/export - Export all user data (GDPR compliance)
@@ -133,7 +134,7 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("Error exporting user data:", error);
+    logger.error("Error exporting user data", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to export data" }, { status: 500 });
   }
 }

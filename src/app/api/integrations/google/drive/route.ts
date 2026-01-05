@@ -12,6 +12,7 @@ import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { type GoogleDriveSearchOptions, GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -160,7 +161,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      console.error("[Google Drive API Error]", cause);
+      logger.error("[Google Drive API Error]", cause instanceof Error ? cause : new Error(String(cause)));
       return NextResponse.json({ success: false, error: "Failed to fetch Google Drive files" }, { status: 500 });
     },
     onSuccess: (data) => {
@@ -286,7 +287,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      console.error("[Google Drive Import Error]", cause);
+      logger.error("[Google Drive Import Error]", cause instanceof Error ? cause : new Error(String(cause)));
       return NextResponse.json({ success: false, error: "Failed to prepare import" }, { status: 500 });
     },
     onSuccess: (data) => {

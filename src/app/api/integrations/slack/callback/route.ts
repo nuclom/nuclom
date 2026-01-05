@@ -7,6 +7,7 @@ import {
   successRedirect,
   validateOAuthCallback,
 } from "@/lib/integrations";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, "slack");
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
     await Effect.runPromise(Effect.provide(effect, SlackIntegrationLayer));
     return successRedirect(organizationId, "slack");
   } catch (err) {
-    console.error("[Slack Callback Error]", err);
+    logger.error("[Slack Callback Error]", err instanceof Error ? err : new Error(String(err)));
     return errorRedirect(organizationId, "slack");
   }
 }

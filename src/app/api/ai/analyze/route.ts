@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { aiService } from "@/lib/ai";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 import { safeParse } from "@/lib/validation";
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error in AI analysis:", error);
+    logger.error("Error in AI analysis", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ success: false, error: "Failed to analyze content" }, { status: 500 });
   }
 }

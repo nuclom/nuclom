@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { connection, type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { organizations, videoShareLinks, videos } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 
 // =============================================================================
 // GET /api/embed/[id] - Get embed video data
@@ -98,7 +99,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return response;
   } catch (error) {
-    console.error("Embed API error:", error);
+    logger.error("Embed API error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

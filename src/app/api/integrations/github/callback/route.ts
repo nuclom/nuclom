@@ -7,6 +7,7 @@ import {
   successRedirect,
   validateOAuthCallback,
 } from "@/lib/integrations";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, "github");
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
     await Effect.runPromise(Effect.provide(effect, GitHubIntegrationLayer));
     return successRedirect(organizationId, "github");
   } catch (err) {
-    console.error("[GitHub Callback Error]", err);
+    logger.error("[GitHub Callback Error]", err instanceof Error ? err : new Error(String(err)));
     return errorRedirect(organizationId, "github");
   }
 }

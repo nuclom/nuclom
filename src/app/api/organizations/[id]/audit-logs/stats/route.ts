@@ -5,6 +5,7 @@ import { AuditLogger } from "@/lib/audit-log";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       data: stats,
     });
   } catch (error) {
-    console.error("[Audit] Stats error:", error);
+    logger.error("[Audit] Stats error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to get audit stats" },
       { status: 500 },

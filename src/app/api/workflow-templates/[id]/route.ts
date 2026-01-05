@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflowTemplates } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 const UpdateTemplateSchema = Schema.Struct({
@@ -34,7 +35,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json({ template });
   } catch (error) {
-    console.error("Get template error:", error);
+    logger.error("Get template error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ template });
   } catch (error) {
-    console.error("Update template error:", error);
+    logger.error("Update template error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -127,7 +128,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete template error:", error);
+    logger.error("Delete template error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -167,7 +168,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
       message: "Template applied successfully",
     });
   } catch (error) {
-    console.error("Apply template error:", error);
+    logger.error("Apply template error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

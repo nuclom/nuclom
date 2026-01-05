@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
 import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 // Validate query parameters against enum values
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Get reports error:", error);
+    logger.error("Get reports error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
   }
 }
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Create report error:", error);
+    logger.error("Create report error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to create report" }, { status: 500 });
   }
 }
@@ -254,7 +255,7 @@ export async function PATCH(request: NextRequest) {
       report: updatedReport,
     });
   } catch (error) {
-    console.error("Update report error:", error);
+    logger.error("Update report error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to update report" }, { status: 500 });
   }
 }
