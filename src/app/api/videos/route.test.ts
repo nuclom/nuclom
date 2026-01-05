@@ -115,15 +115,18 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.code).toBe("VALIDATION_FAILED");
     });
 
     it("should return 401 when user is not authenticated", async () => {
       setupTestLayer({ authenticated: false });
 
-      const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request);
       const data = await response.json();
@@ -136,9 +139,12 @@ describe("Videos API Route", () => {
     it("should return paginated videos on success", async () => {
       const { mockVideoRepo } = setupTestLayer();
 
-      const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request);
       const data = await response.json();
@@ -146,7 +152,7 @@ describe("Videos API Route", () => {
       expect(response.status).toBe(200);
       expect(data.data).toHaveLength(1);
       expect(data.pagination.page).toBe(1);
-      expect(mockVideoRepo.getVideos).toHaveBeenCalledWith("org-123", 1, 20);
+      expect(mockVideoRepo.getVideos).toHaveBeenCalledWith("550e8400-e29b-41d4-a716-446655440000", 1, 20);
     });
   });
 
@@ -158,7 +164,7 @@ describe("Videos API Route", () => {
         method: "POST",
         body: JSON.stringify({
           duration: "10:30",
-          organizationId: "org-123",
+          organizationId: "550e8400-e29b-41d4-a716-446655440000",
         }),
       });
 
@@ -166,7 +172,7 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.code).toBe("VALIDATION_FAILED");
     });
 
     it("should return 400 when duration is missing", async () => {
@@ -176,7 +182,7 @@ describe("Videos API Route", () => {
         method: "POST",
         body: JSON.stringify({
           title: "Test Video",
-          organizationId: "org-123",
+          organizationId: "550e8400-e29b-41d4-a716-446655440000",
         }),
       });
 
@@ -184,7 +190,7 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.code).toBe("VALIDATION_FAILED");
     });
 
     it("should return 401 when user is not authenticated", async () => {
@@ -195,7 +201,7 @@ describe("Videos API Route", () => {
         body: JSON.stringify({
           title: "Test Video",
           duration: "10:30",
-          organizationId: "org-123",
+          organizationId: "550e8400-e29b-41d4-a716-446655440000",
         }),
       });
 
@@ -215,7 +221,7 @@ describe("Videos API Route", () => {
         body: JSON.stringify({
           title: "Test Video",
           duration: "10:30",
-          organizationId: "org-123",
+          organizationId: "550e8400-e29b-41d4-a716-446655440000",
         }),
       });
 
