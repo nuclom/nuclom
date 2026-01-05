@@ -3,17 +3,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { useTranscript } from "./use-transcript";
 
-// Mock fetch globally
+// Store original fetch to restore later
+const originalFetch = global.fetch;
+
+// Create mock fetch
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 describe("useTranscript", () => {
   beforeEach(() => {
+    global.fetch = mockFetch;
     mockFetch.mockClear();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    global.fetch = originalFetch;
   });
 
   const mockTranscriptData = {

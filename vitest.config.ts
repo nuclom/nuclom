@@ -26,7 +26,11 @@ export default defineConfig({
     pool: "forks",
     isolate: true,
     fileParallelism: true,
-    maxWorkers: 4,
+    maxWorkers: 2,
+    // Mock cleanup options to prevent memory leaks
+    clearMocks: true,
+    mockReset: true,
+    restoreMocks: true,
   },
   resolve: {
     alias: {

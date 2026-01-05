@@ -47,9 +47,16 @@ class MockEventSource {
 
   close() {
     this.readyState = 2;
+    // Clear all listeners to prevent memory leaks
+    this.listeners = {};
+    this.onerror = null;
   }
 
   static reset() {
+    // Close all instances before clearing to release listeners
+    for (const instance of MockEventSource.instances) {
+      instance.close();
+    }
     MockEventSource.instances = [];
   }
 }

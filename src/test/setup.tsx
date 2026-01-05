@@ -2,7 +2,7 @@ import process from "node:process";
 import { ReadableStream, TransformStream, WritableStream } from "node:stream/web";
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 
 // Polyfill Web Streams API for Node.js environment
 if (typeof globalThis.TransformStream === "undefined") {
@@ -32,6 +32,11 @@ setEnvDefault("R2_SECRET_ACCESS_KEY", "r2_test_secret_key");
 setEnvDefault("R2_BUCKET_NAME", "r2_test_bucket");
 setEnvDefault("STRIPE_SECRET_KEY", "sk_test_123");
 setEnvDefault("STRIPE_WEBHOOK_SECRET", "whsec_test_123");
+
+// Store original globals before mocking
+const originalResizeObserver = global.ResizeObserver;
+const originalIntersectionObserver = global.IntersectionObserver;
+const originalFetch = global.fetch;
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -82,22 +87,9 @@ Object.defineProperty(window, "matchMedia", {
   })),
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
-
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
-
 // Suppress console errors in tests unless needed
 const originalError = console.error;
+
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
     // Filter out known React warnings in tests
@@ -112,11 +104,46 @@ beforeAll(() => {
   };
 });
 
+// Setup fresh mocks before each test to prevent memory accumulation
+beforeEach(() => {
+  // Create fresh mock implementations for each test
+  global.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+
+  global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+});
+
 afterEach(() => {
+  // Cleanup React Testing Library
   cleanup();
+  // Clear all mock call history and reset implementations
   vi.clearAllMocks();
+  vi.resetAllMocks();
+  // Restore global fetch if it was mocked in individual tests
+  if (global.fetch !== originalFetch && originalFetch) {
+    global.fetch = originalFetch;
+  }
 });
 
 afterAll(() => {
   console.error = originalError;
+  // Restore original globals
+  if (originalResizeObserver) {
+    global.ResizeObserver = originalResizeObserver;
+  }
+  if (originalIntersectionObserver) {
+    global.IntersectionObserver = originalIntersectionObserver;
+  }
+  if (originalFetch) {
+    global.fetch = originalFetch;
+  }
+  // Reset all mocks and restore original implementations
+  vi.restoreAllMocks();
 });
