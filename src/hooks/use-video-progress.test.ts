@@ -37,13 +37,18 @@ describe("useVideoProgress", () => {
     ...overrides,
   });
 
-  it("should start in loading state when enabled", () => {
+  it("should start in loading state when enabled", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right(null));
 
     const { result } = renderHook(() => useVideoProgress({ videoId: "video-123" }));
 
     expect(result.current.loading).toBe(true);
     expect(result.current.initialProgress).toBe(0);
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should not load when disabled", () => {

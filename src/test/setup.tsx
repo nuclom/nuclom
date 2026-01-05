@@ -132,8 +132,12 @@ afterEach(() => {
   }
 });
 
-afterAll(() => {
+afterAll(async () => {
   console.error = originalError;
+
+  // Allow any pending microtasks to complete before cleanup
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
   // Restore original globals
   if (originalResizeObserver) {
     global.ResizeObserver = originalResizeObserver;

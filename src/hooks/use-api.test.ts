@@ -28,7 +28,7 @@ vi.mock("@/lib/api", () => ({
 import { organizationApiEffect, runClientEffect, videoApiEffect } from "@/lib/effect/client";
 
 describe("useVideos", () => {
-  it("should start in loading state", () => {
+  it("should start in loading state", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right({ data: [], total: 0, page: 1, limit: 10 }));
 
     const { result } = renderHook(() => useVideos());
@@ -36,6 +36,11 @@ describe("useVideos", () => {
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toBeNull();
     expect(result.current.error).toBeNull();
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should fetch videos successfully", async () => {
@@ -77,15 +82,20 @@ describe("useVideos", () => {
   it("should pass organizationId parameter", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right({ data: [], total: 0, page: 1, limit: 10 }));
 
-    renderHook(() => useVideos({ organizationId: "org-123" }));
+    const { result } = renderHook(() => useVideos({ organizationId: "org-123" }));
 
     expect(videoApiEffect.getVideos).toHaveBeenCalledWith({ organizationId: "org-123" });
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should pass all filter parameters", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right({ data: [], total: 0, page: 1, limit: 10 }));
 
-    renderHook(() =>
+    const { result } = renderHook(() =>
       useVideos({
         organizationId: "org-123",
         channelId: "channel-456",
@@ -101,6 +111,11 @@ describe("useVideos", () => {
       seriesId: "series-789",
       page: 2,
       limit: 20,
+    });
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
   });
 
@@ -220,12 +235,17 @@ describe("useVideo", () => {
 });
 
 describe("useOrganizations", () => {
-  it("should start in loading state", () => {
+  it("should start in loading state", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right([]));
 
     const { result } = renderHook(() => useOrganizations());
 
     expect(result.current.loading).toBe(true);
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should fetch organizations successfully", async () => {
@@ -248,9 +268,14 @@ describe("useOrganizations", () => {
   it("should pass userId parameter", async () => {
     vi.mocked(runClientEffect).mockResolvedValue(Either.right([]));
 
-    renderHook(() => useOrganizations("user-123"));
+    const { result } = renderHook(() => useOrganizations("user-123"));
 
     expect(organizationApiEffect.getOrganizations).toHaveBeenCalledWith("user-123");
+
+    // Wait for async operation to complete to prevent memory leak
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
   });
 
   it("should handle fetch errors", async () => {
