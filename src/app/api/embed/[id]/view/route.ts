@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { connection, type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { videoShareLinks, videos, videoViews } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 
 // =============================================================================
 // POST /api/embed/[id]/view - Track embed video view
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return response;
   } catch (error) {
-    console.error("Embed view tracking error:", error);
+    logger.error("Embed view tracking error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }

@@ -41,6 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/client-logger";
 import { formatDurationHuman, formatFileSize } from "@/lib/format-utils";
 
 interface Recording {
@@ -125,7 +126,7 @@ export function RecordingBrowser({
         }
         setNextPageToken(data.data.nextPageToken);
       } catch (error) {
-        console.error("Failed to load recordings:", error);
+        logger.error("Failed to load recordings", error);
         toast({
           title: "Error",
           description: error instanceof Error ? error.message : "Failed to load recordings",
@@ -257,7 +258,7 @@ export function RecordingBrowser({
 
       onClose();
     } catch (error) {
-      console.error("Failed to import recordings:", error);
+      logger.error("Failed to import recordings", error);
       toast({
         title: "Import Failed",
         description: error instanceof Error ? error.message : "Failed to import recordings",

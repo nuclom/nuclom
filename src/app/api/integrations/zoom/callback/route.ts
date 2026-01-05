@@ -7,6 +7,7 @@ import {
   validateOAuthCallback,
   ZoomIntegrationLayer,
 } from "@/lib/integrations";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, "zoom");
@@ -49,7 +50,7 @@ export async function GET(request: Request) {
     await Effect.runPromise(Effect.provide(effect, ZoomIntegrationLayer));
     return successRedirect(organizationId, "zoom");
   } catch (err) {
-    console.error("[Zoom Callback Error]", err);
+    logger.error("[Zoom Callback Error]", err instanceof Error ? err : new Error(String(err)));
     return errorRedirect(organizationId, "zoom");
   }
 }

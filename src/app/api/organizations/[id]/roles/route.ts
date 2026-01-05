@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 import { safeParse } from "@/lib/validation";
 
@@ -53,7 +54,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       data: roles,
     });
   } catch (error) {
-    console.error("[RBAC] Get roles error:", error);
+    logger.error("[RBAC] Get roles error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to get roles" },
       { status: 500 },
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: role,
     });
   } catch (error) {
-    console.error("[RBAC] Create role error:", error);
+    logger.error("[RBAC] Create role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to create role" },
       { status: 500 },

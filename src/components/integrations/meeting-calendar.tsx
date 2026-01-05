@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/client-logger";
 
 interface Integration {
   id: string;
@@ -129,7 +130,7 @@ export function MeetingCalendar({
             allEvents.push(...googleEvents);
           }
         } catch (error) {
-          console.error("Failed to load Google Calendar events:", error);
+          logger.error("Failed to load Google Calendar events", error);
         }
       }
 
@@ -163,7 +164,7 @@ export function MeetingCalendar({
             allEvents.push(...zoomEvents);
           }
         } catch (error) {
-          console.error("Failed to load Zoom meetings:", error);
+          logger.error("Failed to load Zoom meetings", error);
         }
       }
 
@@ -171,7 +172,7 @@ export function MeetingCalendar({
       allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
       setEvents(allEvents);
     } catch (error) {
-      console.error("Failed to load calendar events:", error);
+      logger.error("Failed to load calendar events", error);
       toast({
         title: "Error",
         description: "Failed to load calendar events",

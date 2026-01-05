@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { invitations, organizations, users } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -54,7 +55,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[GET /api/invitations/[id]]", error);
+    logger.error("[GET /api/invitations/[id]]", error instanceof Error ? error : new Error(String(error)));
     const response: ApiResponse = {
       success: false,
       error: "Internal server error",

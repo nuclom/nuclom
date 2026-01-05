@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 import { safeParse } from "@/lib/validation";
 
@@ -56,7 +57,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       data: role,
     });
   } catch (error) {
-    console.error("[RBAC] Get role error:", error);
+    logger.error("[RBAC] Get role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to get role" },
       { status: 500 },
@@ -118,7 +119,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       data: updatedRole,
     });
   } catch (error) {
-    console.error("[RBAC] Update role error:", error);
+    logger.error("[RBAC] Update role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to update role" },
       { status: 500 },
@@ -165,7 +166,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       data: { message: "Role deleted successfully" },
     });
   } catch (error) {
-    console.error("[RBAC] Delete role error:", error);
+    logger.error("[RBAC] Delete role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to delete role" },
       { status: 500 },

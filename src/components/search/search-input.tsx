@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { logger } from "@/lib/client-logger";
 import type { SearchSuggestion } from "@/lib/types";
 
 interface SearchInputProps {
@@ -37,7 +38,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
             setSuggestions(data);
           }
         } catch (error) {
-          console.error("Failed to fetch suggestions:", error);
+          logger.error("Failed to fetch suggestions", error);
         }
         return;
       }
@@ -51,7 +52,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
           setSuggestions(data);
         }
       } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
+        logger.error("Failed to fetch suggestions", error);
       }
     };
 

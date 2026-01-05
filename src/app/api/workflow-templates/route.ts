@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type WorkflowTemplateType, workflowTemplates } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 const CreateTemplateSchema = Schema.Struct({
@@ -240,7 +241,7 @@ export async function GET(request: NextRequest) {
       total: allTemplates.length,
     });
   } catch (error) {
-    console.error("Workflow templates error:", error);
+    logger.error("Workflow templates error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -283,7 +284,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ template }, { status: 201 });
   } catch (error) {
-    console.error("Create template error:", error);
+    logger.error("Create template error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

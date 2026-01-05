@@ -14,6 +14,7 @@ import {
   videoProgresses,
   videos,
 } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 
 // Rate limit: 1 export per 24 hours
 const EXPORT_RATE_LIMIT_HOURS = 24;
@@ -195,7 +196,7 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Data export error:", error);
+    logger.error("Data export error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to export data. Please try again later." }, { status: 500 });
   }
 }

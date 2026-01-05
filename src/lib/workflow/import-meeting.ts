@@ -17,6 +17,7 @@ import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/vi
 import { VideoRepository } from "@/lib/effect/services/video-repository";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
 import { formatDuration } from "@/lib/format-utils";
+import { logger } from "@/lib/logger";
 
 // =============================================================================
 // Workflow Input Types
@@ -108,10 +109,15 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
 
       yield* Effect.tryPromise({
         try: async () => {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+            }
+          } finally {
+            // Always release the reader to prevent resource leaks
+            reader.releaseLock();
           }
         },
         catch: (error) => new Error(`Failed to read stream: ${error}`),
@@ -154,7 +160,11 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
     // Step 7: Trigger AI processing in the background (fire and forget)
     const aiEffect = aiProcessor.processVideo(video.id, uploadResult.url, meetingTitle);
     Effect.runPromise(aiEffect).catch((err) => {
-      console.error("[Import Meeting AI Processing Error]", err);
+      logger.error("Import meeting AI processing failed", err instanceof Error ? err : new Error(String(err)), {
+        videoId: video.id,
+        importedMeetingId,
+        provider,
+      });
     });
 
     return {
@@ -192,6 +202,10 @@ export async function triggerImportMeeting(input: ImportMeetingInput): Promise<v
 
   // Run in the background (fire and forget)
   Effect.runPromise(runnable).catch((err) => {
-    console.error("[Import Meeting Error]", err);
+    logger.error("Import meeting workflow failed", err instanceof Error ? err : new Error(String(err)), {
+      importedMeetingId: input.importedMeetingId,
+      provider: input.provider,
+      externalId: input.externalId,
+    });
   });
 }

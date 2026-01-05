@@ -6,6 +6,7 @@ import { organizationRoles } from "@/lib/access-control";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 import { safeParse } from "@/lib/validation";
 
@@ -89,7 +90,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    console.error("[RBAC] Get permissions error:", error);
+    logger.error("[RBAC] Get permissions error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to get permissions" },
       { status: 500 },
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    console.error("[RBAC] Update role error:", error);
+    logger.error("[RBAC] Update role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to update role" },
       { status: 500 },
@@ -227,7 +228,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       data: { message: "User demoted to member role" },
     });
   } catch (error) {
-    console.error("[RBAC] Demote role error:", error);
+    logger.error("[RBAC] Demote role error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to demote role" },
       { status: 500 },

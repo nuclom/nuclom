@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { userPreferences } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 const UpdatePreferencesSchema = Schema.Struct({
@@ -55,7 +56,7 @@ export async function GET() {
 
     return NextResponse.json(preferences);
   } catch (error) {
-    console.error("Error fetching user preferences:", error);
+    logger.error("Error fetching user preferences", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to fetch preferences" }, { status: 500 });
   }
 }
@@ -123,7 +124,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error updating user preferences:", error);
+    logger.error("Error updating user preferences", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to update preferences" }, { status: 500 });
   }
 }

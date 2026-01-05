@@ -69,10 +69,8 @@ export function useVideoPresence({
     if (isUnmountedRef.current) return;
 
     Either.match(result, {
-      onLeft: (err) => {
-        // Silently fail - don't show error for presence
-        console.error("Failed to fetch video presence:", err.message);
-        setError(err.message);
+      onLeft: () => {
+        // Silently fail - presence is not critical
         setLoading(false);
       },
       onRight: (response) => {
@@ -99,9 +97,8 @@ export function useVideoPresence({
       );
 
       Either.match(result, {
-        onLeft: (err) => {
+        onLeft: () => {
           // Silently fail - presence is not critical
-          console.error("Failed to update presence:", err.message);
         },
         onRight: () => {
           // Success - presence updated

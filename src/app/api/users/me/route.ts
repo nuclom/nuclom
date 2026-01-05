@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type ConsentAction, consentAuditLog, userExtensions, users } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 
 // Schema for PATCH request - update user settings
@@ -60,7 +61,7 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json(userData);
   } catch (error) {
-    console.error("Get user error:", error);
+    logger.error("Get user error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to get user data" }, { status: 500 });
   }
 }
@@ -130,7 +131,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Update user error:", error);
+    logger.error("Update user error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
@@ -206,7 +207,7 @@ export async function DELETE(request: NextRequest) {
       gracePeriodDays: DELETION_GRACE_PERIOD_DAYS,
     });
   } catch (error) {
-    console.error("Delete user error:", error);
+    logger.error("Delete user error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to request account deletion" }, { status: 500 });
   }
 }
@@ -282,7 +283,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error) {
-    console.error("Post user error:", error);
+    logger.error("Post user error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: "Failed to process request" }, { status: 500 });
   }
 }

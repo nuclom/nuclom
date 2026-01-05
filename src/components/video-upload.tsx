@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import { logger } from "@/lib/client-logger";
 import { cn } from "@/lib/utils";
 
 interface VideoUploadProps {
@@ -174,7 +175,7 @@ export function VideoUpload({
         throw new Error(result.error || "Upload failed");
       }
     } catch (error) {
-      console.error("Upload error:", error);
+      logger.error("Video upload failed", error);
       setUploadState({
         status: "error",
         progress: 0,

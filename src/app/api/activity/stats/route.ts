@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { ActivityFeedRepository, ActivityFeedRepositoryLive } from "@/lib/effect/services/activity-feed-repository";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
+import { logger } from "@/lib/logger";
 
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
     const result = await Effect.runPromise(Effect.provide(effect, StatsLayer));
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[Activity Stats Error]", err);
+    logger.error("[Activity Stats Error]", err instanceof Error ? err : new Error(String(err)));
     return NextResponse.json({ error: "Failed to fetch activity stats" }, { status: 500 });
   }
 }

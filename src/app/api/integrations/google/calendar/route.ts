@@ -5,6 +5,7 @@ import { UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { logger } from "@/lib/logger";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CalendarLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
         if (err instanceof UnauthorizedError) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
-        console.error("[Google Calendar Error]", err);
+        logger.error("[Google Calendar Error]", err instanceof Error ? err : new Error(String(err)));
       }
       return NextResponse.json({ success: false, error: "Failed to fetch calendar events" }, { status: 500 });
     },

@@ -173,9 +173,9 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 
 ### Adding a New API Endpoint
 
-1. Define the route in `src/lib/openapi/endpoints.ts`
-2. Add route handler in `src/app/api/[...route]/route.ts`
-3. Update types in `src/lib/types/` if needed
+1. Create route handler in `src/app/api/[resource]/route.ts` (following Next.js App Router conventions)
+2. Use Effect-TS pattern with `createFullLayer()` and `handleEffectExit()` helpers
+3. Use repository services for database operations (e.g., `VideoRepository`, `OrganizationRepository`)
 4. Add to API documentation in `docs/public/api/`
 
 ### Adding a New Database Table

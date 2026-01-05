@@ -13,6 +13,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { logger } from "@/lib/client-logger";
 import type { VideoWithAuthor } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +59,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
           setSearchResults(data);
         }
       } catch (error) {
-        console.error("Search failed:", error);
+        logger.error("Search failed", error);
       } finally {
         setIsSearching(false);
       }

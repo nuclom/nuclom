@@ -6,6 +6,7 @@ import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
+import { logger } from "@/lib/logger";
 import { safeParse } from "@/lib/validation";
 import { importMeetingWorkflow } from "@/workflows/import-meeting";
 
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
         accessToken,
       }).catch((err) => {
         // Log but don't fail - workflow will retry on its own
-        console.error("[Meeting Import Workflow Error]", err);
+        logger.error("[Meeting Import Workflow Error]", err instanceof Error ? err : new Error(String(err)));
       });
 
       importResults.push({
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      console.error("[Import Error]", cause);
+      logger.error("[Import Error]", cause instanceof Error ? cause : new Error(String(cause)));
       return NextResponse.json({ success: false, error: "Failed to import recordings" }, { status: 500 });
     },
     onSuccess: (data) => {

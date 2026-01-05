@@ -1,5 +1,6 @@
 import { gateway } from "@ai-sdk/gateway";
 import { generateText, streamText } from "ai";
+import { logger } from "@/lib/logger";
 
 // AI service for video analysis and summaries
 export class AIService {
@@ -29,8 +30,7 @@ Please format the response as:
 
       return text;
     } catch (error) {
-      console.error("Error generating video summary:", error);
-      throw new Error("Failed to generate video summary");
+      throw new Error(`Failed to generate video summary: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -48,7 +48,7 @@ Return only the tags as a comma-separated list.`,
 
       return text.split(",").map((tag) => tag.trim());
     } catch (error) {
-      console.error("Error generating video tags:", error);
+      logger.warn("Failed to generate video tags", { error: error instanceof Error ? error.message : "Unknown error" });
       return [];
     }
   }
@@ -67,7 +67,9 @@ Return each action item on a new line, or "None" if no action items are found.`,
       const items = text.split("\n").filter((item) => item.trim() && !item.includes("None"));
       return items.map((item) => item.replace(/^[-*]\s*/, "").trim());
     } catch (error) {
-      console.error("Error extracting action items:", error);
+      logger.warn("Failed to extract action items", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
       return [];
     }
   }

@@ -149,9 +149,8 @@ export function useVideoProgress({
       isSavingRef.current = false;
 
       Either.match(result, {
-        onLeft: (err) => {
+        onLeft: () => {
           // Silently fail - don't interrupt playback
-          console.error("Failed to save video progress:", err.message);
         },
         onRight: () => {
           lastSavedRef.current = progress.currentTime;
@@ -197,8 +196,8 @@ export function useVideoProgress({
     );
 
     Either.match(result, {
-      onLeft: (err) => {
-        console.error("Failed to mark video as completed:", err.message);
+      onLeft: () => {
+        // Silently fail - don't interrupt user experience
       },
       onRight: () => {
         setWasCompleted(true);

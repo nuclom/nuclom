@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
+import { logger } from "@/lib/logger";
 import { defaultLocale, isValidLocale, type Locale } from "./config";
 
 /**
@@ -10,7 +11,10 @@ async function getMessages(locale: Locale) {
     return (await import(`../../../messages/${locale}.json`)).default;
   } catch {
     // Fallback to English if locale file doesn't exist
-    console.warn(`Locale file for "${locale}" not found, falling back to "${defaultLocale}"`);
+    logger.warn(`Locale file for "${locale}" not found, falling back to "${defaultLocale}"`, {
+      requestedLocale: locale,
+      fallbackLocale: defaultLocale,
+    });
     return (await import(`../../../messages/${defaultLocale}.json`)).default;
   }
 }

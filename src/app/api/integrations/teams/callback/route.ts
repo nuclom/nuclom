@@ -7,6 +7,7 @@ import {
   TeamsIntegrationLayer,
   validateOAuthCallback,
 } from "@/lib/integrations";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, "teams");
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
     await Effect.runPromise(Effect.provide(effect, TeamsIntegrationLayer));
     return successRedirect(organizationId, "teams");
   } catch (err) {
-    console.error("[Teams Callback Error]", err);
+    logger.error("[Teams Callback Error]", err instanceof Error ? err : new Error(String(err)));
     return errorRedirect(organizationId, "teams");
   }
 }

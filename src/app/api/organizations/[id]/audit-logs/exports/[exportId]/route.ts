@@ -5,6 +5,7 @@ import { AuditLogger } from "@/lib/audit-log";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -61,7 +62,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    console.error("[Audit] Export status error:", error);
+    logger.error("[Audit] Export status error", error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
       { success: false, error: error instanceof Error ? error.message : "Failed to get export status" },
       { status: 500 },
