@@ -252,6 +252,68 @@ Required variables (see `.env.example`):
 - `OPENAI_API_KEY` - For AI features
 - OAuth provider keys
 
+## Effect-TS Patterns
+
+This codebase uses Effect-TS for type-safe error handling and dependency injection. See `docs/internal/architecture/effect-best-practices.md` for comprehensive patterns.
+
+### Core Principles
+
+1. **Effects are lazy** - Creating an Effect doesn't execute it; use `Effect.runPromise` or runtime
+2. **Three-channel model** - `Effect<Success, Error, Requirements>` tracks success, failure, and dependencies
+3. **Use `Effect.gen`** - Write sequential async code that looks like async/await
+4. **Separate program from error handling** - Define logic first, handle errors via `.pipe()`
+
+### Service Pattern
+
+```typescript
+// Use Context.Tag for services
+export class VideoRepository extends Context.Tag("VideoRepository")<
+  VideoRepository,
+  VideoRepositoryService
+>() {}
+
+// Use Effect.Service for simpler cases (requires object return type)
+export class ApiService extends Effect.Service<ApiService>()(
+  "ApiService",
+  { effect: Effect.gen(function* () { return { ... }; }) }
+) {}
+```
+
+### Error Handling
+
+```typescript
+// Always use Data.TaggedError
+class NotFoundError extends Data.TaggedError("NotFoundError")<{
+  readonly message: string;
+  readonly entity: string;
+}> {}
+
+// Handle errors close to where they happen
+const result = program.pipe(
+  Effect.catchTag("NotFoundError", (e) => Effect.succeed(null)),
+  Effect.catchTag("ValidationError", (e) => Effect.fail(new BadRequestError({ message: e.message }))),
+);
+```
+
+### Common Footguns to Avoid
+
+| Mistake | Solution |
+|---------|----------|
+| Executing effects mid-chain | Use `yield*` in `Effect.gen`, never `await Effect.runPromise()` inside |
+| Forgetting layers | Always `Effect.provide(effect, layer)` before execution |
+| Long flatMap chains | Use `Effect.gen` for readable sequential code |
+| Direct DB access in routes | Use repository services (`VideoRepository`, `UserRepository`, etc.) |
+| Resource leaks | Use `Effect.acquireRelease` or `Layer.scoped` for cleanup |
+| Unbounded concurrency | Add `{ concurrency: N }` to `Effect.forEach` and similar |
+
+### API Route Checklist
+
+1. Use `Effect.gen` for business logic
+2. Authenticate with `Auth` service
+3. Use repository services (not direct `db` access)
+4. Provide layer with `createFullLayer()` or `createPublicLayer()`
+5. Handle exit with `handleEffectExit()` or `handleEffectExitWithStatus()`
+
 ## Best Practices
 
 ### Do
@@ -263,6 +325,9 @@ Required variables (see `.env.example`):
 - Keep components focused and composable
 - Use proper error boundaries for user-facing errors
 - Test database queries locally before deploying
+- Use repository services instead of direct database access in API routes
+- Use `Data.TaggedError` for all custom error types
+- Handle errors close to where they occur with `catchTag`
 
 ### Don't
 
@@ -272,6 +337,9 @@ Required variables (see `.env.example`):
 - Don't hardcode secrets - use environment variables
 - Don't commit console.log statements
 - Don't bypass authentication in API routes
+- Don't use `await Effect.runPromise()` inside `Effect.gen` blocks
+- Don't create effects without eventually executing them
+- Don't access `db` directly in API routes - use repository services
 
 ## Troubleshooting
 
