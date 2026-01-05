@@ -542,113 +542,158 @@ export function ProtectedRoute({
 
 ## Organization Authorization
 
-### Role-Based Access Control
+Nuclom uses Better Auth's organization plugin with access control for role-based access management.
+
+### Access Control Configuration
 
 ```typescript
-// src/lib/organization-auth.ts
-import { db } from "@/lib/db";
-import { organizationUsers } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+// src/lib/access-control.ts
+import { createAccessControl } from "better-auth/plugins/access";
 
-export type OrganizationRole = "OWNER" | "ADMIN" | "MEMBER";
+// Define all resources and their possible actions
+export const permissionStatement = {
+  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  channel: ["create", "read", "update", "delete", "manage"],
+  collection: ["create", "read", "update", "delete", "share", "manage"],
+  comment: ["create", "read", "update", "delete", "comment"],
+  member: ["read", "invite", "manage", "admin"],
+  settings: ["read", "update", "manage", "admin"],
+  billing: ["read", "update", "manage", "admin"],
+  analytics: ["read"],
+  integration: ["create", "read", "update", "delete", "manage"],
+  audit_log: ["read", "download"],
+  organization: ["update", "delete"],
+  invitation: ["create", "cancel"],
+} as const;
 
-export async function getUserOrganizationRole(
-  userId: string,
-  organizationId: string
-): Promise<OrganizationRole | null> {
-  const result = await db
-    .select({ role: organizationUsers.role })
-    .from(organizationUsers)
-    .where(
-      and(
-        eq(organizationUsers.userId, userId),
-        eq(organizationUsers.organizationId, organizationId)
-      )
-    )
-    .limit(1);
+export const ac = createAccessControl(permissionStatement);
+```
 
-  return result[0]?.role || null;
-}
+### Role Definitions
 
-export async function checkOrganizationPermission(
-  userId: string,
-  organizationId: string,
-  requiredRole: OrganizationRole
-): Promise<boolean> {
-  const userRole = await getUserOrganizationRole(userId, organizationId);
+```typescript
+// src/lib/access-control.ts
 
-  if (!userRole) return false;
+// Owner Role - Full control
+export const ownerRole = ac.newRole({
+  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  channel: ["create", "read", "update", "delete", "manage"],
+  // ... all permissions
+});
 
-  const roleHierarchy = {
-    OWNER: 3,
-    ADMIN: 2,
-    MEMBER: 1,
-  };
+// Admin Role - Administrative access (no billing admin)
+export const adminRole = ac.newRole({
+  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  billing: ["read"], // Read-only billing
+  // ... other permissions
+});
 
-  return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
-}
+// Editor Role - Create and edit content
+export const editorRole = ac.newRole({
+  video: ["create", "read", "update", "share", "download", "comment"],
+  channel: ["read"],
+  // ... limited permissions
+});
 
-export function requireOrganizationRole(requiredRole: OrganizationRole) {
-  return async (userId: string, organizationId: string) => {
-    const hasPermission = await checkOrganizationPermission(
-      userId,
-      organizationId,
-      requiredRole
+// Member Role (Viewer) - Read-only access
+export const memberRole = ac.newRole({
+  video: ["read", "comment", "download"],
+  channel: ["read"],
+  // ... read-only permissions
+});
+
+export const organizationRoles = {
+  owner: ownerRole,
+  admin: adminRole,
+  editor: editorRole,
+  member: memberRole,
+};
+```
+
+### Better Auth Organization Plugin Configuration
+
+```typescript
+// src/lib/auth.ts
+import { ac, organizationRoles } from "@/lib/access-control";
+
+organization({
+  // Access control configuration
+  ac,
+  roles: organizationRoles,
+  // Enable dynamic role creation for custom organization roles
+  dynamicAccessControl: {
+    enabled: true,
+    maximumRolesPerOrganization: 10,
+  },
+  allowUserToCreateOrganization: async () => true,
+  organizationLimit: 5,
+  creatorRole: "owner",
+  membershipLimit: 100,
+  invitationExpiresIn: 60 * 60 * 48, // 48 hours
+}),
+```
+
+### Permission Checking in API Routes
+
+```typescript
+// Example: Check permission in an API route
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+export async function GET(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Check if user has audit_log:read permission
+  const hasPermission = await auth.api.hasPermission({
+    headers: await headers(),
+    body: {
+      permissions: {
+        audit_log: ["read"],
+      },
+    },
+  });
+
+  if (!hasPermission?.success) {
+    return NextResponse.json(
+      { error: "You don't have permission to view audit logs" },
+      { status: 403 },
     );
+  }
 
-    if (!hasPermission) {
-      throw new Error(`Insufficient permissions. Required: ${requiredRole}`);
-    }
-  };
+  // Continue with the request...
 }
 ```
 
-### Organization Access Middleware
+### Client-Side Permission Checking
 
 ```typescript
-// src/middleware/organization-auth.ts
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@/lib/auth-server";
-import { checkOrganizationPermission } from "@/lib/organization-auth";
+// src/lib/auth-client.ts
+import { organizationClient } from "better-auth/client/plugins";
+import { ac, organizationRoles } from "@/lib/access-control";
 
-export async function withOrganizationAuth(
-  request: NextRequest,
-  handler: (request: NextRequest) => Promise<NextResponse>,
-  requiredRole: "OWNER" | "ADMIN" | "MEMBER" = "MEMBER"
-) {
-  const session = await getServerSession();
+export const authClient = createAuthClient({
+  baseURL: getBaseURL(),
+  plugins: [
+    organizationClient({
+      ac,
+      roles: organizationRoles,
+    }),
+    // ... other plugins
+  ],
+});
 
-  if (!session) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
-
-  const organizationId = request.nextUrl.searchParams.get("organizationId");
-
-  if (!organizationId) {
-    return NextResponse.json(
-      { error: "Organization ID required" },
-      { status: 400 }
-    );
-  }
-
-  const hasPermission = await checkOrganizationPermission(
-    session.user.id,
-    organizationId,
-    requiredRole
-  );
-
-  if (!hasPermission) {
-    return NextResponse.json(
-      { error: "Insufficient permissions" },
-      { status: 403 }
-    );
-  }
-
-  return handler(request);
-}
+// Check permission on client
+const canEdit = await authClient.organization.hasPermission({
+  permissions: {
+    video: ["update"],
+  },
+});
 ```
 
 ## Better-Auth Plugins
@@ -1227,34 +1272,88 @@ To enable email verification in production:
 
 ## Enterprise SSO/SAML
 
-Nuclom supports enterprise Single Sign-On through SAML 2.0 and OIDC protocols.
+Nuclom supports enterprise Single Sign-On through the Better Auth SSO plugin (`@better-auth/sso`), which provides SAML 2.0 and OIDC protocols.
 
-### SSO Configuration
-
-Organizations can configure SSO through the settings UI at `/settings/sso` or via the API:
+### SSO Plugin Configuration
 
 ```typescript
-// src/lib/sso.ts
-import { SSOService } from "@/lib/sso";
+// src/lib/auth.ts
+import { sso } from "@better-auth/sso";
 
-// Configure SAML SSO
-await SSOService.configure(organizationId, {
-  type: "saml",
-  entityId: "https://idp.example.com/metadata",
-  ssoUrl: "https://idp.example.com/sso",
-  certificate: "-----BEGIN CERTIFICATE-----...",
-  autoProvisionUsers: true,
-  defaultRole: "member",
-  allowedDomains: ["example.com"],
+sso({
+  // Automatically add users to organizations when they sign in via SSO
+  organizationProvisioning: {
+    disabled: false,
+    defaultRole: "member",
+  },
+  // Enable domain verification for automatic account linking
+  domainVerification: {
+    enabled: true,
+  },
+}),
+```
+
+### Client-Side SSO Configuration
+
+```typescript
+// src/lib/auth-client.ts
+import { ssoClient } from "@better-auth/sso/client";
+
+ssoClient({
+  domainVerification: {
+    enabled: true,
+  },
+}),
+```
+
+### Registering SSO Providers
+
+Organizations can register SSO providers through the settings UI at `/:organization/settings/sso` or via the API:
+
+```typescript
+// Register OIDC provider
+await authClient.sso.register({
+  providerId: "my-company-sso",
+  issuer: "https://idp.example.com",
+  domain: "example.com",
+  organizationId: organization.id,
+  oidcConfig: {
+    clientId: "your-client-id",
+    clientSecret: "your-client-secret",
+    scopes: ["openid", "email", "profile"],
+  },
 });
 
-// Configure OIDC SSO
-await SSOService.configure(organizationId, {
-  type: "oidc",
-  issuerUrl: "https://accounts.google.com",
-  clientId: "your-client-id",
-  clientSecret: "your-client-secret",
-  autoProvisionUsers: true,
+// Register SAML provider
+await authClient.sso.register({
+  providerId: "my-company-saml",
+  issuer: "https://idp.example.com",
+  domain: "example.com",
+  organizationId: organization.id,
+  samlConfig: {
+    entryPoint: "https://idp.example.com/sso",
+    cert: "-----BEGIN CERTIFICATE-----...",
+    callbackUrl: "https://app.nuclom.com/api/auth/sso/saml2/callback/my-company-saml",
+    spMetadata: {},
+  },
+});
+```
+
+### Domain Verification
+
+SSO providers require domain verification before activation:
+
+```typescript
+// Request domain verification token
+const { domainVerificationToken } = await authClient.sso.requestDomainVerification({
+  providerId: "my-company-sso",
+});
+
+// Add DNS TXT record: better-auth-token-{providerId} = {domainVerificationToken}
+
+// Verify domain after DNS propagation
+await authClient.sso.verifyDomain({
+  providerId: "my-company-sso",
 });
 ```
 
@@ -1262,78 +1361,129 @@ await SSOService.configure(organizationId, {
 
 | Endpoint | Description |
 |----------|-------------|
-| `POST /api/organizations/:id/sso/configure` | Configure SSO for organization |
-| `POST /api/organizations/:id/sso/enable` | Enable SSO |
-| `POST /api/organizations/:id/sso/disable` | Disable SSO |
-| `POST /api/organizations/:id/sso/test` | Test SSO configuration |
-| `GET /api/auth/sso/saml/acs/:orgId` | SAML Assertion Consumer Service |
-| `GET /api/auth/sso/saml/metadata/:orgId` | SAML SP Metadata |
-| `GET /api/auth/sso/oidc/callback/:orgId` | OIDC Callback |
+| `POST /api/auth/sso/register` | Register a new SSO provider |
+| `POST /api/auth/sso/request-domain-verification` | Get domain verification token |
+| `POST /api/auth/sso/verify-domain` | Verify domain ownership |
+| `GET /api/auth/sso/callback/:providerId` | OIDC callback URL |
+| `POST /api/auth/sso/saml2/callback/:providerId` | SAML ACS URL |
+| `GET /api/auth/sso/saml2/sp/metadata` | SAML SP Metadata |
 
 ### Supported Identity Providers
 
 - Okta
-- Azure Active Directory
+- Azure Active Directory (Entra ID)
 - Google Workspace
 - OneLogin
 - PingIdentity
+- Auth0
 - Any SAML 2.0 or OIDC compliant provider
 
 ## Advanced RBAC
 
-Nuclom supports granular Role-Based Access Control for enterprise organizations.
+Nuclom uses Better Auth's organization plugin with access control for granular Role-Based Access Control.
 
-### Custom Roles
+### Access Control Configuration
 
-Organizations can create custom roles with specific permissions:
+Permissions and roles are defined in `src/lib/access-control.ts`:
 
 ```typescript
-// src/lib/rbac.ts
-import { RBACService } from "@/lib/rbac";
+// src/lib/access-control.ts
+import { createAccessControl } from "better-auth/plugins/access";
+
+// Define permission statements for all resources
+export const permissionStatement = {
+  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  channel: ["create", "read", "update", "delete", "manage"],
+  collection: ["create", "read", "update", "delete", "share", "manage"],
+  comment: ["create", "read", "update", "delete", "comment"],
+  member: ["read", "invite", "manage", "admin"],
+  settings: ["read", "update", "manage", "admin"],
+  billing: ["read", "update", "manage", "admin"],
+  analytics: ["read"],
+  integration: ["create", "read", "update", "delete", "manage"],
+  audit_log: ["read", "download"],
+  organization: ["update", "delete"],
+  invitation: ["create", "cancel"],
+} as const;
+
+export const ac = createAccessControl(permissionStatement);
+
+// Define roles with their permissions
+export const ownerRole = ac.newRole({
+  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  member: ["read", "invite", "manage", "admin"],
+  settings: ["read", "update", "manage", "admin"],
+  billing: ["read", "update", "manage", "admin"],
+  // ... full permissions
+});
+
+export const memberRole = ac.newRole({
+  video: ["read", "comment"],
+  member: ["read"],
+  settings: ["read"],
+  // ... limited permissions
+});
+```
+
+### Custom Roles (Dynamic)
+
+Organizations can create custom roles using Better Auth's dynamic access control:
+
+```typescript
+// API route to create a custom role
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // Create a custom role
-await RBACService.createRole(organizationId, {
-  name: "Content Manager",
-  description: "Can manage videos and comments",
-  color: "#3b82f6",
-  permissions: [
-    { resource: "videos", action: "read" },
-    { resource: "videos", action: "create" },
-    { resource: "videos", action: "update" },
-    { resource: "videos", action: "delete" },
-    { resource: "comments", action: "read" },
-    { resource: "comments", action: "update" },
-    { resource: "comments", action: "delete" },
-  ],
+await auth.api.createOrgRole({
+  body: {
+    role: {
+      id: "content-manager",
+      permissions: {
+        video: ["create", "read", "update", "delete"],
+        comment: ["read", "update", "delete"],
+        channel: ["read"],
+      },
+    },
+    organizationId,
+  },
+  headers: await headers(),
 });
 
 // Check permission
-const canDelete = await RBACService.checkPermission(
-  userId,
-  organizationId,
-  "videos",
-  "delete"
-);
+const hasPermission = await auth.api.hasPermission({
+  headers: await headers(),
+  body: {
+    permissions: {
+      video: ["delete"],
+    },
+  },
+});
 ```
 
 ### Default Roles
 
 | Role | Description |
 |------|-------------|
-| Owner | Full access to all resources |
-| Admin | Can manage members and most settings |
-| Member | Standard access to organization resources |
-| Viewer | Read-only access |
+| Owner | Full access to all resources and organization management |
+| Admin | Can manage members, settings, and most resources |
+| Editor | Can create and manage content (videos, channels, collections) |
+| Member | Read access with ability to comment |
 
 ### Permission Resources
 
-- `videos` - Video management
-- `comments` - Comment moderation
-- `members` - Member management
+- `video` - Video management (create, read, update, delete, share, download, comment, manage)
+- `channel` - Channel management
+- `collection` - Collection management
+- `comment` - Comment moderation
+- `member` - Member management (read, invite, manage, admin)
 - `settings` - Organization settings
 - `billing` - Billing and subscriptions
 - `analytics` - View analytics
-- `api_keys` - API key management
+- `integration` - Third-party integrations
+- `audit_log` - Audit log access
+- `organization` - Organization-level operations
+- `invitation` - Invitation management
 
 ## Audit Logging
 

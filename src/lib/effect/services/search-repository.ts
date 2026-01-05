@@ -241,6 +241,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             author_suspension_reason: string | null;
             author_stripe_customer_id: string | null;
             author_max_sessions: number | null;
+            author_last_login_method: string | null;
             author_password_changed_at: Date | null;
             headline_title: string | null;
             headline_description: string | null;
@@ -275,6 +276,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               u.suspension_reason as author_suspension_reason,
               u.stripe_customer_id as author_stripe_customer_id,
               u.max_sessions as author_max_sessions,
+              u.last_login_method as author_last_login_method,
               u.password_changed_at as author_password_changed_at,
               ts_headline('english', COALESCE(v.title, ''), plainto_tsquery('english', ${query}),
                 'StartSel=<mark>, StopSel=</mark>, MaxWords=50, MinWords=25') as headline_title,
@@ -363,6 +365,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 suspensionReason: row.author_suspension_reason,
                 stripeCustomerId: row.author_stripe_customer_id,
                 maxSessions: row.author_max_sessions,
+                lastLoginMethod: row.author_last_login_method,
                 passwordChangedAt: row.author_password_changed_at,
               },
             } as VideoWithAuthor,
@@ -445,8 +448,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
                 stripeCustomerId: users.stripeCustomerId,
-                maxSessions: users.maxSessions,
-                passwordChangedAt: users.passwordChangedAt,
+                lastLoginMethod: users.lastLoginMethod,
               },
             })
             .from(videos)
@@ -868,8 +870,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
               stripeCustomerId: users.stripeCustomerId,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(videos)

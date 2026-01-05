@@ -399,8 +399,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(videoClips)
@@ -491,8 +490,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(videoClips)
@@ -578,8 +576,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
-                maxSessions: users.maxSessions,
-                passwordChangedAt: users.passwordChangedAt,
+                lastLoginMethod: users.lastLoginMethod,
               },
             })
             .from(videoClips)
@@ -661,8 +658,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(videoClips)
@@ -821,8 +817,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(highlightReels)
@@ -903,8 +898,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
-                maxSessions: users.maxSessions,
-                passwordChangedAt: users.passwordChangedAt,
+                lastLoginMethod: users.lastLoginMethod,
               },
             })
             .from(highlightReels)
@@ -983,8 +977,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(highlightReels)
@@ -1137,8 +1130,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(quoteCards)
@@ -1216,8 +1208,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
                 warningReason: users.warningReason,
                 suspendedUntil: users.suspendedUntil,
                 suspensionReason: users.suspensionReason,
-                maxSessions: users.maxSessions,
-                passwordChangedAt: users.passwordChangedAt,
+                lastLoginMethod: users.lastLoginMethod,
               },
             })
             .from(quoteCards)
@@ -1291,8 +1282,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
               warningReason: users.warningReason,
               suspendedUntil: users.suspendedUntil,
               suspensionReason: users.suspensionReason,
-              maxSessions: users.maxSessions,
-              passwordChangedAt: users.passwordChangedAt,
+              lastLoginMethod: users.lastLoginMethod,
             },
           })
           .from(quoteCards)

@@ -3,8 +3,7 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { members, type PermissionAction, type PermissionResource } from "@/lib/db/schema";
-import { RBACService } from "@/lib/rbac";
+import { members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -35,7 +34,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const roles = await RBACService.getOrganizationRoles(organizationId);
+    // Use Better Auth's dynamic role listing
+    const roles = await auth.api.listOrgRoles({
+      query: { organizationId },
+      headers: await headers(),
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const { id: organizationId } = await params;
 
-  // Check if user is an owner or admin
+  // Check if user is an owner
   const membership = await db.query.members.findFirst({
     where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
   });
@@ -76,35 +79,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const body = await request.json();
-    const { name, description, color, isDefault, permissions } = body;
+    const { name, permissions } = body;
 
     if (!name) {
       return NextResponse.json<ApiResponse>({ success: false, error: "Role name is required" }, { status: 400 });
     }
 
-    if (!permissions || !Array.isArray(permissions)) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: "Permissions array is required" },
-        { status: 400 },
-      );
-    }
-
-    // Validate permissions format
-    for (const perm of permissions) {
-      if (!perm.resource || !perm.action) {
-        return NextResponse.json<ApiResponse>(
-          { success: false, error: "Each permission must have resource and action" },
-          { status: 400 },
-        );
-      }
-    }
-
-    const role = await RBACService.createRole(
-      organizationId,
-      { name, description, color, isDefault },
-      permissions as Array<{ resource: PermissionResource; action: PermissionAction; conditions?: unknown }>,
-      session.user.id,
-    );
+    // Use Better Auth's dynamic role creation
+    const role = await auth.api.createOrgRole({
+      body: {
+        role: name,
+        permission: permissions,
+        organizationId,
+      },
+      headers: await headers(),
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,

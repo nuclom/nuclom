@@ -3,8 +3,7 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { customRoles, members, type PermissionAction, type PermissionResource } from "@/lib/db/schema";
-import { RBACService } from "@/lib/rbac";
+import { members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -35,11 +34,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const role = await db.query.customRoles.findFirst({
-      where: and(eq(customRoles.id, roleId), eq(customRoles.organizationId, organizationId)),
-      with: {
-        permissions: true,
-      },
+    // Use Better Auth's role retrieval
+    const role = await auth.api.getOrgRole({
+      query: { roleId, organizationId },
+      headers: await headers(),
     });
 
     if (!role) {
@@ -85,50 +83,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   try {
     const body = await request.json();
-    const { name, description, color, isDefault, permissions } = body;
+    const { permissions } = body;
 
-    // Update role metadata
-    if (name !== undefined || description !== undefined || color !== undefined || isDefault !== undefined) {
-      const updateData: Parameters<typeof RBACService.updateRole>[1] = {};
-      if (name !== undefined) updateData.name = name;
-      if (description !== undefined) updateData.description = description;
-      if (color !== undefined) updateData.color = color;
-      if (isDefault !== undefined) updateData.isDefault = isDefault;
-
-      const updatedRole = await RBACService.updateRole(roleId, updateData, session.user.id);
-
-      if (!updatedRole) {
-        return NextResponse.json<ApiResponse>({ success: false, error: "Role not found" }, { status: 404 });
-      }
-    }
-
-    // Update permissions if provided
-    if (permissions !== undefined) {
-      if (!Array.isArray(permissions)) {
-        return NextResponse.json<ApiResponse>(
-          { success: false, error: "Permissions must be an array" },
-          { status: 400 },
-        );
-      }
-
-      await RBACService.updateRolePermissions(
+    // Use Better Auth's role update
+    const updatedRole = await auth.api.updateOrgRole({
+      body: {
         roleId,
-        permissions as Array<{ resource: PermissionResource; action: PermissionAction; conditions?: unknown }>,
-        session.user.id,
-      );
-    }
-
-    // Get updated role
-    const role = await db.query.customRoles.findFirst({
-      where: eq(customRoles.id, roleId),
-      with: {
-        permissions: true,
+        organizationId,
+        data: {
+          permission: permissions,
+        },
       },
+      headers: await headers(),
     });
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: role,
+      data: updatedRole,
     });
   } catch (error) {
     console.error("[RBAC] Update role error:", error);
@@ -164,11 +135,14 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   }
 
   try {
-    const deleted = await RBACService.deleteRole(roleId, session.user.id);
-
-    if (!deleted) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Role not found" }, { status: 404 });
-    }
+    // Use Better Auth's role deletion
+    await auth.api.deleteOrgRole({
+      body: {
+        roleId,
+        organizationId,
+      },
+      headers: await headers(),
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,

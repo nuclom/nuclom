@@ -101,8 +101,7 @@ async function SearchLoader({
         warningReason: users.warningReason,
         suspendedUntil: users.suspendedUntil,
         suspensionReason: users.suspensionReason,
-        maxSessions: users.maxSessions,
-        passwordChangedAt: users.passwordChangedAt,
+        lastLoginMethod: users.lastLoginMethod,
       })
       .from(users)
       .innerJoin(videos, eq(videos.authorId, users.id))

@@ -97,45 +97,50 @@ The CSP is configured to:
 
 ## Session Security
 
-### Session Fingerprinting
+Session security is handled by better-auth's built-in features and plugins.
 
-Sessions are bound to the client's IP address and user agent to detect session hijacking:
+### Session Tracking
 
-```typescript
-// Fingerprint is generated on session creation
-const fingerprint = await generateFingerprint(ipAddress, userAgent);
-```
-
-The fingerprint is stored in the database and validated periodically.
+Sessions automatically track IP address and user agent for each session, which can be viewed by users in their account settings.
 
 ### Concurrent Session Limits
 
-Users are limited to a maximum number of concurrent sessions (default: 5). When a new session is created, the oldest sessions are automatically revoked if the limit is exceeded.
+The `multiSession` plugin limits users to a maximum of 5 concurrent sessions. When a new session is created and the limit is exceeded, the oldest sessions are automatically revoked.
 
 ```typescript
-// Default limit, can be customized per user
-const DEFAULT_MAX_SESSIONS = 5;
+// Configured in auth.ts
+multiSession({
+  maximumSessions: 5,
+});
 ```
 
 ### Session Revocation on Password Change
 
-When a user changes their password, all sessions created before the password change are automatically revoked:
+Use better-auth's built-in `changePassword` function with the `revokeOtherSessions` option:
 
 ```typescript
-// Revoke sessions created before password change
-await revokeSessionsBeforeDate(userId, passwordChangedAt, currentSessionId);
+// Client-side usage
+await authClient.changePassword({
+  currentPassword: "...",
+  newPassword: "...",
+  revokeOtherSessions: true, // Revokes all other sessions
+});
 ```
 
 ### Secure Cookie Settings
 
-Session cookies are configured with secure settings:
+Session cookies are configured with secure settings in better-auth's `advanced` configuration:
 
 ```typescript
-{
-  httpOnly: true,           // Prevents JavaScript access
-  secure: true,             // HTTPS only in production
-  sameSite: "lax",          // CSRF protection
-  path: "/",
+advanced: {
+  cookiePrefix: "nuclom",
+  useSecureCookies: env.NODE_ENV === "production",
+  defaultCookieAttributes: {
+    httpOnly: true,           // Prevents JavaScript access
+    secure: true,             // HTTPS only in production
+    sameSite: "lax",          // CSRF protection
+    path: "/",
+  },
 }
 ```
 
@@ -157,23 +162,21 @@ const trustedOrigins = buildTrustedOrigins();
 ### Session Management
 
 ```
-GET  /api/user/sessions         - List all active sessions
+GET    /api/user/sessions       - List all active sessions
 DELETE /api/user/sessions       - Revoke all sessions except current
-DELETE /api/user/sessions/:id   - Revoke a specific session
-POST /api/user/password         - Handle session revocation on password change
 ```
+
+Password changes with session revocation are handled via better-auth's `/api/auth/change-password` endpoint.
 
 ## Database Schema
 
 The following columns support session security:
 
-### Users Table
-- `passwordChangedAt` - Timestamp of last password change
-- `maxSessions` - Custom session limit for the user (null = default)
-
-### Sessions Table
-- `fingerprint` - SHA-256 hash of IP + user agent
-- `lastFingerprintCheck` - Timestamp of last fingerprint validation
+### Sessions Table (managed by better-auth)
+- `ipAddress` - IP address of the session
+- `userAgent` - User agent string of the session
+- `expiresAt` - Session expiration timestamp
+- `createdAt` - Session creation timestamp
 
 ## Best Practices
 
@@ -295,10 +298,8 @@ GET  /api/organizations/:id/audit-logs/exports/:exportId  - Check export status
 
 - `src/lib/rate-limit.ts` - Rate limiting implementation (Redis + in-memory)
 - `src/lib/redis.ts` - Redis client configuration (Upstash)
-- `src/lib/session-security.ts` - Session security utilities
-- `src/lib/auth.ts` - Authentication configuration
-- `src/lib/sso.ts` - SSO/SAML service
-- `src/lib/rbac.ts` - Role-based access control service
+- `src/lib/auth.ts` - Authentication and session configuration (better-auth)
+- `src/lib/access-control.ts` - Better Auth access control (RBAC) configuration
 - `src/lib/audit-log.ts` - Audit logging service
 - `src/middleware.ts` - Next.js middleware for rate limiting
 - `next.config.ts` - Security headers configuration

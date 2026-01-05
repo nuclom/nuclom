@@ -1,17 +1,29 @@
 "use client";
 
-import { Eye, EyeOff, Github } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Github } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { authClient } from "@/lib/auth-client";
+import { authClient, getLastUsedLoginMethod } from "@/lib/auth-client";
 
 interface LoginFormProps {
   readonly redirectTo?: string;
+}
+
+// Map login method IDs to display labels
+function getLoginMethodLabel(method: string): string {
+  const labels: Record<string, string> = {
+    email: "Email",
+    github: "GitHub",
+    google: "Google",
+    passkey: "Passkey",
+  };
+  return labels[method] ?? method;
 }
 
 export function LoginForm({ redirectTo }: LoginFormProps) {
@@ -20,11 +32,35 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastLoginMethod, setLastLoginMethod] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
   const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
+
+  // Fetch last login method on component mount
+  useEffect(() => {
+    async function fetchLastLoginMethod() {
+      try {
+        const result = await getLastUsedLoginMethod();
+        // Handle different return types from the API
+        if (result) {
+          if (typeof result === "string") {
+            setLastLoginMethod(result);
+          } else if (typeof result === "object") {
+            const data = (result as { data?: string }).data;
+            if (data) {
+              setLastLoginMethod(data);
+            }
+          }
+        }
+      } catch {
+        // Silently ignore errors - this is a convenience feature
+      }
+    }
+    fetchLastLoginMethod();
+  }, []);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +108,14 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
         <CardDescription className="text-center">Sign in to your account to continue</CardDescription>
+        {lastLoginMethod && (
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <Badge variant="secondary" className="gap-1.5">
+              <CheckCircle2 className="h-3 w-3" />
+              Last signed in with {getLoginMethodLabel(lastLoginMethod)}
+            </Badge>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -131,9 +175,15 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGithubLogin} disabled={isLoading}>
+        <Button
+          variant={lastLoginMethod === "github" ? "default" : "outline"}
+          className="w-full"
+          onClick={handleGithubLogin}
+          disabled={isLoading}
+        >
           <Github className="mr-2 h-4 w-4" />
           GitHub
+          {lastLoginMethod === "github" && " (recommended)"}
         </Button>
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">

@@ -60,10 +60,8 @@ export const users = pgTable("users", {
   warningReason: text("warning_reason"),
   suspendedUntil: timestamp("suspended_until"),
   suspensionReason: text("suspension_reason"),
-  // Security: Track password changes for session revocation
-  passwordChangedAt: timestamp("password_changed_at"),
-  // Security: Maximum concurrent sessions allowed (null = use default)
-  maxSessions: integer("max_sessions"),
+  // Last login method tracking (better-auth plugin)
+  lastLoginMethod: text("last_login_method"),
 });
 
 export const sessions = pgTable(
@@ -81,10 +79,6 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     activeOrganizationId: text("active_organization_id"),
     impersonatedBy: text("impersonated_by"),
-    // Session fingerprint for security (hash of IP + user agent)
-    fingerprint: text("fingerprint"),
-    // Track last validated fingerprint to detect session hijacking
-    lastFingerprintCheck: timestamp("last_fingerprint_check"),
   },
   (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
@@ -274,61 +268,8 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const oauthApplications = pgTable(
-  "oauth_applications",
-  {
-    id: text("id").primaryKey(),
-    name: text("name"),
-    icon: text("icon"),
-    metadata: text("metadata"),
-    clientId: text("client_id").unique(),
-    clientSecret: text("client_secret"),
-    redirectUrls: text("redirect_urls"),
-    type: text("type"),
-    disabled: boolean("disabled").default(false),
-    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at"),
-    updatedAt: timestamp("updated_at"),
-  },
-  (table) => [index("oauth_applications_user_id_idx").on(table.userId)],
-);
-
-export const oauthAccessTokens = pgTable(
-  "oauth_access_tokens",
-  {
-    id: text("id").primaryKey(),
-    accessToken: text("access_token").unique(),
-    refreshToken: text("refresh_token").unique(),
-    accessTokenExpiresAt: timestamp("access_token_expires_at"),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-    clientId: text("client_id").references(() => oauthApplications.clientId, { onDelete: "cascade" }),
-    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-    scopes: text("scopes"),
-    createdAt: timestamp("created_at"),
-    updatedAt: timestamp("updated_at"),
-  },
-  (table) => [
-    index("oauth_access_tokens_client_id_idx").on(table.clientId),
-    index("oauth_access_tokens_user_id_idx").on(table.userId),
-  ],
-);
-
-export const oauthConsents = pgTable(
-  "oauth_consents",
-  {
-    id: text("id").primaryKey(),
-    clientId: text("client_id").references(() => oauthApplications.clientId, { onDelete: "cascade" }),
-    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-    scopes: text("scopes"),
-    createdAt: timestamp("created_at"),
-    updatedAt: timestamp("updated_at"),
-    consentGiven: boolean("consent_given"),
-  },
-  (table) => [
-    index("oauth_consents_client_id_idx").on(table.clientId),
-    index("oauth_consents_user_id_idx").on(table.userId),
-  ],
-);
+// OAuth provider tables are managed by better-auth's oauthProvider plugin
+// Run `pnpm db:generate` to create/update the schema
 
 export const channels = pgTable(
   "channels",
@@ -1601,9 +1542,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
   passkeys: many(passkeys),
   preferences: one(userPreferences),
   apiKeys: many(apikeys),
-  oauthApplications: many(oauthApplications),
-  oauthAccessTokens: many(oauthAccessTokens),
-  oauthConsents: many(oauthConsents),
+  // OAuth provider relations are managed by better-auth
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -1670,36 +1609,7 @@ export const apiKeyRelations = relations(apikeys, ({ one }) => ({
   }),
 }));
 
-export const oauthApplicationsRelations = relations(oauthApplications, ({ one, many }) => ({
-  user: one(users, {
-    fields: [oauthApplications.userId],
-    references: [users.id],
-  }),
-  accessTokens: many(oauthAccessTokens),
-  consents: many(oauthConsents),
-}));
-
-export const oauthAccessTokensRelations = relations(oauthAccessTokens, ({ one }) => ({
-  application: one(oauthApplications, {
-    fields: [oauthAccessTokens.clientId],
-    references: [oauthApplications.clientId],
-  }),
-  user: one(users, {
-    fields: [oauthAccessTokens.userId],
-    references: [users.id],
-  }),
-}));
-
-export const oauthConsentsRelations = relations(oauthConsents, ({ one }) => ({
-  application: one(oauthApplications, {
-    fields: [oauthConsents.clientId],
-    references: [oauthApplications.clientId],
-  }),
-  user: one(users, {
-    fields: [oauthConsents.userId],
-    references: [users.id],
-  }),
-}));
+// OAuth provider relations are managed by better-auth's oauthProvider plugin
 
 export const organizationRelations = relations(organizations, ({ one, many }) => ({
   members: many(members),
@@ -3091,12 +3001,7 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
 export type ApiKey = typeof apikeys.$inferSelect;
 export type NewApiKey = typeof apikeys.$inferInsert;
-export type OAuthApplication = typeof oauthApplications.$inferSelect;
-export type NewOAuthApplication = typeof oauthApplications.$inferInsert;
-export type OAuthAccessToken = typeof oauthAccessTokens.$inferSelect;
-export type NewOAuthAccessToken = typeof oauthAccessTokens.$inferInsert;
-export type OAuthConsent = typeof oauthConsents.$inferSelect;
-export type NewOAuthConsent = typeof oauthConsents.$inferInsert;
+// OAuth provider types are managed by better-auth's oauthProvider plugin
 
 // Comment reaction types
 export type ReactionType = (typeof reactionTypeEnum.enumValues)[number];
@@ -3156,134 +3061,9 @@ export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
 // =====================
 // Enterprise Security: Advanced RBAC
 // =====================
-
-// Permission actions enum
-export const permissionActionEnum = pgEnum("PermissionAction", [
-  "create",
-  "read",
-  "update",
-  "delete",
-  "share",
-  "comment",
-  "download",
-  "manage",
-  "invite",
-  "admin",
-]);
-
-// Resource types for permissions
-export const permissionResourceEnum = pgEnum("PermissionResource", [
-  "video",
-  "channel",
-  "collection",
-  "comment",
-  "member",
-  "settings",
-  "billing",
-  "analytics",
-  "integration",
-  "audit_log",
-]);
-
-// Custom roles per organization
-export const customRoles = pgTable(
-  "custom_roles",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    description: text("description"),
-    color: text("color"), // For UI display
-    isDefault: boolean("is_default").default(false).notNull(),
-    isSystemRole: boolean("is_system_role").default(false).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    orgIdx: index("custom_roles_org_idx").on(table.organizationId),
-    uniqueOrgName: unique("custom_roles_org_name_unique").on(table.organizationId, table.name),
-  }),
-);
-
-// Role permissions - what actions a role can perform on resources
-export const rolePermissions = pgTable(
-  "role_permissions",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    roleId: text("role_id")
-      .notNull()
-      .references(() => customRoles.id, { onDelete: "cascade" }),
-    resource: permissionResourceEnum("resource").notNull(),
-    action: permissionActionEnum("action").notNull(),
-    conditions: jsonb("conditions").$type<{
-      ownOnly?: boolean; // Only own resources
-      channelIds?: string[]; // Specific channels
-      collectionIds?: string[]; // Specific collections
-    }>(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    roleIdx: index("role_permissions_role_idx").on(table.roleId),
-    uniqueRoleResourceAction: unique("role_permissions_unique").on(table.roleId, table.resource, table.action),
-  }),
-);
-
-// User role assignments (custom roles)
-export const userRoleAssignments = pgTable(
-  "user_role_assignments",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    roleId: text("role_id")
-      .notNull()
-      .references(() => customRoles.id, { onDelete: "cascade" }),
-    assignedBy: text("assigned_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    userOrgIdx: index("user_role_assignments_user_org_idx").on(table.userId, table.organizationId),
-    uniqueUserOrgRole: unique("user_role_assignments_unique").on(table.userId, table.organizationId, table.roleId),
-  }),
-);
-
-// Resource-level permissions (for specific videos, channels, etc.)
-export const resourcePermissions = pgTable(
-  "resource_permissions",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    resourceType: permissionResourceEnum("resource_type").notNull(),
-    resourceId: text("resource_id").notNull(),
-    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
-    roleId: text("role_id").references(() => customRoles.id, { onDelete: "cascade" }),
-    action: permissionActionEnum("action").notNull(),
-    grantedBy: text("granted_by").references(() => users.id, { onDelete: "set null" }),
-    expiresAt: timestamp("expires_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    resourceIdx: index("resource_permissions_resource_idx").on(table.resourceType, table.resourceId),
-    userIdx: index("resource_permissions_user_idx").on(table.userId),
-    roleIdx: index("resource_permissions_role_idx").on(table.roleId),
-  }),
-);
+// RBAC is now handled by Better Auth's organization plugin with access control
+// See: src/lib/access-control.ts for permission definitions
+// =====================
 
 // =====================
 // Enterprise Security: Comprehensive Audit Logs
@@ -3385,62 +3165,6 @@ export const auditLogExports = pgTable(
   }),
 );
 
-// RBAC Relations
-export const customRolesRelations = relations(customRoles, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [customRoles.organizationId],
-    references: [organizations.id],
-  }),
-  permissions: many(rolePermissions),
-  userAssignments: many(userRoleAssignments),
-  resourcePermissions: many(resourcePermissions),
-}));
-
-export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
-  role: one(customRoles, {
-    fields: [rolePermissions.roleId],
-    references: [customRoles.id],
-  }),
-}));
-
-export const userRoleAssignmentsRelations = relations(userRoleAssignments, ({ one }) => ({
-  user: one(users, {
-    fields: [userRoleAssignments.userId],
-    references: [users.id],
-  }),
-  organization: one(organizations, {
-    fields: [userRoleAssignments.organizationId],
-    references: [organizations.id],
-  }),
-  role: one(customRoles, {
-    fields: [userRoleAssignments.roleId],
-    references: [customRoles.id],
-  }),
-  assignedByUser: one(users, {
-    fields: [userRoleAssignments.assignedBy],
-    references: [users.id],
-  }),
-}));
-
-export const resourcePermissionsRelations = relations(resourcePermissions, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [resourcePermissions.organizationId],
-    references: [organizations.id],
-  }),
-  user: one(users, {
-    fields: [resourcePermissions.userId],
-    references: [users.id],
-  }),
-  role: one(customRoles, {
-    fields: [resourcePermissions.roleId],
-    references: [customRoles.id],
-  }),
-  grantedByUser: one(users, {
-    fields: [resourcePermissions.grantedBy],
-    references: [users.id],
-  }),
-}));
-
 // Workflow template relations
 export const workflowTemplatesRelations = relations(workflowTemplates, ({ one, many }) => ({
   organization: one(organizations, {
@@ -3501,17 +3225,7 @@ export const auditLogExportsRelations = relations(auditLogExports, ({ one }) => 
 
 // Enterprise Security Types
 // SSO types are now managed by @better-auth/sso plugin
-
-export type PermissionAction = (typeof permissionActionEnum.enumValues)[number];
-export type PermissionResource = (typeof permissionResourceEnum.enumValues)[number];
-export type CustomRole = typeof customRoles.$inferSelect;
-export type NewCustomRole = typeof customRoles.$inferInsert;
-export type RolePermission = typeof rolePermissions.$inferSelect;
-export type NewRolePermission = typeof rolePermissions.$inferInsert;
-export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect;
-export type NewUserRoleAssignment = typeof userRoleAssignments.$inferInsert;
-export type ResourcePermission = typeof resourcePermissions.$inferSelect;
-export type NewResourcePermission = typeof resourcePermissions.$inferInsert;
+// RBAC types are now exported from @/lib/access-control
 
 export type AuditLogCategory = (typeof auditLogCategoryEnum.enumValues)[number];
 export type AuditLogSeverity = (typeof auditLogSeverityEnum.enumValues)[number];
