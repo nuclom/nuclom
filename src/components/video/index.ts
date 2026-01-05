@@ -4,6 +4,11 @@
  * Export all video-related components from this file.
  */
 
+export { AddCodeLinkDialog } from "./add-code-link-dialog";
+export { CodeLinks } from "./code-links";
+export { CodeLinksSection } from "./code-links-section";
+export { CreateQuoteCardDialog } from "./create-quote-card-dialog";
+export { QuoteCards } from "./quote-cards";
 export {
   getSpeakerColor,
   type Speaker,
@@ -38,3 +43,4 @@ export {
   VideoPlayerWithProgress,
   type VideoPlayerWithProgressProps,
 } from "./video-player-with-progress";
+export { VideoPresence, type VideoPresenceProps } from "./video-presence";

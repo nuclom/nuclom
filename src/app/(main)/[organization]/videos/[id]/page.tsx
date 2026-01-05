@@ -29,7 +29,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VideoActions, VideoPlayerWithProgress } from "@/components/video";
+import { QuoteCards, VideoActions, VideoPlayerWithProgress } from "@/components/video";
+import { CodeLinksSection } from "@/components/video/code-links-section";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema";
@@ -612,6 +613,9 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
           </Card>
         )}
 
+        {/* Quote Cards Section */}
+        <QuoteCards videoId={video.id} currentUser={currentUser} />
+
         {/* Transcript Section */}
         <Card>
           <CardHeader className="pb-3">
@@ -652,6 +656,9 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
             </CardContent>
           </Card>
         )}
+
+        {/* GitHub Code Links Section */}
+        <CodeLinksSection videoId={video.id} currentUserId={currentUser?.id} />
 
         {/* Comments Section with Real-time Updates */}
         <CommentList

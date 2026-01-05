@@ -3237,68 +3237,6 @@ export const auditLogExports = pgTable(
   }),
 );
 
-// =====================
-// Enterprise Security: Multi-Region Storage
-// =====================
-
-export const storageRegionEnum = pgEnum("StorageRegion", [
-  "us-east-1",
-  "us-west-2",
-  "eu-west-1",
-  "eu-central-1",
-  "ap-southeast-1",
-  "ap-northeast-1",
-  "auto",
-]);
-
-export const organizationStorageConfigs = pgTable(
-  "organization_storage_configs",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" })
-      .unique(),
-    primaryRegion: storageRegionEnum("primary_region").default("auto").notNull(),
-    replicationRegions: jsonb("replication_regions").$type<string[]>(),
-    dataResidency: text("data_residency"), // e.g., "EU", "US", "APAC"
-    encryptionKeyId: text("encryption_key_id"), // Customer-managed encryption key
-    retentionDays: integer("retention_days").default(30), // Default retention for deleted content
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    orgIdx: index("org_storage_configs_org_idx").on(table.organizationId),
-  }),
-);
-
-// Track file locations across regions
-export const fileRegionLocations = pgTable(
-  "file_region_locations",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    fileKey: text("file_key").notNull(),
-    region: storageRegionEnum("region").notNull(),
-    bucketName: text("bucket_name").notNull(),
-    isPrimary: boolean("is_primary").default(false).notNull(),
-    replicationStatus: text("replication_status").default("pending"), // pending, synced, failed
-    lastSyncedAt: timestamp("last_synced_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    fileKeyIdx: index("file_region_locations_file_key_idx").on(table.fileKey),
-    orgIdx: index("file_region_locations_org_idx").on(table.organizationId),
-    uniqueFileRegion: unique("file_region_locations_unique").on(table.fileKey, table.region),
-  }),
-);
-
 // SSO Relations
 export const ssoConfigurationsRelations = relations(ssoConfigurations, ({ one, many }) => ({
   organization: one(organizations, {
@@ -3433,21 +3371,6 @@ export const auditLogExportsRelations = relations(auditLogExports, ({ one }) => 
   }),
 }));
 
-// Storage Config Relations
-export const organizationStorageConfigsRelations = relations(organizationStorageConfigs, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [organizationStorageConfigs.organizationId],
-    references: [organizations.id],
-  }),
-}));
-
-export const fileRegionLocationsRelations = relations(fileRegionLocations, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [fileRegionLocations.organizationId],
-    references: [organizations.id],
-  }),
-}));
-
 // Enterprise Security Types
 export type SSOProviderType = (typeof ssoProviderTypeEnum.enumValues)[number];
 export type SSOConfiguration = typeof ssoConfigurations.$inferSelect;
@@ -3472,12 +3395,6 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
 export type AuditLogExport = typeof auditLogExports.$inferSelect;
 export type NewAuditLogExport = typeof auditLogExports.$inferInsert;
-
-export type StorageRegion = (typeof storageRegionEnum.enumValues)[number];
-export type OrganizationStorageConfig = typeof organizationStorageConfigs.$inferSelect;
-export type NewOrganizationStorageConfig = typeof organizationStorageConfigs.$inferInsert;
-export type FileRegionLocation = typeof fileRegionLocations.$inferSelect;
-export type NewFileRegionLocation = typeof fileRegionLocations.$inferInsert;
 
 // Video Clips Types
 export type ClipType = (typeof clipTypeEnum.enumValues)[number];
