@@ -19,6 +19,16 @@ const setEnvDefault = (key: string, value: string) => {
   }
 };
 
+// Strip quotes from environment variables that may have them as literal characters
+// This fixes issues where vars are set as: VAR="value" (with literal quotes in the value)
+const stripQuotes = (value: string) => value.replace(/^["']|["']$/g, "");
+const quotedEnvVars = ["DATABASE_URL", "NEXT_PUBLIC_BETTER_AUTH_URL", "APP_URL"];
+for (const key of quotedEnvVars) {
+  if (process.env[key]) {
+    process.env[key] = stripQuotes(process.env[key]);
+  }
+}
+
 setEnvDefault("BETTER_AUTH_SECRET", "test-better-auth-secret-32-characters");
 setEnvDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/nuclom_test");
 setEnvDefault("RESEND_API_KEY", "re_test");
