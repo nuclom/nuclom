@@ -10,27 +10,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.tsx"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", "e2e/**/*"],
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["src/**/*.{ts,tsx}"],
-      exclude: [
-        "src/**/*.test.{ts,tsx}",
-        "src/**/*.spec.{ts,tsx}",
-        "src/test/**/*",
-        "src/**/*.d.ts",
-      ],
-    },
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    pool: "forks",
-    isolate: true,
-    fileParallelism: true,
-    maxWorkers: 2,
-    // Mock cleanup options to prevent memory leaks
-    clearMocks: true,
-    mockReset: true,
-    restoreMocks: true,
+    pool: "vmThreads",
   },
   resolve: {
     alias: {
