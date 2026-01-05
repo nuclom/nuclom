@@ -557,6 +557,61 @@ test("should fetch videos", async () => {
 });
 ```
 
+## Pragmatic Exceptions
+
+While the patterns above are recommended, some situations warrant exceptions:
+
+### When Direct `db` Access is Acceptable
+
+| Scenario | Reason |
+|----------|--------|
+| Health check endpoints | Simple connectivity tests, minimal overhead |
+| Webhook idempotency checks | Quick lookups before processing |
+| One-off admin/migration scripts | Temporary code, not worth repository method |
+| Complex raw SQL queries | Performance-critical, hard to abstract |
+
+**Note**: Even when using direct `db`, wrap in `Effect.tryPromise` with proper error types.
+
+### When Manual `Exit.match` is Acceptable
+
+| Scenario | Reason |
+|----------|--------|
+| Custom cache headers | `handleEffectExit` doesn't support headers |
+| Custom HTTP status codes | Beyond standard error mapping |
+| Streaming responses | Different response construction |
+| Webhook responses | External systems expect specific formats |
+
+**Example with custom headers**:
+```typescript
+return Exit.match(exit, {
+  onFailure: (cause) => mapErrorToApiResponse(Cause.failureOption(cause).value),
+  onSuccess: (data) =>
+    NextResponse.json(data, {
+      headers: { "Cache-Control": "public, max-age=60" },
+    }),
+});
+```
+
+### When `try/catch` is Acceptable
+
+| Scenario | Reason |
+|----------|--------|
+| External OAuth callbacks | Must return redirects, specific formats |
+| Integration webhooks | External systems expect specific responses |
+| Simple health probes | Minimal overhead, reliability critical |
+
+**However**: New API routes should default to Effect patterns unless there's a specific reason not to.
+
+## Migration Strategy
+
+For existing code that doesn't follow these patterns, see the [Effect Migration Guide](./effect-migration-guide.md).
+
+**Priority order for migration**:
+1. User-facing APIs with direct `db` access
+2. APIs with complex error scenarios
+3. Internal/admin APIs
+4. Health checks and webhooks (lowest priority)
+
 ## Related Resources
 
 - [Effect Official Documentation](https://effect.website/docs)
@@ -564,3 +619,4 @@ test("should fetch videos", async () => {
 - [TypeOnce Effect + React 19 Course](https://www.typeonce.dev/course/effect-react-19-project-template)
 - [EffectPatterns Repository](https://github.com/PaulJPhilp/EffectPatterns)
 - [Effect-TS Architecture Documentation](./effect-ts.md)
+- [Effect Migration Guide](./effect-migration-guide.md)
