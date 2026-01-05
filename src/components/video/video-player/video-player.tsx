@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { VideoPresence } from "../video-presence";
 import { KeyboardHelpModal } from "./components/keyboard-help-modal";
 import { VideoControls } from "./components/video-controls";
 import {
@@ -369,6 +370,19 @@ export function VideoPlayer({
       <ChapterDisplay chapter={currentChapter} visible={showControls} />
       <LoopIndicator isLooping={isLooping} />
       <KeyboardHelpModal visible={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
+
+      {/* Presence Indicator - Top Right */}
+      {videoId && (
+        <div
+          className={cn(
+            "absolute top-4 right-4 z-10",
+            "transition-opacity duration-300",
+            showControls || !playing ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <VideoPresence videoId={videoId} />
+        </div>
+      )}
 
       {/* Controls Overlay */}
       <div

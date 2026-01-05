@@ -29,6 +29,7 @@ import { type IntegrationRepository, IntegrationRepositoryLive } from "./service
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from "./services/knowledge-graph-repository";
 import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
 import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
+import { type Presence, PresenceLive } from "./services/presence";
 import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
 import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from "./services/semantic-search-repository";
@@ -72,6 +73,7 @@ const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(Layer.mer
 const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
+const PresenceWithDeps = PresenceLive.pipe(Layer.provide(DatabaseLive));
 const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -96,6 +98,7 @@ const AppServicesLive = Layer.mergeAll(
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
   CommentRepositoryWithDeps,
+  PresenceWithDeps,
   NotificationRepositoryWithDeps,
   IntegrationRepositoryWithDeps,
   BillingRepositoryWithDeps,
@@ -126,6 +129,7 @@ export type AppServices =
   | OrganizationRepository
   | VideoProgressRepository
   | CommentRepository
+  | Presence
   | NotificationRepository
   | EmailNotifications
   | IntegrationRepository

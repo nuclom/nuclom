@@ -9,6 +9,12 @@
  * - Resource-efficient sleep for scheduled operations
  */
 
+// Highlight Reel Rendering
+export {
+  type HighlightReelRenderInput,
+  type HighlightReelRenderResult,
+  renderHighlightReelWorkflow,
+} from "./highlight-reel-render";
 // Meeting Import
 export { type ImportMeetingInput, type ImportMeetingResult, importMeetingWorkflow } from "./import-meeting";
 // Scheduled Cleanup
@@ -24,7 +30,6 @@ export {
   type StripeWebhookInput,
   type StripeWebhookResult,
 } from "./stripe-webhooks";
-
 // Subscription Enforcement (daily billing policy enforcement)
 export {
   type EnforcementResult,
