@@ -1,28 +1,30 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { IntegrationProvider } from "@/lib/db/schema";
 import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
 import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
+import { safeParse } from "@/lib/validation";
 import { importMeetingWorkflow } from "@/workflows/import-meeting";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ImportLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive, GoogleMeetLive);
 
-interface ImportRecordingRequest {
-  provider: IntegrationProvider;
-  recordings: Array<{
-    externalId: string;
-    downloadUrl: string;
-    title: string;
-    duration?: number;
-    fileSize?: number;
-    meetingDate?: string;
-  }>;
-}
+const ImportRecordingSchema = Schema.Struct({
+  provider: Schema.Literal("zoom", "google_meet"),
+  recordings: Schema.Array(
+    Schema.Struct({
+      externalId: Schema.String,
+      downloadUrl: Schema.String,
+      title: Schema.String,
+      duration: Schema.optional(Schema.Number),
+      fileSize: Schema.optional(Schema.Number),
+      meetingDate: Schema.optional(Schema.String),
+    }),
+  ),
+});
 
 // =============================================================================
 // POST /api/integrations/import - Import recordings from a provider
@@ -38,21 +40,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse request body
-  let body: ImportRecordingRequest;
+  // Parse and validate request body
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
-  const { provider, recordings } = body;
-
-  if (!provider || !["zoom", "google_meet"].includes(provider)) {
-    return NextResponse.json({ success: false, error: "Invalid provider" }, { status: 400 });
+  const result = safeParse(ImportRecordingSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
   }
+  const { provider, recordings } = result.data;
 
-  if (!recordings || !Array.isArray(recordings) || recordings.length === 0) {
+  if (recordings.length === 0) {
     return NextResponse.json({ success: false, error: "No recordings to import" }, { status: 400 });
   }
 

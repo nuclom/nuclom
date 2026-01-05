@@ -5,16 +5,27 @@
  * This is separate from Meet recordings - allows browsing any video files.
  */
 
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { type GoogleDriveSearchOptions, GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { safeParse } from "@/lib/validation";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const DriveLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);
+
+const ImportDriveFilesSchema = Schema.Struct({
+  files: Schema.Array(
+    Schema.Struct({
+      fileId: Schema.String,
+      name: Schema.String,
+      size: Schema.Number,
+    }),
+  ),
+});
 
 // =============================================================================
 // GET /api/integrations/google/drive - List videos and folders from Google Drive
@@ -162,14 +173,6 @@ export async function GET(request: NextRequest) {
 // POST /api/integrations/google/drive - Import videos from Google Drive
 // =============================================================================
 
-interface ImportDriveVideosRequest {
-  files: Array<{
-    fileId: string;
-    name: string;
-    size: number;
-  }>;
-}
-
 export async function POST(request: NextRequest) {
   // Verify authentication
   const session = await auth.api.getSession({
@@ -180,17 +183,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse request body
-  let body: ImportDriveVideosRequest;
+  // Parse and validate request body
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
-  const { files } = body;
+  const result = safeParse(ImportDriveFilesSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+  }
+  const { files } = result.data;
 
-  if (!files || !Array.isArray(files) || files.length === 0) {
+  if (files.length === 0) {
     return NextResponse.json({ success: false, error: "No files to import" }, { status: 400 });
   }
 

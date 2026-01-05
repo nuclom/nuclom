@@ -1,10 +1,22 @@
-import { Effect, Option } from "effect";
+import { Effect, Option, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { validateRequestBody } from "@/lib/validation";
+
+const CancelSubscriptionSchema = Schema.Struct({
+  organizationId: Schema.String,
+});
+
+const ManageSubscriptionSchema = Schema.Struct({
+  organizationId: Schema.String,
+  action: Schema.Literal("resume", "change_plan"),
+  newPlanId: Schema.optional(Schema.String),
+  billingPeriod: Schema.optional(Schema.Literal("monthly", "yearly")),
+});
 
 // =============================================================================
 // GET /api/billing/subscription - Get current subscription
@@ -63,26 +75,8 @@ export async function DELETE(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { organizationId } = body;
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
+    // Parse and validate body
+    const { organizationId } = yield* validateRequestBody(CancelSubscriptionSchema, request);
 
     // Verify user is owner of organization
     const orgRepo = yield* OrganizationRepository;
@@ -124,26 +118,11 @@ export async function PATCH(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { organizationId, action, newPlanId, billingPeriod } = body;
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
+    // Parse and validate body
+    const { organizationId, action, newPlanId, billingPeriod } = yield* validateRequestBody(
+      ManageSubscriptionSchema,
+      request,
+    );
 
     // Verify user is owner of organization
     const orgRepo = yield* OrganizationRepository;

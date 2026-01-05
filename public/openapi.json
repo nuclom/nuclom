@@ -426,6 +426,9 @@
           "201": {
             "description": "Created successfully"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           }
@@ -447,6 +450,9 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -527,6 +533,9 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -634,6 +643,9 @@
           "201": {
             "description": "Created successfully"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           }
@@ -677,6 +689,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -803,6 +818,9 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -2933,6 +2951,70 @@
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Create organization data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "slug": {
+                    "type": "string",
+                    "description": "a string matching the pattern ^[a-z0-9-]+$",
+                    "title": "maxLength(50)",
+                    "minLength": 1,
+                    "maxLength": 50,
+                    "pattern": "^[a-z0-9-]+$"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string that will be trimmed"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "logo": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Organization created",
@@ -4684,6 +4766,77 @@
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Create sery data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$defs": {
+                  "UUID": {
+                    "type": "string",
+                    "description": "a Universally Unique Identifier",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "name",
+                  "organizationId"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string that will be trimmed"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "thumbnailUrl": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "organizationId": {
+                    "$ref": "#/$defs/UUID"
+                  },
+                  "isPublic": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Series created",
@@ -5121,9 +5274,69 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Patch sery data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string that will be trimmed"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "thumbnailUrl": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "isPublic": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -5297,6 +5510,9 @@
           "200": {
             "description": "Success"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -5338,6 +5554,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"

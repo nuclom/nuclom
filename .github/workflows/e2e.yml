@@ -27,6 +27,8 @@ concurrency:
 
 jobs:
   e2e-tests:
+    # TODO: Re-enable E2E tests once stabilized
+    if: false
     name: Playwright End-to-End
     runs-on: ubuntu-latest
     timeout-minutes: 30

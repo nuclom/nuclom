@@ -1,9 +1,18 @@
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from "@/lib/api-utils";
 import { MissingFieldError, SeriesRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { validateRequestBody } from "@/lib/validation";
+
+const CreateSeriesSchema = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1)),
+  description: Schema.optional(Schema.String),
+  thumbnailUrl: Schema.optional(Schema.String),
+  organizationId: Schema.String,
+  isPublic: Schema.optional(Schema.Boolean),
+});
 
 // =============================================================================
 // GET /api/series - Fetch paginated series for an organization
@@ -63,28 +72,11 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { name, description, thumbnailUrl, organizationId, isPublic } = body;
-
-    // Validate required fields
-    if (!name) {
-      return yield* Effect.fail(new MissingFieldError({ field: "name", message: "Name is required" }));
-    }
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({ field: "organizationId", message: "Organization ID is required" }),
-      );
-    }
+    // Parse and validate request body
+    const { name, description, thumbnailUrl, organizationId, isPublic } = yield* validateRequestBody(
+      CreateSeriesSchema,
+      request,
+    );
 
     // Create series using repository
     const seriesRepo = yield* SeriesRepository;

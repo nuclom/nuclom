@@ -1,18 +1,19 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
+import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { safeParse } from "@/lib/validation";
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SettingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
 
-interface UpdateSettingsRequest {
-  autoImport?: boolean;
-  notifyOnNewRecording?: boolean;
-  importMinDuration?: number;
-}
+const UpdateSettingsSchema = Schema.Struct({
+  autoImport: Schema.optional(Schema.Boolean),
+  notifyOnNewRecording: Schema.optional(Schema.Boolean),
+  importMinDuration: Schema.optional(Schema.Number),
+});
 
 // =============================================================================
 // PATCH /api/integrations/[integrationId]/settings - Update integration settings
@@ -30,13 +31,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse request body
-  let body: UpdateSettingsRequest;
+  // Parse and validate request body
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
+
+  const result = safeParse(UpdateSettingsSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+  }
+  const body = result.data;
 
   const effect = Effect.gen(function* () {
     const integrationRepo = yield* IntegrationRepository;

@@ -1,10 +1,17 @@
 import { and, eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+// Schema for updating role permissions
+const UpdateRolePermissionsSchema = Schema.Struct({
+  permissions: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Array(Schema.String) })),
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/roles/[roleId] - Get role details
@@ -82,16 +89,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   try {
-    const body = await request.json();
-    const { permissions } = body;
+    const rawBody = await request.json();
+    const result = safeParse(UpdateRolePermissionsSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json<ApiResponse>({ success: false, error: "Invalid request format" }, { status: 400 });
+    }
+    const { permissions } = result.data;
 
     // Use Better Auth's role update
+    // Convert readonly record to mutable
+    const mutablePermissions = permissions
+      ? Object.fromEntries(Object.entries(permissions).map(([k, v]) => [k, [...v]]))
+      : undefined;
+
     const updatedRole = await auth.api.updateOrgRole({
       body: {
         roleId,
         organizationId,
         data: {
-          permission: permissions,
+          permission: mutablePermissions,
         },
       },
       headers: await headers(),

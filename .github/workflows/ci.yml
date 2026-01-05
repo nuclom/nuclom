@@ -75,9 +75,13 @@ jobs:
 
       - name: Run unit tests
         run: pnpm test:run
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Collect coverage
         run: pnpm test:coverage
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

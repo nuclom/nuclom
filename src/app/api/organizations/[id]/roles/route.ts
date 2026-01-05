@@ -1,10 +1,18 @@
 import { and, eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+// Schema for creating a role
+const CreateRoleSchema = Schema.Struct({
+  name: Schema.String,
+  permissions: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Array(Schema.String) })),
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/roles - Get all roles
@@ -78,18 +86,27 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const body = await request.json();
-    const { name, permissions } = body;
+    const rawBody = await request.json();
+    const result = safeParse(CreateRoleSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json<ApiResponse>({ success: false, error: "Role name is required" }, { status: 400 });
+    }
+    const { name, permissions } = result.data;
 
     if (!name) {
       return NextResponse.json<ApiResponse>({ success: false, error: "Role name is required" }, { status: 400 });
     }
 
+    // Convert readonly record to mutable
+    const mutablePermissions = permissions
+      ? Object.fromEntries(Object.entries(permissions).map(([k, v]) => [k, [...v]]))
+      : undefined;
+
     // Use Better Auth's dynamic role creation
     const role = await auth.api.createOrgRole({
       body: {
         role: name,
-        permission: permissions,
+        permission: mutablePermissions ?? {},
         organizationId,
       },
       headers: await headers(),

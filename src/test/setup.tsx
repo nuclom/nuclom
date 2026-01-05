@@ -1,6 +1,17 @@
 import process from "node:process";
+import { ReadableStream, TransformStream, WritableStream } from "node:stream/web";
 import "@testing-library/jest-dom";
-import { afterAll, beforeAll, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+
+// Polyfill Web Streams API for Node.js environment
+if (typeof globalThis.TransformStream === "undefined") {
+  // @ts-expect-error - Polyfill for Node.js
+  globalThis.TransformStream = TransformStream;
+  // @ts-expect-error - Polyfill for Node.js
+  globalThis.ReadableStream = ReadableStream;
+  globalThis.WritableStream = WritableStream;
+}
 
 const setEnvDefault = (key: string, value: string) => {
   if (!process.env[key]) {
@@ -99,6 +110,11 @@ beforeAll(() => {
     }
     originalError.apply(console, args);
   };
+});
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
 });
 
 afterAll(() => {

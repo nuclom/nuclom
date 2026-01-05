@@ -119,7 +119,8 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
+      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
+      expect(data.error.message).toBe("Unauthorized");
     });
 
     it("should return user organizations on success", async () => {
@@ -188,7 +189,8 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Name is required");
+      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.message).toBe("Name is required");
     });
 
     it("should return 400 when slug is missing", async () => {
@@ -217,7 +219,8 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Slug is required");
+      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.message).toBe("Slug is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
@@ -247,7 +250,8 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
+      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
+      expect(data.error.message).toBe("Unauthorized");
     });
 
     it("should return 409 when slug already exists", async () => {
@@ -277,7 +281,8 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(409);
-      expect(data.error).toBe("Organization with this slug already exists");
+      expect(data.error.code).toBe("CONFLICT_DUPLICATE");
+      expect(data.error.message).toBe("Organization with this slug already exists");
     });
 
     it("should create organization and return 201 on success", async () => {

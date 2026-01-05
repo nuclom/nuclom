@@ -125,7 +125,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Organization ID is required");
+      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.message).toBe("Organization ID is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
@@ -151,7 +152,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
+      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
+      expect(data.error.message).toBe("Unauthorized");
     });
 
     it("should return paginated videos on success", async () => {
@@ -210,7 +212,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Title is required");
+      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.message).toBe("Title is required");
     });
 
     it("should return 400 when duration is missing", async () => {
@@ -240,7 +243,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Duration is required");
+      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.message).toBe("Duration is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
@@ -271,7 +275,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
+      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
+      expect(data.error.message).toBe("Unauthorized");
     });
 
     it("should create video and return 201 on success", async () => {

@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { type AuditLogFilters, AuditLogger } from "@/lib/audit-log";
@@ -6,6 +7,22 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type AuditLogCategory, type AuditLogSeverity, members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+// Schema for export request
+const ExportRequestSchema = Schema.Struct({
+  format: Schema.Literal("csv", "json"),
+  filters: Schema.optional(
+    Schema.Struct({
+      startDate: Schema.optional(Schema.String),
+      endDate: Schema.optional(Schema.String),
+      categories: Schema.optional(Schema.Array(Schema.String)),
+      actions: Schema.optional(Schema.Array(Schema.String)),
+      actorIds: Schema.optional(Schema.Array(Schema.String)),
+      severity: Schema.optional(Schema.Array(Schema.String)),
+    }),
+  ),
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/audit-logs - Query audit logs
@@ -164,25 +181,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const body = await request.json();
-    const { format, filters } = body;
-
-    if (!format || (format !== "csv" && format !== "json")) {
+    const rawBody = await request.json();
+    const result = safeParse(ExportRequestSchema, rawBody);
+    if (!result.success) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: "Format must be 'csv' or 'json'" },
         { status: 400 },
       );
     }
+    const { format, filters } = result.data;
 
     // Build filters
     const exportFilters: AuditLogFilters = {};
     if (filters) {
       if (filters.startDate) exportFilters.startDate = new Date(filters.startDate);
       if (filters.endDate) exportFilters.endDate = new Date(filters.endDate);
-      if (filters.categories) exportFilters.categories = filters.categories;
-      if (filters.actions) exportFilters.actions = filters.actions;
-      if (filters.actorIds) exportFilters.actorIds = filters.actorIds;
-      if (filters.severity) exportFilters.severity = filters.severity;
+      if (filters.categories) exportFilters.categories = [...filters.categories] as AuditLogCategory[];
+      if (filters.actions) exportFilters.actions = [...filters.actions];
+      if (filters.actorIds) exportFilters.actorIds = [...filters.actorIds];
+      if (filters.severity) exportFilters.severity = [...filters.severity] as AuditLogSeverity[];
     }
 
     const exportId = await AuditLogger.requestExport(organizationId, session.user.id, {

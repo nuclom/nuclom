@@ -1,10 +1,17 @@
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError, OrganizationRepository } from "@/lib/effect";
+import { OrganizationRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
+import { validateRequestBody } from "@/lib/validation";
+
+const CreateOrganizationSchema = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1)),
+  slug: Schema.String.pipe(Schema.minLength(1)),
+  logo: Schema.optional(Schema.String),
+});
 
 // =============================================================================
 // GET /api/organizations - Get user's organizations
@@ -37,24 +44,7 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { name, slug, logo } = body;
-
-    if (!name) {
-      return yield* Effect.fail(new MissingFieldError({ field: "name", message: "Name is required" }));
-    }
-
-    if (!slug) {
-      return yield* Effect.fail(new MissingFieldError({ field: "slug", message: "Slug is required" }));
-    }
+    const { name, slug, logo } = yield* validateRequestBody(CreateOrganizationSchema, request);
 
     const orgRepo = yield* OrganizationRepository;
     const org = yield* orgRepo.createOrganization({

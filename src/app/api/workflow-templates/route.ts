@@ -1,9 +1,22 @@
 import { and, desc, eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type WorkflowTemplateType, workflowTemplates } from "@/lib/db/schema";
+import { safeParse } from "@/lib/validation";
+
+const CreateTemplateSchema = Schema.Struct({
+  name: Schema.String,
+  description: Schema.optional(Schema.String),
+  type: Schema.optional(
+    Schema.Literal("meeting_recap", "tutorial", "product_demo", "training", "onboarding", "marketing", "custom"),
+  ),
+  icon: Schema.optional(Schema.String),
+  config: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+  organizationId: Schema.String,
+});
 
 // Default system templates
 const SYSTEM_TEMPLATES = [
@@ -246,12 +259,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, description, type, icon, config, organizationId } = body;
-
-    if (!name || !config || !organizationId) {
+    const rawBody = await request.json();
+    const result = safeParse(CreateTemplateSchema, rawBody);
+    if (!result.success) {
       return NextResponse.json({ error: "Name, config, and organizationId are required" }, { status: 400 });
     }
+    const { name, description, type, icon, config, organizationId } = result.data;
 
     const [template] = await db
       .insert(workflowTemplates)
@@ -260,7 +273,7 @@ export async function POST(request: NextRequest) {
         description,
         type: type || "custom",
         icon,
-        config,
+        config: { ...config },
         organizationId,
         createdById: session.user.id,
         isSystem: false,

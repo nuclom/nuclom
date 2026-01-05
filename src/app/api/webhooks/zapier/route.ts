@@ -1,14 +1,29 @@
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer, Option, Schema } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { ZapierWebhookEvent } from "@/lib/db/schema";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
+import { safeParse } from "@/lib/validation";
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const WebhooksLayer = Layer.mergeAll(ZapierWebhooksWithDeps, OrgRepoWithDeps, DatabaseLive);
+
+const CreateWebhookSchema = Schema.Struct({
+  targetUrl: Schema.String,
+  events: Schema.Array(
+    Schema.Literal(
+      "video.uploaded",
+      "video.processed",
+      "video.shared",
+      "comment.created",
+      "comment.replied",
+      "member.joined",
+      "member.left",
+    ),
+  ),
+});
 
 // GET - List all webhooks for the organization
 export async function GET(request: Request) {
@@ -56,16 +71,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { targetUrl: string; events: ZapierWebhookEvent[] };
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!body.targetUrl || !body.events || !Array.isArray(body.events)) {
+  const result = safeParse(CreateWebhookSchema, rawBody);
+  if (!result.success) {
     return NextResponse.json({ error: "Missing required fields: targetUrl, events" }, { status: 400 });
   }
+  const body = result.data;
 
   const effect = Effect.gen(function* () {
     const zapierService = yield* ZapierWebhooksService;
@@ -83,7 +100,7 @@ export async function POST(request: Request) {
       organizationId: activeOrg.id,
       userId: session.user.id,
       targetUrl: body.targetUrl,
-      events: body.events,
+      events: [...body.events],
     });
 
     return { webhook };

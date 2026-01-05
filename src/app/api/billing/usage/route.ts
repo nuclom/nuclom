@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { MissingFieldError } from "@/lib/effect";
@@ -6,6 +6,12 @@ import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { validateRequestBody } from "@/lib/validation";
+
+const UsageHistoryRequestSchema = Schema.Struct({
+  organizationId: Schema.String,
+  months: Schema.optional(Schema.Number),
+});
 
 // =============================================================================
 // GET /api/billing/usage - Get usage summary
@@ -57,26 +63,9 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
+    // Parse and validate body
+    const body = yield* validateRequestBody(UsageHistoryRequestSchema, request);
     const { organizationId, months = 6 } = body;
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
 
     // Verify user is member of organization
     const orgRepo = yield* OrganizationRepository;

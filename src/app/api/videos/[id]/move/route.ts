@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
@@ -8,6 +8,12 @@ import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { SeriesRepository } from "@/lib/effect/services/series-repository";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+const MoveVideoSchema = Schema.Struct({
+  channelId: Schema.optional(Schema.NullOr(Schema.String)),
+  collectionId: Schema.optional(Schema.NullOr(Schema.String)),
+});
 
 // =============================================================================
 // POST /api/videos/[id]/move - Move video to a different channel/collection
@@ -29,8 +35,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { channelId, collectionId } = body;
+  const rawBody = await request.json();
+  const result = safeParse(MoveVideoSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+  }
+  const { channelId, collectionId } = result.data;
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);

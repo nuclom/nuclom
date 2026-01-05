@@ -1,10 +1,18 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Cause, Effect, Exit, Option, Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+const UpdateOrganizationSchema = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  slug: Schema.optional(Schema.String),
+  logo: Schema.optional(Schema.NullOr(Schema.String)),
+  metadata: Schema.optional(Schema.String),
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/settings - Get organization settings
@@ -67,8 +75,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { name, slug, logo, metadata } = body;
+  const rawBody = await request.json();
+  const result = safeParse(UpdateOrganizationSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+  }
+  const { name, slug, logo, metadata } = result.data;
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);

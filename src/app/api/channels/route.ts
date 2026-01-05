@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit, Option } from "effect";
+import { Cause, Effect, Exit, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
@@ -6,6 +6,12 @@ import { ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { ChannelRepository } from "@/lib/effect/services/channel-repository";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { validateRequestBody } from "@/lib/validation";
+
+const CreateChannelSchema = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1)),
+  description: Schema.optional(Schema.String),
+});
 
 // =============================================================================
 // GET /api/channels - Get channels for the active organization
@@ -51,20 +57,11 @@ export async function GET(request: NextRequest) {
 // =============================================================================
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { name, description } = body;
-
   const effect = Effect.gen(function* () {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    if (!name || typeof name !== "string" || name.trim().length === 0) {
-      return yield* Effect.fail(
-        new ValidationError({
-          message: "Channel name is required",
-        }),
-      );
-    }
+    const { name, description } = yield* validateRequestBody(CreateChannelSchema, request);
 
     const orgRepo = yield* OrganizationRepository;
     const activeOrg = yield* orgRepo.getActiveOrganization(user.id);
