@@ -24,9 +24,9 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
     pool: "forks",
-    isolate: false,
-    fileParallelism: false,
-    maxWorkers: 1,
+    isolate: true,
+    fileParallelism: true,
+    maxWorkers: 4,
   },
   resolve: {
     alias: {

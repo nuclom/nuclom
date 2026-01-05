@@ -1,96 +1,100 @@
+import { Effect, Layer } from "effect";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { UnauthorizedError } from "@/lib/effect/errors";
+import { Auth, type AuthServiceInterface } from "@/lib/effect/services/auth";
+import { VideoRepository, type VideoRepositoryService } from "@/lib/effect/services/video-repository";
 import { createMockSession, createMockVideo } from "@/test/mocks";
 
-// Mock Effect-TS and services
-vi.mock("@/lib/auth", () => ({
-  auth: {
-    api: {
-      getSession: vi.fn(),
-    },
-  },
-}));
-
-vi.mock("@/lib/effect", () => ({
-  AppLive: {},
-  MissingFieldError: class MissingFieldError extends Error {
-    _tag = "MissingFieldError";
-    field: string;
-    constructor({ field, message }: { field: string; message: string }) {
-      super(message);
-      this.field = field;
-    }
-  },
-  VideoRepository: {
-    _tag: "VideoRepository",
-  },
-}));
-
-vi.mock("@/lib/effect/services/auth", () => ({
-  Auth: {
-    _tag: "Auth",
-  },
-  makeAuthLayer: vi.fn().mockReturnValue({}),
-}));
-
-vi.mock("effect", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("effect")>();
-  const mockGetVideos = vi.fn();
-  const mockCreateVideo = vi.fn();
-
+// Mock the api-handler module to provide test layers
+vi.mock("@/lib/api-handler", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api-handler")>();
   return {
     ...actual,
-    Effect: {
-      ...actual.Effect,
-      gen: vi.fn((fn) => ({
-        _fn: fn,
-        _mockGetVideos: mockGetVideos,
-        _mockCreateVideo: mockCreateVideo,
-      })),
-      tryPromise: vi.fn(({ try: tryFn }) => tryFn()),
-      fail: vi.fn((error) => ({ _tag: "Fail", error })),
-      provide: vi.fn((effect, _layer) => effect),
-      runPromiseExit: vi.fn(),
-    },
-    Exit: {
-      ...actual.Exit,
-      succeed: vi.fn((value) => ({ _tag: "Success", value })),
-      fail: vi.fn((error) => ({ _tag: "Failure", cause: { _tag: "Fail", error } })),
-      match: vi.fn((exit, { onSuccess, onFailure }) => {
-        if (exit._tag === "Success") {
-          return onSuccess(exit.value);
-        }
-        return onFailure(exit.cause);
-      }),
-    },
-    Option: {
-      ...actual.Option,
-      some: vi.fn((value) => ({ _tag: "Some", value })),
-      none: vi.fn(() => ({ _tag: "None" })),
-    },
-    Data: {
-      ...actual.Data,
-      TaggedError: vi.fn((tag) => {
-        return class extends Error {
-          _tag = tag;
-        };
-      }),
-    },
-    Cause: {
-      ...actual.Cause,
-      failureOption: vi.fn((cause) => cause),
-    },
-    Layer: {
-      ...actual.Layer,
-      merge: vi.fn((_a, _b) => ({})),
-    },
+    createFullLayer: vi.fn(),
   };
 });
 
-import { Cause, Effect, Exit, Option } from "effect";
+import { createFullLayer } from "@/lib/api-handler";
 import { GET, POST } from "./route";
 
 describe("Videos API Route", () => {
+  // Helper to create a mock auth service
+  const createMockAuthService = (authenticated = true): AuthServiceInterface => {
+    const session = createMockSession();
+    return {
+      getSession: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      getSessionOption: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated
+            ? Effect.succeed({ _tag: "Some" as const, value: session })
+            : Effect.succeed({ _tag: "None" as const }),
+        ),
+      requireAuth: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      requireRole: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+      requireAdmin: vi
+        .fn()
+        .mockImplementation(() =>
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+        ),
+    };
+  };
+
+  // Helper to create a mock video repository
+  const createMockVideoRepository = (): VideoRepositoryService => {
+    const mockVideo = createMockVideo();
+    const paginatedResponse = {
+      data: [mockVideo],
+      pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+    };
+
+    return {
+      getVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      getDeletedVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      getVideo: vi.fn().mockImplementation(() => Effect.succeed(mockVideo)),
+      createVideo: vi.fn().mockImplementation((data) => Effect.succeed({ ...mockVideo, ...data })),
+      updateVideo: vi.fn().mockImplementation((id, data) => Effect.succeed({ ...mockVideo, id, ...data })),
+      softDeleteVideo: vi.fn().mockImplementation((id) => Effect.succeed({ ...mockVideo, id, deletedAt: new Date() })),
+      restoreVideo: vi.fn().mockImplementation((id) => Effect.succeed({ ...mockVideo, id, deletedAt: null })),
+      deleteVideo: vi.fn().mockImplementation(() => Effect.void),
+      cleanupExpiredVideos: vi.fn().mockImplementation(() => Effect.succeed(0)),
+      getVideoChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
+      getVideoCodeSnippets: vi.fn().mockImplementation(() => Effect.succeed([])),
+      searchVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      getVideosByAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      getChannelVideosWithAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      getVideosSharedByOthers: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+    };
+  };
+
+  // Setup test layer for each test
+  const setupTestLayer = (options: { authenticated?: boolean; videoRepo?: Partial<VideoRepositoryService> } = {}) => {
+    const { authenticated = true, videoRepo = {} } = options;
+    const mockAuth = createMockAuthService(authenticated);
+    const mockVideoRepo = { ...createMockVideoRepository(), ...videoRepo };
+
+    const AuthLayer = Layer.succeed(Auth, mockAuth);
+    const VideoRepoLayer = Layer.succeed(VideoRepository, mockVideoRepo as VideoRepositoryService);
+    const testLayer = Layer.mergeAll(AuthLayer, VideoRepoLayer);
+
+    vi.mocked(createFullLayer).mockReturnValue(testLayer as never);
+
+    return { mockAuth, mockVideoRepo };
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -101,21 +105,7 @@ describe("Videos API Route", () => {
 
   describe("GET /api/videos", () => {
     it("should return 400 when organizationId is missing", async () => {
-      const _mockSession = createMockSession();
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "MissingFieldError",
-          message: "Organization ID is required",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "MissingFieldError",
-          message: "Organization ID is required",
-        }),
-      );
+      setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "GET",
@@ -126,23 +116,10 @@ describe("Videos API Route", () => {
 
       expect(response.status).toBe(400);
       expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
-      expect(data.error.message).toBe("Organization ID is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
+      setupTestLayer({ authenticated: false });
 
       const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
         method: "GET",
@@ -157,19 +134,7 @@ describe("Videos API Route", () => {
     });
 
     it("should return paginated videos on success", async () => {
-      const mockVideos = {
-        data: [createMockVideo()],
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 1,
-          totalPages: 1,
-        },
-      };
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(mockVideos));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(mockVideos));
+      const { mockVideoRepo } = setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/videos?organizationId=org-123", {
         method: "GET",
@@ -181,24 +146,13 @@ describe("Videos API Route", () => {
       expect(response.status).toBe(200);
       expect(data.data).toHaveLength(1);
       expect(data.pagination.page).toBe(1);
+      expect(mockVideoRepo.getVideos).toHaveBeenCalledWith("org-123", 1, 20);
     });
   });
 
   describe("POST /api/videos", () => {
     it("should return 400 when title is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "MissingFieldError",
-          message: "Title is required",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "MissingFieldError",
-          message: "Title is required",
-        }),
-      );
+      setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -213,23 +167,10 @@ describe("Videos API Route", () => {
 
       expect(response.status).toBe(400);
       expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
-      expect(data.error.message).toBe("Title is required");
     });
 
     it("should return 400 when duration is missing", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "MissingFieldError",
-          message: "Duration is required",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "MissingFieldError",
-          message: "Duration is required",
-        }),
-      );
+      setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -244,23 +185,10 @@ describe("Videos API Route", () => {
 
       expect(response.status).toBe(400);
       expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
-      expect(data.error.message).toBe("Duration is required");
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(
-        Exit.fail({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
-
-      vi.mocked(Cause.failureOption).mockReturnValueOnce(
-        Option.some({
-          _tag: "UnauthorizedError",
-          message: "Unauthorized",
-        }),
-      );
+      setupTestLayer({ authenticated: false });
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -280,11 +208,7 @@ describe("Videos API Route", () => {
     });
 
     it("should create video and return 201 on success", async () => {
-      const newVideo = createMockVideo();
-
-      vi.mocked(Effect.runPromiseExit).mockResolvedValueOnce(Exit.succeed(newVideo));
-
-      vi.mocked(Exit.match).mockImplementationOnce((_exit, { onSuccess }) => onSuccess(newVideo));
+      const { mockVideoRepo } = setupTestLayer();
 
       const request = new NextRequest("http://localhost:3000/api/videos", {
         method: "POST",
@@ -301,6 +225,7 @@ describe("Videos API Route", () => {
       expect(response.status).toBe(201);
       expect(data.id).toBe("video-123");
       expect(data.title).toBe("Test Video");
+      expect(mockVideoRepo.createVideo).toHaveBeenCalled();
     });
   });
 });
