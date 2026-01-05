@@ -7738,6 +7738,134 @@
         }
       }
     },
+    "/videos/{id}/embeddings": {
+      "delete": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Delete embedding",
+        "operationId": "deleteVideoEmbedding",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get embedding",
+        "operationId": "getVideoEmbedding",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create embedding",
+        "operationId": "createVideoEmbedding",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/moments": {
       "get": {
         "tags": [
@@ -8362,6 +8490,50 @@
         }
       }
     },
+    "/videos/{id}/similar": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get similar",
+        "operationId": "getVideoSimilar",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/speakers": {
       "get": {
         "tags": [
@@ -8797,178 +8969,6 @@
         "responses": {
           "201": {
             "description": "Created successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/videos/{videoId}/embeddings": {
-      "delete": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Delete embedding",
-        "operationId": "deleteVideoEmbedding",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "videoId",
-            "in": "path",
-            "description": "VideoId ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Get embedding",
-        "operationId": "getVideoEmbedding",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "videoId",
-            "in": "path",
-            "description": "VideoId ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Create embedding",
-        "operationId": "createVideoEmbedding",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "videoId",
-            "in": "path",
-            "description": "VideoId ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/videos/{videoId}/similar": {
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Get similar",
-        "operationId": "getVideoSimilar",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "videoId",
-            "in": "path",
-            "description": "VideoId ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
