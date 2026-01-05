@@ -1,5 +1,5 @@
 import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { mapErrorToApiResponse } from "@/lib/api-errors";
 import { createFullLayer } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
@@ -26,6 +26,7 @@ const getContextQuerySchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest) {
+  await connection();
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;

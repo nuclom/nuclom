@@ -1,5 +1,5 @@
 import { Cause, Effect, Exit } from "effect";
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
@@ -9,6 +9,7 @@ import { Billing } from "@/lib/effect/services/billing";
 // =============================================================================
 
 export async function GET(request: Request) {
+  await connection();
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
