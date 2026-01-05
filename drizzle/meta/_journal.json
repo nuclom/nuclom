@@ -8,6 +8,13 @@
       "when": 1767605400671,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767608907514,
+      "tag": "0001_vector",
+      "breakpoints": true
     }
   ]
 }

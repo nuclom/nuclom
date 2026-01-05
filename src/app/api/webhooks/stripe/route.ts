@@ -19,6 +19,7 @@ import { Cause, Effect, Exit, Option } from "effect";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { normalizeOne } from "@/lib/db/relations";
 import { type InvoiceStatus, type NewInvoice, type NewPaymentMethod, processedWebhookEvents } from "@/lib/db/schema";
 import { AppLive } from "@/lib/effect";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
@@ -437,7 +438,7 @@ const sendPaymentNotification = (
     const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of ownerMembers) {
-      const user = (member as { user: { id: string; email: string; name: string } }).user;
+      const user = normalizeOne(member.user);
       if (!user?.email) continue;
 
       // Create in-app notification
@@ -499,7 +500,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of members) {
-      const user = (member as { user: { id: string; email: string; name: string } }).user;
+      const user = normalizeOne(member.user);
       if (!user?.email) continue;
 
       yield* notificationRepo.createNotification({

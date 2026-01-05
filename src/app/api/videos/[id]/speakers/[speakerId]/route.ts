@@ -10,6 +10,7 @@ import { Effect } from "effect";
 import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { speakerProfiles, speakerSegments, videoSpeakers, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
 
@@ -100,22 +101,25 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
     });
 
+    const speakerProfile = normalizeOne(videoSpeaker.speakerProfile);
+    const linkedUser = normalizeOne(speakerProfile?.user);
+
     return {
       success: true,
       data: {
         id: videoSpeaker.id,
         videoId,
         speakerLabel: videoSpeaker.speakerLabel,
-        displayName: videoSpeaker.speakerProfile?.displayName || `Speaker ${videoSpeaker.speakerLabel}`,
+        displayName: speakerProfile?.displayName || `Speaker ${videoSpeaker.speakerLabel}`,
         totalSpeakingTime: videoSpeaker.totalSpeakingTime,
         segmentCount: videoSpeaker.segmentCount,
         speakingPercentage: videoSpeaker.speakingPercentage || 0,
-        linkedUser: videoSpeaker.speakerProfile?.user
+        linkedUser: linkedUser
           ? {
-              id: videoSpeaker.speakerProfile.user.id,
-              name: videoSpeaker.speakerProfile.user.name,
-              email: videoSpeaker.speakerProfile.user.email,
-              image: videoSpeaker.speakerProfile.user.image,
+              id: linkedUser.id,
+              name: linkedUser.name,
+              email: linkedUser.email,
+              image: linkedUser.image,
             }
           : null,
         segments: segments.map((s) => ({

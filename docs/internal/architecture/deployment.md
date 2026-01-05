@@ -203,6 +203,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-and-typecheck:
@@ -225,7 +235,7 @@ jobs:
         if: always()
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: Vercel - nuclom: ci
+          name: "Vercel - nuclom: ci"
 ```
 
 #### E2E Workflow (`.github/workflows/e2e.yml`)

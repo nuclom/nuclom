@@ -7,6 +7,7 @@
 
 import { and, desc, eq, sql } from "drizzle-orm";
 import { Context, Data, Effect, Layer, Option } from "effect";
+import { normalizeOne } from "@/lib/db/relations";
 import type {
   NewSpeakerProfile,
   NewSpeakerSegmentRow,
@@ -592,15 +593,19 @@ const makeService = Effect.gen(function* () {
         return Option.some({
           videoId,
           duration: Number.parseInt(video.duration, 10) * 1000, // Convert to ms
-          speakers: speakers.map((s) => ({
-            speakerId: s.id,
-            speakerLabel: s.speakerLabel,
-            displayName: s.speakerProfile?.displayName || null,
-            userId: s.speakerProfile?.userId || null,
-            totalSpeakingTime: s.totalSpeakingTime,
-            speakingPercentage: s.speakingPercentage || 0,
-            segmentCount: s.segmentCount,
-          })),
+          speakers: speakers.map((s) => {
+            const speakerProfile = normalizeOne(s.speakerProfile);
+
+            return {
+              speakerId: s.id,
+              speakerLabel: s.speakerLabel,
+              displayName: speakerProfile?.displayName || null,
+              userId: speakerProfile?.userId || null,
+              totalSpeakingTime: s.totalSpeakingTime,
+              speakingPercentage: s.speakingPercentage || 0,
+              segmentCount: s.segmentCount,
+            };
+          }),
           balanceScore,
         });
       },

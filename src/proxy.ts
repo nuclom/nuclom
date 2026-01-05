@@ -485,6 +485,6 @@ export const config = {
      * - Public assets (images, fonts, etc.)
      * - public folder assets
      */
-    "/((?!_next/static|_next/image|public|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
+    "/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };

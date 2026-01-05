@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { speakerProfiles, videoSpeakers } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
 
@@ -102,8 +103,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
     });
 
+    const normalizedSpeakers = videoSpeakersData.map((vs) => ({
+      ...vs,
+      video: normalizeOne(vs.video),
+    }));
+
     // Filter to period and calculate stats
-    const filteredSpeakers = videoSpeakersData.filter((vs) => vs.video && vs.video.createdAt >= periodStart);
+    const filteredSpeakers = normalizedSpeakers.filter((vs) => vs.video && vs.video.createdAt >= periodStart);
 
     // Group by month for trends
     const monthlyStats = new Map<
@@ -159,17 +165,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       segmentCount: vs.segmentCount,
     }));
 
+    const linkedUser = normalizeOne(profile.user);
+
     return {
       success: true,
       data: {
         speakerId,
         displayName: profile.displayName,
-        linkedUser: profile.user
+        linkedUser: linkedUser
           ? {
-              id: profile.user.id,
-              name: profile.user.name,
-              email: profile.user.email,
-              image: profile.user.image,
+              id: linkedUser.id,
+              name: linkedUser.name,
+              email: linkedUser.email,
+              image: linkedUser.image,
             }
           : null,
         summary: {

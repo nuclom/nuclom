@@ -115,7 +115,7 @@ export function CommentThread({
 
           {!isCollapsed && (
             <div className="space-y-2">
-              {comment.replies.map((reply) => (
+              {comment.replies.map((reply: CommentWithReplies["replies"][number]) => (
                 <CommentThread
                   key={reply.id}
                   comment={{ ...reply, replies: [] }}

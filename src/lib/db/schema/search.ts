@@ -8,7 +8,7 @@
  */
 
 import { relations } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp, unique, vector } from "drizzle-orm/pg-core";
 import { organizations, users } from "./auth";
 import { videos } from "./videos";
 
@@ -105,8 +105,8 @@ export const transcriptChunks = pgTable(
     timestampStart: integer("timestamp_start"), // seconds into video
     timestampEnd: integer("timestamp_end"), // seconds into video
     speakers: jsonb("speakers").$type<string[]>(), // speaker names if available
-    // Embedding stored as JSON array (compatible with pgvector via migration)
-    embedding: jsonb("embedding").$type<number[]>(),
+    // Embedding stored in pgvector format for similarity search
+    embedding: vector("embedding", { dimensions: 1536 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [

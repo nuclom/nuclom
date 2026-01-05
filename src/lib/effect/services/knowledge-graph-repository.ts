@@ -7,6 +7,7 @@
 
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
+import { normalizeOne } from "@/lib/db/relations";
 import type {
   Decision,
   DecisionLink,
@@ -94,6 +95,41 @@ export interface DecisionTimelineItem {
   };
   participantCount: number;
   tags: string[];
+}
+
+function normalizeDecisionRelations(
+  decision: Decision & {
+    video?: DecisionWithRelations["video"] | DecisionWithRelations["video"][];
+    participants?: DecisionWithRelations["participants"];
+    links?: DecisionWithRelations["links"];
+  },
+): DecisionWithRelations {
+  return {
+    ...decision,
+    confidence: decision.confidence ?? null,
+    video: normalizeOne(decision.video) ?? undefined,
+    participants: decision.participants?.map((participant) => ({
+      ...participant,
+      user: normalizeOne(participant.user),
+    })),
+    links: decision.links ?? [],
+  };
+}
+
+function normalizeKnowledgeNodeEdges(node: KnowledgeNodeWithEdges): KnowledgeNodeWithEdges {
+  return {
+    ...node,
+    outgoingEdges: node.outgoingEdges?.map((edge) => {
+      const targetNode = normalizeOne(edge.targetNode);
+
+      return targetNode ? { ...edge, targetNode } : { ...edge };
+    }),
+    incomingEdges: node.incomingEdges?.map((edge) => {
+      const sourceNode = normalizeOne(edge.sourceNode);
+
+      return sourceNode ? { ...edge, sourceNode } : { ...edge };
+    }),
+  };
 }
 
 // =============================================================================
@@ -258,7 +294,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
     }).pipe(
       Effect.flatMap((decision) =>
         decision
-          ? Effect.succeed(decision as DecisionWithRelations)
+          ? Effect.succeed(normalizeDecisionRelations(decision))
           : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: "Decision", id })),
       ),
     );
@@ -348,12 +384,14 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
           offset: options.offset ?? 0,
         });
 
+        const normalizedResults = results.map((decision) => normalizeDecisionRelations(decision));
+
         // Filter by person if specified
         if (options.personId) {
-          return results.filter((d) => d.participants?.some((p) => p.userId === options.personId));
+          return normalizedResults.filter((d) => d.participants?.some((p) => p.userId === options.personId));
         }
 
-        return results as DecisionWithRelations[];
+        return normalizedResults;
       },
       catch: (error) =>
         new DatabaseError({
@@ -456,7 +494,12 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
             decision: true,
           },
         });
-        return links as (DecisionLink & { decision: Decision })[];
+        return links
+          .map((link) => ({
+            ...link,
+            decision: normalizeOne(link.decision),
+          }))
+          .filter((link): link is DecisionLink & { decision: Decision } => !!link.decision);
       },
       catch: (error) =>
         new DatabaseError({
@@ -507,7 +550,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
     }).pipe(
       Effect.flatMap((node) =>
         node
-          ? Effect.succeed(node as KnowledgeNodeWithEdges)
+          ? Effect.succeed(normalizeKnowledgeNodeEdges(node))
           : Effect.fail(new NotFoundError({ message: `Node ${id} not found`, entity: "KnowledgeNode", id })),
       ),
     );
@@ -725,18 +768,28 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
           filtered = results.filter((d) => d.participants?.some((p) => p.userId === options.personId));
         }
 
-        return filtered.map((d) => ({
-          id: d.id,
-          summary: d.summary,
-          decisionType: d.decisionType,
-          status: d.status,
-          timestampStart: d.timestampStart,
-          confidence: d.confidence,
-          createdAt: d.createdAt,
-          video: d.video as { id: string; title: string; thumbnailUrl: string | null },
-          participantCount: d.participants?.length ?? 0,
-          tags: (d.tags as string[]) ?? [],
-        }));
+        return filtered
+          .map((decision) => {
+            const video = normalizeOne(decision.video);
+
+            if (!video) {
+              return null;
+            }
+
+            return {
+              id: decision.id,
+              summary: decision.summary,
+              decisionType: decision.decisionType,
+              status: decision.status,
+              timestampStart: decision.timestampStart,
+              confidence: decision.confidence ?? null,
+              createdAt: decision.createdAt,
+              video,
+              participantCount: decision.participants?.length ?? 0,
+              tags: decision.tags ?? [],
+            };
+          })
+          .filter((item): item is DecisionTimelineItem => item !== null);
       },
       catch: (error) =>
         new DatabaseError({
@@ -776,9 +829,15 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
         });
 
         // Filter to only decisions from this organization
-        return links
-          .filter((l) => l.decision.organizationId === organizationId)
-          .map((l) => l.decision as DecisionWithRelations);
+        const decisions = links
+          .map((link) => normalizeOne(link.decision))
+          .filter(
+            (decision): decision is NonNullable<typeof decision> =>
+              !!decision && decision.organizationId === organizationId,
+          )
+          .map((decision) => normalizeDecisionRelations(decision));
+
+        return decisions;
       },
       catch: (error) =>
         new DatabaseError({

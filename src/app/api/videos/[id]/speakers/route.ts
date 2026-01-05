@@ -10,6 +10,7 @@ import { Effect } from "effect";
 import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { speakerProfiles, videoSpeakers, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
 
@@ -94,23 +95,28 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         videoId,
         duration: video.duration,
         speakerCount,
-        speakers: speakers.map((s) => ({
-          id: s.id,
-          speakerLabel: s.speakerLabel,
-          displayName: s.speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
-          totalSpeakingTime: s.totalSpeakingTime,
-          segmentCount: s.segmentCount,
-          speakingPercentage: s.speakingPercentage || 0,
-          linkedUser: s.speakerProfile?.user
-            ? {
-                id: s.speakerProfile.user.id,
-                name: s.speakerProfile.user.name,
-                email: s.speakerProfile.user.email,
-                image: s.speakerProfile.user.image,
-              }
-            : null,
-          speakerProfileId: s.speakerProfileId,
-        })),
+        speakers: speakers.map((s) => {
+          const speakerProfile = normalizeOne(s.speakerProfile);
+          const linkedUser = normalizeOne(speakerProfile?.user);
+
+          return {
+            id: s.id,
+            speakerLabel: s.speakerLabel,
+            displayName: speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
+            totalSpeakingTime: s.totalSpeakingTime,
+            segmentCount: s.segmentCount,
+            speakingPercentage: s.speakingPercentage || 0,
+            linkedUser: linkedUser
+              ? {
+                  id: linkedUser.id,
+                  name: linkedUser.name,
+                  email: linkedUser.email,
+                  image: linkedUser.image,
+                }
+              : null,
+            speakerProfileId: s.speakerProfileId,
+          };
+        }),
         balanceScore,
       },
     };

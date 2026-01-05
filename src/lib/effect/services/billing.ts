@@ -7,6 +7,7 @@
 import { eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type Stripe from "stripe";
+import { normalizeOne } from "@/lib/db/relations";
 import {
   type InvoiceStatus,
   type NewInvoice,
@@ -229,7 +230,7 @@ const makeBillingService = Effect.gen(function* () {
                 : "subscription_created";
 
       for (const member of ownerMembers) {
-        const user = (member as { user: { id: string; email: string; name: string } }).user;
+        const user = normalizeOne(member.user);
         if (!user?.email) continue;
 
         // Create in-app notification

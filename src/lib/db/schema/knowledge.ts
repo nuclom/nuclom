@@ -10,7 +10,7 @@
  */
 
 import { relations } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, text, timestamp, unique, vector } from "drizzle-orm/pg-core";
 import { organizations, users } from "./auth";
 import { decisionStatusEnum, decisionTypeEnum, knowledgeNodeTypeEnum, participantRoleEnum } from "./enums";
 import { videos } from "./videos";
@@ -40,8 +40,8 @@ export const decisions = pgTable(
     decisionType: decisionTypeEnum("decision_type").default("other").notNull(),
     confidence: integer("confidence"), // AI confidence score 0-100
     tags: jsonb("tags").$type<string[]>().default([]),
-    // Embedding for semantic search (stored as JSON array for pgvector compatibility)
-    embedding: jsonb("embedding").$type<number[]>(),
+    // Embedding for semantic search (pgvector)
+    embeddingVector: vector("embedding_vector", { dimensions: 1536 }),
     metadata: jsonb("metadata").$type<{
       alternatives?: string[];
       relatedDecisionIds?: string[];
@@ -100,8 +100,8 @@ export const knowledgeNodes = pgTable(
     externalId: text("external_id"), // github:pr:123, linear:issue:ABC, etc.
     name: text("name").notNull(),
     description: text("description"),
-    // Embedding for semantic search
-    embedding: jsonb("embedding").$type<number[]>(),
+    // Embedding for semantic search (pgvector)
+    embeddingVector: vector("embedding_vector", { dimensions: 1536 }),
     metadata: jsonb("metadata").$type<{
       url?: string;
       attributes?: Record<string, unknown>;

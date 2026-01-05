@@ -10,9 +10,10 @@
  * - videoCodeSnippets: Code snippets in videos
  */
 
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 import { organizations, users } from "./auth";
+import { tsvector } from "./custom-types";
 import { processingStatusEnum } from "./enums";
 
 // =============================================================================
@@ -111,8 +112,12 @@ export const videos = pgTable(
     aiSummary: text("ai_summary"),
     aiTags: jsonb("ai_tags").$type<string[]>(),
     aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
-    // Full-text search vector (managed by PostgreSQL trigger)
-    searchVector: text("search_vector"),
+    // Full-text search vector (generated column)
+    searchVector: tsvector("search_vector").generatedAlwaysAs(
+      sql.raw(
+        "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(transcript, ''))",
+      ),
+    ),
     // Soft-delete fields
     deletedAt: timestamp("deleted_at"),
     retentionUntil: timestamp("retention_until"),

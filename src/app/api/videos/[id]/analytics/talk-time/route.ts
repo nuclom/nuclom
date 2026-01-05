@@ -10,6 +10,7 @@ import { Effect } from "effect";
 import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { videoSpeakers, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
 
@@ -134,22 +135,27 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         speakerCount,
         totalSpeakingTime,
         totalSpeakingTimeFormatted: formatTime(totalSpeakingTime),
-        distribution: speakers.map((s) => ({
-          speakerId: s.id,
-          speakerLabel: s.speakerLabel,
-          displayName: s.speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
-          linkedUser: s.speakerProfile?.user
-            ? {
-                id: s.speakerProfile.user.id,
-                name: s.speakerProfile.user.name,
-                image: s.speakerProfile.user.image,
-              }
-            : null,
-          speakingTime: s.totalSpeakingTime,
-          speakingTimeFormatted: formatTime(s.totalSpeakingTime),
-          speakingPercentage: s.speakingPercentage || 0,
-          segmentCount: s.segmentCount,
-        })),
+        distribution: speakers.map((s) => {
+          const speakerProfile = normalizeOne(s.speakerProfile);
+          const linkedUser = normalizeOne(speakerProfile?.user);
+
+          return {
+            speakerId: s.id,
+            speakerLabel: s.speakerLabel,
+            displayName: speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
+            linkedUser: linkedUser
+              ? {
+                  id: linkedUser.id,
+                  name: linkedUser.name,
+                  image: linkedUser.image,
+                }
+              : null,
+            speakingTime: s.totalSpeakingTime,
+            speakingTimeFormatted: formatTime(s.totalSpeakingTime),
+            speakingPercentage: s.speakingPercentage || 0,
+            segmentCount: s.segmentCount,
+          };
+        }),
         balance: {
           score: balanceScore,
           rating: balanceRating,
