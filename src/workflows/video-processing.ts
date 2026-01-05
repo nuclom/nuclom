@@ -17,7 +17,7 @@
  * - No lost processing on deploy
  */
 
-import { FatalError } from "workflow";
+import { FatalError, sleep } from "workflow";
 import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
 import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { env } from "@/lib/env/server";
@@ -557,8 +557,7 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
   }
 
   const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
-  const POLLING_INTERVAL_MS = 3000;
-  const MAX_POLLING_ATTEMPTS = 200;
+  const MAX_POLLING_ATTEMPTS = 200; // ~10 minutes with 3-second intervals
 
   try {
     // Submit transcription request with speaker labels
@@ -657,8 +656,8 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
         throw new Error(result.error || "Diarization failed");
       }
 
-      // Wait before next poll
-      await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
+      // Wait before next poll using workflow-native sleep (durable, no resource consumption)
+      await sleep("3 seconds");
     }
 
     throw new Error("Diarization timed out");

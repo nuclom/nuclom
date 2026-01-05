@@ -315,3 +315,17 @@ processVideoWorkflow({
 ```
 
 The workflow will automatically retry on failures and resume from the last checkpoint if the server restarts.
+
+## Diarization Polling Improvement
+
+Speaker diarization now uses the workflow `sleep()` function instead of `setTimeout` for polling AssemblyAI:
+
+```typescript
+// Before (fragile)
+await new Promise((resolve) => setTimeout(resolve, 3000));
+
+// After (durable)
+await sleep("3 seconds");
+```
+
+This ensures that if the server restarts during diarization polling, the workflow resumes correctly.
