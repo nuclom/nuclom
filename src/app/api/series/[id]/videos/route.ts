@@ -1,7 +1,17 @@
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { Auth, createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
 import { MissingFieldError, SeriesRepository } from "@/lib/effect";
+import { validateRequestBody } from "@/lib/validation";
+
+const AddVideoSchema = Schema.Struct({
+  videoId: Schema.String,
+  position: Schema.optional(Schema.Number),
+});
+
+const ReorderVideosSchema = Schema.Struct({
+  videoIds: Schema.Array(Schema.String),
+});
 
 // =============================================================================
 // GET /api/series/[id]/videos - Get available videos (not in series)
@@ -53,21 +63,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { videoId, position } = body;
-
-    if (!videoId) {
-      return yield* Effect.fail(new MissingFieldError({ field: "videoId", message: "Video ID is required" }));
-    }
+    // Parse and validate request body
+    const { videoId, position } = yield* validateRequestBody(AddVideoSchema, request);
 
     // Add video to series
     const seriesRepo = yield* SeriesRepository;
@@ -102,25 +99,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { videoIds } = body;
-
-    if (!videoIds || !Array.isArray(videoIds)) {
-      return yield* Effect.fail(new MissingFieldError({ field: "videoIds", message: "Video IDs array is required" }));
-    }
+    // Parse and validate request body
+    const { videoIds } = yield* validateRequestBody(ReorderVideosSchema, request);
 
     // Reorder videos
     const seriesRepo = yield* SeriesRepository;
-    yield* seriesRepo.reorderVideos(seriesId, videoIds);
+    yield* seriesRepo.reorderVideos(seriesId, [...videoIds]);
     return { success: true };
   });
 

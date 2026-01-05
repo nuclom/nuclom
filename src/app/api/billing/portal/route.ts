@@ -1,12 +1,16 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { env } from "@/lib/env/server";
 import { rateLimitBillingAsync } from "@/lib/rate-limit";
+import { validateRequestBody } from "@/lib/validation";
+
+const PortalRequestSchema = Schema.Struct({
+  organizationId: Schema.String,
+});
 
 // =============================================================================
 // POST /api/billing/portal - Create Stripe billing portal session
@@ -22,26 +26,8 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { organizationId } = body;
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
+    // Parse and validate body
+    const { organizationId } = yield* validateRequestBody(PortalRequestSchema, request);
 
     // Verify user is member of organization
     const orgRepo = yield* OrganizationRepository;

@@ -1,12 +1,30 @@
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { ZapierWebhookEvent } from "@/lib/db/schema";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
+import { safeParse } from "@/lib/validation";
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const WebhooksLayer = Layer.mergeAll(ZapierWebhooksWithDeps, DatabaseLive);
+
+const UpdateWebhookSchema = Schema.Struct({
+  targetUrl: Schema.optional(Schema.String),
+  events: Schema.optional(
+    Schema.Array(
+      Schema.Literal(
+        "video.uploaded",
+        "video.processed",
+        "video.shared",
+        "comment.created",
+        "comment.replied",
+        "member.joined",
+        "member.left",
+      ),
+    ),
+  ),
+  isActive: Schema.optional(Schema.Boolean),
+});
 
 interface RouteParams {
   params: Promise<{ webhookId: string }>;
@@ -51,16 +69,27 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { targetUrl?: string; events?: ZapierWebhookEvent[]; isActive?: boolean };
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  const result = safeParse(UpdateWebhookSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+  }
+  const body = result.data;
+
   const effect = Effect.gen(function* () {
     const zapierService = yield* ZapierWebhooksService;
-    const webhook = yield* zapierService.updateWebhook(webhookId, body);
+    // Convert readonly arrays to mutable
+    const updateData = {
+      ...body,
+      events: body.events ? [...body.events] : undefined,
+    };
+    const webhook = yield* zapierService.updateWebhook(webhookId, updateData);
     return { webhook };
   });
 

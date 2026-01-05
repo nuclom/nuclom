@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS vector;--> statement-breakpoint
 CREATE TYPE "public"."ActionItemPriority" AS ENUM('high', 'medium', 'low');--> statement-breakpoint
 CREATE TYPE "public"."ActionItemStatus" AS ENUM('pending', 'in_progress', 'completed', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."ActivityType" AS ENUM('video_uploaded', 'video_processed', 'video_shared', 'comment_added', 'comment_reply', 'reaction_added', 'member_joined', 'member_left', 'integration_connected', 'integration_disconnected', 'video_imported');--> statement-breakpoint
@@ -706,7 +707,7 @@ CREATE TABLE "decisions" (
 	"decision_type" "DecisionType" DEFAULT 'other' NOT NULL,
 	"confidence" integer,
 	"tags" jsonb DEFAULT '[]'::jsonb,
-	"embedding" jsonb,
+	"embedding_vector" vector(1536),
 	"metadata" jsonb,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -730,7 +731,7 @@ CREATE TABLE "knowledge_nodes" (
 	"external_id" text,
 	"name" text NOT NULL,
 	"description" text,
-	"embedding" jsonb,
+	"embedding_vector" vector(1536),
 	"metadata" jsonb,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -827,7 +828,7 @@ CREATE TABLE "transcript_chunks" (
 	"timestamp_start" integer,
 	"timestamp_end" integer,
 	"speakers" jsonb,
-	"embedding" jsonb,
+	"embedding" vector(1536),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "transcript_chunks_unique_index" UNIQUE("video_id","chunk_index")
 );
@@ -1034,7 +1035,7 @@ CREATE TABLE "videos" (
 	"ai_summary" text,
 	"ai_tags" jsonb,
 	"ai_action_items" jsonb,
-	"search_vector" text,
+	"search_vector" "tsvector" GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(transcript, ''))) STORED,
 	"deleted_at" timestamp,
 	"retention_until" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -1137,6 +1138,7 @@ ALTER TABLE "comment_reactions" ADD CONSTRAINT "comment_reactions_comment_id_com
 ALTER TABLE "comment_reactions" ADD CONSTRAINT "comment_reactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_id_comments_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "code_links" ADD CONSTRAINT "code_links_video_id_videos_id_fk" FOREIGN KEY ("video_id") REFERENCES "public"."videos"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "code_links" ADD CONSTRAINT "code_links_created_by_id_users_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "github_connections" ADD CONSTRAINT "github_connections_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

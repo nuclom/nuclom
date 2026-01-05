@@ -1,9 +1,23 @@
 import { eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { userPreferences } from "@/lib/db/schema";
+import { safeParse } from "@/lib/validation";
+
+const UpdatePreferencesSchema = Schema.Struct({
+  emailNotifications: Schema.optional(Schema.Boolean),
+  emailCommentReplies: Schema.optional(Schema.Boolean),
+  emailMentions: Schema.optional(Schema.Boolean),
+  emailVideoProcessing: Schema.optional(Schema.Boolean),
+  emailWeeklyDigest: Schema.optional(Schema.Boolean),
+  emailProductUpdates: Schema.optional(Schema.Boolean),
+  pushNotifications: Schema.optional(Schema.Boolean),
+  theme: Schema.optional(Schema.Literal("light", "dark", "system")),
+  showActivityStatus: Schema.optional(Schema.Boolean),
+});
 
 // =============================================================================
 // GET /api/user/preferences - Get user notification preferences
@@ -60,7 +74,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const result = safeParse(UpdatePreferencesSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+    }
     const {
       emailNotifications,
       emailCommentReplies,
@@ -71,7 +89,7 @@ export async function PUT(request: NextRequest) {
       pushNotifications,
       theme,
       showActivityStatus,
-    } = body;
+    } = result.data;
 
     // Check if preferences exist
     const existing = await db.query.userPreferences.findFirst({

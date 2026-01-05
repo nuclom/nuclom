@@ -302,12 +302,20 @@ CREATE TABLE videos (
     duration TEXT NOT NULL,
     thumbnail_url TEXT,
     video_url TEXT,
-    author_id TEXT NOT NULL REFERENCES users(id),
+    author_id TEXT REFERENCES users(id),
     organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     channel_id TEXT REFERENCES channels(id),
-    series_id TEXT REFERENCES series(id),
+    collection_id TEXT REFERENCES collections(id),
     transcript TEXT,
+    transcript_segments JSONB,
+    processing_status ProcessingStatus DEFAULT 'pending' NOT NULL,
+    processing_error TEXT,
     ai_summary TEXT,
+    ai_tags JSONB,
+    ai_action_items JSONB,
+    search_vector TSVECTOR,
+    deleted_at TIMESTAMP,
+    retention_until TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
@@ -315,10 +323,10 @@ CREATE TABLE videos (
 
 **Key Features:**
 
-- Flexible organization through channels and series
+- Flexible organization through channels and collections
 - AI-generated content (transcript, summary)
 - Author attribution and organization isolation
-- Optional categorization (channel/series can be null)
+- Optional categorization (channel/collection can be null)
 
 ### Comments Table
 

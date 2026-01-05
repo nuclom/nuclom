@@ -1,9 +1,21 @@
 import { eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type ConsentAction, consentAuditLog, userExtensions, users } from "@/lib/db/schema";
+import { safeParse } from "@/lib/validation";
+
+// Schema for PATCH request - update user settings
+const UpdateUserSchema = Schema.Struct({
+  marketingConsent: Schema.optional(Schema.Boolean),
+});
+
+// Schema for POST request - user actions
+const UserActionSchema = Schema.Struct({
+  action: Schema.Literal("cancel_deletion"),
+});
 
 // Grace period for account deletion in days
 const DELETION_GRACE_PERIOD_DAYS = 30;
@@ -64,7 +76,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const result = safeParse(UpdateUserSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
+        { status: 400 },
+      );
+    }
+    const body = result.data;
     const userId = session.user.id;
 
     // Handle marketing consent update
@@ -202,7 +222,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const rawBody = await request.json();
+    const result = safeParse(UserActionSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
+    const body = result.data;
     const userId = session.user.id;
 
     // Handle cancel deletion request

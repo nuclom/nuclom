@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { NextRequest } from "next/server";
+import { connection, type NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
@@ -11,6 +11,7 @@ import { OrganizationRepository } from "@/lib/effect/services/organization-repos
 // =============================================================================
 
 export async function GET(request: NextRequest) {
+  await connection();
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;

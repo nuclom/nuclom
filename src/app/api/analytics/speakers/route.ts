@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { speakerProfiles, videoSpeakers } from "@/lib/db/schema";
 import { DatabaseError } from "@/lib/effect";
 
@@ -85,8 +86,13 @@ export async function GET(request: NextRequest) {
               },
             });
 
+            const normalizedSpeakers = videoSpeakersData.map((vs) => ({
+              ...vs,
+              video: normalizeOne(vs.video),
+            }));
+
             // Apply date filters if provided
-            const filteredSpeakers = videoSpeakersData.filter((vs) => {
+            const filteredSpeakers = normalizedSpeakers.filter((vs) => {
               if (!vs.video) return false;
               const videoDate = vs.video.createdAt;
               if (startDate && videoDate < startDate) return false;
@@ -101,15 +107,17 @@ export async function GET(request: NextRequest) {
                 ? Math.round(filteredSpeakers.reduce((sum, vs) => sum + (vs.speakingPercentage || 0), 0) / videoCount)
                 : 0;
 
+            const linkedUser = normalizeOne(profile.user);
+
             return {
               speakerId: profile.id,
               displayName: profile.displayName,
-              linkedUser: profile.user
+              linkedUser: linkedUser
                 ? {
-                    id: profile.user.id,
-                    name: profile.user.name,
-                    email: profile.user.email,
-                    image: profile.user.image,
+                    id: linkedUser.id,
+                    name: linkedUser.name,
+                    email: linkedUser.email,
+                    image: linkedUser.image,
                   }
                 : null,
               videoCount,

@@ -1,11 +1,12 @@
 import { and, eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { commentReactions, comments, type ReactionType } from "@/lib/db/schema";
-import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
+import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { validateRequestBody } from "@/lib/validation";
 
 // Valid reaction types
 const VALID_REACTIONS: ReactionType[] = ["like", "love", "laugh", "surprised", "sad", "angry", "thinking", "celebrate"];
@@ -70,9 +71,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // POST /api/comments/[id]/reactions - Add or update reaction
 // =============================================================================
 
-interface AddReactionBody {
-  reactionType: ReactionType;
-}
+const AddReactionBodySchema = Schema.Struct({
+  reactionType: Schema.Literal("like", "love", "laugh", "surprised", "sad", "angry", "thinking", "celebrate"),
+});
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -83,17 +84,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = yield* Effect.promise(() => params);
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<AddReactionBody>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(AddReactionBodySchema, request);
 
     // Validate reaction type
-    if (!body.reactionType || !VALID_REACTIONS.includes(body.reactionType)) {
+    if (!VALID_REACTIONS.includes(body.reactionType)) {
       return yield* Effect.fail(
         new ValidationError({
           message: `Invalid reaction type. Valid types: ${VALID_REACTIONS.join(", ")}`,

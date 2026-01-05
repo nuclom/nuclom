@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
@@ -8,6 +8,12 @@ import { db } from "@/lib/db";
 import { members, users } from "@/lib/db/schema";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+const UpdateMemberRoleSchema = Schema.Struct({
+  userId: Schema.String,
+  role: Schema.Literal("owner", "member"),
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/members - Get organization members
@@ -125,16 +131,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { userId, role } = body;
-
-  if (!userId) {
-    return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
+  const rawBody = await request.json();
+  const result = safeParse(UpdateMemberRoleSchema, rawBody);
+  if (!result.success) {
+    return NextResponse.json(
+      { success: false, error: "userId and role are required. role must be 'owner' or 'member'" },
+      { status: 400 },
+    );
   }
-
-  if (!role || (role !== "owner" && role !== "member")) {
-    return NextResponse.json({ success: false, error: "role must be 'owner' or 'member'" }, { status: 400 });
-  }
+  const { userId, role } = result.data;
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);

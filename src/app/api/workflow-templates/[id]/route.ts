@@ -1,9 +1,22 @@
 import { eq, sql } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflowTemplates } from "@/lib/db/schema";
+import { safeParse } from "@/lib/validation";
+
+const UpdateTemplateSchema = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  description: Schema.optional(Schema.String),
+  type: Schema.optional(
+    Schema.Literal("meeting_recap", "tutorial", "product_demo", "training", "onboarding", "marketing", "custom"),
+  ),
+  icon: Schema.optional(Schema.String),
+  config: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
+  isActive: Schema.optional(Schema.Boolean),
+});
 
 // =============================================================================
 // GET /api/workflow-templates/[id] - Get a specific template
@@ -54,8 +67,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Cannot edit system templates" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { name, description, type, icon, config, isActive } = body;
+    const rawBody = await request.json();
+    const result = safeParse(UpdateTemplateSchema, rawBody);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+    }
+    const { name, description, type, icon, config, isActive } = result.data;
 
     const [template] = await db
       .update(workflowTemplates)
@@ -64,7 +81,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(description !== undefined && { description }),
         ...(type !== undefined && { type }),
         ...(icon !== undefined && { icon }),
-        ...(config !== undefined && { config }),
+        ...(config !== undefined && { config: { ...config } }),
         ...(isActive !== undefined && { isActive }),
         updatedAt: new Date(),
       })

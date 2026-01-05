@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { Schema } from "effect";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { organizationRoles } from "@/lib/access-control";
@@ -6,6 +7,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
 import type { ApiResponse } from "@/lib/types";
+import { safeParse } from "@/lib/validation";
+
+// Schema for updating member role
+const UpdateRoleSchema = Schema.Struct({
+  role: Schema.String,
+});
 
 // =============================================================================
 // GET /api/organizations/[id]/members/[userId]/permissions - Get user permissions
@@ -115,12 +122,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const body = await request.json();
-    const { role } = body;
-
-    if (!role) {
+    const rawBody = await request.json();
+    const result = safeParse(UpdateRoleSchema, rawBody);
+    if (!result.success) {
       return NextResponse.json<ApiResponse>({ success: false, error: "role is required" }, { status: 400 });
     }
+    const { role } = result.data;
 
     // Validate role is one of the defined roles
     if (!Object.keys(organizationRoles).includes(role)) {

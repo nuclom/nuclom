@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { connection } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
@@ -6,6 +6,7 @@ import { MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { Embedding } from "@/lib/effect/services/embedding";
 import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-repository";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // POST /api/search/semantic - Semantic search using embeddings
@@ -14,18 +15,19 @@ import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-
 export async function POST(request: NextRequest) {
   await connection();
 
-  // Parse request body outside of Effect
-  const body = (await request.json()) as {
-    query?: string;
-    organizationId?: string;
-    limit?: number;
-    threshold?: number;
-    contentTypes?: ("transcript_chunk" | "decision")[];
-    videoIds?: string[];
-    channelIds?: string[];
-  };
+  const SemanticSearchBodySchema = Schema.Struct({
+    query: Schema.optional(Schema.String),
+    organizationId: Schema.optional(Schema.String),
+    limit: Schema.optional(Schema.Number),
+    threshold: Schema.optional(Schema.Number),
+    contentTypes: Schema.optional(Schema.Array(Schema.Literal("transcript_chunk", "decision"))),
+    videoIds: Schema.optional(Schema.Array(Schema.String)),
+    channelIds: Schema.optional(Schema.Array(Schema.String)),
+  });
 
   const effect = Effect.gen(function* () {
+    const body = yield* validateRequestBody(SemanticSearchBodySchema, request);
+
     // Authenticate
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);

@@ -6,7 +6,7 @@
  * For new implementations, use the authClient.subscription.upgrade() method.
  */
 
-import { Effect, Option } from "effect";
+import { Effect, Option, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { MissingFieldError } from "@/lib/effect";
@@ -17,6 +17,14 @@ import { OrganizationRepository } from "@/lib/effect/services/organization-repos
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
 import { env } from "@/lib/env/server";
 import { rateLimitBillingAsync } from "@/lib/rate-limit";
+import { validateRequestBody } from "@/lib/validation";
+
+const CheckoutRequestSchema = Schema.Struct({
+  organizationId: Schema.String,
+  planId: Schema.String,
+  billingPeriod: Schema.Literal("monthly", "yearly"),
+  trialDays: Schema.optional(Schema.Number),
+});
 
 // =============================================================================
 // POST /api/billing/checkout - Create checkout session (legacy)
@@ -32,44 +40,11 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Parse body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { organizationId, planId, billingPeriod, trialDays } = body;
-
-    if (!organizationId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
-        }),
-      );
-    }
-
-    if (!planId) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "planId",
-          message: "Plan ID is required",
-        }),
-      );
-    }
-
-    if (!billingPeriod || !["monthly", "yearly"].includes(billingPeriod)) {
-      return yield* Effect.fail(
-        new MissingFieldError({
-          field: "billingPeriod",
-          message: "Billing period must be 'monthly' or 'yearly'",
-        }),
-      );
-    }
+    // Parse and validate body
+    const { organizationId, planId, billingPeriod, trialDays } = yield* validateRequestBody(
+      CheckoutRequestSchema,
+      request,
+    );
 
     // Verify user is owner of organization
     const orgRepo = yield* OrganizationRepository;

@@ -8,13 +8,13 @@ import { Embedding } from "@/lib/effect/services/embedding";
 import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-repository";
 
 // =============================================================================
-// GET /api/videos/[videoId]/embeddings - Get embedding status for a video
+// GET /api/videos/[id]/embeddings - Get embedding status for a video
 // =============================================================================
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ videoId: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connection();
 
-  const { videoId } = await params;
+  const { id: videoId } = await params;
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -56,13 +56,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // =============================================================================
-// POST /api/videos/[videoId]/embeddings - Generate embeddings for a video
+// POST /api/videos/[id]/embeddings - Generate embeddings for a video
 // =============================================================================
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ videoId: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connection();
 
-  const { videoId } = await params;
+  const { id: videoId } = await params;
 
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -116,13 +116,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 }
 
 // =============================================================================
-// DELETE /api/videos/[videoId]/embeddings - Delete embeddings for a video
+// DELETE /api/videos/[id]/embeddings - Delete embeddings for a video
 // =============================================================================
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ videoId: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connection();
 
-  const { videoId } = await params;
+  const { id: videoId } = await params;
 
   const effect = Effect.gen(function* () {
     // Authenticate

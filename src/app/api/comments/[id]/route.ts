@@ -1,9 +1,10 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { CommentRepository, MissingFieldError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { commentEventEmitter } from "@/lib/realtime/comment-events";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // GET /api/comments/[id] - Get a single comment
@@ -34,14 +35,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = yield* Effect.promise(() => params);
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<{ content: string }>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(
+      Schema.Struct({
+        content: Schema.String,
+      }),
+      request,
+    );
 
     // Validate required fields
     if (!body.content || body.content.trim().length === 0) {

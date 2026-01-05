@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videoShareLinks, videos } from "@/lib/db/schema";
-import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
+import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // Hash Password Helper
@@ -76,12 +77,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // POST /api/videos/[id]/share - Create share link
 // =============================================================================
 
-interface CreateShareLinkBody {
-  accessLevel?: "view" | "comment" | "download";
-  password?: string;
-  expiresIn?: "never" | "1d" | "7d" | "30d";
-  maxViews?: number;
-}
+const CreateShareLinkBodySchema = Schema.Struct({
+  accessLevel: Schema.optional(Schema.Literal("view", "comment", "download")),
+  password: Schema.optional(Schema.String),
+  expiresIn: Schema.optional(Schema.Literal("never", "1d", "7d", "30d")),
+  maxViews: Schema.optional(Schema.Number),
+});
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -92,14 +93,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id } = yield* Effect.promise(() => params);
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<CreateShareLinkBody>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(CreateShareLinkBodySchema, request);
 
     // Verify video exists
     const video = yield* Effect.tryPromise({

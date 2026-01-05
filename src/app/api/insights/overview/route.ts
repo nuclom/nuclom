@@ -1,6 +1,6 @@
 import { and, avg, count, eq, gte, sql, sum } from "drizzle-orm";
 import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { aiActionItems, decisions, videos, videoViews } from "@/lib/db/schema";
@@ -22,6 +22,7 @@ const querySchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest) {
+  await connection();
   const FullLayer = createFullLayer();
 
   const effect = Effect.gen(function* () {

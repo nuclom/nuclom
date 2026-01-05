@@ -1,21 +1,23 @@
 import { and, eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option } from "effect";
+import { Cause, Effect, Exit, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
+import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import type { ApiResponse } from "@/lib/types";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // POST /api/videos/[id]/views - Track view start
 // =============================================================================
 
-interface TrackViewBody {
-  sessionId: string;
-  source?: "direct" | "share_link" | "embed";
-}
+const TrackViewBodySchema = Schema.Struct({
+  sessionId: Schema.String,
+  source: Schema.optional(Schema.Literal("direct", "share_link", "embed")),
+});
+type TrackViewBody = Schema.Schema.Type<typeof TrackViewBodySchema>;
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -23,14 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const videoId = resolvedParams.id;
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<TrackViewBody>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(TrackViewBodySchema, request);
 
     // Validate sessionId
     if (!body.sessionId || typeof body.sessionId !== "string") {
@@ -91,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Determine source from referrer if not provided
     const referrer = request.headers.get("referer") || null;
-    const source = body.source || (referrer?.includes("share") ? "share_link" : "direct");
+    const source: TrackViewBody["source"] = body.source ?? (referrer?.includes("share") ? "share_link" : "direct");
 
     // Create new view
     const result = yield* Effect.tryPromise({
@@ -144,11 +139,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 // PATCH /api/videos/[id]/views - Update watch progress
 // =============================================================================
 
-interface UpdateViewBody {
-  sessionId: string;
-  watchDuration: number;
-  completionPercent: number;
-}
+const UpdateViewBodySchema = Schema.Struct({
+  sessionId: Schema.String,
+  watchDuration: Schema.Number,
+  completionPercent: Schema.Number,
+});
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -156,14 +151,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const videoId = resolvedParams.id;
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<UpdateViewBody>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(UpdateViewBodySchema, request);
 
     // Validate fields
     if (!body.sessionId || typeof body.sessionId !== "string") {

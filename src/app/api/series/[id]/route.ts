@@ -1,8 +1,16 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError, SeriesRepository } from "@/lib/effect";
+import { SeriesRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { validateRequestBody } from "@/lib/validation";
+
+const UpdateSeriesSchema = Schema.Struct({
+  name: Schema.optional(Schema.String),
+  description: Schema.optional(Schema.String),
+  thumbnailUrl: Schema.optional(Schema.String),
+  isPublic: Schema.optional(Schema.Boolean),
+});
 
 // =============================================================================
 // GET /api/series/[id] - Get series with videos
@@ -39,17 +47,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
-
-    const { name, description, thumbnailUrl, isPublic } = body;
+    // Parse and validate request body
+    const { name, description, thumbnailUrl, isPublic } = yield* validateRequestBody(UpdateSeriesSchema, request);
 
     // Update series using repository
     const seriesRepo = yield* SeriesRepository;

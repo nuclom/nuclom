@@ -6,12 +6,14 @@
  */
 
 import { desc, eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
 import { db } from "@/lib/db";
+import { normalizeOne } from "@/lib/db/relations";
 import { speakerProfiles, videoSpeakers, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError } from "@/lib/effect";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // GET /api/videos/[id]/speakers - Get speakers in a video with talk time stats
@@ -94,23 +96,28 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         videoId,
         duration: video.duration,
         speakerCount,
-        speakers: speakers.map((s) => ({
-          id: s.id,
-          speakerLabel: s.speakerLabel,
-          displayName: s.speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
-          totalSpeakingTime: s.totalSpeakingTime,
-          segmentCount: s.segmentCount,
-          speakingPercentage: s.speakingPercentage || 0,
-          linkedUser: s.speakerProfile?.user
-            ? {
-                id: s.speakerProfile.user.id,
-                name: s.speakerProfile.user.name,
-                email: s.speakerProfile.user.email,
-                image: s.speakerProfile.user.image,
-              }
-            : null,
-          speakerProfileId: s.speakerProfileId,
-        })),
+        speakers: speakers.map((s) => {
+          const speakerProfile = normalizeOne(s.speakerProfile);
+          const linkedUser = normalizeOne(speakerProfile?.user);
+
+          return {
+            id: s.id,
+            speakerLabel: s.speakerLabel,
+            displayName: speakerProfile?.displayName || `Speaker ${s.speakerLabel}`,
+            totalSpeakingTime: s.totalSpeakingTime,
+            segmentCount: s.segmentCount,
+            speakingPercentage: s.speakingPercentage || 0,
+            linkedUser: linkedUser
+              ? {
+                  id: linkedUser.id,
+                  name: linkedUser.name,
+                  email: linkedUser.email,
+                  image: linkedUser.image,
+                }
+              : null,
+            speakerProfileId: s.speakerProfileId,
+          };
+        }),
         balanceScore,
       },
     };
@@ -125,11 +132,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // PATCH /api/videos/[id]/speakers - Update speaker label or link to profile
 // =============================================================================
 
-interface UpdateSpeakerRequest {
-  speakerId: string;
-  displayName?: string;
-  userId?: string; // Link speaker profile to user
-}
+const UpdateSpeakerRequestSchema = Schema.Struct({
+  speakerId: Schema.String,
+  displayName: Schema.optional(Schema.String),
+  userId: Schema.optional(Schema.String),
+});
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -137,14 +144,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const videoId = resolvedParams.id;
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<UpdateSpeakerRequest>,
-      catch: () =>
-        new DatabaseError({
-          message: "Invalid request body",
-          operation: "parseBody",
-        }),
-    });
+    const body = yield* validateRequestBody(UpdateSpeakerRequestSchema, request);
 
     const { speakerId, displayName, userId } = body;
 

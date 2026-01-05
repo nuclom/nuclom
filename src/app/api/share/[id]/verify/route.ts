@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { db } from "@/lib/db";
 import { videoShareLinks } from "@/lib/db/schema";
 import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
+import { validateRequestBody } from "@/lib/validation";
 
 // Hash password using Web Crypto API
 async function hashPassword(password: string): Promise<string> {
@@ -21,23 +22,16 @@ async function hashPassword(password: string): Promise<string> {
 // POST /api/share/[id]/verify - Verify password for protected share link
 // =============================================================================
 
-interface VerifyPasswordBody {
-  password: string;
-}
+const VerifyPasswordBodySchema = Schema.Struct({
+  password: Schema.String,
+});
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<VerifyPasswordBody>,
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(VerifyPasswordBodySchema, request);
 
     if (!body.password) {
       return yield* Effect.fail(

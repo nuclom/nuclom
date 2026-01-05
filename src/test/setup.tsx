@@ -1,5 +1,37 @@
+import process from "node:process";
+import { ReadableStream, TransformStream, WritableStream } from "node:stream/web";
 import "@testing-library/jest-dom";
-import { afterAll, beforeAll, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+
+// Polyfill Web Streams API for Node.js environment
+if (typeof globalThis.TransformStream === "undefined") {
+  // @ts-expect-error - Polyfill for Node.js
+  globalThis.TransformStream = TransformStream;
+  // @ts-expect-error - Polyfill for Node.js
+  globalThis.ReadableStream = ReadableStream;
+  globalThis.WritableStream = WritableStream;
+}
+
+const setEnvDefault = (key: string, value: string) => {
+  if (!process.env[key]) {
+    process.env[key] = value;
+  }
+};
+
+setEnvDefault("BETTER_AUTH_SECRET", "test-better-auth-secret-32-characters");
+setEnvDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/nuclom_test");
+setEnvDefault("RESEND_API_KEY", "re_test");
+setEnvDefault("GITHUB_CLIENT_ID", "github_test");
+setEnvDefault("GITHUB_CLIENT_SECRET", "github_test_secret");
+setEnvDefault("GOOGLE_CLIENT_ID", "google_test");
+setEnvDefault("GOOGLE_CLIENT_SECRET", "google_test_secret");
+setEnvDefault("R2_ACCOUNT_ID", "r2_test_account");
+setEnvDefault("R2_ACCESS_KEY_ID", "r2_test_access_key");
+setEnvDefault("R2_SECRET_ACCESS_KEY", "r2_test_secret_key");
+setEnvDefault("R2_BUCKET_NAME", "r2_test_bucket");
+setEnvDefault("STRIPE_SECRET_KEY", "sk_test_123");
+setEnvDefault("STRIPE_WEBHOOK_SECRET", "whsec_test_123");
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -78,6 +110,11 @@ beforeAll(() => {
     }
     originalError.apply(console, args);
   };
+});
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
 });
 
 afterAll(() => {

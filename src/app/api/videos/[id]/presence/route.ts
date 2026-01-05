@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Effect, Option } from "effect";
+import { Effect, Option, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
 import { db } from "@/lib/db";
@@ -7,6 +7,7 @@ import { videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
 import { Presence } from "@/lib/effect/services/presence";
+import { validateOptional } from "@/lib/validation";
 
 // =============================================================================
 // GET /api/videos/[id]/presence - Get all users currently watching a video
@@ -36,10 +37,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // POST /api/videos/[id]/presence - Update current user's presence (heartbeat)
 // =============================================================================
 
-interface UpdatePresenceBody {
-  currentTime?: number;
-  status?: "online" | "away" | "busy";
-}
+const UpdatePresenceBodySchema = Schema.Struct({
+  currentTime: Schema.optional(Schema.Number),
+  status: Schema.optional(Schema.Literal("online", "away", "busy")),
+});
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       catch: () => null,
     });
 
-    const body = bodyOption as UpdatePresenceBody | null;
+    const body = yield* validateOptional(UpdatePresenceBodySchema, bodyOption);
 
     // Update presence
     const presenceService = yield* Presence;

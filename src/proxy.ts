@@ -30,18 +30,17 @@ import {
 // Redis Rate Limiting (disabled if not configured)
 // =============================================================================
 
-function isRedisConfigured(): boolean {
-  return Boolean(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
-}
-
 function createRedisClient(): Redis | null {
-  if (!isRedisConfigured()) {
+  const url = env.UPSTASH_REDIS_REST_URL;
+  const token = env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
     return null;
   }
 
   return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL as string,
-    token: env.UPSTASH_REDIS_REST_TOKEN as string,
+    url,
+    token,
   });
 }
 
@@ -485,6 +484,6 @@ export const config = {
      * - Public assets (images, fonts, etc.)
      * - public folder assets
      */
-    "/((?!_next/static|_next/image|public|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
+    "/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)",
   ],
 };
