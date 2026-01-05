@@ -9,6 +9,7 @@ import {
   legalConsents,
   members,
   organizations,
+  userExtensions,
   users,
   videoProgresses,
   videos,
@@ -56,12 +57,23 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    // Fetch user data
-    const [userData] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    // Fetch user data with extensions (marketing consent is in userExtensions)
+    const [result] = await db
+      .select({
+        user: users,
+        extensions: userExtensions,
+      })
+      .from(users)
+      .leftJoin(userExtensions, eq(users.id, userExtensions.userId))
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    if (!userData) {
+    if (!result?.user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+
+    const userData = result.user;
+    const userExtData = result.extensions;
 
     // Fetch user's organizations
     const userMemberships = await db
@@ -145,8 +157,8 @@ export async function GET(_request: NextRequest) {
         role: userData.role,
         createdAt: userData.createdAt,
         updatedAt: userData.updatedAt,
-        marketingConsent: userData.marketingConsent,
-        marketingConsentAt: userData.marketingConsentAt,
+        marketingConsent: userExtData?.marketingConsent ?? false,
+        marketingConsentAt: userExtData?.marketingConsentAt ?? null,
       },
       organizations: userMemberships.map((m) => ({
         id: m.organization.id,
@@ -163,8 +175,8 @@ export async function GET(_request: NextRequest) {
       videoProgress: userProgress,
       legalConsents: userConsents,
       settings: {
-        marketingConsent: userData.marketingConsent,
-        marketingConsentAt: userData.marketingConsentAt,
+        marketingConsent: userExtData?.marketingConsent ?? false,
+        marketingConsentAt: userExtData?.marketingConsentAt ?? null,
       },
     };
 

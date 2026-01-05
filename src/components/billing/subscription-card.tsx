@@ -142,7 +142,7 @@ export function SubscriptionCard({
             <CardTitle>Current Plan</CardTitle>
             <CardDescription>Your subscription details</CardDescription>
           </div>
-          {getStatusBadge(subscription.status, subscription.cancelAtPeriodEnd)}
+          {getStatusBadge(subscription.status ?? "active", subscription.cancelAtPeriodEnd ?? false)}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

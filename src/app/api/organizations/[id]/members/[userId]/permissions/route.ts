@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { organizationRoles } from "@/lib/access-control";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { members } from "@/lib/db/schema";
-import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -23,11 +23,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { id: organizationId, userId } = await params;
 
   // Check if requesting user is a member
-  const membership = await db.query.members.findFirst({
+  const requestingMembership = await db.query.members.findFirst({
     where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
   });
 
-  if (!membership) {
+  if (!requestingMembership) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: "Not a member of this organization" },
       { status: 403 },
@@ -35,7 +35,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   // Only owners/admins can view other users' permissions, or user can view their own
-  if (session.user.id !== userId && membership.role !== "owner") {
+  if (session.user.id !== userId && requestingMembership.role !== "owner") {
     return NextResponse.json<ApiResponse>(
       { success: false, error: "You can only view your own permissions" },
       { status: 403 },
@@ -43,25 +43,42 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const permissions = await RBACService.getUserPermissions(userId, organizationId);
-    const roles = await RBACService.getUserRoles(userId, organizationId);
+    // Get the target user's membership to find their role
+    const targetMembership = await db.query.members.findFirst({
+      where: and(eq(members.userId, userId), eq(members.organizationId, organizationId)),
+    });
+
+    if (!targetMembership) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "User is not a member of this organization" },
+        { status: 404 },
+      );
+    }
+
+    // Get permissions from the role definition in access-control.ts
+    const role = targetMembership.role as keyof typeof organizationRoles;
+    const roleDefinition = organizationRoles[role];
+
+    // Transform the role permissions into a flat list
+    const permissions: Array<{ resource: string; action: string }> = [];
+    if (roleDefinition) {
+      // The role object has permissions organized by resource
+      const rolePerms = roleDefinition as unknown as Record<string, string[]>;
+      for (const [resource, actions] of Object.entries(rolePerms)) {
+        if (Array.isArray(actions)) {
+          for (const action of actions) {
+            permissions.push({ resource, action });
+          }
+        }
+      }
+    }
 
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
         userId,
-        roles: roles.map((r) => ({
-          id: r.id,
-          name: r.name,
-          description: r.description,
-          color: r.color,
-          isSystemRole: r.isSystemRole,
-        })),
-        permissions: permissions.map((p) => ({
-          resource: p.resource,
-          action: p.action,
-          conditions: p.conditions,
-        })),
+        role: targetMembership.role,
+        permissions,
       },
     });
   } catch (error) {
@@ -74,7 +91,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 }
 
 // =============================================================================
-// POST /api/organizations/[id]/members/[userId]/permissions - Assign role to user
+// POST /api/organizations/[id]/members/[userId]/permissions - Update member role
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
@@ -94,45 +111,68 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can assign roles" }, { status: 403 });
+    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can update roles" }, { status: 403 });
   }
 
   try {
     const body = await request.json();
-    const { roleId } = body;
+    const { role } = body;
 
-    if (!roleId) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "roleId is required" }, { status: 400 });
+    if (!role) {
+      return NextResponse.json<ApiResponse>({ success: false, error: "role is required" }, { status: 400 });
     }
 
-    await RBACService.assignRole(userId, organizationId, roleId, session.user.id);
+    // Validate role is one of the defined roles
+    if (!Object.keys(organizationRoles).includes(role)) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: `Invalid role. Must be one of: ${Object.keys(organizationRoles).join(", ")}` },
+        { status: 400 },
+      );
+    }
 
-    const roles = await RBACService.getUserRoles(userId, organizationId);
+    // Get the member to update
+    const targetMember = await db.query.members.findFirst({
+      where: and(eq(members.userId, userId), eq(members.organizationId, organizationId)),
+    });
+
+    if (!targetMember) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "User is not a member of this organization" },
+        { status: 404 },
+      );
+    }
+
+    // Use Better Auth's member role update
+    await auth.api.updateMemberRole({
+      body: {
+        memberId: targetMember.id,
+        role,
+        organizationId,
+      },
+      headers: await headers(),
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
-        message: "Role assigned successfully",
-        roles: roles.map((r) => ({
-          id: r.id,
-          name: r.name,
-        })),
+        message: "Role updated successfully",
+        role,
       },
     });
   } catch (error) {
-    console.error("[RBAC] Assign role error:", error);
+    console.error("[RBAC] Update role error:", error);
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to assign role" },
+      { success: false, error: error instanceof Error ? error.message : "Failed to update role" },
       { status: 500 },
     );
   }
 }
 
 // =============================================================================
-// DELETE /api/organizations/[id]/members/[userId]/permissions - Remove role from user
+// DELETE /api/organizations/[id]/members/[userId]/permissions - Demote to member role
 // =============================================================================
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string; userId: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -149,27 +189,40 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   });
 
   if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can remove roles" }, { status: 403 });
+    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can modify roles" }, { status: 403 });
   }
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const roleId = searchParams.get("roleId");
+    // Get the member to update
+    const targetMember = await db.query.members.findFirst({
+      where: and(eq(members.userId, userId), eq(members.organizationId, organizationId)),
+    });
 
-    if (!roleId) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "roleId is required" }, { status: 400 });
+    if (!targetMember) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: "User is not a member of this organization" },
+        { status: 404 },
+      );
     }
 
-    await RBACService.removeRole(userId, organizationId, roleId, session.user.id);
+    // Demote to member role using Better Auth
+    await auth.api.updateMemberRole({
+      body: {
+        memberId: targetMember.id,
+        role: "member",
+        organizationId,
+      },
+      headers: await headers(),
+    });
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: { message: "Role removed successfully" },
+      data: { message: "User demoted to member role" },
     });
   } catch (error) {
-    console.error("[RBAC] Remove role error:", error);
+    console.error("[RBAC] Demote role error:", error);
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to remove role" },
+      { success: false, error: error instanceof Error ? error.message : "Failed to demote role" },
       { status: 500 },
     );
   }

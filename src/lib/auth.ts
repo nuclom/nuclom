@@ -1,16 +1,27 @@
+import { oauthProvider } from "@better-auth/oauth-provider";
 import { passkey } from "@better-auth/passkey";
+import { sso } from "@better-auth/sso";
 import { stripe } from "@better-auth/stripe";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, apiKey, mcp, openAPI, organization, twoFactor } from "better-auth/plugins";
+import {
+  admin,
+  apiKey,
+  jwt,
+  lastLoginMethod,
+  multiSession,
+  openAPI,
+  organization,
+  twoFactor,
+} from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
+import { ac, organizationRoles } from "@/lib/access-control";
 import { env } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { notifySlackMonitoring } from "./effect/services/slack-monitoring";
 import { resend } from "./email";
-import { enforceSessionLimit, generateFingerprint, getSecureCookieOptions } from "./session-security";
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -54,9 +65,6 @@ function buildTrustedOrigins(): string[] {
 }
 
 const trustedOrigins = buildTrustedOrigins();
-
-// Get secure cookie settings
-const cookieOptions = getSecureCookieOptions();
 
 export const auth = betterAuth({
   trustedOrigins,
@@ -169,6 +177,8 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    // Required for OAuth provider plugin when using cookieCache
+    storeSessionInDatabase: true,
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5, // 5 minutes cache
@@ -179,10 +189,10 @@ export const auth = betterAuth({
     cookiePrefix: "nuclom",
     useSecureCookies: env.NODE_ENV === "production",
     defaultCookieAttributes: {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: cookieOptions.path,
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      path: "/",
     },
   },
   databaseHooks: {
@@ -194,39 +204,12 @@ export const auth = betterAuth({
 
           const activeOrganizationId = userMembership[0]?.organizationId || null;
 
-          // Generate session fingerprint from IP and user agent
-          const fingerprint = await generateFingerprint(session.ipAddress || null, session.userAgent || null);
-
           return {
             data: {
               ...session,
               activeOrganizationId,
-              fingerprint,
-              lastFingerprintCheck: new Date(),
             },
           };
-        },
-        after: async (session) => {
-          // Enforce concurrent session limits after creating new session
-          try {
-            const removedCount = await enforceSessionLimit(session.userId, session.id);
-            if (removedCount > 0) {
-              console.log(
-                `[Session Security] Removed ${removedCount} old sessions for user ${session.userId} (limit enforcement)`,
-              );
-            }
-          } catch (error) {
-            console.error("[Session Security] Failed to enforce session limit:", error);
-          }
-        },
-      },
-    },
-    user: {
-      update: {
-        after: async (user) => {
-          // Check if password was updated (we'll handle this in a custom hook)
-          // For now, log the update for security audit
-          console.log(`[Security Audit] User ${user.id} updated`);
         },
       },
     },
@@ -240,6 +223,14 @@ export const auth = betterAuth({
       defaultBanExpiresIn: 60 * 60 * 24 * 7, // 7 days
     }),
     organization({
+      // Access control configuration
+      ac,
+      roles: organizationRoles,
+      // Enable dynamic role creation for custom organization roles
+      dynamicAccessControl: {
+        enabled: true,
+        maximumRolesPerOrganization: 10,
+      },
       allowUserToCreateOrganization: async () => {
         // Allow all authenticated users to create organizations
         return true;
@@ -562,15 +553,21 @@ export const auth = betterAuth({
         maxRequests: 100,
       },
     }),
-    mcp({
+    // JWT plugin is required for OAuth provider
+    jwt(),
+    // OAuth 2.1 Provider plugin - allows Nuclom to act as an OAuth provider
+    oauthProvider({
       loginPage: "/auth/sign-in",
-      oidcConfig: {
-        loginPage: "/auth/sign-in",
-        codeExpiresIn: 600, // 10 minutes
-        accessTokenExpiresIn: 3600, // 1 hour
-        refreshTokenExpiresIn: 604800, // 7 days
-        defaultScope: "openid",
-        scopes: ["openid", "profile", "email", "offline_access"],
+      consentPage: "/auth/consent",
+      // Token expiration settings
+      accessTokenExpiresIn: 3600, // 1 hour
+      refreshTokenExpiresIn: 604800, // 7 days (use number, not string)
+      idTokenExpiresIn: 36000, // 10 hours
+      // Supported scopes
+      scopes: ["openid", "profile", "email", "offline_access"],
+      // Metadata for OAuth clients
+      metadata: {
+        appName: "Nuclom",
       },
     }),
     twoFactor({
@@ -589,7 +586,26 @@ export const auth = betterAuth({
       rpName: "Nuclom",
       origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
     }),
+    sso({
+      // Automatically add users to organizations when they sign in via SSO
+      organizationProvisioning: {
+        disabled: false,
+        defaultRole: "member",
+      },
+      // Enable domain verification for automatic account linking
+      domainVerification: {
+        enabled: true,
+      },
+    }),
     openAPI(),
+    // Track last login method for personalized login experience
+    lastLoginMethod({
+      storeInDatabase: true,
+    }),
+    // Allow users to manage multiple concurrent sessions
+    multiSession({
+      maximumSessions: 5,
+    }),
   ],
 });
 

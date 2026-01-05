@@ -3,13 +3,17 @@
  *
  * GET /api/user/sessions - List all active sessions for the current user
  * DELETE /api/user/sessions - Revoke all sessions except current
+ *
+ * Uses better-auth's built-in session management via multiSession plugin
  */
 
+import { and, desc, eq, gt } from "drizzle-orm";
 import { Effect } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
+import { db } from "@/lib/db";
+import { sessions } from "@/lib/db/schema";
 import { Auth } from "@/lib/effect/services/auth";
-import { getUserActiveSessions, revokeUserSessions } from "@/lib/session-security";
 
 // =============================================================================
 // GET /api/user/sessions - List active sessions
@@ -20,9 +24,21 @@ export async function GET(request: NextRequest) {
     const authService = yield* Auth;
     const { user, session } = yield* authService.getSession(request.headers);
 
-    // Get all active sessions for this user
+    // Get all active sessions for this user using direct DB query
+    // better-auth stores ipAddress and userAgent on sessions automatically
+    const now = new Date();
     const activeSessions = yield* Effect.tryPromise({
-      try: () => getUserActiveSessions(user.id),
+      try: () =>
+        db.query.sessions.findMany({
+          where: and(eq(sessions.userId, user.id), gt(sessions.expiresAt, now)),
+          columns: {
+            id: true,
+            ipAddress: true,
+            userAgent: true,
+            createdAt: true,
+          },
+          orderBy: [desc(sessions.createdAt)],
+        }),
       catch: (error) => new Error(`Failed to get sessions: ${error}`),
     });
 
@@ -55,17 +71,31 @@ export async function DELETE(request: NextRequest) {
     const authService = yield* Auth;
     const { user, session } = yield* authService.getSession(request.headers);
 
-    // Revoke all sessions except the current one
-    const result = yield* Effect.tryPromise({
-      try: () => revokeUserSessions(user.id, session.id),
+    // Delete all sessions except the current one
+    const revokedCount = yield* Effect.tryPromise({
+      try: async () => {
+        // Get all session IDs except current
+        const otherSessions = await db.query.sessions.findMany({
+          where: eq(sessions.userId, user.id),
+          columns: { id: true },
+        });
+
+        const idsToDelete = otherSessions.filter((s) => s.id !== session.id).map((s) => s.id);
+
+        for (const id of idsToDelete) {
+          await db.delete(sessions).where(eq(sessions.id, id));
+        }
+
+        return idsToDelete.length;
+      },
       catch: (error) => new Error(`Failed to revoke sessions: ${error}`),
     });
 
-    console.log(`[Session Security] User ${user.id} revoked all other sessions`);
+    console.log(`[Session] User ${user.id} revoked ${revokedCount} other sessions`);
 
     return {
       message: "All other sessions have been revoked",
-      revokedCount: result.revokedCount,
+      revokedCount,
     };
   });
 

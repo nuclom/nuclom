@@ -124,7 +124,7 @@ describe("Cascade Delete Tests", () => {
     await db.delete(paymentMethods).where(eq(paymentMethods.organizationId, testIds.orgId));
     await db.delete(invoices).where(eq(invoices.organizationId, testIds.orgId));
     await db.delete(usage).where(eq(usage.organizationId, testIds.orgId));
-    await db.delete(subscriptions).where(eq(subscriptions.organizationId, testIds.orgId));
+    await db.delete(subscriptions).where(eq(subscriptions.referenceId, testIds.orgId));
     await db.delete(invitations).where(eq(invitations.organizationId, testIds.orgId));
     await db.delete(members).where(eq(members.organizationId, testIds.orgId));
     await db.delete(organizations).where(eq(organizations.id, testIds.orgId));
@@ -154,6 +154,7 @@ describe("Cascade Delete Tests", () => {
 
       // Create subscription
       await db.insert(subscriptions).values({
+        id: crypto.randomUUID(),
         plan: "pro",
         referenceId: testIds.orgId,
         status: "active",
@@ -188,7 +189,7 @@ describe("Cascade Delete Tests", () => {
       const subscriptionsAfter = await db
         .select()
         .from(subscriptions)
-        .where(eq(subscriptions.organizationId, testIds.orgId));
+        .where(eq(subscriptions.referenceId, testIds.orgId));
       expect(subscriptionsAfter.length).toBe(0);
 
       // Comments should also be deleted (cascade through videos)
@@ -224,6 +225,7 @@ describe("Cascade Delete Tests", () => {
     it("should cascade delete billing data when organization is deleted", async () => {
       // Create billing data
       await db.insert(subscriptions).values({
+        id: crypto.randomUUID(),
         plan: "pro",
         referenceId: testIds.orgId,
         status: "active",
@@ -257,7 +259,7 @@ describe("Cascade Delete Tests", () => {
       const subscriptionsAfter = await db
         .select()
         .from(subscriptions)
-        .where(eq(subscriptions.organizationId, testIds.orgId));
+        .where(eq(subscriptions.referenceId, testIds.orgId));
       expect(subscriptionsAfter.length).toBe(0);
 
       const usageAfter = await db.select().from(usage).where(eq(usage.organizationId, testIds.orgId));

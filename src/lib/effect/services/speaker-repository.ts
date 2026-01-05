@@ -9,10 +9,10 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { Context, Data, Effect, Layer, Option } from "effect";
 import type {
   NewSpeakerProfile,
-  NewSpeakerSegmentRecord,
+  NewSpeakerSegmentRow,
   NewVideoSpeaker,
   SpeakerProfile,
-  SpeakerSegmentRecord,
+  SpeakerSegmentRow,
   VideoSpeaker,
 } from "@/lib/db/schema";
 import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from "@/lib/db/schema";
@@ -152,18 +152,18 @@ export interface SpeakerRepositoryService {
   // Speaker Segments
   readonly createSpeakerSegments: (
     inputs: CreateSpeakerSegmentInput[],
-  ) => Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError>;
+  ) => Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError>;
 
   readonly getSpeakerSegments: (
     videoId: string,
     speakerId?: string,
-  ) => Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError>;
+  ) => Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError>;
 
   readonly getSpeakerSegmentsByTimeRange: (
     videoId: string,
     startTime: number,
     endTime: number,
-  ) => Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError>;
+  ) => Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError>;
 
   // Analytics
   readonly getTalkTimeDistribution: (
@@ -473,7 +473,7 @@ const makeService = Effect.gen(function* () {
 
   const createSpeakerSegments = (
     inputs: CreateSpeakerSegmentInput[],
-  ): Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError> =>
+  ): Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError> =>
     Effect.tryPromise({
       try: async () => {
         if (inputs.length === 0) return [];
@@ -489,7 +489,7 @@ const makeService = Effect.gen(function* () {
                   endTime: input.endTime,
                   transcriptText: input.transcriptText,
                   confidence: input.confidence,
-                }) satisfies NewSpeakerSegmentRecord,
+                }) satisfies NewSpeakerSegmentRow,
             ),
           )
           .returning();
@@ -506,7 +506,7 @@ const makeService = Effect.gen(function* () {
   const getSpeakerSegments = (
     videoId: string,
     speakerId?: string,
-  ): Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError> =>
+  ): Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError> =>
     Effect.tryPromise({
       try: async () => {
         const conditions = [eq(speakerSegments.videoId, videoId)];
@@ -530,7 +530,7 @@ const makeService = Effect.gen(function* () {
     videoId: string,
     startTime: number,
     endTime: number,
-  ): Effect.Effect<SpeakerSegmentRecord[], SpeakerRepositoryError> =>
+  ): Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError> =>
     Effect.tryPromise({
       try: async () => {
         return await db.query.speakerSegments.findMany({

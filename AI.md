@@ -157,15 +157,17 @@ const result = await generateObject({
 
 ## Database Schema
 
-Key tables (see `src/lib/db/schema/`):
-- `users` - User accounts
-- `organizations` - Multi-tenant organizations
-- `videos` - Video metadata and storage refs
-- `comments` - Video comments with timestamps
-- `comment_reactions` - Reactions to comments
-- `watch_history` - User watch progress
-- `watch_later` - Bookmarked videos
-- `notifications` - User notifications
+Schema is organized in `src/lib/db/schema/` with domain-specific files:
+- `auth.ts` - Better-auth managed tables (DO NOT EDIT directly)
+- `user-extensions.ts` - App-specific user data (decoupled from auth)
+- `videos.ts` - Video metadata and storage refs
+- `comments.ts` - Video comments and reactions
+- `notifications.ts` - User notifications
+- `billing.ts` - Subscriptions and payments
+- `clips.ts` - Video clips and highlights
+- See `docs/internal/architecture/database.md` for full schema docs
+
+**Important**: Store application user data in `userExtensions` table, not `users`. The `users` table is managed by better-auth.
 
 ## Common Tasks
 
@@ -178,8 +180,8 @@ Key tables (see `src/lib/db/schema/`):
 
 ### Adding a New Database Table
 
-1. Add schema in `src/lib/db/schema/[table].ts`
-2. Export from `src/lib/db/schema/index.ts`
+1. Add table in the appropriate domain file in `src/lib/db/schema/`
+2. Add relations in `src/lib/db/schema/relations.ts`
 3. Run `pnpm db:generate` to create migration
 4. Run `pnpm db:migrate` to apply
 5. Update `docs/internal/architecture/database.md`

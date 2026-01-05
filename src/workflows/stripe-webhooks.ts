@@ -231,7 +231,6 @@ export async function handleSubscriptionDeletedWorkflow(
       .set({
         status: "canceled",
         canceledAt: new Date(),
-        updatedAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
     ("use step");
@@ -241,11 +240,11 @@ export async function handleSubscriptionDeletedWorkflow(
       where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
     });
 
-    if (!dbSubscription || !dbSubscription.organizationId) {
+    if (!dbSubscription || !dbSubscription.referenceId) {
       return { success: true, eventId };
     }
 
-    const organizationId = dbSubscription.organizationId;
+    const organizationId = dbSubscription.referenceId;
     const org = await db.query.organizations.findFirst({
       where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
     });
@@ -337,11 +336,11 @@ export async function handleInvoiceFailedWorkflow(
       where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscriptionId),
     });
 
-    if (!dbSubscription || !dbSubscription.organizationId) {
+    if (!dbSubscription || !dbSubscription.referenceId) {
       return { success: true, eventId };
     }
 
-    const invoiceOrgId = dbSubscription.organizationId;
+    const invoiceOrgId = dbSubscription.referenceId;
     const org = await db.query.organizations.findFirst({
       where: (o, { eq: eqOp }) => eqOp(o.id, invoiceOrgId),
     });
@@ -402,11 +401,11 @@ export async function handleTrialEndingWorkflow(
       where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
     });
 
-    if (!dbSubscription || !dbSubscription.organizationId) {
+    if (!dbSubscription || !dbSubscription.referenceId) {
       return { success: true, eventId };
     }
 
-    const trialOrgId = dbSubscription.organizationId;
+    const trialOrgId = dbSubscription.referenceId;
     const org = await db.query.organizations.findFirst({
       where: (o, { eq: eqOp }) => eqOp(o.id, trialOrgId),
     });

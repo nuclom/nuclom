@@ -89,20 +89,7 @@ async function SearchLoader({
         banExpires: users.banExpires,
         twoFactorEnabled: users.twoFactorEnabled,
         stripeCustomerId: users.stripeCustomerId,
-        tosAcceptedAt: users.tosAcceptedAt,
-        tosVersion: users.tosVersion,
-        privacyAcceptedAt: users.privacyAcceptedAt,
-        privacyVersion: users.privacyVersion,
-        marketingConsentAt: users.marketingConsentAt,
-        marketingConsent: users.marketingConsent,
-        deletionRequestedAt: users.deletionRequestedAt,
-        deletionScheduledFor: users.deletionScheduledFor,
-        warnedAt: users.warnedAt,
-        warningReason: users.warningReason,
-        suspendedUntil: users.suspendedUntil,
-        suspensionReason: users.suspensionReason,
-        maxSessions: users.maxSessions,
-        passwordChangedAt: users.passwordChangedAt,
+        lastLoginMethod: users.lastLoginMethod,
       })
       .from(users)
       .innerJoin(videos, eq(videos.authorId, users.id))

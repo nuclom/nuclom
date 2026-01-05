@@ -1,9 +1,19 @@
 "use client";
 
+import { oauthProviderClient } from "@better-auth/oauth-provider/client";
 import { passkeyClient } from "@better-auth/passkey/client";
+import { ssoClient } from "@better-auth/sso/client";
 import { stripeClient } from "@better-auth/stripe/client";
-import { adminClient, apiKeyClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
+import {
+  adminClient,
+  apiKeyClient,
+  lastLoginMethodClient,
+  multiSessionClient,
+  organizationClient,
+  twoFactorClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import { ac, organizationRoles } from "@/lib/access-control";
 import { env } from "@/lib/env/client";
 
 // Determine baseURL from Vercel automatic environment variables or browser origin
@@ -26,19 +36,34 @@ const getBaseURL = () => {
 export const authClient = createAuthClient({
   baseURL: getBaseURL(),
   plugins: [
-    organizationClient(),
+    organizationClient({
+      ac,
+      roles: organizationRoles,
+    }),
     adminClient(),
     apiKeyClient(),
     twoFactorClient(),
     passkeyClient(),
+    ssoClient({
+      domainVerification: {
+        enabled: true,
+      },
+    }),
     stripeClient({
       subscription: true,
     }),
+    lastLoginMethodClient(),
+    multiSessionClient(),
+    oauthProviderClient(),
   ],
 });
 
 // Export convenient hooks and methods for subscription management
-export const { useSession, signIn, signOut, signUp, useActiveOrganization, organization, subscription } = authClient;
+export const { useSession, signIn, signOut, signUp, useActiveOrganization, organization, subscription, multiSession } =
+  authClient;
+
+// Last login method helpers - methods available directly on authClient
+export const { getLastUsedLoginMethod, isLastUsedLoginMethod, clearLastUsedLoginMethod } = authClient;
 
 // Helper types for subscription management
 export type SubscriptionPlan = "scale" | "pro";

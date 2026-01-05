@@ -1,6 +1,20 @@
 "use client";
 
-import { AlertTriangle, Key, KeyRound, Laptop, Loader2, Plus, Shield, Smartphone, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Key,
+  KeyRound,
+  Laptop,
+  Loader2,
+  LogOut,
+  Plus,
+  RefreshCw,
+  Shield,
+  Smartphone,
+  Trash2,
+  Users,
+} from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { RequireAuth } from "@/components/auth/auth-guard";
@@ -19,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+import { authClient, multiSession } from "@/lib/auth-client";
 
 type Session = {
   id: string;
@@ -39,13 +53,33 @@ type Passkey = {
   deviceType?: string | null;
 };
 
+type DeviceSession = {
+  session: {
+    id: string;
+    token: string;
+    userId: string;
+    expiresAt: Date;
+    createdAt: Date;
+    userAgent?: string | null;
+    ipAddress?: string | null;
+  };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+};
+
 function SecurityContent() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
+  const [deviceSessions, setDeviceSessions] = useState<DeviceSession[]>([]);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [currentSessionToken, setCurrentSessionToken] = useState<string | null>(null);
+  const [switchingSession, setSwitchingSession] = useState<string | null>(null);
 
   // Passkey state
   const [addingPasskey, setAddingPasskey] = useState(false);
@@ -102,6 +136,16 @@ function SecurityContent() {
       } catch {
         // Passkeys might not be set up
       }
+
+      // Get device sessions (multi-session support)
+      try {
+        const { data: deviceSessionsData } = await multiSession.listDeviceSessions();
+        if (deviceSessionsData) {
+          setDeviceSessions(deviceSessionsData as DeviceSession[]);
+        }
+      } catch {
+        // Multi-session might not be available
+      }
     } catch (error) {
       console.error("Error loading security data:", error);
       toast({
@@ -149,6 +193,46 @@ function SecurityContent() {
       toast({
         title: "Error",
         description: "Failed to revoke sessions",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSwitchSession = async (sessionToken: string) => {
+    try {
+      setSwitchingSession(sessionToken);
+      await multiSession.setActive({ sessionToken });
+      toast({
+        title: "Switched account",
+        description: "You are now using a different account",
+      });
+      // Reload the page to reflect the new session
+      window.location.reload();
+    } catch (error) {
+      console.error("Error switching session:", error);
+      toast({
+        title: "Error",
+        description: "Failed to switch account",
+        variant: "destructive",
+      });
+    } finally {
+      setSwitchingSession(null);
+    }
+  };
+
+  const handleRevokeDeviceSession = async (sessionToken: string) => {
+    try {
+      await multiSession.revoke({ sessionToken });
+      toast({
+        title: "Session revoked",
+        description: "The account session has been removed from this device",
+      });
+      await loadSecurityData();
+    } catch (error) {
+      console.error("Error revoking device session:", error);
+      toast({
+        title: "Error",
+        description: "Failed to revoke session",
         variant: "destructive",
       });
     }
@@ -524,6 +608,80 @@ function SecurityContent() {
           })}
         </CardContent>
       </Card>
+
+      {/* Multi-Session / Account Switching Section */}
+      {deviceSessions.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Linked Accounts
+            </CardTitle>
+            <CardDescription>Switch between accounts signed in on this device</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {deviceSessions.map((deviceSession) => {
+              const isCurrent = deviceSession.session.token === currentSessionToken;
+              return (
+                <div key={deviceSession.session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden relative">
+                      {deviceSession.user?.image ? (
+                        <Image
+                          src={deviceSession.user.image}
+                          alt={deviceSession.user.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium">
+                          {deviceSession.user?.name?.[0]?.toUpperCase() ?? "?"}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{deviceSession.user?.name ?? "Unknown User"}</p>
+                        {isCurrent && (
+                          <Badge variant="secondary" className="text-xs">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{deviceSession.user?.email ?? "No email"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!isCurrent && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSwitchSession(deviceSession.session.token)}
+                        disabled={switchingSession === deviceSession.session.token}
+                      >
+                        {switchingSession === deviceSession.session.token ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Switch"
+                        )}
+                      </Button>
+                    )}
+                    {!isCurrent && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRevokeDeviceSession(deviceSession.session.token)}
+                      >
+                        <LogOut className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Password Change Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>

@@ -318,7 +318,7 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
           .where(and(eq(members.userId, userId), eq(members.organizationId, organizationId)))
           .limit(1);
 
-        return membership[0] ? Option.some(membership[0].role) : Option.none();
+        return membership[0] ? Option.some(membership[0].role as "owner" | "member") : Option.none();
       },
       catch: (error) =>
         new DatabaseError({

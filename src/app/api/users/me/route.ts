@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { type ConsentAction, consentAuditLog, users } from "@/lib/db/schema";
+import { type ConsentAction, consentAuditLog, userExtensions, users } from "@/lib/db/schema";
 
 // Grace period for account deletion in days
 const DELETION_GRACE_PERIOD_DAYS = 30;
@@ -28,16 +28,17 @@ export async function GET(_request: NextRequest) {
         image: users.image,
         role: users.role,
         createdAt: users.createdAt,
-        marketingConsent: users.marketingConsent,
-        marketingConsentAt: users.marketingConsentAt,
-        deletionRequestedAt: users.deletionRequestedAt,
-        deletionScheduledFor: users.deletionScheduledFor,
-        warnedAt: users.warnedAt,
-        warningReason: users.warningReason,
-        suspendedUntil: users.suspendedUntil,
-        suspensionReason: users.suspensionReason,
+        marketingConsent: userExtensions.marketingConsent,
+        marketingConsentAt: userExtensions.marketingConsentAt,
+        deletionRequestedAt: userExtensions.deletionRequestedAt,
+        deletionScheduledFor: userExtensions.deletionScheduledFor,
+        warnedAt: userExtensions.warnedAt,
+        warningReason: userExtensions.warningReason,
+        suspendedUntil: userExtensions.suspendedUntil,
+        suspensionReason: userExtensions.suspensionReason,
       })
       .from(users)
+      .leftJoin(userExtensions, eq(users.id, userExtensions.userId))
       .where(eq(users.id, session.user.id))
       .limit(1);
 
@@ -69,21 +70,29 @@ export async function PATCH(request: NextRequest) {
     // Handle marketing consent update
     if (typeof body.marketingConsent === "boolean") {
       const previousUser = await db
-        .select({ marketingConsent: users.marketingConsent })
-        .from(users)
-        .where(eq(users.id, userId))
+        .select({ marketingConsent: userExtensions.marketingConsent })
+        .from(userExtensions)
+        .where(eq(userExtensions.userId, userId))
         .limit(1);
 
       const previousValue = previousUser[0]?.marketingConsent ?? false;
 
+      // Upsert userExtensions - create if doesn't exist, update if exists
       await db
-        .update(users)
-        .set({
+        .insert(userExtensions)
+        .values({
+          userId,
           marketingConsent: body.marketingConsent,
           marketingConsentAt: body.marketingConsent ? new Date() : null,
-          updatedAt: new Date(),
         })
-        .where(eq(users.id, userId));
+        .onConflictDoUpdate({
+          target: userExtensions.userId,
+          set: {
+            marketingConsent: body.marketingConsent,
+            marketingConsentAt: body.marketingConsent ? new Date() : null,
+            updatedAt: new Date(),
+          },
+        });
 
       // Log the consent change
       await db.insert(consentAuditLog).values({
@@ -122,11 +131,11 @@ export async function DELETE(request: NextRequest) {
     // Check if deletion is already requested
     const [userData] = await db
       .select({
-        deletionRequestedAt: users.deletionRequestedAt,
-        deletionScheduledFor: users.deletionScheduledFor,
+        deletionRequestedAt: userExtensions.deletionRequestedAt,
+        deletionScheduledFor: userExtensions.deletionScheduledFor,
       })
-      .from(users)
-      .where(eq(users.id, userId))
+      .from(userExtensions)
+      .where(eq(userExtensions.userId, userId))
       .limit(1);
 
     if (userData?.deletionRequestedAt) {
@@ -141,15 +150,22 @@ export async function DELETE(request: NextRequest) {
     const deletionDate = new Date();
     deletionDate.setDate(deletionDate.getDate() + DELETION_GRACE_PERIOD_DAYS);
 
-    // Mark account for deletion
+    // Mark account for deletion (upsert userExtensions)
     await db
-      .update(users)
-      .set({
+      .insert(userExtensions)
+      .values({
+        userId,
         deletionRequestedAt: new Date(),
         deletionScheduledFor: deletionDate,
-        updatedAt: new Date(),
       })
-      .where(eq(users.id, userId));
+      .onConflictDoUpdate({
+        target: userExtensions.userId,
+        set: {
+          deletionRequestedAt: new Date(),
+          deletionScheduledFor: deletionDate,
+          updatedAt: new Date(),
+        },
+      });
 
     // Log the deletion request
     await db.insert(consentAuditLog).values({
@@ -193,11 +209,11 @@ export async function POST(request: NextRequest) {
     if (body.action === "cancel_deletion") {
       const [userData] = await db
         .select({
-          deletionRequestedAt: users.deletionRequestedAt,
-          deletionScheduledFor: users.deletionScheduledFor,
+          deletionRequestedAt: userExtensions.deletionRequestedAt,
+          deletionScheduledFor: userExtensions.deletionScheduledFor,
         })
-        .from(users)
-        .where(eq(users.id, userId))
+        .from(userExtensions)
+        .where(eq(userExtensions.userId, userId))
         .limit(1);
 
       if (!userData?.deletionRequestedAt) {
@@ -214,13 +230,13 @@ export async function POST(request: NextRequest) {
 
       // Cancel the deletion
       await db
-        .update(users)
+        .update(userExtensions)
         .set({
           deletionRequestedAt: null,
           deletionScheduledFor: null,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, userId));
+        .where(eq(userExtensions.userId, userId));
 
       // Log the cancellation
       await db.insert(consentAuditLog).values({

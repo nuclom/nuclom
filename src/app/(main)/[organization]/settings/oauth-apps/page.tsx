@@ -20,35 +20,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
 
-type OAuthApp = {
+// Types matching better-auth's OAuth provider API
+type OAuthClient = {
   id: string;
-  name?: string | null;
-  icon?: string | null;
-  clientId?: string | null;
+  clientId: string;
   clientSecret?: string | null;
-  redirectURLs?: string | null;
-  type?: string | null;
-  disabled?: boolean | null;
-  createdAt?: Date | null;
+  name: string | null;
+  icon?: string | null;
+  redirectURIs: string[];
+  disabled: boolean | null;
+  createdAt: Date | null;
+  metadata?: string | null;
 };
 
-type AuthorizedApp = {
+type OAuthConsent = {
   id: string;
-  clientId?: string | null;
-  scopes?: string | null;
-  createdAt?: Date | null;
+  clientId: string | null;
+  scopes: string[];
+  createdAt: Date | null;
 };
+
+// Helper to parse metadata JSON
+function parseMetadata(metadata?: string | null): { icon?: string } {
+  if (!metadata) return {};
+  try {
+    return JSON.parse(metadata);
+  } catch {
+    return {};
+  }
+}
 
 function OAuthAppsContent() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [myApps, setMyApps] = useState<OAuthApp[]>([]);
-  const [authorizedApps, setAuthorizedApps] = useState<AuthorizedApp[]>([]);
+  const [myApps, setMyApps] = useState<OAuthClient[]>([]);
+  const [authorizedApps, setAuthorizedApps] = useState<OAuthConsent[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingApp, setEditingApp] = useState<OAuthApp | null>(null);
-  const [appToDelete, setAppToDelete] = useState<OAuthApp | null>(null);
-  const [revokeApp, setRevokeApp] = useState<AuthorizedApp | null>(null);
+  const [editingApp, setEditingApp] = useState<OAuthClient | null>(null);
+  const [appToDelete, setAppToDelete] = useState<OAuthClient | null>(null);
+  const [revokeApp, setRevokeApp] = useState<OAuthConsent | null>(null);
 
   // Form state
   const [appName, setAppName] = useState("");
@@ -63,24 +75,51 @@ function OAuthAppsContent() {
   const [copied, setCopied] = useState<"id" | "secret" | null>(null);
 
   // Newly created app with secret
-  const [newApp, setNewApp] = useState<OAuthApp | null>(null);
+  const [newApp, setNewApp] = useState<OAuthClient | null>(null);
 
   const loadOAuthApps = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Fetch user's created OAuth apps via API
-      const appsResponse = await fetch("/api/oauth/applications");
-      if (appsResponse.ok) {
-        const apps = await appsResponse.json();
-        setMyApps(apps || []);
+      // Fetch user's created OAuth clients via better-auth
+      const clientsResult = await authClient.oauth2.getClients();
+      if (clientsResult.data) {
+        // Map from better-auth's API types to our local types
+        const clients: OAuthClient[] = clientsResult.data.map((client) => {
+          const metadataStr = typeof client.metadata === "string" ? client.metadata : null;
+          const metadata = parseMetadata(metadataStr);
+          const redirectURIs = Array.isArray(client.redirectURIs) ? (client.redirectURIs as string[]) : [];
+          const createdAtValue = client.createdAt;
+          const createdAt =
+            createdAtValue instanceof Date
+              ? createdAtValue
+              : typeof createdAtValue === "string" || typeof createdAtValue === "number"
+                ? new Date(createdAtValue)
+                : null;
+          return {
+            id: String(client.clientId || ""),
+            clientId: String(client.clientId || ""),
+            name: typeof client.name === "string" ? client.name : null,
+            icon: metadata.icon || null,
+            redirectURIs,
+            disabled: client.disabled || false,
+            createdAt,
+            metadata: metadataStr,
+          };
+        });
+        setMyApps(clients);
       }
 
       // Fetch authorized apps (apps the user has granted access to)
-      const consentsResponse = await fetch("/api/oauth/consents");
-      if (consentsResponse.ok) {
-        const consents = await consentsResponse.json();
-        setAuthorizedApps(consents || []);
+      const consentsResult = await authClient.oauth2.getConsents();
+      if (consentsResult.data) {
+        const consents: OAuthConsent[] = consentsResult.data.map((consent) => ({
+          id: consent.id,
+          clientId: consent.clientId || null,
+          scopes: Array.isArray(consent.scopes) ? consent.scopes : [],
+          createdAt: consent.createdAt ? new Date(consent.createdAt) : null,
+        }));
+        setAuthorizedApps(consents);
       }
     } catch (error) {
       console.error("Error loading OAuth apps:", error);
@@ -110,25 +149,38 @@ function OAuthAppsContent() {
 
     try {
       setSaving(true);
-      const response = await fetch("/api/oauth/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: appName,
-          icon: appIcon || undefined,
-          redirectURLs: redirectUrls
-            .split("\n")
-            .map((url) => url.trim())
-            .filter(Boolean),
-        }),
+
+      // Parse redirect URLs (one per line)
+      const redirectUris = redirectUrls
+        .split("\n")
+        .map((url) => url.trim())
+        .filter(Boolean);
+
+      // Use better-auth's register endpoint for dynamic client registration
+      // Note: logo_uri is used for icon storage as metadata is not supported
+      const result = await authClient.oauth2.register({
+        client_name: appName,
+        redirect_uris: redirectUris,
+        logo_uri: appIcon || undefined,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create application");
+      if (result.error) {
+        throw new Error(result.error.message || "Failed to create application");
       }
 
-      const createdApp = await response.json();
-      setNewApp(createdApp);
+      if (result.data) {
+        setNewApp({
+          id: String(result.data.clientId || ""),
+          clientId: String(result.data.clientId || ""),
+          clientSecret: String(result.data.clientSecret || ""),
+          name: appName,
+          icon: appIcon || null,
+          redirectURIs: redirectUris,
+          disabled: false,
+          createdAt: new Date(),
+        });
+      }
+
       toast({
         title: "Application created",
         description: "Your OAuth application has been created. Save the client secret - you won't see it again!",
@@ -138,7 +190,7 @@ function OAuthAppsContent() {
       console.error("Error creating OAuth app:", error);
       toast({
         title: "Error",
-        description: "Failed to create OAuth application",
+        description: error instanceof Error ? error.message : "Failed to create OAuth application",
         variant: "destructive",
       });
     } finally {
@@ -151,21 +203,24 @@ function OAuthAppsContent() {
 
     try {
       setSaving(true);
-      const response = await fetch(`/api/oauth/applications/${editingApp.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: appName,
-          icon: appIcon || undefined,
-          redirectURLs: redirectUrls
-            .split("\n")
-            .map((url) => url.trim())
-            .filter(Boolean),
-        }),
+
+      // Parse redirect URLs
+      const redirectUris = redirectUrls
+        .split("\n")
+        .map((url) => url.trim())
+        .filter(Boolean);
+
+      const result = await authClient.oauth2.updateClient({
+        client_id: editingApp.clientId,
+        update: {
+          client_name: appName,
+          redirect_uris: redirectUris,
+          logo_uri: appIcon || undefined,
+        },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update application");
+      if (result.error) {
+        throw new Error(result.error.message || "Failed to update application");
       }
 
       toast({
@@ -179,7 +234,7 @@ function OAuthAppsContent() {
       console.error("Error updating OAuth app:", error);
       toast({
         title: "Error",
-        description: "Failed to update OAuth application",
+        description: error instanceof Error ? error.message : "Failed to update OAuth application",
         variant: "destructive",
       });
     } finally {
@@ -192,12 +247,13 @@ function OAuthAppsContent() {
 
     try {
       setDeleting(true);
-      const response = await fetch(`/api/oauth/applications/${appToDelete.id}`, {
-        method: "DELETE",
+
+      const result = await authClient.oauth2.deleteClient({
+        client_id: appToDelete.clientId,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to delete application");
+      if (result.error) {
+        throw new Error(result.error.message || "Failed to delete application");
       }
 
       toast({
@@ -210,7 +266,7 @@ function OAuthAppsContent() {
       console.error("Error deleting OAuth app:", error);
       toast({
         title: "Error",
-        description: "Failed to delete OAuth application",
+        description: error instanceof Error ? error.message : "Failed to delete OAuth application",
         variant: "destructive",
       });
     } finally {
@@ -223,12 +279,13 @@ function OAuthAppsContent() {
 
     try {
       setRevoking(true);
-      const response = await fetch(`/api/oauth/consents/${revokeApp.id}`, {
-        method: "DELETE",
+
+      const result = await authClient.oauth2.deleteConsent({
+        id: revokeApp.id,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to revoke access");
+      if (result.error) {
+        throw new Error(result.error.message || "Failed to revoke access");
       }
 
       toast({
@@ -241,7 +298,7 @@ function OAuthAppsContent() {
       console.error("Error revoking consent:", error);
       toast({
         title: "Error",
-        description: "Failed to revoke application access",
+        description: error instanceof Error ? error.message : "Failed to revoke application access",
         variant: "destructive",
       });
     } finally {
@@ -266,22 +323,17 @@ function OAuthAppsContent() {
     setShowSecret(false);
   };
 
-  const openEditDialog = (app: OAuthApp) => {
+  const openEditDialog = (app: OAuthClient) => {
     setEditingApp(app);
     setAppName(app.name || "");
     setAppIcon(app.icon || "");
-    setRedirectUrls(app.redirectURLs || "");
+    setRedirectUrls(app.redirectURIs.join("\n"));
   };
 
   const closeCreateDialog = () => {
     setCreateDialogOpen(false);
     setNewApp(null);
     resetForm();
-  };
-
-  const parseScopes = (scopes?: string | null): string[] => {
-    if (!scopes) return [];
-    return scopes.split(" ").filter(Boolean);
   };
 
   if (loading) {
@@ -384,14 +436,14 @@ function OAuthAppsContent() {
                   <div>
                     <h3 className="font-medium">App: {consent.clientId || "Unknown"}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      {parseScopes(consent.scopes).map((scope) => (
+                      {consent.scopes.map((scope) => (
                         <Badge key={scope} variant="outline" className="text-xs">
                           {scope}
                         </Badge>
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Authorized: {consent.createdAt ? new Date(consent.createdAt).toLocaleDateString() : "Unknown"}
+                      Authorized: {consent.createdAt ? consent.createdAt.toLocaleDateString() : "Unknown"}
                     </p>
                   </div>
                   <Button variant="destructive" size="sm" onClick={() => setRevokeApp(consent)}>
@@ -407,8 +459,8 @@ function OAuthAppsContent() {
       {/* OAuth Documentation */}
       <Card>
         <CardHeader>
-          <CardTitle>OAuth 2.0 / OpenID Connect</CardTitle>
-          <CardDescription>Use OAuth 2.0 to build integrations with Nuclom</CardDescription>
+          <CardTitle>OAuth 2.1 / OpenID Connect</CardTitle>
+          <CardDescription>Use OAuth 2.1 to build integrations with Nuclom</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -424,6 +476,12 @@ function OAuthAppsContent() {
             </code>
           </div>
           <div className="space-y-2">
+            <h4 className="font-medium text-sm">UserInfo Endpoint</h4>
+            <code className="block bg-muted p-2 rounded text-sm">
+              {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/oauth2/userinfo
+            </code>
+          </div>
+          <div className="space-y-2">
             <h4 className="font-medium text-sm">Supported Scopes</h4>
             <div className="flex flex-wrap gap-2">
               {["openid", "profile", "email", "offline_access"].map((scope) => (
@@ -432,6 +490,12 @@ function OAuthAppsContent() {
                 </Badge>
               ))}
             </div>
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">Security</h4>
+            <p className="text-sm text-muted-foreground">
+              PKCE (S256) is required for all authorization requests. State parameter is mandatory.
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -5,7 +5,6 @@ import { type AuditLogFilters, AuditLogger } from "@/lib/audit-log";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type AuditLogCategory, type AuditLogSeverity, members } from "@/lib/db/schema";
-import { RBACService } from "@/lib/rbac";
 import type { ApiResponse } from "@/lib/types";
 
 // =============================================================================
@@ -35,15 +34,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     );
   }
 
-  // Check if user has audit_log:read permission
-  const hasPermission = await RBACService.checkPermission({
-    userId: session.user.id,
-    organizationId,
-    resource: "audit_log",
-    action: "read",
+  // Check if user has audit_log:read permission using Better Auth
+  const hasPermission = await auth.api.hasPermission({
+    headers: await headers(),
+    body: {
+      permissions: {
+        audit_log: ["read"],
+      },
+    },
   });
 
-  if (!hasPermission.allowed) {
+  if (!hasPermission?.success) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: "You don't have permission to view audit logs" },
       { status: 403 },
@@ -145,14 +146,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   }
 
-  const hasPermission = await RBACService.checkPermission({
-    userId: session.user.id,
-    organizationId,
-    resource: "audit_log",
-    action: "download",
+  // Check if user has audit_log:download permission using Better Auth
+  const hasPermission = await auth.api.hasPermission({
+    headers: await headers(),
+    body: {
+      permissions: {
+        audit_log: ["download"],
+      },
+    },
   });
 
-  if (!hasPermission.allowed) {
+  if (!hasPermission?.success) {
     return NextResponse.json<ApiResponse>(
       { success: false, error: "You don't have permission to export audit logs" },
       { status: 403 },
