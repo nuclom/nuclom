@@ -22,7 +22,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
     "prepare": "lefthook install",
-    "openapi": "npx tsx scripts/generate-openapi.ts"
+    "openapi": "npx tsx scripts/generate-openapi.ts",
+    "auth:generate": "npx tsx scripts/generate-auth-schema.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "3.0.5",

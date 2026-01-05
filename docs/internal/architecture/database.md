@@ -2,6 +2,58 @@
 
 Nuclom uses PostgreSQL with Drizzle ORM for type-safe database operations. The schema is designed for multi-tenant video collaboration with organization-based organization.
 
+## Schema Organization
+
+The database schema is organized into multiple files in `src/lib/db/schema/`:
+
+```
+src/lib/db/schema/
+├── index.ts           # Re-exports all schema files
+├── enums.ts           # All PostgreSQL enum types (centralized)
+├── auth.ts            # Better-auth managed tables (DO NOT EDIT)
+├── user-extensions.ts # Application-specific user data (decoupled from auth)
+├── relations.ts       # All Drizzle ORM relations
+├── videos.ts          # Video and channel tables
+├── comments.ts        # Comment and reaction tables
+├── notifications.ts   # User notification tables
+├── billing.ts         # Subscription and payment tables
+├── integrations.ts    # External service integrations
+├── knowledge.ts       # Knowledge graph tables
+├── ai-insights.ts     # AI-extracted topics and action items
+├── analytics.ts       # Video analytics and metrics
+├── speakers.ts        # Speaker diarization tables
+├── search.ts          # Semantic search tables
+├── legal.ts           # Legal compliance tables
+├── audit-logs.ts      # Audit logging tables
+├── activity.ts        # Activity feed and webhooks
+├── clips.ts           # Video clips and highlights
+├── sharing.ts         # Video sharing links
+└── workflows.ts       # Workflow templates
+```
+
+### Working with Better-Auth Tables
+
+The `auth.ts` file contains tables managed by better-auth. **Do not modify these tables directly.**
+
+To update auth schema:
+1. Modify better-auth configuration in `src/lib/auth.ts`
+2. Run: `pnpm auth:generate`
+3. Run: `pnpm db:generate && pnpm db:migrate`
+
+**Decoupling Pattern**: Application-specific user data is stored in `userExtensions` and `userPreferences` tables, not in the `users` table. This makes it easier to update better-auth without migration conflicts.
+
+```typescript
+// Good: Store app-specific data in userExtensions
+await db.insert(userExtensions).values({
+  userId: user.id,
+  tosAcceptedAt: new Date(),
+  marketingConsent: true,
+});
+
+// Bad: Don't add columns to users table
+// The users table is managed by better-auth
+```
+
 ## Database Schema
 
 ```mermaid

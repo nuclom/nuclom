@@ -52,11 +52,11 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
   });
 
-  if (!subscription || !subscription.organizationId) {
+  if (!subscription || !subscription.referenceId) {
     throw new FatalError(`Subscription ${subscriptionId} not found`);
   }
 
-  const orgId = subscription.organizationId;
+  const orgId = subscription.referenceId;
 
   // Get organization
   const org = await db.query.organizations.findFirst({

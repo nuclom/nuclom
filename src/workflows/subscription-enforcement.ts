@@ -198,6 +198,37 @@ function parseMetadata(metadata: unknown): Record<string, unknown> {
   return {};
 }
 
+async function _getOrganizationEnforcementState(organizationId: string): Promise<Record<string, unknown>> {
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.id, organizationId),
+    columns: { metadata: true },
+  });
+  const metadata = parseMetadata(org?.metadata);
+  return (metadata.enforcementState as Record<string, unknown>) ?? {};
+}
+
+async function updateOrganizationEnforcementState(
+  organizationId: string,
+  state: Record<string, unknown>,
+): Promise<void> {
+  const org = await db.query.organizations.findFirst({
+    where: eq(organizations.id, organizationId),
+    columns: { metadata: true },
+  });
+  const existingMetadata = parseMetadata(org?.metadata);
+  const updatedMetadata = {
+    ...existingMetadata,
+    enforcementState: {
+      ...((existingMetadata.enforcementState as Record<string, unknown>) ?? {}),
+      ...state,
+    },
+  };
+  await db
+    .update(organizations)
+    .set({ metadata: JSON.stringify(updatedMetadata) })
+    .where(eq(organizations.id, organizationId));
+}
+
 // =============================================================================
 // Enforcement Logic
 // =============================================================================
@@ -232,21 +263,19 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
 
       if (!hasPayment) {
         // Trial expired without payment - mark as expired and start grace period
-        const existingMetadata = parseMetadata(subscription.metadata);
-
         await db
           .update(subscriptions)
           .set({
             status: "incomplete_expired",
             plan: "free",
-            updatedAt: new Date(),
-            metadata: {
-              ...existingMetadata,
-              graceStartedAt: now.toISOString(),
-              reason: "trial_expired_no_payment",
-            },
           })
           .where(eq(subscriptions.id, subscription.id));
+
+        // Store enforcement state in organization metadata
+        await updateOrganizationEnforcementState(organization.id, {
+          graceStartedAt: now.toISOString(),
+          reason: "trial_expired_no_payment",
+        });
 
         // Send notification
         notificationsSent += await sendEnforcementNotification(
@@ -294,38 +323,25 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
 
   for (const { subscription, organization } of problemSubscriptions) {
     try {
-      const metadata = parseMetadata(subscription.metadata);
-      const suspendedAt = metadata.suspendedAt ? new Date(metadata.suspendedAt as string) : null;
+      // First time seeing payment issues - send notification
+      notificationsSent += await sendEnforcementNotification(
+        organization.id,
+        organization.name,
+        organization.slug,
+        "suspended",
+        30,
+      );
 
-      if (!suspendedAt) {
-        // First time seeing this issue - mark as suspended
-        await db
-          .update(subscriptions)
-          .set({
-            metadata: {
-              ...metadata,
-              suspendedAt: now.toISOString(),
-              reason: subscription.status === "past_due" ? "payment_past_due" : "payment_unpaid",
-            },
-            updatedAt: new Date(),
-          })
-          .where(eq(subscriptions.id, subscription.id));
+      log.info({ organizationId: organization.id }, "Subscription has payment issues");
+      suspended++;
 
-        notificationsSent += await sendEnforcementNotification(
-          organization.id,
-          organization.name,
-          organization.slug,
-          "suspended",
-          30,
-        );
+      // Calculate days based on subscription dates
+      const suspendedAt = subscription.canceledAt ?? subscription.endedAt ?? now;
+      const daysSuspended = Math.floor((now.getTime() - suspendedAt.getTime()) / (24 * 60 * 60 * 1000));
+      const daysRemaining = 30 - daysSuspended;
 
-        log.info({ organizationId: organization.id }, "Subscription suspended due to payment issues");
-        suspended++;
-      } else {
-        // Check if we need to send reminder notifications
-        const daysSuspended = Math.floor((now.getTime() - suspendedAt.getTime()) / (24 * 60 * 60 * 1000));
-        const daysRemaining = 30 - daysSuspended;
-
+      // Check if we need to send reminder notifications
+      if (daysSuspended > 0) {
         // Send warnings at 14 days, 7 days, 3 days, and 1 day before deletion
         if ([16, 23, 27, 29].includes(daysSuspended) && daysRemaining > 0) {
           notificationsSent += await sendEnforcementNotification(
@@ -375,69 +391,41 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
 
   for (const { subscription, organization } of gracePeriodSubscriptions) {
     try {
-      const metadata = parseMetadata(subscription.metadata);
-
-      // Determine when grace period started
-      let graceStartDate: Date | null = null;
-
-      if (metadata.graceStartedAt) {
-        graceStartDate = new Date(metadata.graceStartedAt as string);
-      } else if (metadata.suspendedAt) {
-        graceStartDate = new Date(metadata.suspendedAt as string);
-      } else if (subscription.endedAt) {
-        graceStartDate = new Date(subscription.endedAt);
-      } else if (subscription.canceledAt) {
-        graceStartDate = new Date(subscription.canceledAt);
-      }
+      // Determine when grace period started based on subscription dates
+      const graceStartDate = subscription.endedAt ?? subscription.canceledAt ?? null;
 
       if (!graceStartDate) continue;
 
       // Calculate days since grace started
       const daysSinceGrace = Math.floor((now.getTime() - graceStartDate.getTime()) / (24 * 60 * 60 * 1000));
 
-      // Different grace periods for different situations
-      let gracePeriodDays = 30; // Default
-      if (metadata.reason === "trial_expired_no_payment") {
-        gracePeriodDays = 14; // 14 days for expired trials
-      }
+      // Default grace period is 30 days
+      // Note: Without metadata, we can't distinguish trial_expired_no_payment cases
+      const gracePeriodDays = 30;
 
       if (daysSinceGrace >= gracePeriodDays) {
-        // Check if already marked for deletion
-        if (!metadata.deletionScheduledFor) {
-          // Schedule deletion (videos will be soft-deleted with retention period)
-          const deletionDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 more days
+        // Schedule deletion (videos will be soft-deleted with retention period)
+        const deletionDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 more days
 
-          await db
-            .update(subscriptions)
-            .set({
-              metadata: {
-                ...metadata,
-                deletionScheduledFor: deletionDate.toISOString(),
-              },
-              updatedAt: new Date(),
-            })
-            .where(eq(subscriptions.id, subscription.id));
+        // Soft-delete all videos for this organization
+        await db
+          .update(videos)
+          .set({
+            deletedAt: now,
+            retentionUntil: deletionDate,
+          })
+          .where(and(eq(videos.organizationId, organization.id), isNull(videos.deletedAt)));
 
-          // Soft-delete all videos for this organization
-          await db
-            .update(videos)
-            .set({
-              deletedAt: now,
-              retentionUntil: deletionDate,
-            })
-            .where(and(eq(videos.organizationId, organization.id), isNull(videos.deletedAt)));
+        notificationsSent += await sendEnforcementNotification(
+          organization.id,
+          organization.name,
+          organization.slug,
+          "deletion_warning",
+          7,
+        );
 
-          notificationsSent += await sendEnforcementNotification(
-            organization.id,
-            organization.name,
-            organization.slug,
-            "deletion_warning",
-            7,
-          );
-
-          log.info({ organizationId: organization.id }, "Data deletion scheduled");
-          scheduled++;
-        }
+        log.info({ organizationId: organization.id }, "Data deletion scheduled");
+        scheduled++;
       }
     } catch (error) {
       const errorMsg = `Failed to handle data deletion for org ${organization.id}: ${error}`;
@@ -476,35 +464,19 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
       ),
     );
 
-  for (const { subscription, organization } of trialsEndingSoon) {
+  for (const { organization } of trialsEndingSoon) {
     try {
       const hasPayment = await hasPaymentMethod(organization.id);
 
       if (!hasPayment) {
-        // Check if we already sent this notification today
-        const metadata = parseMetadata(subscription.metadata);
-        const lastPaymentWarning = metadata.lastPaymentWarning ? new Date(metadata.lastPaymentWarning as string) : null;
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-        if (!lastPaymentWarning || lastPaymentWarning < today) {
-          await db
-            .update(subscriptions)
-            .set({
-              metadata: {
-                ...metadata,
-                lastPaymentWarning: now.toISOString(),
-              },
-              updatedAt: new Date(),
-            })
-            .where(eq(subscriptions.id, subscription.id));
-
-          notificationsSent += await sendEnforcementNotification(
-            organization.id,
-            organization.name,
-            organization.slug,
-            "payment_required",
-          );
-        }
+        // Note: Without metadata, we can't track last warning date
+        // Sending notification for all trials ending without payment method
+        notificationsSent += await sendEnforcementNotification(
+          organization.id,
+          organization.name,
+          organization.slug,
+          "payment_required",
+        );
       }
     } catch (error) {
       const errorMsg = `Failed to warn about trial ending for org ${organization.id}: ${error}`;

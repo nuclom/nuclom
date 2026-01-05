@@ -325,9 +325,6 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
               eq(subscriptions.referenceId, organizationId),
               sql`${subscriptions.status} IN ('active', 'trialing')`,
             ),
-            with: {
-              plan: true,
-            },
           }),
         catch: (error) =>
           new DatabaseError({
@@ -346,10 +343,18 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         );
       }
 
-      // Add plan limits based on plan name
+      // Look up local plan by name to get limits/features
+      const localPlan = yield* Effect.tryPromise({
+        try: () =>
+          db.query.plans.findFirst({
+            where: eq(plans.name, subscription.plan),
+          }),
+        catch: () => null,
+      }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+
       const subscriptionWithPlan: SubscriptionWithPlan = {
         ...subscription,
-        planInfo: subscription.plan || null,
+        planInfo: localPlan ?? null,
       };
 
       return subscriptionWithPlan;
@@ -364,9 +369,6 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
               eq(subscriptions.referenceId, organizationId),
               sql`${subscriptions.status} IN ('active', 'trialing')`,
             ),
-            with: {
-              plan: true,
-            },
           }),
         catch: (error) =>
           new DatabaseError({
@@ -380,9 +382,18 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         return Option.none();
       }
 
+      // Look up local plan by name to get limits/features
+      const localPlan = yield* Effect.tryPromise({
+        try: () =>
+          db.query.plans.findFirst({
+            where: eq(plans.name, subscription.plan),
+          }),
+        catch: () => null,
+      }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+
       const subscriptionWithPlan: SubscriptionWithPlan = {
         ...subscription,
-        planInfo: subscription.plan || null,
+        planInfo: localPlan ?? null,
       };
 
       return Option.some(subscriptionWithPlan);
@@ -407,7 +418,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       try: async () => {
         const [subscription] = await db
           .update(subscriptions)
-          .set({ ...data, updatedAt: new Date() })
+          .set(data)
           .where(eq(subscriptions.referenceId, organizationId))
           .returning();
         return subscription;
@@ -426,9 +437,6 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         try: () =>
           db.query.subscriptions.findFirst({
             where: eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId),
-            with: {
-              plan: true,
-            },
           }),
         catch: (error) =>
           new DatabaseError({
@@ -448,9 +456,18 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         );
       }
 
+      // Look up local plan by name to get limits/features
+      const localPlan = yield* Effect.tryPromise({
+        try: () =>
+          db.query.plans.findFirst({
+            where: eq(plans.name, subscription.plan),
+          }),
+        catch: () => null,
+      }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+
       const subscriptionWithPlan: SubscriptionWithPlan = {
         ...subscription,
-        planInfo: subscription.plan || null,
+        planInfo: localPlan ?? null,
       };
 
       return subscriptionWithPlan;

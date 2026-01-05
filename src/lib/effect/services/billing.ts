@@ -443,7 +443,7 @@ const makeBillingService = Effect.gen(function* () {
         });
 
         return yield* billingRepo.updateSubscription(organizationId, {
-          planId: newPlanId,
+          plan: newPlanId,
         });
       }),
 
@@ -572,6 +572,7 @@ const makeBillingService = Effect.gen(function* () {
         // Better Auth Stripe compatible subscription data
         const subscriptionData: NewSubscription = {
           // Better Auth Stripe required fields
+          id: crypto.randomUUID(),
           plan: localPlan.name.toLowerCase(), // e.g., "pro", "enterprise"
           referenceId: organizationId,
           stripeCustomerId: stripeSubscription.customer as string,
@@ -585,9 +586,6 @@ const makeBillingService = Effect.gen(function* () {
           trialStart: stripeSubscription.trial_start ? new Date(stripeSubscription.trial_start * 1000) : null,
           trialEnd: stripeSubscription.trial_end ? new Date(stripeSubscription.trial_end * 1000) : null,
           seats: stripeSubscription.metadata?.seats ? Number.parseInt(stripeSubscription.metadata.seats, 10) : null,
-          // Custom fields for our app
-          organizationId,
-          planId: localPlan.id,
         };
 
         // Check if subscription exists
@@ -613,13 +611,11 @@ const makeBillingService = Effect.gen(function* () {
           .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
 
         const priceId = stripeSubscription.items.data[0]?.price.id;
-        let planId = subscription.planId;
         let planName = subscription.plan;
 
         if (priceId) {
           const planResult = yield* billingRepo.getPlanByStripePrice(priceId).pipe(Effect.option);
           if (Option.isSome(planResult)) {
-            planId = planResult.value.id;
             planName = planResult.value.name.toLowerCase();
           }
         }
@@ -634,7 +630,6 @@ const makeBillingService = Effect.gen(function* () {
         // Better Auth Stripe compatible update data
         const result = yield* billingRepo.updateSubscription(subscription.referenceId, {
           plan: planName,
-          planId,
           status: mapStripeStatus(stripeSubscription.status),
           periodStart: periodStartDate,
           periodEnd: periodEndDate,
@@ -659,7 +654,6 @@ const makeBillingService = Effect.gen(function* () {
         // Update to canceled status (Better Auth Stripe schema)
         yield* billingRepo.updateSubscription(subscription.referenceId, {
           plan: "free",
-          planId: "free",
           status: "canceled",
           stripeSubscriptionId: null,
           canceledAt: new Date(),

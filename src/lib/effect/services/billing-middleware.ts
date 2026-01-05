@@ -71,7 +71,7 @@ export const checkSubscriptionAccess = (
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status;
+    const status = subscription.status ?? "incomplete";
 
     // Full access
     if (FULL_ACCESS_STATUSES.includes(status)) {
@@ -165,7 +165,7 @@ export const requireActiveSubscription = (organizationId: string) =>
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status;
+    const status = subscription.status ?? "incomplete";
 
     // Allow full access statuses
     if (FULL_ACCESS_STATUSES.includes(status)) {
@@ -205,7 +205,7 @@ export const requireWriteAccess = (organizationId: string) =>
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status;
+    const status = subscription.status ?? "incomplete";
 
     // Only allow full access statuses for writes
     if (FULL_ACCESS_STATUSES.includes(status)) {
