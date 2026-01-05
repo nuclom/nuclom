@@ -1,4 +1,4 @@
-name: End-to-End Tests
+name: E2E Tests
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
   e2e-tests:
     # TODO: Re-enable E2E tests once stabilized
     if: false
-    name: Playwright End-to-End
+    name: Playwright
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -65,7 +65,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "pnpm"
 
       - name: Install dependencies
