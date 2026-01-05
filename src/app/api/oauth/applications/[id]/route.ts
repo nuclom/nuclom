@@ -34,7 +34,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       name: app.name,
       icon: app.icon,
       clientId: app.clientId,
-      redirectURLs: app.redirectURLs,
+      redirectUrls: app.redirectUrls,
       type: app.type,
       disabled: app.disabled,
       createdAt: app.createdAt,
@@ -72,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const body = await request.json();
-    const { name, icon, redirectURLs, disabled } = body;
+    const { name, icon, redirectUrls, disabled } = body;
 
     const updateData: Record<string, unknown> = {
       updatedAt: new Date(),
@@ -80,8 +80,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (name !== undefined) updateData.name = name;
     if (icon !== undefined) updateData.icon = icon;
-    if (redirectURLs !== undefined) {
-      updateData.redirectURLs = Array.isArray(redirectURLs) ? redirectURLs.join("\n") : redirectURLs;
+    if (redirectUrls !== undefined) {
+      updateData.redirectUrls = Array.isArray(redirectUrls) ? redirectUrls.join("\n") : redirectUrls;
     }
     if (disabled !== undefined) updateData.disabled = disabled;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { passkeyClient } from "@better-auth/passkey/client";
+import { ssoClient } from "@better-auth/sso/client";
 import { stripeClient } from "@better-auth/stripe/client";
 import { adminClient, apiKeyClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
@@ -31,6 +32,11 @@ export const authClient = createAuthClient({
     apiKeyClient(),
     twoFactorClient(),
     passkeyClient(),
+    ssoClient({
+      domainVerification: {
+        enabled: true,
+      },
+    }),
     stripeClient({
       subscription: true,
     }),

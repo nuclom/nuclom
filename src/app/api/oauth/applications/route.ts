@@ -44,7 +44,7 @@ export async function GET() {
         name: oauthApplications.name,
         icon: oauthApplications.icon,
         clientId: oauthApplications.clientId,
-        redirectURLs: oauthApplications.redirectURLs,
+        redirectUrls: oauthApplications.redirectUrls,
         type: oauthApplications.type,
         disabled: oauthApplications.disabled,
         createdAt: oauthApplications.createdAt,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, icon, redirectURLs } = body;
+    const { name, icon, redirectUrls } = body;
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Application name is required" }, { status: 400 });
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       icon: icon || null,
       clientId,
       clientSecret, // Store hashed in production
-      redirectURLs: Array.isArray(redirectURLs) ? redirectURLs.join("\n") : redirectURLs || "",
+      redirectUrls: Array.isArray(redirectUrls) ? redirectUrls.join("\n") : redirectUrls || "",
       type: "confidential",
       disabled: false,
       userId: session.user.id,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       icon,
       clientId,
       clientSecret, // Only returned on creation
-      redirectURLs: Array.isArray(redirectURLs) ? redirectURLs.join("\n") : redirectURLs || "",
+      redirectUrls: Array.isArray(redirectUrls) ? redirectUrls.join("\n") : redirectUrls || "",
       createdAt: now,
     });
   } catch (error) {

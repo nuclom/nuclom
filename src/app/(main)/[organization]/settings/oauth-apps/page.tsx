@@ -27,7 +27,7 @@ type OAuthApp = {
   icon?: string | null;
   clientId?: string | null;
   clientSecret?: string | null;
-  redirectURLs?: string | null;
+  redirectUrls?: string | null;
   type?: string | null;
   disabled?: boolean | null;
   createdAt?: Date | null;
@@ -116,7 +116,7 @@ function OAuthAppsContent() {
         body: JSON.stringify({
           name: appName,
           icon: appIcon || undefined,
-          redirectURLs: redirectUrls
+          redirectUrls: redirectUrls
             .split("\n")
             .map((url) => url.trim())
             .filter(Boolean),
@@ -157,7 +157,7 @@ function OAuthAppsContent() {
         body: JSON.stringify({
           name: appName,
           icon: appIcon || undefined,
-          redirectURLs: redirectUrls
+          redirectUrls: redirectUrls
             .split("\n")
             .map((url) => url.trim())
             .filter(Boolean),
@@ -270,7 +270,7 @@ function OAuthAppsContent() {
     setEditingApp(app);
     setAppName(app.name || "");
     setAppIcon(app.icon || "");
-    setRedirectUrls(app.redirectURLs || "");
+    setRedirectUrls(app.redirectUrls || "");
   };
 
   const closeCreateDialog = () => {

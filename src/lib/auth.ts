@@ -1,4 +1,5 @@
 import { passkey } from "@better-auth/passkey";
+import { sso } from "@better-auth/sso";
 import { stripe } from "@better-auth/stripe";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -588,6 +589,17 @@ export const auth = betterAuth({
       rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
       rpName: "Nuclom",
       origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+    }),
+    sso({
+      // Automatically add users to organizations when they sign in via SSO
+      organizationProvisioning: {
+        disabled: false,
+        defaultRole: "member",
+      },
+      // Enable domain verification for automatic account linking
+      domainVerification: {
+        enabled: true,
+      },
     }),
     openAPI(),
   ],

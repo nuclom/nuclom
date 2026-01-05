@@ -1,5 +1,17 @@
 import { relations } from "drizzle-orm";
-import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("UserRole", ["user", "admin"]);
 export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member"]);
@@ -54,139 +66,186 @@ export const users = pgTable("users", {
   maxSessions: integer("max_sessions"),
 });
 
-export const sessions = pgTable("sessions", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at").notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  activeOrganizationId: text("active_organization_id"),
-  impersonatedBy: text("impersonated_by"),
-  // Session fingerprint for security (hash of IP + user agent)
-  fingerprint: text("fingerprint"),
-  // Track last validated fingerprint to detect session hijacking
-  lastFingerprintCheck: timestamp("last_fingerprint_check"),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    activeOrganizationId: text("active_organization_id"),
+    impersonatedBy: text("impersonated_by"),
+    // Session fingerprint for security (hash of IP + user agent)
+    fingerprint: text("fingerprint"),
+    // Track last validated fingerprint to detect session hijacking
+    lastFingerprintCheck: timestamp("last_fingerprint_check"),
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
 
-export const accounts = pgTable("accounts", {
-  id: text("id").primaryKey(),
-  accountId: text("account_id").notNull(),
-  providerId: text("provider_id").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-});
+export const accounts = pgTable(
+  "accounts",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+  },
+  (table) => [index("accounts_user_id_idx").on(table.userId)],
+);
 
-export const verifications = pgTable("verifications", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").$defaultFn(() => /* @__PURE__ */ new Date()),
-  updatedAt: timestamp("updated_at").$defaultFn(() => /* @__PURE__ */ new Date()),
-});
+export const verifications = pgTable(
+  "verifications",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").$defaultFn(() => /* @__PURE__ */ new Date()),
+    updatedAt: timestamp("updated_at").$defaultFn(() => /* @__PURE__ */ new Date()),
+  },
+  (table) => [index("verifications_identifier_idx").on(table.identifier)],
+);
 
-export const organizations = pgTable("organizations", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").unique(),
-  logo: text("logo"),
-  createdAt: timestamp("created_at").notNull(),
-  metadata: text("metadata"),
-});
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    logo: text("logo"),
+    createdAt: timestamp("created_at").notNull(),
+    metadata: text("metadata"),
+  },
+  (table) => [uniqueIndex("organizations_slug_idx").on(table.slug)],
+);
 
-export const members = pgTable("members", {
-  id: text("id").primaryKey(),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  role: organizationRoleEnum("role").default("member").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-});
+export const members = pgTable(
+  "members",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: organizationRoleEnum("role").default("member").notNull(),
+    createdAt: timestamp("created_at").notNull(),
+  },
+  (table) => [
+    index("members_organization_id_idx").on(table.organizationId),
+    index("members_user_id_idx").on(table.userId),
+  ],
+);
 
-export const invitations = pgTable("invitations", {
-  id: text("id").primaryKey(),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  email: text("email").notNull(),
-  role: organizationRoleEnum("role").default("member").notNull(),
-  status: text("status").default("pending").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  inviterId: text("inviter_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-});
+export const invitations = pgTable(
+  "invitations",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: organizationRoleEnum("role").default("member").notNull(),
+    status: text("status").default("pending").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("invitations_organization_id_idx").on(table.organizationId),
+    index("invitations_email_idx").on(table.email),
+  ],
+);
 
-export const apikeys = pgTable("apikeys", {
-  id: text("id").primaryKey(),
-  name: text("name"),
-  start: text("start"),
-  prefix: text("prefix"),
-  key: text("key").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  refillInterval: integer("refill_interval"),
-  refillAmount: integer("refill_amount"),
-  lastRefillAt: timestamp("last_refill_at"),
-  enabled: boolean("enabled").default(true),
-  rateLimitEnabled: boolean("rate_limit_enabled").default(true),
-  rateLimitTimeWindow: integer("rate_limit_time_window").default(60000),
-  rateLimitMax: integer("rate_limit_max").default(100),
-  requestCount: integer("request_count"),
-  remaining: integer("remaining"),
-  lastRequest: timestamp("last_request"),
-  expiresAt: timestamp("expires_at"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  permissions: text("permissions"),
-  metadata: text("metadata"),
-});
+export const apikeys = pgTable(
+  "apikeys",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    start: text("start"),
+    prefix: text("prefix"),
+    key: text("key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    refillInterval: integer("refill_interval"),
+    refillAmount: integer("refill_amount"),
+    lastRefillAt: timestamp("last_refill_at"),
+    enabled: boolean("enabled").default(true),
+    rateLimitEnabled: boolean("rate_limit_enabled").default(true),
+    rateLimitTimeWindow: integer("rate_limit_time_window").default(60000),
+    rateLimitMax: integer("rate_limit_max").default(100),
+    requestCount: integer("request_count").default(0),
+    remaining: integer("remaining"),
+    lastRequest: timestamp("last_request"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    permissions: text("permissions"),
+    metadata: text("metadata"),
+  },
+  (table) => [index("apikeys_key_idx").on(table.key), index("apikeys_user_id_idx").on(table.userId)],
+);
 
 // Two-Factor Authentication tables
-export const twoFactors = pgTable("two_factors", {
-  id: text("id").primaryKey(),
-  secret: text("secret").notNull(),
-  backupCodes: text("backup_codes").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" })
-    .unique(),
-});
+export const twoFactors = pgTable(
+  "two_factors",
+  {
+    id: text("id").primaryKey(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+  },
+  (table) => [index("two_factors_secret_idx").on(table.secret), index("two_factors_user_id_idx").on(table.userId)],
+);
 
 // Passkeys/WebAuthn table
-export const passkeys = pgTable("passkeys", {
-  id: text("id").primaryKey(),
-  name: text("name"),
-  publicKey: text("public_key").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  credentialID: text("credential_id").notNull().unique(),
-  counter: integer("counter").notNull(),
-  deviceType: text("device_type"),
-  backedUp: boolean("backed_up"),
-  transports: text("transports"),
-  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
-});
+export const passkeys = pgTable(
+  "passkeys",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull().unique(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type"),
+    backedUp: boolean("backed_up"),
+    transports: text("transports"),
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+    aaguid: text("aaguid"),
+  },
+  (table) => [
+    index("passkeys_user_id_idx").on(table.userId),
+    index("passkeys_credential_id_idx").on(table.credentialID),
+  ],
+);
 
 // User preferences table
 export const userPreferences = pgTable("user_preferences", {
@@ -215,74 +274,103 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const oauthApplications = pgTable("oauth_applications", {
-  id: text("id").primaryKey(),
-  name: text("name"),
-  icon: text("icon"),
-  metadata: text("metadata"),
-  clientId: text("client_id").unique(),
-  clientSecret: text("client_secret"),
-  redirectURLs: text("redirect_u_r_ls"),
-  type: text("type"),
-  disabled: boolean("disabled"),
-  userId: text("user_id"),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
-});
+export const oauthApplications = pgTable(
+  "oauth_applications",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    icon: text("icon"),
+    metadata: text("metadata"),
+    clientId: text("client_id").unique(),
+    clientSecret: text("client_secret"),
+    redirectUrls: text("redirect_urls"),
+    type: text("type"),
+    disabled: boolean("disabled").default(false),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
+  },
+  (table) => [index("oauth_applications_user_id_idx").on(table.userId)],
+);
 
-export const oauthAccessTokens = pgTable("oauth_access_tokens", {
-  id: text("id").primaryKey(),
-  accessToken: text("access_token").unique(),
-  refreshToken: text("refresh_token").unique(),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  clientId: text("client_id"),
-  userId: text("user_id"),
-  scopes: text("scopes"),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
-});
+export const oauthAccessTokens = pgTable(
+  "oauth_access_tokens",
+  {
+    id: text("id").primaryKey(),
+    accessToken: text("access_token").unique(),
+    refreshToken: text("refresh_token").unique(),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    clientId: text("client_id").references(() => oauthApplications.clientId, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    scopes: text("scopes"),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
+  },
+  (table) => [
+    index("oauth_access_tokens_client_id_idx").on(table.clientId),
+    index("oauth_access_tokens_user_id_idx").on(table.userId),
+  ],
+);
 
-export const oauthConsents = pgTable("oauth_consents", {
-  id: text("id").primaryKey(),
-  clientId: text("client_id"),
-  userId: text("user_id"),
-  scopes: text("scopes"),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
-  consentGiven: boolean("consent_given"),
-});
+export const oauthConsents = pgTable(
+  "oauth_consents",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id").references(() => oauthApplications.clientId, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    scopes: text("scopes"),
+    createdAt: timestamp("created_at"),
+    updatedAt: timestamp("updated_at"),
+    consentGiven: boolean("consent_given"),
+  },
+  (table) => [
+    index("oauth_consents_client_id_idx").on(table.clientId),
+    index("oauth_consents_user_id_idx").on(table.userId),
+  ],
+);
 
-export const channels = pgTable("channels", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: text("name").notNull(),
-  description: text("description"),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  memberCount: integer("member_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const channels = pgTable(
+  "channels",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    description: text("description"),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    memberCount: integer("member_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("channels_organization_id_idx").on(table.organizationId)],
+);
 
-export const collections = pgTable("collections", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: text("name").notNull(),
-  description: text("description"),
-  thumbnailUrl: text("thumbnail_url"),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  isPublic: boolean("is_public").default(false).notNull(),
-  // Collections remain if creator is deleted, just clear the reference
-  createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const collections = pgTable(
+  "collections",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    description: text("description"),
+    thumbnailUrl: text("thumbnail_url"),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    isPublic: boolean("is_public").default(false).notNull(),
+    // Collections remain if creator is deleted, just clear the reference
+    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("collections_organization_id_idx").on(table.organizationId),
+    index("collections_created_by_id_idx").on(table.createdById),
+  ],
+);
 
 // Junction table for videos in series with ordering
 export const seriesVideos = pgTable(
@@ -300,9 +388,11 @@ export const seriesVideos = pgTable(
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueSeriesVideo: unique().on(table.seriesId, table.videoId),
-  }),
+  (table) => [
+    unique().on(table.seriesId, table.videoId),
+    index("series_videos_series_id_idx").on(table.seriesId),
+    index("series_videos_video_id_idx").on(table.videoId),
+  ],
 );
 
 // Track user progress through series
@@ -324,9 +414,11 @@ export const seriesProgress = pgTable(
     completedVideoIds: jsonb("completed_video_ids").$type<string[]>().default([]).notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueUserSeries: unique().on(table.userId, table.seriesId),
-  }),
+  (table) => [
+    unique().on(table.userId, table.seriesId),
+    index("series_progress_user_id_idx").on(table.userId),
+    index("series_progress_series_id_idx").on(table.seriesId),
+  ],
 );
 
 // Types for JSONB columns
@@ -391,22 +483,30 @@ export const videos = pgTable(
   }),
 );
 
-export const comments = pgTable("comments", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  content: text("content").notNull(),
-  timestamp: text("timestamp"),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  videoId: text("video_id")
-    .notNull()
-    .references(() => videos.id, { onDelete: "cascade" }),
-  parentId: text("parent_id"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const comments = pgTable(
+  "comments",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    content: text("content").notNull(),
+    timestamp: text("timestamp"),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    parentId: text("parent_id"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("comments_video_id_idx").on(table.videoId),
+    index("comments_author_id_idx").on(table.authorId),
+    index("comments_parent_id_idx").on(table.parentId),
+  ],
+);
 
 // Comment reactions for enhanced engagement
 export const reactionTypeEnum = pgEnum("ReactionType", [
@@ -529,39 +629,49 @@ export const videoProgresses = pgTable(
     completed: boolean("completed").default(false).notNull(),
     lastWatchedAt: timestamp("last_watched_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueUserVideo: unique().on(table.userId, table.videoId),
-  }),
+  (table) => [
+    unique().on(table.userId, table.videoId),
+    index("video_progresses_user_id_idx").on(table.userId),
+    index("video_progresses_video_id_idx").on(table.videoId),
+  ],
 );
 
-export const videoChapters = pgTable("video_chapters", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  videoId: text("video_id")
-    .notNull()
-    .references(() => videos.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  summary: text("summary"),
-  startTime: integer("start_time").notNull(), // seconds
-  endTime: integer("end_time"), // seconds
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const videoChapters = pgTable(
+  "video_chapters",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    summary: text("summary"),
+    startTime: integer("start_time").notNull(), // seconds
+    endTime: integer("end_time"), // seconds
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("video_chapters_video_id_idx").on(table.videoId)],
+);
 
-export const videoCodeSnippets = pgTable("video_code_snippets", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  videoId: text("video_id")
-    .notNull()
-    .references(() => videos.id, { onDelete: "cascade" }),
-  language: text("language"),
-  code: text("code").notNull(),
-  title: text("title"),
-  description: text("description"),
-  timestamp: integer("timestamp"), // seconds in video
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const videoCodeSnippets = pgTable(
+  "video_code_snippets",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    language: text("language"),
+    code: text("code").notNull(),
+    title: text("title"),
+    description: text("description"),
+    timestamp: integer("timestamp"), // seconds in video
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("video_code_snippets_video_id_idx").on(table.videoId)],
+);
 
 // Notification types enum
 export const notificationTypeEnum = pgEnum("NotificationType", [
@@ -608,22 +718,30 @@ export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
 
 export const invoiceStatusEnum = pgEnum("InvoiceStatus", ["draft", "open", "paid", "void", "uncollectible"]);
 
-export const notifications = pgTable("notifications", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  type: notificationTypeEnum("type").notNull(),
-  title: text("title").notNull(),
-  body: text("body"),
-  resourceType: text("resource_type"), // 'video', 'comment', etc.
-  resourceId: text("resource_id"),
-  actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
-  read: boolean("read").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    resourceType: text("resource_type"), // 'video', 'comment', etc.
+    resourceId: text("resource_id"),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("notifications_user_id_idx").on(table.userId),
+    index("notifications_user_read_idx").on(table.userId, table.read),
+    index("notifications_actor_id_idx").on(table.actorId),
+  ],
+);
 
 // Types for integration metadata
 export type ZoomIntegrationMetadata = {
@@ -701,9 +819,11 @@ export const integrations = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueUserProvider: unique().on(table.userId, table.provider),
-  }),
+  (table) => [
+    unique().on(table.userId, table.provider),
+    index("integrations_user_id_idx").on(table.userId),
+    index("integrations_organization_id_idx").on(table.organizationId),
+  ],
 );
 
 // Imported meetings table
@@ -729,9 +849,12 @@ export const importedMeetings = pgTable(
     importedAt: timestamp("imported_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueIntegrationExternalId: unique().on(table.integrationId, table.externalId),
-  }),
+  (table) => [
+    unique().on(table.integrationId, table.externalId),
+    index("imported_meetings_integration_id_idx").on(table.integrationId),
+    index("imported_meetings_video_id_idx").on(table.videoId),
+    index("imported_meetings_import_status_idx").on(table.importStatus),
+  ],
 );
 
 // =====================
@@ -904,50 +1027,62 @@ export const usage = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => ({
-    uniqueOrgPeriod: unique().on(table.organizationId, table.periodStart),
-  }),
+  (table) => [
+    unique().on(table.organizationId, table.periodStart),
+    index("usage_organization_id_idx").on(table.organizationId),
+  ],
 );
 
-export const invoices = pgTable("invoices", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  stripeInvoiceId: text("stripe_invoice_id").unique(),
-  stripePaymentIntentId: text("stripe_payment_intent_id"),
-  amount: integer("amount").notNull(), // cents
-  amountPaid: integer("amount_paid").default(0).notNull(), // cents
-  currency: text("currency").default("usd").notNull(),
-  status: invoiceStatusEnum("status").notNull(),
-  pdfUrl: text("pdf_url"),
-  hostedInvoiceUrl: text("hosted_invoice_url"),
-  periodStart: timestamp("period_start"),
-  periodEnd: timestamp("period_end"),
-  dueDate: timestamp("due_date"),
-  paidAt: timestamp("paid_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    stripeInvoiceId: text("stripe_invoice_id").unique(),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    amount: integer("amount").notNull(), // cents
+    amountPaid: integer("amount_paid").default(0).notNull(), // cents
+    currency: text("currency").default("usd").notNull(),
+    status: invoiceStatusEnum("status").notNull(),
+    pdfUrl: text("pdf_url"),
+    hostedInvoiceUrl: text("hosted_invoice_url"),
+    periodStart: timestamp("period_start"),
+    periodEnd: timestamp("period_end"),
+    dueDate: timestamp("due_date"),
+    paidAt: timestamp("paid_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("invoices_organization_id_idx").on(table.organizationId),
+    index("invoices_status_idx").on(table.status),
+  ],
+);
 
-export const paymentMethods = pgTable("payment_methods", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  stripePaymentMethodId: text("stripe_payment_method_id").notNull().unique(),
-  type: text("type").notNull(), // 'card', 'bank_account', etc.
-  brand: text("brand"), // 'visa', 'mastercard', etc.
-  last4: text("last4"),
-  expMonth: integer("exp_month"),
-  expYear: integer("exp_year"),
-  isDefault: boolean("is_default").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const paymentMethods = pgTable(
+  "payment_methods",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    stripePaymentMethodId: text("stripe_payment_method_id").notNull().unique(),
+    type: text("type").notNull(), // 'card', 'bank_account', etc.
+    brand: text("brand"), // 'visa', 'mastercard', etc.
+    last4: text("last4"),
+    expMonth: integer("exp_month"),
+    expYear: integer("exp_year"),
+    isDefault: boolean("is_default").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("payment_methods_organization_id_idx").on(table.organizationId)],
+);
 
 // Webhook idempotency table - prevents duplicate processing of webhook events
 export const processedWebhookEvents = pgTable(
@@ -1455,6 +1590,10 @@ export type NewDecisionLink = typeof decisionLinks.$inferInsert;
 
 // Relations
 export const userRelations = relations(users, ({ one, many }) => ({
+  sessions: many(sessions),
+  accounts: many(accounts),
+  members: many(members),
+  invitations: many(invitations),
   videos: many(videos),
   comments: many(comments),
   videoProgresses: many(videoProgresses),
@@ -1462,6 +1601,45 @@ export const userRelations = relations(users, ({ one, many }) => ({
   passkeys: many(passkeys),
   preferences: one(userPreferences),
   apiKeys: many(apikeys),
+  oauthApplications: many(oauthApplications),
+  oauthAccessTokens: many(oauthAccessTokens),
+  oauthConsents: many(oauthConsents),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const membersRelations = relations(members, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [members.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [members.userId],
+    references: [users.id],
+  }),
+}));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [invitations.organizationId],
+    references: [organizations.id],
+  }),
+  inviter: one(users, {
+    fields: [invitations.inviterId],
+    references: [users.id],
+  }),
 }));
 
 export const twoFactorRelations = relations(twoFactors, ({ one }) => ({
@@ -1492,7 +1670,40 @@ export const apiKeyRelations = relations(apikeys, ({ one }) => ({
   }),
 }));
 
+export const oauthApplicationsRelations = relations(oauthApplications, ({ one, many }) => ({
+  user: one(users, {
+    fields: [oauthApplications.userId],
+    references: [users.id],
+  }),
+  accessTokens: many(oauthAccessTokens),
+  consents: many(oauthConsents),
+}));
+
+export const oauthAccessTokensRelations = relations(oauthAccessTokens, ({ one }) => ({
+  application: one(oauthApplications, {
+    fields: [oauthAccessTokens.clientId],
+    references: [oauthApplications.clientId],
+  }),
+  user: one(users, {
+    fields: [oauthAccessTokens.userId],
+    references: [users.id],
+  }),
+}));
+
+export const oauthConsentsRelations = relations(oauthConsents, ({ one }) => ({
+  application: one(oauthApplications, {
+    fields: [oauthConsents.clientId],
+    references: [oauthApplications.clientId],
+  }),
+  user: one(users, {
+    fields: [oauthConsents.userId],
+    references: [users.id],
+  }),
+}));
+
 export const organizationRelations = relations(organizations, ({ one, many }) => ({
+  members: many(members),
+  invitations: many(invitations),
   videos: many(videos),
   channels: many(channels),
   collections: many(collections),
@@ -2939,71 +3150,8 @@ export type NewDataExportRequest = typeof dataExportRequests.$inferInsert;
 // =====================
 // Enterprise Security: SSO/SAML Configuration
 // =====================
-
-export const ssoProviderTypeEnum = pgEnum("SSOProviderType", ["saml", "oidc"]);
-
-export const ssoConfigurations = pgTable(
-  "sso_configurations",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
-      .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" })
-      .unique(),
-    providerType: ssoProviderTypeEnum("provider_type").notNull(),
-    enabled: boolean("enabled").default(false).notNull(),
-    // SAML specific fields
-    entityId: text("entity_id"), // SP Entity ID
-    ssoUrl: text("sso_url"), // IdP SSO URL
-    sloUrl: text("slo_url"), // IdP Single Logout URL
-    certificate: text("certificate"), // IdP X.509 Certificate
-    // OIDC specific fields
-    issuer: text("issuer"),
-    clientId: text("client_id"),
-    clientSecret: text("client_secret"),
-    discoveryUrl: text("discovery_url"),
-    // Common settings
-    autoProvision: boolean("auto_provision").default(true).notNull(),
-    defaultRole: organizationRoleEnum("default_role").default("member").notNull(),
-    allowedDomains: jsonb("allowed_domains").$type<string[]>(),
-    attributeMapping: jsonb("attribute_mapping").$type<{
-      email?: string;
-      name?: string;
-      firstName?: string;
-      lastName?: string;
-      groups?: string;
-    }>(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    orgIdx: index("sso_configurations_org_idx").on(table.organizationId),
-  }),
-);
-
-export const ssoSessions = pgTable(
-  "sso_sessions",
-  {
-    id: text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    sessionId: text("session_id")
-      .notNull()
-      .references(() => sessions.id, { onDelete: "cascade" }),
-    ssoConfigId: text("sso_config_id")
-      .notNull()
-      .references(() => ssoConfigurations.id, { onDelete: "cascade" }),
-    externalUserId: text("external_user_id").notNull(),
-    nameId: text("name_id"), // SAML NameID
-    sessionIndex: text("session_index"), // SAML Session Index
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => ({
-    sessionIdx: index("sso_sessions_session_idx").on(table.sessionId),
-  }),
-);
+// SSO is now handled by the Better Auth SSO plugin (@better-auth/sso)
+// which manages its own ssoProvider table via migrations
 
 // =====================
 // Enterprise Security: Advanced RBAC
@@ -3237,26 +3385,6 @@ export const auditLogExports = pgTable(
   }),
 );
 
-// SSO Relations
-export const ssoConfigurationsRelations = relations(ssoConfigurations, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [ssoConfigurations.organizationId],
-    references: [organizations.id],
-  }),
-  sessions: many(ssoSessions),
-}));
-
-export const ssoSessionsRelations = relations(ssoSessions, ({ one }) => ({
-  session: one(sessions, {
-    fields: [ssoSessions.sessionId],
-    references: [sessions.id],
-  }),
-  ssoConfig: one(ssoConfigurations, {
-    fields: [ssoSessions.ssoConfigId],
-    references: [ssoConfigurations.id],
-  }),
-}));
-
 // RBAC Relations
 export const customRolesRelations = relations(customRoles, ({ one, many }) => ({
   organization: one(organizations, {
@@ -3372,11 +3500,7 @@ export const auditLogExportsRelations = relations(auditLogExports, ({ one }) => 
 }));
 
 // Enterprise Security Types
-export type SSOProviderType = (typeof ssoProviderTypeEnum.enumValues)[number];
-export type SSOConfiguration = typeof ssoConfigurations.$inferSelect;
-export type NewSSOConfiguration = typeof ssoConfigurations.$inferInsert;
-export type SSOSession = typeof ssoSessions.$inferSelect;
-export type NewSSOSession = typeof ssoSessions.$inferInsert;
+// SSO types are now managed by @better-auth/sso plugin
 
 export type PermissionAction = (typeof permissionActionEnum.enumValues)[number];
 export type PermissionResource = (typeof permissionResourceEnum.enumValues)[number];

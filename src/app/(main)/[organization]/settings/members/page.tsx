@@ -71,7 +71,7 @@ function MembersSettingsContent() {
       setOrganization({
         ...currentOrg,
         metadata: currentOrg.metadata || null,
-        slug: currentOrg.slug || null,
+        slug: currentOrg.slug,
         logo: currentOrg.logo || null,
       });
 

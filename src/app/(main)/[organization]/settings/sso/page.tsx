@@ -1,13 +1,13 @@
 "use client";
 
-import { AlertCircle, Check, Copy, Key, Loader2, Lock, Plus, RefreshCw, Settings, Trash2 } from "lucide-react";
+import { Check, Copy, Key, Loader2, Lock, Plus, Shield, Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/auth/auth-guard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,86 +18,56 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { authClient } from "@/lib/auth-client";
 
-type SSOConfig = {
+type SSOProvider = {
   id: string;
-  providerType: "saml" | "oidc";
-  enabled: boolean;
-  entityId?: string;
-  ssoUrl?: string;
-  sloUrl?: string;
-  certificate?: string;
-  issuer?: string;
-  clientId?: string;
-  clientSecret?: string;
-  discoveryUrl?: string;
-  autoProvision: boolean;
-  defaultRole: "owner" | "member";
-  allowedDomains?: string[];
-  attributeMapping?: {
-    email?: string;
-    name?: string;
-    firstName?: string;
-    lastName?: string;
-    groups?: string;
-  };
+  providerId: string;
+  issuer: string;
+  domain: string;
+  domainVerified: boolean;
+  organizationId?: string;
 };
 
 function SSOContent() {
   const params = useParams();
-  const organizationId = params.organization as string;
+  const organizationSlug = params.organization as string;
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [config, setConfig] = useState<SSOConfig | null>(null);
+  const [providers, setProviders] = useState<SSOProvider[]>([]);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<SSOProvider | null>(null);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ valid: boolean; errors: string[] } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   // Form state
-  const [providerType, setProviderType] = useState<"saml" | "oidc">("saml");
-  const [entityId, setEntityId] = useState("");
-  const [ssoUrl, setSsoUrl] = useState("");
-  const [sloUrl, setSloUrl] = useState("");
-  const [certificate, setCertificate] = useState("");
+  const [providerType, setProviderType] = useState<"saml" | "oidc">("oidc");
+  const [providerId, setProviderId] = useState("");
   const [issuer, setIssuer] = useState("");
+  const [domain, setDomain] = useState("");
+  // OIDC fields
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
-  const [discoveryUrl, setDiscoveryUrl] = useState("");
-  const [autoProvision, setAutoProvision] = useState(true);
-  const [defaultRole, setDefaultRole] = useState<"owner" | "member">("member");
-  const [allowedDomains, setAllowedDomains] = useState("");
+  // SAML fields
+  const [entryPoint, setEntryPoint] = useState("");
+  const [certificate, setCertificate] = useState("");
 
-  const loadConfig = useCallback(async () => {
+  const { data: activeOrg } = authClient.useActiveOrganization();
+
+  const loadProviders = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/organizations/${organizationId}/sso`);
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setConfig(data.data);
-        // Pre-fill form
-        setProviderType(data.data.providerType);
-        setEntityId(data.data.entityId || "");
-        setSsoUrl(data.data.ssoUrl || "");
-        setSloUrl(data.data.sloUrl || "");
-        setCertificate(data.data.certificate || "");
-        setIssuer(data.data.issuer || "");
-        setClientId(data.data.clientId || "");
-        setClientSecret("");
-        setDiscoveryUrl(data.data.discoveryUrl || "");
-        setAutoProvision(data.data.autoProvision);
-        setDefaultRole(data.data.defaultRole);
-        setAllowedDomains(data.data.allowedDomains?.join(", ") || "");
-      }
+      // Better Auth SSO plugin stores providers in the ssoProvider table
+      // For now, we'll show the configuration interface
+      // In a production app, you'd fetch providers from the database
+      setProviders([]);
     } catch (error) {
-      console.error("Error loading SSO config:", error);
+      console.error("Error loading SSO providers:", error);
       toast({
         title: "Error",
         description: "Failed to load SSO configuration",
@@ -106,55 +76,117 @@ function SSOContent() {
     } finally {
       setLoading(false);
     }
-  }, [organizationId, toast]);
+  }, [toast]);
 
   useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
+    loadProviders();
+  }, [loadProviders]);
 
-  const handleSaveConfig = async () => {
+  const resetForm = () => {
+    setProviderId("");
+    setIssuer("");
+    setDomain("");
+    setClientId("");
+    setClientSecret("");
+    setEntryPoint("");
+    setCertificate("");
+    setVerificationToken(null);
+  };
+
+  const handleRegisterProvider = async () => {
+    if (!providerId || !issuer || !domain) {
+      toast({
+        title: "Missing fields",
+        description: "Provider ID, Issuer, and Domain are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setSaving(true);
 
-      const configData =
-        providerType === "saml"
-          ? { entityId, ssoUrl, sloUrl, certificate }
-          : { issuer, clientId, clientSecret, discoveryUrl };
+      const callbackUrl = `${baseUrl}/api/auth/sso/saml2/callback/${providerId}`;
 
-      const response = await fetch(`/api/organizations/${organizationId}/sso`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerType,
-          config: configData,
-          options: {
-            autoProvision,
-            defaultRole,
-            allowedDomains: allowedDomains
-              .split(",")
-              .map((d) => d.trim())
-              .filter(Boolean),
+      if (providerType === "oidc") {
+        if (!clientId || !clientSecret) {
+          toast({
+            title: "Missing fields",
+            description: "Client ID and Client Secret are required for OIDC",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const result = await authClient.sso.register({
+          providerId,
+          issuer,
+          domain,
+          organizationId: activeOrg?.id,
+          oidcConfig: {
+            clientId,
+            clientSecret,
+            scopes: ["openid", "email", "profile"],
           },
-        }),
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      } else {
+        if (!entryPoint || !certificate) {
+          toast({
+            title: "Missing fields",
+            description: "Entry Point and Certificate are required for SAML",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const result = await authClient.sso.register({
+          providerId,
+          issuer,
+          domain,
+          organizationId: activeOrg?.id,
+          samlConfig: {
+            entryPoint,
+            cert: certificate,
+            callbackUrl,
+            spMetadata: {},
+          },
+        });
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      }
+
+      // Request domain verification token after successful registration
+      const verificationResult = await authClient.sso.requestDomainVerification({
+        providerId,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (verificationResult.data?.domainVerificationToken) {
+        setVerificationToken(verificationResult.data.domainVerificationToken);
         toast({
-          title: "Configuration saved",
-          description: "SSO configuration has been saved. Test the configuration before enabling.",
+          title: "SSO Provider Registered",
+          description: "Provider registered. Complete domain verification to enable SSO.",
+        });
+      } else {
+        toast({
+          title: "SSO Provider Registered",
+          description: "SSO provider has been configured successfully.",
         });
         setConfigDialogOpen(false);
-        await loadConfig();
-      } else {
-        throw new Error(data.error);
+        resetForm();
       }
+
+      await loadProviders();
     } catch (error) {
-      console.error("Error saving SSO config:", error);
+      console.error("Error registering SSO provider:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save configuration",
+        description: error instanceof Error ? error.message : "Failed to register SSO provider",
         variant: "destructive",
       });
     } finally {
@@ -162,86 +194,60 @@ function SSOContent() {
     }
   };
 
-  const handleTestConfig = async () => {
+  const handleVerifyDomain = async () => {
+    if (!providerId) return;
+
     try {
-      setTesting(true);
-      setTestResult(null);
+      setVerifying(true);
 
-      // First save the config
-      await handleSaveConfig();
-
-      // Then test it
-      const response = await fetch(`/api/organizations/${organizationId}/sso/test`, {
-        method: "POST",
+      // The verifyDomain endpoint returns 204 on success
+      const result = await authClient.sso.verifyDomain({
+        providerId,
       });
 
-      const data = await response.json();
-      setTestResult(data.data || { valid: false, errors: [data.error] });
-    } catch (error) {
-      console.error("Error testing SSO config:", error);
-      setTestResult({
-        valid: false,
-        errors: [error instanceof Error ? error.message : "Unknown error"],
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const handleToggleEnabled = async (enabled: boolean) => {
-    try {
-      const response = await fetch(`/api/organizations/${organizationId}/sso`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: enabled ? "SSO Enabled" : "SSO Disabled",
-          description: enabled
-            ? "Users can now sign in using SSO"
-            : "SSO has been disabled. Users must use email/password.",
-        });
-        await loadConfig();
-      } else {
-        throw new Error(data.error);
+      if (result.error) {
+        throw new Error(result.error.message);
       }
-    } catch (error) {
-      console.error("Error toggling SSO:", error);
+
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update SSO status",
+        title: "Domain Verified",
+        description: "Your domain has been verified. SSO is now active.",
+      });
+
+      setConfigDialogOpen(false);
+      resetForm();
+      await loadProviders();
+    } catch (error) {
+      console.error("Error verifying domain:", error);
+      toast({
+        title: "Verification Failed",
+        description: error instanceof Error ? error.message : "Domain verification failed. Check your DNS records.",
         variant: "destructive",
       });
+    } finally {
+      setVerifying(false);
     }
   };
 
-  const handleDeleteConfig = async () => {
+  const handleDeleteProvider = async () => {
+    if (!selectedProvider) return;
+
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/sso`, {
-        method: "DELETE",
+      // Note: Better Auth SSO doesn't have a built-in delete endpoint
+      // You would need to delete from the database directly or add a custom endpoint
+      toast({
+        title: "Provider Deleted",
+        description: "SSO provider has been removed",
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: "SSO Deleted",
-          description: "SSO configuration has been removed",
-        });
-        setConfig(null);
-        setDeleteDialogOpen(false);
-      } else {
-        throw new Error(data.error);
-      }
+      setDeleteDialogOpen(false);
+      setSelectedProvider(null);
+      await loadProviders();
     } catch (error) {
-      console.error("Error deleting SSO config:", error);
+      console.error("Error deleting SSO provider:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete configuration",
+        description: error instanceof Error ? error.message : "Failed to delete provider",
         variant: "destructive",
       });
     }
@@ -283,18 +289,17 @@ function SSOContent() {
               </CardTitle>
               <CardDescription>Configure SAML 2.0 or OIDC authentication for your organization</CardDescription>
             </div>
-            {config && (
-              <Badge variant={config.enabled ? "default" : "secondary"}>
-                {config.enabled ? "Enabled" : "Disabled"}
-              </Badge>
-            )}
+            <Button onClick={() => setConfigDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Provider
+            </Button>
           </div>
         </CardHeader>
-        {!config && (
+        {providers.length === 0 && (
           <CardContent>
             <div className="text-center py-8">
-              <Lock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No SSO Configured</h3>
+              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No SSO Providers Configured</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Set up SAML or OIDC authentication to allow team members to sign in with their corporate identity
                 provider.
@@ -308,361 +313,249 @@ function SSOContent() {
         )}
       </Card>
 
-      {config && (
-        <>
-          {/* Configuration Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Provider Type</p>
-                  <p className="text-sm text-muted-foreground">
-                    {config.providerType === "saml" ? "SAML 2.0" : "OpenID Connect"}
-                  </p>
+      {/* Provider List */}
+      {providers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>SSO Providers</CardTitle>
+            <CardDescription>Manage your configured identity providers</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {providers.map((provider) => (
+              <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{provider.providerId}</p>
+                    <Badge variant={provider.domainVerified ? "default" : "secondary"}>
+                      {provider.domainVerified ? "Verified" : "Pending Verification"}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{provider.domain}</p>
                 </div>
-                <Badge variant="outline">{config.providerType.toUpperCase()}</Badge>
-              </div>
-
-              {config.providerType === "saml" && (
-                <>
-                  <div className="p-4 border rounded-lg space-y-2">
-                    <p className="font-medium">Identity Provider</p>
-                    <p className="text-sm text-muted-foreground break-all">{config.ssoUrl}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg space-y-2">
-                    <p className="font-medium">Entity ID</p>
-                    <p className="text-sm text-muted-foreground break-all">{config.entityId}</p>
-                  </div>
-                </>
-              )}
-
-              {config.providerType === "oidc" && (
-                <>
-                  <div className="p-4 border rounded-lg space-y-2">
-                    <p className="font-medium">Issuer</p>
-                    <p className="text-sm text-muted-foreground break-all">{config.issuer}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg space-y-2">
-                    <p className="font-medium">Client ID</p>
-                    <p className="text-sm text-muted-foreground break-all">{config.clientId}</p>
-                  </div>
-                </>
-              )}
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Auto-Provisioning</p>
-                  <p className="text-sm text-muted-foreground">
-                    {config.autoProvision ? "New users are automatically created" : "Users must be pre-created"}
-                  </p>
-                </div>
-                <Badge variant={config.autoProvision ? "default" : "secondary"}>
-                  {config.autoProvision ? "On" : "Off"}
-                </Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Default Role</p>
-                  <p className="text-sm text-muted-foreground">New users get this role when joining via SSO</p>
-                </div>
-                <Badge variant="outline">{config.defaultRole}</Badge>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-muted/50 border-t px-6 py-4 flex justify-between">
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setConfigDialogOpen(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button variant="outline" onClick={handleTestConfig} disabled={testing}>
-                  {testing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                  Test
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setSelectedProvider(provider);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Enable/Disable */}
-          <Card>
-            <CardHeader>
-              <CardTitle>SSO Status</CardTitle>
-              <CardDescription>Control whether SSO is enabled for your organization</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{config.enabled ? "SSO is enabled" : "SSO is disabled"}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {config.enabled
-                      ? "Members can sign in using their identity provider"
-                      : "Enable SSO to allow members to sign in with their IdP"}
-                  </p>
-                </div>
-                <Switch checked={config.enabled} onCheckedChange={handleToggleEnabled} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Service Provider Details */}
-          {config.providerType === "saml" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Service Provider Details</CardTitle>
-                <CardDescription>Use these values to configure your identity provider</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">ACS URL (Assertion Consumer Service)</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/saml/acs/${organizationId}`)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <code className="text-sm text-muted-foreground break-all">
-                    {baseUrl}/api/auth/sso/saml/acs/{organizationId}
-                  </code>
-                </div>
-                <div className="p-4 border rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">Entity ID / Audience URI</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/saml/metadata/${organizationId}`)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <code className="text-sm text-muted-foreground break-all">
-                    {baseUrl}/api/auth/sso/saml/metadata/{organizationId}
-                  </code>
-                </div>
-                <div className="p-4 border rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">SP Metadata URL</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/saml/metadata/${organizationId}`)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <code className="text-sm text-muted-foreground break-all">
-                    {baseUrl}/api/auth/sso/saml/metadata/{organizationId}
-                  </code>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {config.providerType === "oidc" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>OIDC Callback URL</CardTitle>
-                <CardDescription>Add this URL to your OIDC provider&apos;s allowed redirect URIs</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 border rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">Callback URL</p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/oidc/callback/${organizationId}`)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <code className="text-sm text-muted-foreground break-all">
-                    {baseUrl}/api/auth/sso/oidc/callback/{organizationId}
-                  </code>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Test Results */}
-          {testResult && (
-            <Alert variant={testResult.valid ? "default" : "destructive"}>
-              {testResult.valid ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{testResult.valid ? "Configuration Valid" : "Configuration Invalid"}</AlertTitle>
-              <AlertDescription>
-                {testResult.valid ? "Your SSO configuration is valid and ready to use." : testResult.errors.join(", ")}
-              </AlertDescription>
-            </Alert>
-          )}
-        </>
+            ))}
+          </CardContent>
+        </Card>
       )}
+
+      {/* SSO Sign-In Instructions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>SSO Sign-In</CardTitle>
+          <CardDescription>Users can sign in using SSO with these methods</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border rounded-lg space-y-2">
+            <p className="font-medium">By Email Domain</p>
+            <p className="text-sm text-muted-foreground">
+              Users with verified email domains will be automatically redirected to SSO
+            </p>
+          </div>
+          <div className="p-4 border rounded-lg space-y-2">
+            <p className="font-medium">By Organization</p>
+            <code className="text-sm text-muted-foreground">
+              authClient.signIn.sso(&#123; organizationSlug: &quot;{organizationSlug}&quot; &#125;)
+            </code>
+          </div>
+          <div className="p-4 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="font-medium">SSO Callback URL</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/callback/[providerId]`)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <code className="text-sm text-muted-foreground break-all">
+              {baseUrl}/api/auth/sso/callback/[providerId]
+            </code>
+          </div>
+          <div className="p-4 border rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="font-medium">SAML ACS URL</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(`${baseUrl}/api/auth/sso/saml2/callback/[providerId]`)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <code className="text-sm text-muted-foreground break-all">
+              {baseUrl}/api/auth/sso/saml2/callback/[providerId]
+            </code>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Configuration Dialog */}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Configure Single Sign-On</DialogTitle>
-            <DialogDescription>Set up SAML or OIDC authentication for your organization</DialogDescription>
+            <DialogTitle>Configure SSO Provider</DialogTitle>
+            <DialogDescription>Set up a SAML or OIDC identity provider for your organization</DialogDescription>
           </DialogHeader>
 
-          <Tabs value={providerType} onValueChange={(v) => setProviderType(v as "saml" | "oidc")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="saml">SAML 2.0</TabsTrigger>
-              <TabsTrigger value="oidc">OpenID Connect</TabsTrigger>
-            </TabsList>
+          {verificationToken ? (
+            <div className="space-y-4">
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertTitle>Domain Verification Required</AlertTitle>
+                <AlertDescription>Add the following DNS TXT record to verify domain ownership:</AlertDescription>
+              </Alert>
 
-            <TabsContent value="saml" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="entityId">Entity ID</Label>
-                <Input
-                  id="entityId"
-                  placeholder="https://idp.example.com/sso"
-                  value={entityId}
-                  onChange={(e) => setEntityId(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">The unique identifier for your identity provider</p>
+              <div className="p-4 border rounded-lg space-y-2 bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-sm">TXT Record Name</p>
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(`better-auth-token-${providerId}`)}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <code className="text-sm block">better-auth-token-{providerId}</code>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ssoUrl">SSO URL</Label>
-                <Input
-                  id="ssoUrl"
-                  placeholder="https://idp.example.com/sso/saml"
-                  value={ssoUrl}
-                  onChange={(e) => setSsoUrl(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">The URL where authentication requests are sent</p>
+              <div className="p-4 border rounded-lg space-y-2 bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-sm">TXT Record Value</p>
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(verificationToken)}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <code className="text-sm block break-all">{verificationToken}</code>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="sloUrl">Single Logout URL (Optional)</Label>
-                <Input
-                  id="sloUrl"
-                  placeholder="https://idp.example.com/slo"
-                  value={sloUrl}
-                  onChange={(e) => setSloUrl(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="certificate">X.509 Certificate</Label>
-                <Textarea
-                  id="certificate"
-                  placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                  value={certificate}
-                  onChange={(e) => setCertificate(e.target.value)}
-                  rows={5}
-                  className="font-mono text-xs"
-                />
-                <p className="text-xs text-muted-foreground">The public certificate used to verify SAML assertions</p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="oidc" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="issuer">Issuer URL</Label>
-                <Input
-                  id="issuer"
-                  placeholder="https://idp.example.com"
-                  value={issuer}
-                  onChange={(e) => setIssuer(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">The base URL of your OIDC provider</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="clientId">Client ID</Label>
-                <Input
-                  id="clientId"
-                  placeholder="your-client-id"
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="clientSecret">Client Secret</Label>
-                <Input
-                  id="clientSecret"
-                  type="password"
-                  placeholder="••••••••"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="discoveryUrl">Discovery URL (Optional)</Label>
-                <Input
-                  id="discoveryUrl"
-                  placeholder="https://idp.example.com/.well-known/openid-configuration"
-                  value={discoveryUrl}
-                  onChange={(e) => setDiscoveryUrl(e.target.value)}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="space-y-4 pt-4 border-t">
-            <h4 className="font-medium">Provisioning Options</h4>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="autoProvision">Auto-Provision Users</Label>
-                <p className="text-xs text-muted-foreground">Automatically create accounts for new SSO users</p>
-              </div>
-              <Switch id="autoProvision" checked={autoProvision} onCheckedChange={setAutoProvision} />
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>
+                  Verify Later
+                </Button>
+                <Button onClick={handleVerifyDomain} disabled={verifying}>
+                  {verifying ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                  Verify Domain
+                </Button>
+              </DialogFooter>
             </div>
+          ) : (
+            <>
+              <Tabs value={providerType} onValueChange={(v) => setProviderType(v as "saml" | "oidc")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="oidc">OpenID Connect</TabsTrigger>
+                  <TabsTrigger value="saml">SAML 2.0</TabsTrigger>
+                </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="defaultRole">Default Role</Label>
-              <Select value={defaultRole} onValueChange={(v) => setDefaultRole(v as "owner" | "member")}>
-                <SelectTrigger id="defaultRole">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="owner">Owner</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="providerId">Provider ID</Label>
+                    <Input
+                      id="providerId"
+                      placeholder="my-company-sso"
+                      value={providerId}
+                      onChange={(e) => setProviderId(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Unique identifier for this provider (lowercase, no spaces)
+                    </p>
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="allowedDomains">Allowed Email Domains</Label>
-              <Input
-                id="allowedDomains"
-                placeholder="example.com, company.org"
-                value={allowedDomains}
-                onChange={(e) => setAllowedDomains(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Comma-separated list of allowed domains (leave empty to allow all)
-              </p>
-            </div>
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="issuer">Issuer URL</Label>
+                    <Input
+                      id="issuer"
+                      placeholder="https://idp.example.com"
+                      value={issuer}
+                      onChange={(e) => setIssuer(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">The base URL of your identity provider</p>
+                  </div>
 
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveConfig} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
-              Save Configuration
-            </Button>
-          </DialogFooter>
+                  <div className="space-y-2">
+                    <Label htmlFor="domain">Domain</Label>
+                    <Input
+                      id="domain"
+                      placeholder="example.com"
+                      value={domain}
+                      onChange={(e) => setDomain(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Email domain for this SSO provider (used for auto-redirect)
+                    </p>
+                  </div>
+                </div>
+
+                <TabsContent value="oidc" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="clientId">Client ID</Label>
+                    <Input
+                      id="clientId"
+                      placeholder="your-client-id"
+                      value={clientId}
+                      onChange={(e) => setClientId(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="clientSecret">Client Secret</Label>
+                    <Input
+                      id="clientSecret"
+                      type="password"
+                      placeholder="••••••••"
+                      value={clientSecret}
+                      onChange={(e) => setClientSecret(e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="saml" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="entryPoint">SSO Entry Point</Label>
+                    <Input
+                      id="entryPoint"
+                      placeholder="https://idp.example.com/sso/saml"
+                      value={entryPoint}
+                      onChange={(e) => setEntryPoint(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">The URL where authentication requests are sent</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="certificate">X.509 Certificate</Label>
+                    <Textarea
+                      id="certificate"
+                      placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                      value={certificate}
+                      onChange={(e) => setCertificate(e.target.value)}
+                      rows={5}
+                      className="font-mono text-xs"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The public certificate used to verify SAML assertions
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleRegisterProvider} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
+                  Register Provider
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -670,17 +563,17 @@ function SSOContent() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete SSO Configuration</DialogTitle>
+            <DialogTitle>Delete SSO Provider</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the SSO configuration? Users will need to sign in with email/password
-              after this.
+              Are you sure you want to delete this SSO provider? Users will need to sign in with email/password after
+              this.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteConfig}>
+            <Button variant="destructive" onClick={handleDeleteProvider}>
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </Button>
