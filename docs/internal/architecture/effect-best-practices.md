@@ -604,13 +604,19 @@ return Exit.match(exit, {
 
 ## Migration Strategy
 
-For existing code that doesn't follow these patterns, see the [Effect Migration Guide](./effect-migration-guide.md).
+When migrating existing code to Effect patterns, follow this priority order:
 
-**Priority order for migration**:
 1. User-facing APIs with direct `db` access
 2. APIs with complex error scenarios
 3. Internal/admin APIs
 4. Health checks and webhooks (lowest priority)
+
+**Migration steps:**
+1. Identify direct `db` access and wrap in repository service
+2. Replace `try/catch` with `Effect.tryPromise` and tagged errors
+3. Use `Effect.gen` for sequential operations
+4. Add proper layer composition with `createFullLayer()`
+5. Use `handleEffectExit()` for consistent response handling
 
 ## Related Resources
 
@@ -619,4 +625,3 @@ For existing code that doesn't follow these patterns, see the [Effect Migration 
 - [TypeOnce Effect + React 19 Course](https://www.typeonce.dev/course/effect-react-19-project-template)
 - [EffectPatterns Repository](https://github.com/PaulJPhilp/EffectPatterns)
 - [Effect-TS Architecture Documentation](./effect-ts.md)
-- [Effect Migration Guide](./effect-migration-guide.md)

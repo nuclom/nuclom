@@ -9,12 +9,8 @@ const R2_ACCESS_KEY_ID = env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = env.R2_SECRET_ACCESS_KEY;
 const R2_BUCKET_NAME = env.R2_BUCKET_NAME;
 
-// For development, allow missing R2 configuration
+// Check if R2 is fully configured
 const isR2Configured = R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY;
-
-if (!isR2Configured) {
-  console.warn("R2 configuration not found. Video upload will use mock storage.");
-}
 
 // Create S3 client configured for Cloudflare R2 (only if configured)
 let r2Client: S3Client | null = null;
@@ -74,8 +70,7 @@ export class StorageService {
         etag: result.ETag,
       };
     } catch (error) {
-      console.error("Error uploading file to R2:", error);
-      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to upload file to R2: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -88,7 +83,6 @@ export class StorageService {
     options: UploadOptions = {},
     onProgress?: (progress: { loaded: number; total: number }) => void,
   ): Promise<UploadResult> {
-    // If R2 is not configured, return mock data for development
     if (!isR2Configured || !r2Client) {
       throw new Error("R2 storage not configured. Please set up R2 credentials.");
     }
@@ -128,8 +122,7 @@ export class StorageService {
         etag: result.ETag,
       };
     } catch (error) {
-      console.error("Error uploading large file to R2:", error);
-      throw new Error(`Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to upload large file to R2: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -137,9 +130,8 @@ export class StorageService {
    * Delete a file from R2 storage
    */
   static async deleteFile(key: string): Promise<void> {
-    // If R2 is not configured, just log for development
+    // If R2 is not configured, skip silently (no-op in development)
     if (!isR2Configured || !r2Client) {
-      console.warn("R2 not configured, skipping delete for development");
       return;
     }
 
@@ -151,8 +143,7 @@ export class StorageService {
 
       await r2Client.send(command);
     } catch (error) {
-      console.error("Error deleting file from R2:", error);
-      throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to delete file from R2: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -178,7 +169,6 @@ export class StorageService {
 
       return await getSignedUrl(r2Client, command, { expiresIn });
     } catch (error) {
-      console.error("Error generating presigned URL:", error);
       throw new Error(`Failed to generate presigned URL: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
