@@ -24,9 +24,9 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
     pool: "forks",
-    fileParallelism: !process.env.CI,
-    maxConcurrency: process.env.CI ? 1 : 5,
-    maxWorkers: process.env.CI ? 1 : undefined,
+    isolate: false,
+    fileParallelism: false,
+    maxWorkers: 1,
   },
   resolve: {
     alias: {
