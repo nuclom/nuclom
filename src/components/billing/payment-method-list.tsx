@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { openBillingPortal } from "@/lib/auth-client";
+import { clientLogger } from "@/lib/client-logger";
 import type { PaymentMethod } from "@/lib/db/schema";
 
 // Credit card brand icons mapping
@@ -58,7 +59,7 @@ export function PaymentMethodList({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        console.error("Error opening billing portal:", error);
+        clientLogger.error("Error opening billing portal", error);
         toast.error("Failed to open billing portal");
       }
     });
@@ -81,7 +82,7 @@ export function PaymentMethodList({
         toast.success("Default payment method updated");
         router.refresh();
       } catch (error) {
-        console.error("Error setting default payment method:", error);
+        clientLogger.error("Error setting default payment method", error);
         toast.error(error instanceof Error ? error.message : "Failed to set default payment method");
       }
     });
@@ -104,7 +105,7 @@ export function PaymentMethodList({
         toast.success("Payment method removed");
         router.refresh();
       } catch (error) {
-        console.error("Error removing payment method:", error);
+        clientLogger.error("Error removing payment method", error);
         toast.error(error instanceof Error ? error.message : "Failed to remove payment method");
       }
     });

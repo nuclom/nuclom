@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { clientLogger } from "@/lib/client-logger";
 
 export function VerificationPendingForm() {
   const [isResending, setIsResending] = useState(false);
@@ -39,7 +40,7 @@ export function VerificationPendingForm() {
     } catch (err) {
       setResendStatus("error");
       setErrorMessage("An unexpected error occurred");
-      console.error("Resend verification error:", err);
+      clientLogger.error("Resend verification failed", err);
     } finally {
       setIsResending(false);
     }

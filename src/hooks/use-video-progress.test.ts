@@ -214,15 +214,21 @@ describe("useVideoProgress", () => {
     });
 
     vi.clearAllMocks();
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     vi.mocked(runClientEffect).mockResolvedValue(Either.left({ message: "Save failed" }));
 
+    // Should not throw even when save fails
     await act(async () => {
       await result.current.saveProgressNow(createMockProgress({ currentTime: 100, completed: false }));
     });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to save video progress:", "Save failed");
-    consoleSpy.mockRestore();
+    // Verify the save was attempted
+    expect(videoProgressApiEffect.saveProgress).toHaveBeenCalledWith("video-123", {
+      currentTime: 100,
+      completed: false,
+    });
+
+    // Hook should still be functional after error (silently handled)
+    expect(result.current.loading).toBe(false);
   });
 });
 

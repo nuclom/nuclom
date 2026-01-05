@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { clientLogger } from "@/lib/client-logger";
 import type { SearchFilters } from "@/lib/db/schema";
 import type { SavedSearchWithUser } from "@/lib/types";
 
@@ -86,7 +87,7 @@ export function SavedSearches({
         onRefresh();
       }
     } catch (error) {
-      console.error("Failed to save search:", error);
+      clientLogger.error("Failed to save search", error);
     } finally {
       setIsSaving(false);
     }
@@ -112,7 +113,7 @@ export function SavedSearches({
         onRefresh();
       }
     } catch (error) {
-      console.error("Failed to update search:", error);
+      clientLogger.error("Failed to update search", error);
     } finally {
       setIsSaving(false);
     }
@@ -128,7 +129,7 @@ export function SavedSearches({
         onRefresh();
       }
     } catch (error) {
-      console.error("Failed to delete search:", error);
+      clientLogger.error("Failed to delete search", error);
     }
   };
 

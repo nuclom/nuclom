@@ -24,6 +24,7 @@ import {
   type SubscriptionPlan,
   upgradeSubscription,
 } from "@/lib/auth-client";
+import { clientLogger } from "@/lib/client-logger";
 import { cn } from "@/lib/utils";
 
 // Types for subscription data from Better Auth Stripe
@@ -94,7 +95,7 @@ export function SubscriptionManager({
           setSubscriptions(result.data.map(mapSubscriptionData));
         }
       } catch (error) {
-        console.error("Failed to fetch subscriptions:", error);
+        clientLogger.error("Failed to fetch subscriptions", error);
       } finally {
         setIsLoading(false);
       }
@@ -139,7 +140,7 @@ export function SubscriptionManager({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        console.error("Upgrade error:", error);
+        clientLogger.error("Upgrade error", error);
         toast.error("Failed to start checkout");
       }
     });
@@ -166,7 +167,7 @@ export function SubscriptionManager({
         setCancelDialogOpen(false);
         router.refresh();
       } catch (error) {
-        console.error("Cancel error:", error);
+        clientLogger.error("Cancel error", error);
         toast.error("Failed to cancel subscription");
       }
     });
@@ -188,7 +189,7 @@ export function SubscriptionManager({
         toast.success("Subscription restored successfully");
         router.refresh();
       } catch (error) {
-        console.error("Restore error:", error);
+        clientLogger.error("Restore error", error);
         toast.error("Failed to restore subscription");
       }
     });
@@ -210,7 +211,7 @@ export function SubscriptionManager({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        console.error("Portal error:", error);
+        clientLogger.error("Portal error", error);
         toast.error("Failed to open billing portal");
       }
     });

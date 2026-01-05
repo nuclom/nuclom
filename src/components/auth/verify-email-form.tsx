@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { clientLogger } from "@/lib/client-logger";
 
 type VerificationStatus = "loading" | "success" | "error" | "no-token";
 
@@ -37,7 +38,7 @@ export function VerifyEmailForm() {
       } catch (err) {
         setStatus("error");
         setErrorMessage("An unexpected error occurred during verification");
-        console.error("Verification error:", err);
+        clientLogger.error("Email verification failed", err);
       }
     };
 

@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { clientLogger } from "@/lib/client-logger";
 
 export type ReportResourceType = "video" | "comment" | "user";
 export type ReportCategory = "inappropriate" | "spam" | "copyright" | "harassment" | "other";
@@ -110,7 +111,7 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
       setOpen(false);
       onReportSubmitted?.();
     } catch (error) {
-      console.error("Report submission error:", error);
+      clientLogger.error("Report submission error", error);
       toast({
         title: "Error",
         description: "Failed to submit report. Please try again.",

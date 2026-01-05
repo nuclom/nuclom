@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { clientLogger } from "@/lib/client-logger";
 import type { TranscriptSegment } from "@/lib/db/schema";
 import { formatTimePrecise } from "@/lib/format-utils";
 import { cn } from "@/lib/utils";
@@ -525,7 +526,7 @@ export function TranscriptEditor({
       await onSave(state.segments);
       dispatch({ type: "MARK_SAVED" });
     } catch (error) {
-      console.error("Failed to save transcript:", error);
+      clientLogger.error("Failed to save transcript", error);
     } finally {
       setIsSaving(false);
     }

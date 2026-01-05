@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { clientLogger } from "@/lib/client-logger";
 
 export interface VideoActionsProps {
   videoId: string;
@@ -59,7 +60,7 @@ export function VideoActions({
       router.push(`/${organizationSlug}/videos`);
       router.refresh();
     } catch (error) {
-      console.error("Failed to delete video:", error);
+      clientLogger.error("Failed to delete video", error);
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }

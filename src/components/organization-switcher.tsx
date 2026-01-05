@@ -17,6 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
+import { clientLogger } from "@/lib/client-logger";
 import { cn } from "@/lib/utils";
 
 type Organization = {
@@ -44,7 +45,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       const current = data?.find((org) => org.slug === currentOrganization);
       setActiveOrg(current || null);
     } catch (error) {
-      console.error("Error loading organizations:", error);
+      clientLogger.error("Failed to load organizations", error);
       toast({
         title: "Error",
         description: "Failed to load organizations",
@@ -85,7 +86,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
         });
       }
     } catch (error) {
-      console.error("Error creating organization:", error);
+      clientLogger.error("Failed to create organization", error);
       toast({
         title: "Error",
         description: "Failed to create organization",
@@ -103,7 +104,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       setOpen(false);
       setActiveOrg(organization);
     } catch (error) {
-      console.error("Error switching organization:", error);
+      clientLogger.error("Failed to switch organization", error);
       toast({
         title: "Error",
         description: "Failed to switch organization",
