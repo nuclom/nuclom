@@ -324,25 +324,28 @@ const makeSlackMonitoringService = Effect.gen(function* () {
 
   // Get the appropriate webhook URL for an event category
   const getWebhookUrl = (category: EventCategory): string | null => {
+    // Helper to safely get webhook URL or fall back to default
+    const getWithFallback = (categoryOption: Option.Option<string>): string | null => {
+      if (Option.isSome(categoryOption)) {
+        return categoryOption.value;
+      }
+      if (Option.isSome(config.defaultWebhook)) {
+        return config.defaultWebhook.value;
+      }
+      return null;
+    };
+
     switch (category) {
       case "accounts":
-        return Option.getOrElse(config.accountsWebhook, () =>
-          Option.getOrElse(config.defaultWebhook, () => null as unknown as string),
-        );
+        return getWithFallback(config.accountsWebhook);
       case "billing":
-        return Option.getOrElse(config.billingWebhook, () =>
-          Option.getOrElse(config.defaultWebhook, () => null as unknown as string),
-        );
+        return getWithFallback(config.billingWebhook);
       case "usage":
-        return Option.getOrElse(config.usageWebhook, () =>
-          Option.getOrElse(config.defaultWebhook, () => null as unknown as string),
-        );
+        return getWithFallback(config.usageWebhook);
       case "errors":
-        return Option.getOrElse(config.errorsWebhook, () =>
-          Option.getOrElse(config.defaultWebhook, () => null as unknown as string),
-        );
+        return getWithFallback(config.errorsWebhook);
       default:
-        return Option.getOrElse(config.defaultWebhook, () => null as unknown as string);
+        return Option.isSome(config.defaultWebhook) ? config.defaultWebhook.value : null;
     }
   };
 

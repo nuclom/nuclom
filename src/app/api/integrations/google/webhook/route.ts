@@ -25,7 +25,6 @@ export async function POST(request: NextRequest) {
   const channelId = request.headers.get("x-goog-channel-id");
   const channelToken = request.headers.get("x-goog-channel-token");
   const resourceState = request.headers.get("x-goog-resource-state");
-  const _resourceId = request.headers.get("x-goog-resource-id");
 
   console.log(`[Google Webhook] Received notification: ${resourceState} for channel ${channelId}`);
 
@@ -62,12 +61,10 @@ export async function POST(request: NextRequest) {
         return { processed: false, reason: "Invalid channel token" };
       }
 
-      const integration = yield* Effect.tryPromise({
-        try: async () => {
-          return await Effect.runPromise(Effect.provide(integrationRepo.getIntegration(integrationId), WebhookLayer));
-        },
-        catch: () => null,
-      });
+      // Use Effect.catchAll for proper error handling instead of nested Effect.runPromise
+      const integration = yield* integrationRepo
+        .getIntegration(integrationId)
+        .pipe(Effect.catchAll(() => Effect.succeed(null)));
 
       if (!integration) {
         console.log(`[Google Webhook] No integration found for ID ${integrationId}`);

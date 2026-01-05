@@ -1,6 +1,8 @@
 import { Effect, Layer, Option, Schema } from "effect";
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
+import { UnauthorizedError, ValidationError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
@@ -26,13 +28,13 @@ const CreateWebhookSchema = Schema.Struct({
 });
 
 // GET - List all webhooks for the organization
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: request.headers,
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Effect.runPromiseExit(Effect.fail(UnauthorizedError.default)).then(handleEffectExit);
   }
 
   const effect = Effect.gen(function* () {
@@ -52,35 +54,35 @@ export async function GET(request: Request) {
     return { webhooks };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, WebhooksLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[Zapier Webhooks GET Error]", err);
-    return NextResponse.json({ error: "Failed to fetch webhooks" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, WebhooksLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }
 
 // POST - Create a new webhook
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: request.headers,
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Effect.runPromiseExit(Effect.fail(UnauthorizedError.default)).then(handleEffectExit);
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid JSON body" }))).then(
+      handleEffectExit,
+    );
   }
 
   const result = safeParse(CreateWebhookSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ error: "Missing required fields: targetUrl, events" }, { status: 400 });
+    return Effect.runPromiseExit(
+      Effect.fail(new ValidationError({ message: "Missing required fields: targetUrl, events" })),
+    ).then(handleEffectExit);
   }
   const body = result.data;
 
@@ -91,7 +93,7 @@ export async function POST(request: Request) {
     const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
     if (Option.isNone(activeOrgOption)) {
-      return yield* Effect.fail(new Error("No active organization"));
+      return yield* Effect.fail(new ValidationError({ message: "No active organization" }));
     }
 
     const activeOrg = activeOrgOption.value;
@@ -106,11 +108,7 @@ export async function POST(request: Request) {
     return { webhook };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, WebhooksLayer));
-    return NextResponse.json(result, { status: 201 });
-  } catch (err) {
-    console.error("[Zapier Webhooks POST Error]", err);
-    return NextResponse.json({ error: "Failed to create webhook" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, WebhooksLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExitWithStatus(exit, 201);
 }

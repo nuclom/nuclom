@@ -114,16 +114,11 @@ export async function POST(request: NextRequest) {
 
       // Find integration by account ID or host email
       const { account_id, object } = payload.payload;
-      const integration = yield* Effect.tryPromise({
-        try: async () => {
-          // Try to find integration by email
-          const integrations = await Effect.runPromise(
-            Effect.provide(integrationRepo.getIntegrationsByAccountId(account_id), WebhookLayer),
-          );
-          return integrations[0] || null;
-        },
-        catch: () => null,
-      });
+      // Find integration by account ID - use Effect.catchAll for proper error handling
+      const integrationsResult = yield* integrationRepo
+        .getIntegrationsByAccountId(account_id)
+        .pipe(Effect.catchAll(() => Effect.succeed([] as const)));
+      const integration = integrationsResult.length > 0 ? integrationsResult[0] : null;
 
       if (!integration) {
         log.debug({ accountId: account_id }, "No integration found for account");
