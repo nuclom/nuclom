@@ -198,7 +198,7 @@ function parseMetadata(metadata: unknown): Record<string, unknown> {
   return {};
 }
 
-async function _getOrganizationEnforcementState(organizationId: string): Promise<Record<string, unknown>> {
+async function getOrganizationEnforcementState(organizationId: string): Promise<Record<string, unknown>> {
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { metadata: true },
@@ -399,9 +399,9 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
       // Calculate days since grace started
       const daysSinceGrace = Math.floor((now.getTime() - graceStartDate.getTime()) / (24 * 60 * 60 * 1000));
 
-      // Default grace period is 30 days
-      // Note: Without metadata, we can't distinguish trial_expired_no_payment cases
-      const gracePeriodDays = 30;
+      // Check org enforcement state for reason - shorter grace period for expired trials
+      const enforcementState = await getOrganizationEnforcementState(organization.id);
+      const gracePeriodDays = enforcementState.reason === "trial_expired_no_payment" ? 14 : 30;
 
       if (daysSinceGrace >= gracePeriodDays) {
         // Schedule deletion (videos will be soft-deleted with retention period)
@@ -469,14 +469,25 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
       const hasPayment = await hasPaymentMethod(organization.id);
 
       if (!hasPayment) {
-        // Note: Without metadata, we can't track last warning date
-        // Sending notification for all trials ending without payment method
-        notificationsSent += await sendEnforcementNotification(
-          organization.id,
-          organization.name,
-          organization.slug,
-          "payment_required",
-        );
+        // Check if we already sent a warning today
+        const enforcementState = await getOrganizationEnforcementState(organization.id);
+        const lastWarning = enforcementState.lastPaymentWarning
+          ? new Date(enforcementState.lastPaymentWarning as string)
+          : null;
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        if (!lastWarning || lastWarning < today) {
+          await updateOrganizationEnforcementState(organization.id, {
+            lastPaymentWarning: now.toISOString(),
+          });
+
+          notificationsSent += await sendEnforcementNotification(
+            organization.id,
+            organization.name,
+            organization.slug,
+            "payment_required",
+          );
+        }
       }
     } catch (error) {
       const errorMsg = `Failed to warn about trial ending for org ${organization.id}: ${error}`;
