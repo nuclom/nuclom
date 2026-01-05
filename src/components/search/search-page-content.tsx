@@ -3,7 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { Channel, Collection, SearchFilters as SearchFiltersType, User } from "@/lib/db/schema";
 import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from "@/lib/types";
 import { SavedSearches } from "./saved-searches";
@@ -75,7 +75,7 @@ export function SearchPageContent({
         setSearchResults(data);
       }
     } catch (error) {
-      clientLogger.error("Failed to fetch search results", error);
+      logger.error("Failed to fetch search results", error);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export function SearchPageContent({
         setSearchHistory(historyData);
       }
     } catch (error) {
-      clientLogger.error("Failed to fetch saved data", error);
+      logger.error("Failed to fetch saved data", error);
     }
   }, [organizationId]);
 

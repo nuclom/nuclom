@@ -11,7 +11,7 @@ import { CheckCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProgressFraction, useVideoProgress } from "@/hooks/use-video-progress";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { type VideoChapter, VideoPlayer, type VideoProgress } from "./video-player";
 
 // =============================================================================
@@ -106,7 +106,7 @@ export function VideoPlayerWithProgress({
 
   // Handle errors
   const handleError = useCallback((errorMsg: string) => {
-    clientLogger.error("Video playback error", errorMsg);
+    logger.error("Video playback error", errorMsg);
   }, []);
 
   // Show skeleton while loading progress
@@ -121,7 +121,7 @@ export function VideoPlayerWithProgress({
 
   // Show error but still allow playback
   if (error) {
-    clientLogger.warn("Failed to load video progress", error);
+    logger.warn("Failed to load video progress", error);
     // Continue with video player anyway
   }
 

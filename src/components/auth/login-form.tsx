@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { authClient, getLastUsedLoginMethod } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 
 interface LoginFormProps {
   readonly redirectTo?: string;
@@ -82,7 +82,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       }
     } catch (err) {
       setError("An unexpected error occurred");
-      clientLogger.error("Login failed", err);
+      logger.error("Login failed", err);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       });
     } catch (err) {
       setError("Failed to sign in with GitHub");
-      clientLogger.error("GitHub login failed", err);
+      logger.error("GitHub login failed", err);
       setIsLoading(false);
     }
   };

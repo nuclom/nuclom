@@ -17,16 +17,16 @@ const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "devel
  *
  * Usage:
  * ```ts
- * import { clientLogger } from "@/lib/client-logger";
+ * import { logger } from "@/lib/client-logger";
  *
  * // In catch blocks:
- * clientLogger.error("Failed to load data", error);
+ * logger.error("Failed to load data", error);
  *
  * // With context:
- * clientLogger.error("Upload failed", error, { fileId, userId });
+ * logger.error("Upload failed", error, { fileId, userId });
  * ```
  */
-export const clientLogger = {
+export const logger = {
   /**
    * Log debug messages (development only)
    */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { CaptionTrack } from "../types";
 
 interface UseCaptionsOptions {
@@ -40,7 +40,7 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
           }
         })
         .catch((err) => {
-          clientLogger.error("Failed to load caption tracks", err);
+          logger.error("Failed to load caption tracks", err);
         });
     }
   }, [videoId, customCaptionTracks]);

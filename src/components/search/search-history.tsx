@@ -16,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { SearchHistoryWithUser } from "@/lib/types";
 
 interface SearchHistoryProps {
@@ -46,7 +46,7 @@ export function SearchHistory({ history, organizationId, organization, onRefresh
         onRefresh();
       }
     } catch (error) {
-      clientLogger.error("Failed to clear history", error);
+      logger.error("Failed to clear history", error);
     }
   };
 

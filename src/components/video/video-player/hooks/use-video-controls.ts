@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { VideoRefs } from "../types";
 
 interface UseVideoControlsOptions {
@@ -50,7 +50,7 @@ export function useVideoControls({
       video.pause();
     } else {
       video.play().catch((err) => {
-        clientLogger.error("Failed to play video", err);
+        logger.error("Failed to play video", err);
         setErrorMessage("Failed to play video");
         setVideoState("error");
       });
@@ -123,7 +123,7 @@ export function useVideoControls({
         setIsFullscreen(false);
       }
     } catch (err) {
-      clientLogger.error("Fullscreen error", err);
+      logger.error("Fullscreen error", err);
     }
   }, [refs.container, setIsFullscreen]);
 
@@ -140,7 +140,7 @@ export function useVideoControls({
         setIsPiP(true);
       }
     } catch (err) {
-      clientLogger.error("Picture-in-Picture error", err);
+      logger.error("Picture-in-Picture error", err);
     }
   }, [refs.video, setIsPiP]);
 

@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { formatFileSize } from "@/lib/format-utils";
 
 interface GoogleDriveFile {
@@ -117,7 +117,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
         }
         setNextPageToken(data.data.nextPageToken);
       } catch (error) {
-        clientLogger.error("Failed to load Google Drive contents", error);
+        logger.error("Failed to load Google Drive contents", error);
         if (!connectionError) {
           toast({
             title: "Error",
@@ -156,7 +156,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
 
         setSearchResults(data.data.files);
       } catch (error) {
-        clientLogger.error("Search failed", error);
+        logger.error("Search failed", error);
         toast({
           title: "Search Error",
           description: error instanceof Error ? error.message : "Search failed",
@@ -277,7 +277,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
 
       onClose();
     } catch (error) {
-      clientLogger.error("Failed to import from Google Drive", error);
+      logger.error("Failed to import from Google Drive", error);
       toast({
         title: "Import Failed",
         description: error instanceof Error ? error.message : "Failed to import videos",

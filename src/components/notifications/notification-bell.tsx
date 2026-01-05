@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { cn } from "@/lib/utils";
 
 interface NotificationActor {
@@ -98,7 +98,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         setUnreadCount(result.data?.unreadCount || 0);
       }
     } catch (error) {
-      clientLogger.error("Failed to fetch notifications", error);
+      logger.error("Failed to fetch notifications", error);
     } finally {
       setLoading(false);
     }
@@ -128,7 +128,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
-      clientLogger.error("Failed to mark notification as read", error);
+      logger.error("Failed to mark notification as read", error);
     }
   };
 
@@ -142,7 +142,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         setUnreadCount(0);
       }
     } catch (error) {
-      clientLogger.error("Failed to mark all notifications as read", error);
+      logger.error("Failed to mark all notifications as read", error);
     }
   };
 
@@ -159,7 +159,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         }
       }
     } catch (error) {
-      clientLogger.error("Failed to delete notification", error);
+      logger.error("Failed to delete notification", error);
     }
   };
 

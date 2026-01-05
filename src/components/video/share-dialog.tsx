@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { Video, VideoShareLink } from "@/lib/db/schema";
 
 interface ShareDialogProps {
@@ -59,7 +59,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
         setShareLinks(data.data || []);
       }
     } catch (error) {
-      clientLogger.error("Failed to load share links", error);
+      logger.error("Failed to load share links", error);
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +100,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
         });
       }
     } catch (error) {
-      clientLogger.error("Failed to create share link", error);
+      logger.error("Failed to create share link", error);
       toast({
         title: "Failed to create link",
         description: "Please try again",
@@ -136,7 +136,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
         toast({ title: "Link revoked" });
       }
     } catch (error) {
-      clientLogger.error("Failed to revoke link", error);
+      logger.error("Failed to revoke link", error);
       toast({
         title: "Failed to revoke link",
         variant: "destructive",

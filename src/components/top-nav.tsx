@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { CommandBar } from "./command-bar";
 import { NotificationBell } from "./notifications/notification-bell";
 import { OrganizationSwitcher } from "./organization-switcher";
@@ -39,7 +39,7 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
       router.push("/login");
       router.refresh();
     } catch (error) {
-      clientLogger.error("Logout failed", error);
+      logger.error("Logout failed", error);
     }
   };
 

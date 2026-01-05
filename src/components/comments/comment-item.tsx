@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
 import { parseMentions } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
@@ -174,7 +174,7 @@ export function CommentItem({
         }
         onReactionChange?.();
       } catch (error) {
-        clientLogger.error("Failed to update reaction", error);
+        logger.error("Failed to update reaction", error);
         toast({
           title: "Failed to update reaction",
           description: "Please try again",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { VIEW_TRACKING_INTERVAL } from "../types";
 
 interface UseViewTrackingOptions {
@@ -34,7 +34,7 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
       });
       setHasTrackedView(true);
     } catch (error) {
-      clientLogger.error("Failed to track view", error);
+      logger.error("Failed to track view", error);
     }
   }, [videoId, sessionId, hasTrackedView]);
 
@@ -53,7 +53,7 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
         }),
       });
     } catch (error) {
-      clientLogger.error("Failed to update view progress", error);
+      logger.error("Failed to update view progress", error);
     }
   }, [videoId, sessionId, hasTrackedView, videoRef]);
 

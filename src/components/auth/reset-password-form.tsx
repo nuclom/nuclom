@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { resetPasswordSchema, safeParse } from "@/lib/validation";
 
 export function ResetPasswordForm() {
@@ -88,7 +88,7 @@ export function ResetPasswordForm() {
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
-      clientLogger.error("Password reset failed", err);
+      logger.error("Password reset failed", err);
     } finally {
       setIsLoading(false);
     }

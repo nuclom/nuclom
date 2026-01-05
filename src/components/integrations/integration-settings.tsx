@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 
 interface Integration {
   id: string;
@@ -84,7 +84,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
       onUpdate();
       onClose();
     } catch (error) {
-      clientLogger.error("Failed to save settings", error);
+      logger.error("Failed to save settings", error);
       toast({
         title: "Error",
         description: "Failed to save integration settings",

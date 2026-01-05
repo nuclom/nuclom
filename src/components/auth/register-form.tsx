@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 
 // Current version of legal documents - update when ToS/Privacy Policy changes
 const _LEGAL_VERSION = "2025-01-01";
@@ -77,7 +77,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       }
     } catch (err) {
       setError("An unexpected error occurred");
-      clientLogger.error("Registration failed", err);
+      logger.error("Registration failed", err);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +94,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       });
     } catch (err) {
       setError("Failed to sign up with GitHub");
-      clientLogger.error("GitHub signup failed", err);
+      logger.error("GitHub signup failed", err);
       setIsLoading(false);
     }
   };

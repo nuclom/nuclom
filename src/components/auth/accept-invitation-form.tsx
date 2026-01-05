@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { authClient } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 
 interface Invitation {
   id: string;
@@ -189,7 +189,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         await authClient.signOut();
         router.refresh();
       } catch (err) {
-        clientLogger.error("Sign out failed", err);
+        logger.error("Sign out failed", err);
         setIsSigningOut(false);
       }
     };
@@ -271,7 +271,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         });
       } catch (notificationError) {
         // Don't block on notification failure
-        clientLogger.error("Failed to send notification", notificationError);
+        logger.error("Failed to send notification", notificationError);
       }
 
       toast({
@@ -283,7 +283,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       router.push(`/${orgSlug}`);
       router.refresh();
     } catch (err) {
-      clientLogger.error("Failed to accept invitation", err);
+      logger.error("Failed to accept invitation", err);
       toast({
         title: "Error",
         description: "Failed to accept invitation. Please try again.",
@@ -318,7 +318,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       router.push("/");
       router.refresh();
     } catch (err) {
-      clientLogger.error("Failed to decline invitation", err);
+      logger.error("Failed to decline invitation", err);
       toast({
         title: "Error",
         description: "Failed to decline invitation. Please try again.",

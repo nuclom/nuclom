@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
-import { clientLogger } from "@/lib/client-logger";
+import { logger } from "@/lib/client-logger";
 import { ThemeToggle } from "./theme-toggle";
 
 interface MarketingHeaderProps {
@@ -34,7 +34,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
       router.push("/");
       router.refresh();
     } catch (error) {
-      clientLogger.error("Logout failed", error);
+      logger.error("Logout failed", error);
     }
   };
 
