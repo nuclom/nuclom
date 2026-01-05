@@ -10,7 +10,6 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.tsx"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", "e2e/**/*"],
-    pool: "vmThreads",
   },
   resolve: {
     alias: {
