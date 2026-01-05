@@ -186,7 +186,7 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.code).toBe("VALIDATION_FAILED");
     });
 
     it("should return 400 when slug is missing", async () => {
@@ -203,7 +203,7 @@ describe("Organizations API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_MISSING_FIELD");
+      expect(data.error.code).toBe("VALIDATION_FAILED");
     });
 
     it("should return 401 when user is not authenticated", async () => {
