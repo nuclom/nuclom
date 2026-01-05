@@ -1,39 +1,30 @@
 import { and, avg, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import { Effect } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { Effect, Schema } from "effect";
+import { connection, type NextRequest } from "next/server";
+import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { videoSpeakers, videos } from "@/lib/db/schema";
+import { DatabaseError, UnauthorizedError } from "@/lib/effect/errors";
+import { Database } from "@/lib/effect/services/database";
+import { validateQueryParams } from "@/lib/validation";
 
-class DatabaseError {
-  readonly _tag = "DatabaseError";
-  constructor(readonly message: string) {}
-}
+// =============================================================================
+// Query Schema
+// =============================================================================
 
-class UnauthorizedError {
-  readonly _tag = "UnauthorizedError";
-  constructor(readonly message: string) {}
-}
-
-function validateQueryParams(searchParams: URLSearchParams) {
-  const organizationId = searchParams.get("organizationId");
-  const period = searchParams.get("period") || "30d";
-
-  if (!organizationId) {
-    return Effect.fail(new UnauthorizedError("Organization ID is required"));
-  }
-
-  return Effect.succeed({ organizationId, period });
-}
+const querySchema = Schema.Struct({
+  organizationId: Schema.String,
+  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+});
 
 function getDateRangeForPeriod(period: string): Date {
   const now = new Date();
   switch (period) {
     case "7d":
-      return new Date(now.setDate(now.getDate() - 7));
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     case "30d":
-      return new Date(now.setDate(now.getDate() - 30));
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     case "90d":
-      return new Date(now.setDate(now.getDate() - 90));
+      return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     default:
       return new Date(0);
   }
@@ -41,9 +32,41 @@ function getDateRangeForPeriod(period: string): Date {
 
 export async function GET(request: NextRequest) {
   await connection();
+  const FullLayer = createFullLayer();
 
-  const program = Effect.gen(function* () {
-    const { organizationId, period } = yield* validateQueryParams(request.nextUrl.searchParams);
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Validate query params
+    const params = yield* validateQueryParams(querySchema, request.url);
+    const { organizationId, period } = params;
+
+    // Get database service
+    const { db } = yield* Database;
+
+    // Verify user belongs to organization
+    const isMember = yield* Effect.tryPromise({
+      try: () =>
+        db.query.members.findFirst({
+          where: (members, { and, eq }) => and(eq(members.userId, user.id), eq(members.organizationId, organizationId)),
+        }),
+      catch: () =>
+        new DatabaseError({
+          message: "Failed to verify membership",
+          operation: "checkMembership",
+        }),
+    });
+
+    if (!isMember) {
+      return yield* Effect.fail(
+        new UnauthorizedError({
+          message: "You are not a member of this organization",
+        }),
+      );
+    }
+
     const startDate = getDateRangeForPeriod(period);
 
     // Get meeting time distribution (by day of week and hour)
@@ -60,7 +83,11 @@ export async function GET(request: NextRequest) {
           .groupBy(sql`EXTRACT(DOW FROM ${videos.createdAt})`, sql`EXTRACT(HOUR FROM ${videos.createdAt})`);
         return result;
       },
-      catch: (error) => new DatabaseError(`Failed to fetch time distribution: ${error}`),
+      catch: (error) =>
+        new DatabaseError({
+          message: `Failed to fetch time distribution: ${error}`,
+          operation: "getTimeDistribution",
+        }),
     });
 
     // Get speaker participation metrics
@@ -80,7 +107,11 @@ export async function GET(request: NextRequest) {
           .orderBy(desc(count()));
         return result;
       },
-      catch: (error) => new DatabaseError(`Failed to fetch speaker participation: ${error}`),
+      catch: (error) =>
+        new DatabaseError({
+          message: `Failed to fetch speaker participation: ${error}`,
+          operation: "getSpeakerParticipation",
+        }),
     });
 
     // Get meeting frequency by week
@@ -98,7 +129,11 @@ export async function GET(request: NextRequest) {
           .orderBy(sql`DATE_TRUNC('week', ${videos.createdAt})`);
         return result;
       },
-      catch: (error) => new DatabaseError(`Failed to fetch weekly frequency: ${error}`),
+      catch: (error) =>
+        new DatabaseError({
+          message: `Failed to fetch weekly frequency: ${error}`,
+          operation: "getWeeklyFrequency",
+        }),
     });
 
     // Get co-appearance patterns (which speakers appear together)
@@ -145,7 +180,11 @@ export async function GET(request: NextRequest) {
 
         return coAppearanceList;
       },
-      catch: (error) => new DatabaseError(`Failed to fetch co-appearances: ${error}`),
+      catch: (error) =>
+        new DatabaseError({
+          message: `Failed to fetch co-appearances: ${error}`,
+          operation: "getCoAppearances",
+        }),
     });
 
     // Get meeting duration trends
@@ -162,7 +201,11 @@ export async function GET(request: NextRequest) {
           .where(and(eq(videos.organizationId, organizationId), gte(videos.createdAt, startDate)));
         return result[0] || { avgDuration: 0, minDuration: 0, maxDuration: 0, totalMeetings: 0 };
       },
-      catch: (error) => new DatabaseError(`Failed to fetch duration stats: ${error}`),
+      catch: (error) =>
+        new DatabaseError({
+          message: `Failed to fetch duration stats: ${error}`,
+          operation: "getDurationStats",
+        }),
     });
 
     // Format time distribution for heatmap
@@ -233,20 +276,8 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const result = await Effect.runPromise(
-    program.pipe(
-      Effect.catchAll((error) => {
-        if (error._tag === "UnauthorizedError") {
-          return Effect.succeed({ error: error.message, status: 401 });
-        }
-        return Effect.succeed({ error: error.message, status: 500 });
-      }),
-    ),
-  );
+  const runnable = Effect.provide(effect, FullLayer);
+  const exit = await Effect.runPromiseExit(runnable);
 
-  if ("error" in result) {
-    return NextResponse.json({ success: false, error: result.error }, { status: result.status });
-  }
-
-  return NextResponse.json({ success: true, data: result });
+  return handleEffectExit(exit);
 }

@@ -1,11 +1,10 @@
 import { and, count, desc, eq, gte } from "drizzle-orm";
-import { Cause, Effect, Exit, Schema } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
+import { Effect, Schema } from "effect";
+import { connection, type NextRequest } from "next/server";
+import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { aiTopics, decisions, knowledgeNodes } from "@/lib/db/schema";
 import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { Database } from "@/lib/effect/services/database";
 import { validateQueryParams } from "@/lib/validation";
 
 // =============================================================================
@@ -196,6 +195,9 @@ export async function GET(request: NextRequest) {
     // Validate query params
     const params = yield* validateQueryParams(querySchema, request.url);
     const { organizationId, period, limit } = params;
+
+    // Get database service
+    const { db } = yield* Database;
 
     // Verify user belongs to organization
     const isMember = yield* Effect.tryPromise({
@@ -418,20 +420,5 @@ export async function GET(request: NextRequest) {
   const runnable = Effect.provide(effect, FullLayer);
   const exit = await Effect.runPromiseExit(runnable);
 
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error("Internal server error"));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  return handleEffectExit(exit);
 }
