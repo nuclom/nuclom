@@ -4,7 +4,7 @@
  * Provides email notification functionality using Resend for various events.
  */
 
-import { Context, Effect, Layer } from "effect";
+import { Context, Data, Effect, Layer } from "effect";
 import { resend } from "@/lib/email";
 import { env } from "@/lib/env/server";
 
@@ -61,16 +61,10 @@ export interface SubscriptionNotificationData {
   readonly billingUrl: string;
 }
 
-export class EmailError extends Error {
-  readonly _tag = "EmailError";
-  constructor(
-    message: string,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = "EmailError";
-  }
-}
+export class EmailError extends Data.TaggedError("EmailError")<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
 
 // =============================================================================
 // Service Interface
@@ -335,7 +329,7 @@ const makeEmailNotificationService = Effect.gen(function* () {
           throw new Error(result.error.message);
         }
       },
-      catch: (error) => new EmailError(`Failed to send email: ${error}`, error),
+      catch: (error) => new EmailError({ message: `Failed to send email: ${error}`, cause: error }),
     });
 
   const service: EmailNotificationServiceInterface = {
