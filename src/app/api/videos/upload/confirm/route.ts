@@ -5,48 +5,54 @@
  * Creates the video record in the database and triggers processing.
  */
 
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { connection, type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
 import { Storage, ValidationError, VideoRepository } from "@/lib/effect";
 import type { ApiResponse } from "@/lib/types";
-import { sanitizeDescription, sanitizeTitle } from "@/lib/validation";
+import { sanitizeDescription, sanitizeTitle, validate } from "@/lib/validation";
 import { processVideoWorkflow } from "@/workflows/video-processing";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-interface ConfirmUploadRequest {
-  uploadId: string;
-  fileKey: string;
-  filename: string;
-  fileSize: number;
-  title: string;
-  description?: string;
-  organizationId: string;
-  authorId: string;
-  channelId?: string;
-  collectionId?: string;
-  skipAIProcessing?: boolean;
-}
+const ConfirmUploadRequestSchema = Schema.Struct({
+  uploadId: Schema.String,
+  fileKey: Schema.String,
+  filename: Schema.String,
+  fileSize: Schema.Number,
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+  organizationId: Schema.String,
+  authorId: Schema.String,
+  channelId: Schema.optional(Schema.String),
+  collectionId: Schema.optional(Schema.String),
+  skipAIProcessing: Schema.optional(Schema.Boolean),
+});
 
-interface BulkConfirmUploadRequest {
-  uploads: Array<{
-    uploadId: string;
-    fileKey: string;
-    filename: string;
-    fileSize: number;
-    title: string;
-    description?: string;
-  }>;
-  organizationId: string;
-  authorId: string;
-  channelId?: string;
-  collectionId?: string;
-  skipAIProcessing?: boolean;
-}
+const BulkConfirmUploadRequestSchema = Schema.Struct({
+  uploads: Schema.Array(
+    Schema.Struct({
+      uploadId: Schema.String,
+      fileKey: Schema.String,
+      filename: Schema.String,
+      fileSize: Schema.Number,
+      title: Schema.String,
+      description: Schema.optional(Schema.String),
+    }),
+  ),
+  organizationId: Schema.String,
+  authorId: Schema.String,
+  channelId: Schema.optional(Schema.String),
+  collectionId: Schema.optional(Schema.String),
+  skipAIProcessing: Schema.optional(Schema.Boolean),
+});
+
+const ConfirmUploadBodySchema = Schema.Union(ConfirmUploadRequestSchema, BulkConfirmUploadRequestSchema);
+type ConfirmUploadRequest = Schema.Schema.Type<typeof ConfirmUploadRequestSchema>;
+type BulkConfirmUploadRequest = Schema.Schema.Type<typeof BulkConfirmUploadRequestSchema>;
 
 interface ConfirmUploadResponse {
   videoId: string;
@@ -69,6 +75,10 @@ interface BulkConfirmUploadResponse {
 // Estimated duration for videos (will be updated during processing)
 const PLACEHOLDER_DURATION = "0:00";
 
+const isBulkConfirmUploadRequest = (
+  value: ConfirmUploadRequest | BulkConfirmUploadRequest,
+): value is BulkConfirmUploadRequest => "uploads" in value;
+
 // =============================================================================
 // POST /api/videos/upload/confirm - Confirm upload and create video record
 // =============================================================================
@@ -88,18 +98,18 @@ export async function POST(request: NextRequest) {
   // Parse request body
   let body: ConfirmUploadRequest | BulkConfirmUploadRequest;
   try {
-    body = await request.json();
+    const rawBody = await request.json();
+    body = await Effect.runPromise(validate(ConfirmUploadBodySchema, rawBody));
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
   // Determine if this is a bulk or single confirmation request
-  const isBulkRequest = "uploads" in body && Array.isArray(body.uploads);
-
-  if (isBulkRequest) {
-    return handleBulkConfirmation(body as BulkConfirmUploadRequest);
+  if (isBulkConfirmUploadRequest(body)) {
+    return handleBulkConfirmation(body);
   }
-  return handleSingleConfirmation(body as ConfirmUploadRequest);
+
+  return handleSingleConfirmation(body);
 }
 
 async function handleSingleConfirmation(body: ConfirmUploadRequest) {

@@ -5,7 +5,7 @@
  * This enables uploading videos of any size directly from the browser to cloud storage.
  */
 
-import { Effect, Option } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
@@ -13,17 +13,18 @@ import { Storage, ValidationError } from "@/lib/effect";
 import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import type { ApiResponse } from "@/lib/types";
+import { validate } from "@/lib/validation";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-interface PresignedUploadRequest {
-  filename: string;
-  contentType: string;
-  fileSize: number;
-  organizationId: string;
-}
+const PresignedUploadRequestSchema = Schema.Struct({
+  filename: Schema.String,
+  contentType: Schema.String,
+  fileSize: Schema.Number,
+  organizationId: Schema.String,
+});
 
 interface PresignedUploadResponse {
   uploadId: string;
@@ -32,14 +33,16 @@ interface PresignedUploadResponse {
   expiresIn: number;
 }
 
-interface BulkPresignedUploadRequest {
-  files: Array<{
-    filename: string;
-    contentType: string;
-    fileSize: number;
-  }>;
-  organizationId: string;
-}
+const BulkPresignedUploadRequestSchema = Schema.Struct({
+  files: Schema.Array(
+    Schema.Struct({
+      filename: Schema.String,
+      contentType: Schema.String,
+      fileSize: Schema.Number,
+    }),
+  ),
+  organizationId: Schema.String,
+});
 
 interface BulkPresignedUploadResponse {
   uploads: Array<{
@@ -71,6 +74,14 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024;
 // Presigned URL expiration: 1 hour
 const PRESIGNED_URL_EXPIRATION = 3600;
 
+const PresignedUploadBodySchema = Schema.Union(PresignedUploadRequestSchema, BulkPresignedUploadRequestSchema);
+type PresignedUploadRequest = Schema.Schema.Type<typeof PresignedUploadRequestSchema>;
+type BulkPresignedUploadRequest = Schema.Schema.Type<typeof BulkPresignedUploadRequestSchema>;
+
+const isBulkPresignedUploadRequest = (
+  value: PresignedUploadRequest | BulkPresignedUploadRequest,
+): value is BulkPresignedUploadRequest => "files" in value;
+
 // =============================================================================
 // POST /api/videos/upload/presigned - Generate presigned upload URL(s)
 // =============================================================================
@@ -88,18 +99,18 @@ export async function POST(request: NextRequest) {
   // Parse request body
   let body: PresignedUploadRequest | BulkPresignedUploadRequest;
   try {
-    body = await request.json();
+    const rawBody = await request.json();
+    body = await Effect.runPromise(validate(PresignedUploadBodySchema, rawBody));
   } catch {
     return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
   }
 
   // Determine if this is a bulk or single upload request
-  const isBulkRequest = "files" in body && Array.isArray(body.files);
-
-  if (isBulkRequest) {
-    return handleBulkPresignedUpload(body as BulkPresignedUploadRequest, session.user.id);
+  if (isBulkPresignedUploadRequest(body)) {
+    return handleBulkPresignedUpload(body, session.user.id);
   }
-  return handleSinglePresignedUpload(body as PresignedUploadRequest, session.user.id);
+
+  return handleSinglePresignedUpload(body, session.user.id);
 }
 
 async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId: string) {

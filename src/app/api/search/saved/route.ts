@@ -1,9 +1,9 @@
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { NextRequest } from "next/server";
 import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import type { SearchFilters } from "@/lib/db/schema";
 import { MissingFieldError, SearchRepository } from "@/lib/effect";
 import { Auth } from "@/lib/effect/services/auth";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // GET /api/search/saved - Get saved searches
@@ -49,21 +49,30 @@ export async function POST(request: NextRequest) {
     const { user } = yield* authService.getSession(request.headers);
 
     // Parse request body
-    const body = yield* Effect.tryPromise({
-      try: () => request.json(),
-      catch: () =>
-        new MissingFieldError({
-          field: "body",
-          message: "Invalid request body",
-        }),
+    const SearchFiltersSchema = Schema.Struct({
+      types: Schema.optional(Schema.Array(Schema.Literal("video", "series", "channel"))),
+      authorId: Schema.optional(Schema.String),
+      channelId: Schema.optional(Schema.String),
+      collectionId: Schema.optional(Schema.String),
+      dateFrom: Schema.optional(Schema.String),
+      dateTo: Schema.optional(Schema.String),
+      hasTranscript: Schema.optional(Schema.Boolean),
+      hasAiSummary: Schema.optional(Schema.Boolean),
+      processingStatus: Schema.optional(Schema.String),
+      tags: Schema.optional(Schema.Array(Schema.String)),
+      sortBy: Schema.optional(Schema.Literal("relevance", "date", "title")),
+      sortOrder: Schema.optional(Schema.Literal("asc", "desc")),
     });
 
-    const { name, query, organizationId, filters } = body as {
-      name?: string;
-      query?: string;
-      organizationId?: string;
-      filters?: SearchFilters;
-    };
+    const SavedSearchBodySchema = Schema.Struct({
+      name: Schema.optional(Schema.String),
+      query: Schema.optional(Schema.String),
+      organizationId: Schema.optional(Schema.String),
+      filters: Schema.optional(SearchFiltersSchema),
+    });
+
+    const body = yield* validateRequestBody(SavedSearchBodySchema, request);
+    const { name, query, organizationId, filters } = body;
 
     // Validate required fields
     if (!name) {

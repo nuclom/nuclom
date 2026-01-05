@@ -1,15 +1,16 @@
 import { asc, eq, isNull } from "drizzle-orm";
-import { Cause, Effect, Exit, Option } from "effect";
+import { Cause, Effect, Exit, Option, Schema } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
 import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
 import { db } from "@/lib/db";
-import type { NewVideo } from "@/lib/db/schema";
 import { comments, videos } from "@/lib/db/schema";
 import { DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
 import { releaseVideoCount } from "@/lib/effect/services/billing-middleware";
 import { BillingRepository } from "@/lib/effect/services/billing-repository";
+import type { UpdateVideoInput } from "@/lib/effect/services/video-repository";
 import type { ApiResponse } from "@/lib/types";
+import { validateRequestBody } from "@/lib/validation";
 
 // =============================================================================
 // GET /api/videos/[id] - Get video details
@@ -94,21 +95,95 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // PUT /api/videos/[id] - Update video
 // =============================================================================
 
+const TranscriptSegmentSchema = Schema.Struct({
+  startTime: Schema.Number,
+  endTime: Schema.Number,
+  text: Schema.String,
+  confidence: Schema.optional(Schema.Number),
+});
+
+const ActionItemSchema = Schema.Struct({
+  text: Schema.String,
+  timestamp: Schema.optional(Schema.Number),
+  priority: Schema.optional(Schema.Literal("high", "medium", "low")),
+});
+
+const UpdateVideoBodySchema = Schema.Struct({
+  title: Schema.optional(Schema.String),
+  description: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  duration: Schema.optional(Schema.String),
+  thumbnailUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  videoUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  channelId: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  collectionId: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  transcript: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  transcriptSegments: Schema.optional(Schema.Union(Schema.Array(TranscriptSegmentSchema), Schema.Null)),
+  processingStatus: Schema.optional(
+    Schema.Literal("pending", "transcribing", "diarizing", "analyzing", "completed", "failed"),
+  ),
+  processingError: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  aiSummary: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  aiTags: Schema.optional(Schema.Union(Schema.Array(Schema.String), Schema.Null)),
+  aiActionItems: Schema.optional(Schema.Union(Schema.Array(ActionItemSchema), Schema.Null)),
+  deletedAt: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  retentionUntil: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+});
+
+const parseDateField = (
+  value: string | null | undefined,
+  field: string,
+): Effect.Effect<Date | null | undefined, ValidationError> =>
+  Effect.try({
+    try: () => {
+      if (value === undefined) return undefined;
+      if (value === null) return null;
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) {
+        throw new Error("Invalid date");
+      }
+      return parsed;
+    },
+    catch: () =>
+      new ValidationError({
+        message: `${field} must be a valid ISO date`,
+      }),
+  });
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
-    const body = yield* Effect.tryPromise({
-      try: () => request.json() as Promise<Partial<NewVideo>>,
-      catch: () =>
-        new ValidationError({
-          message: "Invalid request body",
-        }),
-    });
+    const body = yield* validateRequestBody(UpdateVideoBodySchema, request);
+    const deletedAt = yield* parseDateField(body.deletedAt, "deletedAt");
+    const retentionUntil = yield* parseDateField(body.retentionUntil, "retentionUntil");
+    const aiTags = body.aiTags ? [...body.aiTags] : body.aiTags;
+    const aiActionItems = body.aiActionItems ? body.aiActionItems.map((item) => ({ ...item })) : body.aiActionItems;
+    const transcriptSegments = body.transcriptSegments
+      ? body.transcriptSegments.map((segment) => ({ ...segment }))
+      : body.transcriptSegments;
+
+    const updateData: UpdateVideoInput = {
+      title: body.title,
+      description: body.description,
+      duration: body.duration,
+      thumbnailUrl: body.thumbnailUrl,
+      videoUrl: body.videoUrl,
+      channelId: body.channelId,
+      collectionId: body.collectionId,
+      transcript: body.transcript,
+      transcriptSegments,
+      processingStatus: body.processingStatus,
+      processingError: body.processingError,
+      aiSummary: body.aiSummary,
+      aiTags,
+      aiActionItems,
+      deletedAt,
+      retentionUntil,
+    };
 
     // Update video using repository
     const videoRepo = yield* VideoRepository;
-    yield* videoRepo.updateVideo(resolvedParams.id, body);
+    yield* videoRepo.updateVideo(resolvedParams.id, updateData);
 
     // Fetch updated video with relations
     const videoData = yield* Effect.tryPromise({

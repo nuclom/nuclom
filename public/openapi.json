@@ -1061,6 +1061,9 @@
           "200": {
             "description": "Success"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -1180,6 +1183,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -4305,6 +4311,9 @@
           "201": {
             "description": "Created successfully"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           }
@@ -4368,6 +4377,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -4452,6 +4464,9 @@
           "200": {
             "description": "Success"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -4496,6 +4511,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -5490,6 +5508,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "404": {
             "description": "Not found"
@@ -8213,6 +8234,9 @@
           "200": {
             "description": "Success"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -8420,6 +8444,9 @@
           "201": {
             "description": "Created successfully"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "401": {
             "description": "Unauthorized"
           },
@@ -8597,6 +8624,9 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "404": {
             "description": "Not found"
@@ -8931,6 +8961,9 @@
           "200": {
             "description": "Success"
           },
+          "400": {
+            "description": "Invalid request"
+          },
           "404": {
             "description": "Not found"
           }
@@ -8969,6 +9002,9 @@
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"

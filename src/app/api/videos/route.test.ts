@@ -41,6 +41,7 @@ vi.mock("effect", async (importOriginal) => {
   return {
     ...actual,
     Effect: {
+      ...actual.Effect,
       gen: vi.fn((fn) => ({
         _fn: fn,
         _mockGetVideos: mockGetVideos,
@@ -52,6 +53,7 @@ vi.mock("effect", async (importOriginal) => {
       runPromiseExit: vi.fn(),
     },
     Exit: {
+      ...actual.Exit,
       succeed: vi.fn((value) => ({ _tag: "Success", value })),
       fail: vi.fn((error) => ({ _tag: "Failure", cause: { _tag: "Fail", error } })),
       match: vi.fn((exit, { onSuccess, onFailure }) => {
@@ -62,10 +64,12 @@ vi.mock("effect", async (importOriginal) => {
       }),
     },
     Option: {
+      ...actual.Option,
       some: vi.fn((value) => ({ _tag: "Some", value })),
       none: vi.fn(() => ({ _tag: "None" })),
     },
     Data: {
+      ...actual.Data,
       TaggedError: vi.fn((tag) => {
         return class extends Error {
           _tag = tag;
@@ -73,9 +77,11 @@ vi.mock("effect", async (importOriginal) => {
       }),
     },
     Cause: {
+      ...actual.Cause,
       failureOption: vi.fn((cause) => cause),
     },
     Layer: {
+      ...actual.Layer,
       merge: vi.fn((_a, _b) => ({})),
     },
   };

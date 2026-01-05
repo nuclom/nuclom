@@ -723,6 +723,8 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
@@ -806,6 +808,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
@@ -2935,6 +2939,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
   /search/quick:
@@ -2976,6 +2982,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
   /search/saved/{id}:
@@ -3033,6 +3041,8 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
@@ -3062,6 +3072,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
   /search/suggestions:
@@ -3742,6 +3754,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         404:
           description: Not found
   /status:
@@ -5581,6 +5595,8 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
@@ -5724,6 +5740,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
@@ -5848,6 +5866,8 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         404:
           description: Not found
   /videos/{id}/speakers/{speakerId}:
@@ -6084,6 +6104,8 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         404:
           description: Not found
     post:
@@ -6111,6 +6133,8 @@ paths:
       responses:
         201:
           description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
