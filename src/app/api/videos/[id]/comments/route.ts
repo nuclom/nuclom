@@ -6,7 +6,6 @@ import { Auth } from "@/lib/effect/services/auth";
 import { Database } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { env } from "@/lib/env/client";
-import { commentEventEmitter } from "@/lib/realtime/comment-events";
 import type { ApiResponse } from "@/lib/types";
 import { createCommentSchema, sanitizeComment, validateRequestBody } from "@/lib/validation";
 
@@ -59,13 +58,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       authorId: user.id,
       videoId,
       parentId: validatedData.parentId ?? undefined,
-    });
-
-    // Emit real-time event
-    commentEventEmitter.emit(videoId, {
-      type: "created",
-      comment: newComment,
-      videoId,
     });
 
     // Create notifications and send emails (fire and forget - don't block response)
