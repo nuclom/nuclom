@@ -10,12 +10,12 @@ export const changelog: ChangelogEntry[] = [
   // 2026-01-05
   {
     date: "2026-01-05",
-    title: "Highlight reels can now be rendered and exported as video files",
+    title: "Render and export highlight reels as video files",
     type: "feature",
   },
   {
     date: "2026-01-05",
-    title: "Real-time presence indicators show who's watching a video",
+    title: "See who's watching a video with real-time presence indicators",
     type: "feature",
   },
   {
@@ -25,17 +25,17 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     date: "2026-01-05",
-    title: "Link GitHub code references to specific video timestamps",
+    title: "Link GitHub code references to video timestamps",
     type: "feature",
   },
   {
     date: "2026-01-05",
-    title: "Slack integration with OAuth flow and channel notifications",
+    title: "Slack integration with channel notifications",
     type: "feature",
   },
   {
     date: "2026-01-05",
-    title: "Microsoft Teams integration with channel video sharing",
+    title: "Microsoft Teams integration for video sharing",
     type: "feature",
   },
   {
@@ -57,7 +57,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     date: "2026-01-04",
-    title: "AI insights dashboard with topic trends and action item tracking",
+    title: "AI insights dashboard with topic trends and action items",
     type: "feature",
   },
   {
@@ -82,12 +82,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     date: "2026-01-04",
-    title: "Admin control to disable new user signups",
-    type: "feature",
-  },
-  {
-    date: "2026-01-04",
-    title: "SSO/SAML settings for enterprise authentication",
+    title: "SSO/SAML for enterprise authentication",
     type: "feature",
   },
   {
@@ -99,11 +94,6 @@ export const changelog: ChangelogEntry[] = [
     date: "2026-01-04",
     title: "Audit logs with filtering and CSV export",
     type: "feature",
-  },
-  {
-    date: "2026-01-04",
-    title: "Touch-friendly mobile experience with safe area support",
-    type: "improvement",
   },
 
   // 2026-01-02
@@ -124,7 +114,7 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     date: "2026-01-02",
-    title: "Decision registry with searchable history",
+    title: "Searchable decision registry",
     type: "feature",
   },
   {
@@ -134,34 +124,172 @@ export const changelog: ChangelogEntry[] = [
   },
   {
     date: "2026-01-02",
-    title: "Talk time distribution and participation balance metrics",
+    title: "Talk time distribution and participation balance",
     type: "feature",
-  },
-  {
-    date: "2026-01-02",
-    title: "Fixed internal server error when loading knowledge context",
-    type: "fix",
   },
 
   // 2026-01-01
   {
     date: "2026-01-01",
-    title: "Activity feed shows organization-wide updates",
+    title: "Browse and import videos from Google Drive",
     type: "feature",
   },
   {
     date: "2026-01-01",
-    title: "Interactive API documentation with OpenAPI spec",
+    title: "Bulk upload up to 20 files at once (up to 5GB each)",
     type: "feature",
   },
   {
     date: "2026-01-01",
-    title: "Faster page loads with partial pre-rendering",
-    type: "improvement",
+    title: "Organization-wide activity feed",
+    type: "feature",
+  },
+
+  // 2025-12-31
+  {
+    date: "2025-12-31",
+    title: "Video analytics dashboard with view tracking",
+    type: "feature",
   },
   {
-    date: "2026-01-01",
-    title: "Fixed environment variable handling in production",
-    type: "fix",
+    date: "2025-12-31",
+    title: "@mentions in comments with autocomplete",
+    type: "feature",
+  },
+  {
+    date: "2025-12-31",
+    title: "Comment reactions: like, love, laugh, surprised, sad, celebrate",
+    type: "feature",
+  },
+  {
+    date: "2025-12-31",
+    title: "Share videos with password protection and expiration",
+    type: "feature",
+  },
+  {
+    date: "2025-12-31",
+    title: "Trash and restore deleted videos",
+    type: "feature",
+  },
+
+  // 2025-12-30
+  {
+    date: "2025-12-30",
+    title: "Multi-language subtitles with 26 supported languages",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Interactive transcript with click-to-seek",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Edit and adjust transcript timestamps",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Search within video transcripts",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Email notifications for comments, invitations, and billing",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Notification bell with unread count",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Full-text search across all videos",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Series for organizing videos into learning paths",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Drag-and-drop video reordering in series",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Track watch progress across series",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Import recordings from Zoom and Google Meet",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Stripe billing with subscription management",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Video player with keyboard shortcuts",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Playback speed control (0.5x to 2x)",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Auto-save video watch progress",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Threaded comment replies with real-time updates",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Timestamped comments linked to video moments",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "AI-powered video transcription and summarization",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Automatic chapter generation from video content",
+    type: "feature",
+  },
+  {
+    date: "2025-12-30",
+    title: "Email verification for new accounts",
+    type: "feature",
+  },
+
+  // 2025-07-05
+  {
+    date: "2025-07-05",
+    title: "Organization workspaces for team collaboration",
+    type: "feature",
+  },
+
+  // 2025-07-04
+  {
+    date: "2025-07-04",
+    title: "Video upload with cloud storage",
+    type: "feature",
+  },
+  {
+    date: "2025-07-04",
+    title: "User authentication with GitHub and Google login",
+    type: "feature",
   },
 ];
