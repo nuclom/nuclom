@@ -2,11 +2,14 @@
  * Unified Stripe Webhook Handler
  *
  * This is the single webhook endpoint for all Stripe events.
- * It handles:
- * - Invoice tracking in our local database
- * - Payment method management
- * - Custom notifications and usage tracking
- * - Forwards subscription/checkout events to Better Auth for processing
+ * Uses Workflow DevKit for durable execution - ensures all operations
+ * complete even if there are transient failures or server restarts.
+ *
+ * Benefits:
+ * - Automatic retries on database/email failures
+ * - Guaranteed delivery of notifications
+ * - Built-in observability
+ * - Resume from last successful step on restart
  *
  * Configure ONLY this endpoint in Stripe Dashboard with all required events.
  *
@@ -19,6 +22,7 @@ import { Cause, Effect, Exit, Option } from 'effect';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
+import { start } from 'workflow/api';
 import { normalizeOne } from '@/lib/db/relations';
 import { type InvoiceStatus, type NewInvoice, type NewPaymentMethod, processedWebhookEvents } from '@/lib/db/schema';
 import { AppLive } from '@/lib/effect';
@@ -29,6 +33,14 @@ import { NotificationRepository } from '@/lib/effect/services/notification-repos
 import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
 import { StripeServiceTag } from '@/lib/effect/services/stripe';
 import { getAppUrl } from '@/lib/env/server';
+import {
+  handleInvoiceFailedWorkflow,
+  handleInvoicePaidWorkflow,
+  handleSubscriptionCreatedWorkflow,
+  handleSubscriptionDeletedWorkflow,
+  handleSubscriptionUpdatedWorkflow,
+  handleTrialEndingWorkflow,
+} from '@/workflows/stripe-webhooks';
 
 // Events that Better Auth needs to handle for subscription management
 const BETTER_AUTH_EVENTS = new Set([
@@ -131,20 +143,79 @@ export async function POST(request: Request) {
       });
     }
 
-    // Handle the event locally
+    // Handle the event using durable workflows
+    // Workflows run asynchronously and will retry on failure
     switch (event.type) {
-      // Invoice events - track in our local database
+      // Subscription lifecycle events - use durable workflows
+      case 'customer.subscription.created': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const organizationId = subscription.metadata?.referenceId;
+        if (organizationId) {
+          yield* Effect.tryPromise({
+            try: () =>
+              start(handleSubscriptionCreatedWorkflow, [
+                { eventId: event.id, eventType: event.type, data: { subscription, organizationId } },
+              ]),
+            catch: (error) => new Error(`Failed to start subscription created workflow: ${error}`),
+          });
+        }
+        console.log(`[Webhook] Subscription ${subscription.id} created - workflow started`);
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        yield* Effect.tryPromise({
+          try: () =>
+            start(handleSubscriptionUpdatedWorkflow, [
+              { eventId: event.id, eventType: event.type, data: subscription },
+            ]),
+          catch: (error) => new Error(`Failed to start subscription updated workflow: ${error}`),
+        });
+        console.log(`[Webhook] Subscription ${subscription.id} updated - workflow started`);
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        yield* Effect.tryPromise({
+          try: () =>
+            start(handleSubscriptionDeletedWorkflow, [
+              { eventId: event.id, eventType: event.type, data: subscription },
+            ]),
+          catch: (error) => new Error(`Failed to start subscription deleted workflow: ${error}`),
+        });
+        console.log(`[Webhook] Subscription ${subscription.id} deleted - workflow started`);
+        break;
+      }
+
+      // Invoice events - use durable workflows for reliability
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        yield* handleInvoicePaid(invoice, billingRepo, db);
-        console.log(`[Webhook] Invoice ${invoice.id} paid`);
+        // Still track in local DB synchronously for immediate consistency
+        yield* handleInvoicePaidEffect(invoice, billingRepo, db);
+        // Then start durable workflow for notifications
+        yield* Effect.tryPromise({
+          try: () => start(handleInvoicePaidWorkflow, [{ eventId: event.id, eventType: event.type, data: invoice }]),
+          catch: (error) => new Error(`Failed to start invoice paid workflow: ${error}`),
+        });
+        console.log(`[Webhook] Invoice ${invoice.id} paid - workflow started`);
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        yield* handleInvoiceFailed(invoice, db);
-        console.log(`[Webhook] Invoice ${invoice.id} payment failed`);
+        // Start durable workflow for notifications and follow-up
+        const subscriptionId = invoice.parent?.subscription_details?.subscription;
+        const stripeSubId = typeof subscriptionId === 'string' ? subscriptionId : subscriptionId?.id;
+        yield* Effect.tryPromise({
+          try: () =>
+            start(handleInvoiceFailedWorkflow, [
+              { eventId: event.id, eventType: event.type, data: { ...invoice, stripeSubscriptionId: stripeSubId } },
+            ]),
+          catch: (error) => new Error(`Failed to start invoice failed workflow: ${error}`),
+        });
+        console.log(`[Webhook] Invoice ${invoice.id} payment failed - workflow started`);
         break;
       }
 
@@ -162,7 +233,7 @@ export async function POST(request: Request) {
         break;
       }
 
-      // Payment method events
+      // Payment method events - keep synchronous (fast operations)
       case 'payment_method.attached': {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
         yield* handlePaymentMethodAttached(paymentMethod, billingRepo);
@@ -177,11 +248,15 @@ export async function POST(request: Request) {
         break;
       }
 
-      // Trial ending notification (our custom handling)
+      // Trial ending notification - use durable workflow
       case 'customer.subscription.trial_will_end': {
         const subscription = event.data.object as Stripe.Subscription;
-        yield* handleTrialEnding(subscription, db);
-        console.log(`[Webhook] Trial ending notification sent for subscription ${subscription.id}`);
+        yield* Effect.tryPromise({
+          try: () =>
+            start(handleTrialEndingWorkflow, [{ eventId: event.id, eventType: event.type, data: subscription }]),
+          catch: (error) => new Error(`Failed to start trial ending workflow: ${error}`),
+        });
+        console.log(`[Webhook] Trial ending - workflow started for subscription ${subscription.id}`);
         break;
       }
 
@@ -256,7 +331,7 @@ const getInvoiceReferenceId = (invoice: Stripe.Invoice): string | undefined => {
 // Invoice Handlers
 // =============================================================================
 
-const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRepoType, db: DbType) =>
+const handleInvoicePaidEffect = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRepoType, db: DbType) =>
   Effect.gen(function* () {
     const subscriptionDetails = stripeInvoice.parent?.subscription_details;
     if (!subscriptionDetails?.subscription) return;
@@ -304,29 +379,6 @@ const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRe
         organizationId,
         organizationName: organizationId, // We'll get the actual name in the notification
         amount: stripeInvoice.amount_paid,
-        currency: stripeInvoice.currency,
-      })
-      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-
-const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: DbType) =>
-  Effect.gen(function* () {
-    const subscriptionDetails = stripeInvoice.parent?.subscription_details;
-    if (!subscriptionDetails?.subscription) return;
-
-    const organizationId = getInvoiceReferenceId(stripeInvoice);
-    if (!organizationId) return;
-
-    // Send payment failed notification
-    yield* sendPaymentNotification(organizationId, 'payment_failed', db);
-
-    // Send Slack monitoring notification
-    const slackMonitoring = yield* SlackMonitoring;
-    yield* slackMonitoring
-      .sendBillingEvent('payment_failed', {
-        organizationId,
-        organizationName: organizationId,
-        amount: stripeInvoice.amount_due,
         currency: stripeInvoice.currency,
       })
       .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
@@ -459,73 +511,4 @@ const sendPaymentNotification = (
         })
         .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     }
-  }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-
-// =============================================================================
-// Trial Ending Handler
-// =============================================================================
-
-const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
-  Effect.gen(function* () {
-    const notificationRepo = yield* NotificationRepository;
-    const emailService = yield* EmailNotifications;
-
-    const organizationId = subscription.metadata?.referenceId;
-    if (!organizationId) return;
-
-    // Get organization and members
-    const org = yield* Effect.tryPromise({
-      try: () =>
-        db.query.organizations.findFirst({
-          where: (o, { eq }) => eq(o.id, organizationId),
-        }),
-      catch: () => new Error('Failed to get organization'),
-    });
-
-    if (!org) return;
-
-    const members = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findMany({
-          where: (m, { and, eq }) => and(eq(m.organizationId, organizationId), eq(m.role, 'owner')),
-          with: { user: true },
-        }),
-      catch: () => new Error('Failed to get members'),
-    });
-
-    const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
-
-    for (const member of members) {
-      const user = normalizeOne(member.user);
-      if (!user?.email) continue;
-
-      yield* notificationRepo.createNotification({
-        userId: user.id,
-        type: 'trial_ending',
-        title: 'Your trial is ending soon',
-        body: `Your trial for ${org.name} ends on ${trialEndsAt.toLocaleDateString()}. Upgrade now to keep access to all features.`,
-        resourceType: 'subscription',
-        resourceId: subscription.id,
-      });
-
-      yield* emailService
-        .sendTrialEndingNotification({
-          recipientEmail: user.email,
-          recipientName: user.name || 'there',
-          organizationName: org.name,
-          trialEndsAt,
-          upgradeUrl: `${getAppUrl()}/${org.slug}/settings/billing`,
-        })
-        .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
-    }
-
-    // Send Slack monitoring notification
-    const slackMonitoring = yield* SlackMonitoring;
-    yield* slackMonitoring
-      .sendBillingEvent('trial_ending', {
-        organizationId,
-        organizationName: org.name,
-        trialEndsAt,
-      })
-      .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
   }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));

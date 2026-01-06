@@ -142,6 +142,8 @@ interface ExtractedDecisionResult {
 // =============================================================================
 
 async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
+  'use step';
+
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { videos } = await import('@/lib/db/schema');
@@ -157,6 +159,8 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 }
 
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
+  'use step';
+
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -210,6 +214,8 @@ async function analyzeWithAI(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<AIAnalysisResult> {
+  'use step';
+
   const { gateway } = await import('@ai-sdk/gateway');
   const { generateText, generateObject, jsonSchema } = await import('ai');
 
@@ -389,6 +395,8 @@ async function analyzeWithAI(
 }
 
 async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
+  'use step';
+
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { videos } = await import('@/lib/db/schema');
@@ -408,6 +416,8 @@ async function detectKeyMoments(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<DetectedMoment[]> {
+  'use step';
+
   const { gateway } = await import('@ai-sdk/gateway');
   const { generateObject, jsonSchema } = await import('ai');
 
@@ -520,6 +530,8 @@ Return only moments with confidence >= 60.`,
 }
 
 async function saveKeyMoments(videoId: string, organizationId: string, moments: DetectedMoment[]): Promise<void> {
+  'use step';
+
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { videoMoments } = await import('@/lib/db/schema');
@@ -550,6 +562,8 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
  * Falls back gracefully if not configured
  */
 async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null> {
+  'use step';
+
   const apiKey = env.ASSEMBLYAI_API_KEY;
   if (!apiKey) {
     log.info({}, 'AssemblyAI not configured, skipping speaker diarization');
@@ -671,6 +685,8 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
  * Save speaker diarization results to the database
  */
 async function saveSpeakerData(videoId: string, organizationId: string, diarization: DiarizationResult): Promise<void> {
+  'use step';
+
   const { db } = await import('@/lib/db');
   const { speakerProfiles, videoSpeakers, speakerSegments } = await import('@/lib/db/schema');
 
@@ -729,6 +745,8 @@ async function saveSpeakerData(videoId: string, organizationId: string, diarizat
 }
 
 async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
+  'use step';
+
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { videos, videoChapters, videoCodeSnippets } = await import('@/lib/db/schema');
@@ -775,6 +793,8 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
 }
 
 async function extractDecisions(segments: TranscriptSegment[], videoTitle?: string): Promise<ExtractedDecisionResult> {
+  'use step';
+
   const { gateway } = await import('@ai-sdk/gateway');
   const { generateObject, jsonSchema } = await import('ai');
 
@@ -913,6 +933,8 @@ async function saveDecisions(
   organizationId: string,
   extractedDecisions: ExtractedDecisionResult,
 ): Promise<void> {
+  'use step';
+
   if (extractedDecisions.decisions.length === 0) {
     return;
   }
@@ -988,6 +1010,8 @@ async function sendCompletionNotification(
   status: 'completed' | 'failed',
   errorMessage?: string,
 ): Promise<void> {
+  'use step';
+
   try {
     const { db } = await import('@/lib/db');
     const { notifications } = await import('@/lib/db/schema');
@@ -1088,59 +1112,47 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   try {
     // Step 1: Update status to transcribing
     await updateProcessingStatus(videoId, 'transcribing');
-    ('use step');
 
     // Step 2: Transcribe the video
     const transcription = await transcribeVideo(videoUrl);
-    ('use step');
 
     // Step 3: Save transcript
     await saveTranscript(videoId, transcription.transcript, transcription.segments);
-    ('use step');
 
     // Step 4: Speaker diarization (if enabled and configured)
     let diarization: DiarizationResult | null = null;
     if (!skipDiarization && organizationId) {
       // Update status to diarizing
       await updateProcessingStatus(videoId, 'diarizing');
-      ('use step');
 
       // Run speaker diarization
       diarization = await diarizeVideo(videoUrl);
-      ('use step');
 
       // Save speaker data if diarization succeeded
       if (diarization) {
         await saveSpeakerData(videoId, organizationId, diarization);
-        ('use step');
       }
     }
 
     // Step 5: Update status to analyzing
     await updateProcessingStatus(videoId, 'analyzing');
-    ('use step');
 
     // Step 6: Run AI analysis
     const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
-    ('use step');
 
     // Step 7: Save AI analysis results
     await saveAIAnalysis(videoId, analysis);
-    ('use step');
 
     // Step 8: Detect key moments for clip extraction
     const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
-    ('use step');
 
     // Step 9: Save key moments
     if (organizationId && moments.length > 0) {
       await saveKeyMoments(videoId, organizationId, moments);
     }
-    ('use step');
 
     // Step 10: Extract decisions for knowledge graph
     const extractedDecisions = await extractDecisions(transcription.segments, videoTitle);
-    ('use step');
 
     // Step 11: Save extracted decisions to database
     if (organizationId) {
@@ -1156,11 +1168,9 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
         await saveDecisions(videoId, video.organizationId, extractedDecisions);
       }
     }
-    ('use step');
 
     // Step 12: Update status to completed
     await updateProcessingStatus(videoId, 'completed');
-    ('use step');
 
     // Step 13: Send completion notification
     await sendCompletionNotification(videoId, 'completed');

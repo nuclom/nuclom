@@ -40,6 +40,8 @@ export interface EnforcementResult {
 // =============================================================================
 
 async function getOrganizationOwners(organizationId: string) {
+  'use step';
+
   return db
     .select({
       userId: members.userId,
@@ -58,6 +60,8 @@ async function sendEnforcementNotification(
   type: 'trial_expired' | 'suspended' | 'deletion_warning' | 'payment_required',
   daysRemaining?: number,
 ): Promise<number> {
+  'use step';
+
   let notificationsSent = 0;
   const owners = await getOrganizationOwners(organizationId);
   const baseUrl = getAppUrl();
@@ -176,6 +180,8 @@ async function sendEnforcementNotification(
 }
 
 async function hasPaymentMethod(organizationId: string): Promise<boolean> {
+  'use step';
+
   const methods = await db.query.paymentMethods.findMany({
     where: eq(paymentMethods.organizationId, organizationId),
     limit: 1,
@@ -199,6 +205,8 @@ function parseMetadata(metadata: unknown): Record<string, unknown> {
 }
 
 async function getOrganizationEnforcementState(organizationId: string): Promise<Record<string, unknown>> {
+  'use step';
+
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { metadata: true },
@@ -211,6 +219,8 @@ async function updateOrganizationEnforcementState(
   organizationId: string,
   state: Record<string, unknown>,
 ): Promise<void> {
+  'use step';
+
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { metadata: true },
@@ -238,6 +248,8 @@ async function updateOrganizationEnforcementState(
  * and update their status
  */
 async function handleExpiredTrials(): Promise<{ handled: number; notifications: number; errors: string[] }> {
+  'use step';
+
   const now = new Date();
   let handled = 0;
   let notificationsSent = 0;
@@ -306,6 +318,8 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
  * and apply appropriate enforcement
  */
 async function handlePaymentIssues(): Promise<{ suspended: number; notifications: number; errors: string[] }> {
+  'use step';
+
   const now = new Date();
   let suspended = 0;
   let notificationsSent = 0;
@@ -367,6 +381,8 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
  * Check for accounts past grace period and schedule data deletion
  */
 async function handleDataDeletion(): Promise<{ scheduled: number; notifications: number; errors: string[] }> {
+  'use step';
+
   const now = new Date();
   let scheduled = 0;
   let notificationsSent = 0;
@@ -441,6 +457,8 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
  * Check for trials ending soon without payment method and send warnings
  */
 async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors: string[] }> {
+  'use step';
+
   const now = new Date();
   let notificationsSent = 0;
   const errors: string[] = [];
@@ -532,27 +550,23 @@ export async function subscriptionEnforcementWorkflow(): Promise<void> {
 
       // Handle expired trials
       const trialResult = await handleExpiredTrials();
-      ('use step');
       result.trialExpirationsHandled = trialResult.handled;
       result.notificationsSent += trialResult.notifications;
       result.errors.push(...trialResult.errors);
 
       // Handle trials ending soon (payment method check)
       const warningResult = await handleTrialsEndingSoon();
-      ('use step');
       result.notificationsSent += warningResult.notifications;
       result.errors.push(...warningResult.errors);
 
       // Handle payment issues
       const paymentResult = await handlePaymentIssues();
-      ('use step');
       result.suspensionsApplied = paymentResult.suspended;
       result.notificationsSent += paymentResult.notifications;
       result.errors.push(...paymentResult.errors);
 
       // Handle data deletion
       const deletionResult = await handleDataDeletion();
-      ('use step');
       result.deletionsScheduled = deletionResult.scheduled;
       result.notificationsSent += deletionResult.notifications;
       result.errors.push(...deletionResult.errors);
@@ -573,7 +587,6 @@ export async function subscriptionEnforcementWorkflow(): Promise<void> {
 
     // Sleep for 24 hours
     await sleep(24 * 60 * 60 * 1000);
-    ('use step');
   }
 }
 
