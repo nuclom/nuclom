@@ -440,13 +440,13 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Pro Plan */}
+            {/* Scale Plan */}
             <Card className="relative border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-6">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Zap className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl mb-2">Pro</CardTitle>
+                <CardTitle className="text-2xl mb-2">Scale</CardTitle>
                 <CardDescription className="text-base">For growing teams</CardDescription>
                 <div className="text-4xl font-bold mt-4">
                   $19
@@ -457,7 +457,7 @@ export default function LandingPage() {
               <CardContent className="space-y-4 pb-8">
                 <div className="grid grid-cols-2 gap-2 p-3 bg-muted/50 rounded-lg text-sm">
                   <div className="text-center">
-                    <div className="font-semibold">10 GB/user</div>
+                    <div className="font-semibold">5 GB/user</div>
                     <div className="text-muted-foreground text-xs">Storage</div>
                   </div>
                   <div className="text-center">
@@ -493,7 +493,7 @@ export default function LandingPage() {
               </CardContent>
             </Card>
 
-            {/* Enterprise Plan */}
+            {/* Pro Plan */}
             <Card className="relative border-2 border-primary shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <Badge className="px-4 py-1 bg-primary text-primary-foreground">Most Popular</Badge>
@@ -502,18 +502,18 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl mb-2">Enterprise</CardTitle>
+                <CardTitle className="text-2xl mb-2">Pro</CardTitle>
                 <CardDescription className="text-base">For organizations at scale</CardDescription>
                 <div className="text-4xl font-bold mt-4">
-                  $41
+                  $39
                   <span className="text-base font-normal text-muted-foreground">/user/month</span>
                 </div>
-                <p className="text-sm text-muted-foreground">billed annually ($49/mo if monthly)</p>
+                <p className="text-sm text-muted-foreground">billed annually ($45/mo if monthly)</p>
               </CardHeader>
               <CardContent className="space-y-4 pb-8">
                 <div className="grid grid-cols-2 gap-2 p-3 bg-primary/10 rounded-lg text-sm">
                   <div className="text-center">
-                    <div className="font-semibold text-primary">Unlimited</div>
+                    <div className="font-semibold text-primary">25 GB/user</div>
                     <div className="text-muted-foreground text-xs">Storage</div>
                   </div>
                   <div className="text-center">
@@ -524,7 +524,7 @@ export default function LandingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Everything in Pro, plus:</span>
+                    <span className="font-medium">Everything in Scale, plus:</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
@@ -544,7 +544,7 @@ export default function LandingPage() {
                   </li>
                 </ul>
                 <Button className="w-full mt-6" asChild>
-                  <Link href="/register?plan=enterprise">Start Free Trial</Link>
+                  <Link href="/register?plan=pro">Start Free Trial</Link>
                 </Button>
               </CardContent>
             </Card>
