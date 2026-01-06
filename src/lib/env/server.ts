@@ -79,6 +79,11 @@ export const env = Schema.decodeUnknownSync(ServerEnv)(process.env);
  * - In local development: Falls back to http://localhost:3000
  */
 export function getAppUrl(): string {
+  // Local development should always use localhost
+  if (env.NODE_ENV === 'development') {
+    return 'http://localhost:3000';
+  }
+
   // Production environment - use the production URL
   if (env.VERCEL_ENV === 'production' && env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;

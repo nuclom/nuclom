@@ -799,9 +799,9 @@ await authClient.passkey.deletePasskey({ id: "..." });
 
 ```typescript
 mcp({
-  loginPage: "/auth/sign-in",
+  loginPage: "/login",
   oidcConfig: {
-    loginPage: "/auth/sign-in",
+    loginPage: "/login",
     codeExpiresIn: 600, // 10 minutes
     accessTokenExpiresIn: 3600, // 1 hour
     refreshTokenExpiresIn: 604800, // 7 days

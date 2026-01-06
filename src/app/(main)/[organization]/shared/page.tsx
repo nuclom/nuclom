@@ -86,7 +86,7 @@ async function SharedVideosLoader({ params }: { params: Promise<{ organization: 
   });
 
   if (!session) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Get organization by slug using cached Effect query

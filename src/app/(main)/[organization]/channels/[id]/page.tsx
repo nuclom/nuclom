@@ -109,7 +109,7 @@ async function ChannelLoader({ channelId, organizationSlug }: { channelId: strin
   });
 
   if (!session) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Verify organization exists (for access control)

@@ -26,7 +26,8 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL and prefilled email from search params
-  const finalRedirectTo = redirectTo || searchParams.get('redirectTo') || '/onboarding';
+  const callbackUrl = searchParams.get('callbackUrl');
+  const finalRedirectTo = redirectTo || callbackUrl || searchParams.get('redirectTo') || '/onboarding';
   const prefilledEmail = searchParams.get('email') || '';
 
   const [name, setName] = useState('');
