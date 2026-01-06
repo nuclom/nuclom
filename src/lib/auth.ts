@@ -65,6 +65,7 @@ function buildTrustedOrigins(): string[] {
 const trustedOrigins = buildTrustedOrigins();
 
 export const auth = betterAuth({
+  baseURL: getAppUrl(),
   trustedOrigins,
   database: drizzleAdapter(db, {
     provider: 'pg',
