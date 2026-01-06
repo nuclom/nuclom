@@ -116,14 +116,12 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link href={`/${organization}/settings`} className="cursor-pointer">
+                  <Link href={`/settings`} className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                    <DropdownMenuShortcut>S</DropdownMenuShortcut>
+                    <span>Account Settings</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/home" className="cursor-pointer">
                   <Home className="mr-2 h-4 w-4" />

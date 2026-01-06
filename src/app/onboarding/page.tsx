@@ -7,23 +7,18 @@ import { OnboardingProgress } from '@/components/onboarding/onboarding-progress'
 import { StepComplete } from '@/components/onboarding/step-complete';
 import { StepCreateOrg } from '@/components/onboarding/step-create-org';
 import { StepIntegrations } from '@/components/onboarding/step-integrations';
-import { StepPersonalize } from '@/components/onboarding/step-personalize';
 import { StepWelcome } from '@/components/onboarding/step-welcome';
 import { useAuth } from '@/hooks/use-auth';
 import { authClient } from '@/lib/auth-client';
 
 const ONBOARDING_STEPS = [
   { id: 'welcome', title: 'Welcome' },
-  { id: 'personalize', title: 'About You' },
   { id: 'workspace', title: 'Workspace' },
   { id: 'integrations', title: 'Integrations' },
   { id: 'complete', title: 'Complete' },
 ];
 
 interface OnboardingData {
-  role?: string;
-  teamSize?: string;
-  useCase?: string;
   organizationName?: string;
   organizationSlug?: string;
 }
@@ -64,11 +59,6 @@ export default function OnboardingPage() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const handlePersonalize = (data: { role: string; teamSize: string; useCase: string }) => {
-    setOnboardingData((prev) => ({ ...prev, ...data }));
-    handleNext();
   };
 
   const handleCreateOrg = async (data: { name: string; slug: string }) => {
@@ -138,13 +128,11 @@ export default function OnboardingPage() {
         <div className="w-full max-w-2xl">
           {currentStep === 0 && <StepWelcome userName={user?.name || undefined} onNext={handleNext} />}
 
-          {currentStep === 1 && <StepPersonalize onNext={handlePersonalize} onBack={handleBack} />}
-
-          {currentStep === 2 && (
+          {currentStep === 1 && (
             <StepCreateOrg onNext={handleCreateOrg} onBack={handleBack} isLoading={creating} error={error} />
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 2 && (
             <StepIntegrations
               onNext={handleNext}
               onBack={handleBack}
@@ -152,7 +140,7 @@ export default function OnboardingPage() {
             />
           )}
 
-          {currentStep === 4 && onboardingData.organizationSlug && (
+          {currentStep === 3 && onboardingData.organizationSlug && (
             <StepComplete
               organizationSlug={onboardingData.organizationSlug}
               organizationName={onboardingData.organizationName || 'Your Workspace'}

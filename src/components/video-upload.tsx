@@ -243,7 +243,7 @@ export function VideoUpload({
                 <p className="text-lg font-medium">Drop your video here</p>
                 <p className="text-sm text-muted-foreground">or click to select a file</p>
               </div>
-              <Input
+              <input
                 type="file"
                 accept="video/*"
                 onChange={handleFileChange}
@@ -251,15 +251,14 @@ export function VideoUpload({
                 id="video-upload"
                 disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               />
-              <Label htmlFor="video-upload" className="cursor-pointer">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
-                >
-                  Select Video File
-                </Button>
-              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
+                onClick={() => document.getElementById('video-upload')?.click()}
+              >
+                Select Video File
+              </Button>
               <p className="text-xs text-muted-foreground">
                 Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV (max 500MB)
               </p>
