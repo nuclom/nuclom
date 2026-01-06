@@ -17,7 +17,7 @@ import {
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { ac, organizationRoles } from "@/lib/access-control";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 import { db } from "./db";
 import { members, notifications, users } from "./db/schema";
 import { notifySlackMonitoring } from "./effect/services/slack-monitoring";
@@ -40,13 +40,11 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
 
-  // Always trust the main app URL
-  if (env.APP_URL) {
-    origins.push(env.APP_URL);
-  }
+  // Always trust the computed app URL
+  origins.push(getAppUrl());
 
-  // Add Vercel preview URL only in non-production environments
-  if (env.VERCEL_URL && env.NODE_ENV !== "production") {
+  // Add Vercel preview URL in non-production environments
+  if (env.VERCEL_URL && env.VERCEL_ENV !== "production") {
     origins.push(`https://${env.VERCEL_URL}`);
   }
 
@@ -61,7 +59,7 @@ function buildTrustedOrigins(): string[] {
     origins.push("http://127.0.0.1:3000");
   }
 
-  return origins.filter(Boolean);
+  return [...new Set(origins.filter(Boolean))];
 }
 
 const trustedOrigins = buildTrustedOrigins();
@@ -84,7 +82,7 @@ export const auth = betterAuth({
       url: string;
       token: string;
     }) {
-      const verificationLink = `${env.APP_URL}/verify-email?token=${token}`;
+      const verificationLink = `${getAppUrl()}/verify-email?token=${token}`;
 
       await resend.emails.send({
         from: "Nuclom <no-reply@nuclom.com>",
@@ -240,8 +238,7 @@ export const auth = betterAuth({
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
       async sendInvitationEmail(data) {
-        const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
-        const inviteLink = `${baseUrl}/accept-invitation/${data.id}`;
+        const inviteLink = `${getAppUrl()}/accept-invitation/${data.id}`;
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
         const inviterName = data.inviter.user.name || "Someone";
 
@@ -381,7 +378,6 @@ export const auth = betterAuth({
         plan: { name: string };
         user: { id: string; email: string; name?: string | null };
       }) => {
-        const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://nuclom.com";
         const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
 
         // Create in-app notification
@@ -410,7 +406,7 @@ export const auth = betterAuth({
                 <li>Advanced team management</li>
                 <li>Priority support</li>
               </ul>
-              <p><a href="${baseUrl}/dashboard" style="color: #6366f1;">Go to your dashboard</a></p>
+              <p><a href="${getAppUrl()}/dashboard" style="color: #6366f1;">Go to your dashboard</a></p>
             </div>
           `,
         });
@@ -516,7 +512,7 @@ export const auth = betterAuth({
               <p>Hi ${user.name || "there"},</p>
               <p>Your 14-day free trial has ended. We hope you enjoyed exploring Nuclom's features!</p>
               <p>To continue using all the pro features, please upgrade your subscription.</p>
-              <p><a href="${env.NEXT_PUBLIC_APP_URL}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
+              <p><a href="${getAppUrl()}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
             </div>
           `,
         });

@@ -15,7 +15,7 @@ import { BillingRepository } from "@/lib/effect/services/billing-repository";
 import { Database } from "@/lib/effect/services/database";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { env } from "@/lib/env/server";
+import { getAppUrl } from "@/lib/env/server";
 import { rateLimitBillingAsync } from "@/lib/rate-limit";
 import { validateRequestBody } from "@/lib/validation";
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build URLs
-    const baseUrl = request.headers.get("origin") || env.APP_URL;
+    const baseUrl = request.headers.get("origin") || getAppUrl();
     const successUrl = `${baseUrl}/${org.slug}/settings/billing?success=true`;
     const cancelUrl = `${baseUrl}/${org.slug}/settings/billing?canceled=true`;
 

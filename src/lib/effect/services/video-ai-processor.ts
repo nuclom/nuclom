@@ -21,7 +21,7 @@ import {
   videoCodeSnippets,
   videos,
 } from "@/lib/db/schema";
-import { env } from "@/lib/env/client";
+import { getAppUrl } from "@/lib/env/server";
 import { type ActionItemResult, AI, type ChapterResult, type CodeSnippetResult } from "./ai";
 import { Database } from "./database";
 import { EmailNotifications } from "./email-notifications";
@@ -323,7 +323,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
 
       if (!videoOwner?.email) return;
 
-      const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl = getAppUrl();
 
       // Create in-app notification
       yield* Effect.tryPromise({
@@ -480,7 +480,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
       if (!transcription.isAvailable()) {
         return yield* Effect.fail(
           new VideoAIProcessingError({
-            message: "Transcription service not available. Please configure OPENAI_API_KEY.",
+            message: "Transcription service not available. Please configure REPLICATE_API_TOKEN.",
             stage: "pending",
             videoId,
           }),

@@ -4,7 +4,7 @@ import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
 import { Auth } from "@/lib/effect/services/auth";
 import { Billing } from "@/lib/effect/services/billing";
 import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { env } from "@/lib/env/server";
+import { getAppUrl } from "@/lib/env/server";
 import { rateLimitBillingAsync } from "@/lib/rate-limit";
 import { validateRequestBody } from "@/lib/validation";
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const org = yield* orgRepo.getOrganization(organizationId);
 
     // Build return URL
-    const baseUrl = request.headers.get("origin") || env.APP_URL;
+    const baseUrl = request.headers.get("origin") || getAppUrl();
     const returnUrl = `${baseUrl}/${org.slug}/settings/billing`;
 
     // Create portal session

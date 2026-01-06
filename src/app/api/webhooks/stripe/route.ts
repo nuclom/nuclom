@@ -28,7 +28,7 @@ import { EmailNotifications } from "@/lib/effect/services/email-notifications";
 import { NotificationRepository } from "@/lib/effect/services/notification-repository";
 import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { env } from "@/lib/env/server";
+import { getAppUrl } from "@/lib/env/server";
 
 // Events that Better Auth needs to handle for subscription management
 const BETTER_AUTH_EVENTS = new Set([
@@ -47,8 +47,7 @@ const BETTER_AUTH_EVENTS = new Set([
 // =============================================================================
 
 async function forwardToBetterAuth(body: string, signature: string): Promise<void> {
-  const baseUrl = env.APP_URL || env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const betterAuthWebhookUrl = `${baseUrl}/api/auth/stripe/webhook`;
+  const betterAuthWebhookUrl = `${getAppUrl()}/api/auth/stripe/webhook`;
 
   try {
     const response = await fetch(betterAuthWebhookUrl, {
@@ -435,8 +434,6 @@ const sendPaymentNotification = (
       payment_failed: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
     };
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
     for (const member of ownerMembers) {
       const user = normalizeOne(member.user);
       if (!user?.email) continue;
@@ -458,7 +455,7 @@ const sendPaymentNotification = (
           recipientName: user.name || "there",
           organizationName: org.name,
           eventType,
-          billingUrl: `${baseUrl}/${org.slug}/settings/billing`,
+          billingUrl: `${getAppUrl()}/${org.slug}/settings/billing`,
         })
         .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     }
@@ -497,7 +494,6 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     });
 
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     for (const member of members) {
       const user = normalizeOne(member.user);
@@ -518,7 +514,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
           recipientName: user.name || "there",
           organizationName: org.name,
           trialEndsAt,
-          upgradeUrl: `${baseUrl}/${org.slug}/settings/billing`,
+          upgradeUrl: `${getAppUrl()}/${org.slug}/settings/billing`,
         })
         .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
     }

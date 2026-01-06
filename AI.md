@@ -249,7 +249,7 @@ Required variables (see `.env.example`):
 - `DATABASE_URL` - PostgreSQL connection string
 - `BETTER_AUTH_SECRET` - Auth encryption key
 - `R2_*` - Cloudflare R2 credentials
-- `OPENAI_API_KEY` - For AI features
+- `REPLICATE_API_TOKEN` - For video transcription (Whisper)
 - OAuth provider keys
 
 ## Effect-TS Patterns

@@ -18,7 +18,7 @@ import { sleep } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, organizations, paymentMethods, subscriptions, users, videos } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 import { createWorkflowLogger } from "./workflow-logger";
 
 const log = createWorkflowLogger("subscription-enforcement");
@@ -60,7 +60,7 @@ async function sendEnforcementNotification(
 ): Promise<number> {
   let notificationsSent = 0;
   const owners = await getOrganizationOwners(organizationId);
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = getAppUrl();
   const billingUrl = orgSlug ? `${baseUrl}/${orgSlug}/settings/billing` : `${baseUrl}/billing`;
 
   const templates = {

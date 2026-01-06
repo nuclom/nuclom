@@ -19,7 +19,7 @@ import {
   type PlanLimits,
   type Subscription,
 } from "@/lib/db/schema";
-import { env } from "@/lib/env/client";
+import { getAppUrl } from "@/lib/env/server";
 import {
   DatabaseError,
   NoSubscriptionError,
@@ -179,7 +179,7 @@ const makeBillingService = Effect.gen(function* () {
     planName?: string,
   ) =>
     Effect.gen(function* () {
-      const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl = getAppUrl();
 
       // Get organization
       const org = yield* Effect.tryPromise({

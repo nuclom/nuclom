@@ -20,7 +20,7 @@
 import { FatalError, sleep } from "workflow";
 import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
 import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 import { createWorkflowLogger } from "./workflow-logger";
 
 const log = createWorkflowLogger("video-processing");
@@ -1006,7 +1006,7 @@ async function sendCompletionNotification(
 
     if (!user?.email) return;
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     // Create in-app notification
     await db.insert(notifications).values({

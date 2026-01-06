@@ -125,7 +125,6 @@ async function uploadToR2(buffer: Buffer, key: string, contentType: string): Pro
   const accessKeyId = env.R2_ACCESS_KEY_ID;
   const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
   const bucketName = env.R2_BUCKET_NAME;
-  const publicUrl = env.R2_PUBLIC_URL;
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
     throw new FatalError("R2 storage not configured");
   }
@@ -148,7 +147,7 @@ async function uploadToR2(buffer: Buffer, key: string, contentType: string): Pro
     }),
   );
 
-  const url = publicUrl ? `${publicUrl}/${key}` : `https://${bucketName}.${accountId}.r2.dev/${key}`;
+  const url = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`;
 
   return { url };
 }

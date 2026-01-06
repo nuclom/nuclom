@@ -130,11 +130,9 @@ Deploy previews share the staging bucket since:
 ```bash
 # Production bucket
 R2_BUCKET_NAME=nuclom-production
-R2_PUBLIC_URL=https://assets.nuclom.com
 
 # Staging bucket (also used by deploy previews)
 R2_BUCKET_NAME=nuclom-staging
-R2_PUBLIC_URL=https://staging-assets.nuclom.com
 ```
 
 ## Future: Anonymized Data Sync to Staging
@@ -196,10 +194,6 @@ DATABASE_URL=postgresql://...@aws.connect.psdb.cloud/nuclom?sslmode=require
 
 # Storage
 R2_BUCKET_NAME=nuclom-production
-R2_PUBLIC_URL=https://assets.nuclom.com
-
-# Auth (production OAuth apps)
-BETTER_AUTH_URL=https://nuclom.com
 ```
 
 ### Staging (Vercel Preview Environment - main branch)
@@ -210,10 +204,6 @@ DATABASE_URL=postgresql://...@us-east-1.sql.xata.sh/nuclom:main?sslmode=require
 
 # Storage (shared with deploy previews)
 R2_BUCKET_NAME=nuclom-staging
-R2_PUBLIC_URL=https://staging-assets.nuclom.com
-
-# Auth (staging OAuth apps)
-BETTER_AUTH_URL=https://staging.nuclom.com
 ```
 
 ### Deploy Preview (Vercel Preview Environment - PR branches)
@@ -224,10 +214,6 @@ DATABASE_URL=postgresql://...@us-east-1.sql.xata.sh/nuclom:pr-123?sslmode=requir
 
 # Storage (shared with staging)
 R2_BUCKET_NAME=nuclom-staging
-R2_PUBLIC_URL=https://staging-assets.nuclom.com
-
-# Auth (staging OAuth apps - callback URLs must include Vercel preview domains)
-BETTER_AUTH_URL=${VERCEL_URL}
 ```
 
 ## Deployment Flow

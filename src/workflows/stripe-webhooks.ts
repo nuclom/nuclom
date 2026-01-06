@@ -18,7 +18,7 @@ import { FatalError } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, subscriptions, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 import { trialReminderWorkflow } from "./trial-reminders";
 
 // =============================================================================
@@ -141,7 +141,7 @@ export async function handleSubscriptionCreatedWorkflow(
 
     // Step 3: Get organization owners and send notifications
     const owners = await getOrganizationOwners(organizationId);
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     for (const owner of owners) {
       if (!owner.email) continue;
@@ -256,7 +256,7 @@ export async function handleSubscriptionDeletedWorkflow(
 
     // Step 3: Notify organization owners
     const owners = await getOrganizationOwners(organizationId);
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     for (const owner of owners) {
       if (!owner.email) continue;
@@ -352,7 +352,7 @@ export async function handleInvoiceFailedWorkflow(
 
     // Step 2: Notify organization owners
     const owners = await getOrganizationOwners(invoiceOrgId);
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     for (const owner of owners) {
       if (!owner.email) continue;
@@ -415,7 +415,7 @@ export async function handleTrialEndingWorkflow(
     }
 
     const owners = await getOrganizationOwners(trialOrgId);
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
     const daysLeft = Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 

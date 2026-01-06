@@ -426,8 +426,7 @@ async function main() {
     console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || "price_xxx"}`);
     console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || "price_xxx"}`);
     console.log("");
-    console.log("# Application URLs");
-    console.log("NEXT_PUBLIC_APP_URL=https://your-app.com");
+    console.log("# (VERCEL_URL, VERCEL_PROJECT_PRODUCTION_URL) - no manual configuration needed");
     console.log("");
 
     console.log("=".repeat(50));

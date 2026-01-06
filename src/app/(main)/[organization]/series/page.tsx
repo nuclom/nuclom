@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/lib/auth";
 import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from "@/lib/effect";
-import { env } from "@/lib/env/server";
+import { getAppUrl } from "@/lib/env/server";
 import { SeriesListClient } from "./series-list-client";
 
 function SeriesListSkeleton() {
@@ -48,7 +48,7 @@ async function SeriesListLoader({ params }: { params: Promise<{ organization: st
     if (session?.user) {
       seriesData = await getCachedSeriesWithProgress(organizationData.id, session.user.id);
     } else {
-      const result = await fetch(`${env.APP_URL}/api/series?organizationId=${organizationData.id}`, {
+      const result = await fetch(`${getAppUrl()}/api/series?organizationId=${organizationData.id}`, {
         cache: "no-store",
       });
       if (result.ok) {

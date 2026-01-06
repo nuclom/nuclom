@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { AcceptInvitationForm } from "@/components/auth/accept-invitation-form";
-import { env } from "@/lib/env/server";
+import { getAppUrl } from "@/lib/env/server";
 
 async function getInvitation(id: string) {
   try {
     // Use absolute URL for server-side fetch
-    const response = await fetch(`${env.APP_URL}/api/invitations/${id}`, {
+    const response = await fetch(`${getAppUrl()}/api/invitations/${id}`, {
       cache: "no-store",
     });
 

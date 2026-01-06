@@ -6,7 +6,7 @@
  */
 
 import { Config, Context, Effect, Layer, Option } from "effect";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 
 // =============================================================================
 // Types
@@ -228,8 +228,6 @@ const SlackMonitoringConfigEffect = Config.all({
   billingWebhook: Config.string("SLACK_MONITORING_WEBHOOK_BILLING").pipe(Config.option),
   usageWebhook: Config.string("SLACK_MONITORING_WEBHOOK_USAGE").pipe(Config.option),
   errorsWebhook: Config.string("SLACK_MONITORING_WEBHOOK_ERRORS").pipe(Config.option),
-  // App URL for links
-  appUrl: Config.string("NEXT_PUBLIC_APP_URL").pipe(Config.option),
 });
 
 // =============================================================================
@@ -320,7 +318,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
   const isConfigured =
     hasDefaultWebhook || hasAccountsWebhook || hasBillingWebhook || hasUsageWebhook || hasErrorsWebhook;
 
-  const appUrl = Option.getOrElse(config.appUrl, () => "https://app.nuclom.com");
+  const appUrl = getAppUrl();
 
   // Get the appropriate webhook URL for an event category
   const getWebhookUrl = (category: EventCategory): string | null => {

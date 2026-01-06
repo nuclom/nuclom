@@ -5,7 +5,7 @@ import { CommentRepository, NotificationRepository, VideoRepository } from "@/li
 import { Auth } from "@/lib/effect/services/auth";
 import { Database } from "@/lib/effect/services/database";
 import { EmailNotifications } from "@/lib/effect/services/email-notifications";
-import { env } from "@/lib/env/client";
+import { getAppUrl } from "@/lib/env/server";
 import type { ApiResponse } from "@/lib/types";
 import { createCommentSchema, sanitizeComment, validateRequestBody } from "@/lib/validation";
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { db } = yield* Database;
     const videoRepo = yield* VideoRepository;
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     if (validatedData.parentId) {
       // Notify parent comment author of reply

@@ -22,7 +22,7 @@ import { FatalError, sleep } from "workflow";
 import { db } from "@/lib/db";
 import { members, notifications, users } from "@/lib/db/schema";
 import { resend } from "@/lib/email";
-import { env } from "@/lib/env/server";
+import { env, getAppUrl } from "@/lib/env/server";
 import { createWorkflowLogger } from "./workflow-logger";
 
 const log = createWorkflowLogger("trial-reminders");
@@ -78,7 +78,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     .innerJoin(users, eq(members.userId, users.id))
     .where(eq(members.organizationId, orgId));
 
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = getAppUrl();
   const upgradeUrl = `${baseUrl}/${org.slug}/settings/billing`;
 
   for (const owner of ownerMembers) {

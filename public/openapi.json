@@ -4119,9 +4119,17 @@
         ],
         "summary": "List reports",
         "operationId": "listReport",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       },
@@ -4131,9 +4139,17 @@
         ],
         "summary": "Patch report",
         "operationId": "patchReport",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       },
@@ -4143,9 +4159,17 @@
         ],
         "summary": "Create report",
         "operationId": "createReport",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "201": {
             "description": "Created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }

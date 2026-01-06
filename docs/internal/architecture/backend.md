@@ -96,8 +96,8 @@ The backend integration includes:
 
 3. **AI Integration**
    ```bash
-   # Add OpenAI API key
-   OPENAI_API_KEY="sk-..."
+   # Add Replicate API token for video transcription
+   REPLICATE_API_TOKEN="r8_..."
    ```
 
 ## Production Deployment

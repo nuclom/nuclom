@@ -188,7 +188,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
     const { notifications, users } = await import("@/lib/db/schema");
     const { eq } = await import("drizzle-orm");
     const { resend } = await import("@/lib/email");
-    const { env } = await import("@/lib/env/server");
+    const { env, getAppUrl } = await import("@/lib/env/server");
 
     // Get all admin users
     const adminUsers = await db.query.users.findMany({
@@ -204,7 +204,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
       .map((s) => `- ${s.service}: ${s.status}${s.error ? ` (${s.error})` : ""}`)
       .join("\n");
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || env.APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     // Create in-app notifications for each admin
     for (const admin of adminUsers) {
