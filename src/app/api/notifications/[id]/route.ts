@@ -1,8 +1,8 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { NotificationRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { NotificationRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // PATCH /api/notifications/[id] - Mark notification as read
@@ -42,7 +42,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const notificationRepo = yield* NotificationRepository;
     yield* notificationRepo.deleteNotification(id, user.id);
 
-    return { message: "Notification deleted successfully", id };
+    return { message: 'Notification deleted successfully', id };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

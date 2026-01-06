@@ -1,87 +1,87 @@
-import { ArrowLeft, Play } from "lucide-react";
-import Link from "next/link";
-import { CopyrightYear } from "@/components/copyright-year";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Play } from 'lucide-react';
+import Link from 'next/link';
+import { CopyrightYear } from '@/components/copyright-year';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export const metadata = {
-  title: "Cookie Policy | Nuclom",
-  description: "Learn about the cookies used by Nuclom and how to manage them.",
+  title: 'Cookie Policy | Nuclom',
+  description: 'Learn about the cookies used by Nuclom and how to manage them.',
 };
 
 const essentialCookies = [
   {
-    name: "better-auth.session_token",
-    purpose: "Authentication session token for keeping you logged in",
-    duration: "30 days",
-    provider: "Nuclom",
+    name: 'better-auth.session_token',
+    purpose: 'Authentication session token for keeping you logged in',
+    duration: '30 days',
+    provider: 'Nuclom',
   },
   {
-    name: "better-auth.csrf_token",
-    purpose: "Cross-site request forgery protection",
-    duration: "Session",
-    provider: "Nuclom",
+    name: 'better-auth.csrf_token',
+    purpose: 'Cross-site request forgery protection',
+    duration: 'Session',
+    provider: 'Nuclom',
   },
   {
-    name: "nuclom_cookie_consent",
-    purpose: "Stores your cookie preference choices",
-    duration: "1 year",
-    provider: "Nuclom",
+    name: 'nuclom_cookie_consent',
+    purpose: 'Stores your cookie preference choices',
+    duration: '1 year',
+    provider: 'Nuclom',
   },
   {
-    name: "__cf_bm",
-    purpose: "Cloudflare bot management - protects against malicious traffic",
-    duration: "30 minutes",
-    provider: "Cloudflare",
+    name: '__cf_bm',
+    purpose: 'Cloudflare bot management - protects against malicious traffic',
+    duration: '30 minutes',
+    provider: 'Cloudflare',
   },
   {
-    name: "cf_clearance",
-    purpose: "Cloudflare security challenge clearance",
-    duration: "30 minutes",
-    provider: "Cloudflare",
+    name: 'cf_clearance',
+    purpose: 'Cloudflare security challenge clearance',
+    duration: '30 minutes',
+    provider: 'Cloudflare',
   },
 ];
 
 const analyticsCookies = [
   {
-    name: "_ga",
-    purpose: "Google Analytics - distinguishes unique users",
-    duration: "2 years",
-    provider: "Google",
+    name: '_ga',
+    purpose: 'Google Analytics - distinguishes unique users',
+    duration: '2 years',
+    provider: 'Google',
   },
   {
-    name: "_ga_*",
-    purpose: "Google Analytics - persists session state",
-    duration: "2 years",
-    provider: "Google",
+    name: '_ga_*',
+    purpose: 'Google Analytics - persists session state',
+    duration: '2 years',
+    provider: 'Google',
   },
   {
-    name: "_gid",
-    purpose: "Google Analytics - identifies users for 24 hours",
-    duration: "24 hours",
-    provider: "Google",
+    name: '_gid',
+    purpose: 'Google Analytics - identifies users for 24 hours',
+    duration: '24 hours',
+    provider: 'Google',
   },
 ];
 
 const localStorageItems = [
   {
-    name: "nuclom_cookie_consent",
-    purpose: "Stores your cookie preference choices",
-    duration: "Persistent",
-    provider: "Nuclom",
+    name: 'nuclom_cookie_consent',
+    purpose: 'Stores your cookie preference choices',
+    duration: 'Persistent',
+    provider: 'Nuclom',
   },
   {
-    name: "theme",
-    purpose: "Remembers your dark/light mode preference",
-    duration: "Persistent",
-    provider: "Nuclom",
+    name: 'theme',
+    purpose: 'Remembers your dark/light mode preference',
+    duration: 'Persistent',
+    provider: 'Nuclom',
   },
   {
-    name: "sidebar-state",
-    purpose: "Remembers sidebar expansion state",
-    duration: "Persistent",
-    provider: "Nuclom",
+    name: 'sidebar-state',
+    purpose: 'Remembers sidebar expansion state',
+    duration: 'Persistent',
+    provider: 'Nuclom',
   },
 ];
 
@@ -342,10 +342,10 @@ export default function CookiePolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">Questions?</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    If you have questions about our use of cookies, please contact us at{" "}
+                    If you have questions about our use of cookies, please contact us at{' '}
                     <Link href="/support" className="text-primary hover:underline">
                       our support page
-                    </Link>{" "}
+                    </Link>{' '}
                     or email us at privacy@nuclom.com.
                   </p>
                 </section>

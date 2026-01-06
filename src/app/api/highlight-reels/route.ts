@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import { ClipRepository, OrganizationRepository, ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateQueryParams, validateRequestBody } from "@/lib/validation";
-import { createHighlightReelSchema, PaginationSchema } from "@/lib/validation/schemas";
+import { Cause, Effect, Exit, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { ClipRepository, OrganizationRepository, ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateQueryParams, validateRequestBody } from '@/lib/validation';
+import { createHighlightReelSchema, PaginationSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/highlight-reels - List all highlight reels for an organization
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const organizationOption = yield* orgRepo.getActiveOrganization(user.id);
 
     if (Option.isNone(organizationOption)) {
-      return yield* Effect.fail(new ValidationError({ message: "No active organization found" }));
+      return yield* Effect.fail(new ValidationError({ message: 'No active organization found' }));
     }
 
     const organization = organizationOption.value;
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const organizationOption = yield* orgRepo.getActiveOrganization(user.id);
 
     if (Option.isNone(organizationOption)) {
-      return yield* Effect.fail(new ValidationError({ message: "No active organization found" }));
+      return yield* Effect.fail(new ValidationError({ message: 'No active organization found' }));
     }
 
     const organization = organizationOption.value;
@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => NextResponse.json({ success: true, data }, { status: 201 }),
   });

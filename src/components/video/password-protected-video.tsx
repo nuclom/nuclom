@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Loader2, Lock } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Loader2, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface PasswordProtectedVideoProps {
   shareLinkId: string;
@@ -14,7 +14,7 @@ interface PasswordProtectedVideoProps {
 }
 
 export function PasswordProtectedVideo({ shareLinkId, videoTitle, onVerified }: PasswordProtectedVideoProps) {
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -25,8 +25,8 @@ export function PasswordProtectedVideo({ shareLinkId, videoTitle, onVerified }: 
 
     try {
       const res = await fetch(`/api/share/${shareLinkId}/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
 
@@ -34,13 +34,13 @@ export function PasswordProtectedVideo({ shareLinkId, videoTitle, onVerified }: 
 
       if (data.success) {
         // Store verification in session storage
-        sessionStorage.setItem(`share_verified_${shareLinkId}`, "true");
+        sessionStorage.setItem(`share_verified_${shareLinkId}`, 'true');
         onVerified();
       } else {
-        setError(data.error || "Incorrect password");
+        setError(data.error || 'Incorrect password');
       }
     } catch {
-      setError("Failed to verify password. Please try again.");
+      setError('Failed to verify password. Please try again.');
     } finally {
       setIsVerifying(false);
     }

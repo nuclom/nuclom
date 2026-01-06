@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Speaker Timeline Component
@@ -7,12 +7,12 @@
  * Users can click on timeline segments to seek to specific moments.
  */
 
-import { Play } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { getSpeakerColor, type Speaker } from "./speaker-legend";
+import { Play } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { getSpeakerColor, type Speaker } from './speaker-legend';
 
 // =============================================================================
 // Types
@@ -60,9 +60,9 @@ function formatTime(seconds: number): string {
   const secs = Math.floor(seconds % 60);
 
   if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // =============================================================================
@@ -91,7 +91,7 @@ function TimelineRow({
   const color = getSpeakerColor(speakerIndex);
 
   return (
-    <div className={cn("flex items-center gap-3 py-1.5 transition-opacity", !isHighlighted && "opacity-40")}>
+    <div className={cn('flex items-center gap-3 py-1.5 transition-opacity', !isHighlighted && 'opacity-40')}>
       {/* Speaker label */}
       <div className="w-24 flex-shrink-0 truncate">
         <span className="text-xs font-medium">{speaker.displayName}</span>
@@ -112,9 +112,9 @@ function TimelineRow({
                   <button
                     type="button"
                     className={cn(
-                      "absolute top-0 bottom-0 rounded-sm transition-all hover:brightness-110 cursor-pointer",
+                      'absolute top-0 bottom-0 rounded-sm transition-all hover:brightness-110 cursor-pointer',
                       color.bg,
-                      isCurrentSegment && "ring-2 ring-white ring-offset-1",
+                      isCurrentSegment && 'ring-2 ring-white ring-offset-1',
                     )}
                     style={{
                       left: `${startPercent}%`,
@@ -273,10 +273,10 @@ export function SpeakerTimeline({
           className="mt-4 relative h-2 bg-muted rounded-full cursor-pointer group"
           onClick={handleTimelineClick}
           onKeyDown={(e) => {
-            if (e.key === "ArrowRight") {
+            if (e.key === 'ArrowRight') {
               e.preventDefault();
               onSeek?.(Math.min(duration, currentTime + 5));
-            } else if (e.key === "ArrowLeft") {
+            } else if (e.key === 'ArrowLeft') {
               e.preventDefault();
               onSeek?.(Math.max(0, currentTime - 5));
             }

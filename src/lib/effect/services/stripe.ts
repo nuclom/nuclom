@@ -4,9 +4,9 @@
  * Provides type-safe Stripe API integration with Effect's execution model.
  */
 
-import { Config, Context, Effect, Layer, Redacted } from "effect";
-import Stripe from "stripe";
-import { StripeApiError, WebhookSignatureError } from "../errors";
+import { Config, Context, Effect, Layer, Redacted } from 'effect';
+import Stripe from 'stripe';
+import { StripeApiError, WebhookSignatureError } from '../errors';
 
 // =============================================================================
 // Types
@@ -149,7 +149,7 @@ export interface StripeService {
 // Service Tag
 // =============================================================================
 
-export class StripeServiceTag extends Context.Tag("StripeService")<StripeServiceTag, StripeService>() {}
+export class StripeServiceTag extends Context.Tag('StripeService')<StripeServiceTag, StripeService>() {}
 
 // =============================================================================
 // Service Implementation
@@ -191,7 +191,7 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
         client.checkout.sessions.create({
           customer: params.customerId,
           customer_email: params.customerId ? undefined : params.customerEmail,
-          mode: "subscription",
+          mode: 'subscription',
           line_items: [
             {
               price: params.priceId,
@@ -318,7 +318,7 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
         }),
     }),
 
-  listPaymentMethods: (customerId, type = "card") =>
+  listPaymentMethods: (customerId, type = 'card') =>
     Effect.tryPromise({
       try: () =>
         client.paymentMethods.list({
@@ -417,11 +417,11 @@ const makeStripeService = (client: Stripe, webhookSecret: string): StripeService
 export const StripeServiceLive = Layer.effect(
   StripeServiceTag,
   Effect.gen(function* () {
-    const secretKey = yield* Config.redacted("STRIPE_SECRET_KEY");
-    const webhookSecret = yield* Config.redacted("STRIPE_WEBHOOK_SECRET");
+    const secretKey = yield* Config.redacted('STRIPE_SECRET_KEY');
+    const webhookSecret = yield* Config.redacted('STRIPE_WEBHOOK_SECRET');
 
     const client = new Stripe(Redacted.value(secretKey), {
-      apiVersion: "2025-12-15.clover",
+      apiVersion: '2025-12-15.clover',
       typescript: true,
     });
 

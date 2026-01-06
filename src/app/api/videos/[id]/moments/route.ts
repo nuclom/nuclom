@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { videos } from "@/lib/db/schema";
-import { ClipRepository, NotFoundError } from "@/lib/effect";
-import { DatabaseError } from "@/lib/effect/errors";
-import { Database } from "@/lib/effect/services/database";
+import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { videos } from '@/lib/db/schema';
+import { ClipRepository, NotFoundError } from '@/lib/effect';
+import { DatabaseError } from '@/lib/effect/errors';
+import { Database } from '@/lib/effect/services/database';
 
 // =============================================================================
 // GET /api/videos/[id]/moments - Get auto-detected moments for a video
@@ -25,8 +25,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Parse query params for filtering
     const url = new URL(request.url);
-    const minConfidence = url.searchParams.get("minConfidence");
+    const minConfidence = url.searchParams.get('minConfidence');
     const confidence = minConfidence ? Number.parseInt(minConfidence, 10) : 50; // Default 50% confidence threshold
 
     // Get moments

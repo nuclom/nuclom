@@ -1,7 +1,7 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { channels, collections, comments, organizations, users, videos } from "@/lib/db/schema";
-import type { VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import { desc, eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { channels, collections, comments, organizations, users, videos } from '@/lib/db/schema';
+import type { VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {
   const offset = (page - 1) * limit;
@@ -119,7 +119,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
     .limit(1);
 
   if (!videoData.length) {
-    throw new Error("Video not found");
+    throw new Error('Video not found');
   }
 
   // Get channel if exists

@@ -10,13 +10,13 @@
  *   pnpm auth:generate
  */
 
-import { execSync } from "node:child_process";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import process from "node:process";
+import { execSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import process from 'node:process';
 
-const AUTH_SCHEMA_PATH = path.join(process.cwd(), "src/lib/db/schema/auth.ts");
-const TEMP_OUTPUT_PATH = path.join(process.cwd(), "temp-auth-schema.ts");
+const AUTH_SCHEMA_PATH = path.join(process.cwd(), 'src/lib/db/schema/auth.ts');
+const TEMP_OUTPUT_PATH = path.join(process.cwd(), 'temp-auth-schema.ts');
 
 const HEADER_COMMENT = `/**
  * Better Auth Schema - Auto-Generated
@@ -57,40 +57,40 @@ const HEADER_COMMENT = `/**
 `;
 
 function main() {
-  console.log("🔐 Generating better-auth schema...\n");
+  console.log('🔐 Generating better-auth schema...\n');
 
   try {
     // Run better-auth CLI to generate schema
-    console.log("Running better-auth CLI...");
+    console.log('Running better-auth CLI...');
     execSync(`pnpm dlx @better-auth/cli@latest generate --output ${TEMP_OUTPUT_PATH} --yes`, {
-      stdio: "inherit",
+      stdio: 'inherit',
       cwd: process.cwd(),
     });
 
     // Read the generated file
     if (!fs.existsSync(TEMP_OUTPUT_PATH)) {
-      console.error("❌ CLI did not generate output file");
+      console.error('❌ CLI did not generate output file');
       process.exit(1);
     }
 
-    let generatedContent = fs.readFileSync(TEMP_OUTPUT_PATH, "utf-8");
+    let generatedContent = fs.readFileSync(TEMP_OUTPUT_PATH, 'utf-8');
 
     // Fix imports to use local enums file
     generatedContent = generatedContent
       .replace(/from ["']drizzle-orm\/pg-core["']/g, 'from "drizzle-orm/pg-core"')
       .replace(/import \{([^}]+)\} from ["']drizzle-orm\/pg-core["']/, (_match, imports) => {
         // Remove pgEnum from drizzle imports if present since we use our local enums
-        const importList = imports.split(",").map((s: string) => s.trim());
-        const filteredImports = importList.filter((s: string) => s !== "pgEnum");
-        return `import { ${filteredImports.join(", ")} } from "drizzle-orm/pg-core"`;
+        const importList = imports.split(',').map((s: string) => s.trim());
+        const filteredImports = importList.filter((s: string) => s !== 'pgEnum');
+        return `import { ${filteredImports.join(', ')} } from "drizzle-orm/pg-core"`;
       });
 
     // Remove relations from the generated file since we define them in relations.ts
     // This prevents duplicate export conflicts when both auth.ts and relations.ts are exported from index.ts
     // Remove the relations import
-    generatedContent = generatedContent.replace(/import \{ relations \} from ["']drizzle-orm["'];\n?/g, "");
+    generatedContent = generatedContent.replace(/import \{ relations \} from ["']drizzle-orm["'];\n?/g, '');
     // Remove all relation definitions (export const xxxRelations = relations(...))
-    generatedContent = generatedContent.replace(/export const \w+Relations = relations\([^;]+\);\n?\n?/g, "");
+    generatedContent = generatedContent.replace(/export const \w+Relations = relations\([^;]+\);\n?\n?/g, '');
 
     // Add header comment
     const finalContent = HEADER_COMMENT + generatedContent;
@@ -101,7 +101,7 @@ function main() {
     // Clean up temp file
     fs.unlinkSync(TEMP_OUTPUT_PATH);
 
-    console.log("\n✅ Auth schema generated successfully!");
+    console.log('\n✅ Auth schema generated successfully!');
     console.log(`   Output: ${AUTH_SCHEMA_PATH}`);
   } catch (error) {
     // Clean up temp file if it exists
@@ -110,12 +110,12 @@ function main() {
     }
 
     if (error instanceof Error) {
-      console.error("\n❌ Failed to generate auth schema:", error.message);
-      console.log("\n📝 Manual regeneration steps:");
-      console.log("   1. Fix any better-auth configuration issues");
-      console.log("   2. Run: pnpm dlx @better-auth/cli@latest generate");
-      console.log("   3. Move output to: src/lib/db/schema/auth.ts");
-      console.log("   4. Add the header comment from this script");
+      console.error('\n❌ Failed to generate auth schema:', error.message);
+      console.log('\n📝 Manual regeneration steps:');
+      console.log('   1. Fix any better-auth configuration issues');
+      console.log('   2. Run: pnpm dlx @better-auth/cli@latest generate');
+      console.log('   3. Move output to: src/lib/db/schema/auth.ts');
+      console.log('   4. Add the header comment from this script');
     }
     process.exit(1);
   }

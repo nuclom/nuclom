@@ -5,11 +5,11 @@
  * All operations return Effect types with proper error handling.
  */
 
-import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { Config, Context, Effect, Layer, Option, pipe } from "effect";
-import { DeleteError, PresignedUrlError, StorageNotConfiguredError, UploadError } from "../errors";
+import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Config, Context, Effect, Layer, Option, pipe } from 'effect';
+import { DeleteError, PresignedUrlError, StorageNotConfiguredError, UploadError } from '../errors';
 
 // =============================================================================
 // Types
@@ -87,7 +87,7 @@ export interface StorageService {
   readonly generateFileKey: (
     organizationId: string,
     filename: string,
-    type?: "video" | "thumbnail" | "processed",
+    type?: 'video' | 'thumbnail' | 'processed',
   ) => string;
 
   /**
@@ -100,17 +100,17 @@ export interface StorageService {
 // Storage Service Tag
 // =============================================================================
 
-export class Storage extends Context.Tag("Storage")<Storage, StorageService>() {}
+export class Storage extends Context.Tag('Storage')<Storage, StorageService>() {}
 
 // =============================================================================
 // Storage Configuration
 // =============================================================================
 
 const StorageConfigEffect = Config.all({
-  accountId: Config.string("R2_ACCOUNT_ID").pipe(Config.option),
-  accessKeyId: Config.string("R2_ACCESS_KEY_ID").pipe(Config.option),
-  secretAccessKey: Config.string("R2_SECRET_ACCESS_KEY").pipe(Config.option),
-  bucketName: Config.string("R2_BUCKET_NAME").pipe(Config.option),
+  accountId: Config.string('R2_ACCOUNT_ID').pipe(Config.option),
+  accessKeyId: Config.string('R2_ACCESS_KEY_ID').pipe(Config.option),
+  secretAccessKey: Config.string('R2_SECRET_ACCESS_KEY').pipe(Config.option),
+  bucketName: Config.string('R2_BUCKET_NAME').pipe(Config.option),
 });
 
 // =============================================================================
@@ -130,7 +130,7 @@ const makeStorageService = Effect.gen(function* () {
   // Create S3 client if configured
   const r2Client = isConfigured
     ? new S3Client({
-        region: "auto",
+        region: 'auto',
         endpoint: `https://${Option.getOrThrow(config.accountId)}.r2.cloudflarestorage.com`,
         credentials: {
           accessKeyId: Option.getOrThrow(config.accessKeyId),
@@ -154,7 +154,7 @@ const makeStorageService = Effect.gen(function* () {
 
   const getPublicUrl = (key: string): string => {
     if (!isConfigured || !bucketName || !accountId) {
-      throw new Error("R2 storage not configured");
+      throw new Error('R2 storage not configured');
     }
     return `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`;
   };
@@ -162,10 +162,10 @@ const makeStorageService = Effect.gen(function* () {
   const generateFileKey = (
     organizationId: string,
     filename: string,
-    type: "video" | "thumbnail" | "processed" = "video",
+    type: 'video' | 'thumbnail' | 'processed' = 'video',
   ): string => {
     const timestamp = Date.now();
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     return `${organizationId}/${type}s/${timestamp}-${sanitizedFilename}`;
   };
 
@@ -190,7 +190,7 @@ const makeStorageService = Effect.gen(function* () {
               Bucket: bucket,
               Key: key,
               Body: buffer,
-              ContentType: options.contentType || "application/octet-stream",
+              ContentType: options.contentType || 'application/octet-stream',
               Metadata: options.metadata,
             };
 
@@ -210,7 +210,7 @@ const makeStorageService = Effect.gen(function* () {
           },
           catch: (error) =>
             new UploadError({
-              message: `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
+              message: `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
               filename: key,
               cause: error,
             }),
@@ -240,7 +240,7 @@ const makeStorageService = Effect.gen(function* () {
               Bucket: bucket,
               Key: key,
               Body: buffer,
-              ContentType: options.contentType || "application/octet-stream",
+              ContentType: options.contentType || 'application/octet-stream',
               Metadata: options.metadata,
             };
 
@@ -252,7 +252,7 @@ const makeStorageService = Effect.gen(function* () {
             });
 
             if (onProgress) {
-              upload.on("httpUploadProgress", (progress) => {
+              upload.on('httpUploadProgress', (progress) => {
                 onProgress({
                   loaded: progress.loaded || 0,
                   total: progress.total || 0,
@@ -271,7 +271,7 @@ const makeStorageService = Effect.gen(function* () {
           },
           catch: (error) =>
             new UploadError({
-              message: `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
+              message: `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
               filename: key,
               cause: error,
             }),
@@ -300,7 +300,7 @@ const makeStorageService = Effect.gen(function* () {
           },
           catch: (error) =>
             new DeleteError({
-              message: `Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`,
+              message: `Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`,
               key,
               cause: error,
             }),
@@ -333,7 +333,7 @@ const makeStorageService = Effect.gen(function* () {
           },
           catch: (error) =>
             new PresignedUrlError({
-              message: `Failed to generate presigned URL: ${error instanceof Error ? error.message : "Unknown error"}`,
+              message: `Failed to generate presigned URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
               cause: error,
             }),
         }),
@@ -425,7 +425,7 @@ export const getPublicUrl = (key: string): Effect.Effect<string, never, Storage>
 export const generateFileKey = (
   organizationId: string,
   filename: string,
-  type?: "video" | "thumbnail" | "processed",
+  type?: 'video' | 'thumbnail' | 'processed',
 ): Effect.Effect<string, never, Storage> =>
   Effect.gen(function* () {
     const storage = yield* Storage;

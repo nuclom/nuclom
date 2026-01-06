@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { ArrowRight, Briefcase, Code, Film, Megaphone, Users, Zap } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Briefcase, Code, Film, Megaphone, Users, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface StepPersonalizeProps {
   onNext: (data: { role: string; teamSize: string; useCase: string }) => void;
@@ -12,27 +12,27 @@ interface StepPersonalizeProps {
 }
 
 const roles = [
-  { id: "engineering", label: "Engineering", icon: Code },
-  { id: "product", label: "Product", icon: Zap },
-  { id: "marketing", label: "Marketing", icon: Megaphone },
-  { id: "design", label: "Design", icon: Film },
-  { id: "leadership", label: "Leadership", icon: Briefcase },
-  { id: "other", label: "Other", icon: Users },
+  { id: 'engineering', label: 'Engineering', icon: Code },
+  { id: 'product', label: 'Product', icon: Zap },
+  { id: 'marketing', label: 'Marketing', icon: Megaphone },
+  { id: 'design', label: 'Design', icon: Film },
+  { id: 'leadership', label: 'Leadership', icon: Briefcase },
+  { id: 'other', label: 'Other', icon: Users },
 ];
 
 const teamSizes = [
-  { id: "1-10", label: "1-10 people" },
-  { id: "11-50", label: "11-50 people" },
-  { id: "51-200", label: "51-200 people" },
-  { id: "201-1000", label: "201-1000 people" },
-  { id: "1000+", label: "1000+ people" },
+  { id: '1-10', label: '1-10 people' },
+  { id: '11-50', label: '11-50 people' },
+  { id: '51-200', label: '51-200 people' },
+  { id: '201-1000', label: '201-1000 people' },
+  { id: '1000+', label: '1000+ people' },
 ];
 
 const useCases = [
-  { id: "meetings", label: "Record meetings", description: "Never miss important discussions" },
-  { id: "updates", label: "Async updates", description: "Replace status meetings" },
-  { id: "training", label: "Training & onboarding", description: "Build a knowledge library" },
-  { id: "demos", label: "Product demos", description: "Share with customers & stakeholders" },
+  { id: 'meetings', label: 'Record meetings', description: 'Never miss important discussions' },
+  { id: 'updates', label: 'Async updates', description: 'Replace status meetings' },
+  { id: 'training', label: 'Training & onboarding', description: 'Build a knowledge library' },
+  { id: 'demos', label: 'Product demos', description: 'Share with customers & stakeholders' },
 ];
 
 export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
@@ -48,9 +48,9 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
       setStep(2);
     } else if (step === 2 && selectedUseCase) {
       onNext({
-        role: selectedRole || "",
-        teamSize: selectedTeamSize || "",
-        useCase: selectedUseCase || "",
+        role: selectedRole || '',
+        teamSize: selectedTeamSize || '',
+        useCase: selectedUseCase || '',
       });
     }
   };
@@ -71,9 +71,9 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Tell us about yourself</h2>
         <p className="text-muted-foreground">
-          {step === 0 && "What best describes your role?"}
-          {step === 1 && "How big is your team?"}
-          {step === 2 && "How do you plan to use Nuclom?"}
+          {step === 0 && 'What best describes your role?'}
+          {step === 1 && 'How big is your team?'}
+          {step === 2 && 'How do you plan to use Nuclom?'}
         </p>
       </div>
 
@@ -84,14 +84,14 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
             <Card
               key={role.id}
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
-                selectedRole === role.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
+                'cursor-pointer transition-all hover:border-primary/50',
+                selectedRole === role.id && 'border-primary bg-primary/5 ring-2 ring-primary/20',
               )}
               onClick={() => setSelectedRole(role.id)}
             >
               <CardContent className="flex flex-col items-center justify-center p-6">
                 <role.icon
-                  className={cn("w-8 h-8 mb-3", selectedRole === role.id ? "text-primary" : "text-muted-foreground")}
+                  className={cn('w-8 h-8 mb-3', selectedRole === role.id ? 'text-primary' : 'text-muted-foreground')}
                 />
                 <span className="font-medium text-sm">{role.label}</span>
               </CardContent>
@@ -107,8 +107,8 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
             <Card
               key={size.id}
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
-                selectedTeamSize === size.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
+                'cursor-pointer transition-all hover:border-primary/50',
+                selectedTeamSize === size.id && 'border-primary bg-primary/5 ring-2 ring-primary/20',
               )}
               onClick={() => setSelectedTeamSize(size.id)}
             >
@@ -116,8 +116,8 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
                 <span className="font-medium">{size.label}</span>
                 <div
                   className={cn(
-                    "w-5 h-5 rounded-full border-2 transition-all",
-                    selectedTeamSize === size.id ? "border-primary bg-primary" : "border-muted-foreground/30",
+                    'w-5 h-5 rounded-full border-2 transition-all',
+                    selectedTeamSize === size.id ? 'border-primary bg-primary' : 'border-muted-foreground/30',
                   )}
                 >
                   {selectedTeamSize === size.id && (
@@ -139,8 +139,8 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
             <Card
               key={useCase.id}
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
-                selectedUseCase === useCase.id && "border-primary bg-primary/5 ring-2 ring-primary/20",
+                'cursor-pointer transition-all hover:border-primary/50',
+                selectedUseCase === useCase.id && 'border-primary bg-primary/5 ring-2 ring-primary/20',
               )}
               onClick={() => setSelectedUseCase(useCase.id)}
             >
@@ -148,8 +148,8 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
                 <div className="flex items-start gap-3">
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all",
-                      selectedUseCase === useCase.id ? "border-primary bg-primary" : "border-muted-foreground/30",
+                      'w-5 h-5 rounded-full border-2 mt-0.5 flex-shrink-0 transition-all',
+                      selectedUseCase === useCase.id ? 'border-primary bg-primary' : 'border-muted-foreground/30',
                     )}
                   >
                     {selectedUseCase === useCase.id && (
@@ -174,7 +174,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
         {[0, 1, 2].map((s) => (
           <div
             key={s}
-            className={cn("w-2 h-2 rounded-full transition-all", s === step ? "bg-primary w-6" : "bg-muted")}
+            className={cn('w-2 h-2 rounded-full transition-all', s === step ? 'bg-primary w-6' : 'bg-muted')}
           />
         ))}
       </div>
@@ -185,7 +185,7 @@ export function StepPersonalize({ onNext, onBack }: StepPersonalizeProps) {
           Back
         </Button>
         <Button onClick={handleNext} disabled={!canProceed}>
-          {step === 2 ? "Continue" : "Next"}
+          {step === 2 ? 'Continue' : 'Next'}
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>

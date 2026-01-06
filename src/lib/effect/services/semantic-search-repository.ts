@@ -5,13 +5,13 @@
  * Supports storing transcript chunks with embeddings and performing similarity searches.
  */
 
-import { eq, inArray, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { type NewTranscriptChunk, type TranscriptChunk, transcriptChunks, users, videos } from "@/lib/db/schema";
-import type { VideoWithAuthor } from "@/lib/types";
-import { DatabaseError } from "../errors";
-import { Database } from "./database";
-import type { ChunkEmbedding } from "./embedding";
+import { eq, inArray, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { type NewTranscriptChunk, type TranscriptChunk, transcriptChunks, users, videos } from '@/lib/db/schema';
+import type { VideoWithAuthor } from '@/lib/types';
+import { DatabaseError } from '../errors';
+import { Database } from './database';
+import type { ChunkEmbedding } from './embedding';
 
 // =============================================================================
 // Types
@@ -21,7 +21,7 @@ import type { ChunkEmbedding } from "./embedding";
  * Result of a semantic search operation
  */
 export interface SemanticSearchResult {
-  readonly contentType: "transcript_chunk" | "decision";
+  readonly contentType: 'transcript_chunk' | 'decision';
   readonly contentId: string;
   readonly videoId: string;
   readonly similarity: number;
@@ -55,7 +55,7 @@ export interface SemanticSearchParams {
   readonly organizationId: string;
   readonly limit?: number;
   readonly threshold?: number;
-  readonly contentTypes?: readonly ("transcript_chunk" | "decision")[];
+  readonly contentTypes?: readonly ('transcript_chunk' | 'decision')[];
   readonly videoIds?: readonly string[];
   readonly channelIds?: readonly string[];
 }
@@ -129,7 +129,7 @@ export interface SemanticSearchRepositoryService {
 // Semantic Search Repository Tag
 // =============================================================================
 
-export class SemanticSearchRepository extends Context.Tag("SemanticSearchRepository")<
+export class SemanticSearchRepository extends Context.Tag('SemanticSearchRepository')<
   SemanticSearchRepository,
   SemanticSearchRepositoryService
 >() {}
@@ -173,8 +173,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to save transcript chunks",
-          operation: "saveTranscriptChunks",
+          message: 'Failed to save transcript chunks',
+          operation: 'saveTranscriptChunks',
           cause: error,
         }),
     });
@@ -186,8 +186,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete transcript chunks",
-          operation: "deleteTranscriptChunks",
+          message: 'Failed to delete transcript chunks',
+          operation: 'deleteTranscriptChunks',
           cause: error,
         }),
     });
@@ -203,8 +203,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check embeddings",
-          operation: "hasEmbeddings",
+          message: 'Failed to check embeddings',
+          operation: 'hasEmbeddings',
           cause: error,
         }),
     });
@@ -217,11 +217,11 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
         const { queryEmbedding, organizationId, limit = 20, threshold = 0.7, contentTypes, videoIds } = params;
 
         // Convert embedding array to PostgreSQL vector format
-        const embeddingStr = `[${queryEmbedding.join(",")}]`;
+        const embeddingStr = `[${queryEmbedding.join(',')}]`;
 
         // Build content type filter
-        const includeChunks = !contentTypes || contentTypes.includes("transcript_chunk");
-        const includeDecisions = !contentTypes || contentTypes.includes("decision");
+        const includeChunks = !contentTypes || contentTypes.includes('transcript_chunk');
+        const includeDecisions = !contentTypes || contentTypes.includes('decision');
 
         const results: SemanticSearchResult[] = [];
 
@@ -253,7 +253,7 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
 
           for (const row of chunkResults) {
             results.push({
-              contentType: "transcript_chunk",
+              contentType: 'transcript_chunk',
               contentId: row.id,
               videoId: row.video_id,
               similarity: row.similarity,
@@ -292,7 +292,7 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
 
           for (const row of decisionResults) {
             results.push({
-              contentType: "decision",
+              contentType: 'decision',
               contentId: row.id,
               videoId: row.video_id,
               similarity: row.similarity,
@@ -308,8 +308,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to perform semantic search",
-          operation: "semanticSearch",
+          message: 'Failed to perform semantic search',
+          operation: 'semanticSearch',
           cause: error,
         }),
     });
@@ -372,8 +372,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch videos for semantic search",
-            operation: "semanticSearchWithVideos",
+            message: 'Failed to fetch videos for semantic search',
+            operation: 'semanticSearchWithVideos',
             cause: error,
           }),
       });
@@ -488,8 +488,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to find similar videos",
-          operation: "findSimilarVideos",
+          message: 'Failed to find similar videos',
+          operation: 'findSimilarVideos',
           cause: error,
         }),
     });
@@ -505,8 +505,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get transcript chunks",
-          operation: "getTranscriptChunks",
+          message: 'Failed to get transcript chunks',
+          operation: 'getTranscriptChunks',
           cause: error,
         }),
     });
@@ -534,8 +534,8 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get videos needing embeddings",
-          operation: "getVideosNeedingEmbeddings",
+          message: 'Failed to get videos needing embeddings',
+          operation: 'getVideosNeedingEmbeddings',
           cause: error,
         }),
     });

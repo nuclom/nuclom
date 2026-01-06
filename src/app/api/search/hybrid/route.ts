@@ -1,14 +1,14 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { connection } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import type { SearchFilters } from "@/lib/db/schema";
-import { MissingFieldError, SearchRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Embedding } from "@/lib/effect/services/embedding";
-import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-repository";
-import type { VideoWithAuthor } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { connection } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import type { SearchFilters } from '@/lib/db/schema';
+import { MissingFieldError, SearchRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Embedding } from '@/lib/effect/services/embedding';
+import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
+import type { VideoWithAuthor } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Types
@@ -25,7 +25,7 @@ interface HybridSearchResult {
     transcript?: string;
   };
   semanticMatch?: {
-    contentType: "transcript_chunk" | "decision";
+    contentType: 'transcript_chunk' | 'decision';
     textPreview: string;
     timestampStart?: number;
     timestampEnd?: number;
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   await connection();
 
   const SearchFiltersSchema = Schema.Struct({
-    types: Schema.optional(Schema.Array(Schema.Literal("video", "series", "channel"))),
+    types: Schema.optional(Schema.Array(Schema.Literal('video', 'series', 'channel'))),
     authorId: Schema.optional(Schema.String),
     channelId: Schema.optional(Schema.String),
     collectionId: Schema.optional(Schema.String),
@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     hasAiSummary: Schema.optional(Schema.Boolean),
     processingStatus: Schema.optional(Schema.String),
     tags: Schema.optional(Schema.Array(Schema.String)),
-    sortBy: Schema.optional(Schema.Literal("relevance", "date", "title")),
-    sortOrder: Schema.optional(Schema.Literal("asc", "desc")),
+    sortBy: Schema.optional(Schema.Literal('relevance', 'date', 'title')),
+    sortOrder: Schema.optional(Schema.Literal('asc', 'desc')),
   });
 
   const HybridSearchBodySchema = Schema.Struct({
@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
     if (!query || !query.trim()) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "query",
-          message: "Search query is required",
+          field: 'query',
+          message: 'Search query is required',
         }),
       );
     }
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
         limit,
         totalPages: Math.ceil(allResults.length / limit),
       },
-      searchMode: "hybrid",
+      searchMode: 'hybrid',
       weights: {
         keyword: keywordWeight,
         semantic: semanticWeight,
@@ -225,20 +225,20 @@ export async function GET(request: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || "";
-    const organizationId = searchParams.get("organizationId");
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-    const semanticWeight = parseFloat(searchParams.get("semanticWeight") || "0.5");
-    const semanticThreshold = parseFloat(searchParams.get("threshold") || "0.6");
+    const query = searchParams.get('q') || '';
+    const organizationId = searchParams.get('organizationId');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+    const semanticWeight = parseFloat(searchParams.get('semanticWeight') || '0.5');
+    const semanticThreshold = parseFloat(searchParams.get('threshold') || '0.6');
 
     // Parse filters
-    const authorId = searchParams.get("authorId");
-    const channelId = searchParams.get("channelId");
-    const collectionId = searchParams.get("collectionId");
-    const processingStatus = searchParams.get("processingStatus");
-    const dateFrom = searchParams.get("dateFrom");
-    const dateTo = searchParams.get("dateTo");
+    const authorId = searchParams.get('authorId');
+    const channelId = searchParams.get('channelId');
+    const collectionId = searchParams.get('collectionId');
+    const processingStatus = searchParams.get('processingStatus');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
 
     const filters: SearchFilters = {
       ...(authorId && { authorId }),
@@ -252,8 +252,8 @@ export async function GET(request: NextRequest) {
     if (!query.trim()) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "q",
-          message: "Search query is required",
+          field: 'q',
+          message: 'Search query is required',
         }),
       );
     }
@@ -261,8 +261,8 @@ export async function GET(request: NextRequest) {
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -358,7 +358,7 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: Math.ceil(allResults.length / limit),
       },
-      searchMode: "hybrid",
+      searchMode: 'hybrid',
       weights: {
         keyword: keywordWeight,
         semantic: semanticWeight,

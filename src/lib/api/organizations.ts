@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { members, organizations } from "@/lib/db/schema";
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { members, organizations } from '@/lib/db/schema';
 
 export async function createOrganization(data: { name: string; slug: string; logo?: string; userId: string }) {
   const newOrganization = await db.transaction(async (tx) => {
@@ -21,7 +21,7 @@ export async function createOrganization(data: { name: string; slug: string; log
       id: crypto.randomUUID(),
       organizationId: org[0].id,
       userId: data.userId,
-      role: "owner",
+      role: 'owner',
       createdAt: new Date(),
     });
 

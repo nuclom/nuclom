@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { CheckCircle, Clock, Lightbulb, Loader2, MessageSquare, Play, Plus, Share2, Target } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import type { MomentType } from "@/lib/db/schema";
-import { copyToClipboard } from "@/lib/notifications";
-import { cn } from "@/lib/utils";
+import { CheckCircle, Clock, Lightbulb, Loader2, MessageSquare, Play, Plus, Share2, Target } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { MomentType } from '@/lib/db/schema';
+import { copyToClipboard } from '@/lib/notifications';
+import { cn } from '@/lib/utils';
 
 interface Moment {
   id: string;
@@ -27,20 +27,20 @@ interface MomentsPanelProps {
 }
 
 const momentTypeConfig: Record<MomentType, { icon: React.ElementType; label: string; color: string }> = {
-  decision: { icon: Target, label: "Decision", color: "bg-purple-500/10 text-purple-500" },
-  action_item: { icon: CheckCircle, label: "Action Item", color: "bg-green-500/10 text-green-500" },
-  question: { icon: MessageSquare, label: "Question", color: "bg-blue-500/10 text-blue-500" },
-  answer: { icon: MessageSquare, label: "Answer", color: "bg-cyan-500/10 text-cyan-500" },
-  emphasis: { icon: Lightbulb, label: "Key Point", color: "bg-yellow-500/10 text-yellow-500" },
-  demonstration: { icon: Play, label: "Demo", color: "bg-orange-500/10 text-orange-500" },
-  conclusion: { icon: CheckCircle, label: "Conclusion", color: "bg-indigo-500/10 text-indigo-500" },
-  highlight: { icon: Lightbulb, label: "Highlight", color: "bg-pink-500/10 text-pink-500" },
+  decision: { icon: Target, label: 'Decision', color: 'bg-purple-500/10 text-purple-500' },
+  action_item: { icon: CheckCircle, label: 'Action Item', color: 'bg-green-500/10 text-green-500' },
+  question: { icon: MessageSquare, label: 'Question', color: 'bg-blue-500/10 text-blue-500' },
+  answer: { icon: MessageSquare, label: 'Answer', color: 'bg-cyan-500/10 text-cyan-500' },
+  emphasis: { icon: Lightbulb, label: 'Key Point', color: 'bg-yellow-500/10 text-yellow-500' },
+  demonstration: { icon: Play, label: 'Demo', color: 'bg-orange-500/10 text-orange-500' },
+  conclusion: { icon: CheckCircle, label: 'Conclusion', color: 'bg-indigo-500/10 text-indigo-500' },
+  highlight: { icon: Lightbulb, label: 'Highlight', color: 'bg-pink-500/10 text-pink-500' },
 };
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function MomentsPanel({ videoId, onSeek, onCreateClip }: MomentsPanelProps) {
@@ -54,12 +54,12 @@ export function MomentsPanel({ videoId, onSeek, onCreateClip }: MomentsPanelProp
         setIsLoading(true);
         const response = await fetch(`/api/videos/${videoId}/moments?minConfidence=50`);
         if (!response.ok) {
-          throw new Error("Failed to fetch moments");
+          throw new Error('Failed to fetch moments');
         }
         const data = await response.json();
         setMoments(data.data?.moments || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load moments");
+        setError(err instanceof Error ? err.message : 'Failed to load moments');
       } finally {
         setIsLoading(false);
       }
@@ -110,7 +110,7 @@ export function MomentsPanel({ videoId, onSeek, onCreateClip }: MomentsPanelProp
                 onClick={() => onSeek?.(moment.startTime)}
               >
                 <div className="flex items-start gap-2">
-                  <div className={cn("p-1.5 rounded-md", config.color)}>
+                  <div className={cn('p-1.5 rounded-md', config.color)}>
                     <Icon className="h-3.5 w-3.5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -159,8 +159,8 @@ export function MomentsPanel({ videoId, onSeek, onCreateClip }: MomentsPanelProp
                         onClick={(e) => {
                           e.stopPropagation();
                           const url = new URL(window.location.href);
-                          url.searchParams.set("t", String(Math.floor(moment.startTime)));
-                          copyToClipboard(url.toString(), "Moment link copied");
+                          url.searchParams.set('t', String(Math.floor(moment.startTime)));
+                          copyToClipboard(url.toString(), 'Moment link copied');
                         }}
                       >
                         <Share2 className="h-3 w-3 mr-1" />

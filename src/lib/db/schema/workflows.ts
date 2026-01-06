@@ -6,11 +6,11 @@
  * - videoWorkflowHistory: History of workflows applied to videos
  */
 
-import { relations } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { organizations, users } from "./auth";
-import { workflowTemplateTypeEnum } from "./enums";
-import { videos } from "./videos";
+import { relations } from 'drizzle-orm';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { organizations, users } from './auth';
+import { workflowTemplateTypeEnum } from './enums';
+import { videos } from './videos';
 
 // =============================================================================
 // JSONB Types
@@ -26,7 +26,7 @@ export type WorkflowTemplateConfig = {
   defaultChannel?: string;
   autoShareSettings?: {
     enabled?: boolean;
-    accessLevel?: "view" | "comment" | "download";
+    accessLevel?: 'view' | 'comment' | 'download';
     expiresInDays?: number;
   };
   notifyOnComplete?: boolean;
@@ -40,24 +40,24 @@ export type WorkflowTemplateConfig = {
 // Workflow Templates
 // =============================================================================
 
-export const workflowTemplates = pgTable("workflow_templates", {
-  id: text("id")
+export const workflowTemplates = pgTable('workflow_templates', {
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: text("name").notNull(),
-  description: text("description"),
-  type: workflowTemplateTypeEnum("type").default("custom").notNull(),
-  icon: text("icon"), // Lucide icon name
+  name: text('name').notNull(),
+  description: text('description'),
+  type: workflowTemplateTypeEnum('type').default('custom').notNull(),
+  icon: text('icon'), // Lucide icon name
   // Template configuration
-  config: jsonb("config").$type<WorkflowTemplateConfig>().notNull(),
+  config: jsonb('config').$type<WorkflowTemplateConfig>().notNull(),
   // Ownership - null means system template
-  organizationId: text("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
-  createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
-  isSystem: boolean("is_system").default(false).notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  usageCount: integer("usage_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'cascade' }),
+  createdById: text('created_by_id').references(() => users.id, { onDelete: 'set null' }),
+  isSystem: boolean('is_system').default(false).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  usageCount: integer('usage_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // =============================================================================
@@ -65,23 +65,23 @@ export const workflowTemplates = pgTable("workflow_templates", {
 // =============================================================================
 
 export const videoWorkflowHistory = pgTable(
-  "video_workflow_history",
+  'video_workflow_history',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    templateId: text("template_id").references(() => workflowTemplates.id, { onDelete: "set null" }),
-    templateName: text("template_name").notNull(), // Denormalized for history
-    appliedConfig: jsonb("applied_config").notNull(),
-    appliedAt: timestamp("applied_at").defaultNow().notNull(),
-    appliedById: text("applied_by_id").references(() => users.id, { onDelete: "set null" }),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    templateId: text('template_id').references(() => workflowTemplates.id, { onDelete: 'set null' }),
+    templateName: text('template_name').notNull(), // Denormalized for history
+    appliedConfig: jsonb('applied_config').notNull(),
+    appliedAt: timestamp('applied_at').defaultNow().notNull(),
+    appliedById: text('applied_by_id').references(() => users.id, { onDelete: 'set null' }),
   },
   (table) => [
-    index("video_workflow_history_video_idx").on(table.videoId),
-    index("video_workflow_history_template_idx").on(table.templateId),
+    index('video_workflow_history_video_idx').on(table.videoId),
+    index('video_workflow_history_template_idx').on(table.templateId),
   ],
 );
 

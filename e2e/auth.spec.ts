@@ -1,57 +1,57 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 
-test.describe("Login Page", () => {
+test.describe('Login Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
+    await page.goto('/login');
   });
 
-  test("should display login form", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
-    await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+  test('should display login form', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
+    await expect(page.getByLabel('Email')).toBeVisible();
+    await expect(page.getByLabel('Password')).toBeVisible();
+    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
 
-  test("should have GitHub OAuth button", async ({ page }) => {
-    await expect(page.getByRole("button", { name: /github/i })).toBeVisible();
+  test('should have GitHub OAuth button', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /github/i })).toBeVisible();
   });
 
-  test("should have link to register page", async ({ page }) => {
+  test('should have link to register page', async ({ page }) => {
     await expect(page.getByText(/don't have an account/i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /sign up/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible();
   });
 
-  test("should navigate to register page", async ({ page }) => {
-    await page.getByRole("link", { name: /sign up/i }).click();
+  test('should navigate to register page', async ({ page }) => {
+    await page.getByRole('link', { name: /sign up/i }).click();
     await expect(page).toHaveURL(/\/register/);
   });
 
-  test("should show validation for empty form submission", async ({ page }) => {
-    await page.getByRole("button", { name: /sign in/i }).click();
+  test('should show validation for empty form submission', async ({ page }) => {
+    await page.getByRole('button', { name: /sign in/i }).click();
 
     // HTML5 validation should prevent submission
-    const emailInput = page.getByLabel("Email");
-    await expect(emailInput).toHaveAttribute("required");
+    const emailInput = page.getByLabel('Email');
+    await expect(emailInput).toHaveAttribute('required');
   });
 
-  test("should toggle password visibility", async ({ page }) => {
-    const passwordInput = page.getByLabel("Password");
-    await passwordInput.fill("testpassword");
+  test('should toggle password visibility', async ({ page }) => {
+    const passwordInput = page.getByLabel('Password');
+    await passwordInput.fill('testpassword');
 
     // Initially password should be hidden
-    await expect(passwordInput).toHaveAttribute("type", "password");
+    await expect(passwordInput).toHaveAttribute('type', 'password');
 
     // Click the toggle button (eye icon)
-    await page.locator("button").filter({ hasText: "" }).last().click();
+    await page.locator('button').filter({ hasText: '' }).last().click();
 
     // Password should now be visible
-    await expect(passwordInput).toHaveAttribute("type", "text");
+    await expect(passwordInput).toHaveAttribute('type', 'text');
   });
 
-  test("should show error for invalid credentials", async ({ page }) => {
-    await page.getByLabel("Email").fill("invalid@example.com");
-    await page.getByLabel("Password").fill("wrongpassword");
-    await page.getByRole("button", { name: /sign in/i }).click();
+  test('should show error for invalid credentials', async ({ page }) => {
+    await page.getByLabel('Email').fill('invalid@example.com');
+    await page.getByLabel('Password').fill('wrongpassword');
+    await page.getByRole('button', { name: /sign in/i }).click();
 
     // Wait for error message (API response)
     await expect(page.getByText(/failed|error|invalid/i))
@@ -62,41 +62,41 @@ test.describe("Login Page", () => {
   });
 });
 
-test.describe("Register Page", () => {
+test.describe('Register Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/register");
+    await page.goto('/register');
   });
 
-  test("should display registration form", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: /create account/i })).toBeVisible();
-    await expect(page.getByLabel("Full Name")).toBeVisible();
-    await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
-    await expect(page.getByLabel("Confirm Password")).toBeVisible();
-    await expect(page.getByRole("button", { name: /create account/i })).toBeVisible();
+  test('should display registration form', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /create account/i })).toBeVisible();
+    await expect(page.getByLabel('Full Name')).toBeVisible();
+    await expect(page.getByLabel('Email')).toBeVisible();
+    await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Confirm Password')).toBeVisible();
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();
   });
 
-  test("should have GitHub OAuth button", async ({ page }) => {
-    await expect(page.getByRole("button", { name: /github/i })).toBeVisible();
+  test('should have GitHub OAuth button', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /github/i })).toBeVisible();
   });
 
-  test("should have link to login page", async ({ page }) => {
+  test('should have link to login page', async ({ page }) => {
     await expect(page.getByText(/already have an account/i)).toBeVisible();
-    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible();
   });
 
-  test("should navigate to login page", async ({ page }) => {
-    await page.getByRole("link", { name: /sign in/i }).click();
+  test('should navigate to login page', async ({ page }) => {
+    await page.getByRole('link', { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test("should validate password match", async ({ page }) => {
-    await page.getByLabel("Full Name").fill("Test User");
-    await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password", { exact: true }).fill("password123");
-    await page.getByLabel("Confirm Password").fill("differentpassword");
+  test('should validate password match', async ({ page }) => {
+    await page.getByLabel('Full Name').fill('Test User');
+    await page.getByLabel('Email').fill('test@example.com');
+    await page.getByLabel('Password', { exact: true }).fill('password123');
+    await page.getByLabel('Confirm Password').fill('differentpassword');
 
-    await page.getByRole("button", { name: /create account/i }).click();
+    await page.getByRole('button', { name: /create account/i }).click();
 
     // Should show password mismatch error
     await expect(page.getByText(/passwords do not match/i))
@@ -106,13 +106,13 @@ test.describe("Register Page", () => {
       });
   });
 
-  test("should validate minimum password length", async ({ page }) => {
-    await page.getByLabel("Full Name").fill("Test User");
-    await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password", { exact: true }).fill("short");
-    await page.getByLabel("Confirm Password").fill("short");
+  test('should validate minimum password length', async ({ page }) => {
+    await page.getByLabel('Full Name').fill('Test User');
+    await page.getByLabel('Email').fill('test@example.com');
+    await page.getByLabel('Password', { exact: true }).fill('short');
+    await page.getByLabel('Confirm Password').fill('short');
 
-    await page.getByRole("button", { name: /create account/i }).click();
+    await page.getByRole('button', { name: /create account/i }).click();
 
     // Should show password length error
     await expect(page.getByText(/at least 8 characters/i))
@@ -122,35 +122,35 @@ test.describe("Register Page", () => {
       });
   });
 
-  test("should toggle password visibility", async ({ page }) => {
-    const passwordInput = page.getByLabel("Password", { exact: true });
-    await passwordInput.fill("testpassword");
+  test('should toggle password visibility', async ({ page }) => {
+    const passwordInput = page.getByLabel('Password', { exact: true });
+    await passwordInput.fill('testpassword');
 
     // Initially password should be hidden
-    await expect(passwordInput).toHaveAttribute("type", "password");
+    await expect(passwordInput).toHaveAttribute('type', 'password');
   });
 });
 
-test.describe("Authentication Flow", () => {
-  test("unauthenticated user is redirected from protected routes", async ({ page }) => {
+test.describe('Authentication Flow', () => {
+  test('unauthenticated user is redirected from protected routes', async ({ page }) => {
     // Clear any existing cookies
     await page.context().clearCookies();
 
     // Try to access a protected route
-    await page.goto("/vercel");
+    await page.goto('/vercel');
 
     // Should redirect to landing or login
     await expect(page).toHaveURL(/^\/$|\/login|\/auth/);
   });
 
-  test("login form disables during submission", async ({ page }) => {
-    await page.goto("/login");
+  test('login form disables during submission', async ({ page }) => {
+    await page.goto('/login');
 
-    await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password").fill("testpassword123");
+    await page.getByLabel('Email').fill('test@example.com');
+    await page.getByLabel('Password').fill('testpassword123');
 
     // Start form submission
-    const submitButton = page.getByRole("button", { name: /sign in/i });
+    const submitButton = page.getByRole('button', { name: /sign in/i });
     await submitButton.click();
 
     // Button should show loading state

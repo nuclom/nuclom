@@ -1,13 +1,13 @@
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { DashboardHero } from "@/components/dashboard/dashboard-hero";
-import { VideoSection } from "@/components/dashboard/video-section";
-import { GettingStartedChecklist } from "@/components/getting-started-checklist";
-import { auth } from "@/lib/auth";
-import type { Organization } from "@/lib/db/schema";
-import { getCachedOrganizationBySlug, getCachedVideos } from "@/lib/effect";
+import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { VideoSection } from '@/components/dashboard/video-section';
+import { GettingStartedChecklist } from '@/components/getting-started-checklist';
+import { auth } from '@/lib/auth';
+import type { Organization } from '@/lib/db/schema';
+import { getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
 
 // =============================================================================
 // Loading Skeleton Component
@@ -135,7 +135,7 @@ async function DashboardLoader({ params }: { params: Promise<{ organization: str
   });
 
   if (!session) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   // Get organization by slug using cached Effect query

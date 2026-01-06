@@ -1,13 +1,13 @@
 // biome-ignore-all lint/correctness/noProcessGlobal: "This is a env file"
 
-import { Schema } from "effect";
+import { Schema } from 'effect';
 
 export const ClientEnv = Schema.Struct({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: Schema.optional(Schema.String),
   // Vercel automatic environment variables
   NEXT_PUBLIC_VERCEL_URL: Schema.optional(Schema.String),
   NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
-  NEXT_PUBLIC_VERCEL_ENV: Schema.optional(Schema.Literal("production", "preview", "development")),
+  NEXT_PUBLIC_VERCEL_ENV: Schema.optional(Schema.Literal('production', 'preview', 'development')),
 });
 
 export type ClientEnvType = typeof ClientEnv.Type;
@@ -28,7 +28,7 @@ export const env = Schema.decodeUnknownSync(ClientEnv)({
  */
 export function getAppUrl(): string {
   // Production environment - use the production URL
-  if (env.NEXT_PUBLIC_VERCEL_ENV === "production" && env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
+  if (env.NEXT_PUBLIC_VERCEL_ENV === 'production' && env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`;
   }
 
@@ -38,5 +38,5 @@ export function getAppUrl(): string {
   }
 
   // Local development fallback
-  return "http://localhost:3000";
+  return 'http://localhost:3000';
 }

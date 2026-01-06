@@ -1,11 +1,11 @@
-import { ArrowLeft, Clock, Mail, MapPin, Phone, Play } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Clock, Mail, MapPin, Phone, Play } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function ContactPage() {
   return (
@@ -149,11 +149,11 @@ export default function ContactPage() {
                   </Button>
 
                   <p className="text-sm text-muted-foreground text-center">
-                    By submitting this form, you agree to our{" "}
+                    By submitting this form, you agree to our{' '}
                     <Link href="/privacy" className="text-primary hover:underline">
                       Privacy Policy
-                    </Link>{" "}
-                    and{" "}
+                    </Link>{' '}
+                    and{' '}
                     <Link href="/terms" className="text-primary hover:underline">
                       Terms of Service
                     </Link>

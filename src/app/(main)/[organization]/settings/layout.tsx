@@ -1,5 +1,5 @@
-import type React from "react";
-import { SettingsSidebar } from "@/components/settings-sidebar";
+import type React from 'react';
+import { SettingsSidebar } from '@/components/settings-sidebar';
 
 export default async function SettingsLayout({
   children,

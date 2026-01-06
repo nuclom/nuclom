@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface Keyword {
   word: string;
@@ -28,16 +28,16 @@ interface KeywordCloudProps {
 function getWeightStyles(weight: number) {
   // Weight is 1-10, map to font size and opacity
   const sizes = [
-    "text-xs",
-    "text-xs",
-    "text-sm",
-    "text-sm",
-    "text-base",
-    "text-base",
-    "text-lg",
-    "text-lg",
-    "text-xl",
-    "text-2xl",
+    'text-xs',
+    'text-xs',
+    'text-sm',
+    'text-sm',
+    'text-base',
+    'text-base',
+    'text-lg',
+    'text-lg',
+    'text-xl',
+    'text-2xl',
   ];
 
   const opacities = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 1];
@@ -50,14 +50,14 @@ function getWeightStyles(weight: number) {
 
 function getColorClass(index: number) {
   const colors = [
-    "text-blue-600 dark:text-blue-400",
-    "text-green-600 dark:text-green-400",
-    "text-purple-600 dark:text-purple-400",
-    "text-orange-600 dark:text-orange-400",
-    "text-pink-600 dark:text-pink-400",
-    "text-cyan-600 dark:text-cyan-400",
-    "text-yellow-600 dark:text-yellow-400",
-    "text-red-600 dark:text-red-400",
+    'text-blue-600 dark:text-blue-400',
+    'text-green-600 dark:text-green-400',
+    'text-purple-600 dark:text-purple-400',
+    'text-orange-600 dark:text-orange-400',
+    'text-pink-600 dark:text-pink-400',
+    'text-cyan-600 dark:text-cyan-400',
+    'text-yellow-600 dark:text-yellow-400',
+    'text-red-600 dark:text-red-400',
   ];
   return colors[index % colors.length];
 }
@@ -100,7 +100,7 @@ export function KeywordCloud({ keywords, categories, summary }: KeywordCloudProp
                   <span
                     key={keyword.word}
                     className={cn(
-                      "px-2 py-1 rounded hover:bg-muted transition-colors cursor-default",
+                      'px-2 py-1 rounded hover:bg-muted transition-colors cursor-default',
                       fontSize,
                       getColorClass(index),
                     )}
@@ -188,7 +188,7 @@ export function KeywordCloud({ keywords, categories, summary }: KeywordCloudProp
       )}
 
       {/* Top Keywords List */}
-      <Card className={cn(categories ? "" : "md:col-span-2")}>
+      <Card className={cn(categories ? '' : 'md:col-span-2')}>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Top Keywords</CardTitle>
           <CardDescription>Most frequently mentioned terms</CardDescription>

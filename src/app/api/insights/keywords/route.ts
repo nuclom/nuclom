@@ -1,11 +1,11 @@
-import { and, count, desc, eq, gte } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { aiTopics, decisions, knowledgeNodes } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, count, desc, eq, gte } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { aiTopics, decisions, knowledgeNodes } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,7 +13,7 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
   limit: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.between(10, 100)), {
     default: () => 50,
   }),
@@ -26,154 +26,154 @@ const querySchema = Schema.Struct({
 function extractKeywords(text: string): string[] {
   // Common stop words to filter out
   const stopWords = new Set([
-    "a",
-    "an",
-    "the",
-    "and",
-    "or",
-    "but",
-    "in",
-    "on",
-    "at",
-    "to",
-    "for",
-    "of",
-    "with",
-    "by",
-    "from",
-    "up",
-    "about",
-    "into",
-    "over",
-    "after",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "being",
-    "have",
-    "has",
-    "had",
-    "do",
-    "does",
-    "did",
-    "will",
-    "would",
-    "could",
-    "should",
-    "may",
-    "might",
-    "must",
-    "shall",
-    "can",
-    "need",
-    "dare",
-    "ought",
-    "used",
-    "it",
-    "its",
-    "they",
-    "them",
-    "their",
-    "this",
-    "that",
-    "these",
-    "those",
-    "i",
-    "me",
-    "my",
-    "myself",
-    "we",
-    "our",
-    "ours",
-    "ourselves",
-    "you",
-    "your",
-    "yours",
-    "he",
-    "him",
-    "his",
-    "she",
-    "her",
-    "hers",
-    "who",
-    "whom",
-    "which",
-    "what",
-    "where",
-    "when",
-    "why",
-    "how",
-    "all",
-    "each",
-    "every",
-    "both",
-    "few",
-    "more",
-    "most",
-    "other",
-    "some",
-    "such",
-    "no",
-    "nor",
-    "not",
-    "only",
-    "own",
-    "same",
-    "so",
-    "than",
-    "too",
-    "very",
-    "just",
-    "also",
-    "now",
-    "here",
-    "there",
-    "then",
-    "once",
-    "if",
-    "unless",
-    "while",
-    "although",
-    "though",
-    "because",
-    "since",
-    "until",
-    "when",
-    "whenever",
-    "where",
-    "wherever",
-    "whether",
-    "which",
-    "whichever",
-    "whoever",
-    "whomever",
-    "going",
-    "get",
-    "got",
-    "getting",
-    "like",
-    "think",
-    "know",
-    "want",
-    "make",
-    "see",
-    "use",
-    "using",
-    "used",
-    "let",
-    "way",
-    "thing",
-    "things",
-    "something",
-    "anything",
+    'a',
+    'an',
+    'the',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'from',
+    'up',
+    'about',
+    'into',
+    'over',
+    'after',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'will',
+    'would',
+    'could',
+    'should',
+    'may',
+    'might',
+    'must',
+    'shall',
+    'can',
+    'need',
+    'dare',
+    'ought',
+    'used',
+    'it',
+    'its',
+    'they',
+    'them',
+    'their',
+    'this',
+    'that',
+    'these',
+    'those',
+    'i',
+    'me',
+    'my',
+    'myself',
+    'we',
+    'our',
+    'ours',
+    'ourselves',
+    'you',
+    'your',
+    'yours',
+    'he',
+    'him',
+    'his',
+    'she',
+    'her',
+    'hers',
+    'who',
+    'whom',
+    'which',
+    'what',
+    'where',
+    'when',
+    'why',
+    'how',
+    'all',
+    'each',
+    'every',
+    'both',
+    'few',
+    'more',
+    'most',
+    'other',
+    'some',
+    'such',
+    'no',
+    'nor',
+    'not',
+    'only',
+    'own',
+    'same',
+    'so',
+    'than',
+    'too',
+    'very',
+    'just',
+    'also',
+    'now',
+    'here',
+    'there',
+    'then',
+    'once',
+    'if',
+    'unless',
+    'while',
+    'although',
+    'though',
+    'because',
+    'since',
+    'until',
+    'when',
+    'whenever',
+    'where',
+    'wherever',
+    'whether',
+    'which',
+    'whichever',
+    'whoever',
+    'whomever',
+    'going',
+    'get',
+    'got',
+    'getting',
+    'like',
+    'think',
+    'know',
+    'want',
+    'make',
+    'see',
+    'use',
+    'using',
+    'used',
+    'let',
+    'way',
+    'thing',
+    'things',
+    'something',
+    'anything',
   ]);
 
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/[^a-z0-9\s-]/g, ' ')
     .split(/\s+/)
     .filter((word) => word.length > 2 && !stopWords.has(word))
     .slice(0, 100); // Limit per text
@@ -207,15 +207,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -224,13 +224,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -250,8 +250,8 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch topics",
-          operation: "getTopics",
+          message: 'Failed to fetch topics',
+          operation: 'getTopics',
         }),
     });
 
@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(knowledgeNodes.organizationId, organizationId),
-              eq(knowledgeNodes.type, "topic"),
+              eq(knowledgeNodes.type, 'topic'),
               gte(knowledgeNodes.createdAt, startDate),
             ),
           )
@@ -276,8 +276,8 @@ export async function GET(request: NextRequest) {
           .limit(100),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch knowledge topics",
-          operation: "getKnowledgeTopics",
+          message: 'Failed to fetch knowledge topics',
+          operation: 'getKnowledgeTopics',
         }),
     });
 
@@ -292,8 +292,8 @@ export async function GET(request: NextRequest) {
           .where(and(eq(decisions.organizationId, organizationId), gte(decisions.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch decision tags",
-          operation: "getDecisionTags",
+          message: 'Failed to fetch decision tags',
+          operation: 'getDecisionTags',
         }),
     });
 
@@ -311,8 +311,8 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch videos",
-          operation: "getVideos",
+          message: 'Failed to fetch videos',
+          operation: 'getVideos',
         }),
     });
 
@@ -392,15 +392,15 @@ export async function GET(request: NextRequest) {
     // Group keywords by category (approximate)
     const categories = {
       technical: keywords.filter((k) =>
-        ["api", "database", "code", "bug", "feature", "deploy", "test", "build", "integration"].some((t) =>
+        ['api', 'database', 'code', 'bug', 'feature', 'deploy', 'test', 'build', 'integration'].some((t) =>
           k.word.includes(t),
         ),
       ),
       product: keywords.filter((k) =>
-        ["user", "customer", "design", "ux", "ui", "experience", "feedback", "launch"].some((t) => k.word.includes(t)),
+        ['user', 'customer', 'design', 'ux', 'ui', 'experience', 'feedback', 'launch'].some((t) => k.word.includes(t)),
       ),
       process: keywords.filter((k) =>
-        ["meeting", "sprint", "review", "planning", "standup", "retro", "deadline", "timeline"].some((t) =>
+        ['meeting', 'sprint', 'review', 'planning', 'standup', 'retro', 'deadline', 'timeline'].some((t) =>
           k.word.includes(t),
         ),
       ),

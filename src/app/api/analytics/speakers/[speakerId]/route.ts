@@ -5,16 +5,16 @@
  * including participation history and speaking patterns over time.
  */
 
-import { and, desc, eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { normalizeOne } from "@/lib/db/relations";
-import { speakerProfiles, videoSpeakers } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
+import { and, desc, eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { normalizeOne } from '@/lib/db/relations';
+import { speakerProfiles, videoSpeakers } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/analytics/speakers/[speakerId] - Get individual speaker analytics
@@ -27,14 +27,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!session?.user || !session.session?.activeOrganizationId) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const organizationId = session.session.activeOrganizationId;
 
   // Parse query params
   const searchParams = request.nextUrl.searchParams;
-  const periodMonths = Number.parseInt(searchParams.get("months") || "6", 10);
+  const periodMonths = Number.parseInt(searchParams.get('months') || '6', 10);
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
@@ -58,8 +58,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speaker profile",
-          operation: "getSpeakerProfile",
+          message: 'Failed to fetch speaker profile',
+          operation: 'getSpeakerProfile',
           cause: error,
         }),
     });
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!profile) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Speaker profile not found",
-          entity: "SpeakerProfile",
+          message: 'Speaker profile not found',
+          entity: 'SpeakerProfile',
           id: speakerId,
         }),
       );
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video speakers",
-          operation: "getVideoSpeakers",
+          message: 'Failed to fetch video speakers',
+          operation: 'getVideoSpeakers',
           cause: error,
         }),
     });
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     for (const vs of filteredSpeakers) {
       if (!vs.video) continue;
-      const monthKey = `${vs.video.createdAt.getFullYear()}-${String(vs.video.createdAt.getMonth() + 1).padStart(2, "0")}`;
+      const monthKey = `${vs.video.createdAt.getFullYear()}-${String(vs.video.createdAt.getMonth() + 1).padStart(2, '0')}`;
 
       const existing = monthlyStats.get(monthKey) || {
         videoCount: 0,

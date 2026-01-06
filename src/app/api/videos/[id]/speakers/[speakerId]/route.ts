@@ -5,14 +5,14 @@
  * including getting segments and updating speaker details.
  */
 
-import { and, asc, eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { normalizeOne } from "@/lib/db/relations";
-import { speakerProfiles, speakerSegments, videoSpeakers, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
+import { and, asc, eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { normalizeOne } from '@/lib/db/relations';
+import { speakerProfiles, speakerSegments, videoSpeakers, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/videos/[id]/speakers/[speakerId] - Get speaker details and segments
@@ -32,8 +32,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -41,8 +41,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -70,8 +70,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speaker",
-          operation: "getSpeaker",
+          message: 'Failed to fetch speaker',
+          operation: 'getSpeaker',
           cause: error,
         }),
     });
@@ -79,8 +79,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!videoSpeaker) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Speaker not found in this video",
-          entity: "VideoSpeaker",
+          message: 'Speaker not found in this video',
+          entity: 'VideoSpeaker',
           id: speakerId,
         }),
       );
@@ -95,8 +95,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch segments",
-          operation: "getSegments",
+          message: 'Failed to fetch segments',
+          operation: 'getSegments',
           cause: error,
         }),
     });
@@ -158,8 +158,8 @@ export async function DELETE(
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speaker",
-          operation: "getSpeaker",
+          message: 'Failed to fetch speaker',
+          operation: 'getSpeaker',
           cause: error,
         }),
     });
@@ -167,8 +167,8 @@ export async function DELETE(
     if (!videoSpeaker) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Speaker not found in this video",
-          entity: "VideoSpeaker",
+          message: 'Speaker not found in this video',
+          entity: 'VideoSpeaker',
           id: speakerId,
         }),
       );
@@ -185,8 +185,8 @@ export async function DELETE(
             .where(eq(speakerProfiles.id, profileId)),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to unlink speaker",
-            operation: "unlinkSpeaker",
+            message: 'Failed to unlink speaker',
+            operation: 'unlinkSpeaker',
             cause: error,
           }),
       });

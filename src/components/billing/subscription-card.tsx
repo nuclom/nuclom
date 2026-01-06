@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { AlertTriangle, Calendar, CreditCard, Loader2, RefreshCw } from "lucide-react";
-import { useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from 'date-fns';
+import { AlertTriangle, Calendar, CreditCard, Loader2, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,11 +14,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import type { SubscriptionWithPlan } from "@/lib/effect/services/billing-repository";
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import type { SubscriptionWithPlan } from '@/lib/effect/services/billing-repository';
 
 interface SubscriptionCardProps {
   subscription: SubscriptionWithPlan | null;
@@ -29,9 +29,9 @@ interface SubscriptionCardProps {
 }
 
 const formatPrice = (cents: number): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(cents / 100);
@@ -42,25 +42,25 @@ const getStatusBadge = (status: string, cancelAtPeriodEnd: boolean) => {
     return <Badge variant="destructive">Canceling</Badge>;
   }
 
-  const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-    active: { variant: "default", label: "Active" },
-    trialing: { variant: "secondary", label: "Trial" },
-    past_due: { variant: "destructive", label: "Past Due" },
-    canceled: { variant: "outline", label: "Canceled" },
-    incomplete: { variant: "outline", label: "Incomplete" },
-    unpaid: { variant: "destructive", label: "Unpaid" },
+  const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
+    active: { variant: 'default', label: 'Active' },
+    trialing: { variant: 'secondary', label: 'Trial' },
+    past_due: { variant: 'destructive', label: 'Past Due' },
+    canceled: { variant: 'outline', label: 'Canceled' },
+    incomplete: { variant: 'outline', label: 'Incomplete' },
+    unpaid: { variant: 'destructive', label: 'Unpaid' },
   };
 
-  const config = variants[status] || { variant: "outline" as const, label: status };
+  const config = variants[status] || { variant: 'outline' as const, label: status };
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
 // Plan display names and prices (synced with pricing.md)
 const PLAN_DISPLAY_INFO: Record<string, { displayName: string; monthlyPrice: number }> = {
-  free: { displayName: "Free", monthlyPrice: 0 },
-  scale: { displayName: "Scale", monthlyPrice: 2500 }, // $25.00/user/month
-  pro: { displayName: "Pro", monthlyPrice: 4500 }, // $45.00/user/month
-  enterprise: { displayName: "Enterprise", monthlyPrice: 0 }, // Custom pricing
+  free: { displayName: 'Free', monthlyPrice: 0 },
+  scale: { displayName: 'Scale', monthlyPrice: 2500 }, // $25.00/user/month
+  pro: { displayName: 'Pro', monthlyPrice: 4500 }, // $45.00/user/month
+  enterprise: { displayName: 'Enterprise', monthlyPrice: 0 }, // Custom pricing
 };
 
 export function SubscriptionCard({
@@ -124,9 +124,9 @@ export function SubscriptionCard({
     );
   }
 
-  const isPastDue = subscription.status === "past_due";
+  const isPastDue = subscription.status === 'past_due';
   const isCanceled = subscription.cancelAtPeriodEnd;
-  const isTrialing = subscription.status === "trialing";
+  const isTrialing = subscription.status === 'trialing';
 
   // Get plan display info - use local plan info if available, otherwise fall back to plan name
   const planName = subscription.plan;
@@ -142,7 +142,7 @@ export function SubscriptionCard({
             <CardTitle>Current Plan</CardTitle>
             <CardDescription>Your subscription details</CardDescription>
           </div>
-          {getStatusBadge(subscription.status ?? "active", subscription.cancelAtPeriodEnd ?? false)}
+          {getStatusBadge(subscription.status ?? 'active', subscription.cancelAtPeriodEnd ?? false)}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -161,10 +161,10 @@ export function SubscriptionCard({
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Subscription Canceling</AlertTitle>
             <AlertDescription>
-              Your subscription will be canceled at the end of the current billing period on{" "}
+              Your subscription will be canceled at the end of the current billing period on{' '}
               {subscription.periodEnd
-                ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
-                : "the end of this period"}
+                ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
+                : 'the end of this period'}
               .
             </AlertDescription>
           </Alert>
@@ -179,16 +179,16 @@ export function SubscriptionCard({
 
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              {isTrialing ? "Trial Ends" : "Next Billing Date"}
+              {isTrialing ? 'Trial Ends' : 'Next Billing Date'}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <p className="text-lg">
                 {isTrialing && subscription.trialEnd
-                  ? format(new Date(subscription.trialEnd), "MMMM d, yyyy")
+                  ? format(new Date(subscription.trialEnd), 'MMMM d, yyyy')
                   : subscription.periodEnd
-                    ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
-                    : "—"}
+                    ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
+                    : '—'}
               </p>
             </div>
           </div>
@@ -217,10 +217,10 @@ export function SubscriptionCard({
                   <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
                   <AlertDialogDescription>
                     Are you sure you want to cancel your subscription? You will retain access until the end of your
-                    current billing period on{" "}
+                    current billing period on{' '}
                     {subscription.periodEnd
-                      ? format(new Date(subscription.periodEnd), "MMMM d, yyyy")
-                      : "the end of this period"}
+                      ? format(new Date(subscription.periodEnd), 'MMMM d, yyyy')
+                      : 'the end of this period'}
                     .
                   </AlertDialogDescription>
                 </AlertDialogHeader>

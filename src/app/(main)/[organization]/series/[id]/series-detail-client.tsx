@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { ArrowLeft, Pencil, Play, Plus, Trash2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { SeriesForm, SortableVideoList, VideoPicker } from "@/components/series";
+import { ArrowLeft, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { SeriesForm, SortableVideoList, VideoPicker } from '@/components/series';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import type { SeriesProgressWithDetails, SeriesWithVideos } from "@/lib/types";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import type { SeriesProgressWithDetails, SeriesWithVideos } from '@/lib/types';
 
 interface SeriesDetailClientProps {
   organization: string;
@@ -47,13 +47,13 @@ export function SeriesDetailClient({
   const handleReorder = async (videoIds: string[]) => {
     try {
       const response = await fetch(`/api/series/${series.id}/videos`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoIds }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to reorder videos");
+        throw new Error('Failed to reorder videos');
       }
 
       // Update local state with new order
@@ -69,7 +69,7 @@ export function SeriesDetailClient({
         videos: reorderedVideos as typeof prev.videos,
       }));
     } catch (error) {
-      console.error("Failed to reorder videos:", error);
+      console.error('Failed to reorder videos:', error);
       throw error;
     }
   };
@@ -77,11 +77,11 @@ export function SeriesDetailClient({
   const handleRemoveVideo = async (videoId: string) => {
     try {
       const response = await fetch(`/api/series/${series.id}/videos/${videoId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to remove video");
+        throw new Error('Failed to remove video');
       }
 
       setSeries((prev) => ({
@@ -90,7 +90,7 @@ export function SeriesDetailClient({
         videoCount: prev.videoCount - 1,
       }));
     } catch (error) {
-      console.error("Failed to remove video:", error);
+      console.error('Failed to remove video:', error);
       throw error;
     }
   };
@@ -105,16 +105,16 @@ export function SeriesDetailClient({
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/series/${series.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete series");
+        throw new Error('Failed to delete series');
       }
 
       router.push(`/${organization}/series`);
     } catch (error) {
-      console.error("Failed to delete series:", error);
+      console.error('Failed to delete series:', error);
       setIsDeleting(false);
     }
   };
@@ -127,7 +127,7 @@ export function SeriesDetailClient({
         setSeries(data);
       }
     } catch (error) {
-      console.error("Failed to fetch series:", error);
+      console.error('Failed to fetch series:', error);
     }
   };
 
@@ -156,7 +156,7 @@ export function SeriesDetailClient({
       <div className="flex flex-col md:flex-row gap-6">
         <div className="relative w-full md:w-80 aspect-video rounded-lg overflow-hidden flex-shrink-0">
           <Image
-            src={series.thumbnailUrl || series.videos[0]?.video.thumbnailUrl || "/placeholder.svg"}
+            src={series.thumbnailUrl || series.videos[0]?.video.thumbnailUrl || '/placeholder.svg'}
             alt={series.name}
             fill
             className="object-cover"
@@ -174,7 +174,7 @@ export function SeriesDetailClient({
 
           <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
             <span>
-              {series.videoCount} video{series.videoCount !== 1 ? "s" : ""}
+              {series.videoCount} video{series.videoCount !== 1 ? 's' : ''}
             </span>
             {hasProgress && (
               <>
@@ -193,7 +193,7 @@ export function SeriesDetailClient({
               <Button asChild>
                 <Link href={`/${organization}/videos/${nextVideo.id}`}>
                   <Play className="mr-2 h-4 w-4" />
-                  {hasProgress ? "Continue Watching" : "Start Watching"}
+                  {hasProgress ? 'Continue Watching' : 'Start Watching'}
                 </Link>
               </Button>
             )}
@@ -227,7 +227,7 @@ export function SeriesDetailClient({
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled={isDeleting}
                   >
-                    {isDeleting ? "Deleting..." : "Delete"}
+                    {isDeleting ? 'Deleting...' : 'Delete'}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

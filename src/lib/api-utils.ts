@@ -7,7 +7,7 @@
  * - Response compression configuration
  */
 
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 // =============================================================================
 // Cache-Control Header Utilities
@@ -36,13 +36,13 @@ export function getCacheControlHeader(options: CacheOptions = {}): string {
   const directives: string[] = [];
 
   // Visibility
-  directives.push(isPrivate ? "private" : "public");
+  directives.push(isPrivate ? 'private' : 'public');
 
   // Max age
   if (maxAge > 0) {
     directives.push(`max-age=${maxAge}`);
   } else {
-    directives.push("no-cache");
+    directives.push('no-cache');
   }
 
   // Stale-while-revalidate
@@ -53,7 +53,7 @@ export function getCacheControlHeader(options: CacheOptions = {}): string {
   // Additional directives
   directives.push(...additionalDirectives);
 
-  return directives.join(", ");
+  return directives.join(', ');
 }
 
 /**
@@ -91,7 +91,7 @@ export const CachePresets = {
   immutable: (): CacheOptions => ({
     maxAge: 31536000, // 1 year
     isPrivate: false,
-    additionalDirectives: ["immutable"],
+    additionalDirectives: ['immutable'],
   }),
 
   /** User progress data - very short cache */
@@ -118,7 +118,7 @@ export const CachePresets = {
  */
 export function encodeCursor(createdAt: Date, id: string): string {
   const timestamp = createdAt.getTime();
-  return Buffer.from(`${timestamp}:${id}`).toString("base64url");
+  return Buffer.from(`${timestamp}:${id}`).toString('base64url');
 }
 
 /**
@@ -126,8 +126,8 @@ export function encodeCursor(createdAt: Date, id: string): string {
  */
 export function decodeCursor(cursor: string): { timestamp: number; id: string } | null {
   try {
-    const decoded = Buffer.from(cursor, "base64url").toString("utf-8");
-    const [timestampStr, id] = decoded.split(":");
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf-8');
+    const [timestampStr, id] = decoded.split(':');
     const timestamp = parseInt(timestampStr, 10);
 
     if (Number.isNaN(timestamp) || !id) {
@@ -189,12 +189,12 @@ export function jsonResponse<T>(
   const { status = 200, cache, headers = {} } = options;
 
   const responseHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...headers,
   };
 
   if (cache) {
-    responseHeaders["Cache-Control"] = getCacheControlHeader(cache);
+    responseHeaders['Cache-Control'] = getCacheControlHeader(cache);
   }
 
   return NextResponse.json(data, {
@@ -215,7 +215,7 @@ export function successResponse<T>(data: T, cachePreset?: keyof typeof CachePres
  * Create an error response
  */
 export function errorResponse(error: string | { message: string }, status = 500): NextResponse {
-  const message = typeof error === "string" ? error : error.message;
+  const message = typeof error === 'string' ? error : error.message;
   return jsonResponse({ error: message }, { status, cache: CachePresets.noCache() });
 }
 
@@ -232,9 +232,9 @@ export function parsePaginationParams(searchParams: URLSearchParams): {
   cursor?: string;
   useCursor: boolean;
 } {
-  const cursor = searchParams.get("cursor") ?? undefined;
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100); // Max 100 items
+  const cursor = searchParams.get('cursor') ?? undefined;
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100); // Max 100 items
 
   return {
     page: Number.isNaN(page) || page < 1 ? 1 : page,

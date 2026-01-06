@@ -1,10 +1,10 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { ClipRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
-import { updateQuoteCardSchema } from "@/lib/validation/schemas";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { ClipRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
+import { updateQuoteCardSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/quote-cards/[id] - Get a single quote card
@@ -79,7 +79,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return {
       success: true,
-      message: "Quote card deleted successfully",
+      message: 'Quote card deleted successfully',
     };
   });
 

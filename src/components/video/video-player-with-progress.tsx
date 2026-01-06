@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Player with Progress Tracking
@@ -7,12 +7,12 @@
  * Handles loading saved progress and saving playback position.
  */
 
-import { CheckCircle } from "lucide-react";
-import { useCallback, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useProgressFraction, useVideoProgress } from "@/hooks/use-video-progress";
-import { logger } from "@/lib/client-logger";
-import { type VideoChapter, VideoPlayer, type VideoProgress } from "./video-player";
+import { CheckCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useProgressFraction, useVideoProgress } from '@/hooks/use-video-progress';
+import { logger } from '@/lib/client-logger';
+import { type VideoChapter, VideoPlayer, type VideoProgress } from './video-player';
 
 // =============================================================================
 // Types
@@ -44,7 +44,7 @@ export interface VideoPlayerWithProgressProps {
 // =============================================================================
 
 function parseDuration(duration: string): number {
-  const parts = duration.split(":").map((p) => Number.parseInt(p, 10));
+  const parts = duration.split(':').map((p) => Number.parseInt(p, 10));
 
   if (parts.length === 3) {
     // HH:MM:SS
@@ -106,7 +106,7 @@ export function VideoPlayerWithProgress({
 
   // Handle errors
   const handleError = useCallback((errorMsg: string) => {
-    logger.error("Video playback error", errorMsg);
+    logger.error('Video playback error', errorMsg);
   }, []);
 
   // Show skeleton while loading progress
@@ -121,7 +121,7 @@ export function VideoPlayerWithProgress({
 
   // Show error but still allow playback
   if (error) {
-    logger.warn("Failed to load video progress", error);
+    logger.warn('Failed to load video progress', error);
     // Continue with video player anyway
   }
 

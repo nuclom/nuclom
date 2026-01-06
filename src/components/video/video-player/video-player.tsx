@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import { VideoPresence } from "../video-presence";
-import { KeyboardHelpModal } from "./components/keyboard-help-modal";
-import { VideoControls } from "./components/video-controls";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { VideoPresence } from '../video-presence';
+import { KeyboardHelpModal } from './components/keyboard-help-modal';
+import { VideoControls } from './components/video-controls';
 import {
   ChapterDisplay,
   ErrorOverlay,
   LoadingOverlay,
   LoopIndicator,
   PlayButtonOverlay,
-} from "./components/video-overlays";
-import { VideoProgressBar } from "./components/video-progress-bar";
-import { useCaptions } from "./hooks/use-captions";
-import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
-import { useVideoControls } from "./hooks/use-video-controls";
-import { useViewTracking } from "./hooks/use-view-tracking";
+} from './components/video-overlays';
+import { VideoProgressBar } from './components/video-progress-bar';
+import { useCaptions } from './hooks/use-captions';
+import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts';
+import { useVideoControls } from './hooks/use-video-controls';
+import { useViewTracking } from './hooks/use-view-tracking';
 import {
   COMPLETION_THRESHOLD,
   PROGRESS_SAVE_INTERVAL,
@@ -24,7 +24,7 @@ import {
   type VideoPlayerProps,
   type VideoProgress,
   type VideoState,
-} from "./types";
+} from './types';
 
 export function VideoPlayer({
   url,
@@ -48,7 +48,7 @@ export function VideoPlayer({
   const lastProgressSaveRef = useRef<number>(0);
 
   // State
-  const [videoState, setVideoState] = useState<VideoState>("idle");
+  const [videoState, setVideoState] = useState<VideoState>('idle');
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -151,7 +151,7 @@ export function VideoPlayer({
 
   // Video event handlers
   const handleLoadStart = useCallback(() => {
-    setVideoState("loading");
+    setVideoState('loading');
   }, []);
 
   const handleLoadedMetadata = useCallback(() => {
@@ -159,7 +159,7 @@ export function VideoPlayer({
     if (!video) return;
 
     setDuration(video.duration);
-    setVideoState("ready");
+    setVideoState('ready');
 
     if (initialProgress > 0 && !hasInitialized) {
       const targetTime = initialProgress * video.duration;
@@ -187,7 +187,7 @@ export function VideoPlayer({
 
   const handlePlay = useCallback(() => {
     setPlaying(true);
-    setVideoState("playing");
+    setVideoState('playing');
     if (!hasTrackedView && videoId) {
       trackView();
     }
@@ -195,7 +195,7 @@ export function VideoPlayer({
 
   const handlePause = useCallback(() => {
     setPlaying(false);
-    setVideoState("paused");
+    setVideoState('paused');
     const video = videoRef.current;
     if (video && Number.isFinite(video.duration)) {
       progressCallbackRef.current?.({
@@ -209,7 +209,7 @@ export function VideoPlayer({
 
   const handleEnded = useCallback(() => {
     setPlaying(false);
-    setVideoState("ended");
+    setVideoState('ended');
     onEnded?.();
     const video = videoRef.current;
     if (video) {
@@ -224,24 +224,24 @@ export function VideoPlayer({
 
   const handleError = useCallback(() => {
     const video = videoRef.current;
-    const errorMsg = video?.error?.message || "Failed to load video";
+    const errorMsg = video?.error?.message || 'Failed to load video';
     setErrorMessage(errorMsg);
-    setVideoState("error");
+    setVideoState('error');
     onError?.(errorMsg);
   }, [onError]);
 
   const handleWaiting = useCallback(() => {
-    setVideoState("loading");
+    setVideoState('loading');
   }, []);
 
   const handleCanPlay = useCallback(() => {
-    if (videoState === "loading") {
-      setVideoState(playing ? "playing" : "ready");
+    if (videoState === 'loading') {
+      setVideoState(playing ? 'playing' : 'ready');
     }
   }, [videoState, playing]);
 
   const handleRetry = useCallback(() => {
-    setVideoState("idle");
+    setVideoState('idle');
     setErrorMessage(null);
     videoRef.current?.load();
   }, []);
@@ -271,9 +271,9 @@ export function VideoPlayer({
 
     const container = containerRef.current;
     if (container) {
-      container.addEventListener("mousemove", showControlsTemporarily);
-      container.addEventListener("mouseenter", showControlsTemporarily);
-      container.addEventListener("mouseleave", () => {
+      container.addEventListener('mousemove', showControlsTemporarily);
+      container.addEventListener('mouseenter', showControlsTemporarily);
+      container.addEventListener('mouseleave', () => {
         if (playing) setShowControls(false);
       });
     }
@@ -281,8 +281,8 @@ export function VideoPlayer({
     return () => {
       clearTimeout(timeout);
       if (container) {
-        container.removeEventListener("mousemove", showControlsTemporarily);
-        container.removeEventListener("mouseenter", showControlsTemporarily);
+        container.removeEventListener('mousemove', showControlsTemporarily);
+        container.removeEventListener('mouseenter', showControlsTemporarily);
       }
     };
   }, [playing, isFullscreen]);
@@ -292,8 +292,8 @@ export function VideoPlayer({
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   // PiP listeners
@@ -306,23 +306,23 @@ export function VideoPlayer({
     const handleEnterPiP = () => setIsPiP(true);
     const handleLeavePiP = () => setIsPiP(false);
 
-    video.addEventListener("enterpictureinpicture", handleEnterPiP);
-    video.addEventListener("leavepictureinpicture", handleLeavePiP);
+    video.addEventListener('enterpictureinpicture', handleEnterPiP);
+    video.addEventListener('leavepictureinpicture', handleLeavePiP);
 
     return () => {
-      video.removeEventListener("enterpictureinpicture", handleEnterPiP);
-      video.removeEventListener("leavepictureinpicture", handleLeavePiP);
+      video.removeEventListener('enterpictureinpicture', handleEnterPiP);
+      video.removeEventListener('leavepictureinpicture', handleLeavePiP);
     };
   }, []);
 
-  const showPlayButton = (videoState === "ready" || videoState === "paused" || videoState === "idle") && !playing;
+  const showPlayButton = (videoState === 'ready' || videoState === 'paused' || videoState === 'idle') && !playing;
 
   return (
     <div
       ref={containerRef}
       className={cn(
-        "relative aspect-video bg-black rounded-lg overflow-hidden group",
-        "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        'relative aspect-video bg-black rounded-lg overflow-hidden group',
+        'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
         className,
       )}
       // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
@@ -364,8 +364,8 @@ export function VideoPlayer({
       </video>
 
       {/* Overlays */}
-      <LoadingOverlay visible={videoState === "loading"} />
-      <ErrorOverlay visible={videoState === "error"} message={errorMessage} onRetry={handleRetry} />
+      <LoadingOverlay visible={videoState === 'loading'} />
+      <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleRetry} />
       <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
       <ChapterDisplay chapter={currentChapter} visible={showControls} />
       <LoopIndicator isLooping={isLooping} />
@@ -375,9 +375,9 @@ export function VideoPlayer({
       {videoId && (
         <div
           className={cn(
-            "absolute top-4 right-4 z-10",
-            "transition-opacity duration-300",
-            showControls || !playing ? "opacity-100" : "opacity-0",
+            'absolute top-4 right-4 z-10',
+            'transition-opacity duration-300',
+            showControls || !playing ? 'opacity-100' : 'opacity-0',
           )}
         >
           <VideoPresence videoId={videoId} />
@@ -387,10 +387,10 @@ export function VideoPlayer({
       {/* Controls Overlay */}
       <div
         className={cn(
-          "absolute bottom-0 left-0 right-0 p-4",
-          "bg-gradient-to-t from-black/80 via-black/40 to-transparent",
-          "transition-opacity duration-300",
-          showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none",
+          'absolute bottom-0 left-0 right-0 p-4',
+          'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+          'transition-opacity duration-300',
+          showControls || !playing ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
       >
         <VideoProgressBar

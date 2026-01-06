@@ -4,8 +4,8 @@
  * Provides type-safe database operations for full-text search.
  */
 
-import { and, asc, desc, eq, gte, ilike, isNotNull, lte, or, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { and, asc, desc, eq, gte, ilike, isNotNull, lte, or, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
 import {
   type ProcessingStatus,
   type SearchFilters,
@@ -13,7 +13,7 @@ import {
   searchHistory,
   users,
   videos,
-} from "@/lib/db/schema";
+} from '@/lib/db/schema';
 import type {
   SavedSearchWithUser,
   SearchHistoryWithUser,
@@ -21,9 +21,9 @@ import type {
   SearchResult,
   SearchSuggestion,
   VideoWithAuthor,
-} from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+} from '@/lib/types';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -139,7 +139,7 @@ export interface SearchRepositoryService {
 // Search Repository Tag
 // =============================================================================
 
-export class SearchRepository extends Context.Tag("SearchRepository")<SearchRepository, SearchRepositoryService>() {}
+export class SearchRepository extends Context.Tag('SearchRepository')<SearchRepository, SearchRepositoryService>() {}
 
 // =============================================================================
 // Search Repository Implementation
@@ -184,8 +184,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
         }
 
         // Determine sort order
-        const sortBy = filters?.sortBy || "relevance";
-        const sortOrder = filters?.sortOrder || "desc";
+        const sortBy = filters?.sortBy || 'relevance';
+        const sortOrder = filters?.sortOrder || 'desc';
 
         let results: SearchResult[];
         let total: number;
@@ -274,13 +274,13 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               ${filters?.dateFrom ? sql`AND v.created_at >= ${new Date(filters.dateFrom)}` : sql``}
               ${filters?.dateTo ? sql`AND v.created_at <= ${new Date(filters.dateTo)}` : sql``}
             ORDER BY ${
-              sortBy === "relevance"
+              sortBy === 'relevance'
                 ? sql`rank DESC`
-                : sortBy === "date"
-                  ? sortOrder === "asc"
+                : sortBy === 'date'
+                  ? sortOrder === 'asc'
                     ? sql`v.created_at ASC`
                     : sql`v.created_at DESC`
-                  : sortOrder === "asc"
+                  : sortOrder === 'asc'
                     ? sql`v.title ASC`
                     : sql`v.title DESC`
             }
@@ -301,12 +301,12 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               channelId: row.channel_id,
               collectionId: row.collection_id,
               transcript: row.transcript,
-              transcriptSegments: row.transcript_segments as VideoWithAuthor["transcriptSegments"],
-              processingStatus: row.processing_status as VideoWithAuthor["processingStatus"],
+              transcriptSegments: row.transcript_segments as VideoWithAuthor['transcriptSegments'],
+              processingStatus: row.processing_status as VideoWithAuthor['processingStatus'],
               processingError: row.processing_error,
               aiSummary: row.ai_summary,
               aiTags: row.ai_tags,
-              aiActionItems: row.ai_action_items as VideoWithAuthor["aiActionItems"],
+              aiActionItems: row.ai_action_items as VideoWithAuthor['aiActionItems'],
               searchVector: row.search_vector as unknown as string,
               createdAt: row.created_at,
               updatedAt: row.updated_at,
@@ -318,7 +318,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 createdAt: row.author_created_at,
                 updatedAt: row.author_updated_at,
                 emailVerified: row.author_email_verified,
-                role: row.author_role as "user" | "admin",
+                role: row.author_role as 'user' | 'admin',
                 banned: row.author_banned,
                 banReason: row.author_ban_reason,
                 banExpires: row.author_ban_expires,
@@ -401,12 +401,12 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             .innerJoin(users, eq(videos.authorId, users.id))
             .where(and(...conditions))
             .orderBy(
-              sortBy === "date"
-                ? sortOrder === "asc"
+              sortBy === 'date'
+                ? sortOrder === 'asc'
                   ? asc(videos.createdAt)
                   : desc(videos.createdAt)
-                : sortBy === "title"
-                  ? sortOrder === "asc"
+                : sortBy === 'title'
+                  ? sortOrder === 'asc'
                     ? asc(videos.title)
                     : desc(videos.title)
                   : desc(videos.createdAt),
@@ -441,8 +441,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to search videos",
-          operation: "search",
+          message: 'Failed to search videos',
+          operation: 'search',
           cause: error,
         }),
     });
@@ -472,7 +472,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             if (!seen.has(s.query.toLowerCase())) {
               seen.add(s.query.toLowerCase());
               suggestions.push({
-                type: "recent",
+                type: 'recent',
                 text: s.query,
               });
             }
@@ -493,7 +493,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
 
         for (const v of matchingVideos) {
           suggestions.push({
-            type: "video",
+            type: 'video',
             text: v.title,
             videoId: v.id,
           });
@@ -518,7 +518,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
           if (!seen.has(s.query.toLowerCase())) {
             seen.add(s.query.toLowerCase());
             suggestions.push({
-              type: "recent",
+              type: 'recent',
               text: s.query,
             });
           }
@@ -528,8 +528,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get search suggestions",
-          operation: "getSuggestions",
+          message: 'Failed to get search suggestions',
+          operation: 'getSuggestions',
           cause: error,
         }),
     });
@@ -574,8 +574,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get recent searches",
-          operation: "getRecentSearches",
+          message: 'Failed to get recent searches',
+          operation: 'getRecentSearches',
           cause: error,
         }),
     });
@@ -599,8 +599,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to save search history",
-          operation: "saveSearchHistory",
+          message: 'Failed to save search history',
+          operation: 'saveSearchHistory',
           cause: error,
         }),
     });
@@ -614,8 +614,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to clear search history",
-          operation: "clearSearchHistory",
+          message: 'Failed to clear search history',
+          operation: 'clearSearchHistory',
           cause: error,
         }),
     });
@@ -659,8 +659,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get saved searches",
-          operation: "getSavedSearches",
+          message: 'Failed to get saved searches',
+          operation: 'getSavedSearches',
           cause: error,
         }),
     });
@@ -684,8 +684,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create saved search",
-          operation: "createSavedSearch",
+          message: 'Failed to create saved search',
+          operation: 'createSavedSearch',
           cause: error,
         }),
     });
@@ -709,8 +709,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update saved search",
-            operation: "updateSavedSearch",
+            message: 'Failed to update saved search',
+            operation: 'updateSavedSearch',
             cause: error,
           }),
       });
@@ -718,8 +718,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Saved search not found",
-            entity: "SavedSearch",
+            message: 'Saved search not found',
+            entity: 'SavedSearch',
             id,
           }),
         );
@@ -739,8 +739,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete saved search",
-            operation: "deleteSavedSearch",
+            message: 'Failed to delete saved search',
+            operation: 'deleteSavedSearch',
             cause: error,
           }),
       });
@@ -748,8 +748,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Saved search not found",
-            entity: "SavedSearch",
+            message: 'Saved search not found',
+            entity: 'SavedSearch',
             id,
           }),
         );
@@ -822,8 +822,8 @@ const makeSearchRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to perform quick search",
-          operation: "quickSearch",
+          message: 'Failed to perform quick search',
+          operation: 'quickSearch',
           cause: error,
         }),
     });

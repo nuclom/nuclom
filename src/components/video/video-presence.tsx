@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Presence Component
@@ -7,11 +7,11 @@
  * Shows up to 5 avatars with a count indicator for additional viewers.
  */
 
-import { Eye } from "lucide-react";
-import { useMemo } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useVideoPresence } from "@/hooks/use-video-presence";
-import { cn } from "@/lib/utils";
+import { Eye } from 'lucide-react';
+import { useMemo } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useVideoPresence } from '@/hooks/use-video-presence';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -57,7 +57,7 @@ export function VideoPresence({ videoId, className, maxAvatars = 5 }: VideoPrese
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn('flex items-center gap-2', className)}>
       {/* Viewer count with eye icon */}
       <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm">
         <Eye className="h-3.5 w-3.5 text-white" />

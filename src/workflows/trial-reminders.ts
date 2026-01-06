@@ -17,15 +17,15 @@
  * - Resource-efficient sleep
  */
 
-import { eq } from "drizzle-orm";
-import { FatalError, sleep } from "workflow";
-import { db } from "@/lib/db";
-import { members, notifications, users } from "@/lib/db/schema";
-import { resend } from "@/lib/email";
-import { env, getAppUrl } from "@/lib/env/server";
-import { createWorkflowLogger } from "./workflow-logger";
+import { eq } from 'drizzle-orm';
+import { FatalError, sleep } from 'workflow';
+import { db } from '@/lib/db';
+import { members, notifications, users } from '@/lib/db/schema';
+import { resend } from '@/lib/email';
+import { env, getAppUrl } from '@/lib/env/server';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("trial-reminders");
+const log = createWorkflowLogger('trial-reminders');
 
 // =============================================================================
 // Types
@@ -87,20 +87,20 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
     // Create in-app notification
     await db.insert(notifications).values({
       userId: owner.userId,
-      type: "trial_ending",
-      title: `Your trial ends in ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}`,
+      type: 'trial_ending',
+      title: `Your trial ends in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`,
       body: `Your trial for ${org.name} is ending soon. Upgrade now to keep access to all features.`,
-      resourceType: "subscription",
+      resourceType: 'subscription',
       resourceId: subscriptionId,
     });
 
     // Send email notification
-    const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
     await resend.emails.send({
       from: fromEmail,
       to: owner.email,
-      subject: `Your Nuclom trial ends in ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}`,
+      subject: `Your Nuclom trial ends in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`,
       html: `
 <!DOCTYPE html>
 <html>
@@ -121,11 +121,11 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
       <h1>Nuclom</h1>
     </div>
     <div class="content">
-      <h2>Hi ${owner.name || "there"},</h2>
+      <h2>Hi ${owner.name || 'there'},</h2>
       <p>Your trial for <strong>${org.name}</strong> is ending soon!</p>
       <div class="highlight">
-        <p style="margin: 0;"><strong>${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} remaining</strong></p>
-        <p style="margin: 8px 0 0 0;">Your trial will end on ${subscription.trialEnd ? new Date(subscription.trialEnd).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : "soon"}.</p>
+        <p style="margin: 0;"><strong>${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining</strong></p>
+        <p style="margin: 8px 0 0 0;">Your trial will end on ${subscription.trialEnd ? new Date(subscription.trialEnd).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'soon'}.</p>
       </div>
       <p>To continue using all the features you love, upgrade your plan before the trial ends.</p>
       <p style="text-align: center; margin: 24px 0;">
@@ -142,7 +142,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
 
   log.info(
     { subscriptionId, daysRemaining, recipientCount: ownerMembers.length },
-    "Sent trial reminder to organization owners",
+    'Sent trial reminder to organization owners',
   );
 }
 
@@ -161,7 +161,7 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
  * resume and continue from where it left off.
  */
 export async function trialReminderWorkflow(input: TrialReminderInput): Promise<TrialReminderResult> {
-  "use workflow";
+  'use workflow';
 
   const { subscriptionId, trialEndsAt } = input;
   const trialEndTime = new Date(trialEndsAt).getTime();
@@ -176,7 +176,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Skip if this reminder time has already passed
     if (reminderTime <= now) {
-      log.debug({ subscriptionId, daysBeforeEnd: daysBeforeEnd }, "Skipping reminder (already passed)");
+      log.debug({ subscriptionId, daysBeforeEnd: daysBeforeEnd }, 'Skipping reminder (already passed)');
       continue;
     }
 
@@ -184,11 +184,11 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     const sleepDuration = reminderTime - now;
     const sleepHours = Math.round(sleepDuration / 1000 / 60 / 60);
 
-    log.info({ subscriptionId, daysBeforeEnd: daysBeforeEnd, sleepHours }, "Sleeping until next reminder");
+    log.info({ subscriptionId, daysBeforeEnd: daysBeforeEnd, sleepHours }, 'Sleeping until next reminder');
 
     // Sleep until reminder time
     await sleep(sleepDuration);
-    ("use step");
+    ('use step');
 
     // Verify subscription still exists and is still on trial
     const subscription = await db.query.subscriptions.findFirst({
@@ -196,14 +196,14 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     });
 
     if (!subscription) {
-      log.info({ subscriptionId: subscriptionId }, "Subscription no longer exists, stopping workflow");
+      log.info({ subscriptionId: subscriptionId }, 'Subscription no longer exists, stopping workflow');
       break;
     }
 
-    if (subscription.status !== "trialing") {
+    if (subscription.status !== 'trialing') {
       log.info(
         { subscriptionId, status: subscription.status },
-        "Subscription is no longer trialing, stopping workflow",
+        'Subscription is no longer trialing, stopping workflow',
       );
       break;
     }
@@ -212,9 +212,9 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     try {
       await sendTrialReminder(subscriptionId, daysBeforeEnd);
       remindersSent++;
-      ("use step");
+      ('use step');
     } catch (error) {
-      log.error({ subscriptionId, daysBeforeEnd, error }, "Failed to send reminder");
+      log.error({ subscriptionId, daysBeforeEnd, error }, 'Failed to send reminder');
       // Continue to next reminder even if this one fails
     }
   }

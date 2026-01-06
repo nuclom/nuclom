@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { BarChart3, Clock, Eye, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3, Clock, Eye, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface AnalyticsOverviewProps {
   data: {
@@ -24,28 +24,28 @@ function formatWatchTime(seconds: number): string {
 export function AnalyticsOverview({ data }: AnalyticsOverviewProps) {
   const metrics = [
     {
-      title: "Total Views",
+      title: 'Total Views',
       value: data.totalViews.toLocaleString(),
       icon: Eye,
       description: `Across ${data.totalVideos} videos`,
     },
     {
-      title: "Unique Viewers",
+      title: 'Unique Viewers',
       value: data.uniqueViewers.toLocaleString(),
       icon: Users,
-      description: "Authenticated users",
+      description: 'Authenticated users',
     },
     {
-      title: "Total Watch Time",
+      title: 'Total Watch Time',
       value: formatWatchTime(data.totalWatchTime),
       icon: Clock,
-      description: "Combined viewing time",
+      description: 'Combined viewing time',
     },
     {
-      title: "Avg. Completion",
+      title: 'Avg. Completion',
       value: `${data.avgCompletionPercent}%`,
       icon: BarChart3,
-      description: "Average video completion",
+      description: 'Average video completion',
     },
   ];
 

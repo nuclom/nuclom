@@ -1,10 +1,10 @@
-import { headers } from "next/headers";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { auth } from "@/lib/auth";
-import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from "@/lib/effect";
-import { getAppUrl } from "@/lib/env/server";
-import { SeriesListClient } from "./series-list-client";
+import { headers } from 'next/headers';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { auth } from '@/lib/auth';
+import { getCachedOrganizationBySlug, getCachedSeriesWithProgress } from '@/lib/effect';
+import { getAppUrl } from '@/lib/env/server';
+import { SeriesListClient } from './series-list-client';
 
 function SeriesListSkeleton() {
   return (
@@ -49,7 +49,7 @@ async function SeriesListLoader({ params }: { params: Promise<{ organization: st
       seriesData = await getCachedSeriesWithProgress(organizationData.id, session.user.id);
     } else {
       const result = await fetch(`${getAppUrl()}/api/series?organizationId=${organizationData.id}`, {
-        cache: "no-store",
+        cache: 'no-store',
       });
       if (result.ok) {
         const data = await result.json();

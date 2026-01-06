@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Transcript Display Component
@@ -10,16 +10,16 @@
  * - Search within transcript
  */
 
-import { FileText, MessageSquarePlus, Search, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { formatTime } from "@/lib/format-utils";
-import { findSegmentIndexByTime } from "@/lib/subtitles";
-import { cn } from "@/lib/utils";
+import { FileText, MessageSquarePlus, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { formatTime } from '@/lib/format-utils';
+import { findSegmentIndexByTime } from '@/lib/subtitles';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -39,7 +39,7 @@ export interface TranscriptDisplayProps {
   /** Whether transcript is still loading */
   isLoading?: boolean;
   /** Processing status message */
-  processingStatus?: "pending" | "transcribing" | "analyzing" | "completed" | "failed";
+  processingStatus?: 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed';
   /** Maximum height for the transcript container */
   maxHeight?: string;
   /** Optional className */
@@ -55,7 +55,7 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
     return text;
   }
 
-  const parts = text.split(new RegExp(`(${escapeRegExp(searchTerm)})`, "gi"));
+  const parts = text.split(new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi'));
 
   return parts.map((part, index) =>
     part.toLowerCase() === searchTerm.toLowerCase() ? (
@@ -69,7 +69,7 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
 }
 
 function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // =============================================================================
@@ -97,14 +97,14 @@ function TranscriptSegmentItem({
     <div
       id={`transcript-segment-${index}`}
       className={cn(
-        "group relative flex gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-lg transition-colors cursor-pointer touch-manipulation",
+        'group relative flex gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-lg transition-colors cursor-pointer touch-manipulation',
         isActive
-          ? "bg-primary/10 border-l-2 border-primary"
-          : "hover:bg-muted/50 active:bg-muted/70 border-l-2 border-transparent",
+          ? 'bg-primary/10 border-l-2 border-primary'
+          : 'hover:bg-muted/50 active:bg-muted/70 border-l-2 border-transparent',
       )}
       onClick={() => onSeek?.(segment.startTime)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSeek?.(segment.startTime);
         }
@@ -117,8 +117,8 @@ function TranscriptSegmentItem({
       <div className="flex-shrink-0 w-12 sm:w-16">
         <span
           className={cn(
-            "font-mono text-[11px] sm:text-xs",
-            isActive ? "text-primary font-medium" : "text-muted-foreground",
+            'font-mono text-[11px] sm:text-xs',
+            isActive ? 'text-primary font-medium' : 'text-muted-foreground',
           )}
         >
           {formatTime(segment.startTime)}
@@ -127,7 +127,7 @@ function TranscriptSegmentItem({
 
       {/* Text content */}
       <div className="flex-1 min-w-0 pr-6 sm:pr-0">
-        <p className={cn("text-sm leading-relaxed", isActive && "text-foreground font-medium")}>
+        <p className={cn('text-sm leading-relaxed', isActive && 'text-foreground font-medium')}>
           {highlightSearchTerm(segment.text, searchTerm)}
         </p>
       </div>
@@ -175,11 +175,11 @@ export function TranscriptDisplay({
   autoScroll = true,
   isLoading = false,
   processingStatus,
-  maxHeight = "24rem",
+  maxHeight = '24rem',
   className,
 }: TranscriptDisplayProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [userHasScrolled, setUserHasScrolled] = useState(false);
 
@@ -205,8 +205,8 @@ export function TranscriptDisplay({
     const element = document.getElementById(`transcript-segment-${currentSegmentIndex}`);
     if (element) {
       element.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
+        behavior: 'smooth',
+        block: 'center',
       });
     }
   }, [currentSegmentIndex, autoScroll, userHasScrolled]);
@@ -239,7 +239,7 @@ export function TranscriptDisplay({
 
   // Clear search
   const clearSearch = useCallback(() => {
-    setSearchTerm("");
+    setSearchTerm('');
   }, []);
 
   // Handle segment click with mapping back to original index
@@ -252,7 +252,7 @@ export function TranscriptDisplay({
   );
 
   // Show loading state
-  if (isLoading || processingStatus === "pending" || processingStatus === "transcribing") {
+  if (isLoading || processingStatus === 'pending' || processingStatus === 'transcribing') {
     return (
       <Card className={className}>
         <CardHeader className="pb-3">
@@ -264,12 +264,12 @@ export function TranscriptDisplay({
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <div className="animate-pulse flex space-x-1">
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
             <p className="text-sm mt-4">
-              {processingStatus === "transcribing" ? "Transcribing audio..." : "Preparing transcript..."}
+              {processingStatus === 'transcribing' ? 'Transcribing audio...' : 'Preparing transcript...'}
             </p>
           </div>
         </CardContent>
@@ -278,7 +278,7 @@ export function TranscriptDisplay({
   }
 
   // Show error state
-  if (processingStatus === "failed") {
+  if (processingStatus === 'failed') {
     return (
       <Card className={className}>
         <CardHeader className="pb-3">
@@ -329,7 +329,7 @@ export function TranscriptDisplay({
             size="icon"
             className="h-7 w-7"
             onClick={() => setShowSearch((prev) => !prev)}
-            aria-label={showSearch ? "Close search" : "Search transcript"}
+            aria-label={showSearch ? 'Close search' : 'Search transcript'}
           >
             {showSearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
           </Button>
@@ -350,7 +350,7 @@ export function TranscriptDisplay({
             {searchTerm && (
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
-                  {searchMatchCount} match{searchMatchCount !== 1 ? "es" : ""}
+                  {searchMatchCount} match{searchMatchCount !== 1 ? 'es' : ''}
                 </span>
                 <Button variant="ghost" size="icon" className="h-5 w-5" onClick={clearSearch} aria-label="Clear search">
                   <X className="h-3 w-3" />

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { ArrowRight, Check, ExternalLink, Video } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Check, ExternalLink, Video } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface StepIntegrationsProps {
   onNext: () => void;
@@ -43,28 +43,28 @@ function SlackIcon({ className }: { className?: string }) {
 
 const integrations = [
   {
-    id: "zoom",
-    name: "Zoom",
-    description: "Import recordings from Zoom meetings",
+    id: 'zoom',
+    name: 'Zoom',
+    description: 'Import recordings from Zoom meetings',
     icon: ZoomIcon,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
   },
   {
-    id: "google_meet",
-    name: "Google Meet",
-    description: "Import recordings from Google Meet",
+    id: 'google_meet',
+    name: 'Google Meet',
+    description: 'Import recordings from Google Meet',
     icon: GoogleMeetIcon,
-    color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    color: 'text-emerald-500',
+    bgColor: 'bg-emerald-500/10',
   },
   {
-    id: "slack",
-    name: "Slack",
-    description: "Get notified about new videos",
+    id: 'slack',
+    name: 'Slack',
+    description: 'Get notified about new videos',
     icon: SlackIcon,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-500/10',
     comingSoon: true,
   },
 ];
@@ -74,7 +74,7 @@ export function StepIntegrations({ onNext, onBack, organizationSlug: _organizati
   const [connecting, setConnecting] = useState<string | null>(null);
 
   const handleConnect = async (integrationId: string) => {
-    if (integrationId === "slack") return; // Coming soon
+    if (integrationId === 'slack') return; // Coming soon
 
     setConnecting(integrationId);
 
@@ -107,11 +107,11 @@ export function StepIntegrations({ onNext, onBack, organizationSlug: _organizati
           return (
             <Card
               key={integration.id}
-              className={cn("transition-all", isConnected && "border-emerald-500/50 bg-emerald-500/5")}
+              className={cn('transition-all', isConnected && 'border-emerald-500/50 bg-emerald-500/5')}
             >
               <CardContent className="flex items-center gap-4 p-4">
-                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", integration.bgColor)}>
-                  <Icon className={cn("w-6 h-6", integration.color)} />
+                <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', integration.bgColor)}>
+                  <Icon className={cn('w-6 h-6', integration.color)} />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function StepIntegrations({ onNext, onBack, organizationSlug: _organizati
           Back
         </Button>
         <Button onClick={onNext}>
-          {connectedIntegrations.length > 0 ? "Continue" : "Skip for now"}
+          {connectedIntegrations.length > 0 ? 'Continue' : 'Skip for now'}
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>

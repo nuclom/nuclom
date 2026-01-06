@@ -4,8 +4,8 @@
  * Provides type-safe database operations for videos.
  */
 
-import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
 import {
   type ActionItem,
   channels,
@@ -18,11 +18,11 @@ import {
   videoChapters,
   videoCodeSnippets,
   videos,
-} from "@/lib/db/schema";
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
-import { DatabaseError, type DeleteError, NotFoundError } from "../errors";
-import { Database } from "./database";
-import { Storage } from "./storage";
+} from '@/lib/db/schema';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
+import { DatabaseError, type DeleteError, NotFoundError } from '../errors';
+import { Database } from './database';
+import { Storage } from './storage';
 
 // =============================================================================
 // Types
@@ -192,7 +192,7 @@ export interface VideoRepositoryService {
 // Video Repository Tag
 // =============================================================================
 
-export class VideoRepository extends Context.Tag("VideoRepository")<VideoRepository, VideoRepositoryService>() {}
+export class VideoRepository extends Context.Tag('VideoRepository')<VideoRepository, VideoRepositoryService>() {}
 
 // =============================================================================
 // Video Repository Implementation
@@ -313,8 +313,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch videos",
-          operation: "getVideos",
+          message: 'Failed to fetch videos',
+          operation: 'getVideos',
           cause: error,
         }),
     });
@@ -393,8 +393,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch deleted videos",
-          operation: "getDeletedVideos",
+          message: 'Failed to fetch deleted videos',
+          operation: 'getDeletedVideos',
           cause: error,
         }),
     });
@@ -457,8 +457,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch video",
-            operation: "getVideo",
+            message: 'Failed to fetch video',
+            operation: 'getVideo',
             cause: error,
           }),
       });
@@ -466,8 +466,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       if (!videoData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id,
           }),
         );
@@ -481,8 +481,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           try: () => db.select().from(channels).where(eq(channels.id, videoChannelId)).limit(1),
           catch: (error) =>
             new DatabaseError({
-              message: "Failed to fetch channel",
-              operation: "getVideo.channel",
+              message: 'Failed to fetch channel',
+              operation: 'getVideo.channel',
               cause: error,
             }),
         });
@@ -497,8 +497,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           try: () => db.select().from(collections).where(eq(collections.id, videoCollectionId)).limit(1),
           catch: (error) =>
             new DatabaseError({
-              message: "Failed to fetch collection",
-              operation: "getVideo.collection",
+              message: 'Failed to fetch collection',
+              operation: 'getVideo.collection',
               cause: error,
             }),
         });
@@ -541,8 +541,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             .orderBy(desc(comments.createdAt)),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch comments",
-            operation: "getVideo.comments",
+            message: 'Failed to fetch comments',
+            operation: 'getVideo.comments',
             cause: error,
           }),
       });
@@ -563,8 +563,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create video",
-          operation: "createVideo",
+          message: 'Failed to create video',
+          operation: 'createVideo',
           cause: error,
         }),
     });
@@ -584,8 +584,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update video",
-            operation: "updateVideo",
+            message: 'Failed to update video',
+            operation: 'updateVideo',
             cause: error,
           }),
       });
@@ -593,8 +593,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id,
           }),
         );
@@ -622,8 +622,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to soft delete video",
-            operation: "softDeleteVideo",
+            message: 'Failed to soft delete video',
+            operation: 'softDeleteVideo',
             cause: error,
           }),
       });
@@ -631,8 +631,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id,
           }),
         );
@@ -653,8 +653,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to restore video",
-            operation: "restoreVideo",
+            message: 'Failed to restore video',
+            operation: 'restoreVideo',
             cause: error,
           }),
       });
@@ -662,8 +662,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id,
           }),
         );
@@ -681,8 +681,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch video for deletion",
-            operation: "deleteVideo.fetch",
+            message: 'Failed to fetch video for deletion',
+            operation: 'deleteVideo.fetch',
             cause: error,
           }),
       });
@@ -690,8 +690,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       if (!videoData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id,
           }),
         );
@@ -709,8 +709,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete video",
-            operation: "deleteVideo",
+            message: 'Failed to delete video',
+            operation: 'deleteVideo',
             cause: error,
           }),
       });
@@ -730,8 +730,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch expired videos",
-            operation: "cleanupExpiredVideos.fetch",
+            message: 'Failed to fetch expired videos',
+            operation: 'cleanupExpiredVideos.fetch',
             cause: error,
           }),
       });
@@ -750,7 +750,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           catch: (error) =>
             new DatabaseError({
               message: `Failed to delete expired video ${video.id}`,
-              operation: "cleanupExpiredVideos.delete",
+              operation: 'cleanupExpiredVideos.delete',
               cause: error,
             }),
         });
@@ -863,8 +863,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to search videos",
-          operation: "searchVideos",
+          message: 'Failed to search videos',
+          operation: 'searchVideos',
           cause: error,
         }),
     });
@@ -880,8 +880,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video chapters",
-          operation: "getVideoChapters",
+          message: 'Failed to fetch video chapters',
+          operation: 'getVideoChapters',
           cause: error,
         }),
     });
@@ -899,8 +899,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video code snippets",
-          operation: "getVideoCodeSnippets",
+          message: 'Failed to fetch video code snippets',
+          operation: 'getVideoCodeSnippets',
           cause: error,
         }),
     });
@@ -983,8 +983,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch user videos",
-          operation: "getVideosByAuthor",
+          message: 'Failed to fetch user videos',
+          operation: 'getVideosByAuthor',
           cause: error,
         }),
     });
@@ -1062,8 +1062,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch channel videos",
-          operation: "getChannelVideosWithAuthor",
+          message: 'Failed to fetch channel videos',
+          operation: 'getChannelVideosWithAuthor',
           cause: error,
         }),
     });
@@ -1143,8 +1143,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch shared videos",
-          operation: "getVideosSharedByOthers",
+          message: 'Failed to fetch shared videos',
+          operation: 'getVideosSharedByOthers',
           cause: error,
         }),
     });

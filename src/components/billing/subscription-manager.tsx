@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   cancelSubscription,
   listSubscriptions,
@@ -23,9 +23,9 @@ import {
   restoreSubscription,
   type SubscriptionPlan,
   upgradeSubscription,
-} from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import { cn } from "@/lib/utils";
+} from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import { cn } from '@/lib/utils';
 
 // Types for subscription data from Better Auth Stripe
 interface SubscriptionData {
@@ -95,7 +95,7 @@ export function SubscriptionManager({
           setSubscriptions(result.data.map(mapSubscriptionData));
         }
       } catch (error) {
-        logger.error("Failed to fetch subscriptions", error);
+        logger.error('Failed to fetch subscriptions', error);
       } finally {
         setIsLoading(false);
       }
@@ -105,17 +105,17 @@ export function SubscriptionManager({
   }, [organizationId]);
 
   // Get active subscription
-  const activeSubscription = subscriptions.find((sub) => sub.status === "active" || sub.status === "trialing");
+  const activeSubscription = subscriptions.find((sub) => sub.status === 'active' || sub.status === 'trialing');
 
   // Get current plan name (null if no active subscription / trial expired)
   const currentPlan: SubscriptionPlan | null = activeSubscription?.plan || null;
-  const isTrialing = activeSubscription?.status === "trialing";
+  const isTrialing = activeSubscription?.status === 'trialing';
   const isCanceledAtPeriodEnd = activeSubscription?.cancelAtPeriodEnd;
 
   // Handle upgrade
   const handleUpgrade = async (plan: SubscriptionPlan, annual: boolean) => {
     if (!isOwner) {
-      toast.error("Only organization owners can manage subscriptions");
+      toast.error('Only organization owners can manage subscriptions');
       return;
     }
 
@@ -131,7 +131,7 @@ export function SubscriptionManager({
         });
 
         if (result.error) {
-          toast.error(result.error.message || "Failed to start checkout");
+          toast.error(result.error.message || 'Failed to start checkout');
           return;
         }
 
@@ -140,8 +140,8 @@ export function SubscriptionManager({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        logger.error("Upgrade error", error);
-        toast.error("Failed to start checkout");
+        logger.error('Upgrade error', error);
+        toast.error('Failed to start checkout');
       }
     });
   };
@@ -159,16 +159,16 @@ export function SubscriptionManager({
         );
 
         if (result.error) {
-          toast.error(result.error.message || "Failed to cancel subscription");
+          toast.error(result.error.message || 'Failed to cancel subscription');
           return;
         }
 
-        toast.success("Subscription will be canceled at the end of the billing period");
+        toast.success('Subscription will be canceled at the end of the billing period');
         setCancelDialogOpen(false);
         router.refresh();
       } catch (error) {
-        logger.error("Cancel error", error);
-        toast.error("Failed to cancel subscription");
+        logger.error('Cancel error', error);
+        toast.error('Failed to cancel subscription');
       }
     });
   };
@@ -182,15 +182,15 @@ export function SubscriptionManager({
         const result = await restoreSubscription(activeSubscription.id);
 
         if (result.error) {
-          toast.error(result.error.message || "Failed to restore subscription");
+          toast.error(result.error.message || 'Failed to restore subscription');
           return;
         }
 
-        toast.success("Subscription restored successfully");
+        toast.success('Subscription restored successfully');
         router.refresh();
       } catch (error) {
-        logger.error("Restore error", error);
-        toast.error("Failed to restore subscription");
+        logger.error('Restore error', error);
+        toast.error('Failed to restore subscription');
       }
     });
   };
@@ -203,7 +203,7 @@ export function SubscriptionManager({
         const result = await openBillingPortal(`${baseUrl}/${organizationSlug}/settings/billing`);
 
         if (result.error) {
-          toast.error(result.error.message || "Failed to open billing portal");
+          toast.error(result.error.message || 'Failed to open billing portal');
           return;
         }
 
@@ -211,8 +211,8 @@ export function SubscriptionManager({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        logger.error("Portal error", error);
-        toast.error("Failed to open billing portal");
+        logger.error('Portal error', error);
+        toast.error('Failed to open billing portal');
       }
     });
   };
@@ -240,9 +240,9 @@ export function SubscriptionManager({
               </CardTitle>
               <CardDescription>Your current subscription and billing status</CardDescription>
             </div>
-            <Badge variant={!currentPlan ? "secondary" : "default"} className="capitalize">
-              {currentPlan || "No Active Plan"}
-              {isTrialing && " (Trial)"}
+            <Badge variant={!currentPlan ? 'secondary' : 'default'} className="capitalize">
+              {currentPlan || 'No Active Plan'}
+              {isTrialing && ' (Trial)'}
             </Badge>
           </div>
         </CardHeader>
@@ -253,9 +253,9 @@ export function SubscriptionManager({
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Status</p>
                   <div className="flex items-center gap-2">
-                    {activeSubscription.status === "active" ? (
+                    {activeSubscription.status === 'active' ? (
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                    ) : activeSubscription.status === "trialing" ? (
+                    ) : activeSubscription.status === 'trialing' ? (
                       <Sparkles className="h-4 w-4 text-blue-500" />
                     ) : (
                       <AlertTriangle className="h-4 w-4 text-yellow-500" />
@@ -272,7 +272,7 @@ export function SubscriptionManager({
                 {activeSubscription.periodEnd && (
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {isCanceledAtPeriodEnd ? "Access until" : "Next billing date"}
+                      {isCanceledAtPeriodEnd ? 'Access until' : 'Next billing date'}
                     </p>
                     <p className="font-medium">{activeSubscription.periodEnd.toLocaleDateString()}</p>
                   </div>
@@ -300,7 +300,7 @@ export function SubscriptionManager({
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
                       Your subscription is scheduled to cancel on {activeSubscription.periodEnd?.toLocaleDateString()}.
                       <Button variant="link" className="h-auto p-0 pl-1" onClick={handleRestore} disabled={isPending}>
-                        {isPending ? "Restoring..." : "Restore subscription"}
+                        {isPending ? 'Restoring...' : 'Restore subscription'}
                       </Button>
                     </p>
                   </div>
@@ -314,11 +314,11 @@ export function SubscriptionManager({
           )}
         </CardContent>
         <CardFooter className="flex justify-between gap-2 border-t pt-6">
-          {isOwner && activeSubscription && activeSubscription.status !== "canceled" && (
+          {isOwner && activeSubscription && activeSubscription.status !== 'canceled' && (
             <>
               <Button variant="outline" onClick={handleOpenPortal} disabled={isPending}>
                 <CreditCard className="mr-2 h-4 w-4" />
-                {isPending ? "Loading..." : "Manage Billing"}
+                {isPending ? 'Loading...' : 'Manage Billing'}
               </Button>
               {!isCanceledAtPeriodEnd && (
                 <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
@@ -331,7 +331,7 @@ export function SubscriptionManager({
                     <DialogHeader>
                       <DialogTitle>Cancel Subscription</DialogTitle>
                       <DialogDescription>
-                        Are you sure you want to cancel? Your subscription will remain active until{" "}
+                        Are you sure you want to cancel? Your subscription will remain active until{' '}
                         {activeSubscription.periodEnd?.toLocaleDateString()}.
                       </DialogDescription>
                     </DialogHeader>
@@ -340,7 +340,7 @@ export function SubscriptionManager({
                         Keep Subscription
                       </Button>
                       <Button variant="destructive" onClick={handleCancel} disabled={isPending}>
-                        {isPending ? "Canceling..." : "Yes, Cancel"}
+                        {isPending ? 'Canceling...' : 'Yes, Cancel'}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -348,10 +348,10 @@ export function SubscriptionManager({
               )}
             </>
           )}
-          {isOwner && currentPlan !== "pro" && (
+          {isOwner && currentPlan !== 'pro' && (
             <Button onClick={() => setUpgradeDialogOpen(true)} disabled={isPending}>
               <Sparkles className="mr-2 h-4 w-4" />
-              {!currentPlan ? "Start Subscription" : currentPlan === "scale" ? "Upgrade to Pro" : "Subscribe"}
+              {!currentPlan ? 'Start Subscription' : currentPlan === 'scale' ? 'Upgrade to Pro' : 'Subscribe'}
             </Button>
           )}
         </CardFooter>
@@ -382,42 +382,42 @@ interface UpgradeDialogProps {
 }
 
 function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPending }: UpgradeDialogProps) {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   // Plan pricing synced with pricing.md
   const plans = [
     {
-      name: "scale" as const,
-      displayName: "Scale",
+      name: 'scale' as const,
+      displayName: 'Scale',
       monthlyPrice: 25,
       yearlyPrice: 228, // $19/month annual (24% off)
       features: [
-        "5GB storage/user",
-        "25 videos/user/mo",
-        "25 team members",
-        "60 min AI transcription/user",
-        "Email support",
+        '5GB storage/user',
+        '25 videos/user/mo',
+        '25 team members',
+        '60 min AI transcription/user',
+        'Email support',
       ],
     },
     {
-      name: "pro" as const,
-      displayName: "Pro",
+      name: 'pro' as const,
+      displayName: 'Pro',
       monthlyPrice: 45,
       yearlyPrice: 468, // $39/month annual (13% off)
       features: [
-        "25GB storage/user",
-        "100 videos/user/mo",
-        "Unlimited team members",
-        "300 min AI transcription/user",
-        "SSO/SAML + Custom branding",
-        "Priority support + Dedicated manager",
+        '25GB storage/user',
+        '100 videos/user/mo',
+        'Unlimited team members',
+        '300 min AI transcription/user',
+        'SSO/SAML + Custom branding',
+        'Priority support + Dedicated manager',
       ],
     },
   ];
 
   const availablePlans = plans.filter((p) => {
     if (!currentPlan) return true; // Show all plans if no active subscription
-    if (currentPlan === "scale") return p.name === "pro"; // Only show Pro for Scale users
+    if (currentPlan === 'scale') return p.name === 'pro'; // Only show Pro for Scale users
     return false; // Pro users can't upgrade further within the app
   });
 
@@ -432,16 +432,16 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
         {/* Billing Period Toggle */}
         <div className="flex justify-center gap-2 py-4">
           <Button
-            variant={billingPeriod === "monthly" ? "default" : "outline"}
+            variant={billingPeriod === 'monthly' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setBillingPeriod("monthly")}
+            onClick={() => setBillingPeriod('monthly')}
           >
             Monthly
           </Button>
           <Button
-            variant={billingPeriod === "yearly" ? "default" : "outline"}
+            variant={billingPeriod === 'yearly' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setBillingPeriod("yearly")}
+            onClick={() => setBillingPeriod('yearly')}
           >
             Yearly
             <Badge variant="secondary" className="ml-2">
@@ -453,8 +453,8 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
         {/* Plan Cards */}
         <div className="grid gap-4 md:grid-cols-2">
           {availablePlans.map((plan) => (
-            <Card key={plan.name} className={cn("relative", plan.name === "pro" && "border-primary")}>
-              {plan.name === "pro" && (
+            <Card key={plan.name} className={cn('relative', plan.name === 'pro' && 'border-primary')}>
+              {plan.name === 'pro' && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-primary">Most Popular</Badge>
                 </div>
@@ -463,10 +463,10 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
                 <CardTitle>{plan.displayName}</CardTitle>
                 <CardDescription>
                   <span className="text-3xl font-bold">
-                    ${billingPeriod === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
+                    ${billingPeriod === 'monthly' ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12)}
                   </span>
                   <span className="text-muted-foreground">/month</span>
-                  {billingPeriod === "yearly" && (
+                  {billingPeriod === 'yearly' && (
                     <span className="block text-sm text-muted-foreground">
                       Billed annually (${plan.yearlyPrice}/year)
                     </span>
@@ -486,7 +486,7 @@ function UpgradeDialog({ open, onOpenChange, currentPlan, onSelectPlan, isPendin
               <CardFooter>
                 <Button
                   className="w-full"
-                  onClick={() => onSelectPlan(plan.name, billingPeriod === "yearly")}
+                  onClick={() => onSelectPlan(plan.name, billingPeriod === 'yearly')}
                   disabled={isPending}
                 >
                   {isPending ? (

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { Copy, Link2, Loader2, Lock, Share2, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from 'date-fns';
+import { Copy, Link2, Loader2, Lock, Share2, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -11,22 +11,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
-import type { Video, VideoShareLink } from "@/lib/db/schema";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
+import type { Video, VideoShareLink } from '@/lib/db/schema';
 
 interface ShareDialogProps {
-  video: Pick<Video, "id" | "title" | "organizationId">;
+  video: Pick<Video, 'id' | 'title' | 'organizationId'>;
   organizationSlug: string;
 }
 
-type AccessLevel = "view" | "comment" | "download";
-type ExpiresIn = "never" | "1d" | "7d" | "30d";
+type AccessLevel = 'view' | 'comment' | 'download';
+type ExpiresIn = 'never' | '1d' | '7d' | '30d';
 
 interface ShareLinkWithCreator extends VideoShareLink {
   creator?: { name: string | null };
@@ -40,14 +40,14 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
   const [isCreating, setIsCreating] = useState(false);
 
   // Form state for new link
-  const [accessLevel, setAccessLevel] = useState<AccessLevel>("view");
-  const [password, setPassword] = useState("");
-  const [expiresIn, setExpiresIn] = useState<ExpiresIn>("never");
-  const [maxViews, setMaxViews] = useState<string>("");
+  const [accessLevel, setAccessLevel] = useState<AccessLevel>('view');
+  const [password, setPassword] = useState('');
+  const [expiresIn, setExpiresIn] = useState<ExpiresIn>('never');
+  const [maxViews, setMaxViews] = useState<string>('');
 
   // Direct video URL
   const directUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/${organizationSlug}/videos/${video.id}` : "";
+    typeof window !== 'undefined' ? `${window.location.origin}/${organizationSlug}/videos/${video.id}` : '';
 
   // Load existing share links
   const loadShareLinks = useCallback(async () => {
@@ -59,7 +59,7 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
         setShareLinks(data.data || []);
       }
     } catch (error) {
-      logger.error("Failed to load share links", error);
+      logger.error('Failed to load share links', error);
     } finally {
       setIsLoading(false);
     }
@@ -75,8 +75,8 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
     setIsCreating(true);
     try {
       const res = await fetch(`/api/videos/${video.id}/share`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accessLevel,
           password: password || undefined,
@@ -89,22 +89,22 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
       if (data.success) {
         setShareLinks([data.data, ...shareLinks]);
         // Reset form
-        setPassword("");
-        setMaxViews("");
-        toast({ title: "Share link created!" });
+        setPassword('');
+        setMaxViews('');
+        toast({ title: 'Share link created!' });
       } else {
         toast({
-          title: "Failed to create link",
+          title: 'Failed to create link',
           description: data.error,
-          variant: "destructive",
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      logger.error("Failed to create share link", error);
+      logger.error('Failed to create share link', error);
       toast({
-        title: "Failed to create link",
-        description: "Please try again",
-        variant: "destructive",
+        title: 'Failed to create link',
+        description: 'Please try again',
+        variant: 'destructive',
       });
     } finally {
       setIsCreating(false);
@@ -113,45 +113,45 @@ export function ShareDialog({ video, organizationSlug }: ShareDialogProps) {
 
   const copyLink = useCallback(
     (linkId: string) => {
-      const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/share/${linkId}` : "";
+      const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/share/${linkId}` : '';
       navigator.clipboard.writeText(shareUrl);
-      toast({ title: "Link copied!" });
+      toast({ title: 'Link copied!' });
     },
     [toast],
   );
 
   const copyDirectLink = useCallback(() => {
     navigator.clipboard.writeText(directUrl);
-    toast({ title: "Link copied!" });
+    toast({ title: 'Link copied!' });
   }, [directUrl, toast]);
 
   const revokeLink = async (linkId: string) => {
     try {
       const res = await fetch(`/api/videos/${video.id}/share/${linkId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       const data = await res.json();
       if (data.success) {
         setShareLinks(shareLinks.filter((l) => l.id !== linkId));
-        toast({ title: "Link revoked" });
+        toast({ title: 'Link revoked' });
       }
     } catch (error) {
-      logger.error("Failed to revoke link", error);
+      logger.error('Failed to revoke link', error);
       toast({
-        title: "Failed to revoke link",
-        variant: "destructive",
+        title: 'Failed to revoke link',
+        variant: 'destructive',
       });
     }
   };
 
   const getAccessLevelLabel = (level: AccessLevel) => {
     switch (level) {
-      case "view":
-        return "View only";
-      case "comment":
-        return "Can comment";
-      case "download":
-        return "Can download";
+      case 'view':
+        return 'View only';
+      case 'comment':
+        return 'Can comment';
+      case 'download':
+        return 'Can download';
       default:
         return level;
     }

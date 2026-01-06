@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { ValidationError, VideoProgressRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
+import { ValidationError, VideoProgressRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import type { ApiResponse } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/progress - Get video progress for current user
@@ -38,10 +38,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Progress changes frequently, use very short cache
       return NextResponse.json(response, {
         headers: {
-          "Cache-Control": getCacheControlHeader(CachePresets.progress()),
+          'Cache-Control': getCacheControlHeader(CachePresets.progress()),
         },
       });
     },
@@ -80,10 +80,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = yield* validateRequestBody(UpdateProgressBodySchema, request);
 
     // Validate currentTime
-    if (typeof body.currentTime !== "number" || body.currentTime < 0) {
+    if (typeof body.currentTime !== 'number' || body.currentTime < 0) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "currentTime must be a non-negative number",
+          message: 'currentTime must be a non-negative number',
         }),
       );
     }
@@ -127,7 +127,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return {
       success: true,
-      data: { message: "Progress deleted successfully" },
+      data: { message: 'Progress deleted successfully' },
     };
   });
 

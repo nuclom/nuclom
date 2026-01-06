@@ -5,12 +5,12 @@
  * eliminating duplication across integration callback routes.
  */
 
-import { Effect } from "effect";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { connection } from "next/server";
-import type { IntegrationProvider } from "@/lib/db/schema";
-import { IntegrationRepository } from "@/lib/effect/services/integration-repository";
+import { Effect } from 'effect';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
+import type { IntegrationProvider } from '@/lib/db/schema';
+import { IntegrationRepository } from '@/lib/effect/services/integration-repository';
 
 // =============================================================================
 // Types
@@ -43,7 +43,7 @@ export interface OAuthCallbackResult {
  */
 export function parseOAuthState(state: string): OAuthState | null {
   try {
-    return JSON.parse(Buffer.from(state, "base64url").toString());
+    return JSON.parse(Buffer.from(state, 'base64url').toString());
   } catch {
     return null;
   }
@@ -53,7 +53,7 @@ export function parseOAuthState(state: string): OAuthState | null {
  * Encode OAuth state for URL
  */
 export function encodeOAuthState(state: OAuthState): string {
-  return Buffer.from(JSON.stringify(state)).toString("base64url");
+  return Buffer.from(JSON.stringify(state)).toString('base64url');
 }
 
 /**
@@ -98,12 +98,12 @@ export async function validateOAuthCallback(
   await connection();
 
   const { searchParams } = new URL(request.url);
-  const code = searchParams.get("code");
-  const state = searchParams.get("state");
-  const error = searchParams.get("error");
-  const errorDescription = searchParams.get("error_description");
+  const code = searchParams.get('code');
+  const state = searchParams.get('state');
+  const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
 
-  const errorRedirectBase = "/settings/integrations";
+  const errorRedirectBase = '/settings/integrations';
   const providerKey = provider.toLowerCase();
   const stateCookieName = `${providerKey}_oauth_state`;
 

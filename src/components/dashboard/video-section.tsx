@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { ChevronRight, Upload } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { VideoCard } from "@/components/video-card";
-import type { VideoWithAuthor } from "@/lib/types";
+import { ChevronRight, Upload } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { VideoCard } from '@/components/video-card';
+import type { VideoWithAuthor } from '@/lib/types';
 
 interface VideoSectionProps {
   title: string;
@@ -22,7 +22,7 @@ export function VideoSection({
   videos,
   organization,
   viewAllHref,
-  emptyMessage = "No videos yet",
+  emptyMessage = 'No videos yet',
   showUploadCTA = false,
 }: VideoSectionProps) {
   if (videos.length === 0 && !showUploadCTA) {

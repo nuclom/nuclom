@@ -12,14 +12,14 @@
  * - Resume on server restart
  */
 
-import { eq } from "drizzle-orm";
-import type Stripe from "stripe";
-import { FatalError } from "workflow";
-import { db } from "@/lib/db";
-import { members, notifications, subscriptions, users } from "@/lib/db/schema";
-import { resend } from "@/lib/email";
-import { env, getAppUrl } from "@/lib/env/server";
-import { trialReminderWorkflow } from "./trial-reminders";
+import { eq } from 'drizzle-orm';
+import type Stripe from 'stripe';
+import { FatalError } from 'workflow';
+import { db } from '@/lib/db';
+import { members, notifications, subscriptions, users } from '@/lib/db/schema';
+import { resend } from '@/lib/email';
+import { env, getAppUrl } from '@/lib/env/server';
+import { trialReminderWorkflow } from './trial-reminders';
 
 // =============================================================================
 // Types
@@ -66,7 +66,7 @@ async function sendSubscriptionEmail(
     buttonUrl: string;
   },
 ): Promise<void> {
-  const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+  const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   await resend.emails.send({
     from: fromEmail,
@@ -119,7 +119,7 @@ async function sendSubscriptionEmail(
 export async function handleSubscriptionCreatedWorkflow(
   input: StripeWebhookInput<{ subscription: Stripe.Subscription; organizationId: string }>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId, data } = input;
   const { subscription, organizationId } = data;
@@ -127,7 +127,7 @@ export async function handleSubscriptionCreatedWorkflow(
   try {
     // Step 1: Notifications are handled here - DB update is done by the billing service
     // The billing.handleSubscriptionCreated already updates the database
-    ("use step");
+    ('use step');
 
     // Step 2: Get organization details
     const org = await db.query.organizations.findFirst({
@@ -137,7 +137,7 @@ export async function handleSubscriptionCreatedWorkflow(
     if (!org) {
       throw new FatalError(`Organization ${organizationId} not found`);
     }
-    ("use step");
+    ('use step');
 
     // Step 3: Get organization owners and send notifications
     const owners = await getOrganizationOwners(organizationId);
@@ -149,24 +149,24 @@ export async function handleSubscriptionCreatedWorkflow(
       // Create in-app notification
       await db.insert(notifications).values({
         userId: owner.userId,
-        type: "subscription_created",
-        title: "Welcome to Nuclom Pro!",
+        type: 'subscription_created',
+        title: 'Welcome to Nuclom Pro!',
         body: `Your subscription for ${org.name} is now active. Enjoy all premium features!`,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: subscription.id,
       });
 
       // Send email
-      await sendSubscriptionEmail(owner.email, owner.name || "there", "Welcome to Nuclom Pro!", {
-        title: "Welcome to Nuclom Pro!",
+      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Welcome to Nuclom Pro!', {
+        title: 'Welcome to Nuclom Pro!',
         message: `Your subscription for ${org.name} is now active.`,
         highlight: "<p style='margin: 0;'>Thank you for subscribing! You now have access to all premium features.</p>",
-        highlightClass: "success",
-        buttonText: "Get Started",
+        highlightClass: 'success',
+        buttonText: 'Get Started',
         buttonUrl: `${baseUrl}/${org.slug}`,
       });
     }
-    ("use step");
+    ('use step');
 
     // Step 4: If this is a trial, start the reminder workflow
     if (subscription.trial_end) {
@@ -197,14 +197,14 @@ export async function handleSubscriptionCreatedWorkflow(
 export async function handleSubscriptionUpdatedWorkflow(
   input: StripeWebhookInput<Stripe.Subscription>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId } = input;
 
   try {
     // DB update is handled by billing.handleSubscriptionUpdated
     // This workflow exists for observability and potential future notification needs
-    ("use step");
+    ('use step');
 
     return { success: true, eventId };
   } catch (error) {
@@ -220,7 +220,7 @@ export async function handleSubscriptionUpdatedWorkflow(
 export async function handleSubscriptionDeletedWorkflow(
   input: StripeWebhookInput<Stripe.Subscription>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId, data: subscription } = input;
 
@@ -229,11 +229,11 @@ export async function handleSubscriptionDeletedWorkflow(
     await db
       .update(subscriptions)
       .set({
-        status: "canceled",
+        status: 'canceled',
         canceledAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
-    ("use step");
+    ('use step');
 
     // Step 2: Get subscription and organization details
     const dbSubscription = await db.query.subscriptions.findFirst({
@@ -252,7 +252,7 @@ export async function handleSubscriptionDeletedWorkflow(
     if (!org) {
       return { success: true, eventId };
     }
-    ("use step");
+    ('use step');
 
     // Step 3: Notify organization owners
     const owners = await getOrganizationOwners(organizationId);
@@ -263,20 +263,20 @@ export async function handleSubscriptionDeletedWorkflow(
 
       await db.insert(notifications).values({
         userId: owner.userId,
-        type: "subscription_canceled",
-        title: "Subscription Canceled",
+        type: 'subscription_canceled',
+        title: 'Subscription Canceled',
         body: `Your subscription for ${org.name} has been canceled.`,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: subscription.id,
       });
 
-      await sendSubscriptionEmail(owner.email, owner.name || "there", "Subscription Canceled", {
-        title: "Subscription Canceled",
+      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Subscription Canceled', {
+        title: 'Subscription Canceled',
         message: `Your subscription for ${org.name} has been canceled.`,
         highlight:
           "<p style='margin: 0;'>Your subscription will remain active until the end of your current billing period.</p>",
-        highlightClass: "warning",
-        buttonText: "Reactivate Subscription",
+        highlightClass: 'warning',
+        buttonText: 'Reactivate Subscription',
         buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
       });
     }
@@ -295,14 +295,14 @@ export async function handleSubscriptionDeletedWorkflow(
 export async function handleInvoicePaidWorkflow(
   input: StripeWebhookInput<Stripe.Invoice>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId } = input;
 
   try {
     // DB update is handled by billing.handleInvoicePaid
     // This workflow exists for observability
-    ("use step");
+    ('use step');
 
     return { success: true, eventId };
   } catch (error) {
@@ -318,7 +318,7 @@ export async function handleInvoicePaidWorkflow(
 export async function handleInvoiceFailedWorkflow(
   input: StripeWebhookInput<Stripe.Invoice & { stripeSubscriptionId?: string }>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId, data: invoice } = input;
 
@@ -348,7 +348,7 @@ export async function handleInvoiceFailedWorkflow(
     if (!org) {
       return { success: true, eventId };
     }
-    ("use step");
+    ('use step');
 
     // Step 2: Notify organization owners
     const owners = await getOrganizationOwners(invoiceOrgId);
@@ -359,20 +359,20 @@ export async function handleInvoiceFailedWorkflow(
 
       await db.insert(notifications).values({
         userId: owner.userId,
-        type: "payment_failed",
-        title: "Payment Failed",
+        type: 'payment_failed',
+        title: 'Payment Failed',
         body: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: subscriptionId,
       });
 
-      await sendSubscriptionEmail(owner.email, owner.name || "there", "Action Required: Payment Failed", {
-        title: "Payment Failed",
+      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Action Required: Payment Failed', {
+        title: 'Payment Failed',
         message: `We couldn't process your payment for ${org.name}.`,
         highlight:
           "<p style='margin: 0;'><strong>Action Required</strong></p><p style='margin: 8px 0 0 0;'>Please update your payment method to avoid service interruption.</p>",
-        highlightClass: "error",
-        buttonText: "Update Payment Method",
+        highlightClass: 'error',
+        buttonText: 'Update Payment Method',
         buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
       });
     }
@@ -391,7 +391,7 @@ export async function handleInvoiceFailedWorkflow(
 export async function handleTrialEndingWorkflow(
   input: StripeWebhookInput<Stripe.Subscription>,
 ): Promise<StripeWebhookResult> {
-  "use workflow";
+  'use workflow';
 
   const { eventId, data: subscription } = input;
 
@@ -424,19 +424,19 @@ export async function handleTrialEndingWorkflow(
 
       await db.insert(notifications).values({
         userId: owner.userId,
-        type: "trial_ending",
-        title: "Your trial is ending soon",
+        type: 'trial_ending',
+        title: 'Your trial is ending soon',
         body: `Your trial for ${org.name} ends in ${daysLeft} days. Upgrade now to keep access to all features.`,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: subscription.id,
       });
 
-      await sendSubscriptionEmail(owner.email, owner.name || "there", `Your Nuclom trial ends in ${daysLeft} days`, {
-        title: "Your trial is ending soon",
+      await sendSubscriptionEmail(owner.email, owner.name || 'there', `Your Nuclom trial ends in ${daysLeft} days`, {
+        title: 'Your trial is ending soon',
         message: `Your trial for ${org.name} is ending soon!`,
-        highlight: `<p style='margin: 0;'><strong>${daysLeft} day${daysLeft !== 1 ? "s" : ""} remaining</strong></p><p style='margin: 8px 0 0 0;'>Your trial will end on ${trialEndsAt.toLocaleDateString()}.</p>`,
-        highlightClass: "warning",
-        buttonText: "Upgrade Now",
+        highlight: `<p style='margin: 0;'><strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining</strong></p><p style='margin: 8px 0 0 0;'>Your trial will end on ${trialEndsAt.toLocaleDateString()}.</p>`,
+        highlightClass: 'warning',
+        buttonText: 'Upgrade Now',
         buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
       });
     }

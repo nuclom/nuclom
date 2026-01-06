@@ -1,5 +1,5 @@
-import { Effect, ParseResult, pipe, Schema } from "effect";
-import { ValidationError } from "@/lib/effect/errors";
+import { Effect, ParseResult, pipe, Schema } from 'effect';
+import { ValidationError } from '@/lib/effect/errors';
 
 /**
  * Validates data against an Effect Schema and returns an Effect
@@ -10,9 +10,9 @@ export function validate<A, I>(schema: Schema.Schema<A, I>, data: unknown): Effe
     Effect.mapError((error) => {
       const issues = ParseResult.ArrayFormatter.formatErrorSync(error);
       const messages = issues.map((issue) =>
-        issue.path.length > 0 ? `${issue.path.join(".")}: ${issue.message}` : issue.message,
+        issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message,
       );
-      return new ValidationError({ message: messages.join("; ") });
+      return new ValidationError({ message: messages.join('; ') });
     }),
   );
 }
@@ -48,14 +48,14 @@ export type SafeParseResult<A> =
 export function safeParse<A, I>(schema: Schema.Schema<A, I>, data: unknown): SafeParseResult<A> {
   const result = Schema.decodeUnknownEither(schema)(data);
 
-  if (result._tag === "Right") {
+  if (result._tag === 'Right') {
     return { success: true, data: result.right };
   }
 
   const formattedIssues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
   const issues = formattedIssues.map((issue) => ({
     message: issue.message,
-    path: issue.path.length > 0 ? issue.path.join(".") : undefined,
+    path: issue.path.length > 0 ? issue.path.join('.') : undefined,
   }));
 
   return { success: false, error: { issues } };
@@ -66,7 +66,7 @@ export function safeParse<A, I>(schema: Schema.Schema<A, I>, data: unknown): Saf
  * Handles arrays and boolean conversion.
  */
 export function parseQueryParams(url: string | URL): Record<string, unknown> {
-  const { searchParams } = typeof url === "string" ? new URL(url) : url;
+  const { searchParams } = typeof url === 'string' ? new URL(url) : url;
   const params: Record<string, unknown> = {};
 
   searchParams.forEach((value, key) => {
@@ -107,7 +107,7 @@ export function validateRequestBody<A, I>(
   return Effect.gen(function* () {
     const body = yield* Effect.tryPromise({
       try: () => request.json(),
-      catch: () => new ValidationError({ message: "Invalid JSON body" }),
+      catch: () => new ValidationError({ message: 'Invalid JSON body' }),
     });
 
     return yield* validate(schema, body);
@@ -291,11 +291,11 @@ export const OrganizationIdParam = Schema.Struct({
 });
 
 // Re-export file validation
-export * from "./file-validation";
+export * from './file-validation';
 // Re-export sanitization
-export * from "./sanitize";
+export * from './sanitize';
 // Re-export schemas
-export * from "./schemas";
+export * from './schemas';
 
 // Note: Form utilities (useValidatedForm, etc.) are in ./form.ts
 // Import them directly for client-side usage:

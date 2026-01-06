@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
 
-type VerificationStatus = "loading" | "success" | "error" | "no-token";
+type VerificationStatus = 'loading' | 'success' | 'error' | 'no-token';
 
 export function VerifyEmailForm() {
-  const [status, setStatus] = useState<VerificationStatus>("loading");
+  const [status, setStatus] = useState<VerificationStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
 
   useEffect(() => {
     if (!token) {
-      setStatus("no-token");
+      setStatus('no-token');
       return;
     }
 
@@ -30,15 +30,15 @@ export function VerifyEmailForm() {
         });
 
         if (result.error) {
-          setStatus("error");
-          setErrorMessage(result.error.message || "Verification failed");
+          setStatus('error');
+          setErrorMessage(result.error.message || 'Verification failed');
         } else {
-          setStatus("success");
+          setStatus('success');
         }
       } catch (err) {
-        setStatus("error");
-        setErrorMessage("An unexpected error occurred during verification");
-        logger.error("Email verification failed", err);
+        setStatus('error');
+        setErrorMessage('An unexpected error occurred during verification');
+        logger.error('Email verification failed', err);
       }
     };
 
@@ -46,14 +46,14 @@ export function VerifyEmailForm() {
   }, [token]);
 
   const handleGoToLogin = () => {
-    router.push("/login");
+    router.push('/login');
   };
 
   const handleGoToDashboard = () => {
-    router.push("/onboarding");
+    router.push('/onboarding');
   };
 
-  if (status === "loading") {
+  if (status === 'loading') {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1">
@@ -67,7 +67,7 @@ export function VerifyEmailForm() {
     );
   }
 
-  if (status === "no-token") {
+  if (status === 'no-token') {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1">
@@ -91,7 +91,7 @@ export function VerifyEmailForm() {
     );
   }
 
-  if (status === "error") {
+  if (status === 'error') {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1">

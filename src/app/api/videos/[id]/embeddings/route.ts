@@ -1,11 +1,11 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { connection } from "next/server";
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { getVideo, MissingFieldError, ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Embedding } from "@/lib/effect/services/embedding";
-import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-repository";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { connection } from 'next/server';
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { getVideo, MissingFieldError, ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Embedding } from '@/lib/effect/services/embedding';
+import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
 
 // =============================================================================
 // GET /api/videos/[id]/embeddings - Get embedding status for a video
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!videoId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "videoId",
-          message: "Video ID is required",
+          field: 'videoId',
+          message: 'Video ID is required',
         }),
       );
     }
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         tokenCount: c.tokenCount,
         timestampStart: c.timestampStart,
         timestampEnd: c.timestampEnd,
-        textPreview: c.text.substring(0, 200) + (c.text.length > 200 ? "..." : ""),
+        textPreview: c.text.substring(0, 200) + (c.text.length > 200 ? '...' : ''),
       })),
     };
   });
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!videoId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "videoId",
-          message: "Video ID is required",
+          field: 'videoId',
+          message: 'Video ID is required',
         }),
       );
     }
@@ -85,8 +85,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video.transcript) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Video does not have a transcript. Please wait for processing to complete.",
-          field: "transcript",
+          message: 'Video does not have a transcript. Please wait for processing to complete.',
+          field: 'transcript',
         }),
       );
     }
@@ -132,8 +132,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!videoId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "videoId",
-          message: "Video ID is required",
+          field: 'videoId',
+          message: 'Video ID is required',
         }),
       );
     }
@@ -148,7 +148,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return {
       videoId,
       success: true,
-      message: "Embeddings deleted successfully",
+      message: 'Embeddings deleted successfully',
     };
   });
 

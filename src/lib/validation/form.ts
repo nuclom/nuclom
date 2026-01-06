@@ -4,13 +4,13 @@
  * Provides hooks and utilities for form validation with Effect Schema and React Hook Form.
  */
 
-import { effectTsResolver } from "@hookform/resolvers/effect-ts";
-import { ParseResult, Schema } from "effect";
-import { useCallback, useState } from "react";
-import type { DefaultValues, FieldError, FieldValues, Path } from "react-hook-form";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from "@/lib/api-errors";
+import { effectTsResolver } from '@hookform/resolvers/effect-ts';
+import { ParseResult, Schema } from 'effect';
+import { useCallback, useState } from 'react';
+import type { DefaultValues, FieldError, FieldValues, Path } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from '@/lib/api-errors';
 
 // =============================================================================
 // Types
@@ -72,7 +72,7 @@ export function useValidatedForm<TInput extends FieldValues, I>({
   const form = useForm<TInput>({
     resolver: effectTsResolver(schema as unknown as Schema.Schema<TInput, FieldValues>) as never,
     defaultValues,
-    mode: "onBlur",
+    mode: 'onBlur',
   });
 
   const clearSubmitError = useCallback(() => {
@@ -140,14 +140,14 @@ function handleSubmitError<TInput extends FieldValues>(
     if (apiError.error.details?.field) {
       const field = apiError.error.details.field as Path<TInput>;
       setError(field, {
-        type: "server",
+        type: 'server',
         message: apiError.error.message,
       });
     } else if (apiError.error.details?.fields) {
       const fields = apiError.error.details.fields as Array<{ field: string; message: string }>;
       for (const { field, message } of fields) {
         setError(field as Path<TInput>, {
-          type: "server",
+          type: 'server',
           message,
         });
       }
@@ -160,18 +160,18 @@ function handleSubmitError<TInput extends FieldValues>(
   }
 
   // Handle Effect Schema validation errors (ParseError)
-  if (error instanceof Error && "issue" in error) {
+  if (error instanceof Error && 'issue' in error) {
     try {
       const parseError = error as ParseResult.ParseError;
       const issues = ParseResult.ArrayFormatter.formatErrorSync(parseError);
       for (const issue of issues) {
-        const path = issue.path.join(".") as Path<TInput>;
+        const path = issue.path.join('.') as Path<TInput>;
         setError(path, {
-          type: "validation",
+          type: 'validation',
           message: issue.message,
         });
       }
-      setSubmitError("Please check the form for errors");
+      setSubmitError('Please check the form for errors');
       return;
     } catch {
       // Fall through to generic error handling
@@ -186,13 +186,13 @@ function handleSubmitError<TInput extends FieldValues>(
         if (isApiError(data)) {
           handleSubmitError(data, setError, setSubmitError);
         } else {
-          setSubmitError("An unexpected error occurred. Please try again.");
-          toast.error("An unexpected error occurred");
+          setSubmitError('An unexpected error occurred. Please try again.');
+          toast.error('An unexpected error occurred');
         }
       })
       .catch(() => {
-        setSubmitError("An unexpected error occurred. Please try again.");
-        toast.error("An unexpected error occurred");
+        setSubmitError('An unexpected error occurred. Please try again.');
+        toast.error('An unexpected error occurred');
       });
     return;
   }
@@ -205,8 +205,8 @@ function handleSubmitError<TInput extends FieldValues>(
   }
 
   // Unknown error
-  setSubmitError("An unexpected error occurred. Please try again.");
-  toast.error("An unexpected error occurred");
+  setSubmitError('An unexpected error occurred. Please try again.');
+  toast.error('An unexpected error occurred');
 }
 
 /**
@@ -237,13 +237,13 @@ export function validateData<A, I>(
 ): { success: true; data: A } | { success: false; errors: Array<{ field: string; message: string }> } {
   const result = Schema.decodeUnknownEither(schema)(data);
 
-  if (result._tag === "Right") {
+  if (result._tag === 'Right') {
     return { success: true, data: result.right };
   }
 
   const issues = ParseResult.ArrayFormatter.formatErrorSync(result.left);
   const errors = issues.map((issue) => ({
-    field: issue.path.join("."),
+    field: issue.path.join('.'),
     message: issue.message,
   }));
 
@@ -258,7 +258,7 @@ export function formatSchemaErrors(error: ParseResult.ParseError): Record<string
   const issues = ParseResult.ArrayFormatter.formatErrorSync(error);
 
   for (const issue of issues) {
-    const path = issue.path.join(".");
+    const path = issue.path.join('.');
     if (!errors[path]) {
       errors[path] = issue.message;
     }

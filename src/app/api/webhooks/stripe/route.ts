@@ -14,32 +14,32 @@
  * to prevent duplicate processing on webhook retries.
  */
 
-import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option } from "effect";
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
-import type Stripe from "stripe";
-import { normalizeOne } from "@/lib/db/relations";
-import { type InvoiceStatus, type NewInvoice, type NewPaymentMethod, processedWebhookEvents } from "@/lib/db/schema";
-import { AppLive } from "@/lib/effect";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { Database, type DrizzleDB } from "@/lib/effect/services/database";
-import { EmailNotifications } from "@/lib/effect/services/email-notifications";
-import { NotificationRepository } from "@/lib/effect/services/notification-repository";
-import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
-import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { getAppUrl } from "@/lib/env/server";
+import { eq } from 'drizzle-orm';
+import { Cause, Effect, Exit, Option } from 'effect';
+import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
+import type Stripe from 'stripe';
+import { normalizeOne } from '@/lib/db/relations';
+import { type InvoiceStatus, type NewInvoice, type NewPaymentMethod, processedWebhookEvents } from '@/lib/db/schema';
+import { AppLive } from '@/lib/effect';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import { Database, type DrizzleDB } from '@/lib/effect/services/database';
+import { EmailNotifications } from '@/lib/effect/services/email-notifications';
+import { NotificationRepository } from '@/lib/effect/services/notification-repository';
+import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
+import { StripeServiceTag } from '@/lib/effect/services/stripe';
+import { getAppUrl } from '@/lib/env/server';
 
 // Events that Better Auth needs to handle for subscription management
 const BETTER_AUTH_EVENTS = new Set([
-  "customer.subscription.created",
-  "customer.subscription.updated",
-  "customer.subscription.deleted",
-  "customer.subscription.paused",
-  "customer.subscription.resumed",
-  "customer.subscription.pending_update_applied",
-  "customer.subscription.pending_update_expired",
-  "checkout.session.completed",
+  'customer.subscription.created',
+  'customer.subscription.updated',
+  'customer.subscription.deleted',
+  'customer.subscription.paused',
+  'customer.subscription.resumed',
+  'customer.subscription.pending_update_applied',
+  'customer.subscription.pending_update_expired',
+  'checkout.session.completed',
 ]);
 
 // =============================================================================
@@ -51,10 +51,10 @@ async function forwardToBetterAuth(body: string, signature: string): Promise<voi
 
   try {
     const response = await fetch(betterAuthWebhookUrl, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "stripe-signature": signature,
+        'Content-Type': 'application/json',
+        'stripe-signature': signature,
       },
       body,
     });
@@ -63,10 +63,10 @@ async function forwardToBetterAuth(body: string, signature: string): Promise<voi
       const text = await response.text();
       console.error(`[Webhook] Better Auth forwarding failed: ${response.status} - ${text}`);
     } else {
-      console.log("[Webhook] Event forwarded to Better Auth successfully");
+      console.log('[Webhook] Event forwarded to Better Auth successfully');
     }
   } catch (error) {
-    console.error("[Webhook] Failed to forward event to Better Auth:", error);
+    console.error('[Webhook] Failed to forward event to Better Auth:', error);
   }
 }
 
@@ -77,10 +77,10 @@ async function forwardToBetterAuth(body: string, signature: string): Promise<voi
 export async function POST(request: Request) {
   const body = await request.text();
   const headersList = await headers();
-  const signature = headersList.get("stripe-signature");
+  const signature = headersList.get('stripe-signature');
 
   if (!signature) {
-    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         db.insert(processedWebhookEvents).values({
           eventId: event.id,
           eventType: event.type,
-          source: "stripe",
+          source: 'stripe',
         }),
       catch: (error) => {
         // If insert fails due to unique constraint, another process is handling it
@@ -134,28 +134,28 @@ export async function POST(request: Request) {
     // Handle the event locally
     switch (event.type) {
       // Invoice events - track in our local database
-      case "invoice.paid": {
+      case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoicePaid(invoice, billingRepo, db);
         console.log(`[Webhook] Invoice ${invoice.id} paid`);
         break;
       }
 
-      case "invoice.payment_failed": {
+      case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoiceFailed(invoice, db);
         console.log(`[Webhook] Invoice ${invoice.id} payment failed`);
         break;
       }
 
-      case "invoice.created": {
+      case 'invoice.created': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoiceCreated(invoice, billingRepo);
         console.log(`[Webhook] Invoice ${invoice.id} created`);
         break;
       }
 
-      case "invoice.updated": {
+      case 'invoice.updated': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoiceUpdated(invoice, billingRepo);
         console.log(`[Webhook] Invoice ${invoice.id} updated`);
@@ -163,14 +163,14 @@ export async function POST(request: Request) {
       }
 
       // Payment method events
-      case "payment_method.attached": {
+      case 'payment_method.attached': {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
         yield* handlePaymentMethodAttached(paymentMethod, billingRepo);
         console.log(`[Webhook] Payment method ${paymentMethod.id} attached`);
         break;
       }
 
-      case "payment_method.detached": {
+      case 'payment_method.detached': {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
         yield* billingRepo.deletePaymentMethod(paymentMethod.id);
         console.log(`[Webhook] Payment method ${paymentMethod.id} detached`);
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
       }
 
       // Trial ending notification (our custom handling)
-      case "customer.subscription.trial_will_end": {
+      case 'customer.subscription.trial_will_end': {
         const subscription = event.data.object as Stripe.Subscription;
         yield* handleTrialEnding(subscription, db);
         console.log(`[Webhook] Trial ending notification sent for subscription ${subscription.id}`);
@@ -200,16 +200,16 @@ export async function POST(request: Request) {
       const error = Cause.failureOption(cause);
       if (Option.isSome(error)) {
         const err = error.value;
-        if (err && typeof err === "object" && "_tag" in err) {
+        if (err && typeof err === 'object' && '_tag' in err) {
           // Cast to unknown first to allow checking any _tag value
           const errorTag = (err as { _tag: string })._tag;
-          if (errorTag === "WebhookSignatureError") {
-            return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+          if (errorTag === 'WebhookSignatureError') {
+            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
           }
         }
-        console.error("[Webhook Error]", err);
+        console.error('[Webhook Error]', err);
       }
-      return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+      return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
     },
     onSuccess: (data) => NextResponse.json(data),
   });
@@ -227,15 +227,15 @@ type DbType = DrizzleDB;
 // =============================================================================
 
 const mapStripeInvoiceStatus = (status: string | null): InvoiceStatus => {
-  if (!status) return "draft";
+  if (!status) return 'draft';
   const statusMap: Record<string, InvoiceStatus> = {
-    draft: "draft",
-    open: "open",
-    paid: "paid",
-    void: "void",
-    uncollectible: "uncollectible",
+    draft: 'draft',
+    open: 'open',
+    paid: 'paid',
+    void: 'void',
+    uncollectible: 'uncollectible',
   };
-  return statusMap[status] ?? "open";
+  return statusMap[status] ?? 'open';
 };
 
 // Get metadata reference ID from invoice
@@ -246,7 +246,7 @@ const getInvoiceReferenceId = (invoice: Stripe.Invoice): string | undefined => {
   }
   // Fall back to checking the subscription metadata directly
   const subscription = invoice.parent?.subscription_details?.subscription;
-  if (typeof subscription === "object" && subscription?.metadata?.referenceId) {
+  if (typeof subscription === 'object' && subscription?.metadata?.referenceId) {
     return subscription.metadata.referenceId;
   }
   return undefined;
@@ -263,12 +263,12 @@ const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRe
 
     const organizationId = getInvoiceReferenceId(stripeInvoice);
     if (!organizationId) {
-      console.log("[Webhook] No organizationId in invoice metadata");
+      console.log('[Webhook] No organizationId in invoice metadata');
       return;
     }
 
     const paymentIntent = (stripeInvoice as { payment_intent?: string | { id: string } | null }).payment_intent;
-    const paymentIntentId = typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id;
+    const paymentIntentId = typeof paymentIntent === 'string' ? paymentIntent : paymentIntent?.id;
 
     const invoiceData: NewInvoice = {
       organizationId,
@@ -295,12 +295,12 @@ const handleInvoicePaid = (stripeInvoice: Stripe.Invoice, billingRepo: BillingRe
     }
 
     // Send payment succeeded notification
-    yield* sendPaymentNotification(organizationId, "payment_succeeded", db);
+    yield* sendPaymentNotification(organizationId, 'payment_succeeded', db);
 
     // Send Slack monitoring notification
     const slackMonitoring = yield* SlackMonitoring;
     yield* slackMonitoring
-      .sendBillingEvent("payment_succeeded", {
+      .sendBillingEvent('payment_succeeded', {
         organizationId,
         organizationName: organizationId, // We'll get the actual name in the notification
         amount: stripeInvoice.amount_paid,
@@ -318,12 +318,12 @@ const handleInvoiceFailed = (stripeInvoice: Stripe.Invoice, db: DbType) =>
     if (!organizationId) return;
 
     // Send payment failed notification
-    yield* sendPaymentNotification(organizationId, "payment_failed", db);
+    yield* sendPaymentNotification(organizationId, 'payment_failed', db);
 
     // Send Slack monitoring notification
     const slackMonitoring = yield* SlackMonitoring;
     yield* slackMonitoring
-      .sendBillingEvent("payment_failed", {
+      .sendBillingEvent('payment_failed', {
         organizationId,
         organizationName: organizationId,
         amount: stripeInvoice.amount_due,
@@ -362,7 +362,7 @@ const handleInvoiceUpdated = (stripeInvoice: Stripe.Invoice, billingRepo: Billin
         status: mapStripeInvoiceStatus(stripeInvoice.status),
         pdfUrl: stripeInvoice.invoice_pdf ?? undefined,
         hostedInvoiceUrl: stripeInvoice.hosted_invoice_url ?? undefined,
-        paidAt: stripeInvoice.status === "paid" ? new Date() : undefined,
+        paidAt: stripeInvoice.status === 'paid' ? new Date() : undefined,
       })
       .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
   });
@@ -396,7 +396,7 @@ const handlePaymentMethodAttached = (paymentMethod: Stripe.PaymentMethod, billin
 
 const sendPaymentNotification = (
   organizationId: string,
-  eventType: "payment_succeeded" | "payment_failed",
+  eventType: 'payment_succeeded' | 'payment_failed',
   db: DbType,
 ) =>
   Effect.gen(function* () {
@@ -409,7 +409,7 @@ const sendPaymentNotification = (
         db.query.organizations.findFirst({
           where: (o, { eq }) => eq(o.id, organizationId),
         }),
-      catch: () => new Error("Failed to get organization"),
+      catch: () => new Error('Failed to get organization'),
     });
 
     if (!org) return;
@@ -418,15 +418,15 @@ const sendPaymentNotification = (
     const ownerMembers = yield* Effect.tryPromise({
       try: () =>
         db.query.members.findMany({
-          where: (m, { and, eq: colEq }) => and(colEq(m.organizationId, organizationId), colEq(m.role, "owner")),
+          where: (m, { and, eq: colEq }) => and(colEq(m.organizationId, organizationId), colEq(m.role, 'owner')),
           with: { user: true },
         }),
-      catch: () => new Error("Failed to get organization members"),
+      catch: () => new Error('Failed to get organization members'),
     });
 
     const notificationTitles = {
-      payment_succeeded: "Payment successful",
-      payment_failed: "Payment failed",
+      payment_succeeded: 'Payment successful',
+      payment_failed: 'Payment failed',
     };
 
     const notificationBodies = {
@@ -444,7 +444,7 @@ const sendPaymentNotification = (
         type: eventType,
         title: notificationTitles[eventType],
         body: notificationBodies[eventType],
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: organizationId,
       });
 
@@ -452,7 +452,7 @@ const sendPaymentNotification = (
       yield* emailService
         .sendSubscriptionNotification({
           recipientEmail: user.email,
-          recipientName: user.name || "there",
+          recipientName: user.name || 'there',
           organizationName: org.name,
           eventType,
           billingUrl: `${getAppUrl()}/${org.slug}/settings/billing`,
@@ -479,7 +479,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
         db.query.organizations.findFirst({
           where: (o, { eq }) => eq(o.id, organizationId),
         }),
-      catch: () => new Error("Failed to get organization"),
+      catch: () => new Error('Failed to get organization'),
     });
 
     if (!org) return;
@@ -487,10 +487,10 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     const members = yield* Effect.tryPromise({
       try: () =>
         db.query.members.findMany({
-          where: (m, { and, eq }) => and(eq(m.organizationId, organizationId), eq(m.role, "owner")),
+          where: (m, { and, eq }) => and(eq(m.organizationId, organizationId), eq(m.role, 'owner')),
           with: { user: true },
         }),
-      catch: () => new Error("Failed to get members"),
+      catch: () => new Error('Failed to get members'),
     });
 
     const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
@@ -501,17 +501,17 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
 
       yield* notificationRepo.createNotification({
         userId: user.id,
-        type: "trial_ending",
-        title: "Your trial is ending soon",
+        type: 'trial_ending',
+        title: 'Your trial is ending soon',
         body: `Your trial for ${org.name} ends on ${trialEndsAt.toLocaleDateString()}. Upgrade now to keep access to all features.`,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: subscription.id,
       });
 
       yield* emailService
         .sendTrialEndingNotification({
           recipientEmail: user.email,
-          recipientName: user.name || "there",
+          recipientName: user.name || 'there',
           organizationName: org.name,
           trialEndsAt,
           upgradeUrl: `${getAppUrl()}/${org.slug}/settings/billing`,
@@ -522,7 +522,7 @@ const handleTrialEnding = (subscription: Stripe.Subscription, db: DbType) =>
     // Send Slack monitoring notification
     const slackMonitoring = yield* SlackMonitoring;
     yield* slackMonitoring
-      .sendBillingEvent("trial_ending", {
+      .sendBillingEvent('trial_ending', {
         organizationId,
         organizationName: org.name,
         trialEndsAt,

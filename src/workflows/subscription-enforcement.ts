@@ -13,15 +13,15 @@
  * - Payment overdue: 30 days suspended, after 30 more days deleted
  */
 
-import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
-import { sleep } from "workflow";
-import { db } from "@/lib/db";
-import { members, notifications, organizations, paymentMethods, subscriptions, users, videos } from "@/lib/db/schema";
-import { resend } from "@/lib/email";
-import { env, getAppUrl } from "@/lib/env/server";
-import { createWorkflowLogger } from "./workflow-logger";
+import { and, eq, isNotNull, isNull, lt, or, sql } from 'drizzle-orm';
+import { sleep } from 'workflow';
+import { db } from '@/lib/db';
+import { members, notifications, organizations, paymentMethods, subscriptions, users, videos } from '@/lib/db/schema';
+import { resend } from '@/lib/email';
+import { env, getAppUrl } from '@/lib/env/server';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("subscription-enforcement");
+const log = createWorkflowLogger('subscription-enforcement');
 
 // =============================================================================
 // Types
@@ -48,14 +48,14 @@ async function getOrganizationOwners(organizationId: string) {
     })
     .from(members)
     .innerJoin(users, eq(members.userId, users.id))
-    .where(and(eq(members.organizationId, organizationId), eq(members.role, "owner")));
+    .where(and(eq(members.organizationId, organizationId), eq(members.role, 'owner')));
 }
 
 async function sendEnforcementNotification(
   organizationId: string,
   orgName: string,
   orgSlug: string | null,
-  type: "trial_expired" | "suspended" | "deletion_warning" | "payment_required",
+  type: 'trial_expired' | 'suspended' | 'deletion_warning' | 'payment_required',
   daysRemaining?: number,
 ): Promise<number> {
   let notificationsSent = 0;
@@ -65,45 +65,45 @@ async function sendEnforcementNotification(
 
   const templates = {
     trial_expired: {
-      title: "Your trial has expired",
+      title: 'Your trial has expired',
       body: `Your trial for ${orgName} has ended. Add a payment method to continue using all features.`,
       emailSubject: `Your Nuclom trial has expired - Add payment method`,
       emailBody: `Your trial has ended. Your data will be retained for 14 days. Add a payment method now to restore full access.`,
-      ctaText: "Add Payment Method",
-      urgency: "warning" as const,
-      notificationType: "subscription_canceled" as const,
+      ctaText: 'Add Payment Method',
+      urgency: 'warning' as const,
+      notificationType: 'subscription_canceled' as const,
     },
     suspended: {
-      title: "Account suspended - Payment required",
+      title: 'Account suspended - Payment required',
       body: `Your account ${orgName} has been suspended due to payment issues. Please update your payment method.`,
       emailSubject: `Action Required: Your Nuclom account is suspended`,
       emailBody: `Your account has been suspended due to payment issues. Your data will be deleted in ${daysRemaining ?? 30} days unless you update your payment method.`,
-      ctaText: "Update Payment",
-      urgency: "error" as const,
-      notificationType: "payment_failed" as const,
+      ctaText: 'Update Payment',
+      urgency: 'error' as const,
+      notificationType: 'payment_failed' as const,
     },
     deletion_warning: {
-      title: "Data deletion scheduled",
+      title: 'Data deletion scheduled',
       body: `Your data for ${orgName} will be permanently deleted in ${daysRemaining} days unless you add a payment method.`,
       emailSubject: `URGENT: Your Nuclom data will be deleted in ${daysRemaining} days`,
       emailBody: `This is your final warning. Your data will be permanently deleted in ${daysRemaining} days. This action cannot be undone.`,
-      ctaText: "Prevent Deletion",
-      urgency: "error" as const,
-      notificationType: "payment_failed" as const,
+      ctaText: 'Prevent Deletion',
+      urgency: 'error' as const,
+      notificationType: 'payment_failed' as const,
     },
     payment_required: {
-      title: "Payment method required",
+      title: 'Payment method required',
       body: `Your trial for ${orgName} is ending soon. Add a payment method to avoid service interruption.`,
       emailSubject: `Add payment method to continue using Nuclom`,
       emailBody: `Your trial is ending soon. Add a payment method now to ensure uninterrupted access to your videos and data.`,
-      ctaText: "Add Payment Method",
-      urgency: "info" as const,
-      notificationType: "trial_ending" as const,
+      ctaText: 'Add Payment Method',
+      urgency: 'info' as const,
+      notificationType: 'trial_ending' as const,
     },
   };
 
   const template = templates[type];
-  const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+  const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   for (const owner of owners) {
     if (!owner.email) continue;
@@ -115,15 +115,15 @@ async function sendEnforcementNotification(
         type: template.notificationType,
         title: template.title,
         body: template.body,
-        resourceType: "subscription",
+        resourceType: 'subscription',
         resourceId: organizationId,
       });
     } catch (e) {
-      log.error({ error: e }, "Failed to create notification");
+      log.error({ error: e }, 'Failed to create notification');
     }
 
     // Send email
-    const bgColor = template.urgency === "error" ? "#dc2626" : template.urgency === "warning" ? "#f59e0b" : "#6366f1";
+    const bgColor = template.urgency === 'error' ? '#dc2626' : template.urgency === 'warning' ? '#f59e0b' : '#6366f1';
 
     try {
       await resend.emails.send({
@@ -140,7 +140,7 @@ async function sendEnforcementNotification(
     .header { background-color: ${bgColor}; padding: 24px; text-align: center; border-radius: 8px 8px 0 0; }
     .header h1 { color: #ffffff; margin: 0; }
     .content { padding: 24px; background: #fff; border: 1px solid #eee; border-radius: 0 0 8px 8px; }
-    .highlight { background-color: ${template.urgency === "error" ? "#fee2e2" : "#fef3c7"}; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid ${bgColor}; }
+    .highlight { background-color: ${template.urgency === 'error' ? '#fee2e2' : '#fef3c7'}; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid ${bgColor}; }
     .button { display: inline-block; padding: 12px 24px; background-color: ${bgColor}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; }
   </style>
 </head>
@@ -150,7 +150,7 @@ async function sendEnforcementNotification(
       <h1>Nuclom</h1>
     </div>
     <div class="content">
-      <h2>Hi ${owner.name || "there"},</h2>
+      <h2>Hi ${owner.name || 'there'},</h2>
       <div class="highlight">
         <p style="margin: 0;"><strong>${template.title}</strong></p>
         <p style="margin: 8px 0 0 0;">${template.emailBody}</p>
@@ -158,7 +158,7 @@ async function sendEnforcementNotification(
       <p style="text-align: center; margin: 24px 0;">
         <a href="${billingUrl}" class="button">${template.ctaText}</a>
       </p>
-      ${type === "deletion_warning" ? '<p style="color: #dc2626; font-size: 14px; text-align: center;"><strong>This action cannot be undone.</strong></p>' : ""}
+      ${type === 'deletion_warning' ? '<p style="color: #dc2626; font-size: 14px; text-align: center;"><strong>This action cannot be undone.</strong></p>' : ''}
     </div>
   </div>
 </body>
@@ -166,7 +166,7 @@ async function sendEnforcementNotification(
       `,
       });
     } catch (e) {
-      log.error({ error: e }, "Failed to send email");
+      log.error({ error: e }, 'Failed to send email');
     }
 
     notificationsSent++;
@@ -185,14 +185,14 @@ async function hasPaymentMethod(organizationId: string): Promise<boolean> {
 
 function parseMetadata(metadata: unknown): Record<string, unknown> {
   if (!metadata) return {};
-  if (typeof metadata === "string") {
+  if (typeof metadata === 'string') {
     try {
       return JSON.parse(metadata);
     } catch {
       return {};
     }
   }
-  if (typeof metadata === "object") {
+  if (typeof metadata === 'object') {
     return metadata as Record<string, unknown>;
   }
   return {};
@@ -254,7 +254,7 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
     .from(subscriptions)
     .innerJoin(organizations, eq(subscriptions.referenceId, organizations.id))
     .where(
-      and(eq(subscriptions.status, "trialing"), isNotNull(subscriptions.trialEnd), lt(subscriptions.trialEnd, now)),
+      and(eq(subscriptions.status, 'trialing'), isNotNull(subscriptions.trialEnd), lt(subscriptions.trialEnd, now)),
     );
 
   for (const { subscription, organization } of expiredTrials) {
@@ -266,15 +266,15 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
         await db
           .update(subscriptions)
           .set({
-            status: "incomplete_expired",
-            plan: "free",
+            status: 'incomplete_expired',
+            plan: 'free',
           })
           .where(eq(subscriptions.id, subscription.id));
 
         // Store enforcement state in organization metadata
         await updateOrganizationEnforcementState(organization.id, {
           graceStartedAt: now.toISOString(),
-          reason: "trial_expired_no_payment",
+          reason: 'trial_expired_no_payment',
         });
 
         // Send notification
@@ -282,12 +282,12 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
           organization.id,
           organization.name,
           organization.slug,
-          "trial_expired",
+          'trial_expired',
         );
 
         log.info(
           { organizationId: organization.id, subscriptionId: subscription.id },
-          "Trial expired - grace period started",
+          'Trial expired - grace period started',
         );
         handled++;
       }
@@ -319,7 +319,7 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
     })
     .from(subscriptions)
     .innerJoin(organizations, eq(subscriptions.referenceId, organizations.id))
-    .where(or(eq(subscriptions.status, "past_due"), eq(subscriptions.status, "unpaid")));
+    .where(or(eq(subscriptions.status, 'past_due'), eq(subscriptions.status, 'unpaid')));
 
   for (const { subscription, organization } of problemSubscriptions) {
     try {
@@ -328,11 +328,11 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
         organization.id,
         organization.name,
         organization.slug,
-        "suspended",
+        'suspended',
         30,
       );
 
-      log.info({ organizationId: organization.id }, "Subscription has payment issues");
+      log.info({ organizationId: organization.id }, 'Subscription has payment issues');
       suspended++;
 
       // Calculate days based on subscription dates
@@ -348,7 +348,7 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
             organization.id,
             organization.name,
             organization.slug,
-            "deletion_warning",
+            'deletion_warning',
             daysRemaining,
           );
         }
@@ -382,10 +382,10 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
     .innerJoin(organizations, eq(subscriptions.referenceId, organizations.id))
     .where(
       or(
-        eq(subscriptions.status, "incomplete_expired"),
-        eq(subscriptions.status, "canceled"),
-        eq(subscriptions.status, "past_due"),
-        eq(subscriptions.status, "unpaid"),
+        eq(subscriptions.status, 'incomplete_expired'),
+        eq(subscriptions.status, 'canceled'),
+        eq(subscriptions.status, 'past_due'),
+        eq(subscriptions.status, 'unpaid'),
       ),
     );
 
@@ -401,7 +401,7 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
 
       // Check org enforcement state for reason - shorter grace period for expired trials
       const enforcementState = await getOrganizationEnforcementState(organization.id);
-      const gracePeriodDays = enforcementState.reason === "trial_expired_no_payment" ? 14 : 30;
+      const gracePeriodDays = enforcementState.reason === 'trial_expired_no_payment' ? 14 : 30;
 
       if (daysSinceGrace >= gracePeriodDays) {
         // Schedule deletion (videos will be soft-deleted with retention period)
@@ -420,11 +420,11 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
           organization.id,
           organization.name,
           organization.slug,
-          "deletion_warning",
+          'deletion_warning',
           7,
         );
 
-        log.info({ organizationId: organization.id }, "Data deletion scheduled");
+        log.info({ organizationId: organization.id }, 'Data deletion scheduled');
         scheduled++;
       }
     } catch (error) {
@@ -457,7 +457,7 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
     .innerJoin(organizations, eq(subscriptions.referenceId, organizations.id))
     .where(
       and(
-        eq(subscriptions.status, "trialing"),
+        eq(subscriptions.status, 'trialing'),
         isNotNull(subscriptions.trialEnd),
         lt(subscriptions.trialEnd, threeDaysFromNow),
         sql`${subscriptions.trialEnd} > ${now}`,
@@ -485,7 +485,7 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
             organization.id,
             organization.name,
             organization.slug,
-            "payment_required",
+            'payment_required',
           );
         }
       }
@@ -515,9 +515,9 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
  * Uses durable sleep - survives server restarts.
  */
 export async function subscriptionEnforcementWorkflow(): Promise<void> {
-  "use workflow";
+  'use workflow';
 
-  log.info({}, "Starting subscription enforcement workflow");
+  log.info({}, 'Starting subscription enforcement workflow');
 
   // Run forever, once per day
   while (true) {
@@ -532,27 +532,27 @@ export async function subscriptionEnforcementWorkflow(): Promise<void> {
 
       // Handle expired trials
       const trialResult = await handleExpiredTrials();
-      ("use step");
+      ('use step');
       result.trialExpirationsHandled = trialResult.handled;
       result.notificationsSent += trialResult.notifications;
       result.errors.push(...trialResult.errors);
 
       // Handle trials ending soon (payment method check)
       const warningResult = await handleTrialsEndingSoon();
-      ("use step");
+      ('use step');
       result.notificationsSent += warningResult.notifications;
       result.errors.push(...warningResult.errors);
 
       // Handle payment issues
       const paymentResult = await handlePaymentIssues();
-      ("use step");
+      ('use step');
       result.suspensionsApplied = paymentResult.suspended;
       result.notificationsSent += paymentResult.notifications;
       result.errors.push(...paymentResult.errors);
 
       // Handle data deletion
       const deletionResult = await handleDataDeletion();
-      ("use step");
+      ('use step');
       result.deletionsScheduled = deletionResult.scheduled;
       result.notificationsSent += deletionResult.notifications;
       result.errors.push(...deletionResult.errors);
@@ -565,15 +565,15 @@ export async function subscriptionEnforcementWorkflow(): Promise<void> {
           notificationsSent: result.notificationsSent,
           errorCount: result.errors.length,
         },
-        "Daily enforcement completed",
+        'Daily enforcement completed',
       );
     } catch (error) {
-      log.error({ error }, "Error in subscription enforcement workflow");
+      log.error({ error }, 'Error in subscription enforcement workflow');
     }
 
     // Sleep for 24 hours
     await sleep(24 * 60 * 60 * 1000);
-    ("use step");
+    ('use step');
   }
 }
 

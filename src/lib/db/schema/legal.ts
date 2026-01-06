@@ -8,9 +8,9 @@
  * - dataExportRequests: GDPR data export requests
  */
 
-import { relations } from "drizzle-orm";
-import { index, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
-import { users } from "./auth";
+import { relations } from 'drizzle-orm';
+import { index, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { users } from './auth';
 import {
   consentActionEnum,
   legalDocumentTypeEnum,
@@ -18,28 +18,28 @@ import {
   reportResolutionEnum,
   reportResourceTypeEnum,
   reportStatusEnum,
-} from "./enums";
+} from './enums';
 
 // =============================================================================
 // Legal Consents
 // =============================================================================
 
 export const legalConsents = pgTable(
-  "legal_consents",
+  'legal_consents',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    documentType: legalDocumentTypeEnum("document_type").notNull(),
-    version: text("version").notNull(), // e.g., "2025-01-01"
-    acceptedAt: timestamp("accepted_at").defaultNow().notNull(),
-    ipAddress: text("ip_address"),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    documentType: legalDocumentTypeEnum('document_type').notNull(),
+    version: text('version').notNull(), // e.g., "2025-01-01"
+    acceptedAt: timestamp('accepted_at').defaultNow().notNull(),
+    ipAddress: text('ip_address'),
   },
   (table) => [
-    index("legal_consents_user_doc_idx").on(table.userId, table.documentType),
+    index('legal_consents_user_doc_idx').on(table.userId, table.documentType),
     unique().on(table.userId, table.documentType, table.version),
   ],
 );
@@ -49,27 +49,27 @@ export const legalConsents = pgTable(
 // =============================================================================
 
 export const consentAuditLog = pgTable(
-  "consent_audit_log",
+  'consent_audit_log',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    action: consentActionEnum("action").notNull(),
-    details: jsonb("details").$type<{
+      .references(() => users.id, { onDelete: 'cascade' }),
+    action: consentActionEnum('action').notNull(),
+    details: jsonb('details').$type<{
       documentType?: string;
       version?: string;
       previousValue?: boolean;
       newValue?: boolean;
       consentType?: string;
     }>(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("consent_audit_log_user_idx").on(table.userId, table.createdAt)],
+  (table) => [index('consent_audit_log_user_idx').on(table.userId, table.createdAt)],
 );
 
 // =============================================================================
@@ -77,27 +77,27 @@ export const consentAuditLog = pgTable(
 // =============================================================================
 
 export const reports = pgTable(
-  "reports",
+  'reports',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    reporterId: text("reporter_id").references(() => users.id, { onDelete: "set null" }),
-    resourceType: reportResourceTypeEnum("resource_type").notNull(),
-    resourceId: text("resource_id").notNull(),
-    category: reportCategoryEnum("category").notNull(),
-    description: text("description"),
-    status: reportStatusEnum("status").default("pending").notNull(),
-    resolution: reportResolutionEnum("resolution"),
-    resolvedById: text("resolved_by_id").references(() => users.id, { onDelete: "set null" }),
-    resolvedAt: timestamp("resolved_at"),
-    resolutionNotes: text("resolution_notes"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    reporterId: text('reporter_id').references(() => users.id, { onDelete: 'set null' }),
+    resourceType: reportResourceTypeEnum('resource_type').notNull(),
+    resourceId: text('resource_id').notNull(),
+    category: reportCategoryEnum('category').notNull(),
+    description: text('description'),
+    status: reportStatusEnum('status').default('pending').notNull(),
+    resolution: reportResolutionEnum('resolution'),
+    resolvedById: text('resolved_by_id').references(() => users.id, { onDelete: 'set null' }),
+    resolvedAt: timestamp('resolved_at'),
+    resolutionNotes: text('resolution_notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    index("reports_status_idx").on(table.status, table.createdAt),
-    index("reports_resource_idx").on(table.resourceType, table.resourceId),
-    index("reports_reporter_idx").on(table.reporterId),
+    index('reports_status_idx').on(table.status, table.createdAt),
+    index('reports_resource_idx').on(table.resourceType, table.resourceId),
+    index('reports_reporter_idx').on(table.reporterId),
   ],
 );
 
@@ -106,21 +106,21 @@ export const reports = pgTable(
 // =============================================================================
 
 export const dataExportRequests = pgTable(
-  "data_export_requests",
+  'data_export_requests',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status").default("pending").notNull(), // pending, processing, completed, failed
-    downloadUrl: text("download_url"),
-    expiresAt: timestamp("expires_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    completedAt: timestamp("completed_at"),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status').default('pending').notNull(), // pending, processing, completed, failed
+    downloadUrl: text('download_url'),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    completedAt: timestamp('completed_at'),
   },
-  (table) => [index("data_export_requests_user_idx").on(table.userId, table.createdAt)],
+  (table) => [index('data_export_requests_user_idx').on(table.userId, table.createdAt)],
 );
 
 // =============================================================================
@@ -158,12 +158,12 @@ export const reportsRelations = relations(reports, ({ one }) => ({
   reporter: one(users, {
     fields: [reports.reporterId],
     references: [users.id],
-    relationName: "ReportReporter",
+    relationName: 'ReportReporter',
   }),
   resolvedBy: one(users, {
     fields: [reports.resolvedById],
     references: [users.id],
-    relationName: "ReportResolver",
+    relationName: 'ReportResolver',
   }),
 }));
 

@@ -6,7 +6,7 @@
  */
 
 export interface MentionNode {
-  type: "mention";
+  type: 'mention';
   name: string;
   userId: string;
 }
@@ -31,7 +31,7 @@ export function parseMentions(text: string): ParsedContent {
 
     // Add the mention node
     parts.push({
-      type: "mention",
+      type: 'mention',
       name: match[1],
       userId: match[2],
     });
@@ -82,7 +82,7 @@ export function hasMentions(text: string): boolean {
  * Strip mentions from text, keeping only the display names with @ prefix
  */
 export function stripMentionLinks(text: string): string {
-  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "@$1");
+  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, '@$1');
 }
 
 /**

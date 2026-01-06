@@ -4,8 +4,8 @@
  * Provides type-safe Microsoft Graph API operations for OAuth and messaging.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { HttpError } from "../errors";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { HttpError } from '../errors';
 
 // =============================================================================
 // Types
@@ -40,7 +40,7 @@ export interface TeamsChannel {
   readonly displayName: string;
   readonly description?: string;
   readonly webUrl: string;
-  readonly membershipType: "standard" | "private" | "unknownFutureValue";
+  readonly membershipType: 'standard' | 'private' | 'unknownFutureValue';
 }
 
 export interface TeamsTeam {
@@ -52,17 +52,17 @@ export interface TeamsTeam {
 
 export interface TeamsChannelsResponse {
   readonly value: TeamsChannel[];
-  readonly "@odata.nextLink"?: string;
+  readonly '@odata.nextLink'?: string;
 }
 
 export interface TeamsTeamsResponse {
   readonly value: TeamsTeam[];
-  readonly "@odata.nextLink"?: string;
+  readonly '@odata.nextLink'?: string;
 }
 
 export interface TeamsMessagePayload {
   readonly body: {
-    readonly contentType: "text" | "html";
+    readonly contentType: 'text' | 'html';
     readonly content: string;
   };
   readonly attachments?: TeamsAttachment[];
@@ -78,7 +78,7 @@ export interface TeamsAttachment {
 }
 
 export interface TeamsAdaptiveCard {
-  readonly type: "AdaptiveCard";
+  readonly type: 'AdaptiveCard';
   readonly body: TeamsAdaptiveCardElement[];
   readonly actions?: TeamsAdaptiveCardAction[];
   readonly $schema: string;
@@ -98,7 +98,7 @@ export interface TeamsAdaptiveCardElement {
 }
 
 export interface TeamsAdaptiveCardColumn {
-  readonly type: "Column";
+  readonly type: 'Column';
   readonly width: string | number;
   readonly items: TeamsAdaptiveCardElement[];
 }
@@ -198,20 +198,20 @@ export interface MicrosoftTeamsServiceInterface {
 // Microsoft Teams Service Tag
 // =============================================================================
 
-export class MicrosoftTeams extends Context.Tag("MicrosoftTeams")<MicrosoftTeams, MicrosoftTeamsServiceInterface>() {}
+export class MicrosoftTeams extends Context.Tag('MicrosoftTeams')<MicrosoftTeams, MicrosoftTeamsServiceInterface>() {}
 
 // =============================================================================
 // Microsoft Teams Configuration
 // =============================================================================
 
-const MICROSOFT_AUTH_BASE = "https://login.microsoftonline.com";
-const MICROSOFT_GRAPH_BASE = "https://graph.microsoft.com/v1.0";
+const MICROSOFT_AUTH_BASE = 'https://login.microsoftonline.com';
+const MICROSOFT_GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
 const MicrosoftTeamsConfigEffect = Config.all({
-  clientId: Config.string("MICROSOFT_CLIENT_ID").pipe(Config.option),
-  clientSecret: Config.string("MICROSOFT_CLIENT_SECRET").pipe(Config.option),
-  tenantId: Config.string("MICROSOFT_TENANT_ID").pipe(Config.withDefault("common"), Config.option),
-  baseUrl: Config.string("NEXT_PUBLIC_URL").pipe(Config.option),
+  clientId: Config.string('MICROSOFT_CLIENT_ID').pipe(Config.option),
+  clientSecret: Config.string('MICROSOFT_CLIENT_SECRET').pipe(Config.option),
+  tenantId: Config.string('MICROSOFT_TENANT_ID').pipe(Config.withDefault('common'), Config.option),
+  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
 });
 
 // =============================================================================
@@ -229,7 +229,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
     return {
       clientId: Option.getOrThrow(config.clientId),
       clientSecret: Option.getOrThrow(config.clientSecret),
-      tenantId: Option.isSome(config.tenantId) ? Option.getOrThrow(config.tenantId) : "common",
+      tenantId: Option.isSome(config.tenantId) ? Option.getOrThrow(config.tenantId) : 'common',
       redirectUri: `${Option.getOrThrow(config.baseUrl)}/api/integrations/teams/callback`,
     };
   };
@@ -238,24 +238,24 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error("Microsoft Teams is not configured");
+        throw new Error('Microsoft Teams is not configured');
       }
 
       const scopes = [
-        "User.Read",
-        "Team.ReadBasic.All",
-        "Channel.ReadBasic.All",
-        "ChannelMessage.Send",
-        "offline_access",
-      ].join(" ");
+        'User.Read',
+        'Team.ReadBasic.All',
+        'Channel.ReadBasic.All',
+        'ChannelMessage.Send',
+        'offline_access',
+      ].join(' ');
 
       const params = new URLSearchParams({
         client_id: cfg.clientId,
-        response_type: "code",
+        response_type: 'code',
         redirect_uri: cfg.redirectUri,
         scope: scopes,
         state,
-        response_mode: "query",
+        response_mode: 'query',
       });
 
       return `${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
@@ -267,7 +267,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Microsoft Teams is not configured",
+            message: 'Microsoft Teams is not configured',
             status: 503,
           }),
         );
@@ -276,16 +276,16 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
               client_id: cfg.clientId,
               client_secret: cfg.clientSecret,
               code,
               redirect_uri: cfg.redirectUri,
-              grant_type: "authorization_code",
+              grant_type: 'authorization_code',
             }),
           });
 
@@ -298,7 +298,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -312,7 +312,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Microsoft Teams is not configured",
+            message: 'Microsoft Teams is not configured',
             status: 503,
           }),
         );
@@ -321,15 +321,15 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
               client_id: cfg.clientId,
               client_secret: cfg.clientSecret,
               refresh_token: refreshToken,
-              grant_type: "refresh_token",
+              grant_type: 'refresh_token',
             }),
           });
 
@@ -342,7 +342,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -368,7 +368,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -391,7 +391,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list teams: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list teams: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -414,7 +414,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list channels: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -428,10 +428,10 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const res = await fetch(`${MICROSOFT_GRAPH_BASE}/teams/${teamId}/channels/${channelId}/messages`, {
-          method: "POST",
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
         });
@@ -445,7 +445,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to send message: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -462,29 +462,29 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
   ): Effect.Effect<TeamsMessageResponse, HttpError> => {
     // Create an Adaptive Card for the video notification
     const adaptiveCard: TeamsAdaptiveCard = {
-      type: "AdaptiveCard",
-      $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-      version: "1.4",
+      type: 'AdaptiveCard',
+      $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+      version: '1.4',
       body: [
         {
-          type: "TextBlock",
-          text: "🎬 New Video",
-          size: "Medium",
-          weight: "Bolder",
+          type: 'TextBlock',
+          text: '🎬 New Video',
+          size: 'Medium',
+          weight: 'Bolder',
         },
         {
-          type: "TextBlock",
+          type: 'TextBlock',
           text: videoTitle,
-          size: "Large",
-          weight: "Bolder",
+          size: 'Large',
+          weight: 'Bolder',
           wrap: true,
         },
         ...(authorName
           ? [
               {
-                type: "TextBlock",
+                type: 'TextBlock',
                 text: `By ${authorName}`,
-                size: "Small",
+                size: 'Small',
                 wrap: true,
               },
             ]
@@ -492,7 +492,7 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         ...(description
           ? [
               {
-                type: "TextBlock",
+                type: 'TextBlock',
                 text: description,
                 wrap: true,
               },
@@ -501,18 +501,18 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         ...(thumbnailUrl
           ? [
               {
-                type: "Image",
+                type: 'Image',
                 url: thumbnailUrl,
                 altText: videoTitle,
-                size: "Large",
+                size: 'Large',
               },
             ]
           : []),
       ],
       actions: [
         {
-          type: "Action.OpenUrl",
-          title: "Watch Video",
+          type: 'Action.OpenUrl',
+          title: 'Watch Video',
           url: videoUrl,
         },
       ],
@@ -520,13 +520,13 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
 
     const payload: TeamsMessagePayload = {
       body: {
-        contentType: "html",
+        contentType: 'html',
         content: `<attachment id="adaptiveCard"></attachment>`,
       },
       attachments: [
         {
-          id: "adaptiveCard",
-          contentType: "application/vnd.microsoft.card.adaptive",
+          id: 'adaptiveCard',
+          contentType: 'application/vnd.microsoft.card.adaptive',
           content: JSON.stringify(adaptiveCard),
         },
       ],

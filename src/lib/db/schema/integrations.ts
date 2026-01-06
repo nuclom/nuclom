@@ -8,11 +8,11 @@
  * - codeLinks: Links between videos and code artifacts
  */
 
-import { relations } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
-import { organizations, users } from "./auth";
-import { codeLinkTypeEnum, importStatusEnum, integrationProviderEnum } from "./enums";
-import { videos } from "./videos";
+import { relations } from 'drizzle-orm';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { organizations, users } from './auth';
+import { codeLinkTypeEnum, importStatusEnum, integrationProviderEnum } from './enums';
+import { videos } from './videos';
 
 // =============================================================================
 // JSONB Types
@@ -71,7 +71,7 @@ export type MeetingParticipant = {
 };
 
 export type DetectedCodeRef = {
-  readonly type: "pr" | "issue" | "commit" | "file" | "module";
+  readonly type: 'pr' | 'issue' | 'commit' | 'file' | 'module';
   readonly reference: string;
   readonly timestamp: number;
   readonly confidence: number;
@@ -83,30 +83,30 @@ export type DetectedCodeRef = {
 // =============================================================================
 
 export const integrations = pgTable(
-  "integrations",
+  'integrations',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    provider: integrationProviderEnum("provider").notNull(),
-    accessToken: text("access_token").notNull(),
-    refreshToken: text("refresh_token"),
-    expiresAt: timestamp("expires_at"),
-    scope: text("scope"),
-    metadata: jsonb("metadata").$type<IntegrationMetadata>(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    provider: integrationProviderEnum('provider').notNull(),
+    accessToken: text('access_token').notNull(),
+    refreshToken: text('refresh_token'),
+    expiresAt: timestamp('expires_at'),
+    scope: text('scope'),
+    metadata: jsonb('metadata').$type<IntegrationMetadata>(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.userId, table.provider),
-    index("integrations_user_id_idx").on(table.userId),
-    index("integrations_organization_id_idx").on(table.organizationId),
+    index('integrations_user_id_idx').on(table.userId),
+    index('integrations_organization_id_idx').on(table.organizationId),
   ],
 );
 
@@ -115,32 +115,32 @@ export const integrations = pgTable(
 // =============================================================================
 
 export const importedMeetings = pgTable(
-  "imported_meetings",
+  'imported_meetings',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    integrationId: text("integration_id")
+    integrationId: text('integration_id')
       .notNull()
-      .references(() => integrations.id, { onDelete: "cascade" }),
-    videoId: text("video_id").references(() => videos.id, { onDelete: "set null" }),
-    externalId: text("external_id").notNull(), // Meeting ID from provider
-    meetingTitle: text("meeting_title"),
-    meetingDate: timestamp("meeting_date"),
-    duration: integer("duration"), // Duration in seconds
-    participants: jsonb("participants").$type<MeetingParticipant[]>(),
-    downloadUrl: text("download_url"),
-    fileSize: integer("file_size"), // Size in bytes
-    importStatus: importStatusEnum("import_status").default("pending").notNull(),
-    importError: text("import_error"),
-    importedAt: timestamp("imported_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => integrations.id, { onDelete: 'cascade' }),
+    videoId: text('video_id').references(() => videos.id, { onDelete: 'set null' }),
+    externalId: text('external_id').notNull(), // Meeting ID from provider
+    meetingTitle: text('meeting_title'),
+    meetingDate: timestamp('meeting_date'),
+    duration: integer('duration'), // Duration in seconds
+    participants: jsonb('participants').$type<MeetingParticipant[]>(),
+    downloadUrl: text('download_url'),
+    fileSize: integer('file_size'), // Size in bytes
+    importStatus: importStatusEnum('import_status').default('pending').notNull(),
+    importError: text('import_error'),
+    importedAt: timestamp('imported_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.integrationId, table.externalId),
-    index("imported_meetings_integration_id_idx").on(table.integrationId),
-    index("imported_meetings_video_id_idx").on(table.videoId),
-    index("imported_meetings_import_status_idx").on(table.importStatus),
+    index('imported_meetings_integration_id_idx').on(table.integrationId),
+    index('imported_meetings_video_id_idx').on(table.videoId),
+    index('imported_meetings_import_status_idx').on(table.importStatus),
   ],
 );
 
@@ -149,20 +149,20 @@ export const importedMeetings = pgTable(
 // =============================================================================
 
 export const githubConnections = pgTable(
-  "github_connections",
+  'github_connections',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    integrationId: text("integration_id")
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    integrationId: text('integration_id')
       .notNull()
-      .references(() => integrations.id, { onDelete: "cascade" }),
-    installationId: text("installation_id"), // GitHub App installation ID
+      .references(() => integrations.id, { onDelete: 'cascade' }),
+    installationId: text('installation_id'), // GitHub App installation ID
     repositories:
-      jsonb("repositories").$type<
+      jsonb('repositories').$type<
         Array<{
           id: number;
           fullName: string;
@@ -170,14 +170,14 @@ export const githubConnections = pgTable(
           defaultBranch: string;
         }>
       >(),
-    connectedAt: timestamp("connected_at").defaultNow().notNull(),
-    lastSync: timestamp("last_sync"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    connectedAt: timestamp('connected_at').defaultNow().notNull(),
+    lastSync: timestamp('last_sync'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
-    orgIdx: index("github_connections_org_idx").on(table.organizationId),
-    integrationIdx: index("github_connections_integration_idx").on(table.integrationId),
+    orgIdx: index('github_connections_org_idx').on(table.organizationId),
+    integrationIdx: index('github_connections_integration_idx').on(table.integrationId),
   }),
 );
 
@@ -186,31 +186,31 @@ export const githubConnections = pgTable(
 // =============================================================================
 
 export const codeLinks = pgTable(
-  "code_links",
+  'code_links',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    linkType: codeLinkTypeEnum("link_type").notNull(),
-    githubRepo: text("github_repo").notNull(), // owner/repo format
-    githubRef: text("github_ref").notNull(), // PR number, commit SHA, or file path
-    githubUrl: text("github_url"),
-    context: text("context"), // why this was linked
-    autoDetected: boolean("auto_detected").default(false).notNull(),
-    timestampStart: integer("timestamp_start"), // video timestamp in seconds
-    timestampEnd: integer("timestamp_end"), // optional end timestamp
-    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    linkType: codeLinkTypeEnum('link_type').notNull(),
+    githubRepo: text('github_repo').notNull(), // owner/repo format
+    githubRef: text('github_ref').notNull(), // PR number, commit SHA, or file path
+    githubUrl: text('github_url'),
+    context: text('context'), // why this was linked
+    autoDetected: boolean('auto_detected').default(false).notNull(),
+    timestampStart: integer('timestamp_start'), // video timestamp in seconds
+    timestampEnd: integer('timestamp_end'), // optional end timestamp
+    createdById: text('created_by_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
-    videoIdx: index("code_links_video_idx").on(table.videoId),
-    repoIdx: index("code_links_repo_idx").on(table.githubRepo),
-    refIdx: index("code_links_ref_idx").on(table.githubRepo, table.linkType, table.githubRef),
-    typeIdx: index("code_links_type_idx").on(table.linkType),
+    videoIdx: index('code_links_video_idx').on(table.videoId),
+    repoIdx: index('code_links_repo_idx').on(table.githubRepo),
+    refIdx: index('code_links_ref_idx').on(table.githubRepo, table.linkType, table.githubRef),
+    typeIdx: index('code_links_type_idx').on(table.linkType),
   }),
 );
 

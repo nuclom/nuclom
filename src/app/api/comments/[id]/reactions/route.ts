@@ -1,15 +1,15 @@
-import { and, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { commentReactions, comments, type ReactionType } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { commentReactions, comments, type ReactionType } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
 
 // Valid reaction types
-const VALID_REACTIONS: ReactionType[] = ["like", "love", "laugh", "surprised", "sad", "angry", "thinking", "celebrate"];
+const VALID_REACTIONS: ReactionType[] = ['like', 'love', 'laugh', 'surprised', 'sad', 'angry', 'thinking', 'celebrate'];
 
 // =============================================================================
 // GET /api/comments/[id]/reactions - Get reactions for a comment
@@ -24,8 +24,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       try: () => db.query.comments.findFirst({ where: eq(comments.id, id) }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch comment",
-          operation: "getComment",
+          message: 'Failed to fetch comment',
+          operation: 'getComment',
           cause: error,
         }),
     });
@@ -33,8 +33,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!comment) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Comment not found",
-          entity: "Comment",
+          message: 'Comment not found',
+          entity: 'Comment',
           id,
         }),
       );
@@ -53,8 +53,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch reactions",
-          operation: "getReactions",
+          message: 'Failed to fetch reactions',
+          operation: 'getReactions',
           cause: error,
         }),
     });
@@ -72,7 +72,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 const AddReactionBodySchema = Schema.Struct({
-  reactionType: Schema.Literal("like", "love", "laugh", "surprised", "sad", "angry", "thinking", "celebrate"),
+  reactionType: Schema.Literal('like', 'love', 'laugh', 'surprised', 'sad', 'angry', 'thinking', 'celebrate'),
 });
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!VALID_REACTIONS.includes(body.reactionType)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: `Invalid reaction type. Valid types: ${VALID_REACTIONS.join(", ")}`,
+          message: `Invalid reaction type. Valid types: ${VALID_REACTIONS.join(', ')}`,
         }),
       );
     }
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       try: () => db.query.comments.findFirst({ where: eq(comments.id, id) }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch comment",
-          operation: "getComment",
+          message: 'Failed to fetch comment',
+          operation: 'getComment',
           cause: error,
         }),
     });
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!comment) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Comment not found",
-          entity: "Comment",
+          message: 'Comment not found',
+          entity: 'Comment',
           id,
         }),
       );
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check existing reaction",
-          operation: "checkReaction",
+          message: 'Failed to check existing reaction',
+          operation: 'checkReaction',
           cause: error,
         }),
     });
@@ -141,8 +141,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             .returning(),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update reaction",
-            operation: "updateReaction",
+            message: 'Failed to update reaction',
+            operation: 'updateReaction',
             cause: error,
           }),
       });
@@ -163,8 +163,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           .returning(),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add reaction",
-          operation: "addReaction",
+          message: 'Failed to add reaction',
+          operation: 'addReaction',
           cause: error,
         }),
     });
@@ -198,8 +198,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
           .returning(),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to remove reaction",
-          operation: "removeReaction",
+          message: 'Failed to remove reaction',
+          operation: 'removeReaction',
           cause: error,
         }),
     });
@@ -207,14 +207,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (result.length === 0) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Reaction not found",
-          entity: "CommentReaction",
+          message: 'Reaction not found',
+          entity: 'CommentReaction',
           id: `${id}:${user.id}`,
         }),
       );
     }
 
-    return { message: "Reaction removed", deleted: true };
+    return { message: 'Reaction removed', deleted: true };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

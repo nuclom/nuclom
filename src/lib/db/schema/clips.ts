@@ -8,11 +8,11 @@
  * - quoteCards: Shareable quote images
  */
 
-import { relations } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { organizations, users } from "./auth";
-import { clipStatusEnum, clipTypeEnum, highlightReelStatusEnum, momentTypeEnum } from "./enums";
-import { videos } from "./videos";
+import { relations } from 'drizzle-orm';
+import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { organizations, users } from './auth';
+import { clipStatusEnum, clipTypeEnum, highlightReelStatusEnum, momentTypeEnum } from './enums';
+import { videos } from './videos';
 
 // =============================================================================
 // JSONB Types
@@ -29,7 +29,7 @@ export type ClipMetadata = {
 };
 
 export type HighlightReelTransition = {
-  readonly type: "fade" | "crossfade" | "cut" | "wipe";
+  readonly type: 'fade' | 'crossfade' | 'cut' | 'wipe';
   readonly durationMs: number;
 };
 
@@ -54,31 +54,31 @@ export type QuoteCardTemplate = {
 // =============================================================================
 
 export const videoMoments = pgTable(
-  "video_moments",
+  'video_moments',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
-    description: text("description"),
-    startTime: integer("start_time").notNull(), // seconds
-    endTime: integer("end_time").notNull(), // seconds
-    momentType: momentTypeEnum("moment_type").notNull(),
-    confidence: integer("confidence").notNull().default(0), // 0-100 percentage
-    transcriptExcerpt: text("transcript_excerpt"),
-    metadata: jsonb("metadata").$type<ClipMetadata>(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    startTime: integer('start_time').notNull(), // seconds
+    endTime: integer('end_time').notNull(), // seconds
+    momentType: momentTypeEnum('moment_type').notNull(),
+    confidence: integer('confidence').notNull().default(0), // 0-100 percentage
+    transcriptExcerpt: text('transcript_excerpt'),
+    metadata: jsonb('metadata').$type<ClipMetadata>(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    index("video_moments_video_idx").on(table.videoId),
-    index("video_moments_video_start_idx").on(table.videoId, table.startTime),
-    index("video_moments_type_idx").on(table.momentType),
+    index('video_moments_video_idx').on(table.videoId),
+    index('video_moments_video_start_idx').on(table.videoId, table.startTime),
+    index('video_moments_type_idx').on(table.momentType),
   ],
 );
 
@@ -87,44 +87,44 @@ export const videoMoments = pgTable(
 // =============================================================================
 
 export const videoClips = pgTable(
-  "video_clips",
+  'video_clips',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
     // Source moment (optional - null for manual clips)
-    momentId: text("moment_id").references(() => videoMoments.id, { onDelete: "set null" }),
-    title: text("title").notNull(),
-    description: text("description"),
-    startTime: integer("start_time").notNull(), // seconds
-    endTime: integer("end_time").notNull(), // seconds
-    clipType: clipTypeEnum("clip_type").notNull().default("manual"),
-    momentType: momentTypeEnum("moment_type"),
+    momentId: text('moment_id').references(() => videoMoments.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    startTime: integer('start_time').notNull(), // seconds
+    endTime: integer('end_time').notNull(), // seconds
+    clipType: clipTypeEnum('clip_type').notNull().default('manual'),
+    momentType: momentTypeEnum('moment_type'),
     // Storage
-    storageKey: text("storage_key"), // R2 path for generated clip
-    thumbnailUrl: text("thumbnail_url"),
+    storageKey: text('storage_key'), // R2 path for generated clip
+    thumbnailUrl: text('thumbnail_url'),
     // Processing
-    status: clipStatusEnum("status").notNull().default("pending"),
-    processingError: text("processing_error"),
+    status: clipStatusEnum('status').notNull().default('pending'),
+    processingError: text('processing_error'),
     // Metadata
-    transcriptExcerpt: text("transcript_excerpt"),
-    metadata: jsonb("metadata").$type<ClipMetadata>(),
+    transcriptExcerpt: text('transcript_excerpt'),
+    metadata: jsonb('metadata').$type<ClipMetadata>(),
     // Ownership
-    createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("video_clips_video_idx").on(table.videoId),
-    index("video_clips_video_created_idx").on(table.videoId, table.createdAt),
-    index("video_clips_status_idx").on(table.status),
-    index("video_clips_org_idx").on(table.organizationId),
+    index('video_clips_video_idx').on(table.videoId),
+    index('video_clips_video_created_idx').on(table.videoId, table.createdAt),
+    index('video_clips_status_idx').on(table.status),
+    index('video_clips_org_idx').on(table.organizationId),
   ],
 );
 
@@ -133,36 +133,36 @@ export const videoClips = pgTable(
 // =============================================================================
 
 export const highlightReels = pgTable(
-  "highlight_reels",
+  'highlight_reels',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
-    description: text("description"),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
     // Clips in order
-    clipIds: jsonb("clip_ids").$type<string[]>().notNull().default([]),
+    clipIds: jsonb('clip_ids').$type<string[]>().notNull().default([]),
     // Storage
-    storageKey: text("storage_key"), // R2 path for rendered reel
-    thumbnailUrl: text("thumbnail_url"),
-    duration: integer("duration"), // total duration in seconds
+    storageKey: text('storage_key'), // R2 path for rendered reel
+    thumbnailUrl: text('thumbnail_url'),
+    duration: integer('duration'), // total duration in seconds
     // Processing
-    status: highlightReelStatusEnum("status").notNull().default("draft"),
-    processingError: text("processing_error"),
+    status: highlightReelStatusEnum('status').notNull().default('draft'),
+    processingError: text('processing_error'),
     // Configuration
-    config: jsonb("config").$type<HighlightReelConfig>(),
+    config: jsonb('config').$type<HighlightReelConfig>(),
     // Ownership
-    createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("highlight_reels_org_idx").on(table.organizationId),
-    index("highlight_reels_status_idx").on(table.status),
-    index("highlight_reels_created_by_idx").on(table.createdBy),
+    index('highlight_reels_org_idx').on(table.organizationId),
+    index('highlight_reels_status_idx').on(table.status),
+    index('highlight_reels_created_by_idx').on(table.createdBy),
   ],
 );
 
@@ -171,30 +171,30 @@ export const highlightReels = pgTable(
 // =============================================================================
 
 export const quoteCards = pgTable(
-  "quote_cards",
+  'quote_cards',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    quoteText: text("quote_text").notNull(),
-    speaker: text("speaker"),
-    timestampSeconds: integer("timestamp_seconds"),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    quoteText: text('quote_text').notNull(),
+    speaker: text('speaker'),
+    timestampSeconds: integer('timestamp_seconds'),
     // Template styling
-    template: jsonb("template").$type<QuoteCardTemplate>(),
+    template: jsonb('template').$type<QuoteCardTemplate>(),
     // Generated image
-    imageUrl: text("image_url"),
-    storageKey: text("storage_key"),
+    imageUrl: text('image_url'),
+    storageKey: text('storage_key'),
     // Ownership
-    createdBy: text("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("quote_cards_video_idx").on(table.videoId), index("quote_cards_org_idx").on(table.organizationId)],
+  (table) => [index('quote_cards_video_idx').on(table.videoId), index('quote_cards_org_idx').on(table.organizationId)],
 );
 
 // =============================================================================

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 /**
  * Mobile detection hook
@@ -14,7 +14,7 @@ export function useIsMobile(breakpoint = 768): boolean {
       // Check viewport width
       const isNarrow = window.innerWidth < breakpoint;
       // Check for touch support
-      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       // Consider mobile if narrow screen OR touch device with narrow screen
       setIsMobile(isNarrow || (hasTouch && window.innerWidth < 1024));
     };
@@ -23,8 +23,8 @@ export function useIsMobile(breakpoint = 768): boolean {
     checkMobile();
 
     // Listen for resize
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, [breakpoint]);
 
   return isMobile;
@@ -41,7 +41,7 @@ export function useTouch(): boolean {
   const [hasTouch, setHasTouch] = useState(false);
 
   useEffect(() => {
-    setHasTouch("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    setHasTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
   }, []);
 
   return hasTouch;
@@ -62,8 +62,8 @@ export function useMediaQuery(query: string): boolean {
       setMatches(event.matches);
     };
 
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
   }, [query]);
 
   return matches;
@@ -72,17 +72,17 @@ export function useMediaQuery(query: string): boolean {
 /**
  * Screen orientation hook
  */
-export function useOrientation(): "portrait" | "landscape" {
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
+export function useOrientation(): 'portrait' | 'landscape' {
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
   useEffect(() => {
     const checkOrientation = () => {
-      setOrientation(window.innerHeight > window.innerWidth ? "portrait" : "landscape");
+      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
     };
 
     checkOrientation();
-    window.addEventListener("resize", checkOrientation);
-    return () => window.removeEventListener("resize", checkOrientation);
+    window.addEventListener('resize', checkOrientation);
+    return () => window.removeEventListener('resize', checkOrientation);
   }, []);
 
   return orientation;
@@ -103,22 +103,22 @@ export function useSafeArea(): {
     const computeStyles = () => {
       const style = getComputedStyle(document.documentElement);
       setSafeArea({
-        top: parseInt(style.getPropertyValue("--sat") || "0", 10) || 0,
-        right: parseInt(style.getPropertyValue("--sar") || "0", 10) || 0,
-        bottom: parseInt(style.getPropertyValue("--sab") || "0", 10) || 0,
-        left: parseInt(style.getPropertyValue("--sal") || "0", 10) || 0,
+        top: parseInt(style.getPropertyValue('--sat') || '0', 10) || 0,
+        right: parseInt(style.getPropertyValue('--sar') || '0', 10) || 0,
+        bottom: parseInt(style.getPropertyValue('--sab') || '0', 10) || 0,
+        left: parseInt(style.getPropertyValue('--sal') || '0', 10) || 0,
       });
     };
 
     // Set CSS variables for safe area
-    document.documentElement.style.setProperty("--sat", "env(safe-area-inset-top)");
-    document.documentElement.style.setProperty("--sar", "env(safe-area-inset-right)");
-    document.documentElement.style.setProperty("--sab", "env(safe-area-inset-bottom)");
-    document.documentElement.style.setProperty("--sal", "env(safe-area-inset-left)");
+    document.documentElement.style.setProperty('--sat', 'env(safe-area-inset-top)');
+    document.documentElement.style.setProperty('--sar', 'env(safe-area-inset-right)');
+    document.documentElement.style.setProperty('--sab', 'env(safe-area-inset-bottom)');
+    document.documentElement.style.setProperty('--sal', 'env(safe-area-inset-left)');
 
     computeStyles();
-    window.addEventListener("resize", computeStyles);
-    return () => window.removeEventListener("resize", computeStyles);
+    window.addEventListener('resize', computeStyles);
+    return () => window.removeEventListener('resize', computeStyles);
   }, []);
 
   return safeArea;

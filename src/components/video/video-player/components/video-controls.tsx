@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Captions,
@@ -16,8 +16,8 @@ import {
   Volume1,
   Volume2,
   VolumeX,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,11 +25,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { type CaptionTrack, KEYBOARD_SHORTCUTS, PLAYBACK_RATES, SKIP_SECONDS, type VideoChapter } from "../types";
-import { formatTime } from "../utils";
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { type CaptionTrack, KEYBOARD_SHORTCUTS, PLAYBACK_RATES, SKIP_SECONDS, type VideoChapter } from '../types';
+import { formatTime } from '../utils';
 
 interface VideoControlsProps {
   playing: boolean;
@@ -101,7 +101,7 @@ export function VideoControls({
           size="icon"
           onClick={onTogglePlay}
           className="text-white hover:bg-white/20"
-          aria-label={playing ? "Pause" : "Play"}
+          aria-label={playing ? 'Pause' : 'Play'}
         >
           {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
         </Button>
@@ -133,7 +133,7 @@ export function VideoControls({
             size="icon"
             onClick={onToggleMute}
             className="text-white hover:bg-white/20"
-            aria-label={muted ? "Unmute" : "Mute"}
+            aria-label={muted ? 'Unmute' : 'Mute'}
           >
             <VolumeIcon className="h-4 w-4" />
           </Button>
@@ -170,8 +170,8 @@ export function VideoControls({
           variant="ghost"
           size="icon"
           onClick={onToggleLoop}
-          className={cn("text-white hover:bg-white/20", isLooping && "bg-white/20")}
-          aria-label={isLooping ? "Disable loop" : "Enable loop"}
+          className={cn('text-white hover:bg-white/20', isLooping && 'bg-white/20')}
+          aria-label={isLooping ? 'Disable loop' : 'Enable loop'}
           title="Toggle loop (R)"
         >
           <Repeat className="h-4 w-4" />
@@ -191,7 +191,7 @@ export function VideoControls({
               <DropdownMenuItem
                 key={rate}
                 onClick={() => onPlaybackRateChange(rate)}
-                className={cn(rate === playbackRate && "bg-accent")}
+                className={cn(rate === playbackRate && 'bg-accent')}
               >
                 {rate}x
               </DropdownMenuItem>
@@ -204,7 +204,7 @@ export function VideoControls({
                   <DropdownMenuItem
                     key={chapter.id}
                     onClick={() => onSeekToChapter(chapter)}
-                    className={cn(currentChapter?.id === chapter.id && "bg-accent")}
+                    className={cn(currentChapter?.id === chapter.id && 'bg-accent')}
                   >
                     <span className="flex-1 truncate">{chapter.title}</span>
                     <span className="text-xs text-muted-foreground ml-2">{formatTime(chapter.startTime)}</span>
@@ -251,8 +251,8 @@ export function VideoControls({
               <Button
                 variant="ghost"
                 size="icon"
-                className={cn("text-white hover:bg-white/20", captionsEnabled && "bg-white/20")}
-                aria-label={captionsEnabled ? "Captions on" : "Captions off"}
+                className={cn('text-white hover:bg-white/20', captionsEnabled && 'bg-white/20')}
+                aria-label={captionsEnabled ? 'Captions on' : 'Captions off'}
                 title="Captions (C)"
               >
                 {captionsEnabled ? <Captions className="h-4 w-4" /> : <CaptionsOff className="h-4 w-4" />}
@@ -263,7 +263,7 @@ export function VideoControls({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onSelectCaptionTrack(null)}
-                className={cn(!captionsEnabled && "bg-accent")}
+                className={cn(!captionsEnabled && 'bg-accent')}
               >
                 Off
               </DropdownMenuItem>
@@ -271,7 +271,7 @@ export function VideoControls({
                 <DropdownMenuItem
                   key={track.code}
                   onClick={() => onSelectCaptionTrack(track.code)}
-                  className={cn(captionsEnabled && selectedCaptionTrack === track.code && "bg-accent")}
+                  className={cn(captionsEnabled && selectedCaptionTrack === track.code && 'bg-accent')}
                 >
                   {track.label}
                 </DropdownMenuItem>
@@ -286,8 +286,8 @@ export function VideoControls({
             variant="ghost"
             size="icon"
             onClick={onTogglePiP}
-            className={cn("text-white hover:bg-white/20", isPiP && "bg-white/20")}
-            aria-label={isPiP ? "Exit Picture-in-Picture" : "Enter Picture-in-Picture"}
+            className={cn('text-white hover:bg-white/20', isPiP && 'bg-white/20')}
+            aria-label={isPiP ? 'Exit Picture-in-Picture' : 'Enter Picture-in-Picture'}
             title="Picture-in-Picture (P)"
           >
             <PictureInPicture2 className="h-4 w-4" />
@@ -300,7 +300,7 @@ export function VideoControls({
           size="icon"
           onClick={onToggleFullscreen}
           className="text-white hover:bg-white/20"
-          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           title="Fullscreen (F)"
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}

@@ -1,13 +1,13 @@
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import { CommentRepository, NotificationRepository, VideoRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Database } from "@/lib/effect/services/database";
-import { EmailNotifications } from "@/lib/effect/services/email-notifications";
-import { getAppUrl } from "@/lib/env/server";
-import type { ApiResponse } from "@/lib/types";
-import { createCommentSchema, sanitizeComment, validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { CommentRepository, NotificationRepository, VideoRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Database } from '@/lib/effect/services/database';
+import { EmailNotifications } from '@/lib/effect/services/email-notifications';
+import { getAppUrl } from '@/lib/env/server';
+import type { ApiResponse } from '@/lib/types';
+import { createCommentSchema, sanitizeComment, validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/comments - List all comments for a video
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                 where: (c, { eq }) => eq(c.id, validatedData.parentId as string),
                 with: { author: true },
               }),
-            catch: () => new Error("Failed to get parent comment"),
+            catch: () => new Error('Failed to get parent comment'),
           });
 
           if (!parentComment || parentComment.authorId === user.id) return;
@@ -98,11 +98,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
           yield* emailService.sendCommentNotification({
             recipientEmail: parentAuthor.email,
-            recipientName: parentAuthor.name || "there",
-            commenterName: user.name || "Someone",
+            recipientName: parentAuthor.name || 'there',
+            commenterName: user.name || 'Someone',
             videoTitle: video.title,
             videoUrl: `${baseUrl}/videos/${videoId}`,
-            commentPreview: newComment.content.slice(0, 150) + (newComment.content.length > 150 ? "..." : ""),
+            commentPreview: newComment.content.slice(0, 150) + (newComment.content.length > 150 ? '...' : ''),
             isReply: true,
           });
         }),
@@ -128,18 +128,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               db.query.users.findFirst({
                 where: (u, { eq }) => eq(u.id, video.authorId as string),
               }),
-            catch: () => new Error("Failed to get video owner"),
+            catch: () => new Error('Failed to get video owner'),
           });
 
           if (!videoOwner?.email) return;
 
           yield* emailService.sendCommentNotification({
             recipientEmail: videoOwner.email,
-            recipientName: videoOwner.name || "there",
-            commenterName: user.name || "Someone",
+            recipientName: videoOwner.name || 'there',
+            commenterName: user.name || 'Someone',
             videoTitle: video.title,
             videoUrl: `${baseUrl}/videos/${videoId}`,
-            commentPreview: newComment.content.slice(0, 150) + (newComment.content.length > 150 ? "..." : ""),
+            commentPreview: newComment.content.slice(0, 150) + (newComment.content.length > 150 ? '...' : ''),
             isReply: false,
           });
         }),
@@ -156,10 +156,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

@@ -1,6 +1,6 @@
-import { Play } from "lucide-react";
-import Link from "next/link";
-import { CopyrightYear } from "@/components/copyright-year";
+import { Play } from 'lucide-react';
+import Link from 'next/link';
+import { CopyrightYear } from '@/components/copyright-year';
 
 export function MarketingFooter() {
   return (

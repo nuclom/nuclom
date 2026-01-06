@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { logger } from "@/lib/client-logger";
-import { VIEW_TRACKING_INTERVAL } from "../types";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { logger } from '@/lib/client-logger';
+import { VIEW_TRACKING_INTERVAL } from '../types';
 
 interface UseViewTrackingOptions {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -15,11 +15,11 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
   const viewTrackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const sessionId = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    const stored = localStorage.getItem("viewSessionId");
+    if (typeof window === 'undefined') return '';
+    const stored = localStorage.getItem('viewSessionId');
     if (stored) return stored;
     const id = crypto.randomUUID();
-    localStorage.setItem("viewSessionId", id);
+    localStorage.setItem('viewSessionId', id);
     return id;
   }, []);
 
@@ -28,13 +28,13 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
 
     try {
       await fetch(`/api/videos/${videoId}/views`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId }),
       });
       setHasTrackedView(true);
     } catch (error) {
-      logger.error("Failed to track view", error);
+      logger.error('Failed to track view', error);
     }
   }, [videoId, sessionId, hasTrackedView]);
 
@@ -44,8 +44,8 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
 
     try {
       await fetch(`/api/videos/${videoId}/views`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
           watchDuration: Math.floor(video.currentTime),
@@ -53,7 +53,7 @@ export function useViewTracking({ videoRef, videoId, playing }: UseViewTrackingO
         }),
       });
     } catch (error) {
-      logger.error("Failed to update view progress", error);
+      logger.error('Failed to update view progress', error);
     }
   }, [videoId, sessionId, hasTrackedView, videoRef]);
 

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Check, ChevronDown, ChevronRight, Copy, ExternalLink } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, ChevronDown, ChevronRight, Copy, ExternalLink } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // The OpenAPI spec is generated at build time and served as a static file
 type OpenApiSpec = {
@@ -13,7 +13,7 @@ type OpenApiSpec = {
   components?: { parameters?: Record<string, ParameterDef> };
 };
 
-type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 type Tag = { name: string; description?: string };
 
 // Parameter can be a reference or an inline definition
@@ -53,19 +53,19 @@ type PathOperation = {
 };
 
 const methodColors: Record<HttpMethod, string> = {
-  get: "bg-blue-500/10 text-blue-600 border-blue-200",
-  post: "bg-green-500/10 text-green-600 border-green-200",
-  put: "bg-yellow-500/10 text-yellow-600 border-yellow-200",
-  patch: "bg-orange-500/10 text-orange-600 border-orange-200",
-  delete: "bg-red-500/10 text-red-600 border-red-200",
+  get: 'bg-blue-500/10 text-blue-600 border-blue-200',
+  post: 'bg-green-500/10 text-green-600 border-green-200',
+  put: 'bg-yellow-500/10 text-yellow-600 border-yellow-200',
+  patch: 'bg-orange-500/10 text-orange-600 border-orange-200',
+  delete: 'bg-red-500/10 text-red-600 border-red-200',
 };
 
 const methodBadgeColors: Record<HttpMethod, string> = {
-  get: "bg-blue-500",
-  post: "bg-green-500",
-  put: "bg-yellow-500",
-  patch: "bg-orange-500",
-  delete: "bg-red-500",
+  get: 'bg-blue-500',
+  post: 'bg-green-500',
+  put: 'bg-yellow-500',
+  patch: 'bg-orange-500',
+  delete: 'bg-red-500',
 };
 
 function CopyButton({ text }: { text: string }) {
@@ -106,7 +106,7 @@ function EndpointCard({
   // Resolve parameter references
   const resolveParamRef = (param: ParameterDef): ParameterDef => {
     if (param.$ref) {
-      const refPath = param.$ref.replace("#/components/parameters/", "");
+      const refPath = param.$ref.replace('#/components/parameters/', '');
       const params = spec.components?.parameters;
       return params?.[refPath] || param;
     }
@@ -143,10 +143,10 @@ function EndpointCard({
               <div className="space-y-2">
                 {parameters.map((p) => (
                   <div
-                    key={p.name || p.$ref || "unknown"}
+                    key={p.name || p.$ref || 'unknown'}
                     className="flex items-start gap-2 text-sm bg-muted/50 p-2 rounded"
                   >
-                    <code className="font-mono text-primary">{p.name || "unknown"}</code>
+                    <code className="font-mono text-primary">{p.name || 'unknown'}</code>
                     {p.in && <span className="text-muted-foreground text-xs">({p.in})</span>}
                     {p.required && <span className="text-red-500 text-xs">required</span>}
                     {p.schema?.type && (
@@ -173,7 +173,7 @@ function EndpointCard({
                       <span className="text-xs text-muted-foreground">Content-Type: {contentType}</span>
                       {content.schema?.$ref && (
                         <code className="block mt-1 text-xs font-mono">
-                          {content.schema.$ref.replace("#/components/schemas/", "")}
+                          {content.schema.$ref.replace('#/components/schemas/', '')}
                         </code>
                       )}
                     </div>
@@ -188,16 +188,16 @@ function EndpointCard({
               <div className="space-y-2">
                 {Object.entries(operation.responses).map(([code, response]) => {
                   const resp = response as { description?: string; $ref?: string };
-                  const statusColor = code.startsWith("2")
-                    ? "text-green-600"
-                    : code.startsWith("4")
-                      ? "text-yellow-600"
-                      : "text-red-600";
+                  const statusColor = code.startsWith('2')
+                    ? 'text-green-600'
+                    : code.startsWith('4')
+                      ? 'text-yellow-600'
+                      : 'text-red-600';
                   return (
                     <div key={code} className="flex items-center gap-2 text-sm bg-muted/50 p-2 rounded">
                       <span className={`font-mono font-bold ${statusColor}`}>{code}</span>
                       <span className="text-muted-foreground">
-                        {resp.description || (resp.$ref ? resp.$ref.replace("#/components/responses/", "") : "")}
+                        {resp.description || (resp.$ref ? resp.$ref.replace('#/components/responses/', '') : '')}
                       </span>
                     </div>
                   );
@@ -254,9 +254,9 @@ export function OpenApiViewer() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/openapi.json")
+    fetch('/openapi.json')
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to load OpenAPI spec");
+        if (!res.ok) throw new Error('Failed to load OpenAPI spec');
         return res.json();
       })
       .then(setSpec)
@@ -285,7 +285,7 @@ export function OpenApiViewer() {
   // Group endpoints
   for (const [path, methods] of Object.entries(paths)) {
     for (const [method, operation] of Object.entries(methods)) {
-      const opTags = operation.tags || ["Other"];
+      const opTags = operation.tags || ['Other'];
       for (const tagName of opTags) {
         const endpoints = endpointsByTag.get(tagName) || [];
         endpoints.push({ path, method: method as HttpMethod, operation });
@@ -363,10 +363,10 @@ export function OpenApiViewer() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Data Models</h2>
         <p className="text-muted-foreground mb-4">
-          For detailed schema definitions, download the{" "}
+          For detailed schema definitions, download the{' '}
           <a href="/openapi.json" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
             OpenAPI specification
-          </a>{" "}
+          </a>{' '}
           and view the <code>components.schemas</code> section.
         </p>
       </div>

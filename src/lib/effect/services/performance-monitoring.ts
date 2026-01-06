@@ -9,29 +9,29 @@
  * - User engagement metrics
  */
 
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { type PerformanceMetric, performanceMetrics } from "@/lib/db/schema";
-import { DatabaseError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { type PerformanceMetric, performanceMetrics } from '@/lib/db/schema';
+import { DatabaseError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export type MetricType =
-  | "video_load"
-  | "video_buffer"
-  | "video_error"
-  | "api_response"
-  | "upload_speed"
-  | "upload_complete"
-  | "upload_error"
-  | "ai_processing"
-  | "search_latency"
-  | "page_load"
-  | "interaction"
-  | "error";
+  | 'video_load'
+  | 'video_buffer'
+  | 'video_error'
+  | 'api_response'
+  | 'upload_speed'
+  | 'upload_complete'
+  | 'upload_error'
+  | 'ai_processing'
+  | 'search_latency'
+  | 'page_load'
+  | 'interaction'
+  | 'error';
 
 export interface RecordMetricInput {
   readonly organizationId: string;
@@ -98,7 +98,7 @@ export interface PerformanceMonitoringServiceInterface {
     organizationId: string,
     metricType: MetricType,
     metricName: string,
-    interval: "hour" | "day" | "week",
+    interval: 'hour' | 'day' | 'week',
     startDate?: Date,
     endDate?: Date,
   ) => Effect.Effect<MetricsTimeSeries[], DatabaseError>;
@@ -139,7 +139,7 @@ export interface PerformanceMonitoringServiceInterface {
 // Performance Monitoring Service Tag
 // =============================================================================
 
-export class PerformanceMonitoring extends Context.Tag("PerformanceMonitoring")<
+export class PerformanceMonitoring extends Context.Tag('PerformanceMonitoring')<
   PerformanceMonitoring,
   PerformanceMonitoringServiceInterface
 >() {}
@@ -167,8 +167,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to record metric",
-          operation: "recordMetric",
+          message: 'Failed to record metric',
+          operation: 'recordMetric',
           cause: error,
         }),
     });
@@ -193,8 +193,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to record metrics batch",
-          operation: "recordMetricsBatch",
+          message: 'Failed to record metrics batch',
+          operation: 'recordMetricsBatch',
           cause: error,
         }),
     });
@@ -252,8 +252,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get metrics summary",
-          operation: "getMetricsSummary",
+          message: 'Failed to get metrics summary',
+          operation: 'getMetricsSummary',
           cause: error,
         }),
     });
@@ -262,7 +262,7 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
     organizationId: string,
     metricType: MetricType,
     metricName: string,
-    interval: "hour" | "day" | "week",
+    interval: 'hour' | 'day' | 'week',
     startDate?: Date,
     endDate?: Date,
   ): Effect.Effect<MetricsTimeSeries[], DatabaseError> =>
@@ -282,7 +282,7 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
           conditions.push(lte(performanceMetrics.createdAt, endDate));
         }
 
-        const truncateInterval = interval === "hour" ? "hour" : interval === "day" ? "day" : "week";
+        const truncateInterval = interval === 'hour' ? 'hour' : interval === 'day' ? 'day' : 'week';
 
         const result = await db
           .select({
@@ -303,8 +303,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get metrics time series",
-          operation: "getMetricsTimeSeries",
+          message: 'Failed to get metrics time series',
+          operation: 'getMetricsTimeSeries',
           cause: error,
         }),
     });
@@ -358,13 +358,13 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
         const videoLoadAvg = await db
           .select({ avg: sql<number>`avg(${performanceMetrics.value})::int` })
           .from(performanceMetrics)
-          .where(and(...conditions, eq(performanceMetrics.metricType, "video_load")));
+          .where(and(...conditions, eq(performanceMetrics.metricType, 'video_load')));
 
         // Get average API response time
         const apiResponseAvg = await db
           .select({ avg: sql<number>`avg(${performanceMetrics.value})::int` })
           .from(performanceMetrics)
-          .where(and(...conditions, eq(performanceMetrics.metricType, "api_response")));
+          .where(and(...conditions, eq(performanceMetrics.metricType, 'api_response')));
 
         return {
           period: { start: startDate, end: endDate },
@@ -387,8 +387,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get performance report",
-          operation: "getPerformanceReport",
+          message: 'Failed to get performance report',
+          operation: 'getPerformanceReport',
           cause: error,
         }),
     });
@@ -410,8 +410,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get recent errors",
-          operation: "getRecentErrors",
+          message: 'Failed to get recent errors',
+          operation: 'getRecentErrors',
           cause: error,
         }),
     });
@@ -429,7 +429,7 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
           .where(
             and(
               eq(performanceMetrics.organizationId, organizationId),
-              eq(performanceMetrics.metricType, "api_response"),
+              eq(performanceMetrics.metricType, 'api_response'),
               sql`${performanceMetrics.value} > ${thresholdMs}`,
             ),
           )
@@ -438,8 +438,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get slow requests",
-          operation: "getSlowRequests",
+          message: 'Failed to get slow requests',
+          operation: 'getSlowRequests',
           cause: error,
         }),
     });
@@ -458,8 +458,8 @@ const makePerformanceMonitoringService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to cleanup old metrics",
-          operation: "cleanupOldMetrics",
+          message: 'Failed to cleanup old metrics',
+          operation: 'cleanupOldMetrics',
           cause: error,
         }),
     });

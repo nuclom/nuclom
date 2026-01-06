@@ -4,13 +4,13 @@
  * DELETE /api/user/sessions/:sessionId - Revoke a specific session
  */
 
-import { eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { sessions } from "@/lib/db/schema";
-import { Auth } from "@/lib/effect/services/auth";
+import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { sessions } from '@/lib/db/schema';
+import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // DELETE /api/user/sessions/:sessionId - Revoke a specific session
@@ -26,7 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     // Prevent revoking the current session through this endpoint
     if (sessionId === currentSession.id) {
       return yield* Effect.fail(
-        new Error("Cannot revoke current session through this endpoint. Use /api/auth/sign-out instead."),
+        new Error('Cannot revoke current session through this endpoint. Use /api/auth/sign-out instead.'),
       );
     }
 
@@ -42,11 +42,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     });
 
     if (!targetSession) {
-      return yield* Effect.fail(new Error("Session not found"));
+      return yield* Effect.fail(new Error('Session not found'));
     }
 
     if (targetSession.userId !== user.id) {
-      return yield* Effect.fail(new Error("Session not found")); // Don't reveal existence of other users' sessions
+      return yield* Effect.fail(new Error('Session not found')); // Don't reveal existence of other users' sessions
     }
 
     // Delete the session
@@ -58,7 +58,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     console.log(`[Session Security] User ${user.id} revoked session ${sessionId}`);
 
     return {
-      message: "Session revoked successfully",
+      message: 'Session revoked successfully',
       sessionId,
     };
   });

@@ -10,78 +10,78 @@ import {
   Scale,
   Shield,
   XCircle,
-} from "lucide-react";
-import Link from "next/link";
-import { CopyrightYear } from "@/components/copyright-year";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+} from 'lucide-react';
+import Link from 'next/link';
+import { CopyrightYear } from '@/components/copyright-year';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: "Content Policy | Nuclom",
-  description: "Understand what content is allowed on Nuclom and how we moderate our platform.",
+  title: 'Content Policy | Nuclom',
+  description: 'Understand what content is allowed on Nuclom and how we moderate our platform.',
 };
 
 const prohibitedContent = [
   {
     icon: Ban,
-    title: "Illegal Content",
+    title: 'Illegal Content',
     description:
-      "Content that violates laws, including but not limited to: child exploitation material, content promoting terrorism, illegal drug manufacturing or sales, and content that facilitates criminal activity.",
+      'Content that violates laws, including but not limited to: child exploitation material, content promoting terrorism, illegal drug manufacturing or sales, and content that facilitates criminal activity.',
   },
   {
     icon: FileWarning,
-    title: "Explicit Adult Content",
+    title: 'Explicit Adult Content',
     description:
-      "Pornographic or sexually explicit material. Nuclom is a professional collaboration platform and is not intended for adult content.",
+      'Pornographic or sexually explicit material. Nuclom is a professional collaboration platform and is not intended for adult content.',
   },
   {
     icon: MessageSquareWarning,
-    title: "Harassment & Hate Speech",
+    title: 'Harassment & Hate Speech',
     description:
-      "Content that attacks, demeans, or discriminates against individuals or groups based on race, ethnicity, national origin, religion, gender, sexual orientation, disability, or other protected characteristics.",
+      'Content that attacks, demeans, or discriminates against individuals or groups based on race, ethnicity, national origin, religion, gender, sexual orientation, disability, or other protected characteristics.',
   },
   {
     icon: AlertTriangle,
-    title: "Violent or Dangerous Content",
+    title: 'Violent or Dangerous Content',
     description:
-      "Content that promotes violence, self-harm, or dangerous activities. This includes graphic violence, instructions for harmful activities, and content glorifying violent events.",
+      'Content that promotes violence, self-harm, or dangerous activities. This includes graphic violence, instructions for harmful activities, and content glorifying violent events.',
   },
   {
     icon: XCircle,
-    title: "Spam & Misleading Content",
+    title: 'Spam & Misleading Content',
     description:
-      "Deceptive content, spam, scams, phishing attempts, or content designed to artificially manipulate engagement. This includes misleading thumbnails and titles.",
+      'Deceptive content, spam, scams, phishing attempts, or content designed to artificially manipulate engagement. This includes misleading thumbnails and titles.',
   },
   {
     icon: Shield,
-    title: "Intellectual Property Violations",
+    title: 'Intellectual Property Violations',
     description:
-      "Content that infringes on copyrights, trademarks, or other intellectual property rights of others without proper authorization.",
+      'Content that infringes on copyrights, trademarks, or other intellectual property rights of others without proper authorization.',
   },
 ];
 
 const appealProcess = [
   {
     step: 1,
-    title: "Review the Decision",
+    title: 'Review the Decision',
     description:
       "When content is removed or your account is actioned, you'll receive an email explaining what policy was violated and what action was taken.",
   },
   {
     step: 2,
-    title: "Submit an Appeal",
+    title: 'Submit an Appeal',
     description:
-      "If you believe the decision was made in error, you can submit an appeal within 30 days by contacting our support team at appeals@nuclom.com.",
+      'If you believe the decision was made in error, you can submit an appeal within 30 days by contacting our support team at appeals@nuclom.com.',
   },
   {
     step: 3,
-    title: "Appeal Review",
+    title: 'Appeal Review',
     description:
-      "Our team will review your appeal and the original decision. We aim to respond to appeals within 5-7 business days.",
+      'Our team will review your appeal and the original decision. We aim to respond to appeals within 5-7 business days.',
   },
   {
     step: 4,
-    title: "Final Decision",
+    title: 'Final Decision',
     description:
       "We'll notify you of the outcome. If the appeal is granted, we'll restore your content or lift account restrictions. Appeals decisions are final.",
   },
@@ -89,32 +89,32 @@ const appealProcess = [
 
 const consequences = [
   {
-    level: "First Violation",
-    action: "Warning",
-    description: "Content removal and a warning notification. Your account remains in good standing.",
-    color: "text-yellow-600 dark:text-yellow-400",
-    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
+    level: 'First Violation',
+    action: 'Warning',
+    description: 'Content removal and a warning notification. Your account remains in good standing.',
+    color: 'text-yellow-600 dark:text-yellow-400',
+    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
   },
   {
-    level: "Repeat Violations",
-    action: "Temporary Restriction",
-    description: "Temporary limitations on your ability to upload or comment. Duration depends on severity.",
-    color: "text-orange-600 dark:text-orange-400",
-    bgColor: "bg-orange-100 dark:bg-orange-900/30",
+    level: 'Repeat Violations',
+    action: 'Temporary Restriction',
+    description: 'Temporary limitations on your ability to upload or comment. Duration depends on severity.',
+    color: 'text-orange-600 dark:text-orange-400',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
   },
   {
-    level: "Serious Violations",
-    action: "Account Suspension",
-    description: "Temporary or permanent account suspension for severe or repeated violations.",
-    color: "text-red-600 dark:text-red-400",
-    bgColor: "bg-red-100 dark:bg-red-900/30",
+    level: 'Serious Violations',
+    action: 'Account Suspension',
+    description: 'Temporary or permanent account suspension for severe or repeated violations.',
+    color: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-100 dark:bg-red-900/30',
   },
   {
-    level: "Illegal Content",
-    action: "Immediate Ban + Reporting",
-    description: "Immediate permanent ban and reporting to appropriate law enforcement authorities.",
-    color: "text-red-800 dark:text-red-300",
-    bgColor: "bg-red-200 dark:bg-red-900/50",
+    level: 'Illegal Content',
+    action: 'Immediate Ban + Reporting',
+    description: 'Immediate permanent ban and reporting to appropriate law enforcement authorities.',
+    color: 'text-red-800 dark:text-red-300',
+    bgColor: 'bg-red-200 dark:bg-red-900/50',
   },
 ];
 
@@ -318,10 +318,10 @@ export default function ContentPolicyPage() {
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold mb-4">Questions?</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  If you have questions about this Content Policy or need to report a violation, please contact us at{" "}
+                  If you have questions about this Content Policy or need to report a violation, please contact us at{' '}
                   <Link href="/support" className="text-primary hover:underline">
                     our support page
-                  </Link>{" "}
+                  </Link>{' '}
                   or email us at moderation@nuclom.com.
                 </p>
               </CardContent>

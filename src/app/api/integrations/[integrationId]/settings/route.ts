@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { safeParse } from "@/lib/validation";
+import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { safeParse } from '@/lib/validation';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SettingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse and validate request body
@@ -36,12 +36,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
   const result = safeParse(UpdateSettingsSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request format' }, { status: 400 });
   }
   const body = result.data;
 
@@ -92,7 +92,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           return NextResponse.json({ success: false, error: err.message }, { status: 403 });
         }
       }
-      return NextResponse.json({ success: false, error: "Failed to update settings" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to update settings' }, { status: 500 });
     },
     onSuccess: () => {
       return NextResponse.json({ success: true });
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           return NextResponse.json({ success: false, error: err.message }, { status: 403 });
         }
       }
-      return NextResponse.json({ success: false, error: "Failed to get settings" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to get settings' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

@@ -1,7 +1,7 @@
-import { cookies, headers } from "next/headers";
-import { getRequestConfig } from "next-intl/server";
-import { logger } from "@/lib/logger";
-import { defaultLocale, isValidLocale, type Locale } from "./config";
+import { cookies, headers } from 'next/headers';
+import { getRequestConfig } from 'next-intl/server';
+import { logger } from '@/lib/logger';
+import { defaultLocale, isValidLocale, type Locale } from './config';
 
 /**
  * Get messages for the requested locale
@@ -25,18 +25,18 @@ async function getMessages(locale: Locale) {
 async function getUserLocale(): Promise<Locale> {
   // 1. Check for locale cookie (user preference)
   const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("locale")?.value;
+  const localeCookie = cookieStore.get('locale')?.value;
   if (localeCookie && isValidLocale(localeCookie)) {
     return localeCookie;
   }
 
   // 2. Check Accept-Language header
   const headersList = await headers();
-  const acceptLanguage = headersList.get("Accept-Language");
+  const acceptLanguage = headersList.get('Accept-Language');
   if (acceptLanguage) {
-    const preferredLocales = acceptLanguage.split(",").map((lang) => {
-      const [code] = lang.trim().split(";");
-      return code.split("-")[0].toLowerCase();
+    const preferredLocales = acceptLanguage.split(',').map((lang) => {
+      const [code] = lang.trim().split(';');
+      return code.split('-')[0].toLowerCase();
     });
 
     for (const locale of preferredLocales) {
@@ -57,38 +57,38 @@ export default getRequestConfig(async () => {
   return {
     locale,
     messages,
-    timeZone: "UTC",
+    timeZone: 'UTC',
     now: new Date(),
     // Formats for dates, numbers, etc.
     formats: {
       dateTime: {
         short: {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
         },
         medium: {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "numeric",
-          minute: "numeric",
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
         },
         long: {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-          second: "numeric",
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
         },
       },
       number: {
         compact: {
-          notation: "compact",
+          notation: 'compact',
         },
         percentage: {
-          style: "percent",
+          style: 'percent',
         },
       },
     },

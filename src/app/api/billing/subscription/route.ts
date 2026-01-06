@@ -1,11 +1,11 @@
-import { Effect, Option, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Billing } from "@/lib/effect/services/billing";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Billing } from '@/lib/effect/services/billing';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { validateRequestBody } from '@/lib/validation';
 
 const CancelSubscriptionSchema = Schema.Struct({
   organizationId: Schema.String,
@@ -13,9 +13,9 @@ const CancelSubscriptionSchema = Schema.Struct({
 
 const ManageSubscriptionSchema = Schema.Struct({
   organizationId: Schema.String,
-  action: Schema.Literal("resume", "change_plan"),
+  action: Schema.Literal('resume', 'change_plan'),
   newPlanId: Schema.optional(Schema.String),
-  billingPeriod: Schema.optional(Schema.Literal("monthly", "yearly")),
+  billingPeriod: Schema.optional(Schema.Literal('monthly', 'yearly')),
 });
 
 // =============================================================================
@@ -30,13 +30,13 @@ export async function GET(request: NextRequest) {
 
     // Get organization from query params
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
+    const organizationId = searchParams.get('organizationId');
 
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -82,11 +82,11 @@ export async function DELETE(request: NextRequest) {
     const orgRepo = yield* OrganizationRepository;
     const roleOption = yield* orgRepo.getUserRole(user.id, organizationId);
 
-    if (Option.isNone(roleOption) || roleOption.value !== "owner") {
+    if (Option.isNone(roleOption) || roleOption.value !== 'owner') {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "role",
-          message: "Only organization owners can cancel subscriptions",
+          field: 'role',
+          message: 'Only organization owners can cancel subscriptions',
         }),
       );
     }
@@ -98,7 +98,7 @@ export async function DELETE(request: NextRequest) {
     return {
       success: true,
       subscription,
-      message: "Subscription will be canceled at the end of the billing period",
+      message: 'Subscription will be canceled at the end of the billing period',
     };
   });
 
@@ -128,32 +128,32 @@ export async function PATCH(request: NextRequest) {
     const orgRepo = yield* OrganizationRepository;
     const roleOption = yield* orgRepo.getUserRole(user.id, organizationId);
 
-    if (Option.isNone(roleOption) || roleOption.value !== "owner") {
+    if (Option.isNone(roleOption) || roleOption.value !== 'owner') {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "role",
-          message: "Only organization owners can manage subscriptions",
+          field: 'role',
+          message: 'Only organization owners can manage subscriptions',
         }),
       );
     }
 
     const billing = yield* Billing;
 
-    if (action === "resume") {
+    if (action === 'resume') {
       const subscription = yield* billing.resumeSubscription(organizationId);
       return {
         success: true,
         subscription,
-        message: "Subscription resumed successfully",
+        message: 'Subscription resumed successfully',
       };
     }
 
-    if (action === "change_plan") {
+    if (action === 'change_plan') {
       if (!newPlanId || !billingPeriod) {
         return yield* Effect.fail(
           new MissingFieldError({
-            field: "newPlanId",
-            message: "Plan ID and billing period are required for plan changes",
+            field: 'newPlanId',
+            message: 'Plan ID and billing period are required for plan changes',
           }),
         );
       }
@@ -162,13 +162,13 @@ export async function PATCH(request: NextRequest) {
       return {
         success: true,
         subscription,
-        message: "Plan changed successfully",
+        message: 'Plan changed successfully',
       };
     }
 
     return yield* Effect.fail(
       new MissingFieldError({
-        field: "action",
+        field: 'action',
         message: "Invalid action. Use 'resume' or 'change_plan'",
       }),
     );

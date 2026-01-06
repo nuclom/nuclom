@@ -1,7 +1,7 @@
-import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { env } from "@/lib/env/server";
+import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { env } from '@/lib/env/server';
 
 // Cloudflare R2 configuration
 const R2_ACCOUNT_ID = env.R2_ACCOUNT_ID;
@@ -16,7 +16,7 @@ const isR2Configured = R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY
 let r2Client: S3Client | null = null;
 if (isR2Configured && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) {
   r2Client = new S3Client({
-    region: "auto",
+    region: 'auto',
     endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId: R2_ACCESS_KEY_ID,
@@ -44,14 +44,14 @@ export class StorageService {
   static async uploadFile(buffer: Buffer, key: string, options: UploadOptions = {}): Promise<UploadResult> {
     // If R2 is not configured, throw error instead of using mock
     if (!isR2Configured || !r2Client) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      throw new Error('R2 storage not configured. Please set up R2 credentials.');
     }
 
     const uploadParams: PutObjectCommandInput = {
       Bucket: R2_BUCKET_NAME,
       Key: key,
       Body: buffer,
-      ContentType: options.contentType || "application/octet-stream",
+      ContentType: options.contentType || 'application/octet-stream',
       Metadata: options.metadata,
     };
 
@@ -70,7 +70,7 @@ export class StorageService {
         etag: result.ETag,
       };
     } catch (error) {
-      throw new Error(`Failed to upload file to R2: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to upload file to R2: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -84,14 +84,14 @@ export class StorageService {
     onProgress?: (progress: { loaded: number; total: number }) => void,
   ): Promise<UploadResult> {
     if (!isR2Configured || !r2Client) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      throw new Error('R2 storage not configured. Please set up R2 credentials.');
     }
 
     const uploadParams: PutObjectCommandInput = {
       Bucket: R2_BUCKET_NAME,
       Key: key,
       Body: buffer,
-      ContentType: options.contentType || "application/octet-stream",
+      ContentType: options.contentType || 'application/octet-stream',
       Metadata: options.metadata,
     };
 
@@ -105,7 +105,7 @@ export class StorageService {
 
       // Progress tracking
       if (onProgress) {
-        upload.on("httpUploadProgress", (progress) => {
+        upload.on('httpUploadProgress', (progress) => {
           onProgress({
             loaded: progress.loaded || 0,
             total: progress.total || 0,
@@ -122,7 +122,7 @@ export class StorageService {
         etag: result.ETag,
       };
     } catch (error) {
-      throw new Error(`Failed to upload large file to R2: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to upload large file to R2: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -143,7 +143,7 @@ export class StorageService {
 
       await r2Client.send(command);
     } catch (error) {
-      throw new Error(`Failed to delete file from R2: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to delete file from R2: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -157,7 +157,7 @@ export class StorageService {
   ): Promise<string> {
     // If R2 is not configured, throw error instead of using mock
     if (!isR2Configured || !r2Client) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      throw new Error('R2 storage not configured. Please set up R2 credentials.');
     }
 
     try {
@@ -169,7 +169,7 @@ export class StorageService {
 
       return await getSignedUrl(r2Client, command, { expiresIn });
     } catch (error) {
-      throw new Error(`Failed to generate presigned URL: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to generate presigned URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -178,7 +178,7 @@ export class StorageService {
    */
   static getPublicUrl(key: string): string {
     if (!isR2Configured) {
-      throw new Error("R2 storage not configured. Please set up R2 credentials.");
+      throw new Error('R2 storage not configured. Please set up R2 credentials.');
     }
     return `https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${key}`;
   }
@@ -189,10 +189,10 @@ export class StorageService {
   static generateFileKey(
     organizationId: string,
     filename: string,
-    type: "video" | "thumbnail" | "processed" = "video",
+    type: 'video' | 'thumbnail' | 'processed' = 'video',
   ): string {
     const timestamp = Date.now();
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     return `${organizationId}/${type}s/${timestamp}-${sanitizedFilename}`;
   }
 }

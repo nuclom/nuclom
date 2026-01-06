@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { ArrowLeft, CheckCircle2, Loader2, Mail } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { forgotPasswordSchema, safeParse } from "@/lib/validation";
+import { ArrowLeft, CheckCircle2, Loader2, Mail } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { forgotPasswordSchema, safeParse } from '@/lib/validation';
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,19 +23,19 @@ export function ForgotPasswordForm() {
     // Validate email using schema
     const result = safeParse(forgotPasswordSchema, { email });
     if (!result.success) {
-      setError(result.error.issues[0]?.message || "Please enter a valid email address");
+      setError(result.error.issues[0]?.message || 'Please enter a valid email address');
       setIsLoading(false);
       return;
     }
 
     try {
       // Use direct fetch to the auth API endpoint
-      await fetch("/api/auth/forget-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      await fetch('/api/auth/forget-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          redirectTo: "/reset-password",
+          redirectTo: '/reset-password',
         }),
       });
 
@@ -74,7 +74,7 @@ export function ForgotPasswordForm() {
             className="w-full"
             onClick={() => {
               setIsSuccess(false);
-              setEmail("");
+              setEmail('');
             }}
           >
             <Mail className="mr-2 h-4 w-4" />
@@ -124,7 +124,7 @@ export function ForgotPasswordForm() {
                 Sending reset link...
               </>
             ) : (
-              "Send reset link"
+              'Send reset link'
             )}
           </Button>
         </form>

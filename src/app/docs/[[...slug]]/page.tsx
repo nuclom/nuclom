@@ -1,9 +1,9 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { DocsMarkdown } from "@/components/docs/docs-markdown";
-import { getAllDocsPaths, getDocsContent } from "@/lib/docs/markdown";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { DocsMarkdown } from '@/components/docs/docs-markdown';
+import { getAllDocsPaths, getDocsContent } from '@/lib/docs/markdown';
 
 interface PageProps {
   params: Promise<{
@@ -14,7 +14,7 @@ interface PageProps {
 export async function generateStaticParams() {
   // Only generate public docs paths - internal docs are handled by their own layout
   const paths = getAllDocsPaths();
-  const publicPaths = paths.filter((path) => path[0] !== "internal");
+  const publicPaths = paths.filter((path) => path[0] !== 'internal');
   return publicPaths.map((slug) => ({
     slug: slug.length === 0 ? undefined : slug,
   }));
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!content) {
     return {
-      title: "Not Found",
+      title: 'Not Found',
     };
   }
 

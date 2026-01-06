@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { AlertCircle, Download, Loader2, Video } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import useSWR from "swr";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PasswordProtectedVideo } from "@/components/video/password-protected-video";
-import { VideoPlayer } from "@/components/video/video-player";
+import { AlertCircle, Download, Loader2, Video } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import useSWR from 'swr';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PasswordProtectedVideo } from '@/components/video/password-protected-video';
+import { VideoPlayer } from '@/components/video/video-player';
 
 interface ShareLinkData {
   id: string;
   videoId: string;
-  accessLevel: "view" | "comment" | "download";
-  status: "active" | "expired" | "revoked";
+  accessLevel: 'view' | 'comment' | 'download';
+  status: 'active' | 'expired' | 'revoked';
   password: boolean;
   expiresAt: string | null;
   maxViews: number | null;
@@ -83,7 +83,7 @@ function SharePageContent() {
   // Check if password was already verified in this session
   useEffect(() => {
     const verified = sessionStorage.getItem(`share_verified_${shareLinkId}`);
-    if (verified === "true") {
+    if (verified === 'true') {
       setIsPasswordVerified(true);
     }
   }, [shareLinkId]);
@@ -93,10 +93,10 @@ function SharePageContent() {
     if (hasTrackedView) return;
 
     try {
-      await fetch(`/api/share/${shareLinkId}/view`, { method: "POST" });
+      await fetch(`/api/share/${shareLinkId}/view`, { method: 'POST' });
       setHasTrackedView(true);
     } catch (error) {
-      console.error("Failed to track view:", error);
+      console.error('Failed to track view:', error);
     }
   }, [shareLinkId, hasTrackedView]);
 
@@ -112,14 +112,14 @@ function SharePageContent() {
   }
 
   if (error || !data?.success) {
-    const errorMessage = data?.error || "This link may be invalid or has been revoked.";
+    const errorMessage = data?.error || 'This link may be invalid or has been revoked.';
     return <ErrorState title="Unable to access video" message={errorMessage} />;
   }
 
   const shareLink = data.data;
 
   // Check link status
-  if (shareLink.status !== "active") {
+  if (shareLink.status !== 'active') {
     return <ErrorState title="Link Unavailable" message="This share link has been revoked." />;
   }
 
@@ -152,8 +152,8 @@ function SharePageContent() {
     );
   }
 
-  const canDownload = shareLink.accessLevel === "download";
-  const canComment = shareLink.accessLevel === "comment" || shareLink.accessLevel === "download";
+  const canDownload = shareLink.accessLevel === 'download';
+  const canComment = shareLink.accessLevel === 'comment' || shareLink.accessLevel === 'download';
 
   return (
     <div className="min-h-screen bg-background">

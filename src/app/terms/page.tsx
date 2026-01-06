@@ -1,15 +1,15 @@
-import { ArrowLeft, Play } from "lucide-react";
-import Link from "next/link";
-import { CopyrightYear } from "@/components/copyright-year";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Play } from 'lucide-react';
+import Link from 'next/link';
+import { CopyrightYear } from '@/components/copyright-year';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: "Terms of Service | Nuclom",
-  description: "Read the Terms of Service for Nuclom video collaboration platform.",
+  title: 'Terms of Service | Nuclom',
+  description: 'Read the Terms of Service for Nuclom video collaboration platform.',
 };
 
-const TERMS_VERSION = "2025-01-01";
+const TERMS_VERSION = '2025-01-01';
 
 export default function TermsOfServicePage() {
   return (
@@ -131,7 +131,7 @@ export default function TermsOfServicePage() {
                     <li>Engage in harassment, bullying, or discrimination against other users</li>
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
-                    For more details, see our{" "}
+                    For more details, see our{' '}
                     <Link href="/content-policy" className="text-primary hover:underline">
                       Content Policy
                     </Link>
@@ -218,7 +218,7 @@ export default function TermsOfServicePage() {
                   </ul>
                   <p className="text-muted-foreground leading-relaxed mt-4">
                     You may terminate your account at any time through your account settings. Upon termination, you may
-                    request export of your data as described in our{" "}
+                    request export of your data as described in our{' '}
                     <Link href="/privacy" className="text-primary hover:underline">
                       Privacy Policy
                     </Link>
@@ -252,10 +252,10 @@ export default function TermsOfServicePage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">12. Contact Information</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    If you have any questions about these Terms of Service, please contact us at{" "}
+                    If you have any questions about these Terms of Service, please contact us at{' '}
                     <Link href="/support" className="text-primary hover:underline">
                       our support page
-                    </Link>{" "}
+                    </Link>{' '}
                     or email us at legal@nuclom.com.
                   </p>
                 </section>

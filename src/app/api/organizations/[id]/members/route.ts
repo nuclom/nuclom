@@ -1,18 +1,18 @@
-import { and, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members, users } from "@/lib/db/schema";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { members, users } from '@/lib/db/schema';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
 
 const UpdateMemberRoleSchema = Schema.Struct({
   userId: Schema.String,
-  role: Schema.Literal("owner", "member"),
+  role: Schema.Literal('owner', 'member'),
 });
 
 // =============================================================================
@@ -28,7 +28,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     });
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if user has access to this organization
@@ -39,7 +39,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       .limit(1);
 
     if (userMembership.length === 0) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Get all members of the organization
@@ -63,8 +63,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return NextResponse.json(organizationMembers);
   } catch (error) {
-    logger.error("Failed to fetch organization members", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to fetch organization members" }, { status: 500 });
+    logger.error('Failed to fetch organization members', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to fetch organization members' }, { status: 500 });
   }
 }
 
@@ -78,14 +78,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const url = new URL(request.url);
-  const userIdToRemove = url.searchParams.get("userId");
+  const userIdToRemove = url.searchParams.get('userId');
 
   if (!userIdToRemove) {
-    return NextResponse.json({ success: false, error: "userId query parameter is required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'userId query parameter is required' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -94,7 +94,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     yield* orgRepo.removeMember(resolvedParams.id, userIdToRemove, session.user.id);
 
-    return { message: "Member removed successfully" };
+    return { message: 'Member removed successfully' };
   });
 
   const runnable = Effect.provide(effect, createPublicLayer());
@@ -113,7 +113,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const rawBody = await request.json();
@@ -132,7 +132,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const updatedMember = yield* orgRepo.updateMemberRole(resolvedParams.id, userId, role, session.user.id);
 
-    return { message: "Member role updated successfully", member: updatedMember };
+    return { message: 'Member role updated successfully', member: updatedMember };
   });
 
   const runnable = Effect.provide(effect, createPublicLayer());

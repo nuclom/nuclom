@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { ChevronLeft, ChevronRight, Loader2, SearchX } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import type { SearchResponse } from "@/lib/types";
-import { SearchResultCard } from "./search-result-card";
+import { ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useTransition } from 'react';
+import { Button } from '@/components/ui/button';
+import type { SearchResponse } from '@/lib/types';
+import { SearchResultCard } from './search-result-card';
 
 interface SearchResultsProps {
   results: SearchResponse;
@@ -26,7 +26,7 @@ export function SearchResults({ results, organization, isLoading }: SearchResult
     (page: number) => {
       startTransition(() => {
         const params = new URLSearchParams(searchParams.toString());
-        params.set("page", String(page));
+        params.set('page', String(page));
         router.push(`/${organization}/search?${params.toString()}`);
       });
     },
@@ -49,7 +49,7 @@ export function SearchResults({ results, organization, isLoading }: SearchResult
         <p className="text-muted-foreground mt-1">
           {results.query
             ? `No videos match "${results.query}". Try different keywords or filters.`
-            : "No videos match your filters. Try adjusting your search criteria."}
+            : 'No videos match your filters. Try adjusting your search criteria.'}
         </p>
       </div>
     );
@@ -62,12 +62,12 @@ export function SearchResults({ results, organization, isLoading }: SearchResult
         {results.query ? (
           <>
             Found <span className="font-medium text-foreground">{totalResults}</span> result
-            {totalResults !== 1 ? "s" : ""} for <span className="font-medium text-foreground">"{results.query}"</span>
+            {totalResults !== 1 ? 's' : ''} for <span className="font-medium text-foreground">"{results.query}"</span>
           </>
         ) : (
           <>
             Showing <span className="font-medium text-foreground">{totalResults}</span> video
-            {totalResults !== 1 ? "s" : ""}
+            {totalResults !== 1 ? 's' : ''}
           </>
         )}
       </div>
@@ -108,7 +108,7 @@ export function SearchResults({ results, organization, isLoading }: SearchResult
               return (
                 <Button
                   key={pageNum}
-                  variant={pageNum === currentPage ? "default" : "outline"}
+                  variant={pageNum === currentPage ? 'default' : 'outline'}
                   size="icon"
                   onClick={() => handlePageChange(pageNum)}
                 >

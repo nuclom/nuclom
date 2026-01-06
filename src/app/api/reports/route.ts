@@ -8,16 +8,16 @@
  * - PATCH /api/reports - Update a report (admin only)
  */
 
-import { and, count, desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
-import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
-import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from "@/lib/db/schema";
-import { DuplicateError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/effect/errors";
-import { Auth } from "@/lib/effect/services/auth";
-import { Database } from "@/lib/effect/services/database";
-import { createBodyValidator, createQueryValidator } from "@/lib/validation";
+import { and, count, desc, eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import type { ReportCategory, ReportResourceType, ReportStatus } from '@/lib/db/schema';
+import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from '@/lib/db/schema';
+import { DuplicateError, ForbiddenError, NotFoundError, ValidationError } from '@/lib/effect/errors';
+import { Auth } from '@/lib/effect/services/auth';
+import { Database } from '@/lib/effect/services/database';
+import { createBodyValidator, createQueryValidator } from '@/lib/validation';
 
 // =============================================================================
 // Validation Schemas
@@ -34,17 +34,17 @@ const ListReportsQuerySchema = Schema.Struct({
 
 /** Request body for creating a report */
 const CreateReportSchema = Schema.Struct({
-  resourceType: Schema.Literal("video", "comment", "user"),
+  resourceType: Schema.Literal('video', 'comment', 'user'),
   resourceId: Schema.String,
-  category: Schema.Literal("inappropriate", "spam", "copyright", "harassment", "other"),
+  category: Schema.Literal('inappropriate', 'spam', 'copyright', 'harassment', 'other'),
   description: Schema.optional(Schema.String),
 });
 
 /** Request body for updating a report (admin only) */
 const UpdateReportSchema = Schema.Struct({
   reportId: Schema.String,
-  status: Schema.optional(Schema.Literal("pending", "reviewing", "resolved", "dismissed")),
-  resolution: Schema.optional(Schema.Literal("content_removed", "user_warned", "user_suspended", "no_action")),
+  status: Schema.optional(Schema.Literal('pending', 'reviewing', 'resolved', 'dismissed')),
+  resolution: Schema.optional(Schema.Literal('content_removed', 'user_warned', 'user_suspended', 'no_action')),
   resolutionNotes: Schema.optional(Schema.String),
 });
 
@@ -95,8 +95,8 @@ export async function GET(request: NextRequest) {
       catch: (error) => new ValidationError({ message: `Failed to fetch user role: ${String(error)}` }),
     });
 
-    if (userData?.role !== "admin") {
-      return yield* Effect.fail(new ForbiddenError({ message: "Admin access required" }));
+    if (userData?.role !== 'admin') {
+      return yield* Effect.fail(new ForbiddenError({ message: 'Admin access required' }));
     }
 
     // Parse and validate query params
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
               eq(reports.reporterId, user.id),
               eq(reports.resourceType, resourceType),
               eq(reports.resourceId, resourceId),
-              eq(reports.status, "pending"),
+              eq(reports.status, 'pending'),
             ),
           )
           .limit(1),
@@ -202,9 +202,9 @@ export async function POST(request: NextRequest) {
     if (existingReport.length > 0) {
       return yield* Effect.fail(
         new DuplicateError({
-          message: "You have already reported this content",
-          entity: "report",
-          field: "resourceId",
+          message: 'You have already reported this content',
+          entity: 'report',
+          field: 'resourceId',
         }),
       );
     }
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
             resourceId,
             category,
             description,
-            status: "pending",
+            status: 'pending',
           })
           .returning(),
       catch: (error) => new ValidationError({ message: `Failed to create report: ${String(error)}` }),
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
 
     return {
       success: true,
-      message: "Thank you for your report. Our team will review it shortly.",
+      message: 'Thank you for your report. Our team will review it shortly.',
       reportId: newReport.id,
     };
   });
@@ -258,8 +258,8 @@ export async function PATCH(request: NextRequest) {
       catch: (error) => new ValidationError({ message: `Failed to fetch user role: ${String(error)}` }),
     });
 
-    if (userData?.role !== "admin") {
-      return yield* Effect.fail(new ForbiddenError({ message: "Admin access required" }));
+    if (userData?.role !== 'admin') {
+      return yield* Effect.fail(new ForbiddenError({ message: 'Admin access required' }));
     }
 
     // Validate request body
@@ -272,7 +272,7 @@ export async function PATCH(request: NextRequest) {
     if (resolutionNotes !== undefined) updateObj.resolutionNotes = resolutionNotes;
 
     // If status is resolved or dismissed, add resolution info
-    if (status === "resolved" || status === "dismissed") {
+    if (status === 'resolved' || status === 'dismissed') {
       updateObj.resolvedById = user.id;
       updateObj.resolvedAt = new Date();
     }
@@ -286,8 +286,8 @@ export async function PATCH(request: NextRequest) {
     if (!updatedReport) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Report not found",
-          entity: "report",
+          message: 'Report not found',
+          entity: 'report',
           id: reportId,
         }),
       );

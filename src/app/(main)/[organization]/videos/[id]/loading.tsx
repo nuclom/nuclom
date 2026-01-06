@@ -1,4 +1,4 @@
-import { VideoDetailsSkeleton } from "@/components/skeletons";
+import { VideoDetailsSkeleton } from '@/components/skeletons';
 
 export default function Loading() {
   return <VideoDetailsSkeleton />;

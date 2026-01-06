@@ -5,8 +5,8 @@
  * pull requests, issues, commits, and files.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { HttpError } from "../errors";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { HttpError } from '../errors';
 
 // =============================================================================
 // Types
@@ -55,7 +55,7 @@ export interface GitHubPullRequest {
   readonly number: number;
   readonly title: string;
   readonly body: string | null;
-  readonly state: "open" | "closed";
+  readonly state: 'open' | 'closed';
   readonly html_url: string;
   readonly user: {
     readonly login: string;
@@ -79,7 +79,7 @@ export interface GitHubIssue {
   readonly number: number;
   readonly title: string;
   readonly body: string | null;
-  readonly state: "open" | "closed";
+  readonly state: 'open' | 'closed';
   readonly html_url: string;
   readonly user: {
     readonly login: string;
@@ -116,7 +116,7 @@ export interface GitHubFile {
   readonly path: string;
   readonly sha: string;
   readonly size: number;
-  readonly type: "file" | "dir";
+  readonly type: 'file' | 'dir';
   readonly html_url: string;
   readonly download_url: string | null;
 }
@@ -192,7 +192,7 @@ export interface GitHubServiceInterface {
     accessToken: string,
     owner: string,
     repo: string,
-    state?: "open" | "closed" | "all",
+    state?: 'open' | 'closed' | 'all',
     page?: number,
   ) => Effect.Effect<GitHubPullRequest[], HttpError>;
 
@@ -213,7 +213,7 @@ export interface GitHubServiceInterface {
     accessToken: string,
     owner: string,
     repo: string,
-    state?: "open" | "closed" | "all",
+    state?: 'open' | 'closed' | 'all',
     page?: number,
   ) => Effect.Effect<GitHubIssue[], HttpError>;
 
@@ -277,22 +277,22 @@ export interface GitHubServiceInterface {
 // GitHub Service Tag
 // =============================================================================
 
-export class GitHub extends Context.Tag("GitHub")<GitHub, GitHubServiceInterface>() {}
+export class GitHub extends Context.Tag('GitHub')<GitHub, GitHubServiceInterface>() {}
 
 // =============================================================================
 // GitHub Configuration
 // =============================================================================
 
-const GITHUB_AUTH_BASE = "https://github.com";
-const GITHUB_API_BASE = "https://api.github.com";
+const GITHUB_AUTH_BASE = 'https://github.com';
+const GITHUB_API_BASE = 'https://api.github.com';
 
 // Scopes needed for GitHub repository access
-const GITHUB_SCOPES = ["read:user", "user:email", "repo", "read:org"].join(" ");
+const GITHUB_SCOPES = ['read:user', 'user:email', 'repo', 'read:org'].join(' ');
 
 const GitHubConfigEffect = Config.all({
-  clientId: Config.string("GITHUB_CLIENT_ID").pipe(Config.option),
-  clientSecret: Config.string("GITHUB_CLIENT_SECRET").pipe(Config.option),
-  baseUrl: Config.string("NEXT_PUBLIC_URL").pipe(Config.option),
+  clientId: Config.string('GITHUB_CLIENT_ID').pipe(Config.option),
+  clientSecret: Config.string('GITHUB_CLIENT_SECRET').pipe(Config.option),
+  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
 });
 
 // =============================================================================
@@ -318,7 +318,7 @@ const makeGitHubService = Effect.gen(function* () {
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error("GitHub is not configured");
+        throw new Error('GitHub is not configured');
       }
 
       const params = new URLSearchParams({
@@ -326,7 +326,7 @@ const makeGitHubService = Effect.gen(function* () {
         redirect_uri: cfg.redirectUri,
         scope: GITHUB_SCOPES,
         state,
-        allow_signup: "false",
+        allow_signup: 'false',
       });
 
       return `${GITHUB_AUTH_BASE}/login/oauth/authorize?${params.toString()}`;
@@ -338,7 +338,7 @@ const makeGitHubService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "GitHub is not configured",
+            message: 'GitHub is not configured',
             status: 503,
           }),
         );
@@ -347,10 +347,10 @@ const makeGitHubService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
             },
             body: JSON.stringify({
               client_id: cfg.clientId,
@@ -374,7 +374,7 @@ const makeGitHubService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -388,7 +388,7 @@ const makeGitHubService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "GitHub is not configured",
+            message: 'GitHub is not configured',
             status: 503,
           }),
         );
@@ -397,15 +397,15 @@ const makeGitHubService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${GITHUB_AUTH_BASE}/login/oauth/access_token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
             },
             body: JSON.stringify({
               client_id: cfg.clientId,
               client_secret: cfg.clientSecret,
-              grant_type: "refresh_token",
+              grant_type: 'refresh_token',
               refresh_token: refreshToken,
             }),
           });
@@ -424,7 +424,7 @@ const makeGitHubService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -438,8 +438,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/user`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -452,7 +452,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -465,9 +465,9 @@ const makeGitHubService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          type: "all",
-          sort: "updated",
-          direction: "desc",
+          type: 'all',
+          sort: 'updated',
+          direction: 'desc',
           per_page: perPage.toString(),
           page: page.toString(),
         });
@@ -475,8 +475,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/user/repos?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -488,7 +488,7 @@ const makeGitHubService = Effect.gen(function* () {
         const repositories = (await res.json()) as GitHubRepository[];
 
         // Check for pagination
-        const linkHeader = res.headers.get("Link");
+        const linkHeader = res.headers.get('Link');
         let nextPage: number | undefined;
         if (linkHeader?.includes('rel="next"')) {
           const match = linkHeader.match(/page=(\d+)>; rel="next"/);
@@ -504,7 +504,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list repositories: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list repositories: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -519,8 +519,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -533,7 +533,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get repository: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get repository: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -549,8 +549,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls/${prNumber}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -563,7 +563,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get pull request: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get pull request: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -572,24 +572,24 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    state: "open" | "closed" | "all" = "open",
+    state: 'open' | 'closed' | 'all' = 'open',
     page = 1,
   ): Effect.Effect<GitHubPullRequest[], HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
           state,
-          sort: "updated",
-          direction: "desc",
-          per_page: "30",
+          sort: 'updated',
+          direction: 'desc',
+          per_page: '30',
           page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -602,7 +602,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list pull requests: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list pull requests: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -618,8 +618,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issueNumber}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -632,7 +632,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get issue: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get issue: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -641,24 +641,24 @@ const makeGitHubService = Effect.gen(function* () {
     accessToken: string,
     owner: string,
     repo: string,
-    state: "open" | "closed" | "all" = "open",
+    state: 'open' | 'closed' | 'all' = 'open',
     page = 1,
   ): Effect.Effect<GitHubIssue[], HttpError> =>
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
           state,
-          sort: "updated",
-          direction: "desc",
-          per_page: "30",
+          sort: 'updated',
+          direction: 'desc',
+          per_page: '30',
           page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/issues?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -671,7 +671,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list issues: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list issues: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -687,8 +687,8 @@ const makeGitHubService = Effect.gen(function* () {
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits/${sha}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -701,7 +701,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get commit: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get commit: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -716,18 +716,18 @@ const makeGitHubService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          per_page: "30",
+          per_page: '30',
           page: page.toString(),
         });
         if (sha) {
-          params.set("sha", sha);
+          params.set('sha', sha);
         }
 
         const res = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/commits?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -740,7 +740,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list commits: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list commits: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -756,15 +756,15 @@ const makeGitHubService = Effect.gen(function* () {
       try: async () => {
         const params = new URLSearchParams();
         if (ref) {
-          params.set("ref", ref);
+          params.set('ref', ref);
         }
 
-        const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}${params.toString() ? `?${params.toString()}` : ""}`;
+        const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}${params.toString() ? `?${params.toString()}` : ''}`;
         const res = await fetch(url, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -777,7 +777,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get contents: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get contents: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -805,15 +805,15 @@ const makeGitHubService = Effect.gen(function* () {
       try: async () => {
         const params = new URLSearchParams({
           q: query,
-          per_page: "30",
+          per_page: '30',
           page: page.toString(),
         });
 
         const res = await fetch(`${GITHUB_API_BASE}/search/code?${params.toString()}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
           },
         });
 
@@ -826,7 +826,7 @@ const makeGitHubService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to search code: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to search code: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
-import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
-import { cn } from "@/lib/utils";
-import { CommentForm } from "./comment-form";
-import { CommentItem } from "./comment-item";
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import type { CommentWithReplies } from '@/lib/effect/services/comment-repository';
+import { cn } from '@/lib/utils';
+import { CommentForm } from './comment-form';
+import { CommentItem } from './comment-item';
 
 interface CommentThreadProps {
   comment: CommentWithReplies;
@@ -64,7 +64,7 @@ export function CommentThread({
   }, []);
 
   return (
-    <div className={cn("space-y-2", depth > 0 && "border-l-2 border-muted pl-3 ml-3")}>
+    <div className={cn('space-y-2', depth > 0 && 'border-l-2 border-muted pl-3 ml-3')}>
       <CommentItem
         comment={comment}
         currentUserId={currentUserId}
@@ -103,7 +103,7 @@ export function CommentThread({
             {isCollapsed ? (
               <>
                 <ChevronRight className="h-3 w-3 mr-1" />
-                Show {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
+                Show {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
               </>
             ) : (
               <>
@@ -115,7 +115,7 @@ export function CommentThread({
 
           {!isCollapsed && (
             <div className="space-y-2">
-              {comment.replies.map((reply: CommentWithReplies["replies"][number]) => (
+              {comment.replies.map((reply: CommentWithReplies['replies'][number]) => (
                 <CommentThread
                   key={reply.id}
                   comment={{ ...reply, replies: [] }}

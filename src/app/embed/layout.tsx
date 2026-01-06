@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Nuclom Video Player",
-  description: "Embedded video player powered by Nuclom",
+  title: 'Nuclom Video Player',
+  description: 'Embedded video player powered by Nuclom',
   robots: {
     index: false,
     follow: false,

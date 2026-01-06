@@ -4,8 +4,8 @@
  * Provides type-safe database operations for integrations and imported meetings.
  */
 
-import { and, desc, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { and, desc, eq } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
 import {
   type ImportStatus,
   type IntegrationMetadata,
@@ -15,9 +15,9 @@ import {
   type MeetingParticipant,
   users,
   videos,
-} from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+} from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -208,7 +208,7 @@ export interface IntegrationRepositoryService {
 // Integration Repository Tag
 // =============================================================================
 
-export class IntegrationRepository extends Context.Tag("IntegrationRepository")<
+export class IntegrationRepository extends Context.Tag('IntegrationRepository')<
   IntegrationRepository,
   IntegrationRepositoryService
 >() {}
@@ -252,8 +252,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch integrations",
-          operation: "getIntegrations",
+          message: 'Failed to fetch integrations',
+          operation: 'getIntegrations',
           cause: error,
         }),
     });
@@ -272,8 +272,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch user integrations",
-          operation: "getUserIntegrations",
+          message: 'Failed to fetch user integrations',
+          operation: 'getUserIntegrations',
           cause: error,
         }),
     });
@@ -286,8 +286,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch integration",
-            operation: "getIntegration",
+            message: 'Failed to fetch integration',
+            operation: 'getIntegration',
             cause: error,
           }),
       });
@@ -295,8 +295,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Integration not found",
-            entity: "Integration",
+            message: 'Integration not found',
+            entity: 'Integration',
             id,
           }),
         );
@@ -321,8 +321,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch integration by provider",
-          operation: "getIntegrationByProvider",
+          message: 'Failed to fetch integration by provider',
+          operation: 'getIntegrationByProvider',
           cause: error,
         }),
     });
@@ -337,8 +337,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create integration",
-          operation: "createIntegration",
+          message: 'Failed to create integration',
+          operation: 'createIntegration',
           cause: error,
         }),
     });
@@ -358,8 +358,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update integration",
-            operation: "updateIntegration",
+            message: 'Failed to update integration',
+            operation: 'updateIntegration',
             cause: error,
           }),
       });
@@ -367,8 +367,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Integration not found",
-            entity: "Integration",
+            message: 'Integration not found',
+            entity: 'Integration',
             id,
           }),
         );
@@ -385,8 +385,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete integration",
-            operation: "deleteIntegration",
+            message: 'Failed to delete integration',
+            operation: 'deleteIntegration',
             cause: error,
           }),
       });
@@ -394,8 +394,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Integration not found",
-            entity: "Integration",
+            message: 'Integration not found',
+            entity: 'Integration',
             id,
           }),
         );
@@ -437,8 +437,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch imported meetings",
-          operation: "getImportedMeetings",
+          message: 'Failed to fetch imported meetings',
+          operation: 'getImportedMeetings',
           cause: error,
         }),
     });
@@ -453,8 +453,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch imported meeting",
-            operation: "getImportedMeeting",
+            message: 'Failed to fetch imported meeting',
+            operation: 'getImportedMeeting',
             cause: error,
           }),
       });
@@ -462,8 +462,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Imported meeting not found",
-            entity: "ImportedMeeting",
+            message: 'Imported meeting not found',
+            entity: 'ImportedMeeting',
             id,
           }),
         );
@@ -488,8 +488,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch imported meeting by external ID",
-          operation: "getImportedMeetingByExternalId",
+          message: 'Failed to fetch imported meeting by external ID',
+          operation: 'getImportedMeetingByExternalId',
           cause: error,
         }),
     });
@@ -504,8 +504,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create imported meeting",
-          operation: "createImportedMeeting",
+          message: 'Failed to create imported meeting',
+          operation: 'createImportedMeeting',
           cause: error,
         }),
     });
@@ -521,8 +521,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update imported meeting",
-            operation: "updateImportedMeeting",
+            message: 'Failed to update imported meeting',
+            operation: 'updateImportedMeeting',
             cause: error,
           }),
       });
@@ -530,8 +530,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Imported meeting not found",
-            entity: "ImportedMeeting",
+            message: 'Imported meeting not found',
+            entity: 'ImportedMeeting',
             id,
           }),
         );
@@ -546,13 +546,13 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
         return await db
           .select()
           .from(importedMeetings)
-          .where(eq(importedMeetings.importStatus, "pending"))
+          .where(eq(importedMeetings.importStatus, 'pending'))
           .orderBy(importedMeetings.createdAt);
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch pending imports",
-          operation: "getPendingImports",
+          message: 'Failed to fetch pending imports',
+          operation: 'getPendingImports',
           cause: error,
         }),
     });
@@ -564,7 +564,7 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       try: async () => {
         // Search for integrations with matching accountId in metadata
         // This uses a JSON containment query
-        const results = await db.select().from(integrations).where(eq(integrations.provider, "zoom"));
+        const results = await db.select().from(integrations).where(eq(integrations.provider, 'zoom'));
 
         // Filter in memory since we need to check JSON metadata
         return results.filter((integration) => {
@@ -574,8 +574,8 @@ const makeIntegrationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch integrations by account ID",
-          operation: "getIntegrationsByAccountId",
+          message: 'Failed to fetch integrations by account ID',
+          operation: 'getIntegrationsByAccountId',
           cause: error,
         }),
     });

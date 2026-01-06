@@ -1,10 +1,10 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
-import type { Metadata } from "next";
-import { OpenApiViewer } from "@/components/docs/openapi-viewer";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
+import type { Metadata } from 'next';
+import { OpenApiViewer } from '@/components/docs/openapi-viewer';
 
 export const metadata: Metadata = {
-  title: "API Reference",
-  description: "Complete API reference for the Nuclom video collaboration platform",
+  title: 'API Reference',
+  description: 'Complete API reference for the Nuclom video collaboration platform',
 };
 
 export default function ApiReferencePage() {

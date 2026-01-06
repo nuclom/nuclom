@@ -1,11 +1,11 @@
-import { Effect, Option } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { ValidationError, VideoRepository } from "@/lib/effect";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import type { ApiResponse } from "@/lib/types";
+import { Effect, Option } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { ValidationError, VideoRepository } from '@/lib/effect';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/videos/search - Search videos
@@ -31,20 +31,20 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const url = new URL(request.url);
-  const query = url.searchParams.get("q");
-  const channelId = url.searchParams.get("channelId") || undefined;
-  const authorId = url.searchParams.get("authorId") || undefined;
-  const dateFromStr = url.searchParams.get("dateFrom");
-  const dateToStr = url.searchParams.get("dateTo");
-  const page = Number.parseInt(url.searchParams.get("page") ?? "1", 10);
-  const limit = Number.parseInt(url.searchParams.get("limit") ?? "20", 10);
+  const query = url.searchParams.get('q');
+  const channelId = url.searchParams.get('channelId') || undefined;
+  const authorId = url.searchParams.get('authorId') || undefined;
+  const dateFromStr = url.searchParams.get('dateFrom');
+  const dateToStr = url.searchParams.get('dateTo');
+  const page = Number.parseInt(url.searchParams.get('page') ?? '1', 10);
+  const limit = Number.parseInt(url.searchParams.get('limit') ?? '20', 10);
 
   if (!query || query.trim().length === 0) {
-    return NextResponse.json({ success: false, error: "Search query (q) is required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Search query (q) is required' }, { status: 400 });
   }
 
   const dateFrom = dateFromStr ? new Date(dateFromStr) : undefined;
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     if (Option.isNone(activeOrg)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "No active organization found",
+          message: 'No active organization found',
         }),
       );
     }

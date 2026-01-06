@@ -1,12 +1,12 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { Auth } from "@/lib/effect/services/auth";
-import { Billing } from "@/lib/effect/services/billing";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { getAppUrl } from "@/lib/env/server";
-import { rateLimitBillingAsync } from "@/lib/rate-limit";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { Auth } from '@/lib/effect/services/auth';
+import { Billing } from '@/lib/effect/services/billing';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { getAppUrl } from '@/lib/env/server';
+import { rateLimitBillingAsync } from '@/lib/rate-limit';
+import { validateRequestBody } from '@/lib/validation';
 
 const PortalRequestSchema = Schema.Struct({
   organizationId: Schema.String,
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const org = yield* orgRepo.getOrganization(organizationId);
 
     // Build return URL
-    const baseUrl = request.headers.get("origin") || getAppUrl();
+    const baseUrl = request.headers.get('origin') || getAppUrl();
     const returnUrl = `${baseUrl}/${org.slug}/settings/billing`;
 
     // Create portal session

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { Loader2 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { logger } from "@/lib/client-logger";
-import type { Channel, Collection, SearchFilters as SearchFiltersType, User } from "@/lib/db/schema";
-import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from "@/lib/types";
-import { SavedSearches } from "./saved-searches";
-import { SearchFilters } from "./search-filters";
-import { SearchHistory } from "./search-history";
-import { SearchInput } from "./search-input";
-import { SearchResults } from "./search-results";
+import { Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { logger } from '@/lib/client-logger';
+import type { Channel, Collection, SearchFilters as SearchFiltersType, User } from '@/lib/db/schema';
+import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from '@/lib/types';
+import { SavedSearches } from './saved-searches';
+import { SearchFilters } from './search-filters';
+import { SearchHistory } from './search-history';
+import { SearchInput } from './search-input';
+import { SearchResults } from './search-results';
 
 interface SearchPageContentProps {
   organizationId: string;
@@ -34,21 +34,21 @@ export function SearchPageContent({
   const [isLoading, setIsLoading] = useState(true);
 
   // Get current search parameters
-  const query = searchParams.get("q") || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const query = searchParams.get('q') || '';
+  const page = parseInt(searchParams.get('page') || '1', 10);
 
   // Build filters from search params - memoized to avoid unnecessary rerenders
   const currentFilters: SearchFiltersType = useMemo(
     () => ({
-      authorId: searchParams.get("authorId") || undefined,
-      channelId: searchParams.get("channelId") || undefined,
-      collectionId: searchParams.get("collectionId") || undefined,
-      dateFrom: searchParams.get("dateFrom") || undefined,
-      dateTo: searchParams.get("dateTo") || undefined,
-      hasTranscript: searchParams.get("hasTranscript") === "true" || undefined,
-      hasAiSummary: searchParams.get("hasAiSummary") === "true" || undefined,
-      sortBy: (searchParams.get("sortBy") as SearchFiltersType["sortBy"]) || undefined,
-      sortOrder: (searchParams.get("sortOrder") as SearchFiltersType["sortOrder"]) || undefined,
+      authorId: searchParams.get('authorId') || undefined,
+      channelId: searchParams.get('channelId') || undefined,
+      collectionId: searchParams.get('collectionId') || undefined,
+      dateFrom: searchParams.get('dateFrom') || undefined,
+      dateTo: searchParams.get('dateTo') || undefined,
+      hasTranscript: searchParams.get('hasTranscript') === 'true' || undefined,
+      hasAiSummary: searchParams.get('hasAiSummary') === 'true' || undefined,
+      sortBy: (searchParams.get('sortBy') as SearchFiltersType['sortBy']) || undefined,
+      sortOrder: (searchParams.get('sortOrder') as SearchFiltersType['sortOrder']) || undefined,
     }),
     [searchParams],
   );
@@ -58,13 +58,13 @@ export function SearchPageContent({
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("organizationId", organizationId);
-      params.set("page", String(page));
-      if (query) params.set("q", query);
+      params.set('organizationId', organizationId);
+      params.set('page', String(page));
+      if (query) params.set('q', query);
 
       // Add filters
       Object.entries(currentFilters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
+        if (value !== undefined && value !== null && value !== '') {
           params.set(key, String(value));
         }
       });
@@ -75,7 +75,7 @@ export function SearchPageContent({
         setSearchResults(data);
       }
     } catch (error) {
-      logger.error("Failed to fetch search results", error);
+      logger.error('Failed to fetch search results', error);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export function SearchPageContent({
         setSearchHistory(historyData);
       }
     } catch (error) {
-      logger.error("Failed to fetch saved data", error);
+      logger.error('Failed to fetch saved data', error);
     }
   }, [organizationId]);
 

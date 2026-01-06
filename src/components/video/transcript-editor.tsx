@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Transcript Editor Component
@@ -25,10 +25,10 @@ import {
   Save,
   Scissors,
   Trash2,
-} from "lucide-react";
-import { useCallback, useEffect, useReducer, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -36,16 +36,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { logger } from "@/lib/client-logger";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { formatTimePrecise } from "@/lib/format-utils";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { logger } from '@/lib/client-logger';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { formatTimePrecise } from '@/lib/format-utils';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -75,15 +75,15 @@ interface EditState {
 }
 
 type EditAction =
-  | { type: "SET_SEGMENTS"; segments: TranscriptSegment[] }
-  | { type: "UPDATE_SEGMENT"; index: number; segment: TranscriptSegment }
-  | { type: "DELETE_SEGMENT"; index: number }
-  | { type: "SPLIT_SEGMENT"; index: number; splitPosition: number }
-  | { type: "MERGE_SEGMENTS"; index: number }
-  | { type: "UNDO" }
-  | { type: "REDO" }
-  | { type: "SET_EDITING"; index: number | null }
-  | { type: "MARK_SAVED" };
+  | { type: 'SET_SEGMENTS'; segments: TranscriptSegment[] }
+  | { type: 'UPDATE_SEGMENT'; index: number; segment: TranscriptSegment }
+  | { type: 'DELETE_SEGMENT'; index: number }
+  | { type: 'SPLIT_SEGMENT'; index: number; splitPosition: number }
+  | { type: 'MERGE_SEGMENTS'; index: number }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'SET_EDITING'; index: number | null }
+  | { type: 'MARK_SAVED' };
 
 // =============================================================================
 // Reducer
@@ -91,7 +91,7 @@ type EditAction =
 
 function editReducer(state: EditState, action: EditAction): EditState {
   switch (action.type) {
-    case "SET_SEGMENTS": {
+    case 'SET_SEGMENTS': {
       return {
         segments: action.segments,
         history: [action.segments],
@@ -101,7 +101,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "UPDATE_SEGMENT": {
+    case 'UPDATE_SEGMENT': {
       const newSegments = [...state.segments];
       newSegments[action.index] = action.segment;
 
@@ -117,7 +117,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "DELETE_SEGMENT": {
+    case 'DELETE_SEGMENT': {
       const newSegments = state.segments.filter((_, i) => i !== action.index);
 
       const newHistory = state.history.slice(0, state.historyIndex + 1);
@@ -133,14 +133,14 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "SPLIT_SEGMENT": {
+    case 'SPLIT_SEGMENT': {
       const segment = state.segments[action.index];
       const text = segment.text;
       const midpoint = action.splitPosition || Math.floor(text.length / 2);
 
       // Find word boundary near midpoint
       let splitIndex = midpoint;
-      while (splitIndex > 0 && text[splitIndex] !== " ") {
+      while (splitIndex > 0 && text[splitIndex] !== ' ') {
         splitIndex--;
       }
       if (splitIndex === 0) splitIndex = midpoint;
@@ -181,7 +181,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "MERGE_SEGMENTS": {
+    case 'MERGE_SEGMENTS': {
       if (action.index >= state.segments.length - 1) return state;
 
       const current = state.segments[action.index];
@@ -216,7 +216,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "UNDO": {
+    case 'UNDO': {
       if (state.historyIndex <= 0) return state;
 
       const newIndex = state.historyIndex - 1;
@@ -229,7 +229,7 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "REDO": {
+    case 'REDO': {
       if (state.historyIndex >= state.history.length - 1) return state;
 
       const newIndex = state.historyIndex + 1;
@@ -242,14 +242,14 @@ function editReducer(state: EditState, action: EditAction): EditState {
       };
     }
 
-    case "SET_EDITING": {
+    case 'SET_EDITING': {
       return {
         ...state,
         editingIndex: action.index,
       };
     }
 
-    case "MARK_SAVED": {
+    case 'MARK_SAVED': {
       return {
         ...state,
         hasUnsavedChanges: false,
@@ -290,7 +290,7 @@ interface SegmentEditorDialogProps {
 }
 
 function SegmentEditorDialog({ segment, index, open, onOpenChange, onSave, onDelete }: SegmentEditorDialogProps) {
-  const [text, setText] = useState(segment?.text || "");
+  const [text, setText] = useState(segment?.text || '');
   const [startTime, setStartTime] = useState(formatTimePrecise(segment?.startTime || 0));
   const [endTime, setEndTime] = useState(formatTimePrecise(segment?.endTime || 0));
 
@@ -416,8 +416,8 @@ function SegmentRow({
   return (
     <div
       className={cn(
-        "group flex items-start gap-3 p-3 rounded-lg border transition-colors",
-        isEditing ? "border-primary bg-primary/5" : "border-transparent hover:bg-muted/50",
+        'group flex items-start gap-3 p-3 rounded-lg border transition-colors',
+        isEditing ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted/50',
       )}
     >
       {/* Index and timestamp */}
@@ -493,7 +493,7 @@ export function TranscriptEditor({
   segments: initialSegments,
   onSave,
   showSaveButton = true,
-  maxHeight = "400px",
+  maxHeight = '400px',
   className,
 }: TranscriptEditorProps) {
   const [state, dispatch] = useReducer(editReducer, {
@@ -510,7 +510,7 @@ export function TranscriptEditor({
 
   // Reset state when segments change externally
   useEffect(() => {
-    dispatch({ type: "SET_SEGMENTS", segments: initialSegments });
+    dispatch({ type: 'SET_SEGMENTS', segments: initialSegments });
   }, [initialSegments]);
 
   // Can undo/redo
@@ -524,9 +524,9 @@ export function TranscriptEditor({
     setIsSaving(true);
     try {
       await onSave(state.segments);
-      dispatch({ type: "MARK_SAVED" });
+      dispatch({ type: 'MARK_SAVED' });
     } catch (error) {
-      logger.error("Failed to save transcript", error);
+      logger.error('Failed to save transcript', error);
     } finally {
       setIsSaving(false);
     }
@@ -540,21 +540,21 @@ export function TranscriptEditor({
 
   const handleSaveSegment = useCallback(
     (segment: TranscriptSegment) => {
-      dispatch({ type: "UPDATE_SEGMENT", index: selectedSegmentIndex, segment });
+      dispatch({ type: 'UPDATE_SEGMENT', index: selectedSegmentIndex, segment });
     },
     [selectedSegmentIndex],
   );
 
   const handleDeleteSegment = useCallback(() => {
-    dispatch({ type: "DELETE_SEGMENT", index: selectedSegmentIndex });
+    dispatch({ type: 'DELETE_SEGMENT', index: selectedSegmentIndex });
   }, [selectedSegmentIndex]);
 
   const handleSplitSegment = useCallback((index: number) => {
-    dispatch({ type: "SPLIT_SEGMENT", index, splitPosition: 0 });
+    dispatch({ type: 'SPLIT_SEGMENT', index, splitPosition: 0 });
   }, []);
 
   const handleMergeSegments = useCallback((index: number) => {
-    dispatch({ type: "MERGE_SEGMENTS", index });
+    dispatch({ type: 'MERGE_SEGMENTS', index });
   }, []);
 
   // Move segment up/down (swap with adjacent)
@@ -578,7 +578,7 @@ export function TranscriptEditor({
         endTime: prev.endTime,
       };
 
-      dispatch({ type: "SET_SEGMENTS", segments });
+      dispatch({ type: 'SET_SEGMENTS', segments });
     },
     [state.segments],
   );
@@ -603,7 +603,7 @@ export function TranscriptEditor({
         endTime: next.endTime,
       };
 
-      dispatch({ type: "SET_SEGMENTS", segments });
+      dispatch({ type: 'SET_SEGMENTS', segments });
     },
     [state.segments],
   );
@@ -615,23 +615,23 @@ export function TranscriptEditor({
         return;
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         if (e.shiftKey) {
-          dispatch({ type: "REDO" });
+          dispatch({ type: 'REDO' });
         } else {
-          dispatch({ type: "UNDO" });
+          dispatch({ type: 'UNDO' });
         }
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave]);
 
   const selectedSegment = selectedSegmentIndex >= 0 ? state.segments[selectedSegmentIndex] : null;
@@ -675,7 +675,7 @@ export function TranscriptEditor({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => dispatch({ type: "UNDO" })}
+                    onClick={() => dispatch({ type: 'UNDO' })}
                     disabled={!canUndo}
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -690,7 +690,7 @@ export function TranscriptEditor({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => dispatch({ type: "REDO" })}
+                    onClick={() => dispatch({ type: 'REDO' })}
                     disabled={!canRedo}
                   >
                     <RotateCw className="h-4 w-4" />

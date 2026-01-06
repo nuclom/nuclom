@@ -9,8 +9,8 @@
  * - Modules/Services (the auth module, UserService class)
  */
 
-import { Context, Effect, Layer } from "effect";
-import type { DetectedCodeRef, TranscriptSegment } from "@/lib/db/schema";
+import { Context, Effect, Layer } from 'effect';
+import type { DetectedCodeRef, TranscriptSegment } from '@/lib/db/schema';
 
 // =============================================================================
 // Types
@@ -113,7 +113,7 @@ export interface CodeReferenceDetectorInterface {
 // Code Reference Detector Tag
 // =============================================================================
 
-export class CodeReferenceDetector extends Context.Tag("CodeReferenceDetector")<
+export class CodeReferenceDetector extends Context.Tag('CodeReferenceDetector')<
   CodeReferenceDetector,
   CodeReferenceDetectorInterface
 >() {}
@@ -137,12 +137,12 @@ const makeCodeReferenceDetectorService = Effect.gen(function* () {
       for (const pattern of CODE_PATTERNS.pr) {
         pattern.lastIndex = 0; // Reset regex state
         for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
-          const isExplicit = match[0].toLowerCase().includes("pr");
+          const isExplicit = match[0].toLowerCase().includes('pr');
           const confidence = isExplicit ? CONFIDENCE_LEVELS.pr_explicit : CONFIDENCE_LEVELS.pr_text;
 
           if (confidence >= minConfidence) {
             references.push({
-              type: "pr",
+              type: 'pr',
               reference: match[1],
               timestamp,
               confidence,
@@ -156,12 +156,12 @@ const makeCodeReferenceDetectorService = Effect.gen(function* () {
       for (const pattern of CODE_PATTERNS.issue) {
         pattern.lastIndex = 0;
         for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
-          const isExplicit = match[0].toLowerCase().includes("issue");
+          const isExplicit = match[0].toLowerCase().includes('issue');
           const confidence = isExplicit ? CONFIDENCE_LEVELS.issue_explicit : CONFIDENCE_LEVELS.issue_text;
 
           if (confidence >= minConfidence) {
             references.push({
-              type: "issue",
+              type: 'issue',
               reference: match[1],
               timestamp,
               confidence,
@@ -182,7 +182,7 @@ const makeCodeReferenceDetectorService = Effect.gen(function* () {
 
           if (confidence >= minConfidence) {
             references.push({
-              type: "commit",
+              type: 'commit',
               reference: match[1],
               timestamp,
               confidence,
@@ -198,12 +198,12 @@ const makeCodeReferenceDetectorService = Effect.gen(function* () {
         pattern.lastIndex = 0;
         for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
           // Higher confidence for full paths
-          const isPath = match[1].includes("/");
+          const isPath = match[1].includes('/');
           const confidence = isPath ? CONFIDENCE_LEVELS.file_path : CONFIDENCE_LEVELS.file_name;
 
           if (confidence >= minConfidence) {
             references.push({
-              type: "file",
+              type: 'file',
               reference: match[1],
               timestamp,
               confidence,
@@ -218,16 +218,16 @@ const makeCodeReferenceDetectorService = Effect.gen(function* () {
         const pattern = CODE_PATTERNS.module[i];
         pattern.lastIndex = 0;
         for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
-          const isExplicit = match[0].toLowerCase().includes("the ");
+          const isExplicit = match[0].toLowerCase().includes('the ');
           const confidence = isExplicit ? CONFIDENCE_LEVELS.module_explicit : CONFIDENCE_LEVELS.module_class;
 
           if (confidence >= minConfidence) {
             const moduleName = match[1];
             // Skip common words that aren't likely to be code references
-            const skipWords = ["the", "a", "an", "this", "that", "my", "your", "our"];
+            const skipWords = ['the', 'a', 'an', 'this', 'that', 'my', 'your', 'our'];
             if (!skipWords.includes(moduleName.toLowerCase())) {
               references.push({
-                type: "module",
+                type: 'module',
                 reference: moduleName,
                 timestamp,
                 confidence,

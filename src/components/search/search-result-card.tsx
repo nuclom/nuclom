@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { FileText, Sparkles } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import type { SearchResult } from "@/lib/types";
+import { formatDistanceToNow } from 'date-fns';
+import { FileText, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import type { SearchResult } from '@/lib/types';
 
 interface SearchResultCardProps {
   result: SearchResult;
@@ -21,7 +21,7 @@ export function SearchResultCard({ result, organization }: SearchResultCardProps
   const renderHighlight = (html: string | undefined) => {
     if (!html) return null;
     // Sanitize: only allow <mark> tags for search highlighting
-    const sanitized = html.replace(/<(?!\/?(mark))[^>]+>/gi, "");
+    const sanitized = html.replace(/<(?!\/?(mark))[^>]+>/gi, '');
     // biome-ignore lint/security/noDangerouslySetInnerHtml: Sanitized content with only <mark> tags for search highlighting
     return <span dangerouslySetInnerHTML={{ __html: sanitized }} />;
   };
@@ -35,7 +35,7 @@ export function SearchResultCard({ result, organization }: SearchResultCardProps
             <div className="relative w-48 flex-shrink-0">
               <div className="relative aspect-video overflow-hidden rounded-lg">
                 <Image
-                  src={video.thumbnailUrl || "/placeholder.svg"}
+                  src={video.thumbnailUrl || '/placeholder.svg'}
                   alt={video.title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -73,9 +73,9 @@ export function SearchResultCard({ result, organization }: SearchResultCardProps
                 {/* Author */}
                 <div className="flex items-center gap-1">
                   <Avatar className="h-5 w-5">
-                    <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
+                    <AvatarImage src={video.author.image || '/placeholder.svg'} alt={video.author.name || 'Author'} />
                     <AvatarFallback className="text-[10px]">
-                      {video.author.name ? video.author.name.charAt(0) : "A"}
+                      {video.author.name ? video.author.name.charAt(0) : 'A'}
                     </AvatarFallback>
                   </Avatar>
                   <span>{video.author.name}</span>

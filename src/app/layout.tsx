@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
-import type React from "react";
-import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
-import { CookieConsentBanner, CookieSettingsButton } from "@/components/legal/cookie-consent";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
+import type { Metadata } from 'next';
+import type React from 'react';
+import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
+import { CookieConsentBanner, CookieSettingsButton } from '@/components/legal/cookie-consent';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: "Nuclom",
-  description: "A video collaboration platform.",
-  generator: "v0.dev",
+  title: 'Nuclom',
+  description: 'A video collaboration platform.',
+  generator: 'v0.dev',
 };
 
 export default function RootLayout({

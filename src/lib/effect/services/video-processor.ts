@@ -6,11 +6,11 @@
  * triggers async processing workflow for metadata extraction.
  */
 
-import { Context, Effect, Layer, pipe } from "effect";
-import { v4 as uuidv4 } from "uuid";
-import { formatDuration } from "@/lib/format-utils";
-import { FileSizeExceededError, UnsupportedFormatError, type VideoError, VideoProcessingError } from "../errors";
-import { Storage, type UploadProgress } from "./storage";
+import { Context, Effect, Layer, pipe } from 'effect';
+import { v4 as uuidv4 } from 'uuid';
+import { formatDuration } from '@/lib/format-utils';
+import { FileSizeExceededError, UnsupportedFormatError, type VideoError, VideoProcessingError } from '../errors';
+import { Storage, type UploadProgress } from './storage';
 
 // =============================================================================
 // Types
@@ -34,7 +34,7 @@ export interface ProcessingResult {
 }
 
 export interface ProcessingProgress {
-  readonly stage: "uploading" | "processing" | "generating_thumbnail" | "complete";
+  readonly stage: 'uploading' | 'processing' | 'generating_thumbnail' | 'complete';
   readonly progress: number;
   readonly message: string;
 }
@@ -79,38 +79,38 @@ export interface VideoProcessorService {
 // Constants
 // =============================================================================
 
-const SUPPORTED_FORMATS = ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v", "3gp"] as const;
+const SUPPORTED_FORMATS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv', 'm4v', '3gp'] as const;
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
 const CONTENT_TYPES: Record<string, string> = {
-  mp4: "video/mp4",
-  mov: "video/quicktime",
-  avi: "video/x-msvideo",
-  mkv: "video/x-matroska",
-  webm: "video/webm",
-  flv: "video/x-flv",
-  wmv: "video/x-ms-wmv",
-  m4v: "video/x-m4v",
-  "3gp": "video/3gpp",
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  avi: 'video/x-msvideo',
+  mkv: 'video/x-matroska',
+  webm: 'video/webm',
+  flv: 'video/x-flv',
+  wmv: 'video/x-ms-wmv',
+  m4v: 'video/x-m4v',
+  '3gp': 'video/3gpp',
 };
 
 // =============================================================================
 // Video Processor Service Tag
 // =============================================================================
 
-export class VideoProcessor extends Context.Tag("VideoProcessor")<VideoProcessor, VideoProcessorService>() {}
+export class VideoProcessor extends Context.Tag('VideoProcessor')<VideoProcessor, VideoProcessorService>() {}
 
 // =============================================================================
 // Helper Functions
 // =============================================================================
 
 const getExtension = (filename: string): string => {
-  return filename.toLowerCase().split(".").pop() || "";
+  return filename.toLowerCase().split('.').pop() || '';
 };
 
 const getContentType = (filename: string): string => {
   const ext = getExtension(filename);
-  return CONTENT_TYPES[ext] || "video/mp4";
+  return CONTENT_TYPES[ext] || 'video/mp4';
 };
 
 /**
@@ -144,7 +144,7 @@ const makeVideoProcessorService = Effect.gen(function* () {
     if (!isSupportedVideoFormat(filename)) {
       return Effect.fail(
         new UnsupportedFormatError({
-          message: `Unsupported video format. Supported formats: ${SUPPORTED_FORMATS.join(", ").toUpperCase()}`,
+          message: `Unsupported video format. Supported formats: ${SUPPORTED_FORMATS.join(', ').toUpperCase()}`,
           format: getExtension(filename),
           supportedFormats: SUPPORTED_FORMATS,
         }),
@@ -173,7 +173,7 @@ const makeVideoProcessorService = Effect.gen(function* () {
         duration: formatDuration(estimatedDuration),
         width: 1920, // Default HD, will be updated by async processing
         height: 1080,
-        format: getExtension(filename) || "mp4",
+        format: getExtension(filename) || 'mp4',
         size,
       };
     });
@@ -192,12 +192,12 @@ const makeVideoProcessorService = Effect.gen(function* () {
 
       // Stage 1: Upload original video
       onProgress?.({
-        stage: "uploading",
+        stage: 'uploading',
         progress: 10,
-        message: "Uploading video file...",
+        message: 'Uploading video file...',
       });
 
-      const videoKey = storage.generateFileKey(organizationId, `${videoId}-${filename}`, "video");
+      const videoKey = storage.generateFileKey(organizationId, `${videoId}-${filename}`, 'video');
       const contentType = getContentType(filename);
 
       const uploadResult = yield* pipe(
@@ -208,7 +208,7 @@ const makeVideoProcessorService = Effect.gen(function* () {
           (uploadProgress: UploadProgress) => {
             const progressPercent = Math.floor((uploadProgress.loaded / uploadProgress.total) * 60) + 10;
             onProgress?.({
-              stage: "uploading",
+              stage: 'uploading',
               progress: progressPercent,
               message: `Uploading... ${Math.floor((uploadProgress.loaded / uploadProgress.total) * 100)}%`,
             });
@@ -218,7 +218,7 @@ const makeVideoProcessorService = Effect.gen(function* () {
           (error) =>
             new VideoProcessingError({
               message: error.message,
-              stage: "uploading",
+              stage: 'uploading',
               cause: error,
             }),
         ),
@@ -226,24 +226,24 @@ const makeVideoProcessorService = Effect.gen(function* () {
 
       // Stage 2: Get initial video info (estimated)
       onProgress?.({
-        stage: "processing",
+        stage: 'processing',
         progress: 75,
-        message: "Processing video metadata...",
+        message: 'Processing video metadata...',
       });
 
       const videoInfo = yield* getVideoInfo(buffer, filename);
 
       // Stage 3: Mark as complete (async processing will continue in background)
       onProgress?.({
-        stage: "complete",
+        stage: 'complete',
         progress: 100,
-        message: "Video uploaded! Processing will continue in background.",
+        message: 'Video uploaded! Processing will continue in background.',
       });
 
       return {
         videoId,
         videoUrl: uploadResult.url,
-        thumbnailUrl: "", // Will be generated by async processing
+        thumbnailUrl: '', // Will be generated by async processing
         duration: videoInfo.duration,
         info: videoInfo,
         fileSize: buffer.length,
@@ -308,7 +308,7 @@ export const getVideoInfo = (buffer: Buffer, filename: string): Effect.Effect<Vi
  * Check if format is supported (pure function, no effect needed)
  */
 export const isSupportedVideoFormat = (filename: string): boolean => {
-  const ext = filename.toLowerCase().split(".").pop() || "";
+  const ext = filename.toLowerCase().split('.').pop() || '';
   return SUPPORTED_FORMATS.includes(ext as (typeof SUPPORTED_FORMATS)[number]);
 };
 

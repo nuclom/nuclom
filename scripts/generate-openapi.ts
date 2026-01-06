@@ -15,20 +15,20 @@
  *   --verbose       Print detailed parsing info
  */
 
-import * as fs from "node:fs";
-import * as path from "node:path";
-import process from "node:process";
-import { JSONSchema, Schema } from "effect";
-import { Project, type SourceFile } from "ts-morph";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import process from 'node:process';
+import { JSONSchema, Schema } from 'effect';
+import { Project, type SourceFile } from 'ts-morph';
 
 // Import validation schemas from the app (for schema resolution)
-import * as RequestSchemas from "../src/lib/validation/schemas";
+import * as RequestSchemas from '../src/lib/validation/schemas';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 interface ParsedRoute {
   filePath: string;
@@ -47,7 +47,7 @@ interface ParsedMethod {
 
 interface ApiParameter {
   name: string;
-  in: "query" | "path" | "header";
+  in: 'query' | 'path' | 'header';
   description?: string;
   required?: boolean;
   schema: Schema.Schema.Any;
@@ -66,7 +66,7 @@ interface ApiEndpoint {
     description?: string;
     required?: boolean;
     schema: Schema.Schema.Any;
-    contentType?: "application/json" | "multipart/form-data";
+    contentType?: 'application/json' | 'multipart/form-data';
   };
   responses: {
     [statusCode: string]: {
@@ -261,7 +261,7 @@ const OrganizationMember = Schema.Struct({
   id: Schema.UUID,
   organizationId: Schema.UUID,
   userId: Schema.UUID,
-  role: Schema.Literal("owner", "member"),
+  role: Schema.Literal('owner', 'member'),
   user: Schema.optional(
     Schema.Struct({
       id: Schema.UUID,
@@ -324,7 +324,7 @@ const CheckoutResponse = Schema.Struct({
 });
 
 const SearchResult = Schema.Struct({
-  type: Schema.Literal("video", "series", "channel"),
+  type: Schema.Literal('video', 'series', 'channel'),
   id: Schema.UUID,
   title: Schema.String,
   description: Schema.NullOr(Schema.String),
@@ -367,37 +367,37 @@ const MeetingRecording = Schema.Struct({
 // =============================================================================
 
 const apiInfo: ApiInfo = {
-  title: "Nuclom API",
-  version: "1.0.0",
+  title: 'Nuclom API',
+  version: '1.0.0',
   description:
-    "Nuclom is a video collaboration platform that helps teams organize, share, and collaborate on video content. This API provides programmatic access to videos, organizations, series, comments, and more.",
-  contact: { name: "Nuclom Support", url: "https://nuclom.com/support" },
+    'Nuclom is a video collaboration platform that helps teams organize, share, and collaborate on video content. This API provides programmatic access to videos, organizations, series, comments, and more.',
+  contact: { name: 'Nuclom Support', url: 'https://nuclom.com/support' },
   license: {
-    name: "Elastic License 2.0",
-    url: "https://www.elastic.co/licensing/elastic-license",
+    name: 'Elastic License 2.0',
+    url: 'https://www.elastic.co/licensing/elastic-license',
   },
 };
 
 const apiServers: ApiServer[] = [
-  { url: "https://nuclom.com/api", description: "Production server" },
-  { url: "http://localhost:3000/api", description: "Local development server" },
+  { url: 'https://nuclom.com/api', description: 'Production server' },
+  { url: 'http://localhost:3000/api', description: 'Local development server' },
 ];
 
 const apiTags: ApiTag[] = [
-  { name: "Videos", description: "Video management endpoints" },
-  { name: "Series", description: "Video series/playlist management" },
-  { name: "Channels", description: "Channel management" },
-  { name: "Organizations", description: "Organization and team management" },
-  { name: "Comments", description: "Video comments and discussions" },
-  { name: "Search", description: "Search functionality" },
-  { name: "Notifications", description: "User notifications" },
-  { name: "Billing", description: "Subscription and billing management" },
-  { name: "AI", description: "AI-powered video analysis" },
-  { name: "Integrations", description: "Third-party integrations (Google Meet, Zoom)" },
-  { name: "Health", description: "System health endpoints" },
-  { name: "Users", description: "User management" },
-  { name: "OAuth", description: "OAuth application management" },
-  { name: "Sharing", description: "Content sharing" },
+  { name: 'Videos', description: 'Video management endpoints' },
+  { name: 'Series', description: 'Video series/playlist management' },
+  { name: 'Channels', description: 'Channel management' },
+  { name: 'Organizations', description: 'Organization and team management' },
+  { name: 'Comments', description: 'Video comments and discussions' },
+  { name: 'Search', description: 'Search functionality' },
+  { name: 'Notifications', description: 'User notifications' },
+  { name: 'Billing', description: 'Subscription and billing management' },
+  { name: 'AI', description: 'AI-powered video analysis' },
+  { name: 'Integrations', description: 'Third-party integrations (Google Meet, Zoom)' },
+  { name: 'Health', description: 'System health endpoints' },
+  { name: 'Users', description: 'User management' },
+  { name: 'OAuth', description: 'OAuth application management' },
+  { name: 'Sharing', description: 'Content sharing' },
 ];
 
 // =============================================================================
@@ -453,229 +453,229 @@ const schemaNameMapping: Record<string, unknown> = {
   SearchSchema: RequestSchemas.SearchSchema,
 };
 
-const responseOverrides: Record<string, ApiEndpoint["responses"]> = {
-  "GET /health": {
-    "200": { description: "API is healthy", schema: HealthResponse },
+const responseOverrides: Record<string, ApiEndpoint['responses']> = {
+  'GET /health': {
+    '200': { description: 'API is healthy', schema: HealthResponse },
   },
-  "GET /videos": {
-    "200": { description: "List of videos", schema: PaginatedVideos },
-    "401": { description: "Unauthorized" },
-    "400": { description: "Invalid request parameters" },
+  'GET /videos': {
+    '200': { description: 'List of videos', schema: PaginatedVideos },
+    '401': { description: 'Unauthorized' },
+    '400': { description: 'Invalid request parameters' },
   },
-  "POST /videos": {
-    "201": { description: "Video created", schema: Video },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /videos': {
+    '201': { description: 'Video created', schema: Video },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /videos/{id}": {
-    "200": { description: "Video details", schema: VideoWithDetails },
-    "404": { description: "Video not found" },
+  'GET /videos/{id}': {
+    '200': { description: 'Video details', schema: VideoWithDetails },
+    '404': { description: 'Video not found' },
   },
-  "PUT /videos/{id}": {
-    "200": { description: "Video updated", schema: Video },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Video not found" },
+  'PUT /videos/{id}': {
+    '200': { description: 'Video updated', schema: Video },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Video not found' },
   },
-  "DELETE /videos/{id}": {
-    "200": { description: "Video deleted", schema: VideoDeleteResponse },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Video not found" },
+  'DELETE /videos/{id}': {
+    '200': { description: 'Video deleted', schema: VideoDeleteResponse },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Video not found' },
   },
-  "GET /videos/{id}/comments": {
-    "200": { description: "List of comments", schema: Schema.Array(Comment) },
-    "404": { description: "Video not found" },
+  'GET /videos/{id}/comments': {
+    '200': { description: 'List of comments', schema: Schema.Array(Comment) },
+    '404': { description: 'Video not found' },
   },
-  "POST /videos/{id}/comments": {
-    "201": { description: "Comment created", schema: Comment },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Video not found" },
+  'POST /videos/{id}/comments': {
+    '201': { description: 'Comment created', schema: Comment },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Video not found' },
   },
-  "GET /videos/{id}/chapters": {
-    "200": { description: "List of chapters", schema: Schema.Array(Chapter) },
-    "404": { description: "Video not found" },
+  'GET /videos/{id}/chapters': {
+    '200': { description: 'List of chapters', schema: Schema.Array(Chapter) },
+    '404': { description: 'Video not found' },
   },
-  "POST /videos/{id}/chapters": {
-    "201": { description: "Chapter created", schema: Chapter },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Video not found" },
+  'POST /videos/{id}/chapters': {
+    '201': { description: 'Chapter created', schema: Chapter },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Video not found' },
   },
-  "GET /videos/{id}/code-snippets": {
-    "200": { description: "List of code snippets", schema: Schema.Array(CodeSnippet) },
-    "404": { description: "Video not found" },
+  'GET /videos/{id}/code-snippets': {
+    '200': { description: 'List of code snippets', schema: Schema.Array(CodeSnippet) },
+    '404': { description: 'Video not found' },
   },
-  "GET /series": {
-    "200": { description: "List of series", schema: PaginatedSeries },
-    "401": { description: "Unauthorized" },
+  'GET /series': {
+    '200': { description: 'List of series', schema: PaginatedSeries },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /series": {
-    "201": { description: "Series created", schema: Series },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /series': {
+    '201': { description: 'Series created', schema: Series },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /series/{id}": {
-    "200": { description: "Series with videos", schema: SeriesWithVideos },
-    "404": { description: "Series not found" },
+  'GET /series/{id}': {
+    '200': { description: 'Series with videos', schema: SeriesWithVideos },
+    '404': { description: 'Series not found' },
   },
-  "PUT /series/{id}": {
-    "200": { description: "Series updated", schema: Series },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Series not found" },
+  'PUT /series/{id}': {
+    '200': { description: 'Series updated', schema: Series },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Series not found' },
   },
-  "DELETE /series/{id}": {
-    "200": { description: "Series deleted", schema: SuccessResponse },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Series not found" },
+  'DELETE /series/{id}': {
+    '200': { description: 'Series deleted', schema: SuccessResponse },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Series not found' },
   },
-  "GET /organizations": {
-    "200": { description: "List of organizations", schema: Schema.Array(Organization) },
-    "401": { description: "Unauthorized" },
+  'GET /organizations': {
+    '200': { description: 'List of organizations', schema: Schema.Array(Organization) },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /organizations": {
-    "201": { description: "Organization created", schema: Organization },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /organizations': {
+    '201': { description: 'Organization created', schema: Organization },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /organizations/{id}": {
-    "200": { description: "Organization details", schema: Organization },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Organization not found" },
+  'GET /organizations/{id}': {
+    '200': { description: 'Organization details', schema: Organization },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Organization not found' },
   },
-  "GET /organizations/{id}/members": {
-    "200": { description: "List of members", schema: Schema.Array(OrganizationMember) },
-    "401": { description: "Unauthorized" },
-    "404": { description: "Organization not found" },
+  'GET /organizations/{id}/members': {
+    '200': { description: 'List of members', schema: Schema.Array(OrganizationMember) },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'Organization not found' },
   },
-  "GET /notifications": {
-    "200": { description: "List of notifications", schema: PaginatedNotifications },
-    "401": { description: "Unauthorized" },
+  'GET /notifications': {
+    '200': { description: 'List of notifications', schema: PaginatedNotifications },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /billing/plans": {
-    "200": { description: "List of billing plans", schema: Schema.Array(BillingPlan) },
+  'GET /billing/plans': {
+    '200': { description: 'List of billing plans', schema: Schema.Array(BillingPlan) },
   },
-  "GET /billing/subscription": {
-    "200": { description: "Subscription details", schema: Subscription },
-    "401": { description: "Unauthorized" },
-    "404": { description: "No subscription found" },
+  'GET /billing/subscription': {
+    '200': { description: 'Subscription details', schema: Subscription },
+    '401': { description: 'Unauthorized' },
+    '404': { description: 'No subscription found' },
   },
-  "GET /billing/usage": {
-    "200": { description: "Billing usage", schema: BillingUsage },
-    "401": { description: "Unauthorized" },
+  'GET /billing/usage': {
+    '200': { description: 'Billing usage', schema: BillingUsage },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /billing/checkout": {
-    "200": { description: "Checkout session created", schema: CheckoutResponse },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /billing/checkout': {
+    '200': { description: 'Checkout session created', schema: CheckoutResponse },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /search": {
-    "200": { description: "Search results", schema: SearchResponse },
-    "400": { description: "Invalid query" },
-    "401": { description: "Unauthorized" },
+  'GET /search': {
+    '200': { description: 'Search results', schema: SearchResponse },
+    '400': { description: 'Invalid query' },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /ai/analyze": {
-    "200": { description: "Analysis result", schema: AIAnalysisResult },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /ai/analyze': {
+    '200': { description: 'Analysis result', schema: AIAnalysisResult },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /integrations/google/status": {
-    "200": { description: "Integration status", schema: IntegrationStatus },
-    "401": { description: "Unauthorized" },
+  'GET /integrations/google/status': {
+    '200': { description: 'Integration status', schema: IntegrationStatus },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /integrations/zoom/status": {
-    "200": { description: "Integration status", schema: IntegrationStatus },
-    "401": { description: "Unauthorized" },
+  'GET /integrations/zoom/status': {
+    '200': { description: 'Integration status', schema: IntegrationStatus },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /integrations/google/recordings": {
-    "200": { description: "List of recordings", schema: Schema.Array(MeetingRecording) },
-    "401": { description: "Unauthorized" },
+  'GET /integrations/google/recordings': {
+    '200': { description: 'List of recordings', schema: Schema.Array(MeetingRecording) },
+    '401': { description: 'Unauthorized' },
   },
-  "GET /integrations/zoom/recordings": {
-    "200": { description: "List of recordings", schema: Schema.Array(MeetingRecording) },
-    "401": { description: "Unauthorized" },
+  'GET /integrations/zoom/recordings': {
+    '200': { description: 'List of recordings', schema: Schema.Array(MeetingRecording) },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /integrations/google/import": {
-    "201": { description: "Recording imported", schema: Video },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /integrations/google/import': {
+    '201': { description: 'Recording imported', schema: Video },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
-  "POST /integrations/zoom/import": {
-    "201": { description: "Recording imported", schema: Video },
-    "400": { description: "Invalid request body" },
-    "401": { description: "Unauthorized" },
+  'POST /integrations/zoom/import': {
+    '201': { description: 'Recording imported', schema: Video },
+    '400': { description: 'Invalid request body' },
+    '401': { description: 'Unauthorized' },
   },
 };
 
 const descriptionOverrides: Record<string, { summary: string; description?: string }> = {
-  "GET /health": { summary: "Health check", description: "Check if the API is running and healthy" },
-  "GET /videos": { summary: "List videos", description: "Get a paginated list of videos for an organization" },
-  "POST /videos": { summary: "Create video", description: "Create a new video entry" },
-  "GET /videos/{id}": {
-    summary: "Get video",
-    description: "Get detailed information about a specific video including comments",
+  'GET /health': { summary: 'Health check', description: 'Check if the API is running and healthy' },
+  'GET /videos': { summary: 'List videos', description: 'Get a paginated list of videos for an organization' },
+  'POST /videos': { summary: 'Create video', description: 'Create a new video entry' },
+  'GET /videos/{id}': {
+    summary: 'Get video',
+    description: 'Get detailed information about a specific video including comments',
   },
-  "PUT /videos/{id}": { summary: "Update video", description: "Update video metadata" },
-  "DELETE /videos/{id}": {
-    summary: "Delete video",
+  'PUT /videos/{id}': { summary: 'Update video', description: 'Update video metadata' },
+  'DELETE /videos/{id}': {
+    summary: 'Delete video',
     description:
-      "Delete a video. By default performs soft-delete with 30-day retention. Use permanent=true for immediate deletion.",
+      'Delete a video. By default performs soft-delete with 30-day retention. Use permanent=true for immediate deletion.',
   },
-  "POST /videos/{id}/restore": { summary: "Restore video", description: "Restore a soft-deleted video from trash" },
-  "GET /videos/{id}/comments": { summary: "List video comments", description: "Get all comments for a video" },
-  "POST /videos/{id}/comments": { summary: "Add comment", description: "Add a comment to a video" },
-  "GET /videos/{id}/chapters": { summary: "List video chapters", description: "Get chapters/markers for a video" },
-  "POST /videos/{id}/chapters": { summary: "Create chapter", description: "Add a chapter marker to a video" },
-  "GET /videos/search": {
-    summary: "Search videos",
-    description: "Full-text search across video titles, descriptions, and transcripts",
+  'POST /videos/{id}/restore': { summary: 'Restore video', description: 'Restore a soft-deleted video from trash' },
+  'GET /videos/{id}/comments': { summary: 'List video comments', description: 'Get all comments for a video' },
+  'POST /videos/{id}/comments': { summary: 'Add comment', description: 'Add a comment to a video' },
+  'GET /videos/{id}/chapters': { summary: 'List video chapters', description: 'Get chapters/markers for a video' },
+  'POST /videos/{id}/chapters': { summary: 'Create chapter', description: 'Add a chapter marker to a video' },
+  'GET /videos/search': {
+    summary: 'Search videos',
+    description: 'Full-text search across video titles, descriptions, and transcripts',
   },
-  "POST /videos/upload": { summary: "Upload video", description: "Upload a video file with metadata" },
-  "GET /series": { summary: "List series", description: "Get a paginated list of video series for an organization" },
-  "POST /series": { summary: "Create series", description: "Create a new video series/playlist" },
-  "GET /series/{id}": { summary: "Get series", description: "Get a series with its videos" },
-  "PUT /series/{id}": { summary: "Update series", description: "Update series metadata" },
-  "DELETE /series/{id}": { summary: "Delete series", description: "Delete a series (videos are not deleted)" },
-  "GET /organizations": {
-    summary: "List organizations",
-    description: "Get organizations the current user is a member of",
+  'POST /videos/upload': { summary: 'Upload video', description: 'Upload a video file with metadata' },
+  'GET /series': { summary: 'List series', description: 'Get a paginated list of video series for an organization' },
+  'POST /series': { summary: 'Create series', description: 'Create a new video series/playlist' },
+  'GET /series/{id}': { summary: 'Get series', description: 'Get a series with its videos' },
+  'PUT /series/{id}': { summary: 'Update series', description: 'Update series metadata' },
+  'DELETE /series/{id}': { summary: 'Delete series', description: 'Delete a series (videos are not deleted)' },
+  'GET /organizations': {
+    summary: 'List organizations',
+    description: 'Get organizations the current user is a member of',
   },
-  "POST /organizations": { summary: "Create organization", description: "Create a new organization" },
-  "GET /organizations/{id}": { summary: "Get organization", description: "Get organization details" },
-  "GET /organizations/{id}/members": { summary: "List members", description: "Get members of an organization" },
-  "GET /notifications": {
-    summary: "List notifications",
-    description: "Get paginated notifications for the current user",
+  'POST /organizations': { summary: 'Create organization', description: 'Create a new organization' },
+  'GET /organizations/{id}': { summary: 'Get organization', description: 'Get organization details' },
+  'GET /organizations/{id}/members': { summary: 'List members', description: 'Get members of an organization' },
+  'GET /notifications': {
+    summary: 'List notifications',
+    description: 'Get paginated notifications for the current user',
   },
-  "POST /ai/analyze": {
-    summary: "Analyze video",
-    description: "Trigger AI analysis of a video (transcript, summary, action items, tags)",
+  'POST /ai/analyze': {
+    summary: 'Analyze video',
+    description: 'Trigger AI analysis of a video (transcript, summary, action items, tags)',
   },
-  "GET /billing/plans": { summary: "List plans", description: "Get available billing plans" },
-  "GET /billing/subscription": {
-    summary: "Get subscription",
+  'GET /billing/plans': { summary: 'List plans', description: 'Get available billing plans' },
+  'GET /billing/subscription': {
+    summary: 'Get subscription',
     description: "Get the current organization's subscription",
   },
-  "GET /billing/usage": { summary: "Get usage", description: "Get current billing usage for the organization" },
-  "POST /billing/checkout": {
-    summary: "Create checkout",
-    description: "Create a Stripe checkout session for subscription",
+  'GET /billing/usage': { summary: 'Get usage', description: 'Get current billing usage for the organization' },
+  'POST /billing/checkout': {
+    summary: 'Create checkout',
+    description: 'Create a Stripe checkout session for subscription',
   },
-  "POST /billing/portal": { summary: "Create billing portal", description: "Create a Stripe customer portal session" },
-  "GET /search": { summary: "Search", description: "Search across videos, series, and other content" },
-  "GET /channels": { summary: "List channels", description: "Get channels for an organization" },
-  "POST /channels": { summary: "Create channel", description: "Create a new channel" },
-  "GET /channels/{id}": { summary: "Get channel", description: "Get channel details" },
+  'POST /billing/portal': { summary: 'Create billing portal', description: 'Create a Stripe customer portal session' },
+  'GET /search': { summary: 'Search', description: 'Search across videos, series, and other content' },
+  'GET /channels': { summary: 'List channels', description: 'Get channels for an organization' },
+  'POST /channels': { summary: 'Create channel', description: 'Create a new channel' },
+  'GET /channels/{id}': { summary: 'Get channel', description: 'Get channel details' },
 };
 
 const skipRoutes = [
-  "/auth/{...auth}",
-  "/webhooks/stripe",
-  "/integrations/google/callback",
-  "/integrations/google/webhook",
-  "/integrations/zoom/callback",
-  "/integrations/zoom/webhook",
+  '/auth/{...auth}',
+  '/webhooks/stripe',
+  '/integrations/google/callback',
+  '/integrations/google/webhook',
+  '/integrations/zoom/callback',
+  '/integrations/zoom/webhook',
 ];
 
 // =============================================================================
@@ -689,9 +689,9 @@ class RouteParser {
 
   constructor(projectRoot: string) {
     this.projectRoot = projectRoot;
-    this.apiDir = path.join(projectRoot, "src/app/api");
+    this.apiDir = path.join(projectRoot, 'src/app/api');
     this.project = new Project({
-      tsConfigFilePath: path.join(projectRoot, "tsconfig.json"),
+      tsConfigFilePath: path.join(projectRoot, 'tsconfig.json'),
       skipAddingFilesFromTsConfig: true,
     });
   }
@@ -722,7 +722,7 @@ class RouteParser {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
           walkDir(fullPath);
-        } else if (entry.name === "route.ts") {
+        } else if (entry.name === 'route.ts') {
           files.push(fullPath);
         }
       }
@@ -736,7 +736,7 @@ class RouteParser {
     const apiPath = this.filePathToApiPath(filePath);
     const pathParams = this.extractPathParams(apiPath);
     const methods: ParsedMethod[] = [];
-    const httpMethods: HttpMethod[] = ["get", "post", "put", "patch", "delete"];
+    const httpMethods: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete'];
 
     for (const method of httpMethods) {
       const methodUpper = method.toUpperCase();
@@ -755,7 +755,7 @@ class RouteParser {
 
   // biome-ignore lint/suspicious/noExplicitAny: ts-morph types
   private parseMethod(_sourceFile: SourceFile, funcDecl: any, method: HttpMethod, pathParams: string[]): ParsedMethod {
-    const funcBody = funcDecl.getBody()?.getText() ?? "";
+    const funcBody = funcDecl.getBody()?.getText() ?? '';
     const requiresAuth = this.detectAuthUsage(funcBody);
     const requestSchema = this.extractRequestSchema(funcBody);
     const querySchema = this.extractQuerySchema(funcBody);
@@ -767,10 +767,10 @@ class RouteParser {
   private filePathToApiPath(filePath: string): string {
     let relativePath = path.relative(this.apiDir, filePath);
     relativePath = path.dirname(relativePath);
-    if (relativePath === ".") return "/";
-    let apiPath = `/${relativePath.replace(/\[([^\]]+)\]/g, "{$1}")}`;
-    apiPath = apiPath.replace(/\\/g, "/");
-    if (apiPath.includes("{...")) return "";
+    if (relativePath === '.') return '/';
+    let apiPath = `/${relativePath.replace(/\[([^\]]+)\]/g, '{$1}')}`;
+    apiPath = apiPath.replace(/\\/g, '/');
+    if (apiPath.includes('{...')) return '';
     return apiPath;
   }
 
@@ -781,10 +781,10 @@ class RouteParser {
 
   private detectAuthUsage(funcBody: string): boolean {
     return (
-      funcBody.includes("yield* Auth") ||
-      funcBody.includes("authService.getSession") ||
-      funcBody.includes("getSession(request") ||
-      funcBody.includes("auth()")
+      funcBody.includes('yield* Auth') ||
+      funcBody.includes('authService.getSession') ||
+      funcBody.includes('getSession(request') ||
+      funcBody.includes('auth()')
     );
   }
 
@@ -819,7 +819,7 @@ function schemaToJsonSchema(schema: Schema.Schema.Any): Record<string, unknown> 
     const { $schema, ...rest } = jsonSchema as unknown as Record<string, unknown>;
     return rest;
   } catch {
-    return { type: "object" };
+    return { type: 'object' };
   }
 }
 
@@ -834,7 +834,7 @@ function generateOpenApiSpec(config: {
   const schemas: Record<string, unknown> = {};
 
   for (const endpoint of endpoints) {
-    const pathKey = endpoint.path.startsWith("/") ? endpoint.path : `/${endpoint.path}`;
+    const pathKey = endpoint.path.startsWith('/') ? endpoint.path : `/${endpoint.path}`;
     if (!paths[pathKey]) paths[pathKey] = {};
 
     const operation: Record<string, unknown> = {
@@ -851,13 +851,13 @@ function generateOpenApiSpec(config: {
         name: param.name,
         in: param.in,
         description: param.description,
-        required: param.required ?? param.in === "path",
+        required: param.required ?? param.in === 'path',
         schema: schemaToJsonSchema(param.schema),
       }));
     }
 
     if (endpoint.requestBody) {
-      const contentType = endpoint.requestBody.contentType ?? "application/json";
+      const contentType = endpoint.requestBody.contentType ?? 'application/json';
       operation.requestBody = {
         required: endpoint.requestBody.required ?? true,
         description: endpoint.requestBody.description,
@@ -869,7 +869,7 @@ function generateOpenApiSpec(config: {
     for (const [statusCode, response] of Object.entries(endpoint.responses)) {
       const responseObj: Record<string, unknown> = { description: response.description };
       if (response.schema) {
-        responseObj.content = { "application/json": { schema: schemaToJsonSchema(response.schema) } };
+        responseObj.content = { 'application/json': { schema: schemaToJsonSchema(response.schema) } };
       }
       responses[statusCode] = responseObj;
     }
@@ -879,7 +879,7 @@ function generateOpenApiSpec(config: {
   }
 
   return {
-    openapi: "3.1.0",
+    openapi: '3.1.0',
     info,
     servers,
     tags,
@@ -888,66 +888,66 @@ function generateOpenApiSpec(config: {
       schemas,
       parameters: {
         organizationId: {
-          name: "organizationId",
-          in: "query",
-          description: "Organization ID to scope the request",
+          name: 'organizationId',
+          in: 'query',
+          description: 'Organization ID to scope the request',
           required: true,
-          schema: { type: "string", format: "uuid" },
+          schema: { type: 'string', format: 'uuid' },
         },
         page: {
-          name: "page",
-          in: "query",
-          description: "Page number for pagination",
+          name: 'page',
+          in: 'query',
+          description: 'Page number for pagination',
           required: false,
-          schema: { type: "integer", minimum: 1, default: 1 },
+          schema: { type: 'integer', minimum: 1, default: 1 },
         },
         limit: {
-          name: "limit",
-          in: "query",
-          description: "Number of items per page",
+          name: 'limit',
+          in: 'query',
+          description: 'Number of items per page',
           required: false,
-          schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+          schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
         },
       },
       responses: {
         BadRequest: {
-          description: "Invalid request parameters",
+          description: 'Invalid request parameters',
           content: {
-            "application/json": {
+            'application/json': {
               schema: {
-                type: "object",
-                properties: { error: { type: "string" }, code: { type: "string" }, details: { type: "object" } },
-                required: ["error", "code"],
+                type: 'object',
+                properties: { error: { type: 'string' }, code: { type: 'string' }, details: { type: 'object' } },
+                required: ['error', 'code'],
               },
             },
           },
         },
         Unauthorized: {
-          description: "Missing or invalid authentication",
+          description: 'Missing or invalid authentication',
           content: {
-            "application/json": {
+            'application/json': {
               schema: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  error: { type: "string", example: "Unauthorized" },
-                  code: { type: "string", example: "AUTH_REQUIRED" },
+                  error: { type: 'string', example: 'Unauthorized' },
+                  code: { type: 'string', example: 'AUTH_REQUIRED' },
                 },
-                required: ["error", "code"],
+                required: ['error', 'code'],
               },
             },
           },
         },
         NotFound: {
-          description: "Resource not found",
+          description: 'Resource not found',
           content: {
-            "application/json": {
+            'application/json': {
               schema: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  error: { type: "string", example: "Not found" },
-                  code: { type: "string", example: "NOT_FOUND" },
+                  error: { type: 'string', example: 'Not found' },
+                  code: { type: 'string', example: 'NOT_FOUND' },
                 },
-                required: ["error", "code"],
+                required: ['error', 'code'],
               },
             },
           },
@@ -955,10 +955,10 @@ function generateOpenApiSpec(config: {
       },
       securitySchemes: {
         bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-          description: "Authentication token from login or API key",
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Authentication token from login or API key',
         },
       },
     },
@@ -974,77 +974,77 @@ function capitalizeFirst(str: string): string {
 }
 
 function singularize(str: string): string {
-  if (str.endsWith("ies")) return `${str.slice(0, -3)}y`;
-  if (str.endsWith("es") && !str.endsWith("ses")) return str.slice(0, -2);
-  if (str.endsWith("s") && !str.endsWith("ss")) return str.slice(0, -1);
+  if (str.endsWith('ies')) return `${str.slice(0, -3)}y`;
+  if (str.endsWith('es') && !str.endsWith('ses')) return str.slice(0, -2);
+  if (str.endsWith('s') && !str.endsWith('ss')) return str.slice(0, -1);
   return str;
 }
 
 function generateOperationId(path: string, method: HttpMethod): string {
-  const parts = path.slice(1).split("/").filter(Boolean);
+  const parts = path.slice(1).split('/').filter(Boolean);
   const methodVerbs: Record<HttpMethod, string> = {
-    get: "get",
-    post: "create",
-    put: "update",
-    patch: "patch",
-    delete: "delete",
+    get: 'get',
+    post: 'create',
+    put: 'update',
+    patch: 'patch',
+    delete: 'delete',
   };
   const verb = methodVerbs[method];
   const pathParts = parts
-    .map((part) => (part.startsWith("{") && part.endsWith("}") ? "" : capitalizeFirst(singularize(part))))
+    .map((part) => (part.startsWith('{') && part.endsWith('}') ? '' : capitalizeFirst(singularize(part))))
     .filter(Boolean);
   if (pathParts.length === 0) return verb;
-  if (method === "get" && !path.includes("{")) return `list${pathParts.join("")}`;
-  return verb + pathParts.join("");
+  if (method === 'get' && !path.includes('{')) return `list${pathParts.join('')}`;
+  return verb + pathParts.join('');
 }
 
 function generateSummary(path: string, method: HttpMethod): string {
-  const parts = path.slice(1).split("/").filter(Boolean);
+  const parts = path.slice(1).split('/').filter(Boolean);
   const methodLabels: Record<HttpMethod, string> = {
-    get: "Get",
-    post: "Create",
-    put: "Update",
-    patch: "Patch",
-    delete: "Delete",
+    get: 'Get',
+    post: 'Create',
+    put: 'Update',
+    patch: 'Patch',
+    delete: 'Delete',
   };
   const label = methodLabels[method];
-  const resourceParts = parts.filter((p) => !p.startsWith("{"));
-  const resource = resourceParts.length > 0 ? resourceParts[resourceParts.length - 1] : "resource";
-  if (method === "get" && !path.includes("{")) return `List ${resource}`;
+  const resourceParts = parts.filter((p) => !p.startsWith('{'));
+  const resource = resourceParts.length > 0 ? resourceParts[resourceParts.length - 1] : 'resource';
+  if (method === 'get' && !path.includes('{')) return `List ${resource}`;
   return `${label} ${singularize(resource)}`;
 }
 
 function inferTagsFromPath(path: string): string[] {
-  const parts = path.slice(1).split("/").filter(Boolean);
-  if (parts.length === 0) return ["General"];
+  const parts = path.slice(1).split('/').filter(Boolean);
+  if (parts.length === 0) return ['General'];
   const tagMappings: Record<string, string> = {
-    videos: "Videos",
-    series: "Series",
-    organizations: "Organizations",
-    notifications: "Notifications",
-    billing: "Billing",
-    ai: "AI",
-    integrations: "Integrations",
-    health: "Health",
-    comments: "Comments",
-    channels: "Channels",
-    search: "Search",
-    users: "Users",
-    auth: "Authentication",
-    oauth: "OAuth",
-    webhooks: "Webhooks",
-    share: "Sharing",
+    videos: 'Videos',
+    series: 'Series',
+    organizations: 'Organizations',
+    notifications: 'Notifications',
+    billing: 'Billing',
+    ai: 'AI',
+    integrations: 'Integrations',
+    health: 'Health',
+    comments: 'Comments',
+    channels: 'Channels',
+    search: 'Search',
+    users: 'Users',
+    auth: 'Authentication',
+    oauth: 'OAuth',
+    webhooks: 'Webhooks',
+    share: 'Sharing',
   };
   return [tagMappings[parts[0]] ?? capitalizeFirst(parts[0])];
 }
 
-function generateDefaultResponses(method: ParsedMethod): ApiEndpoint["responses"] {
-  const responses: ApiEndpoint["responses"] = {};
-  const successStatus = method.method === "post" ? "201" : "200";
-  responses[successStatus] = { description: method.method === "post" ? "Created successfully" : "Success" };
-  if (method.requiresAuth) responses["401"] = { description: "Unauthorized" };
-  if (method.requestSchema || method.querySchema) responses["400"] = { description: "Invalid request" };
-  if (method.pathParams.length > 0) responses["404"] = { description: "Not found" };
+function generateDefaultResponses(method: ParsedMethod): ApiEndpoint['responses'] {
+  const responses: ApiEndpoint['responses'] = {};
+  const successStatus = method.method === 'post' ? '201' : '200';
+  responses[successStatus] = { description: method.method === 'post' ? 'Created successfully' : 'Success' };
+  if (method.requiresAuth) responses['401'] = { description: 'Unauthorized' };
+  if (method.requestSchema || method.querySchema) responses['400'] = { description: 'Invalid request' };
+  if (method.pathParams.length > 0) responses['404'] = { description: 'Not found' };
   return responses;
 }
 
@@ -1085,7 +1085,7 @@ function generateEndpointsFromRoutes(routes: ParsedRoute[]): ApiEndpoint[] {
       if (method.pathParams.length > 0) {
         endpoint.parameters = method.pathParams.map((param) => ({
           name: param,
-          in: "path" as const,
+          in: 'path' as const,
           required: true,
           schema: Schema.UUID,
           description: `${capitalizeFirst(param)} ID`,
@@ -1119,66 +1119,66 @@ function generateEndpointsFromRoutes(routes: ParsedRoute[]): ApiEndpoint[] {
 // =============================================================================
 
 function toYaml(value: unknown, indent: number): string {
-  const spaces = "  ".repeat(indent);
+  const spaces = '  '.repeat(indent);
 
-  if (value === null || value === undefined) return "null";
+  if (value === null || value === undefined) return 'null';
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     if (
-      value === "" ||
-      value.includes(":") ||
-      value.includes("#") ||
-      value.includes("\n") ||
+      value === '' ||
+      value.includes(':') ||
+      value.includes('#') ||
+      value.includes('\n') ||
       value.includes('"') ||
       value.includes("'") ||
-      value.startsWith(" ") ||
-      value.endsWith(" ") ||
-      value === "true" ||
-      value === "false" ||
-      value === "null" ||
+      value.startsWith(' ') ||
+      value.endsWith(' ') ||
+      value === 'true' ||
+      value === 'false' ||
+      value === 'null' ||
       /^[\d.]+$/.test(value) ||
-      value.includes("{") ||
-      value.includes("}") ||
-      value.includes("[") ||
-      value.includes("]")
+      value.includes('{') ||
+      value.includes('}') ||
+      value.includes('[') ||
+      value.includes(']')
     ) {
-      const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
+      const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
       return `"${escaped}"`;
     }
     return value;
   }
 
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
 
   if (Array.isArray(value)) {
-    if (value.length === 0) return "[]";
+    if (value.length === 0) return '[]';
     const lines = value.map((item) => {
       const itemYaml = toYaml(item, indent + 1);
-      if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-        const firstLine = itemYaml.split("\n")[0];
-        const restLines = itemYaml.split("\n").slice(1);
-        if (restLines.length > 0) return `${spaces}- ${firstLine}\n${restLines.join("\n")}`;
+      if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+        const firstLine = itemYaml.split('\n')[0];
+        const restLines = itemYaml.split('\n').slice(1);
+        if (restLines.length > 0) return `${spaces}- ${firstLine}\n${restLines.join('\n')}`;
         return `${spaces}- ${firstLine}`;
       }
       return `${spaces}- ${itemYaml}`;
     });
-    return `\n${lines.join("\n")}`;
+    return `\n${lines.join('\n')}`;
   }
 
-  if (typeof value === "object") {
+  if (typeof value === 'object') {
     const entries = Object.entries(value as Record<string, unknown>);
-    if (entries.length === 0) return "{}";
+    if (entries.length === 0) return '{}';
     const lines = entries.map(([key, val]) => {
       const valYaml = toYaml(val, indent + 1);
       const quotedKey =
-        key.includes(":") || key.includes("#") || key.includes(" ") || key.startsWith("$") ? `"${key}"` : key;
-      if (typeof val === "object" && val !== null && (Array.isArray(val) || Object.keys(val).length > 0)) {
+        key.includes(':') || key.includes('#') || key.includes(' ') || key.startsWith('$') ? `"${key}"` : key;
+      if (typeof val === 'object' && val !== null && (Array.isArray(val) || Object.keys(val).length > 0)) {
         return `${spaces}${quotedKey}:${valYaml}`;
       }
       return `${spaces}${quotedKey}: ${valYaml}`;
     });
-    if (indent === 0) return lines.join("\n");
-    return `\n${lines.join("\n")}`;
+    if (indent === 0) return lines.join('\n');
+    return `\n${lines.join('\n')}`;
   }
 
   return String(value);
@@ -1211,19 +1211,19 @@ function generateSpec(projectRoot: string): OpenApiSpec {
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const options = { stdout: false, format: "json" as "json" | "yaml", verbose: false };
+  const options = { stdout: false, format: 'json' as 'json' | 'yaml', verbose: false };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     switch (arg) {
-      case "--stdout":
+      case '--stdout':
         options.stdout = true;
         break;
-      case "--format":
-      case "-f":
-        options.format = args[++i] as "json" | "yaml";
+      case '--format':
+      case '-f':
+        options.format = args[++i] as 'json' | 'yaml';
         break;
-      case "--verbose":
+      case '--verbose':
         options.verbose = true;
         break;
     }
@@ -1234,13 +1234,13 @@ function parseArgs() {
 
 function main() {
   const options = parseArgs();
-  const projectRoot = path.resolve(import.meta.dirname, "..");
-  const jsonPath = path.join(projectRoot, "public", "openapi.json");
-  const yamlPath = path.join(projectRoot, "public", "openapi.yaml");
+  const projectRoot = path.resolve(import.meta.dirname, '..');
+  const jsonPath = path.join(projectRoot, 'public', 'openapi.json');
+  const yamlPath = path.join(projectRoot, 'public', 'openapi.yaml');
 
   const log = options.stdout ? console.error : console.log;
 
-  log("Parsing route files...");
+  log('Parsing route files...');
 
   if (options.verbose) {
     const parser = new RouteParser(projectRoot);
@@ -1254,7 +1254,7 @@ function main() {
         if (method.querySchema) log(`      query: ${method.querySchema}`);
       }
     }
-    log("");
+    log('');
   }
 
   const spec = generateSpec(projectRoot);
@@ -1264,7 +1264,7 @@ function main() {
   log(`Generated spec with ${Object.keys(spec.paths).length} paths`);
 
   if (options.stdout) {
-    console.log(options.format === "yaml" ? yamlOutput : jsonOutput);
+    console.log(options.format === 'yaml' ? yamlOutput : jsonOutput);
     return;
   }
 
@@ -1275,25 +1275,25 @@ function main() {
   let yamlChanged = true;
 
   if (fs.existsSync(jsonPath)) {
-    jsonChanged = fs.readFileSync(jsonPath, "utf-8") !== jsonOutput;
+    jsonChanged = fs.readFileSync(jsonPath, 'utf-8') !== jsonOutput;
   }
   if (fs.existsSync(yamlPath)) {
-    yamlChanged = fs.readFileSync(yamlPath, "utf-8") !== yamlOutput;
+    yamlChanged = fs.readFileSync(yamlPath, 'utf-8') !== yamlOutput;
   }
 
   if (jsonChanged) {
     fs.writeFileSync(jsonPath, jsonOutput);
-    log("Updated public/openapi.json");
+    log('Updated public/openapi.json');
   }
   if (yamlChanged) {
     fs.writeFileSync(yamlPath, yamlOutput);
-    log("Updated public/openapi.yaml");
+    log('Updated public/openapi.yaml');
   }
 
   if (!jsonChanged && !yamlChanged) {
-    log("OpenAPI specs are up to date");
+    log('OpenAPI specs are up to date');
   } else {
-    log("OpenAPI specs regenerated");
+    log('OpenAPI specs regenerated');
   }
 }
 

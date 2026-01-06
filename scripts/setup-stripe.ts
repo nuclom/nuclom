@@ -17,11 +17,11 @@
  *   --force      Update existing resources instead of skipping
  */
 
-import process from "node:process";
-import dotenv from "dotenv";
-import Stripe from "stripe";
+import process from 'node:process';
+import dotenv from 'dotenv';
+import Stripe from 'stripe';
 
-dotenv.config({ path: [".env.local", ".env"] });
+dotenv.config({ path: ['.env.local', '.env'] });
 
 // =============================================================================
 // Configuration
@@ -30,19 +30,19 @@ dotenv.config({ path: [".env.local", ".env"] });
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 
 if (!STRIPE_SECRET_KEY) {
-  console.error("Error: STRIPE_SECRET_KEY environment variable is required");
+  console.error('Error: STRIPE_SECRET_KEY environment variable is required');
   process.exit(1);
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2025-12-15.clover",
+  apiVersion: '2025-12-15.clover',
   typescript: true,
 });
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const DRY_RUN = args.includes("--dry-run");
-const FORCE_UPDATE = args.includes("--force");
+const DRY_RUN = args.includes('--dry-run');
+const FORCE_UPDATE = args.includes('--force');
 
 // =============================================================================
 // Product & Price Definitions
@@ -52,7 +52,7 @@ interface PriceConfig {
   nickname: string;
   unit_amount: number; // in cents
   recurring: {
-    interval: "month" | "year";
+    interval: 'month' | 'year';
     interval_count: number;
   };
   metadata: Record<string, string>;
@@ -68,79 +68,79 @@ interface ProductConfig {
 
 const PRODUCTS: ProductConfig[] = [
   {
-    id: "prod_nuclom_scale",
-    name: "Nuclom Scale",
-    description: "Video collaboration platform with AI-powered features, transcription, and team collaboration tools.",
+    id: 'prod_nuclom_scale',
+    name: 'Nuclom Scale',
+    description: 'Video collaboration platform with AI-powered features, transcription, and team collaboration tools.',
     metadata: {
-      plan_type: "scale",
-      trial_days: "14",
-      features: "ai_insights,transcription,collaboration,integrations",
+      plan_type: 'scale',
+      trial_days: '14',
+      features: 'ai_insights,transcription,collaboration,integrations',
     },
     prices: [
       {
-        nickname: "Scale Monthly",
+        nickname: 'Scale Monthly',
         unit_amount: 2500, // $25.00
         recurring: {
-          interval: "month",
+          interval: 'month',
           interval_count: 1,
         },
         metadata: {
-          billing_period: "monthly",
-          refund_policy: "prorated_daily",
-          price_per_user: "25.00",
+          billing_period: 'monthly',
+          refund_policy: 'prorated_daily',
+          price_per_user: '25.00',
         },
       },
       {
-        nickname: "Scale Yearly",
+        nickname: 'Scale Yearly',
         unit_amount: 22800, // $228.00/year = $19/month
         recurring: {
-          interval: "year",
+          interval: 'year',
           interval_count: 1,
         },
         metadata: {
-          billing_period: "yearly",
-          refund_policy: "non_refundable",
-          price_per_user: "19.00",
-          yearly_savings: "24%",
+          billing_period: 'yearly',
+          refund_policy: 'non_refundable',
+          price_per_user: '19.00',
+          yearly_savings: '24%',
         },
       },
     ],
   },
   {
-    id: "prod_nuclom_pro",
-    name: "Nuclom Pro",
-    description: "Pro video collaboration with higher limits, SSO integration, advanced AI, and dedicated support.",
+    id: 'prod_nuclom_pro',
+    name: 'Nuclom Pro',
+    description: 'Pro video collaboration with higher limits, SSO integration, advanced AI, and dedicated support.',
     metadata: {
-      plan_type: "pro",
-      trial_days: "14",
-      features: "higher_limits,sso,advanced_ai,dedicated_support,custom_branding",
+      plan_type: 'pro',
+      trial_days: '14',
+      features: 'higher_limits,sso,advanced_ai,dedicated_support,custom_branding',
     },
     prices: [
       {
-        nickname: "Pro Monthly",
+        nickname: 'Pro Monthly',
         unit_amount: 4500, // $45.00
         recurring: {
-          interval: "month",
+          interval: 'month',
           interval_count: 1,
         },
         metadata: {
-          billing_period: "monthly",
-          refund_policy: "prorated_daily",
-          price_per_user: "45.00",
+          billing_period: 'monthly',
+          refund_policy: 'prorated_daily',
+          price_per_user: '45.00',
         },
       },
       {
-        nickname: "Pro Yearly",
+        nickname: 'Pro Yearly',
         unit_amount: 46800, // $468.00/year = $39/month
         recurring: {
-          interval: "year",
+          interval: 'year',
           interval_count: 1,
         },
         metadata: {
-          billing_period: "yearly",
-          refund_policy: "non_refundable",
-          price_per_user: "39.00",
-          yearly_savings: "13%",
+          billing_period: 'yearly',
+          refund_policy: 'non_refundable',
+          price_per_user: '39.00',
+          yearly_savings: '13%',
         },
       },
     ],
@@ -150,14 +150,14 @@ const PRODUCTS: ProductConfig[] = [
 // Billing Portal Configuration
 const BILLING_PORTAL_CONFIG: Stripe.BillingPortal.ConfigurationCreateParams = {
   business_profile: {
-    headline: "Nuclom - Manage your subscription",
-    privacy_policy_url: "https://nuclom.com/privacy",
-    terms_of_service_url: "https://nuclom.com/terms",
+    headline: 'Nuclom - Manage your subscription',
+    privacy_policy_url: 'https://nuclom.com/privacy',
+    terms_of_service_url: 'https://nuclom.com/terms',
   },
   features: {
     customer_update: {
       enabled: true,
-      allowed_updates: ["email", "name", "address", "phone"],
+      allowed_updates: ['email', 'name', 'address', 'phone'],
     },
     invoice_history: {
       enabled: true,
@@ -167,19 +167,19 @@ const BILLING_PORTAL_CONFIG: Stripe.BillingPortal.ConfigurationCreateParams = {
     },
     subscription_cancel: {
       enabled: true,
-      mode: "at_period_end",
+      mode: 'at_period_end',
       cancellation_reason: {
         enabled: true,
-        options: ["too_expensive", "missing_features", "switched_service", "unused", "other"],
+        options: ['too_expensive', 'missing_features', 'switched_service', 'unused', 'other'],
       },
     },
     subscription_update: {
       enabled: true,
-      default_allowed_updates: ["price"],
-      proration_behavior: "create_prorations",
+      default_allowed_updates: ['price'],
+      proration_behavior: 'create_prorations',
     },
   },
-  default_return_url: "https://nuclom.com/settings/billing",
+  default_return_url: 'https://nuclom.com/settings/billing',
 };
 
 // =============================================================================
@@ -204,7 +204,7 @@ async function findExistingPrice(productId: string, interval: string): Promise<S
     return (
       prices.data.find(
         (p) =>
-          typeof p.product === "string" &&
+          typeof p.product === 'string' &&
           p.metadata.billing_period === interval &&
           p.metadata.product_id === productId,
       ) || null
@@ -214,12 +214,12 @@ async function findExistingPrice(productId: string, interval: string): Promise<S
   }
 }
 
-function log(message: string, type: "info" | "success" | "warning" | "error" = "info") {
+function log(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
   const prefix = {
-    info: "ℹ️ ",
-    success: "✅",
-    warning: "⚠️ ",
-    error: "❌",
+    info: 'ℹ️ ',
+    success: '✅',
+    warning: '⚠️ ',
+    error: '❌',
   };
   console.log(`${prefix[type]} ${message}`);
 }
@@ -232,17 +232,17 @@ async function createProduct(config: ProductConfig): Promise<Stripe.Product> {
   const existingProduct = await findExistingProduct(config.id);
 
   if (existingProduct && !FORCE_UPDATE) {
-    log(`Product "${config.name}" already exists (${existingProduct.id}), skipping...`, "warning");
+    log(`Product "${config.name}" already exists (${existingProduct.id}), skipping...`, 'warning');
     return existingProduct;
   }
 
   if (DRY_RUN) {
-    log(`[DRY RUN] Would create product: ${config.name}`, "info");
-    return { id: "dry_run_product_id" } as Stripe.Product;
+    log(`[DRY RUN] Would create product: ${config.name}`, 'info');
+    return { id: 'dry_run_product_id' } as Stripe.Product;
   }
 
   if (existingProduct && FORCE_UPDATE) {
-    log(`Updating existing product "${config.name}"...`, "info");
+    log(`Updating existing product "${config.name}"...`, 'info');
     const updated = await stripe.products.update(existingProduct.id, {
       name: config.name,
       description: config.description,
@@ -251,11 +251,11 @@ async function createProduct(config: ProductConfig): Promise<Stripe.Product> {
         product_id: config.id,
       },
     });
-    log(`Updated product: ${updated.id}`, "success");
+    log(`Updated product: ${updated.id}`, 'success');
     return updated;
   }
 
-  log(`Creating product: ${config.name}...`, "info");
+  log(`Creating product: ${config.name}...`, 'info');
   const product = await stripe.products.create({
     name: config.name,
     description: config.description,
@@ -264,7 +264,7 @@ async function createProduct(config: ProductConfig): Promise<Stripe.Product> {
       product_id: config.id,
     },
   });
-  log(`Created product: ${product.id}`, "success");
+  log(`Created product: ${product.id}`, 'success');
   return product;
 }
 
@@ -273,47 +273,47 @@ async function createPrice(productId: string, config: PriceConfig, productConfig
   const existingPrice = await findExistingPrice(productConfigId, billingPeriod);
 
   if (existingPrice && !FORCE_UPDATE) {
-    log(`Price "${config.nickname}" already exists (${existingPrice.id}), skipping...`, "warning");
+    log(`Price "${config.nickname}" already exists (${existingPrice.id}), skipping...`, 'warning');
     return existingPrice;
   }
 
   if (DRY_RUN) {
     log(
       `[DRY RUN] Would create price: ${config.nickname} - $${(config.unit_amount / 100).toFixed(2)}/${config.recurring.interval}`,
-      "info",
+      'info',
     );
-    return { id: "dry_run_price_id" } as Stripe.Price;
+    return { id: 'dry_run_price_id' } as Stripe.Price;
   }
 
   // Archive existing price if forcing update
   if (existingPrice && FORCE_UPDATE) {
-    log(`Archiving old price "${config.nickname}" (${existingPrice.id})...`, "info");
+    log(`Archiving old price "${config.nickname}" (${existingPrice.id})...`, 'info');
     await stripe.prices.update(existingPrice.id, { active: false });
   }
 
   log(
     `Creating price: ${config.nickname} - $${(config.unit_amount / 100).toFixed(2)}/${config.recurring.interval}...`,
-    "info",
+    'info',
   );
   const price = await stripe.prices.create({
     product: productId,
     nickname: config.nickname,
     unit_amount: config.unit_amount,
-    currency: "usd",
+    currency: 'usd',
     recurring: config.recurring,
     metadata: {
       ...config.metadata,
       product_id: productConfigId,
     },
-    tax_behavior: "exclusive",
+    tax_behavior: 'exclusive',
   });
-  log(`Created price: ${price.id}`, "success");
+  log(`Created price: ${price.id}`, 'success');
   return price;
 }
 
 async function setupBillingPortal(): Promise<void> {
   if (DRY_RUN) {
-    log("[DRY RUN] Would configure billing portal", "info");
+    log('[DRY RUN] Would configure billing portal', 'info');
     return;
   }
 
@@ -322,15 +322,15 @@ async function setupBillingPortal(): Promise<void> {
     const existingConfigs = await stripe.billingPortal.configurations.list({ limit: 1 });
 
     if (existingConfigs.data.length > 0 && !FORCE_UPDATE) {
-      log("Billing portal already configured, skipping...", "warning");
+      log('Billing portal already configured, skipping...', 'warning');
       return;
     }
 
-    log("Configuring billing portal...", "info");
+    log('Configuring billing portal...', 'info');
     await stripe.billingPortal.configurations.create(BILLING_PORTAL_CONFIG);
-    log("Billing portal configured", "success");
+    log('Billing portal configured', 'success');
   } catch (error) {
-    log(`Failed to configure billing portal: ${error}`, "error");
+    log(`Failed to configure billing portal: ${error}`, 'error');
   }
 }
 
@@ -339,26 +339,26 @@ async function setupBillingPortal(): Promise<void> {
 // =============================================================================
 
 async function main() {
-  console.log("\n🚀 Nuclom Stripe IaC Setup\n");
-  console.log("=".repeat(50));
+  console.log('\n🚀 Nuclom Stripe IaC Setup\n');
+  console.log('='.repeat(50));
 
   if (DRY_RUN) {
-    console.log("🔍 DRY RUN MODE - No changes will be made\n");
+    console.log('🔍 DRY RUN MODE - No changes will be made\n');
   }
 
   if (FORCE_UPDATE) {
-    console.log("⚠️  FORCE UPDATE MODE - Existing resources will be updated\n");
+    console.log('⚠️  FORCE UPDATE MODE - Existing resources will be updated\n');
   }
 
-  console.log("📋 Pricing Configuration:");
-  console.log("   Scale Plan:");
-  console.log("   • Monthly: $25/user/month (prorated daily refund)");
-  console.log("   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)");
-  console.log("   Pro Plan:");
-  console.log("   • Monthly: $45/user/month (prorated daily refund)");
-  console.log("   • Yearly:  $39/user/month ($468/year, 13% off, non-refundable)");
-  console.log("   Trial:   14 days (no credit card required)\n");
-  console.log(`${"=".repeat(50)}\n`);
+  console.log('📋 Pricing Configuration:');
+  console.log('   Scale Plan:');
+  console.log('   • Monthly: $25/user/month (prorated daily refund)');
+  console.log('   • Yearly:  $19/user/month ($228/year, 24% off, non-refundable)');
+  console.log('   Pro Plan:');
+  console.log('   • Monthly: $45/user/month (prorated daily refund)');
+  console.log('   • Yearly:  $39/user/month ($468/year, 13% off, non-refundable)');
+  console.log('   Trial:   14 days (no credit card required)\n');
+  console.log(`${'='.repeat(50)}\n`);
 
   const createdResources: {
     products: Array<{ name: string; id: string }>;
@@ -371,7 +371,7 @@ async function main() {
   // Create products and prices
   for (const productConfig of PRODUCTS) {
     console.log(`\n📦 Processing product: ${productConfig.name}`);
-    console.log("-".repeat(40));
+    console.log('-'.repeat(40));
 
     const product = await createProduct(productConfig);
     createdResources.products.push({ name: productConfig.name, id: product.id });
@@ -387,76 +387,76 @@ async function main() {
   }
 
   // Configure billing portal
-  console.log("\n⚙️  Billing Portal Configuration");
-  console.log("-".repeat(40));
+  console.log('\n⚙️  Billing Portal Configuration');
+  console.log('-'.repeat(40));
   await setupBillingPortal();
 
   // Summary
-  console.log(`\n${"=".repeat(50)}`);
-  console.log("📊 Summary\n");
+  console.log(`\n${'='.repeat(50)}`);
+  console.log('📊 Summary\n');
 
   if (!DRY_RUN) {
-    console.log("Created/Updated Products:");
+    console.log('Created/Updated Products:');
     for (const product of createdResources.products) {
       console.log(`  • ${product.name}: ${product.id}`);
     }
 
-    console.log("\nCreated/Updated Prices:");
+    console.log('\nCreated/Updated Prices:');
     for (const price of createdResources.prices) {
       console.log(`  • ${price.nickname}: ${price.id} (${price.amount})`);
     }
 
     // Find price IDs for environment variables
-    const scaleMonthly = createdResources.prices.find((p) => p.nickname === "Scale Monthly");
-    const scaleYearly = createdResources.prices.find((p) => p.nickname === "Scale Yearly");
-    const proMonthly = createdResources.prices.find((p) => p.nickname === "Pro Monthly");
-    const proYearly = createdResources.prices.find((p) => p.nickname === "Pro Yearly");
+    const scaleMonthly = createdResources.prices.find((p) => p.nickname === 'Scale Monthly');
+    const scaleYearly = createdResources.prices.find((p) => p.nickname === 'Scale Yearly');
+    const proMonthly = createdResources.prices.find((p) => p.nickname === 'Pro Monthly');
+    const proYearly = createdResources.prices.find((p) => p.nickname === 'Pro Yearly');
 
-    console.log(`\n${"=".repeat(50)}`);
-    console.log("🔐 Required Environment Variables\n");
-    console.log("Add these to your .env file:\n");
-    console.log("# Stripe Configuration");
+    console.log(`\n${'='.repeat(50)}`);
+    console.log('🔐 Required Environment Variables\n');
+    console.log('Add these to your .env file:\n');
+    console.log('# Stripe Configuration');
     console.log(`STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY?.substring(0, 10)}...`);
-    console.log("STRIPE_PUBLISHABLE_KEY=pk_...");
-    console.log("STRIPE_WEBHOOK_SECRET=whsec_...");
-    console.log("");
-    console.log("# Better Auth Stripe Price IDs");
-    console.log(`STRIPE_PRICE_ID_SCALE_MONTHLY=${scaleMonthly?.id || "price_xxx"}`);
-    console.log(`STRIPE_PRICE_ID_SCALE_YEARLY=${scaleYearly?.id || "price_xxx"}`);
-    console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || "price_xxx"}`);
-    console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || "price_xxx"}`);
-    console.log("");
-    console.log("# (VERCEL_URL, VERCEL_PROJECT_PRODUCTION_URL) - no manual configuration needed");
-    console.log("");
+    console.log('STRIPE_PUBLISHABLE_KEY=pk_...');
+    console.log('STRIPE_WEBHOOK_SECRET=whsec_...');
+    console.log('');
+    console.log('# Better Auth Stripe Price IDs');
+    console.log(`STRIPE_PRICE_ID_SCALE_MONTHLY=${scaleMonthly?.id || 'price_xxx'}`);
+    console.log(`STRIPE_PRICE_ID_SCALE_YEARLY=${scaleYearly?.id || 'price_xxx'}`);
+    console.log(`STRIPE_PRICE_ID_PRO_MONTHLY=${proMonthly?.id || 'price_xxx'}`);
+    console.log(`STRIPE_PRICE_ID_PRO_YEARLY=${proYearly?.id || 'price_xxx'}`);
+    console.log('');
+    console.log('# (VERCEL_URL, VERCEL_PROJECT_PRODUCTION_URL) - no manual configuration needed');
+    console.log('');
 
-    console.log("=".repeat(50));
-    console.log("🔗 Webhook Endpoint to Configure\n");
-    console.log("Configure this single webhook in Stripe Dashboard:\n");
-    console.log("   URL: https://your-app.com/api/webhooks/stripe");
-    console.log("   Events:");
-    console.log("     - customer.subscription.* (all subscription events)");
-    console.log("     - checkout.session.completed");
-    console.log("     - invoice.* (all invoice events)");
-    console.log("     - payment_method.attached");
-    console.log("     - payment_method.detached");
-    console.log("");
-    console.log("   Note: This unified endpoint handles all events and forwards");
-    console.log("   subscription events to Better Auth internally.");
-    console.log("");
+    console.log('='.repeat(50));
+    console.log('🔗 Webhook Endpoint to Configure\n');
+    console.log('Configure this single webhook in Stripe Dashboard:\n');
+    console.log('   URL: https://your-app.com/api/webhooks/stripe');
+    console.log('   Events:');
+    console.log('     - customer.subscription.* (all subscription events)');
+    console.log('     - checkout.session.completed');
+    console.log('     - invoice.* (all invoice events)');
+    console.log('     - payment_method.attached');
+    console.log('     - payment_method.detached');
+    console.log('');
+    console.log('   Note: This unified endpoint handles all events and forwards');
+    console.log('   subscription events to Better Auth internally.');
+    console.log('');
 
-    console.log("📝 Next Steps:");
-    console.log("   1. Copy the environment variables above to your .env file");
-    console.log("   2. Run database migrations: pnpm drizzle-kit migrate");
-    console.log("   3. Configure webhook endpoints in Stripe Dashboard");
-    console.log("   4. Test the checkout flow in Stripe test mode");
+    console.log('📝 Next Steps:');
+    console.log('   1. Copy the environment variables above to your .env file');
+    console.log('   2. Run database migrations: pnpm drizzle-kit migrate');
+    console.log('   3. Configure webhook endpoints in Stripe Dashboard');
+    console.log('   4. Test the checkout flow in Stripe test mode');
   } else {
-    console.log("No resources were created (dry run mode)");
+    console.log('No resources were created (dry run mode)');
   }
 
-  console.log("\n✅ Stripe setup complete!\n");
+  console.log('\n✅ Stripe setup complete!\n');
 }
 
 main().catch((error) => {
-  console.error("Setup failed:", error);
+  console.error('Setup failed:', error);
   process.exit(1);
 });

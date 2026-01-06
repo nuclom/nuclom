@@ -1,8 +1,8 @@
-import { eq, sql } from "drizzle-orm";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { videoShareLinks, videos, videoViews } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
+import { eq, sql } from 'drizzle-orm';
+import { connection, type NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { videoShareLinks, videos, videoViews } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 
 // =============================================================================
 // POST /api/embed/[id]/view - Track embed video view
@@ -15,10 +15,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     // Generate a session ID from request fingerprint
-    const userAgent = request.headers.get("user-agent") || "";
-    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
-    const sessionId = Buffer.from(`${ip}:${userAgent}`).toString("base64").slice(0, 64);
-    const referrer = request.headers.get("referer") || null;
+    const userAgent = request.headers.get('user-agent') || '';
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const sessionId = Buffer.from(`${ip}:${userAgent}`).toString('base64').slice(0, 64);
+    const referrer = request.headers.get('referer') || null;
 
     // Check if this is a share link
     const [shareLink] = await db
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .where(eq(videos.id, videoId));
 
     if (!video) {
-      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
     }
 
     // Record the view (upsert to handle duplicate sessions)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         videoId: video.id,
         organizationId: video.organizationId,
         sessionId,
-        source: "embed",
+        source: 'embed',
         referrer,
         userAgent,
       })
@@ -79,22 +79,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const response = NextResponse.json({ success: true });
 
     // CORS headers
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
     return response;
   } catch (error) {
-    logger.error("Embed view tracking error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    logger.error('Embed view tracking error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 // Handle preflight requests for CORS
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 200 });
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
   return response;
 }

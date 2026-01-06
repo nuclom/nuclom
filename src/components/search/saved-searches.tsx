@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Bookmark, BookmarkPlus, Loader2, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
+import { Bookmark, BookmarkPlus, Loader2, MoreHorizontal, Pencil, Search, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,18 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { logger } from "@/lib/client-logger";
-import type { SearchFilters } from "@/lib/db/schema";
-import type { SavedSearchWithUser } from "@/lib/types";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { logger } from '@/lib/client-logger';
+import type { SearchFilters } from '@/lib/db/schema';
+import type { SavedSearchWithUser } from '@/lib/types';
 
 interface SavedSearchesProps {
   savedSearches: SavedSearchWithUser[];
@@ -46,17 +46,17 @@ export function SavedSearches({
   const [, startTransition] = useTransition();
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [searchName, setSearchName] = useState("");
+  const [searchName, setSearchName] = useState('');
   const [editingSearch, setEditingSearch] = useState<SavedSearchWithUser | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleApplySavedSearch = (savedSearch: SavedSearchWithUser) => {
     startTransition(() => {
       const params = new URLSearchParams();
-      params.set("q", savedSearch.query);
+      params.set('q', savedSearch.query);
       if (savedSearch.filters) {
         Object.entries(savedSearch.filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== "") {
+          if (value !== undefined && value !== null && value !== '') {
             params.set(key, String(value));
           }
         });
@@ -70,9 +70,9 @@ export function SavedSearches({
 
     setIsSaving(true);
     try {
-      const response = await fetch("/api/search/saved", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/search/saved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: searchName.trim(),
           query: currentQuery,
@@ -83,11 +83,11 @@ export function SavedSearches({
 
       if (response.ok) {
         setSaveDialogOpen(false);
-        setSearchName("");
+        setSearchName('');
         onRefresh();
       }
     } catch (error) {
-      logger.error("Failed to save search", error);
+      logger.error('Failed to save search', error);
     } finally {
       setIsSaving(false);
     }
@@ -99,8 +99,8 @@ export function SavedSearches({
     setIsSaving(true);
     try {
       const response = await fetch(`/api/search/saved/${editingSearch.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: searchName.trim(),
         }),
@@ -109,11 +109,11 @@ export function SavedSearches({
       if (response.ok) {
         setEditDialogOpen(false);
         setEditingSearch(null);
-        setSearchName("");
+        setSearchName('');
         onRefresh();
       }
     } catch (error) {
-      logger.error("Failed to update search", error);
+      logger.error('Failed to update search', error);
     } finally {
       setIsSaving(false);
     }
@@ -122,14 +122,14 @@ export function SavedSearches({
   const handleDeleteSearch = async (id: string) => {
     try {
       const response = await fetch(`/api/search/saved/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (response.ok) {
         onRefresh();
       }
     } catch (error) {
-      logger.error("Failed to delete search", error);
+      logger.error('Failed to delete search', error);
     }
   };
 

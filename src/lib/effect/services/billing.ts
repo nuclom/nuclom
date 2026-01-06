@@ -4,10 +4,10 @@
  * High-level billing operations that coordinate between Stripe and the database.
  */
 
-import { eq } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
-import type Stripe from "stripe";
-import { normalizeOne } from "@/lib/db/relations";
+import { eq } from 'drizzle-orm';
+import { Context, Effect, Layer, Option } from 'effect';
+import type Stripe from 'stripe';
+import { normalizeOne } from '@/lib/db/relations';
 import {
   type InvoiceStatus,
   type NewInvoice,
@@ -18,8 +18,8 @@ import {
   type Plan,
   type PlanLimits,
   type Subscription,
-} from "@/lib/db/schema";
-import { getAppUrl } from "@/lib/env/server";
+} from '@/lib/db/schema';
+import { getAppUrl } from '@/lib/env/server';
 import {
   DatabaseError,
   NoSubscriptionError,
@@ -27,16 +27,16 @@ import {
   PlanNotFoundError,
   type StripeApiError,
   SubscriptionError,
-} from "../errors";
+} from '../errors';
 import {
   BillingRepository,
   type OrganizationBillingInfo,
   type SubscriptionWithPlan,
   type UsageSummary,
-} from "./billing-repository";
-import { Database } from "./database";
-import { EmailNotifications } from "./email-notifications";
-import { StripeServiceTag } from "./stripe";
+} from './billing-repository';
+import { Database } from './database';
+import { EmailNotifications } from './email-notifications';
+import { StripeServiceTag } from './stripe';
 
 // =============================================================================
 // Types
@@ -45,7 +45,7 @@ import { StripeServiceTag } from "./stripe";
 export interface CreateCheckoutParams {
   organizationId: string;
   planId: string;
-  billingPeriod: "monthly" | "yearly";
+  billingPeriod: 'monthly' | 'yearly';
   successUrl: string;
   cancelUrl: string;
   email: string;
@@ -61,7 +61,7 @@ export interface SubscriptionUpgradePreview {
   nextBillingDate: Date;
 }
 
-export type LimitResource = "storage" | "videos" | "members" | "bandwidth" | "ai_requests";
+export type LimitResource = 'storage' | 'videos' | 'members' | 'bandwidth' | 'ai_requests';
 
 // =============================================================================
 // Service Interface
@@ -97,7 +97,7 @@ export interface BillingServiceInterface {
   readonly changePlan: (
     organizationId: string,
     newPlanId: string,
-    billingPeriod: "monthly" | "yearly",
+    billingPeriod: 'monthly' | 'yearly',
   ) => Effect.Effect<
     Subscription,
     NoSubscriptionError | PlanNotFoundError | StripeApiError | SubscriptionError | DatabaseError
@@ -125,7 +125,7 @@ export interface BillingServiceInterface {
 
   readonly getFeatureAccess: (
     organizationId: string,
-    feature: keyof Plan["features"],
+    feature: keyof Plan['features'],
   ) => Effect.Effect<boolean, NoSubscriptionError | DatabaseError>;
 
   // Plans
@@ -161,7 +161,7 @@ export interface BillingServiceInterface {
 // Service Tag
 // =============================================================================
 
-export class Billing extends Context.Tag("Billing")<Billing, BillingServiceInterface>() {}
+export class Billing extends Context.Tag('Billing')<Billing, BillingServiceInterface>() {}
 
 // =============================================================================
 // Service Implementation
@@ -175,7 +175,7 @@ const makeBillingService = Effect.gen(function* () {
 
   const sendSubscriptionNotifications = (
     organizationId: string,
-    eventType: "created" | "updated" | "canceled" | "payment_failed" | "payment_succeeded",
+    eventType: 'created' | 'updated' | 'canceled' | 'payment_failed' | 'payment_succeeded',
     planName?: string,
   ) =>
     Effect.gen(function* () {
@@ -187,7 +187,7 @@ const makeBillingService = Effect.gen(function* () {
           db.query.organizations.findFirst({
             where: eq(organizations.id, organizationId),
           }),
-        catch: () => new Error("Failed to get organization"),
+        catch: () => new Error('Failed to get organization'),
       });
 
       if (!org) return;
@@ -196,38 +196,38 @@ const makeBillingService = Effect.gen(function* () {
       const ownerMembers = yield* Effect.tryPromise({
         try: () =>
           db.query.members.findMany({
-            where: (m, { and, eq: colEq }) => and(colEq(m.organizationId, organizationId), colEq(m.role, "owner")),
+            where: (m, { and, eq: colEq }) => and(colEq(m.organizationId, organizationId), colEq(m.role, 'owner')),
             with: { user: true },
           }),
-        catch: () => new Error("Failed to get organization members"),
+        catch: () => new Error('Failed to get organization members'),
       });
 
       const notificationTitles = {
-        created: "Subscription activated",
-        updated: "Subscription updated",
-        canceled: "Subscription canceled",
-        payment_failed: "Payment failed",
-        payment_succeeded: "Payment successful",
+        created: 'Subscription activated',
+        updated: 'Subscription updated',
+        canceled: 'Subscription canceled',
+        payment_failed: 'Payment failed',
+        payment_succeeded: 'Payment successful',
       };
 
       const notificationBodies = {
-        created: `Your subscription to ${planName || "Nuclom Pro"} is now active.`,
-        updated: `Your subscription has been updated${planName ? ` to ${planName}` : ""}.`,
+        created: `Your subscription to ${planName || 'Nuclom Pro'} is now active.`,
+        updated: `Your subscription has been updated${planName ? ` to ${planName}` : ''}.`,
         canceled: `Your subscription for ${org.name} has been canceled and will remain active until the end of the billing period.`,
         payment_failed: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
         payment_succeeded: `Your payment for ${org.name} was processed successfully.`,
       };
 
       const notificationType =
-        eventType === "payment_failed"
-          ? "payment_failed"
-          : eventType === "payment_succeeded"
-            ? "payment_succeeded"
-            : eventType === "canceled"
-              ? "subscription_canceled"
-              : eventType === "updated"
-                ? "subscription_updated"
-                : "subscription_created";
+        eventType === 'payment_failed'
+          ? 'payment_failed'
+          : eventType === 'payment_succeeded'
+            ? 'payment_succeeded'
+            : eventType === 'canceled'
+              ? 'subscription_canceled'
+              : eventType === 'updated'
+                ? 'subscription_updated'
+                : 'subscription_created';
 
       for (const member of ownerMembers) {
         const user = normalizeOne(member.user);
@@ -241,17 +241,17 @@ const makeBillingService = Effect.gen(function* () {
               type: notificationType,
               title: notificationTitles[eventType],
               body: notificationBodies[eventType],
-              resourceType: "subscription",
+              resourceType: 'subscription',
               resourceId: organizationId,
             }),
-          catch: () => new Error("Failed to create notification"),
+          catch: () => new Error('Failed to create notification'),
         }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
         // Send email notification
         yield* emailService
           .sendSubscriptionNotification({
             recipientEmail: user.email,
-            recipientName: user.name || "there",
+            recipientName: user.name || 'there',
             organizationName: org.name,
             eventType,
             planName,
@@ -264,28 +264,28 @@ const makeBillingService = Effect.gen(function* () {
   // Better Auth Stripe compatible status mapping (using string instead of enum)
   const mapStripeStatus = (status: Stripe.Subscription.Status): string => {
     const statusMap: Record<Stripe.Subscription.Status, string> = {
-      active: "active",
-      canceled: "canceled",
-      past_due: "past_due",
-      trialing: "trialing",
-      incomplete: "incomplete",
-      incomplete_expired: "incomplete_expired",
-      unpaid: "unpaid",
-      paused: "paused",
+      active: 'active',
+      canceled: 'canceled',
+      past_due: 'past_due',
+      trialing: 'trialing',
+      incomplete: 'incomplete',
+      incomplete_expired: 'incomplete_expired',
+      unpaid: 'unpaid',
+      paused: 'paused',
     };
-    return statusMap[status] ?? "active";
+    return statusMap[status] ?? 'active';
   };
 
   const mapStripeInvoiceStatus = (status: Stripe.Invoice.Status | null): InvoiceStatus => {
-    if (!status) return "draft";
+    if (!status) return 'draft';
     const statusMap: Record<string, InvoiceStatus> = {
-      draft: "draft",
-      open: "open",
-      paid: "paid",
-      void: "void",
-      uncollectible: "uncollectible",
+      draft: 'draft',
+      open: 'open',
+      paid: 'paid',
+      void: 'void',
+      uncollectible: 'uncollectible',
     };
-    return statusMap[status] ?? "open";
+    return statusMap[status] ?? 'open';
   };
 
   const service: BillingServiceInterface = {
@@ -308,7 +308,7 @@ const makeBillingService = Effect.gen(function* () {
           customerId = customer.id;
         }
 
-        const priceId = params.billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
+        const priceId = params.billingPeriod === 'yearly' ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
 
         if (!priceId) {
           return yield* Effect.fail(
@@ -339,7 +339,7 @@ const makeBillingService = Effect.gen(function* () {
         if (!subscription.stripeCustomerId) {
           return yield* Effect.fail(
             new NoSubscriptionError({
-              message: "No Stripe customer ID found",
+              message: 'No Stripe customer ID found',
               organizationId,
             }),
           );
@@ -364,7 +364,7 @@ const makeBillingService = Effect.gen(function* () {
         if (!subscription.stripeSubscriptionId) {
           return yield* Effect.fail(
             new SubscriptionError({
-              message: "No Stripe subscription to cancel",
+              message: 'No Stripe subscription to cancel',
             }),
           );
         }
@@ -383,7 +383,7 @@ const makeBillingService = Effect.gen(function* () {
         if (!subscription.stripeSubscriptionId) {
           return yield* Effect.fail(
             new SubscriptionError({
-              message: "No Stripe subscription to resume",
+              message: 'No Stripe subscription to resume',
             }),
           );
         }
@@ -403,12 +403,12 @@ const makeBillingService = Effect.gen(function* () {
         if (!subscription.stripeSubscriptionId) {
           return yield* Effect.fail(
             new SubscriptionError({
-              message: "No Stripe subscription to update",
+              message: 'No Stripe subscription to update',
             }),
           );
         }
 
-        const priceId = billingPeriod === "yearly" ? newPlan.stripePriceIdYearly : newPlan.stripePriceIdMonthly;
+        const priceId = billingPeriod === 'yearly' ? newPlan.stripePriceIdYearly : newPlan.stripePriceIdMonthly;
 
         if (!priceId) {
           return yield* Effect.fail(
@@ -426,7 +426,7 @@ const makeBillingService = Effect.gen(function* () {
         if (!currentItemId) {
           return yield* Effect.fail(
             new SubscriptionError({
-              message: "No subscription item found",
+              message: 'No subscription item found',
               subscriptionId: subscription.stripeSubscriptionId,
             }),
           );
@@ -440,7 +440,7 @@ const makeBillingService = Effect.gen(function* () {
               price: priceId,
             },
           ],
-          proration_behavior: "create_prorations",
+          proration_behavior: 'create_prorations',
         });
 
         return yield* billingRepo.updateSubscription(organizationId, {
@@ -463,22 +463,22 @@ const makeBillingService = Effect.gen(function* () {
         let currentUsage: number;
 
         switch (resource) {
-          case "members": {
+          case 'members': {
             currentUsage = yield* billingRepo.getMemberCount(organizationId);
             break;
           }
-          case "videos": {
+          case 'videos': {
             currentUsage = yield* billingRepo.getVideoCount(organizationId);
             break;
           }
-          case "storage":
-          case "bandwidth":
-          case "ai_requests": {
+          case 'storage':
+          case 'bandwidth':
+          case 'ai_requests': {
             const usage = yield* billingRepo.getCurrentUsage(organizationId);
             currentUsage =
-              resource === "storage"
+              resource === 'storage'
                 ? usage.storageUsed
-                : resource === "bandwidth"
+                : resource === 'bandwidth'
                   ? usage.bandwidthUsed
                   : usage.aiRequests;
             break;
@@ -501,22 +501,22 @@ const makeBillingService = Effect.gen(function* () {
         let currentUsage: number;
 
         switch (resource) {
-          case "members": {
+          case 'members': {
             currentUsage = yield* billingRepo.getMemberCount(organizationId);
             break;
           }
-          case "videos": {
+          case 'videos': {
             currentUsage = yield* billingRepo.getVideoCount(organizationId);
             break;
           }
-          case "storage":
-          case "bandwidth":
-          case "ai_requests": {
+          case 'storage':
+          case 'bandwidth':
+          case 'ai_requests': {
             const usage = yield* billingRepo.getCurrentUsage(organizationId);
             currentUsage =
-              resource === "storage"
+              resource === 'storage'
                 ? usage.storageUsed
-                : resource === "bandwidth"
+                : resource === 'bandwidth'
                   ? usage.bandwidthUsed
                   : usage.aiRequests;
             break;
@@ -555,8 +555,8 @@ const makeBillingService = Effect.gen(function* () {
         if (!priceId) {
           return yield* Effect.fail(
             new PlanNotFoundError({
-              message: "No price ID in subscription",
-              planId: "unknown",
+              message: 'No price ID in subscription',
+              planId: 'unknown',
             }),
           );
         }
@@ -600,7 +600,7 @@ const makeBillingService = Effect.gen(function* () {
         }
 
         // Send subscription created notification
-        yield* sendSubscriptionNotifications(organizationId, "created", localPlan.name);
+        yield* sendSubscriptionNotifications(organizationId, 'created', localPlan.name);
 
         return result;
       }),
@@ -609,7 +609,7 @@ const makeBillingService = Effect.gen(function* () {
       Effect.gen(function* () {
         const subscription = yield* billingRepo
           .getSubscriptionByStripeId(stripeSubscription.id)
-          .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
+          .pipe(Effect.mapError(() => new DatabaseError({ message: 'Subscription not found' })));
 
         const priceId = stripeSubscription.items.data[0]?.price.id;
         let planName = subscription.plan;
@@ -641,7 +641,7 @@ const makeBillingService = Effect.gen(function* () {
         });
 
         // Send subscription updated notification
-        yield* sendSubscriptionNotifications(subscription.referenceId, "updated", planName);
+        yield* sendSubscriptionNotifications(subscription.referenceId, 'updated', planName);
 
         return result;
       }),
@@ -650,26 +650,26 @@ const makeBillingService = Effect.gen(function* () {
       Effect.gen(function* () {
         const subscription = yield* billingRepo
           .getSubscriptionByStripeId(stripeSubscription.id)
-          .pipe(Effect.mapError(() => new DatabaseError({ message: "Subscription not found" })));
+          .pipe(Effect.mapError(() => new DatabaseError({ message: 'Subscription not found' })));
 
         // Update to canceled status (Better Auth Stripe schema)
         yield* billingRepo.updateSubscription(subscription.referenceId, {
-          plan: "free",
-          status: "canceled",
+          plan: 'free',
+          status: 'canceled',
           stripeSubscriptionId: null,
           canceledAt: new Date(),
           endedAt: new Date(),
         });
 
         // Send subscription canceled notification
-        yield* sendSubscriptionNotifications(subscription.referenceId, "canceled");
+        yield* sendSubscriptionNotifications(subscription.referenceId, 'canceled');
       }),
 
     handleInvoicePaid: (stripeInvoice) =>
       Effect.gen(function* () {
         // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
         const subscriptionId =
-          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+          typeof stripeInvoice.parent?.subscription_details?.subscription === 'string'
             ? stripeInvoice.parent.subscription_details.subscription
             : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
@@ -686,7 +686,7 @@ const makeBillingService = Effect.gen(function* () {
         // Get the first/default payment intent ID
         const defaultPayment = (stripeInvoice.payments?.data || []).find((p) => p.is_default);
         const paymentIntentId =
-          typeof defaultPayment?.payment.payment_intent === "string"
+          typeof defaultPayment?.payment.payment_intent === 'string'
             ? defaultPayment.payment.payment_intent
             : (defaultPayment?.payment.payment_intent as unknown as { id?: string })?.id;
 
@@ -716,18 +716,18 @@ const makeBillingService = Effect.gen(function* () {
 
         // Update subscription status if needed
         yield* billingRepo.updateSubscription(organizationId, {
-          status: "active",
+          status: 'active',
         });
 
         // Send payment succeeded notification
-        yield* sendSubscriptionNotifications(organizationId, "payment_succeeded");
+        yield* sendSubscriptionNotifications(organizationId, 'payment_succeeded');
       }),
 
     handleInvoiceFailed: (stripeInvoice) =>
       Effect.gen(function* () {
         // In Stripe API 2025-12-15.clover, subscription is now at parent?.subscription_details?.subscription
         const subscriptionId =
-          typeof stripeInvoice.parent?.subscription_details?.subscription === "string"
+          typeof stripeInvoice.parent?.subscription_details?.subscription === 'string'
             ? stripeInvoice.parent.subscription_details.subscription
             : stripeInvoice.parent?.subscription_details?.subscription?.id;
 
@@ -742,11 +742,11 @@ const makeBillingService = Effect.gen(function* () {
 
         // Update subscription status
         yield* billingRepo.updateSubscription(organizationId, {
-          status: "past_due",
+          status: 'past_due',
         });
 
         // Send payment failed notification
-        yield* sendSubscriptionNotifications(organizationId, "payment_failed");
+        yield* sendSubscriptionNotifications(organizationId, 'payment_failed');
       }),
 
     handlePaymentMethodAttached: (paymentMethod, organizationId) =>
@@ -793,7 +793,7 @@ export const cancelSubscription = (organizationId: string) =>
 export const resumeSubscription = (organizationId: string) =>
   Effect.flatMap(Billing, (billing) => billing.resumeSubscription(organizationId));
 
-export const changePlan = (organizationId: string, newPlanId: string, billingPeriod: "monthly" | "yearly") =>
+export const changePlan = (organizationId: string, newPlanId: string, billingPeriod: 'monthly' | 'yearly') =>
   Effect.flatMap(Billing, (billing) => billing.changePlan(organizationId, newPlanId, billingPeriod));
 
 export const checkLimit = (organizationId: string, resource: LimitResource, additionalAmount?: number) =>
@@ -802,5 +802,5 @@ export const checkLimit = (organizationId: string, resource: LimitResource, addi
 export const enforceLimit = (organizationId: string, resource: LimitResource, additionalAmount?: number) =>
   Effect.flatMap(Billing, (billing) => billing.enforceLimit(organizationId, resource, additionalAmount));
 
-export const getFeatureAccess = (organizationId: string, feature: keyof Plan["features"]) =>
+export const getFeatureAccess = (organizationId: string, feature: keyof Plan['features']) =>
   Effect.flatMap(Billing, (billing) => billing.getFeatureAccess(organizationId, feature));

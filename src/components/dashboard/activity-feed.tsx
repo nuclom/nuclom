@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Clock, MessageSquare, Play, Upload, Users } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Clock, MessageSquare, Play, Upload, Users } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ActivityItem {
   id: string;
-  type: "upload" | "comment" | "view" | "share" | "join";
+  type: 'upload' | 'comment' | 'view' | 'share' | 'join';
   user: {
     name: string;
     image?: string;
@@ -30,19 +30,19 @@ const activityIcons = {
 };
 
 const activityMessages = {
-  upload: "uploaded a video",
-  comment: "commented on",
-  view: "watched",
-  share: "shared",
-  join: "joined the workspace",
+  upload: 'uploaded a video',
+  comment: 'commented on',
+  view: 'watched',
+  share: 'shared',
+  join: 'joined the workspace',
 };
 
 export function ActivityFeed({ activities = [], className }: ActivityFeedProps) {
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -54,7 +54,7 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
+    if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
@@ -67,30 +67,30 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
       ? activities
       : [
           {
-            id: "1",
-            type: "upload",
-            user: { name: "Alex Chen" },
-            target: "Q4 Product Demo",
+            id: '1',
+            type: 'upload',
+            user: { name: 'Alex Chen' },
+            target: 'Q4 Product Demo',
             timestamp: new Date(Date.now() - 3600000),
           },
           {
-            id: "2",
-            type: "comment",
-            user: { name: "Sarah Miller" },
-            target: "Engineering Standup",
+            id: '2',
+            type: 'comment',
+            user: { name: 'Sarah Miller' },
+            target: 'Engineering Standup',
             timestamp: new Date(Date.now() - 7200000),
           },
           {
-            id: "3",
-            type: "view",
-            user: { name: "James Wilson" },
-            target: "Onboarding Guide",
+            id: '3',
+            type: 'view',
+            user: { name: 'James Wilson' },
+            target: 'Onboarding Guide',
             timestamp: new Date(Date.now() - 18000000),
           },
         ];
 
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn('', className)}>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -112,11 +112,11 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">
-                      <span className="font-medium">{activity.user.name}</span>{" "}
+                      <span className="font-medium">{activity.user.name}</span>{' '}
                       <span className="text-muted-foreground">{activityMessages[activity.type]}</span>
                       {activity.target && (
                         <>
-                          {" "}
+                          {' '}
                           <span className="font-medium">{activity.target}</span>
                         </>
                       )}

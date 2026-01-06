@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { MessageSquare } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { startTransition, useCallback, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
-import { CommentForm } from "./comment-form";
-import { CommentThread } from "./comment-thread";
+import { MessageSquare } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { startTransition, useCallback, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { CommentWithReplies } from '@/lib/effect/services/comment-repository';
+import { CommentForm } from './comment-form';
+import { CommentThread } from './comment-thread';
 
 interface CommentListProps {
   videoId: string;
@@ -33,21 +33,21 @@ export function CommentList({
   const handleCreateComment = useCallback(
     async (data: { content: string; timestamp?: string; parentId?: string }) => {
       if (!currentUser) {
-        router.push("/login");
+        router.push('/login');
         return;
       }
 
       setIsSubmitting(true);
       try {
         const response = await fetch(`/api/videos/${videoId}/comments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to create comment");
+          throw new Error(error.error || 'Failed to create comment');
         }
 
         startTransition(() => {
@@ -63,14 +63,14 @@ export function CommentList({
   const handleEditComment = useCallback(
     async (commentId: string, content: string) => {
       const response = await fetch(`/api/comments/${commentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update comment");
+        throw new Error(error.error || 'Failed to update comment');
       }
 
       startTransition(() => {
@@ -83,12 +83,12 @@ export function CommentList({
   const handleDeleteComment = useCallback(
     async (commentId: string) => {
       const response = await fetch(`/api/comments/${commentId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete comment");
+        throw new Error(error.error || 'Failed to delete comment');
       }
 
       startTransition(() => {
@@ -127,7 +127,7 @@ export function CommentList({
             <p className="text-muted-foreground text-sm">
               <a href="/login" className="text-primary hover:underline">
                 Sign in
-              </a>{" "}
+              </a>{' '}
               to leave a comment
             </p>
           </div>

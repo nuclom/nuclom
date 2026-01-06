@@ -1,17 +1,17 @@
-import path from "node:path";
-import process from "node:process";
-import type { BrowserContext } from "@playwright/test";
-import { test as base, type Page } from "@playwright/test";
+import path from 'node:path';
+import process from 'node:process';
+import type { BrowserContext } from '@playwright/test';
+import { test as base, type Page } from '@playwright/test';
 
 /**
  * Test configuration constants
  */
 export const TEST_CONFIG = {
   // Test organization slug (used for authenticated routes)
-  testOrg: process.env.E2E_TEST_ORG || "vercel",
+  testOrg: process.env.E2E_TEST_ORG || 'vercel',
   // Test user credentials
-  testUserEmail: process.env.E2E_TEST_USER_EMAIL || "e2e-test@example.com",
-  testUserPassword: process.env.E2E_TEST_USER_PASSWORD || "testpassword123",
+  testUserEmail: process.env.E2E_TEST_USER_EMAIL || 'e2e-test@example.com',
+  testUserPassword: process.env.E2E_TEST_USER_PASSWORD || 'testpassword123',
   // Timeouts
   navigationTimeout: 15000,
   actionTimeout: 10000,
@@ -25,7 +25,7 @@ export const test = base.extend<{
 }>({
   // Authenticated page fixture - uses stored auth state
   authenticatedPage: async ({ browser }, use) => {
-    const authFile = path.join(process.cwd(), "playwright/.auth/user.json");
+    const authFile = path.join(process.cwd(), 'playwright/.auth/user.json');
 
     let context: BrowserContext;
     try {
@@ -43,14 +43,14 @@ export const test = base.extend<{
   },
 });
 
-export { expect } from "@playwright/test";
+export { expect } from '@playwright/test';
 
 /**
  * Helper to wait for page to be fully loaded
  */
 export async function waitForPageLoad(page: Page): Promise<void> {
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForLoadState("networkidle").catch(() => {
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('networkidle').catch(() => {
     // Network idle can timeout on slow connections, continue anyway
   });
 }
@@ -60,7 +60,7 @@ export async function waitForPageLoad(page: Page): Promise<void> {
  */
 export async function expectVisible(page: Page, selector: string, description?: string): Promise<void> {
   const element = page.locator(selector).first();
-  await element.waitFor({ state: "visible", timeout: TEST_CONFIG.actionTimeout }).catch(() => {
+  await element.waitFor({ state: 'visible', timeout: TEST_CONFIG.actionTimeout }).catch(() => {
     throw new Error(`Expected ${description || selector} to be visible, but it was not found`);
   });
 }
@@ -76,5 +76,5 @@ export async function fillField(page: Page, label: string, value: string): Promi
  * Helper to click a button by text
  */
 export async function clickButton(page: Page, text: string | RegExp): Promise<void> {
-  await page.getByRole("button", { name: text }).click();
+  await page.getByRole('button', { name: text }).click();
 }

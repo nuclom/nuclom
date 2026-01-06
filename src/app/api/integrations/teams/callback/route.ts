@@ -1,16 +1,16 @@
-import { Effect } from "effect";
-import { MicrosoftTeams } from "@/lib/effect/services/microsoft-teams";
+import { Effect } from 'effect';
+import { MicrosoftTeams } from '@/lib/effect/services/microsoft-teams';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
   TeamsIntegrationLayer,
   validateOAuthCallback,
-} from "@/lib/integrations";
-import { logger } from "@/lib/logger";
+} from '@/lib/integrations';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
-  const validation = await validateOAuthCallback(request, "teams");
+  const validation = await validateOAuthCallback(request, 'teams');
   if (!validation.success) {
     return validation.redirect;
   }
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     yield* saveIntegration({
       userId,
       organizationId,
-      provider: "microsoft_teams",
+      provider: 'microsoft_teams',
       tokens: {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -49,9 +49,9 @@ export async function GET(request: Request) {
 
   try {
     await Effect.runPromise(Effect.provide(effect, TeamsIntegrationLayer));
-    return successRedirect(organizationId, "teams");
+    return successRedirect(organizationId, 'teams');
   } catch (err) {
-    logger.error("[Teams Callback Error]", err instanceof Error ? err : new Error(String(err)));
-    return errorRedirect(organizationId, "teams");
+    logger.error('[Teams Callback Error]', err instanceof Error ? err : new Error(String(err)));
+    return errorRedirect(organizationId, 'teams');
   }
 }

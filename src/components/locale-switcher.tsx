@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { Check, Globe } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { Button } from "@/components/ui/button";
+import { Check, Globe } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { type Locale, localeFlags, localeNames, locales } from "@/lib/i18n";
-import { setLocale } from "@/lib/i18n/actions";
+} from '@/components/ui/dropdown-menu';
+import { type Locale, localeFlags, localeNames, locales } from '@/lib/i18n';
+import { setLocale } from '@/lib/i18n/actions';
 
 interface LocaleSwitcherProps {
   currentLocale: Locale;

@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { CalendarIcon, Check, ChevronsUpDown, Filter, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useTransition } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import type { Channel, Collection, User } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+import { format } from 'date-fns';
+import { CalendarIcon, Check, ChevronsUpDown, Filter, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useTransition } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import type { Channel, Collection, User } from '@/lib/db/schema';
+import { cn } from '@/lib/utils';
 
 interface SearchFiltersProps {
   organization: string;
@@ -29,15 +29,15 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
   const [isPending, startTransition] = useTransition();
 
   // Get current filter values
-  const authorId = searchParams.get("authorId") || "";
-  const channelId = searchParams.get("channelId") || "";
-  const collectionId = searchParams.get("collectionId") || "";
-  const dateFrom = searchParams.get("dateFrom") || "";
-  const dateTo = searchParams.get("dateTo") || "";
-  const hasTranscript = searchParams.get("hasTranscript") === "true";
-  const hasAiSummary = searchParams.get("hasAiSummary") === "true";
-  const sortBy = searchParams.get("sortBy") || "relevance";
-  const sortOrder = searchParams.get("sortOrder") || "desc";
+  const authorId = searchParams.get('authorId') || '';
+  const channelId = searchParams.get('channelId') || '';
+  const collectionId = searchParams.get('collectionId') || '';
+  const dateFrom = searchParams.get('dateFrom') || '';
+  const dateTo = searchParams.get('dateTo') || '';
+  const hasTranscript = searchParams.get('hasTranscript') === 'true';
+  const hasAiSummary = searchParams.get('hasAiSummary') === 'true';
+  const sortBy = searchParams.get('sortBy') || 'relevance';
+  const sortOrder = searchParams.get('sortOrder') || 'desc';
 
   const hasActiveFilters = authorId || channelId || collectionId || dateFrom || dateTo || hasTranscript || hasAiSummary;
 
@@ -45,12 +45,12 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
     (key: string, value: string | boolean) => {
       startTransition(() => {
         const params = new URLSearchParams(searchParams.toString());
-        if (value === "" || value === false) {
+        if (value === '' || value === false) {
           params.delete(key);
         } else {
           params.set(key, String(value));
         }
-        params.delete("page"); // Reset pagination on filter change
+        params.delete('page'); // Reset pagination on filter change
         router.push(`/${organization}/search?${params.toString()}`);
       });
     },
@@ -60,14 +60,14 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
   const clearAllFilters = useCallback(() => {
     startTransition(() => {
       const params = new URLSearchParams(searchParams.toString());
-      params.delete("authorId");
-      params.delete("channelId");
-      params.delete("collectionId");
-      params.delete("dateFrom");
-      params.delete("dateTo");
-      params.delete("hasTranscript");
-      params.delete("hasAiSummary");
-      params.delete("page");
+      params.delete('authorId');
+      params.delete('channelId');
+      params.delete('collectionId');
+      params.delete('dateFrom');
+      params.delete('dateTo');
+      params.delete('hasTranscript');
+      params.delete('hasAiSummary');
+      params.delete('page');
       router.push(`/${organization}/search?${params.toString()}`);
     });
   }, [router, organization, searchParams]);
@@ -95,7 +95,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
       <div className="space-y-4">
         {/* Sort options */}
         <div className="flex items-center gap-2">
-          <Select value={sortBy} onValueChange={(value) => updateFilter("sortBy", value)}>
+          <Select value={sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -105,7 +105,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
               <SelectItem value="title">Title</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sortOrder} onValueChange={(value) => updateFilter("sortOrder", value)}>
+          <Select value={sortOrder} onValueChange={(value) => updateFilter('sortOrder', value)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Order" />
             </SelectTrigger>
@@ -123,7 +123,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
-                  {authorId ? authors.find((a) => a.id === authorId)?.name || "Select author" : "All authors"}
+                  {authorId ? authors.find((a) => a.id === authorId)?.name || 'Select author' : 'All authors'}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -133,13 +133,13 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                   <CommandList>
                     <CommandEmpty>No author found.</CommandEmpty>
                     <CommandGroup>
-                      <CommandItem onSelect={() => updateFilter("authorId", "")}>
-                        <Check className={cn("mr-2 h-4 w-4", !authorId ? "opacity-100" : "opacity-0")} />
+                      <CommandItem onSelect={() => updateFilter('authorId', '')}>
+                        <Check className={cn('mr-2 h-4 w-4', !authorId ? 'opacity-100' : 'opacity-0')} />
                         All authors
                       </CommandItem>
                       {authors.map((author) => (
-                        <CommandItem key={author.id} onSelect={() => updateFilter("authorId", author.id)}>
-                          <Check className={cn("mr-2 h-4 w-4", authorId === author.id ? "opacity-100" : "opacity-0")} />
+                        <CommandItem key={author.id} onSelect={() => updateFilter('authorId', author.id)}>
+                          <Check className={cn('mr-2 h-4 w-4', authorId === author.id ? 'opacity-100' : 'opacity-0')} />
                           {author.name}
                         </CommandItem>
                       ))}
@@ -158,7 +158,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
-                  {channelId ? channels.find((c) => c.id === channelId)?.name || "Select channel" : "All channels"}
+                  {channelId ? channels.find((c) => c.id === channelId)?.name || 'Select channel' : 'All channels'}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -168,14 +168,14 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                   <CommandList>
                     <CommandEmpty>No channel found.</CommandEmpty>
                     <CommandGroup>
-                      <CommandItem onSelect={() => updateFilter("channelId", "")}>
-                        <Check className={cn("mr-2 h-4 w-4", !channelId ? "opacity-100" : "opacity-0")} />
+                      <CommandItem onSelect={() => updateFilter('channelId', '')}>
+                        <Check className={cn('mr-2 h-4 w-4', !channelId ? 'opacity-100' : 'opacity-0')} />
                         All channels
                       </CommandItem>
                       {channels.map((channel) => (
-                        <CommandItem key={channel.id} onSelect={() => updateFilter("channelId", channel.id)}>
+                        <CommandItem key={channel.id} onSelect={() => updateFilter('channelId', channel.id)}>
                           <Check
-                            className={cn("mr-2 h-4 w-4", channelId === channel.id ? "opacity-100" : "opacity-0")}
+                            className={cn('mr-2 h-4 w-4', channelId === channel.id ? 'opacity-100' : 'opacity-0')}
                           />
                           {channel.name}
                         </CommandItem>
@@ -196,8 +196,8 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   {collectionId
-                    ? collections.find((c) => c.id === collectionId)?.name || "Select collection"
-                    : "All collections"}
+                    ? collections.find((c) => c.id === collectionId)?.name || 'Select collection'
+                    : 'All collections'}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -207,14 +207,14 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                   <CommandList>
                     <CommandEmpty>No collection found.</CommandEmpty>
                     <CommandGroup>
-                      <CommandItem onSelect={() => updateFilter("collectionId", "")}>
-                        <Check className={cn("mr-2 h-4 w-4", !collectionId ? "opacity-100" : "opacity-0")} />
+                      <CommandItem onSelect={() => updateFilter('collectionId', '')}>
+                        <Check className={cn('mr-2 h-4 w-4', !collectionId ? 'opacity-100' : 'opacity-0')} />
                         All collections
                       </CommandItem>
                       {collections.map((collection) => (
-                        <CommandItem key={collection.id} onSelect={() => updateFilter("collectionId", collection.id)}>
+                        <CommandItem key={collection.id} onSelect={() => updateFilter('collectionId', collection.id)}>
                           <Check
-                            className={cn("mr-2 h-4 w-4", collectionId === collection.id ? "opacity-100" : "opacity-0")}
+                            className={cn('mr-2 h-4 w-4', collectionId === collection.id ? 'opacity-100' : 'opacity-0')}
                           />
                           {collection.name}
                         </CommandItem>
@@ -242,17 +242,17 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
+                    className={cn('w-full justify-start text-left font-normal', !dateFrom && 'text-muted-foreground')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(new Date(dateFrom), "PPP") : "Pick a date"}
+                    {dateFrom ? format(new Date(dateFrom), 'PPP') : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={dateFrom ? new Date(dateFrom) : undefined}
-                    onSelect={(date) => updateFilter("dateFrom", date ? date.toISOString() : "")}
+                    onSelect={(date) => updateFilter('dateFrom', date ? date.toISOString() : '')}
                     initialFocus
                   />
                 </PopoverContent>
@@ -264,17 +264,17 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}
+                    className={cn('w-full justify-start text-left font-normal', !dateTo && 'text-muted-foreground')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(new Date(dateTo), "PPP") : "Pick a date"}
+                    {dateTo ? format(new Date(dateTo), 'PPP') : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={dateTo ? new Date(dateTo) : undefined}
-                    onSelect={(date) => updateFilter("dateTo", date ? date.toISOString() : "")}
+                    onSelect={(date) => updateFilter('dateTo', date ? date.toISOString() : '')}
                     initialFocus
                   />
                 </PopoverContent>
@@ -293,7 +293,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
             <Switch
               id="hasTranscript"
               checked={hasTranscript}
-              onCheckedChange={(checked) => updateFilter("hasTranscript", checked)}
+              onCheckedChange={(checked) => updateFilter('hasTranscript', checked)}
             />
           </div>
           <div className="flex items-center justify-between">
@@ -303,7 +303,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
             <Switch
               id="hasAiSummary"
               checked={hasAiSummary}
-              onCheckedChange={(checked) => updateFilter("hasAiSummary", checked)}
+              onCheckedChange={(checked) => updateFilter('hasAiSummary', checked)}
             />
           </div>
         </div>

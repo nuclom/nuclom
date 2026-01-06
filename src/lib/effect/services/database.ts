@@ -5,13 +5,13 @@
  * which integrates Drizzle ORM with Effect's execution model.
  */
 
-import { layer as pgDrizzleLayer } from "@effect/sql-drizzle/Pg";
-import { PgClient } from "@effect/sql-pg";
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { Config, Context, Effect, Layer, pipe, Redacted } from "effect";
-import postgres from "postgres";
-import * as schema from "@/lib/db/schema";
-import { DatabaseError, DuplicateError, NotFoundError, TransactionError } from "../errors";
+import { layer as pgDrizzleLayer } from '@effect/sql-drizzle/Pg';
+import { PgClient } from '@effect/sql-pg';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { Config, Context, Effect, Layer, pipe, Redacted } from 'effect';
+import postgres from 'postgres';
+import * as schema from '@/lib/db/schema';
+import { DatabaseError, DuplicateError, NotFoundError, TransactionError } from '../errors';
 
 // =============================================================================
 // Types
@@ -28,7 +28,7 @@ export interface DatabaseService {
 // Database Service Tag
 // =============================================================================
 
-export class Database extends Context.Tag("Database")<Database, DatabaseService>() {}
+export class Database extends Context.Tag('Database')<Database, DatabaseService>() {}
 
 // =============================================================================
 // Database Layer using Effect SQL
@@ -39,7 +39,7 @@ export class Database extends Context.Tag("Database")<Database, DatabaseService>
  */
 const makePgClientLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted("DATABASE_URL");
+    const databaseUrl = yield* Config.redacted('DATABASE_URL');
 
     return PgClient.layerConfig({
       url: Config.succeed(databaseUrl),
@@ -63,7 +63,7 @@ export const DrizzleLive = pgDrizzleLayer.pipe(Layer.provide(makePgClientLayer))
 export const DatabaseLive = Layer.scoped(
   Database,
   Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted("DATABASE_URL");
+    const databaseUrl = yield* Config.redacted('DATABASE_URL');
 
     const client = postgres(Redacted.value(databaseUrl), {
       prepare: false, // Required for "Transaction" pool mode
@@ -125,7 +125,7 @@ export const transaction = <A>(
       try: () => db.transaction(operations),
       catch: (error) =>
         new TransactionError({
-          message: "Transaction failed",
+          message: 'Transaction failed',
           cause: error,
         }),
     });
@@ -167,7 +167,7 @@ export const insertUnique = <A>(
       Effect.mapError((error: DatabaseError): DatabaseError | DuplicateError => {
         // Check if it's a unique constraint violation
         const cause = error.cause as Error | undefined;
-        if (cause?.message?.includes("unique") || cause?.message?.includes("duplicate")) {
+        if (cause?.message?.includes('unique') || cause?.message?.includes('duplicate')) {
           return new DuplicateError({
             message: `${entity} with this ${field} already exists`,
             entity,

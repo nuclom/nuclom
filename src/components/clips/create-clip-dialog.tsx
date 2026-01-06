@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Loader2, Scissors } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Scissors } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreateClipDialogProps {
   videoId: string;
@@ -35,11 +35,11 @@ interface CreateClipDialogProps {
 function formatTimeInput(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function parseTimeInput(timeStr: string): number | null {
-  const parts = timeStr.split(":").map((p) => Number.parseInt(p, 10));
+  const parts = timeStr.split(':').map((p) => Number.parseInt(p, 10));
   if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
     return parts[0] * 60 + parts[1];
   }
@@ -53,13 +53,13 @@ export function CreateClipDialog({ videoId, open, onOpenChange, initialData, onS
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [description, setDescription] = useState(initialData?.description || "");
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [description, setDescription] = useState(initialData?.description || '');
   const [startTimeStr, setStartTimeStr] = useState(
-    initialData?.startTime !== undefined ? formatTimeInput(initialData.startTime) : "0:00",
+    initialData?.startTime !== undefined ? formatTimeInput(initialData.startTime) : '0:00',
   );
   const [endTimeStr, setEndTimeStr] = useState(
-    initialData?.endTime !== undefined ? formatTimeInput(initialData.endTime) : "0:00",
+    initialData?.endTime !== undefined ? formatTimeInput(initialData.endTime) : '0:00',
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,27 +70,27 @@ export function CreateClipDialog({ videoId, open, onOpenChange, initialData, onS
 
     if (startTime === null || endTime === null) {
       toast({
-        title: "Invalid time format",
-        description: "Please use MM:SS or HH:MM:SS format",
-        variant: "destructive",
+        title: 'Invalid time format',
+        description: 'Please use MM:SS or HH:MM:SS format',
+        variant: 'destructive',
       });
       return;
     }
 
     if (endTime <= startTime) {
       toast({
-        title: "Invalid time range",
-        description: "End time must be after start time",
-        variant: "destructive",
+        title: 'Invalid time range',
+        description: 'End time must be after start time',
+        variant: 'destructive',
       });
       return;
     }
 
     if (!title.trim()) {
       toast({
-        title: "Title required",
-        description: "Please enter a title for the clip",
-        variant: "destructive",
+        title: 'Title required',
+        description: 'Please enter a title for the clip',
+        variant: 'destructive',
       });
       return;
     }
@@ -99,8 +99,8 @@ export function CreateClipDialog({ videoId, open, onOpenChange, initialData, onS
 
     try {
       const response = await fetch(`/api/videos/${videoId}/clips`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || undefined,
@@ -114,21 +114,21 @@ export function CreateClipDialog({ videoId, open, onOpenChange, initialData, onS
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create clip");
+        throw new Error(error.error || 'Failed to create clip');
       }
 
       toast({
-        title: "Clip created",
-        description: "Your clip is being processed and will be ready soon.",
+        title: 'Clip created',
+        description: 'Your clip is being processed and will be ready soon.',
       });
 
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
       toast({
-        title: "Failed to create clip",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
+        title: 'Failed to create clip',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -208,7 +208,7 @@ export function CreateClipDialog({ videoId, open, onOpenChange, initialData, onS
                   Creating...
                 </>
               ) : (
-                "Create Clip"
+                'Create Clip'
               )}
             </Button>
           </DialogFooter>

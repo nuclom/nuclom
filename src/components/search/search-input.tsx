@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Loader2, Search, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { logger } from "@/lib/client-logger";
-import type { SearchSuggestion } from "@/lib/types";
+import { Loader2, Search, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { logger } from '@/lib/client-logger';
+import type { SearchSuggestion } from '@/lib/types';
 
 interface SearchInputProps {
   organizationId: string;
@@ -19,7 +19,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [query, setQuery] = useState(searchParams.get('q') || '');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -38,7 +38,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
             setSuggestions(data);
           }
         } catch (error) {
-          logger.error("Failed to fetch suggestions", error);
+          logger.error('Failed to fetch suggestions', error);
         }
         return;
       }
@@ -52,7 +52,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
           setSuggestions(data);
         }
       } catch (error) {
-        logger.error("Failed to fetch suggestions", error);
+        logger.error('Failed to fetch suggestions', error);
       }
     };
 
@@ -73,8 +73,8 @@ export function SearchInput({ organizationId, organization, className, autoFocus
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSearch = useCallback(
@@ -82,11 +82,11 @@ export function SearchInput({ organizationId, organization, className, autoFocus
       startTransition(() => {
         const params = new URLSearchParams(searchParams.toString());
         if (searchQuery.trim()) {
-          params.set("q", searchQuery.trim());
+          params.set('q', searchQuery.trim());
         } else {
-          params.delete("q");
+          params.delete('q');
         }
-        params.delete("page"); // Reset pagination on new search
+        params.delete('page'); // Reset pagination on new search
         router.push(`/${organization}/search?${params.toString()}`);
       });
       setShowSuggestions(false);
@@ -95,11 +95,11 @@ export function SearchInput({ organizationId, organization, className, autoFocus
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
         const suggestion = suggestions[selectedIndex];
-        if (suggestion.type === "video" && suggestion.videoId) {
+        if (suggestion.type === 'video' && suggestion.videoId) {
           router.push(`/${organization}/videos/${suggestion.videoId}`);
         } else {
           setQuery(suggestion.text);
@@ -108,21 +108,21 @@ export function SearchInput({ organizationId, organization, className, autoFocus
       } else {
         handleSearch(query);
       }
-    } else if (e.key === "ArrowDown") {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, -1));
-    } else if (e.key === "Escape") {
+    } else if (e.key === 'Escape') {
       setShowSuggestions(false);
       setSelectedIndex(-1);
     }
   };
 
   const handleClear = () => {
-    setQuery("");
-    handleSearch("");
+    setQuery('');
+    handleSearch('');
     inputRef.current?.focus();
   };
 
@@ -167,10 +167,10 @@ export function SearchInput({ organizationId, organization, className, autoFocus
               key={`${suggestion.type}-${suggestion.text}-${index}`}
               type="button"
               className={`w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-accent ${
-                index === selectedIndex ? "bg-accent" : ""
+                index === selectedIndex ? 'bg-accent' : ''
               }`}
               onClick={() => {
-                if (suggestion.type === "video" && suggestion.videoId) {
+                if (suggestion.type === 'video' && suggestion.videoId) {
                   router.push(`/${organization}/videos/${suggestion.videoId}`);
                 } else {
                   setQuery(suggestion.text);
@@ -178,8 +178,8 @@ export function SearchInput({ organizationId, organization, className, autoFocus
                 }
               }}
             >
-              {suggestion.type === "recent" && <span className="text-muted-foreground text-xs">Recent</span>}
-              {suggestion.type === "video" && <span className="text-primary text-xs">Video</span>}
+              {suggestion.type === 'recent' && <span className="text-muted-foreground text-xs">Recent</span>}
+              {suggestion.type === 'video' && <span className="text-primary text-xs">Video</span>}
               <span className="truncate">{suggestion.text}</span>
             </button>
           ))}

@@ -5,20 +5,20 @@
  * WebVTT (Web Video Text Tracks) is the standard format for HTML5 video captions.
  */
 
-import { Context, Data, Effect, Layer, Schema } from "effect";
-import type { TranscriptSegment } from "./db/schema";
+import { Context, Data, Effect, Layer, Schema } from 'effect';
+import type { TranscriptSegment } from './db/schema';
 
 // =============================================================================
 // Error Types
 // =============================================================================
 
-export class SubtitleError extends Data.TaggedError("SubtitleError")<{
+export class SubtitleError extends Data.TaggedError('SubtitleError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
 }> {}
 
-export class TranslationError extends Data.TaggedError("TranslationError")<{
+export class TranslationError extends Data.TaggedError('TranslationError')<{
   readonly message: string;
   readonly targetLanguage: string;
   readonly cause?: unknown;
@@ -60,7 +60,7 @@ export type TranslatedSegmentType = Schema.Schema.Type<typeof TranslatedSegment>
  */
 export function formatVTTTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "00:00:00.000";
+    return '00:00:00.000';
   }
 
   const hours = Math.floor(seconds / 3600);
@@ -68,10 +68,10 @@ export function formatVTTTime(seconds: number): string {
   const secs = Math.floor(seconds % 60);
   const milliseconds = Math.floor((seconds % 1) * 1000);
 
-  const hh = hours.toString().padStart(2, "0");
-  const mm = minutes.toString().padStart(2, "0");
-  const ss = secs.toString().padStart(2, "0");
-  const ms = milliseconds.toString().padStart(3, "0");
+  const hh = hours.toString().padStart(2, '0');
+  const mm = minutes.toString().padStart(2, '0');
+  const ss = secs.toString().padStart(2, '0');
+  const ms = milliseconds.toString().padStart(3, '0');
 
   return `${hh}:${mm}:${ss}.${ms}`;
 }
@@ -80,11 +80,11 @@ export function formatVTTTime(seconds: number): string {
  * Parse WebVTT timestamp to seconds
  */
 export function parseVTTTime(timestamp: string): number {
-  const parts = timestamp.split(":");
+  const parts = timestamp.split(':');
 
   if (parts.length === 3) {
     const [hours, minutes, seconds] = parts;
-    const [secs, ms] = seconds.split(".");
+    const [secs, ms] = seconds.split('.');
     return (
       Number.parseInt(hours, 10) * 3600 +
       Number.parseInt(minutes, 10) * 60 +
@@ -95,7 +95,7 @@ export function parseVTTTime(timestamp: string): number {
 
   if (parts.length === 2) {
     const [minutes, seconds] = parts;
-    const [secs, ms] = seconds.split(".");
+    const [secs, ms] = seconds.split('.');
     return Number.parseInt(minutes, 10) * 60 + Number.parseInt(secs, 10) + (ms ? Number.parseInt(ms, 10) / 1000 : 0);
   }
 
@@ -123,14 +123,14 @@ export interface WebVTTOptions {
 export function generateWebVTT(segments: readonly TranscriptSegment[], options: WebVTTOptions = {}): string {
   const { maxLineLength = 42, wrapLines = true } = options;
 
-  let vtt = "WEBVTT\n";
+  let vtt = 'WEBVTT\n';
 
   // Add metadata header if language is specified
   if (options.language) {
     vtt += `Kind: captions\nLanguage: ${options.language}\n`;
   }
 
-  vtt += "\n";
+  vtt += '\n';
 
   segments.forEach((segment, index) => {
     // Cue identifier (optional but helpful for debugging)
@@ -141,10 +141,10 @@ export function generateWebVTT(segments: readonly TranscriptSegment[], options: 
 
     // Optional cue settings
     if (options.includeSettings) {
-      vtt += " align:center";
+      vtt += ' align:center';
     }
 
-    vtt += "\n";
+    vtt += '\n';
 
     // Cue text - wrap long lines if needed
     let text = segment.text.trim();
@@ -166,9 +166,9 @@ export function generateWebVTT(segments: readonly TranscriptSegment[], options: 
  * Wrap text to fit within maxLineLength, breaking at word boundaries
  */
 function wrapText(text: string, maxLength: number): string {
-  const words = text.split(" ");
+  const words = text.split(' ');
   const lines: string[] = [];
-  let currentLine = "";
+  let currentLine = '';
 
   for (const word of words) {
     if (currentLine.length === 0) {
@@ -185,7 +185,7 @@ function wrapText(text: string, maxLength: number): string {
     lines.push(currentLine);
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -193,11 +193,11 @@ function wrapText(text: string, maxLength: number): string {
  */
 function escapeVTTText(text: string): string {
   return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
 }
 
 // =============================================================================
@@ -209,7 +209,7 @@ function escapeVTTText(text: string): string {
  */
 export function formatSRTTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "00:00:00,000";
+    return '00:00:00,000';
   }
 
   const hours = Math.floor(seconds / 3600);
@@ -217,10 +217,10 @@ export function formatSRTTime(seconds: number): string {
   const secs = Math.floor(seconds % 60);
   const milliseconds = Math.floor((seconds % 1) * 1000);
 
-  const hh = hours.toString().padStart(2, "0");
-  const mm = minutes.toString().padStart(2, "0");
-  const ss = secs.toString().padStart(2, "0");
-  const ms = milliseconds.toString().padStart(3, "0");
+  const hh = hours.toString().padStart(2, '0');
+  const mm = minutes.toString().padStart(2, '0');
+  const ss = secs.toString().padStart(2, '0');
+  const ms = milliseconds.toString().padStart(3, '0');
 
   return `${hh}:${mm}:${ss},${ms}`;
 }
@@ -229,7 +229,7 @@ export function formatSRTTime(seconds: number): string {
  * Generate SRT subtitle content from transcript segments
  */
 export function generateSRT(segments: readonly TranscriptSegment[]): string {
-  let srt = "";
+  let srt = '';
 
   segments.forEach((segment, index) => {
     srt += `${index + 1}\n`;
@@ -279,7 +279,7 @@ export interface SubtitleServiceInterface {
 // Subtitle Service Tag
 // =============================================================================
 
-export class SubtitleService extends Context.Tag("SubtitleService")<SubtitleService, SubtitleServiceInterface>() {}
+export class SubtitleService extends Context.Tag('SubtitleService')<SubtitleService, SubtitleServiceInterface>() {}
 
 // =============================================================================
 // Subtitle Service Implementation
@@ -294,8 +294,8 @@ const makeSubtitleService = Effect.gen(function* () {
       if (!segments || segments.length === 0) {
         return yield* Effect.fail(
           new SubtitleError({
-            message: "No transcript segments provided",
-            operation: "generateWebVTT",
+            message: 'No transcript segments provided',
+            operation: 'generateWebVTT',
           }),
         );
       }
@@ -305,8 +305,8 @@ const makeSubtitleService = Effect.gen(function* () {
       } catch (error) {
         return yield* Effect.fail(
           new SubtitleError({
-            message: "Failed to generate WebVTT",
-            operation: "generateWebVTT",
+            message: 'Failed to generate WebVTT',
+            operation: 'generateWebVTT',
             cause: error,
           }),
         );
@@ -318,8 +318,8 @@ const makeSubtitleService = Effect.gen(function* () {
       if (!segments || segments.length === 0) {
         return yield* Effect.fail(
           new SubtitleError({
-            message: "No transcript segments provided",
-            operation: "generateSRT",
+            message: 'No transcript segments provided',
+            operation: 'generateSRT',
           }),
         );
       }
@@ -329,8 +329,8 @@ const makeSubtitleService = Effect.gen(function* () {
       } catch (error) {
         return yield* Effect.fail(
           new SubtitleError({
-            message: "Failed to generate SRT",
-            operation: "generateSRT",
+            message: 'Failed to generate SRT',
+            operation: 'generateSRT',
             cause: error,
           }),
         );
@@ -346,7 +346,7 @@ const makeSubtitleService = Effect.gen(function* () {
       // For now, return original segments as a passthrough
       return yield* Effect.fail(
         new TranslationError({
-          message: "Translation not yet implemented - use Translation service",
+          message: 'Translation not yet implemented - use Translation service',
           targetLanguage,
         }),
       );
@@ -357,17 +357,17 @@ const makeSubtitleService = Effect.gen(function* () {
     hasTranslations: boolean,
   ): Effect.Effect<SubtitleLanguage[], SubtitleError> => {
     // Base languages - original transcript is always available if segments exist
-    const languages: SubtitleLanguage[] = [{ code: "en", name: "English", isOriginal: true }];
+    const languages: SubtitleLanguage[] = [{ code: 'en', name: 'English', isOriginal: true }];
 
     // Add translated languages if available
     if (hasTranslations) {
       languages.push(
-        { code: "es", name: "Spanish", isOriginal: false },
-        { code: "fr", name: "French", isOriginal: false },
-        { code: "de", name: "German", isOriginal: false },
-        { code: "pt", name: "Portuguese", isOriginal: false },
-        { code: "ja", name: "Japanese", isOriginal: false },
-        { code: "zh", name: "Chinese", isOriginal: false },
+        { code: 'es', name: 'Spanish', isOriginal: false },
+        { code: 'fr', name: 'French', isOriginal: false },
+        { code: 'de', name: 'German', isOriginal: false },
+        { code: 'pt', name: 'Portuguese', isOriginal: false },
+        { code: 'ja', name: 'Japanese', isOriginal: false },
+        { code: 'zh', name: 'Chinese', isOriginal: false },
       );
     }
 

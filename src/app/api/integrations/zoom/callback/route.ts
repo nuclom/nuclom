@@ -1,16 +1,16 @@
-import { Effect } from "effect";
-import { Zoom } from "@/lib/effect/services/zoom";
+import { Effect } from 'effect';
+import { Zoom } from '@/lib/effect/services/zoom';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
   ZoomIntegrationLayer,
-} from "@/lib/integrations";
-import { logger } from "@/lib/logger";
+} from '@/lib/integrations';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
-  const validation = await validateOAuthCallback(request, "zoom");
+  const validation = await validateOAuthCallback(request, 'zoom');
   if (!validation.success) {
     return validation.redirect;
   }
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     yield* saveIntegration({
       userId,
       organizationId,
-      provider: "zoom",
+      provider: 'zoom',
       tokens: {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -48,9 +48,9 @@ export async function GET(request: Request) {
 
   try {
     await Effect.runPromise(Effect.provide(effect, ZoomIntegrationLayer));
-    return successRedirect(organizationId, "zoom");
+    return successRedirect(organizationId, 'zoom');
   } catch (err) {
-    logger.error("[Zoom Callback Error]", err instanceof Error ? err : new Error(String(err)));
-    return errorRedirect(organizationId, "zoom");
+    logger.error('[Zoom Callback Error]', err instanceof Error ? err : new Error(String(err)));
+    return errorRedirect(organizationId, 'zoom');
   }
 }

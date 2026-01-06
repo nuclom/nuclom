@@ -6,16 +6,16 @@
  * for backwards compatibility with existing React components.
  */
 
-import { type Effect, Either } from "effect";
+import { type Effect, Either } from 'effect';
 import {
   organizationApiEffect,
   runClientEffect,
   type UploadResult,
   uploadVideoEffect,
   videoApiEffect,
-} from "@/lib/effect/client";
-import { HttpError, type ParseError } from "@/lib/effect/errors";
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+} from '@/lib/effect/client';
+import { HttpError, type ParseError } from '@/lib/effect/errors';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 // =============================================================================
 // Error Class (Backwards Compatible)
@@ -27,7 +27,7 @@ class ApiError extends Error {
     message: string,
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -146,4 +146,4 @@ export const organizationApi = {
 export { ApiError };
 
 // Re-export Effect-based API for direct Effect usage
-export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from "@/lib/effect/client";
+export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from '@/lib/effect/client';

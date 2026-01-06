@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from 'date-fns';
 import {
   ArrowLeft,
   Check,
@@ -15,11 +15,11 @@ import {
   RefreshCw,
   Search,
   X,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -27,13 +27,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
-import { formatFileSize } from "@/lib/format-utils";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
+import { formatFileSize } from '@/lib/format-utils';
 
 interface GoogleDriveFile {
   id: string;
@@ -74,7 +74,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(undefined);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GoogleDriveFile[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
@@ -87,15 +87,15 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
         setConnectionError(null);
 
         const params = new URLSearchParams({
-          action: "list",
+          action: 'list',
         });
 
         if (folderId) {
-          params.set("folderId", folderId);
+          params.set('folderId', folderId);
         }
 
         if (!reset && nextPageToken) {
-          params.set("pageToken", nextPageToken);
+          params.set('pageToken', nextPageToken);
         }
 
         const response = await fetch(`/api/integrations/google/drive?${params.toString()}`);
@@ -103,9 +103,9 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
 
         if (!data.success) {
           if (response.status === 404) {
-            setConnectionError(data.error || "Google account not connected");
+            setConnectionError(data.error || 'Google account not connected');
           }
-          throw new Error(data.error || "Failed to load Google Drive contents");
+          throw new Error(data.error || 'Failed to load Google Drive contents');
         }
 
         if (reset) {
@@ -117,12 +117,12 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
         }
         setNextPageToken(data.data.nextPageToken);
       } catch (error) {
-        logger.error("Failed to load Google Drive contents", error);
+        logger.error('Failed to load Google Drive contents', error);
         if (!connectionError) {
           toast({
-            title: "Error",
-            description: error instanceof Error ? error.message : "Failed to load Google Drive contents",
-            variant: "destructive",
+            title: 'Error',
+            description: error instanceof Error ? error.message : 'Failed to load Google Drive contents',
+            variant: 'destructive',
           });
         }
       } finally {
@@ -143,7 +143,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
         setSearchLoading(true);
 
         const params = new URLSearchParams({
-          action: "search",
+          action: 'search',
           query: query.trim(),
         });
 
@@ -151,16 +151,16 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
         const data = await response.json();
 
         if (!data.success) {
-          throw new Error(data.error || "Search failed");
+          throw new Error(data.error || 'Search failed');
         }
 
         setSearchResults(data.data.files);
       } catch (error) {
-        logger.error("Search failed", error);
+        logger.error('Search failed', error);
         toast({
-          title: "Search Error",
-          description: error instanceof Error ? error.message : "Search failed",
-          variant: "destructive",
+          title: 'Search Error',
+          description: error instanceof Error ? error.message : 'Search failed',
+          variant: 'destructive',
         });
       } finally {
         setSearchLoading(false);
@@ -177,7 +177,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
       setSelected(new Set());
       setCurrentFolderId(undefined);
       setBreadcrumbs([]);
-      setSearchQuery("");
+      setSearchQuery('');
       setSearchResults(null);
       setNextPageToken(undefined);
       setConnectionError(null);
@@ -196,7 +196,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
 
   const navigateToFolder = (folder: GoogleDriveFolder) => {
     setSelected(new Set());
-    setSearchQuery("");
+    setSearchQuery('');
     setSearchResults(null);
     setCurrentFolderId(folder.id);
     setBreadcrumbs((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -207,7 +207,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
   const navigateToBreadcrumb = (index: number) => {
     const targetBreadcrumb = breadcrumbs[index];
     setSelected(new Set());
-    setSearchQuery("");
+    setSearchQuery('');
     setSearchResults(null);
 
     if (index === -1) {
@@ -231,7 +231,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
     const parentId = newBreadcrumbs.length > 0 ? newBreadcrumbs[newBreadcrumbs.length - 1].id : undefined;
 
     setSelected(new Set());
-    setSearchQuery("");
+    setSearchQuery('');
     setSearchResults(null);
     setCurrentFolderId(parentId);
     setBreadcrumbs(newBreadcrumbs);
@@ -271,17 +271,17 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
       await onImport(selectedFiles);
 
       toast({
-        title: "Import Started",
-        description: `${selectedFiles.length} video${selectedFiles.length !== 1 ? "s" : ""} are being imported from Google Drive.`,
+        title: 'Import Started',
+        description: `${selectedFiles.length} video${selectedFiles.length !== 1 ? 's' : ''} are being imported from Google Drive.`,
       });
 
       onClose();
     } catch (error) {
-      logger.error("Failed to import from Google Drive", error);
+      logger.error('Failed to import from Google Drive', error);
       toast({
-        title: "Import Failed",
-        description: error instanceof Error ? error.message : "Failed to import videos",
-        variant: "destructive",
+        title: 'Import Failed',
+        description: error instanceof Error ? error.message : 'Failed to import videos',
+        variant: 'destructive',
       });
     } finally {
       setImporting(false);
@@ -343,7 +343,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                       variant="ghost"
                       size="icon"
                       className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2"
-                      onClick={() => setSearchQuery("")}
+                      onClick={() => setSearchQuery('')}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -356,7 +356,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                   onClick={() => loadFolderContents(currentFolderId, true)}
                   disabled={loading}
                 >
-                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
 
@@ -380,8 +380,8 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                         onClick={() => navigateToBreadcrumb(index)}
                         className={`px-2 py-1 rounded-md transition-colors ${
                           index === breadcrumbs.length - 1
-                            ? "font-medium text-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            ? 'font-medium text-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                         }`}
                       >
                         {crumb.name}
@@ -407,14 +407,14 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                         {getTotalSelectedSize()}
                       </>
                     ) : (
-                      `${displayedFiles.length} video${displayedFiles.length !== 1 ? "s" : ""}`
+                      `${displayedFiles.length} video${displayedFiles.length !== 1 ? 's' : ''}`
                     )}
                   </span>
                 </div>
                 {searchQuery && searchResults && (
                   <Badge variant="secondary" className="gap-1">
                     <Search className="h-3 w-3" />
-                    {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}
+                    {searchResults.length} result{searchResults.length !== 1 ? 's' : ''}
                   </Badge>
                 )}
               </div>
@@ -444,7 +444,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                   {searchQuery ? (
                     <>
                       <p className="text-muted-foreground">No videos match your search</p>
-                      <Button variant="link" className="mt-2" onClick={() => setSearchQuery("")}>
+                      <Button variant="link" className="mt-2" onClick={() => setSearchQuery('')}>
                         Clear search
                       </Button>
                     </>
@@ -467,7 +467,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                         className="group flex items-center gap-3 p-4 rounded-lg border hover:bg-muted/50 hover:border-muted-foreground/20 transition-all cursor-pointer"
                         onClick={() => navigateToFolder(folder)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                          if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             navigateToFolder(folder);
                           }
@@ -494,12 +494,12 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                         tabIndex={0}
                         className={`group flex items-start gap-3 p-4 rounded-lg border transition-all cursor-pointer hover:shadow-sm ${
                           isSelected
-                            ? "bg-primary/5 border-primary/50 shadow-sm"
-                            : "hover:bg-muted/50 hover:border-muted-foreground/20"
+                            ? 'bg-primary/5 border-primary/50 shadow-sm'
+                            : 'hover:bg-muted/50 hover:border-muted-foreground/20'
                         }`}
                         onClick={() => handleToggle(file.id)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                          if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             handleToggle(file.id);
                           }
@@ -523,16 +523,16 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                               alt=""
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                e.currentTarget.style.display = "none";
+                                e.currentTarget.style.display = 'none';
                                 if (e.currentTarget.nextElementSibling) {
-                                  (e.currentTarget.nextElementSibling as HTMLElement).style.display = "flex";
+                                  (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
                                 }
                               }}
                             />
                           ) : null}
                           <FileVideo
                             className="h-6 w-6 text-muted-foreground"
-                            style={{ display: file.thumbnailLink ? "none" : "block" }}
+                            style={{ display: file.thumbnailLink ? 'none' : 'block' }}
                           />
                         </div>
 
@@ -544,7 +544,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                               </p>
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1.5">
-                                  {format(new Date(file.modifiedTime), "MMM d, yyyy")}
+                                  {format(new Date(file.modifiedTime), 'MMM d, yyyy')}
                                   <span className="text-muted-foreground/60">
                                     ({formatDistanceToNow(new Date(file.modifiedTime), { addSuffix: true })})
                                   </span>
@@ -581,7 +581,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                           Loading...
                         </>
                       ) : (
-                        "Load More Videos"
+                        'Load More Videos'
                       )}
                     </Button>
                   )}
@@ -593,7 +593,7 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
               <div className="flex-1 text-sm text-muted-foreground hidden sm:block">
                 {selected.size > 0 && (
                   <span>
-                    Ready to import {selected.size} video{selected.size !== 1 ? "s" : ""}
+                    Ready to import {selected.size} video{selected.size !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
@@ -609,8 +609,8 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                 ) : (
                   <>
                     <Download className="h-4 w-4" />
-                    Import {selected.size > 0 ? `${selected.size} ` : ""}Video
-                    {selected.size !== 1 ? "s" : ""}
+                    Import {selected.size > 0 ? `${selected.size} ` : ''}Video
+                    {selected.size !== 1 ? 's' : ''}
                   </>
                 )}
               </Button>

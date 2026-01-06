@@ -10,14 +10,14 @@
  * - Child loggers for component-specific logging
  */
 
-import { Logger } from "tslog";
-import { env } from "@/lib/env/server";
+import { Logger } from 'tslog';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogContext {
   /** Unique request ID for tracing */
@@ -67,10 +67,10 @@ export interface LogEntry {
 // Configuration
 // =============================================================================
 
-const SERVICE_NAME = "nuclom";
+const SERVICE_NAME = 'nuclom';
 const ENVIRONMENT = env.NODE_ENV;
 const LOG_LEVEL_MAP = { debug: 0, info: 2, warn: 3, error: 4 } as const;
-const LOG_LEVEL = env.LOG_LEVEL || (ENVIRONMENT === "production" ? "info" : "debug");
+const LOG_LEVEL = env.LOG_LEVEL || (ENVIRONMENT === 'production' ? 'info' : 'debug');
 
 // =============================================================================
 // tslog Logger Instance
@@ -84,9 +84,9 @@ const LOG_LEVEL = env.LOG_LEVEL || (ENVIRONMENT === "production" ? "info" : "deb
 const baseLogger = new Logger({
   name: SERVICE_NAME,
   minLevel: LOG_LEVEL_MAP[LOG_LEVEL],
-  type: ENVIRONMENT === "production" ? "json" : "pretty",
-  stylePrettyLogs: ENVIRONMENT !== "production",
-  prettyLogTimeZone: "local",
+  type: ENVIRONMENT === 'production' ? 'json' : 'pretty',
+  stylePrettyLogs: ENVIRONMENT !== 'production',
+  prettyLogTimeZone: 'local',
   hideLogPositionForProduction: true,
 });
 
@@ -122,7 +122,7 @@ export function getRequestContext(): LogContext | undefined {
  */
 export function generateRequestId(): string {
   // Use crypto.randomUUID if available, otherwise fallback to a simple ID
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
@@ -217,7 +217,7 @@ export const logger = {
     },
   ): T {
     const start = performance.now();
-    const level = options?.level || "info";
+    const level = options?.level || 'info';
 
     try {
       const result = fn();
@@ -257,7 +257,7 @@ export const logger = {
    * Create a child logger with preset context
    */
   child(context: LogContext) {
-    const childLogger = baseLogger.getSubLogger({ name: context.requestId || "child" });
+    const childLogger = baseLogger.getSubLogger({ name: context.requestId || 'child' });
     return {
       debug: (message: string, data?: Record<string, unknown>) => childLogger.debug(message, { ...context, ...data }),
       info: (message: string, data?: Record<string, unknown>) => childLogger.info(message, { ...context, ...data }),
@@ -291,7 +291,7 @@ export interface RequestLogData {
  * Log an HTTP request completion
  */
 export function logRequest(data: RequestLogData): void {
-  const level: LogLevel = data.status >= 500 ? "error" : data.status >= 400 ? "warn" : "info";
+  const level: LogLevel = data.status >= 500 ? 'error' : data.status >= 400 ? 'warn' : 'info';
 
   baseLogger[level](`${data.method} ${data.path} ${data.status}`, {
     method: data.method,
@@ -310,10 +310,10 @@ export function logRequest(data: RequestLogData): void {
  */
 export function createRequestContext(headers: Headers, requestId?: string): LogContext {
   return {
-    requestId: requestId || headers.get("x-request-id") || generateRequestId(),
-    correlationId: headers.get("x-correlation-id") || undefined,
-    path: headers.get("x-invoke-path") || undefined,
-    method: headers.get("x-invoke-method") || undefined,
+    requestId: requestId || headers.get('x-request-id') || generateRequestId(),
+    correlationId: headers.get('x-correlation-id') || undefined,
+    path: headers.get('x-invoke-path') || undefined,
+    method: headers.get('x-invoke-method') || undefined,
   };
 }
 

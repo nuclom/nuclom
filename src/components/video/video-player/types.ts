@@ -43,7 +43,7 @@ export interface VideoProgress {
   completed: boolean;
 }
 
-export type VideoState = "idle" | "loading" | "ready" | "playing" | "paused" | "ended" | "error";
+export type VideoState = 'idle' | 'loading' | 'ready' | 'playing' | 'paused' | 'ended' | 'error';
 
 export interface VideoRefs {
   video: React.RefObject<HTMLVideoElement | null>;
@@ -62,15 +62,15 @@ export const COMPLETION_THRESHOLD = 0.9;
 export const VIEW_TRACKING_INTERVAL = 30000;
 
 export const KEYBOARD_SHORTCUTS = [
-  { key: "Space / K", action: "Play / Pause" },
-  { key: "J / ←", action: "Skip back 10s" },
-  { key: "L / →", action: "Skip forward 10s" },
-  { key: "↑ / ↓", action: "Volume up / down" },
-  { key: "M", action: "Mute / Unmute" },
-  { key: "F", action: "Fullscreen" },
-  { key: "P", action: "Picture-in-Picture" },
-  { key: "C", action: "Toggle captions" },
-  { key: "R", action: "Toggle loop" },
-  { key: "0-9", action: "Jump to 0-90%" },
-  { key: "Home / End", action: "Start / End" },
+  { key: 'Space / K', action: 'Play / Pause' },
+  { key: 'J / ←', action: 'Skip back 10s' },
+  { key: 'L / →', action: 'Skip forward 10s' },
+  { key: '↑ / ↓', action: 'Volume up / down' },
+  { key: 'M', action: 'Mute / Unmute' },
+  { key: 'F', action: 'Fullscreen' },
+  { key: 'P', action: 'Picture-in-Picture' },
+  { key: 'C', action: 'Toggle captions' },
+  { key: 'R', action: 'Toggle loop' },
+  { key: '0-9', action: 'Jump to 0-90%' },
+  { key: 'Home / End', action: 'Start / End' },
 ] as const;

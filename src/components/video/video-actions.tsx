@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Loader2, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,16 +12,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { logger } from "@/lib/client-logger";
+} from '@/components/ui/dropdown-menu';
+import { logger } from '@/lib/client-logger';
 
 export interface VideoActionsProps {
   videoId: string;
@@ -48,19 +48,19 @@ export function VideoActions({
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/videos/${videoId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete video");
+        throw new Error(error.error || 'Failed to delete video');
       }
 
       // Redirect to videos list after successful deletion
       router.push(`/${organizationSlug}/videos`);
       router.refresh();
     } catch (error) {
-      logger.error("Failed to delete video", error);
+      logger.error('Failed to delete video', error);
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }

@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { aiActionItems } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, UnauthorizedError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { eq } from 'drizzle-orm';
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { aiActionItems } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, UnauthorizedError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Schemas
@@ -17,8 +17,8 @@ const updateActionItemSchema = Schema.Struct({
   description: Schema.optional(Schema.String.pipe(Schema.maxLength(2000))),
   assignee: Schema.optional(Schema.NullOr(Schema.String)),
   assigneeUserId: Schema.optional(Schema.NullOr(Schema.String)),
-  status: Schema.optional(Schema.Literal("pending", "in_progress", "completed", "cancelled")),
-  priority: Schema.optional(Schema.Literal("high", "medium", "low")),
+  status: Schema.optional(Schema.Literal('pending', 'in_progress', 'completed', 'cancelled')),
+  priority: Schema.optional(Schema.Literal('high', 'medium', 'low')),
   dueDate: Schema.optional(Schema.NullOr(Schema.String)), // ISO date string
 });
 
@@ -54,16 +54,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action item",
-          operation: "getActionItem",
+          message: 'Failed to fetch action item',
+          operation: 'getActionItem',
         }),
     });
 
     if (!actionItem) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Action item not found",
-          entity: "ActionItem",
+          message: 'Action item not found',
+          entity: 'ActionItem',
           id: actionItemId,
         }),
       );
@@ -78,15 +78,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -100,10 +100,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -138,16 +138,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action item",
-          operation: "getActionItem",
+          message: 'Failed to fetch action item',
+          operation: 'getActionItem',
         }),
     });
 
     if (!existingItem) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Action item not found",
-          entity: "ActionItem",
+          message: 'Action item not found',
+          entity: 'ActionItem',
           id: actionItemId,
         }),
       );
@@ -162,15 +162,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -205,10 +205,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updateData.status = data.status;
 
       // If marking as completed, set completion metadata
-      if (data.status === "completed") {
+      if (data.status === 'completed') {
         updateData.completedAt = new Date();
         updateData.completedById = user.id;
-      } else if (existingItem.status === "completed") {
+      } else if (existingItem.status === 'completed') {
         // If unmarking from completed, clear completion metadata
         updateData.completedAt = null;
         updateData.completedById = null;
@@ -220,8 +220,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       try: () => db.update(aiActionItems).set(updateData).where(eq(aiActionItems.id, actionItemId)).returning(),
       catch: () =>
         new DatabaseError({
-          message: "Failed to update action item",
-          operation: "updateActionItem",
+          message: 'Failed to update action item',
+          operation: 'updateActionItem',
         }),
     });
 
@@ -234,10 +234,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -272,16 +272,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action item",
-          operation: "getActionItem",
+          message: 'Failed to fetch action item',
+          operation: 'getActionItem',
         }),
     });
 
     if (!existingItem) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Action item not found",
-          entity: "ActionItem",
+          message: 'Action item not found',
+          entity: 'ActionItem',
           id: actionItemId,
         }),
       );
@@ -296,15 +296,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -314,8 +314,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       try: () => db.delete(aiActionItems).where(eq(aiActionItems.id, actionItemId)),
       catch: () =>
         new DatabaseError({
-          message: "Failed to delete action item",
-          operation: "deleteActionItem",
+          message: 'Failed to delete action item',
+          operation: 'deleteActionItem',
         }),
     });
 
@@ -328,10 +328,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

@@ -1,9 +1,9 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { SearchRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { SearchRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // PATCH /api/search/saved/[id] - Update a saved search
@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Parse request body
     const SearchFiltersSchema = Schema.Struct({
-      types: Schema.optional(Schema.Array(Schema.Literal("video", "series", "channel"))),
+      types: Schema.optional(Schema.Array(Schema.Literal('video', 'series', 'channel'))),
       authorId: Schema.optional(Schema.String),
       channelId: Schema.optional(Schema.String),
       collectionId: Schema.optional(Schema.String),
@@ -29,8 +29,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       hasAiSummary: Schema.optional(Schema.Boolean),
       processingStatus: Schema.optional(Schema.String),
       tags: Schema.optional(Schema.Array(Schema.String)),
-      sortBy: Schema.optional(Schema.Literal("relevance", "date", "title")),
-      sortOrder: Schema.optional(Schema.Literal("asc", "desc")),
+      sortBy: Schema.optional(Schema.Literal('relevance', 'date', 'title')),
+      sortOrder: Schema.optional(Schema.Literal('asc', 'desc')),
     });
 
     const SavedSearchUpdateSchema = Schema.Struct({

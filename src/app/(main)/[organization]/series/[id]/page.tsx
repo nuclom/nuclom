@@ -1,11 +1,11 @@
-import { headers } from "next/headers";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { auth } from "@/lib/auth";
-import { getCachedOrganizationBySlug, getCachedSeriesProgress, getCachedSeriesWithVideos } from "@/lib/effect";
-import type { SeriesProgressWithDetails, SeriesWithVideos } from "@/lib/types";
-import { SeriesDetailClient } from "./series-detail-client";
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { auth } from '@/lib/auth';
+import { getCachedOrganizationBySlug, getCachedSeriesProgress, getCachedSeriesWithVideos } from '@/lib/effect';
+import type { SeriesProgressWithDetails, SeriesWithVideos } from '@/lib/types';
+import { SeriesDetailClient } from './series-detail-client';
 
 function SeriesDetailSkeleton() {
   return (

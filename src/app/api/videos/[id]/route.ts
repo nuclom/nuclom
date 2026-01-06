@@ -1,16 +1,16 @@
-import { asc, eq, isNull } from "drizzle-orm";
-import { Cause, Effect, Exit, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { db } from "@/lib/db";
-import { comments, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError, VideoRepository } from "@/lib/effect";
-import { releaseVideoCount } from "@/lib/effect/services/billing-middleware";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import type { UpdateVideoInput } from "@/lib/effect/services/video-repository";
-import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { asc, eq, isNull } from 'drizzle-orm';
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
+import { db } from '@/lib/db';
+import { comments, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError, VideoRepository } from '@/lib/effect';
+import { releaseVideoCount } from '@/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import type { UpdateVideoInput } from '@/lib/effect/services/video-repository';
+import type { ApiResponse } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id] - Get video details
@@ -46,8 +46,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -55,8 +55,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!videoData) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: resolvedParams.id,
         }),
       );
@@ -71,9 +71,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -84,7 +84,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       // AI analysis data is included, so it benefits from caching
       return NextResponse.json(response, {
         headers: {
-          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
         },
       });
     },
@@ -105,7 +105,7 @@ const TranscriptSegmentSchema = Schema.Struct({
 const ActionItemSchema = Schema.Struct({
   text: Schema.String,
   timestamp: Schema.optional(Schema.Number),
-  priority: Schema.optional(Schema.Literal("high", "medium", "low")),
+  priority: Schema.optional(Schema.Literal('high', 'medium', 'low')),
 });
 
 const UpdateVideoBodySchema = Schema.Struct({
@@ -119,7 +119,7 @@ const UpdateVideoBodySchema = Schema.Struct({
   transcript: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   transcriptSegments: Schema.optional(Schema.Union(Schema.Array(TranscriptSegmentSchema), Schema.Null)),
   processingStatus: Schema.optional(
-    Schema.Literal("pending", "transcribing", "diarizing", "analyzing", "completed", "failed"),
+    Schema.Literal('pending', 'transcribing', 'diarizing', 'analyzing', 'completed', 'failed'),
   ),
   processingError: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   aiSummary: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
@@ -139,7 +139,7 @@ const parseDateField = (
       if (value === null) return null;
       const parsed = new Date(value);
       if (Number.isNaN(parsed.getTime())) {
-        throw new Error("Invalid date");
+        throw new Error('Invalid date');
       }
       return parsed;
     },
@@ -154,8 +154,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const resolvedParams = yield* Effect.promise(() => params);
 
     const body = yield* validateRequestBody(UpdateVideoBodySchema, request);
-    const deletedAt = yield* parseDateField(body.deletedAt, "deletedAt");
-    const retentionUntil = yield* parseDateField(body.retentionUntil, "retentionUntil");
+    const deletedAt = yield* parseDateField(body.deletedAt, 'deletedAt');
+    const retentionUntil = yield* parseDateField(body.retentionUntil, 'retentionUntil');
     const aiTags = body.aiTags ? [...body.aiTags] : body.aiTags;
     const aiActionItems = body.aiActionItems ? body.aiActionItems.map((item) => ({ ...item })) : body.aiActionItems;
     const transcriptSegments = body.transcriptSegments
@@ -199,8 +199,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch updated video",
-          operation: "updateVideo",
+          message: 'Failed to fetch updated video',
+          operation: 'updateVideo',
           cause: error,
         }),
     });
@@ -214,9 +214,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -242,8 +242,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
  */
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const url = new URL(request.url);
-  const permanent = url.searchParams.get("permanent") === "true";
-  const retentionDaysParam = url.searchParams.get("retentionDays");
+  const permanent = url.searchParams.get('permanent') === 'true';
+  const retentionDaysParam = url.searchParams.get('retentionDays');
   const retentionDays = retentionDaysParam ? Number.parseInt(retentionDaysParam, 10) : undefined;
 
   const effect = Effect.gen(function* () {
@@ -264,12 +264,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         yield* releaseVideoCount(video.organizationId).pipe(Effect.catchAll(() => Effect.void));
       }
 
-      return { message: "Video permanently deleted" };
+      return { message: 'Video permanently deleted' };
     }
     // Soft delete with retention period
     const deletedVideo = yield* videoRepo.softDeleteVideo(resolvedParams.id, { retentionDays });
     return {
-      message: "Video moved to trash",
+      message: 'Video moved to trash',
       deletedAt: deletedVideo.deletedAt,
       retentionUntil: deletedVideo.retentionUntil,
     };
@@ -281,9 +281,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

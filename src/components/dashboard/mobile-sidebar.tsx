@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Clock,
@@ -14,15 +14,15 @@ import {
   Trash2,
   Upload,
   Video,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
 interface MobileSidebarProps {
   organization: string;
@@ -41,22 +41,22 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
 
   const mainNavItems: NavItem[] = [
     {
-      title: "Home",
+      title: 'Home',
       href: `/${organization}`,
       icon: Home,
     },
     {
-      title: "Videos",
+      title: 'Videos',
       href: `/${organization}/videos`,
       icon: Video,
     },
     {
-      title: "Channels",
+      title: 'Channels',
       href: `/${organization}/channels`,
       icon: Folders,
     },
     {
-      title: "Series",
+      title: 'Series',
       href: `/${organization}/series`,
       icon: ListVideo,
     },
@@ -64,27 +64,27 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
 
   const libraryNavItems: NavItem[] = [
     {
-      title: "My Videos",
+      title: 'My Videos',
       href: `/${organization}/my-videos`,
       icon: PlayCircle,
     },
     {
-      title: "Watch Later",
+      title: 'Watch Later',
       href: `/${organization}/watch-later`,
       icon: Clock,
     },
     {
-      title: "Watch History",
+      title: 'Watch History',
       href: `/${organization}/history`,
       icon: History,
     },
     {
-      title: "Shared with Me",
+      title: 'Shared with Me',
       href: `/${organization}/shared`,
       icon: Share2,
     },
     {
-      title: "Trash",
+      title: 'Trash',
       href: `/${organization}/trash`,
       icon: Trash2,
     },
@@ -131,10 +131,10 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
                 href={item.href}
                 onClick={handleNavClick}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent",
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
                   isActive(item.href)
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 <item.icon className="h-4 w-4" />
@@ -159,10 +159,10 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
                   href={item.href}
                   onClick={handleNavClick}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent",
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
                     isActive(item.href)
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                 >
                   <item.icon className="h-4 w-4" />

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from 'date-fns';
 import {
   Calendar,
   Check,
@@ -19,13 +19,13 @@ import {
   Webhook,
   X,
   Zap,
-} from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { ImportProgressTracker } from "@/components/integrations/import-progress-tracker";
-import { IntegrationSettings } from "@/components/integrations/integration-settings";
-import { MeetingCalendar } from "@/components/integrations/meeting-calendar";
-import { RecordingBrowser } from "@/components/integrations/recording-browser";
+} from 'lucide-react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ImportProgressTracker } from '@/components/integrations/import-progress-tracker';
+import { IntegrationSettings } from '@/components/integrations/integration-settings';
+import { MeetingCalendar } from '@/components/integrations/meeting-calendar';
+import { RecordingBrowser } from '@/components/integrations/recording-browser';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,11 +36,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -48,18 +48,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 // Official Zoom icon component
 function ZoomIcon({ className }: { className?: string }) {
@@ -216,7 +216,7 @@ function ZapierIcon({ className }: { className?: string }) {
 
 interface Integration {
   id: string;
-  provider: "zoom" | "google_meet" | "slack" | "teams" | "zapier";
+  provider: 'zoom' | 'google_meet' | 'slack' | 'teams' | 'zapier';
   connected: boolean;
   expiresAt: string | null;
   metadata: {
@@ -235,7 +235,7 @@ interface ImportedMeeting {
   meetingTitle: string | null;
   meetingDate: string | null;
   duration: number | null;
-  importStatus: "pending" | "downloading" | "processing" | "completed" | "failed";
+  importStatus: 'pending' | 'downloading' | 'processing' | 'completed' | 'failed';
   importError: string | null;
   importedAt: string | null;
   videoId: string | null;
@@ -243,54 +243,54 @@ interface ImportedMeeting {
 
 const INTEGRATIONS_CONFIG = [
   {
-    id: "zoom" as const,
-    name: "Zoom",
-    description: "Import meeting recordings and access calendar events",
+    id: 'zoom' as const,
+    name: 'Zoom',
+    description: 'Import meeting recordings and access calendar events',
     icon: ZoomIcon,
-    color: "text-blue-500",
-    bgColor: "bg-blue-50 dark:bg-blue-950/50",
-    borderColor: "border-blue-200 dark:border-blue-800",
-    features: ["Cloud recordings", "Meeting transcripts", "Calendar sync", "Auto-import"],
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/50',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+    features: ['Cloud recordings', 'Meeting transcripts', 'Calendar sync', 'Auto-import'],
   },
   {
-    id: "google_meet" as const,
-    name: "Google Meet",
-    description: "Import recordings from Google Drive and calendar",
+    id: 'google_meet' as const,
+    name: 'Google Meet',
+    description: 'Import recordings from Google Drive and calendar',
     icon: GoogleMeetIcon,
-    color: "text-green-500",
-    bgColor: "bg-green-50 dark:bg-green-950/50",
-    borderColor: "border-green-200 dark:border-green-800",
-    features: ["Drive recordings", "Calendar events", "Meeting notes", "Auto-import"],
+    color: 'text-green-500',
+    bgColor: 'bg-green-50 dark:bg-green-950/50',
+    borderColor: 'border-green-200 dark:border-green-800',
+    features: ['Drive recordings', 'Calendar events', 'Meeting notes', 'Auto-import'],
   },
   {
-    id: "slack" as const,
-    name: "Slack",
-    description: "Share videos to channels and receive notifications",
+    id: 'slack' as const,
+    name: 'Slack',
+    description: 'Share videos to channels and receive notifications',
     icon: SlackIcon,
-    color: "text-purple-500",
-    bgColor: "bg-purple-50 dark:bg-purple-950/50",
-    borderColor: "border-purple-200 dark:border-purple-800",
-    features: ["Channel notifications", "Video sharing", "Workflow triggers"],
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-50 dark:bg-purple-950/50',
+    borderColor: 'border-purple-200 dark:border-purple-800',
+    features: ['Channel notifications', 'Video sharing', 'Workflow triggers'],
   },
   {
-    id: "teams" as const,
-    name: "Microsoft Teams",
-    description: "Post video updates and sync with your team",
+    id: 'teams' as const,
+    name: 'Microsoft Teams',
+    description: 'Post video updates and sync with your team',
     icon: TeamsIcon,
-    color: "text-indigo-500",
-    bgColor: "bg-indigo-50 dark:bg-indigo-950/50",
-    borderColor: "border-indigo-200 dark:border-indigo-800",
-    features: ["Channel notifications", "Adaptive cards", "Team sync"],
+    color: 'text-indigo-500',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/50',
+    borderColor: 'border-indigo-200 dark:border-indigo-800',
+    features: ['Channel notifications', 'Adaptive cards', 'Team sync'],
   },
   {
-    id: "zapier" as const,
-    name: "Zapier",
-    description: "Automate workflows with custom webhook triggers",
+    id: 'zapier' as const,
+    name: 'Zapier',
+    description: 'Automate workflows with custom webhook triggers',
     icon: ZapierIcon,
-    color: "text-orange-500",
-    bgColor: "bg-orange-50 dark:bg-orange-950/50",
-    borderColor: "border-orange-200 dark:border-orange-800",
-    features: ["Webhook triggers", "Event subscriptions", "Custom automations"],
+    color: 'text-orange-500',
+    bgColor: 'bg-orange-50 dark:bg-orange-950/50',
+    borderColor: 'border-orange-200 dark:border-orange-800',
+    features: ['Webhook triggers', 'Event subscriptions', 'Custom automations'],
   },
 ] as const;
 
@@ -305,63 +305,63 @@ function IntegrationsPageContent() {
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   // Types for recording-only providers (Zoom/Google Meet)
-  type RecordingProvider = "zoom" | "google_meet";
+  type RecordingProvider = 'zoom' | 'google_meet';
   const [selectedProvider, setSelectedProvider] = useState<RecordingProvider | null>(null);
   const [_showCalendar, setShowCalendar] = useState(false);
   const [showSettings, setShowSettings] = useState<RecordingProvider | null>(null);
-  const [activeTab, setActiveTab] = useState("integrations");
+  const [activeTab, setActiveTab] = useState('integrations');
   const [refreshing, setRefreshing] = useState(false);
   const [showZapierDialog, setShowZapierDialog] = useState(false);
 
   // Handle success/error from OAuth callback
   useEffect(() => {
-    const success = searchParams.get("success");
-    const error = searchParams.get("error");
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
 
-    if (success === "zoom") {
+    if (success === 'zoom') {
       toast({
-        title: "Zoom Connected",
-        description: "Your Zoom account has been connected successfully.",
+        title: 'Zoom Connected',
+        description: 'Your Zoom account has been connected successfully.',
       });
-    } else if (success === "google") {
+    } else if (success === 'google') {
       toast({
-        title: "Google Meet Connected",
-        description: "Your Google account has been connected successfully.",
+        title: 'Google Meet Connected',
+        description: 'Your Google account has been connected successfully.',
       });
-    } else if (success === "slack") {
+    } else if (success === 'slack') {
       toast({
-        title: "Slack Connected",
-        description: "Your Slack workspace has been connected successfully.",
+        title: 'Slack Connected',
+        description: 'Your Slack workspace has been connected successfully.',
       });
-    } else if (success === "teams") {
+    } else if (success === 'teams') {
       toast({
-        title: "Microsoft Teams Connected",
-        description: "Your Teams account has been connected successfully.",
+        title: 'Microsoft Teams Connected',
+        description: 'Your Teams account has been connected successfully.',
       });
     } else if (error) {
       const errorMessages: Record<string, string> = {
-        zoom_oauth_failed: "Failed to connect Zoom. Please try again.",
-        zoom_state_mismatch: "Security validation failed. Please try again.",
-        zoom_state_expired: "Connection request expired. Please try again.",
-        zoom_callback_failed: "Failed to complete Zoom connection.",
-        google_oauth_failed: "Failed to connect Google. Please try again.",
-        google_state_mismatch: "Security validation failed. Please try again.",
-        google_state_expired: "Connection request expired. Please try again.",
-        google_callback_failed: "Failed to complete Google connection.",
-        slack_oauth_failed: "Failed to connect Slack. Please try again.",
-        slack_state_mismatch: "Security validation failed. Please try again.",
-        slack_state_expired: "Connection request expired. Please try again.",
-        slack_callback_failed: "Failed to complete Slack connection.",
-        teams_oauth_failed: "Failed to connect Teams. Please try again.",
-        teams_state_mismatch: "Security validation failed. Please try again.",
-        teams_state_expired: "Connection request expired. Please try again.",
-        teams_callback_failed: "Failed to complete Teams connection.",
+        zoom_oauth_failed: 'Failed to connect Zoom. Please try again.',
+        zoom_state_mismatch: 'Security validation failed. Please try again.',
+        zoom_state_expired: 'Connection request expired. Please try again.',
+        zoom_callback_failed: 'Failed to complete Zoom connection.',
+        google_oauth_failed: 'Failed to connect Google. Please try again.',
+        google_state_mismatch: 'Security validation failed. Please try again.',
+        google_state_expired: 'Connection request expired. Please try again.',
+        google_callback_failed: 'Failed to complete Google connection.',
+        slack_oauth_failed: 'Failed to connect Slack. Please try again.',
+        slack_state_mismatch: 'Security validation failed. Please try again.',
+        slack_state_expired: 'Connection request expired. Please try again.',
+        slack_callback_failed: 'Failed to complete Slack connection.',
+        teams_oauth_failed: 'Failed to connect Teams. Please try again.',
+        teams_state_mismatch: 'Security validation failed. Please try again.',
+        teams_state_expired: 'Connection request expired. Please try again.',
+        teams_callback_failed: 'Failed to complete Teams connection.',
       };
 
       toast({
-        title: "Connection Failed",
-        description: errorMessages[error] || "An error occurred. Please try again.",
-        variant: "destructive",
+        title: 'Connection Failed',
+        description: errorMessages[error] || 'An error occurred. Please try again.',
+        variant: 'destructive',
       });
     }
   }, [searchParams, toast]);
@@ -376,11 +376,11 @@ function IntegrationsPageContent() {
         setIntegrations(data.data);
       }
     } catch (error) {
-      console.error("Failed to load integrations:", error);
+      console.error('Failed to load integrations:', error);
       toast({
-        title: "Error",
-        description: "Failed to load integrations",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load integrations',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -401,7 +401,7 @@ function IntegrationsPageContent() {
 
       setImportedMeetings(allImports);
     } catch (error) {
-      console.error("Failed to load imported meetings:", error);
+      console.error('Failed to load imported meetings:', error);
     }
   }, [integrations]);
 
@@ -415,8 +415,8 @@ function IntegrationsPageContent() {
     }
   }, [integrations, loadImportedMeetings]);
 
-  const handleConnect = (provider: "zoom" | "google_meet" | "slack" | "teams" | "zapier") => {
-    if (provider === "zapier") {
+  const handleConnect = (provider: 'zoom' | 'google_meet' | 'slack' | 'teams' | 'zapier') => {
+    if (provider === 'zapier') {
       setShowZapierDialog(true);
       return;
     }
@@ -435,23 +435,23 @@ function IntegrationsPageContent() {
     try {
       setDisconnecting(integrationId);
       const response = await fetch(`/api/integrations?id=${integrationId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (response.ok) {
         toast({
-          title: "Disconnected",
-          description: "Integration has been disconnected.",
+          title: 'Disconnected',
+          description: 'Integration has been disconnected.',
         });
         loadIntegrations();
       } else {
-        throw new Error("Failed to disconnect");
+        throw new Error('Failed to disconnect');
       }
     } catch (_error) {
       toast({
-        title: "Error",
-        description: "Failed to disconnect integration",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to disconnect integration',
+        variant: 'destructive',
       });
     } finally {
       setDisconnecting(null);
@@ -468,7 +468,7 @@ function IntegrationsPageContent() {
   const getIntegration = (provider: string) => integrations.find((i) => i.provider === provider);
 
   const pendingImports = importedMeetings.filter(
-    (m) => m.importStatus === "pending" || m.importStatus === "downloading" || m.importStatus === "processing",
+    (m) => m.importStatus === 'pending' || m.importStatus === 'downloading' || m.importStatus === 'processing',
   );
 
   if (loading) {
@@ -511,7 +511,7 @@ function IntegrationsPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -529,11 +529,11 @@ function IntegrationsPageContent() {
                 <div>
                   <p className="font-medium">Importing recordings...</p>
                   <p className="text-sm text-muted-foreground">
-                    {pendingImports.length} recording{pendingImports.length !== 1 ? "s" : ""} in progress
+                    {pendingImports.length} recording{pendingImports.length !== 1 ? 's' : ''} in progress
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setActiveTab("activity")}>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab('activity')}>
                 View Progress
               </Button>
             </div>
@@ -573,7 +573,7 @@ function IntegrationsPageContent() {
               return (
                 <Card
                   key={config.id}
-                  className={`overflow-hidden transition-all hover:shadow-md ${isConnected ? config.borderColor : ""}`}
+                  className={`overflow-hidden transition-all hover:shadow-md ${isConnected ? config.borderColor : ''}`}
                 >
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
@@ -587,7 +587,7 @@ function IntegrationsPageContent() {
                           <div className="flex items-center gap-2">
                             <CardTitle className="text-lg">{config.name}</CardTitle>
                             {isConnected && (
-                              <Badge variant={isExpired ? "destructive" : "secondary"} className="text-xs font-normal">
+                              <Badge variant={isExpired ? 'destructive' : 'secondary'} className="text-xs font-normal">
                                 {isExpired ? (
                                   <>
                                     <X className="h-3 w-3 mr-1" />
@@ -614,7 +614,7 @@ function IntegrationsPageContent() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {(config.id === "zoom" || config.id === "google_meet") && (
+                            {(config.id === 'zoom' || config.id === 'google_meet') && (
                               <>
                                 <DropdownMenuItem onClick={() => setShowSettings(config.id as RecordingProvider)}>
                                   <Settings2 className="h-4 w-4 mr-2" />
@@ -668,7 +668,7 @@ function IntegrationsPageContent() {
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Shield className="h-4 w-4" />
-                            <span>{integration.metadata?.email || "Connected"}</span>
+                            <span>{integration.metadata?.email || 'Connected'}</span>
                           </div>
                           {integration.createdAt && (
                             <div className="flex items-center gap-2 text-muted-foreground">
@@ -710,12 +710,12 @@ function IntegrationsPageContent() {
 
                   <CardFooter className="border-t bg-muted/30 py-3">
                     {isConnected ? (
-                      config.id === "zapier" ? (
+                      config.id === 'zapier' ? (
                         <Button variant="default" className="w-full" onClick={() => setShowZapierDialog(true)}>
                           <Webhook className="h-4 w-4 mr-2" />
                           Configure Webhooks
                         </Button>
-                      ) : config.id === "slack" || config.id === "teams" ? (
+                      ) : config.id === 'slack' || config.id === 'teams' ? (
                         <div className="flex w-full items-center justify-center gap-2 text-sm text-muted-foreground">
                           <CheckCircle className="h-4 w-4 text-green-500" />
                           <span>Integration active</span>
@@ -757,7 +757,7 @@ function IntegrationsPageContent() {
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="text-center p-4 rounded-lg bg-muted/50">
                     <div className="text-2xl font-bold text-green-600">
-                      {importedMeetings.filter((m) => m.importStatus === "completed").length}
+                      {importedMeetings.filter((m) => m.importStatus === 'completed').length}
                     </div>
                     <div className="text-sm text-muted-foreground">Completed</div>
                   </div>
@@ -767,7 +767,7 @@ function IntegrationsPageContent() {
                   </div>
                   <div className="text-center p-4 rounded-lg bg-muted/50">
                     <div className="text-2xl font-bold text-red-600">
-                      {importedMeetings.filter((m) => m.importStatus === "failed").length}
+                      {importedMeetings.filter((m) => m.importStatus === 'failed').length}
                     </div>
                     <div className="text-sm text-muted-foreground">Failed</div>
                   </div>
@@ -785,7 +785,7 @@ function IntegrationsPageContent() {
           <MeetingCalendar
             integrations={integrations.filter(
               (i): i is Integration & { provider: RecordingProvider } =>
-                i.provider === "zoom" || i.provider === "google_meet",
+                i.provider === 'zoom' || i.provider === 'google_meet',
             )}
             organizationSlug={organizationSlug}
             onImportRecording={(provider) => setSelectedProvider(provider)}
@@ -817,7 +817,7 @@ function IntegrationsPageContent() {
           provider={showSettings}
           integration={
             (getIntegration(showSettings) as
-              | (Omit<Integration, "provider"> & { provider: RecordingProvider })
+              | (Omit<Integration, 'provider'> & { provider: RecordingProvider })
               | undefined) ?? null
           }
           open={!!showSettings}
@@ -862,34 +862,34 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Create form state
-  const [targetUrl, setTargetUrl] = useState("");
+  const [targetUrl, setTargetUrl] = useState('');
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 
   const availableEvents = [
-    { value: "video.uploaded", label: "Video Uploaded" },
-    { value: "video.processed", label: "Video Processed" },
-    { value: "video.shared", label: "Video Shared" },
-    { value: "comment.created", label: "Comment Created" },
-    { value: "comment.replied", label: "Comment Replied" },
-    { value: "member.joined", label: "Member Joined" },
-    { value: "member.left", label: "Member Left" },
+    { value: 'video.uploaded', label: 'Video Uploaded' },
+    { value: 'video.processed', label: 'Video Processed' },
+    { value: 'video.shared', label: 'Video Shared' },
+    { value: 'comment.created', label: 'Comment Created' },
+    { value: 'comment.replied', label: 'Comment Replied' },
+    { value: 'member.joined', label: 'Member Joined' },
+    { value: 'member.left', label: 'Member Left' },
   ];
 
   const loadWebhooks = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/webhooks/zapier");
+      const response = await fetch('/api/webhooks/zapier');
       const data = await response.json();
 
       if (data.webhooks) {
         setWebhooks(data.webhooks);
       }
     } catch (error) {
-      console.error("Failed to load webhooks:", error);
+      console.error('Failed to load webhooks:', error);
       toast({
-        title: "Error",
-        description: "Failed to load webhooks",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load webhooks',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -905,18 +905,18 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
   const handleCreate = async () => {
     if (!targetUrl || selectedEvents.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "Please provide a target URL and select at least one event",
-        variant: "destructive",
+        title: 'Validation Error',
+        description: 'Please provide a target URL and select at least one event',
+        variant: 'destructive',
       });
       return;
     }
 
     try {
       setCreating(true);
-      const response = await fetch("/api/webhooks/zapier", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/webhooks/zapier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetUrl,
           events: selectedEvents,
@@ -924,24 +924,24 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create webhook");
+        throw new Error('Failed to create webhook');
       }
 
       toast({
-        title: "Webhook Created",
-        description: "Your webhook has been created successfully",
+        title: 'Webhook Created',
+        description: 'Your webhook has been created successfully',
       });
 
-      setTargetUrl("");
+      setTargetUrl('');
       setSelectedEvents([]);
       setShowCreateForm(false);
       loadWebhooks();
     } catch (error) {
-      console.error("Failed to create webhook:", error);
+      console.error('Failed to create webhook:', error);
       toast({
-        title: "Error",
-        description: "Failed to create webhook",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create webhook',
+        variant: 'destructive',
       });
     } finally {
       setCreating(false);
@@ -952,25 +952,25 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
     try {
       setDeletingId(webhookId);
       const response = await fetch(`/api/webhooks/zapier/${webhookId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete webhook");
+        throw new Error('Failed to delete webhook');
       }
 
       toast({
-        title: "Webhook Deleted",
-        description: "The webhook has been deleted successfully",
+        title: 'Webhook Deleted',
+        description: 'The webhook has been deleted successfully',
       });
 
       loadWebhooks();
     } catch (error) {
-      console.error("Failed to delete webhook:", error);
+      console.error('Failed to delete webhook:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete webhook",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete webhook',
+        variant: 'destructive',
       });
     } finally {
       setDeletingId(null);
@@ -980,8 +980,8 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
     toast({
-      title: "Copied",
-      description: "Webhook URL copied to clipboard",
+      title: 'Copied',
+      description: 'Webhook URL copied to clipboard',
     });
   };
 
@@ -1090,8 +1090,8 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <CardTitle className="text-base truncate">{webhook.targetUrl}</CardTitle>
-                          <Badge variant={webhook.isActive ? "secondary" : "outline"}>
-                            {webhook.isActive ? "Active" : "Inactive"}
+                          <Badge variant={webhook.isActive ? 'secondary' : 'outline'}>
+                            {webhook.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -1146,7 +1146,7 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
                         <div>
                           {webhook.lastTriggeredAt
                             ? formatDistanceToNow(new Date(webhook.lastTriggeredAt), { addSuffix: true })
-                            : "Never"}
+                            : 'Never'}
                         </div>
                       </div>
                       <div>
@@ -1154,7 +1154,7 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
                           <TrendingUp className="h-3 w-3 inline mr-1" />
                           Failures
                         </div>
-                        <div className={webhook.failureCount > 0 ? "text-destructive font-medium" : ""}>
+                        <div className={webhook.failureCount > 0 ? 'text-destructive font-medium' : ''}>
                           {webhook.failureCount}
                         </div>
                       </div>

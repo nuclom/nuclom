@@ -1,12 +1,12 @@
-import { and, eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { AuditLogger } from "@/lib/audit-log";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
+import { and, eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { AuditLogger } from '@/lib/audit-log';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/[id]/audit-logs/stats - Get audit log statistics
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId } = await params;
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (!membership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     headers: await headers(),
     body: {
       permissions: {
-        audit_log: ["read"],
+        audit_log: ['read'],
       },
     },
   });
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const days = parseInt(searchParams.get("days") || "30", 10);
+    const days = parseInt(searchParams.get('days') || '30', 10);
 
     const stats = await AuditLogger.getStats(organizationId, days);
 
@@ -63,9 +63,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       data: stats,
     });
   } catch (error) {
-    logger.error("[Audit] Stats error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[Audit] Stats error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to get audit stats" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to get audit stats' },
       { status: 500 },
     );
   }

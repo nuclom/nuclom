@@ -1,14 +1,14 @@
-import { and, eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { organizationRoles } from "@/lib/access-control";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
-import { safeParse } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { organizationRoles } from '@/lib/access-control';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
+import { safeParse } from '@/lib/validation';
 
 // Schema for updating member role
 const UpdateRoleSchema = Schema.Struct({
@@ -25,7 +25,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId, userId } = await params;
@@ -37,15 +37,15 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (!requestingMembership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
 
   // Only owners/admins can view other users' permissions, or user can view their own
-  if (session.user.id !== userId && requestingMembership.role !== "owner") {
+  if (session.user.id !== userId && requestingMembership.role !== 'owner') {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "You can only view your own permissions" },
+      { success: false, error: 'You can only view your own permissions' },
       { status: 403 },
     );
   }
@@ -58,7 +58,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     if (!targetMembership) {
       return NextResponse.json<ApiResponse>(
-        { success: false, error: "User is not a member of this organization" },
+        { success: false, error: 'User is not a member of this organization' },
         { status: 404 },
       );
     }
@@ -90,9 +90,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    logger.error("[RBAC] Get permissions error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[RBAC] Get permissions error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to get permissions" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to get permissions' },
       { status: 500 },
     );
   }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId, userId } = await params;
@@ -118,22 +118,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
   });
 
-  if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can update roles" }, { status: 403 });
+  if (!membership || membership.role !== 'owner') {
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Only owners can update roles' }, { status: 403 });
   }
 
   try {
     const rawBody = await request.json();
     const result = safeParse(UpdateRoleSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "role is required" }, { status: 400 });
+      return NextResponse.json<ApiResponse>({ success: false, error: 'role is required' }, { status: 400 });
     }
     const { role } = result.data;
 
     // Validate role is one of the defined roles
     if (!Object.keys(organizationRoles).includes(role)) {
       return NextResponse.json<ApiResponse>(
-        { success: false, error: `Invalid role. Must be one of: ${Object.keys(organizationRoles).join(", ")}` },
+        { success: false, error: `Invalid role. Must be one of: ${Object.keys(organizationRoles).join(', ')}` },
         { status: 400 },
       );
     }
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (!targetMember) {
       return NextResponse.json<ApiResponse>(
-        { success: false, error: "User is not a member of this organization" },
+        { success: false, error: 'User is not a member of this organization' },
         { status: 404 },
       );
     }
@@ -163,14 +163,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
-        message: "Role updated successfully",
+        message: 'Role updated successfully',
         role,
       },
     });
   } catch (error) {
-    logger.error("[RBAC] Update role error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[RBAC] Update role error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to update role" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to update role' },
       { status: 500 },
     );
   }
@@ -186,7 +186,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId, userId } = await params;
@@ -196,8 +196,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
   });
 
-  if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can modify roles" }, { status: 403 });
+  if (!membership || membership.role !== 'owner') {
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Only owners can modify roles' }, { status: 403 });
   }
 
   try {
@@ -208,7 +208,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
 
     if (!targetMember) {
       return NextResponse.json<ApiResponse>(
-        { success: false, error: "User is not a member of this organization" },
+        { success: false, error: 'User is not a member of this organization' },
         { status: 404 },
       );
     }
@@ -217,7 +217,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     await auth.api.updateMemberRole({
       body: {
         memberId: targetMember.id,
-        role: "member",
+        role: 'member',
         organizationId,
       },
       headers: await headers(),
@@ -225,12 +225,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
 
     return NextResponse.json<ApiResponse>({
       success: true,
-      data: { message: "User demoted to member role" },
+      data: { message: 'User demoted to member role' },
     });
   } catch (error) {
-    logger.error("[RBAC] Demote role error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[RBAC] Demote role error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to demote role" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to demote role' },
       { status: 500 },
     );
   }

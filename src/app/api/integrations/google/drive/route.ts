@@ -5,15 +5,15 @@
  * This is separate from Meet recordings - allows browsing any video files.
  */
 
-import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { type GoogleDriveSearchOptions, GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { type GoogleDriveSearchOptions, GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const DriveLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);
@@ -36,14 +36,14 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
   // Query parameters
-  const action = searchParams.get("action") || "list"; // list, search, folders
-  const folderId = searchParams.get("folderId") || undefined;
-  const query = searchParams.get("query") || undefined;
-  const pageSizeParam = searchParams.get("pageSize");
+  const action = searchParams.get('action') || 'list'; // list, search, folders
+  const folderId = searchParams.get('folderId') || undefined;
+  const query = searchParams.get('query') || undefined;
+  const pageSizeParam = searchParams.get('pageSize');
   const pageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : 50;
-  const pageToken = searchParams.get("pageToken") || undefined;
-  const orderBy = (searchParams.get("orderBy") as GoogleDriveSearchOptions["orderBy"]) || "modifiedTime";
-  const orderDirection = (searchParams.get("orderDirection") as GoogleDriveSearchOptions["orderDirection"]) || "desc";
+  const pageToken = searchParams.get('pageToken') || undefined;
+  const orderBy = (searchParams.get('orderBy') as GoogleDriveSearchOptions['orderBy']) || 'modifiedTime';
+  const orderDirection = (searchParams.get('orderDirection') as GoogleDriveSearchOptions['orderDirection']) || 'desc';
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -62,20 +62,20 @@ export async function GET(request: NextRequest) {
     if (!google.isConfigured) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Google integration is not configured",
-          entity: "Integration",
+          message: 'Google integration is not configured',
+          entity: 'Integration',
         }),
       );
     }
 
     // Get user's Google integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "google_meet");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'google_meet');
 
     if (!integration) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Google account not connected. Please connect your Google account first.",
-          entity: "Integration",
+          message: 'Google account not connected. Please connect your Google account first.',
+          entity: 'Integration',
         }),
       );
     }
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Access token expired. Please reconnect your Google account.",
+            message: 'Access token expired. Please reconnect your Google account.',
           }),
         );
       }
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     // Handle different actions
     switch (action) {
-      case "search": {
+      case 'search': {
         if (!query) {
           return { files: [], folders: [], nextPageToken: undefined };
         }
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
         };
       }
 
-      case "folders": {
+      case 'folders': {
         const foldersResult = yield* google.listFolders(accessToken, folderId, pageSize, pageToken);
         return {
           files: [],
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
           files: filesResult.files,
           folders: foldersResult.folders,
           nextPageToken: filesResult.nextPageToken,
-          currentFolderId: folderId || "root",
+          currentFolderId: folderId || 'root',
         };
       }
     }
@@ -161,8 +161,8 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      logger.error("[Google Drive API Error]", cause instanceof Error ? cause : new Error(String(cause)));
-      return NextResponse.json({ success: false, error: "Failed to fetch Google Drive files" }, { status: 500 });
+      logger.error('[Google Drive API Error]', cause instanceof Error ? cause : new Error(String(cause)));
+      return NextResponse.json({ success: false, error: 'Failed to fetch Google Drive files' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse and validate request body
@@ -189,22 +189,22 @@ export async function POST(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
   const result = safeParse(ImportDriveFilesSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request format' }, { status: 400 });
   }
   const { files } = result.data;
 
   if (files.length === 0) {
-    return NextResponse.json({ success: false, error: "No files to import" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'No files to import' }, { status: 400 });
   }
 
   // Limit to 20 files at a time
   if (files.length > 20) {
-    return NextResponse.json({ success: false, error: "Maximum 20 files can be imported at once" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Maximum 20 files can be imported at once' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -215,20 +215,20 @@ export async function POST(request: NextRequest) {
     if (!google.isConfigured) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Google integration is not configured",
-          entity: "Integration",
+          message: 'Google integration is not configured',
+          entity: 'Integration',
         }),
       );
     }
 
     // Get user's Google integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "google_meet");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'google_meet');
 
     if (!integration) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Google account not connected",
-          entity: "Integration",
+          message: 'Google account not connected',
+          entity: 'Integration',
         }),
       );
     }
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Access token expired. Please reconnect your Google account.",
+            message: 'Access token expired. Please reconnect your Google account.',
           }),
         );
       }
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
     const recordings = files.map((file) => ({
       externalId: file.fileId,
       downloadUrl: `https://www.googleapis.com/drive/v3/files/${file.fileId}?alt=media`,
-      title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension for title
+      title: file.name.replace(/\.[^/.]+$/, ''), // Remove extension for title
       fileSize: file.size,
       meetingDate: undefined,
       duration: undefined,
@@ -266,7 +266,7 @@ export async function POST(request: NextRequest) {
 
     // Return the prepared recordings to be used with the existing import API
     return {
-      provider: "google_meet" as const,
+      provider: 'google_meet' as const,
       recordings,
       integrationId: integration.id,
       accessToken,
@@ -287,8 +287,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      logger.error("[Google Drive Import Error]", cause instanceof Error ? cause : new Error(String(cause)));
-      return NextResponse.json({ success: false, error: "Failed to prepare import" }, { status: 500 });
+      logger.error('[Google Drive Import Error]', cause instanceof Error ? cause : new Error(String(cause)));
+      return NextResponse.json({ success: false, error: 'Failed to prepare import' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

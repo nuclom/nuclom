@@ -1,9 +1,9 @@
-import { oauthProvider } from "@better-auth/oauth-provider";
-import { passkey } from "@better-auth/passkey";
-import { sso } from "@better-auth/sso";
-import { stripe } from "@better-auth/stripe";
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { oauthProvider } from '@better-auth/oauth-provider';
+import { passkey } from '@better-auth/passkey';
+import { sso } from '@better-auth/sso';
+import { stripe } from '@better-auth/stripe';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import {
   admin,
   apiKey,
@@ -13,19 +13,19 @@ import {
   openAPI,
   organization,
   twoFactor,
-} from "better-auth/plugins";
-import { eq } from "drizzle-orm";
-import Stripe from "stripe";
-import { ac, organizationRoles } from "@/lib/access-control";
-import { env, getAppUrl } from "@/lib/env/server";
-import { db } from "./db";
-import { members, notifications, users } from "./db/schema";
-import { notifySlackMonitoring } from "./effect/services/slack-monitoring";
-import { resend } from "./email";
+} from 'better-auth/plugins';
+import { eq } from 'drizzle-orm';
+import Stripe from 'stripe';
+import { ac, organizationRoles } from '@/lib/access-control';
+import { env, getAppUrl } from '@/lib/env/server';
+import { db } from './db';
+import { members, notifications, users } from './db/schema';
+import { notifySlackMonitoring } from './effect/services/slack-monitoring';
+import { resend } from './email';
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-12-15.clover",
+  apiVersion: '2025-12-15.clover',
   typescript: true,
 });
 
@@ -44,7 +44,7 @@ function buildTrustedOrigins(): string[] {
   origins.push(getAppUrl());
 
   // Add Vercel preview URL in non-production environments
-  if (env.VERCEL_URL && env.VERCEL_ENV !== "production") {
+  if (env.VERCEL_URL && env.VERCEL_ENV !== 'production') {
     origins.push(`https://${env.VERCEL_URL}`);
   }
 
@@ -54,9 +54,9 @@ function buildTrustedOrigins(): string[] {
   }
 
   // Add localhost only in development
-  if (env.NODE_ENV === "development") {
-    origins.push("http://localhost:3000");
-    origins.push("http://127.0.0.1:3000");
+  if (env.NODE_ENV === 'development') {
+    origins.push('http://localhost:3000');
+    origins.push('http://127.0.0.1:3000');
   }
 
   return [...new Set(origins.filter(Boolean))];
@@ -67,7 +67,7 @@ const trustedOrigins = buildTrustedOrigins();
 export const auth = betterAuth({
   trustedOrigins,
   database: drizzleAdapter(db, {
-    provider: "pg",
+    provider: 'pg',
     usePlural: true,
   }),
   emailAndPassword: {
@@ -85,9 +85,9 @@ export const auth = betterAuth({
       const verificationLink = `${getAppUrl()}/verify-email?token=${token}`;
 
       await resend.emails.send({
-        from: "Nuclom <no-reply@nuclom.com>",
+        from: 'Nuclom <no-reply@nuclom.com>',
         to: user.email,
-        subject: "Verify your email address",
+        subject: 'Verify your email address',
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
@@ -96,7 +96,7 @@ export const auth = betterAuth({
             <div style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 40px;">
               <h2 style="color: #1a1a1a; font-size: 20px; margin: 0 0 16px;">Verify your email address</h2>
               <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 24px;">
-                Hi ${user.name || "there"},
+                Hi ${user.name || 'there'},
               </p>
               <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 24px;">
                 Thanks for signing up for Nuclom! Please verify your email address by clicking the button below.
@@ -124,9 +124,9 @@ export const auth = betterAuth({
     },
     async sendResetPassword({ user, url }: { user: { email: string; name?: string | null }; url: string }) {
       await resend.emails.send({
-        from: "Nuclom <no-reply@nuclom.com>",
+        from: 'Nuclom <no-reply@nuclom.com>',
         to: user.email,
-        subject: "Reset your Nuclom password",
+        subject: 'Reset your Nuclom password',
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
@@ -135,7 +135,7 @@ export const auth = betterAuth({
             <div style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 40px;">
               <h2 style="color: #1a1a1a; font-size: 20px; margin: 0 0 16px;">Reset Your Password</h2>
               <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 24px;">
-                Hi ${user.name || "there"},
+                Hi ${user.name || 'there'},
               </p>
               <p style="color: #666666; font-size: 16px; line-height: 24px; margin: 0 0 24px;">
                 We received a request to reset your password. Click the button below to choose a new password.
@@ -184,13 +184,13 @@ export const auth = betterAuth({
   },
   // Secure cookie settings
   advanced: {
-    cookiePrefix: "nuclom",
-    useSecureCookies: env.NODE_ENV === "production",
+    cookiePrefix: 'nuclom',
+    useSecureCookies: env.NODE_ENV === 'production',
     defaultCookieAttributes: {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
     },
   },
   databaseHooks: {
@@ -214,10 +214,10 @@ export const auth = betterAuth({
   },
   plugins: [
     admin({
-      defaultRole: "user",
-      adminRoles: ["admin"],
+      defaultRole: 'user',
+      adminRoles: ['admin'],
       impersonationSessionDuration: 60 * 60, // 1 hour
-      defaultBanReason: "Terms of service violation",
+      defaultBanReason: 'Terms of service violation',
       defaultBanExpiresIn: 60 * 60 * 24 * 7, // 7 days
     }),
     organization({
@@ -234,13 +234,13 @@ export const auth = betterAuth({
         return true;
       },
       organizationLimit: 5,
-      creatorRole: "owner",
+      creatorRole: 'owner',
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
       async sendInvitationEmail(data) {
         const inviteLink = `${getAppUrl()}/accept-invitation/${data.id}`;
-        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
-        const inviterName = data.inviter.user.name || "Someone";
+        const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';
+        const inviterName = data.inviter.user.name || 'Someone';
 
         // Create in-app notification if user already exists
         const existingUser = await db.query.users.findFirst({
@@ -250,10 +250,10 @@ export const auth = betterAuth({
         if (existingUser) {
           await db.insert(notifications).values({
             userId: existingUser.id,
-            type: "invitation_received",
+            type: 'invitation_received',
             title: `You've been invited to ${data.organization.name}`,
             body: `${inviterName} has invited you to join ${data.organization.name} as a ${data.role}.`,
-            resourceType: "organization",
+            resourceType: 'organization',
             resourceId: data.organization.id,
             actorId: data.inviter.user.id,
           });
@@ -318,7 +318,7 @@ export const auth = betterAuth({
         cancelImmediately: false,
         plans: [
           {
-            name: "scale",
+            name: 'scale',
             priceId: env.STRIPE_PRICE_ID_SCALE_MONTHLY,
             annualDiscountPriceId: env.STRIPE_PRICE_ID_SCALE_YEARLY,
             limits: {
@@ -332,7 +332,7 @@ export const auth = betterAuth({
             },
           },
           {
-            name: "pro",
+            name: 'pro',
             priceId: env.STRIPE_PRICE_ID_PRO_MONTHLY,
             annualDiscountPriceId: env.STRIPE_PRICE_ID_PRO_YEARLY,
             limits: {
@@ -351,7 +351,7 @@ export const auth = betterAuth({
           // Check if user is owner of the organization
           const membership = await db.query.members.findFirst({
             where: (m, { and, eq: colEq }) =>
-              and(colEq(m.userId, user.id), colEq(m.organizationId, referenceId), colEq(m.role, "owner")),
+              and(colEq(m.userId, user.id), colEq(m.organizationId, referenceId), colEq(m.role, 'owner')),
           });
           return !!membership;
         },
@@ -359,11 +359,11 @@ export const auth = betterAuth({
         getCheckoutSessionParams: async ({ user: _user, plan: _plan }) => ({
           params: {
             allow_promotion_codes: true,
-            billing_address_collection: "auto",
+            billing_address_collection: 'auto',
             tax_id_collection: { enabled: true },
             customer_update: {
-              address: "auto",
-              name: "auto",
+              address: 'auto',
+              name: 'auto',
             },
           },
         }),
@@ -378,15 +378,15 @@ export const auth = betterAuth({
         plan: { name: string };
         user: { id: string; email: string; name?: string | null };
       }) => {
-        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+        const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';
 
         // Create in-app notification
         await db.insert(notifications).values({
           userId: user.id,
-          type: "subscription_created",
-          title: "Subscription activated",
+          type: 'subscription_created',
+          title: 'Subscription activated',
           body: `Your ${plan.name} subscription is now active.`,
-          resourceType: "subscription",
+          resourceType: 'subscription',
           resourceId: subscription.id,
         });
 
@@ -398,7 +398,7 @@ export const auth = betterAuth({
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #6366f1;">Welcome to Nuclom ${plan.name}!</h1>
-              <p>Hi ${user.name || "there"},</p>
+              <p>Hi ${user.name || 'there'},</p>
               <p>Your ${plan.name} subscription is now active. Here's what you can do:</p>
               <ul>
                 <li>Unlimited video storage and collaboration</li>
@@ -412,7 +412,7 @@ export const auth = betterAuth({
         });
 
         // Send Slack monitoring notification
-        await notifySlackMonitoring("subscription_created", {
+        await notifySlackMonitoring('subscription_created', {
           userId: user.id,
           userName: user.name || undefined,
           userEmail: user.email,
@@ -430,10 +430,10 @@ export const auth = betterAuth({
       }) => {
         await db.insert(notifications).values({
           userId: user.id,
-          type: "subscription_updated",
-          title: "Subscription updated",
-          body: `Your subscription has been updated to ${plan?.name || "a new plan"}.`,
-          resourceType: "subscription",
+          type: 'subscription_updated',
+          title: 'Subscription updated',
+          body: `Your subscription has been updated to ${plan?.name || 'a new plan'}.`,
+          resourceType: 'subscription',
           resourceId: subscription.id,
         });
       },
@@ -444,16 +444,16 @@ export const auth = betterAuth({
         subscription: { id: string; cancelAtPeriodEnd?: boolean | null; periodEnd?: Date | null };
         user: { id: string; email: string; name?: string | null };
       }) => {
-        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+        const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';
 
         await db.insert(notifications).values({
           userId: user.id,
-          type: "subscription_canceled",
-          title: "Subscription canceled",
+          type: 'subscription_canceled',
+          title: 'Subscription canceled',
           body: subscription.cancelAtPeriodEnd
-            ? "Your subscription will end at the current billing period."
-            : "Your subscription has been canceled immediately.",
-          resourceType: "subscription",
+            ? 'Your subscription will end at the current billing period.'
+            : 'Your subscription has been canceled immediately.',
+          resourceType: 'subscription',
           resourceId: subscription.id,
         });
 
@@ -461,14 +461,14 @@ export const auth = betterAuth({
         await resend.emails.send({
           from: fromEmail,
           to: user.email,
-          subject: "Your Nuclom subscription has been canceled",
+          subject: 'Your Nuclom subscription has been canceled',
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #333;">We're sorry to see you go</h1>
-              <p>Hi ${user.name || "there"},</p>
+              <p>Hi ${user.name || 'there'},</p>
               ${
                 subscription.cancelAtPeriodEnd
-                  ? `<p>Your subscription will remain active until ${subscription.periodEnd ? new Date(subscription.periodEnd).toLocaleDateString() : "the end of your billing period"}.</p>`
+                  ? `<p>Your subscription will remain active until ${subscription.periodEnd ? new Date(subscription.periodEnd).toLocaleDateString() : 'the end of your billing period'}.</p>`
                   : "<p>Your subscription has been canceled and you've been downgraded to the free plan.</p>"
               }
               <p>If you change your mind, you can always resubscribe from your account settings.</p>
@@ -478,7 +478,7 @@ export const auth = betterAuth({
         });
 
         // Send Slack monitoring notification
-        await notifySlackMonitoring("subscription_canceled", {
+        await notifySlackMonitoring('subscription_canceled', {
           userId: user.id,
           userName: user.name || undefined,
           userEmail: user.email,
@@ -491,25 +491,25 @@ export const auth = betterAuth({
         subscription: { id: string };
         user: { id: string; email: string; name?: string | null };
       }) => {
-        const fromEmail = env.RESEND_FROM_EMAIL || "notifications@nuclom.com";
+        const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';
 
         await db.insert(notifications).values({
           userId: user.id,
-          type: "trial_ending",
-          title: "Your trial has ended",
-          body: "Your free trial has ended. Upgrade to continue enjoying all features.",
-          resourceType: "subscription",
+          type: 'trial_ending',
+          title: 'Your trial has ended',
+          body: 'Your free trial has ended. Upgrade to continue enjoying all features.',
+          resourceType: 'subscription',
           resourceId: subscription.id,
         });
 
         await resend.emails.send({
           from: fromEmail,
           to: user.email,
-          subject: "Your Nuclom trial has ended",
+          subject: 'Your Nuclom trial has ended',
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #6366f1;">Your trial has ended</h1>
-              <p>Hi ${user.name || "there"},</p>
+              <p>Hi ${user.name || 'there'},</p>
               <p>Your 14-day free trial has ended. We hope you enjoyed exploring Nuclom's features!</p>
               <p>To continue using all the pro features, please upgrade your subscription.</p>
               <p><a href="${getAppUrl()}/settings/billing" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
@@ -520,12 +520,12 @@ export const auth = betterAuth({
       // Handle additional Stripe webhook events
       onEvent: async (event) => {
         switch (event.type) {
-          case "invoice.paid": {
+          case 'invoice.paid': {
             const invoice = event.data.object as Stripe.Invoice;
             console.log(`[Better Auth Stripe] Invoice paid: ${invoice.id}`);
             break;
           }
-          case "invoice.payment_failed": {
+          case 'invoice.payment_failed': {
             const invoice = event.data.object as Stripe.Invoice;
             console.log(`[Better Auth Stripe] Invoice payment failed: ${invoice.id}`);
             // Additional handling for failed payments
@@ -537,9 +537,9 @@ export const auth = betterAuth({
       },
     }),
     apiKey({
-      apiKeyHeaders: ["x-api-key"],
+      apiKeyHeaders: ['x-api-key'],
       defaultKeyLength: 64,
-      defaultPrefix: "nc_",
+      defaultPrefix: 'nc_',
       keyExpiration: {
         defaultExpiresIn: 60 * 60 * 24 * 30, // 30 days
       },
@@ -553,21 +553,21 @@ export const auth = betterAuth({
     jwt(),
     // OAuth 2.1 Provider plugin - allows Nuclom to act as an OAuth provider
     oauthProvider({
-      loginPage: "/auth/sign-in",
-      consentPage: "/auth/consent",
+      loginPage: '/auth/sign-in',
+      consentPage: '/auth/consent',
       // Token expiration settings
       accessTokenExpiresIn: 3600, // 1 hour
       refreshTokenExpiresIn: 604800, // 7 days (use number, not string)
       idTokenExpiresIn: 36000, // 10 hours
       // Supported scopes
-      scopes: ["openid", "profile", "email", "offline_access"],
+      scopes: ['openid', 'profile', 'email', 'offline_access'],
       // Metadata for OAuth clients
       metadata: {
-        appName: "Nuclom",
+        appName: 'Nuclom',
       },
     }),
     twoFactor({
-      issuer: "Nuclom",
+      issuer: 'Nuclom',
       totpOptions: {
         digits: 6,
         period: 30,
@@ -578,15 +578,15 @@ export const auth = betterAuth({
       },
     }),
     passkey({
-      rpID: env.NODE_ENV === "production" ? "nuclom.com" : "localhost",
-      rpName: "Nuclom",
-      origin: env.NODE_ENV === "production" ? "https://nuclom.com" : "http://localhost:3000",
+      rpID: env.NODE_ENV === 'production' ? 'nuclom.com' : 'localhost',
+      rpName: 'Nuclom',
+      origin: env.NODE_ENV === 'production' ? 'https://nuclom.com' : 'http://localhost:3000',
     }),
     sso({
       // Automatically add users to organizations when they sign in via SSO
       organizationProvisioning: {
         disabled: false,
-        defaultRole: "member",
+        defaultRole: 'member',
       },
       // Enable domain verification for automatic account linking
       domainVerification: {

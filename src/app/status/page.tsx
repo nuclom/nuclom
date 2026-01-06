@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { Activity, CheckCircle2, Clock, Database, HardDrive, Server, Sparkles, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import { MarketingFooter } from "@/components/marketing-footer";
-import { MarketingHeader } from "@/components/marketing-header";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Activity, CheckCircle2, Clock, Database, HardDrive, Server, Sparkles, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MarketingFooter } from '@/components/marketing-footer';
+import { MarketingHeader } from '@/components/marketing-header';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ServiceStatus {
-  service: "database" | "storage" | "ai" | "overall";
-  status: "healthy" | "degraded" | "unhealthy" | "not_configured";
+  service: 'database' | 'storage' | 'ai' | 'overall';
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'not_configured';
   latencyMs: number;
   lastChecked: string;
   uptimePercent: number;
 }
 
 interface StatusResponse {
-  status: "operational" | "degraded" | "outage";
+  status: 'operational' | 'degraded' | 'outage';
   services: ServiceStatus[];
   lastUpdated: string;
   history: {
     date: string;
-    status: "operational" | "degraded" | "outage";
+    status: 'operational' | 'degraded' | 'outage';
   }[];
 }
 
@@ -34,23 +34,23 @@ const serviceIcons = {
 };
 
 const serviceNames = {
-  database: "Database",
-  storage: "Cloud Storage (R2)",
-  ai: "AI Services",
-  overall: "Overall",
+  database: 'Database',
+  storage: 'Cloud Storage (R2)',
+  ai: 'AI Services',
+  overall: 'Overall',
 };
 
-function StatusBadge({ status }: { status: ServiceStatus["status"] }) {
-  if (status === "healthy" || status === "not_configured") {
+function StatusBadge({ status }: { status: ServiceStatus['status'] }) {
+  if (status === 'healthy' || status === 'not_configured') {
     return (
       <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
         <CheckCircle2 className="w-3 h-3 mr-1" />
-        {status === "not_configured" ? "Not Configured" : "Operational"}
+        {status === 'not_configured' ? 'Not Configured' : 'Operational'}
       </Badge>
     );
   }
 
-  if (status === "degraded") {
+  if (status === 'degraded') {
     return (
       <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
         <Activity className="w-3 h-3 mr-1" />
@@ -67,8 +67,8 @@ function StatusBadge({ status }: { status: ServiceStatus["status"] }) {
   );
 }
 
-function OverallStatusBanner({ status }: { status: StatusResponse["status"] }) {
-  if (status === "operational") {
+function OverallStatusBanner({ status }: { status: StatusResponse['status'] }) {
+  if (status === 'operational') {
     return (
       <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 text-center">
         <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
@@ -78,7 +78,7 @@ function OverallStatusBanner({ status }: { status: StatusResponse["status"] }) {
     );
   }
 
-  if (status === "degraded") {
+  if (status === 'degraded') {
     return (
       <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6 text-center">
         <Activity className="w-12 h-12 text-yellow-600 mx-auto mb-3" />
@@ -107,12 +107,12 @@ function ServiceCard({ service }: { service: ServiceStatus }) {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return "Just now";
+    if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins} min ago`;
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
   return (
@@ -144,12 +144,12 @@ function ServiceCard({ service }: { service: ServiceStatus }) {
             <span className="text-muted-foreground">Uptime (24h)</span>
             <p
               className={cn(
-                "font-medium",
+                'font-medium',
                 service.uptimePercent >= 99
-                  ? "text-green-600"
+                  ? 'text-green-600'
                   : service.uptimePercent >= 95
-                    ? "text-yellow-600"
-                    : "text-red-600",
+                    ? 'text-yellow-600'
+                    : 'text-red-600',
               )}
             >
               {service.uptimePercent}%
@@ -161,28 +161,28 @@ function ServiceCard({ service }: { service: ServiceStatus }) {
   );
 }
 
-function UptimeChart({ history }: { history: StatusResponse["history"] }) {
+function UptimeChart({ history }: { history: StatusResponse['history'] }) {
   // Show last 90 days, most recent on the right
   const days = [...history].reverse().slice(-90);
 
   // Pad to 90 days if needed
   while (days.length < 90) {
-    days.unshift({ date: "", status: "operational" as const });
+    days.unshift({ date: '', status: 'operational' as const });
   }
 
-  const getColorClass = (status: "operational" | "degraded" | "outage") => {
+  const getColorClass = (status: 'operational' | 'degraded' | 'outage') => {
     switch (status) {
-      case "operational":
-        return "bg-green-500";
-      case "degraded":
-        return "bg-yellow-500";
-      case "outage":
-        return "bg-red-500";
+      case 'operational':
+        return 'bg-green-500';
+      case 'degraded':
+        return 'bg-yellow-500';
+      case 'outage':
+        return 'bg-red-500';
     }
   };
 
   // Calculate overall uptime percentage
-  const operationalDays = days.filter((d) => d.status === "operational").length;
+  const operationalDays = days.filter((d) => d.status === 'operational').length;
   const uptimePercent = Math.round((operationalDays / days.length) * 100 * 100) / 100;
 
   return (
@@ -196,8 +196,8 @@ function UptimeChart({ history }: { history: StatusResponse["history"] }) {
           <div className="text-right">
             <span
               className={cn(
-                "text-2xl font-bold",
-                uptimePercent >= 99.9 ? "text-green-600" : uptimePercent >= 99 ? "text-yellow-600" : "text-red-600",
+                'text-2xl font-bold',
+                uptimePercent >= 99.9 ? 'text-green-600' : uptimePercent >= 99 ? 'text-yellow-600' : 'text-red-600',
               )}
             >
               {uptimePercent}%
@@ -212,10 +212,10 @@ function UptimeChart({ history }: { history: StatusResponse["history"] }) {
             <div
               key={i}
               className={cn(
-                "h-8 flex-1 rounded-sm transition-all hover:ring-2 hover:ring-offset-2 hover:ring-offset-background",
-                day.date ? getColorClass(day.status) : "bg-muted",
+                'h-8 flex-1 rounded-sm transition-all hover:ring-2 hover:ring-offset-2 hover:ring-offset-background',
+                day.date ? getColorClass(day.status) : 'bg-muted',
               )}
-              title={day.date ? `${day.date}: ${day.status}` : "No data"}
+              title={day.date ? `${day.date}: ${day.status}` : 'No data'}
             />
           ))}
         </div>
@@ -250,15 +250,15 @@ export default function StatusPage() {
   useEffect(() => {
     async function fetchStatus() {
       try {
-        const response = await fetch("/api/status");
+        const response = await fetch('/api/status');
         if (!response.ok) {
-          throw new Error("Failed to fetch status");
+          throw new Error('Failed to fetch status');
         }
         const data = await response.json();
         setStatus(data);
         setError(null);
       } catch {
-        setError("Unable to load status information");
+        setError('Unable to load status information');
       } finally {
         setLoading(false);
       }
@@ -274,11 +274,11 @@ export default function StatusPage() {
   const formatLastUpdated = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZoneName: "short",
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
     });
   };
 

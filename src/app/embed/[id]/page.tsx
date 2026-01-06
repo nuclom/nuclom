@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from "lucide-react";
-import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
-import { cn } from "@/lib/utils";
+import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from 'lucide-react';
+import Link from 'next/link';
+import { useParams, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import useSWR from 'swr';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -49,12 +49,12 @@ function EmbedContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const videoId = params.id as string;
-  const autoplay = searchParams.get("autoplay") === "1";
-  const muted = searchParams.get("muted") === "1";
-  const loop = searchParams.get("loop") === "1";
-  const showTitle = searchParams.get("title") !== "0";
-  const showBranding = searchParams.get("branding") !== "0";
-  const startTime = Number(searchParams.get("t")) || 0;
+  const autoplay = searchParams.get('autoplay') === '1';
+  const muted = searchParams.get('muted') === '1';
+  const loop = searchParams.get('loop') === '1';
+  const showTitle = searchParams.get('title') !== '0';
+  const showBranding = searchParams.get('branding') !== '0';
+  const startTime = Number(searchParams.get('t')) || 0;
 
   // Video state
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,9 +76,9 @@ function EmbedContent() {
   // Track view on first play
   const trackView = useCallback(async () => {
     try {
-      await fetch(`/api/embed/${videoId}/view`, { method: "POST" });
+      await fetch(`/api/embed/${videoId}/view`, { method: 'POST' });
     } catch (error) {
-      console.error("Failed to track view:", error);
+      console.error('Failed to track view:', error);
     }
   }, [videoId]);
 
@@ -198,10 +198,10 @@ function EmbedContent() {
 
   // Format time helper
   const formatTime = (seconds: number): string => {
-    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Loading state
@@ -218,7 +218,7 @@ function EmbedContent() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-black text-white p-4">
         <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-        <p className="text-center text-white/70">{data?.error || "Video not available"}</p>
+        <p className="text-center text-white/70">{data?.error || 'Video not available'}</p>
       </div>
     );
   }
@@ -267,9 +267,9 @@ function EmbedContent() {
       {/* Controls Overlay */}
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300",
-          "bg-gradient-to-t from-black/80 via-black/40 to-transparent",
-          showControls || !isPlaying ? "opacity-100" : "opacity-0",
+          'absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300',
+          'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+          showControls || !isPlaying ? 'opacity-100' : 'opacity-0',
         )}
       >
         {/* Title (optional) */}
@@ -294,7 +294,7 @@ function EmbedContent() {
           <div className="absolute inset-y-0 left-0 bg-white rounded-full" style={{ width: `${progress}%` }} />
           <div
             className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ left: `${progress}%`, marginLeft: "-6px" }}
+            style={{ left: `${progress}%`, marginLeft: '-6px' }}
           />
         </div>
 
@@ -306,7 +306,7 @@ function EmbedContent() {
               type="button"
               className="text-white hover:text-white/80 transition-colors"
               onClick={togglePlay}
-              aria-label={isPlaying ? "Pause" : "Play"}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -323,7 +323,7 @@ function EmbedContent() {
               type="button"
               className="text-white hover:text-white/80 transition-colors"
               onClick={toggleMute}
-              aria-label={isMuted ? "Unmute" : "Mute"}
+              aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
             </button>

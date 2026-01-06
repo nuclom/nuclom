@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Decisions Sidebar Component
@@ -7,17 +7,17 @@
  * Integrates with video player for seeking to decision timestamps.
  */
 
-import { ChevronDown, ChevronUp, Clock, Lightbulb, Users } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { DecisionStatus, DecisionType } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp, Clock, Lightbulb, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { DecisionStatus, DecisionType } from '@/lib/db/schema';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -38,7 +38,7 @@ export interface VideoDecision {
     id: string;
     userId: string | null;
     speakerName: string | null;
-    role: "decider" | "participant" | "mentioned";
+    role: 'decider' | 'participant' | 'mentioned';
     attributedText: string | null;
     user?: {
       id: string;
@@ -68,24 +68,24 @@ function formatTimestamp(seconds: number): string {
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
   if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 const decisionTypeColors: Record<DecisionType, string> = {
-  technical: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  process: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-  product: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  team: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-  other: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  technical: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  process: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  product: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  team: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  other: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
 };
 
 const statusColors: Record<DecisionStatus, string> = {
-  proposed: "border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20",
-  decided: "border-green-400 bg-green-50 dark:bg-green-900/20",
-  revisited: "border-blue-400 bg-blue-50 dark:bg-blue-900/20",
-  superseded: "border-gray-400 bg-gray-50 dark:bg-gray-800/50",
+  proposed: 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20',
+  decided: 'border-green-400 bg-green-50 dark:bg-green-900/20',
+  revisited: 'border-blue-400 bg-blue-50 dark:bg-blue-900/20',
+  superseded: 'border-gray-400 bg-gray-50 dark:bg-gray-800/50',
 };
 
 // =============================================================================
@@ -108,14 +108,14 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
   }, [decision.timestampStart, onSeek]);
 
   return (
-    <Card className={cn("transition-all border-l-4", statusColors[decision.status], isActive && "ring-2 ring-primary")}>
+    <Card className={cn('transition-all border-l-4', statusColors[decision.status], isActive && 'ring-2 ring-primary')}>
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CardHeader className="pb-2 space-y-1">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-sm font-medium leading-tight flex-1">{decision.summary}</CardTitle>
             <Badge
               variant="secondary"
-              className={cn("shrink-0 text-xs capitalize", decisionTypeColors[decision.decisionType])}
+              className={cn('shrink-0 text-xs capitalize', decisionTypeColors[decision.decisionType])}
             >
               {decision.decisionType}
             </Badge>
@@ -147,7 +147,7 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="sm" className="w-full rounded-none h-6">
             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            <span className="sr-only">{isExpanded ? "Hide details" : "Show details"}</span>
+            <span className="sr-only">{isExpanded ? 'Hide details' : 'Show details'}</span>
           </Button>
         </CollapsibleTrigger>
 
@@ -179,7 +179,7 @@ function DecisionCard({ decision, isActive, onSeek }: DecisionCardProps) {
                       <Avatar className="h-5 w-5 shrink-0">
                         {p.user?.image && <AvatarImage src={p.user.image} alt={p.user.name} />}
                         <AvatarFallback className="text-[10px]">
-                          {(p.user?.name || p.speakerName || "?").charAt(0).toUpperCase()}
+                          {(p.user?.name || p.speakerName || '?').charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -308,7 +308,7 @@ export function VideoDecisionsSidebar({ videoId, currentTime = 0, onSeek, classN
   }, [sortedDecisions, currentTime]);
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div className={cn('flex flex-col h-full', className)}>
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Lightbulb className="h-4 w-4" />

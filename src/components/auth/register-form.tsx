@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Eye, EyeOff, Github } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
+import { Eye, EyeOff, Github } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
 
 // Current version of legal documents - update when ToS/Privacy Policy changes
-const _LEGAL_VERSION = "2025-01-01";
+const _LEGAL_VERSION = '2025-01-01';
 
 interface RegisterFormProps {
   readonly redirectTo?: string;
@@ -25,13 +25,13 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL and prefilled email from search params
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
-  const prefilledEmail = searchParams.get("email") || "";
+  const finalRedirectTo = redirectTo || searchParams.get('redirectTo') || '/onboarding';
+  const prefilledEmail = searchParams.get('email') || '';
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [email, setEmail] = useState(prefilledEmail);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -44,19 +44,19 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
     setError(null);
 
     if (!termsAccepted) {
-      setError("You must accept the Terms of Service and Privacy Policy to create an account");
+      setError('You must accept the Terms of Service and Privacy Policy to create an account');
       setIsLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
+      setError('Password must be at least 8 characters long');
       setIsLoading(false);
       return;
     }
@@ -69,15 +69,15 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to create account");
+        setError(result.error.message || 'Failed to create account');
       } else {
         // Redirect to verification pending page with email and redirect URL
-        const verificationUrl = `/verification-pending?email=${encodeURIComponent(email)}${finalRedirectTo !== "/onboarding" ? `&redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`;
+        const verificationUrl = `/verification-pending?email=${encodeURIComponent(email)}${finalRedirectTo !== '/onboarding' ? `&redirectTo=${encodeURIComponent(finalRedirectTo)}` : ''}`;
         router.push(verificationUrl);
       }
     } catch (err) {
-      setError("An unexpected error occurred");
-      logger.error("Registration failed", err);
+      setError('An unexpected error occurred');
+      logger.error('Registration failed', err);
     } finally {
       setIsLoading(false);
     }
@@ -89,12 +89,12 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
 
     try {
       await authClient.signIn.social({
-        provider: "github",
+        provider: 'github',
         callbackURL: finalRedirectTo,
       });
     } catch (err) {
-      setError("Failed to sign up with GitHub");
-      logger.error("GitHub signup failed", err);
+      setError('Failed to sign up with GitHub');
+      logger.error('GitHub signup failed', err);
       setIsLoading(false);
     }
   };
@@ -136,7 +136,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Create a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -161,7 +161,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
             <div className="relative">
               <Input
                 id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -192,7 +192,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
               className="mt-1"
             />
             <Label htmlFor="terms" className="text-sm font-normal leading-relaxed cursor-pointer">
-              I agree to the{" "}
+              I agree to the{' '}
               <Link
                 href="/terms"
                 target="_blank"
@@ -200,8 +200,8 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 onClick={(e) => e.stopPropagation()}
               >
                 Terms of Service
-              </Link>{" "}
-              and{" "}
+              </Link>{' '}
+              and{' '}
               <Link
                 href="/privacy"
                 target="_blank"
@@ -215,7 +215,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
 
           {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
           <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted}>
-            {isLoading ? "Creating account..." : "Create account"}
+            {isLoading ? 'Creating account...' : 'Create account'}
           </Button>
         </form>
 
@@ -233,21 +233,21 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
           GitHub
         </Button>
         <p className="text-xs text-center text-muted-foreground">
-          By signing up with GitHub, you agree to our{" "}
+          By signing up with GitHub, you agree to our{' '}
           <Link href="/terms" target="_blank" className="text-primary hover:underline">
             Terms of Service
-          </Link>{" "}
-          and{" "}
+          </Link>{' '}
+          and{' '}
           <Link href="/privacy" target="_blank" className="text-primary hover:underline">
             Privacy Policy
           </Link>
         </p>
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Already have an account?{' '}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
           <a
-            href={`/login${finalRedirectTo !== "/onboarding" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
+            href={`/login${finalRedirectTo !== '/onboarding' ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ''}`}
           >
             Sign in
           </a>

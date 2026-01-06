@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Upload } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Upload } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface DashboardHeroProps {
   organization: string;
@@ -33,12 +33,12 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
       <div className="relative z-10">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
           {greeting}
-          {userName ? `, ${userName.split(" ")[0]}` : ""}!
+          {userName ? `, ${userName.split(' ')[0]}` : ''}!
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-lg">
           {hasVideos
-            ? "Pick up where you left off or explore new videos from your team."
-            : "Get started by uploading your first video or recording a quick update."}
+            ? 'Pick up where you left off or explore new videos from your team.'
+            : 'Get started by uploading your first video or recording a quick update.'}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
@@ -62,7 +62,7 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
 }

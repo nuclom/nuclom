@@ -5,9 +5,9 @@
  * speaker segments, and speaker analytics.
  */
 
-import { and, desc, eq, sql } from "drizzle-orm";
-import { Context, Data, Effect, Layer, Option } from "effect";
-import { normalizeOne } from "@/lib/db/relations";
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Context, Data, Effect, Layer, Option } from 'effect';
+import { normalizeOne } from '@/lib/db/relations';
 import type {
   NewSpeakerProfile,
   NewSpeakerSegmentRow,
@@ -15,15 +15,15 @@ import type {
   SpeakerProfile,
   SpeakerSegmentRow,
   VideoSpeaker,
-} from "@/lib/db/schema";
-import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from "@/lib/db/schema";
-import { Database } from "./database";
+} from '@/lib/db/schema';
+import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from '@/lib/db/schema';
+import { Database } from './database';
 
 // =============================================================================
 // Error Types
 // =============================================================================
 
-export class SpeakerRepositoryError extends Data.TaggedError("SpeakerRepositoryError")<{
+export class SpeakerRepositoryError extends Data.TaggedError('SpeakerRepositoryError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
@@ -199,7 +199,7 @@ export interface SpeakerRepositoryService {
 // Speaker Repository Tag
 // =============================================================================
 
-export class SpeakerRepository extends Context.Tag("SpeakerRepository")<
+export class SpeakerRepository extends Context.Tag('SpeakerRepository')<
   SpeakerRepository,
   SpeakerRepositoryService
 >() {}
@@ -233,8 +233,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to create speaker profile",
-          operation: "createSpeakerProfile",
+          message: 'Failed to create speaker profile',
+          operation: 'createSpeakerProfile',
           cause: error,
         }),
     });
@@ -249,8 +249,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker profile",
-          operation: "getSpeakerProfile",
+          message: 'Failed to get speaker profile',
+          operation: 'getSpeakerProfile',
           cause: error,
         }),
     });
@@ -265,8 +265,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker profiles",
-          operation: "getSpeakerProfiles",
+          message: 'Failed to get speaker profiles',
+          operation: 'getSpeakerProfiles',
           cause: error,
         }),
     });
@@ -294,8 +294,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker profiles with users",
-          operation: "getSpeakerProfilesWithUsers",
+          message: 'Failed to get speaker profiles with users',
+          operation: 'getSpeakerProfilesWithUsers',
           cause: error,
         }),
     });
@@ -318,8 +318,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to update speaker profile",
-          operation: "updateSpeakerProfile",
+          message: 'Failed to update speaker profile',
+          operation: 'updateSpeakerProfile',
           cause: error,
         }),
     });
@@ -331,8 +331,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to delete speaker profile",
-          operation: "deleteSpeakerProfile",
+          message: 'Failed to delete speaker profile',
+          operation: 'deleteSpeakerProfile',
           cause: error,
         }),
     });
@@ -347,8 +347,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to link speaker to user",
-          operation: "linkSpeakerToUser",
+          message: 'Failed to link speaker to user',
+          operation: 'linkSpeakerToUser',
           cause: error,
         }),
     });
@@ -375,8 +375,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to create video speaker",
-          operation: "createVideoSpeaker",
+          message: 'Failed to create video speaker',
+          operation: 'createVideoSpeaker',
           cause: error,
         }),
     });
@@ -404,8 +404,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to create video speakers",
-          operation: "createVideoSpeakers",
+          message: 'Failed to create video speakers',
+          operation: 'createVideoSpeakers',
           cause: error,
         }),
     });
@@ -424,8 +424,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get video speakers",
-          operation: "getVideoSpeakers",
+          message: 'Failed to get video speakers',
+          operation: 'getVideoSpeakers',
           cause: error,
         }),
     });
@@ -443,8 +443,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to link video speaker to profile",
-          operation: "linkVideoSpeakerToProfile",
+          message: 'Failed to link video speaker to profile',
+          operation: 'linkVideoSpeakerToProfile',
           cause: error,
         }),
     });
@@ -462,8 +462,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to update video speaker label",
-          operation: "updateVideoSpeakerLabel",
+          message: 'Failed to update video speaker label',
+          operation: 'updateVideoSpeakerLabel',
           cause: error,
         }),
     });
@@ -498,8 +498,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to create speaker segments",
-          operation: "createSpeakerSegments",
+          message: 'Failed to create speaker segments',
+          operation: 'createSpeakerSegments',
           cause: error,
         }),
     });
@@ -521,8 +521,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker segments",
-          operation: "getSpeakerSegments",
+          message: 'Failed to get speaker segments',
+          operation: 'getSpeakerSegments',
           cause: error,
         }),
     });
@@ -545,8 +545,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker segments by time range",
-          operation: "getSpeakerSegmentsByTimeRange",
+          message: 'Failed to get speaker segments by time range',
+          operation: 'getSpeakerSegmentsByTimeRange',
           cause: error,
         }),
     });
@@ -611,8 +611,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get talk time distribution",
-          operation: "getTalkTimeDistribution",
+          message: 'Failed to get talk time distribution',
+          operation: 'getTalkTimeDistribution',
           cause: error,
         }),
     });
@@ -638,8 +638,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get speaker trends",
-          operation: "getSpeakerTrends",
+          message: 'Failed to get speaker trends',
+          operation: 'getSpeakerTrends',
           cause: error,
         }),
     });
@@ -700,8 +700,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to get organization speaker stats",
-          operation: "getOrganizationSpeakerStats",
+          message: 'Failed to get organization speaker stats',
+          operation: 'getOrganizationSpeakerStats',
           cause: error,
         }),
     });
@@ -719,8 +719,8 @@ const makeService = Effect.gen(function* () {
       },
       catch: (error) =>
         new SpeakerRepositoryError({
-          message: "Failed to delete video speaker data",
-          operation: "deleteVideoSpeakerData",
+          message: 'Failed to delete video speaker data',
+          operation: 'deleteVideoSpeakerData',
           cause: error,
         }),
     });

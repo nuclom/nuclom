@@ -18,10 +18,10 @@
  * - Built-in observability
  */
 
-import { FatalError } from "workflow";
-import type { IntegrationProvider } from "@/lib/db/schema";
-import { env } from "@/lib/env/server";
-import { processVideoWorkflow } from "./video-processing";
+import { FatalError } from 'workflow';
+import type { IntegrationProvider } from '@/lib/db/schema';
+import { env } from '@/lib/env/server';
+import { processVideoWorkflow } from './video-processing';
 
 // =============================================================================
 // Types
@@ -51,16 +51,16 @@ export interface ImportMeetingResult {
 
 async function updateImportStatus(
   importedMeetingId: string,
-  status: "pending" | "downloading" | "processing" | "completed" | "failed",
+  status: 'pending' | 'downloading' | 'processing' | 'completed' | 'failed',
   updates?: {
     videoId?: string;
     importError?: string;
     importedAt?: Date;
   },
 ): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { importedMeetings } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { importedMeetings } = await import('@/lib/db/schema');
 
   await db
     .update(importedMeetings)
@@ -84,7 +84,7 @@ async function downloadZoomRecording(
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  const contentType = response.headers.get("content-type") || "video/mp4";
+  const contentType = response.headers.get('content-type') || 'video/mp4';
 
   return {
     buffer: Buffer.from(arrayBuffer),
@@ -110,7 +110,7 @@ async function downloadGoogleMeetRecording(
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  const contentType = response.headers.get("content-type") || "video/mp4";
+  const contentType = response.headers.get('content-type') || 'video/mp4';
 
   return {
     buffer: Buffer.from(arrayBuffer),
@@ -119,18 +119,18 @@ async function downloadGoogleMeetRecording(
 }
 
 async function uploadToR2(buffer: Buffer, key: string, contentType: string): Promise<{ url: string }> {
-  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
   const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
   const bucketName = env.R2_BUCKET_NAME;
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
-    throw new FatalError("R2 storage not configured");
+    throw new FatalError('R2 storage not configured');
   }
 
   const client = new S3Client({
-    region: "auto",
+    region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId,
@@ -158,9 +158,9 @@ function formatDuration(seconds: number): string {
   const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
 // =============================================================================
@@ -182,62 +182,62 @@ function formatDuration(seconds: number): string {
  * transient failure, processing resumes from the last successful step.
  */
 export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<ImportMeetingResult> {
-  "use workflow";
+  'use workflow';
 
   const { importedMeetingId, provider, externalId, downloadUrl, meetingTitle, userId, organizationId, accessToken } =
     input;
 
   try {
     // Step 1: Update import status to downloading
-    await updateImportStatus(importedMeetingId, "downloading");
-    ("use step");
+    await updateImportStatus(importedMeetingId, 'downloading');
+    ('use step');
 
     // Step 2: Download the recording from provider
     let downloadResult: { buffer: Buffer; contentType: string };
 
-    if (provider === "zoom") {
+    if (provider === 'zoom') {
       downloadResult = await downloadZoomRecording(downloadUrl, accessToken);
     } else {
       downloadResult = await downloadGoogleMeetRecording(externalId, accessToken);
     }
-    ("use step");
+    ('use step');
 
     // Step 3: Upload to R2 storage
     const filename = `${externalId}.mp4`;
     const key = `videos/${organizationId}/${filename}`;
     const uploadResult = await uploadToR2(downloadResult.buffer, key, downloadResult.contentType);
-    ("use step");
+    ('use step');
 
     // Step 4: Update status to processing
-    await updateImportStatus(importedMeetingId, "processing");
-    ("use step");
+    await updateImportStatus(importedMeetingId, 'processing');
+    ('use step');
 
     // Step 5: Create video record
     const estimatedDuration = Math.round(downloadResult.buffer.length / 100000);
 
-    const { db } = await import("@/lib/db");
-    const { videos } = await import("@/lib/db/schema");
+    const { db } = await import('@/lib/db');
+    const { videos } = await import('@/lib/db/schema');
 
     const [video] = await db
       .insert(videos)
       .values({
-        title: meetingTitle || "Meeting Recording",
-        description: `Imported from ${provider === "zoom" ? "Zoom" : "Google Meet"}`,
+        title: meetingTitle || 'Meeting Recording',
+        description: `Imported from ${provider === 'zoom' ? 'Zoom' : 'Google Meet'}`,
         duration: formatDuration(estimatedDuration),
         videoUrl: uploadResult.url,
         authorId: userId,
         organizationId,
-        processingStatus: "pending",
+        processingStatus: 'pending',
       })
       .returning();
-    ("use step");
+    ('use step');
 
     // Step 6: Update imported meeting with video ID
-    await updateImportStatus(importedMeetingId, "completed", {
+    await updateImportStatus(importedMeetingId, 'completed', {
       videoId: video.id,
       importedAt: new Date(),
     });
-    ("use step");
+    ('use step');
 
     // Step 7: Trigger video processing workflow
     // This is a separate durable workflow that will handle transcription and AI analysis
@@ -256,7 +256,7 @@ export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<
     // Handle errors
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    await updateImportStatus(importedMeetingId, "failed", {
+    await updateImportStatus(importedMeetingId, 'failed', {
       importError: errorMessage,
     });
 

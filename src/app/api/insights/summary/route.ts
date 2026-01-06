@@ -1,11 +1,11 @@
-import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { aiActionItems, decisions, videoSpeakers, videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect/errors";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { aiActionItems, decisions, videoSpeakers, videos, videoViews } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect/errors';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,21 +13,21 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "7d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '7d' as const }),
 });
 
 function getDateRangeForPeriod(period: string): Date {
   const now = new Date();
   switch (period) {
-    case "7d":
+    case '7d':
       return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    case "30d":
+    case '30d':
       return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    case "90d":
+    case '90d':
       return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-    case "weekly":
+    case 'weekly':
       return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    case "monthly":
+    case 'monthly':
       return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     default:
       return new Date(0);
@@ -58,15 +58,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch video stats: ${error}`,
-          operation: "getVideoStats",
+          operation: 'getVideoStats',
         }),
     });
 
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch decision stats: ${error}`,
-          operation: "getDecisionStats",
+          operation: 'getDecisionStats',
         }),
     });
 
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch action item stats: ${error}`,
-          operation: "getActionItemStats",
+          operation: 'getActionItemStats',
         }),
     });
 
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch top speakers: ${error}`,
-          operation: "getTopSpeakers",
+          operation: 'getTopSpeakers',
         }),
     });
 
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch top videos: ${error}`,
-          operation: "getTopVideos",
+          operation: 'getTopVideos',
         }),
     });
 
@@ -208,11 +208,11 @@ export async function GET(request: NextRequest) {
     const recommendations: string[] = [];
 
     if (completionRate < 50 && Number(actionItemStats.total) > 0) {
-      recommendations.push("Action item completion rate is below 50%. Consider reviewing assignment workload.");
+      recommendations.push('Action item completion rate is below 50%. Consider reviewing assignment workload.');
     }
 
     if (Number(videoStats.totalVideos) === 0) {
-      recommendations.push("No videos recorded this period. Schedule regular team meetings to capture insights.");
+      recommendations.push('No videos recorded this period. Schedule regular team meetings to capture insights.');
     }
 
     if (topSpeakers.length > 0) {
@@ -226,13 +226,13 @@ export async function GET(request: NextRequest) {
       summary: {
         period,
         periodLabel:
-          period === "7d"
-            ? "Last 7 days"
-            : period === "30d"
-              ? "Last 30 days"
-              : period === "90d"
-                ? "Last 90 days"
-                : "This period",
+          period === '7d'
+            ? 'Last 7 days'
+            : period === '30d'
+              ? 'Last 30 days'
+              : period === '90d'
+                ? 'Last 90 days'
+                : 'This period',
         generatedAt: new Date().toISOString(),
       },
       stats: {

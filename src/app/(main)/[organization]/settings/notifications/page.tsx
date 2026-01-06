@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { Bell, Loader2, Mail, MessageSquare, Video } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { Bell, Loader2, Mail, MessageSquare, Video } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
 type NotificationPreferences = {
   emailNotifications: boolean;
@@ -44,7 +44,7 @@ function NotificationsContent() {
     if (!user?.id) return;
     try {
       setLoading(true);
-      const response = await fetch("/api/user/preferences");
+      const response = await fetch('/api/user/preferences');
       if (response.ok) {
         const data = await response.json();
         const prefs = {
@@ -60,11 +60,11 @@ function NotificationsContent() {
         setOriginalPreferences(prefs);
       }
     } catch (error) {
-      console.error("Error loading preferences:", error);
+      console.error('Error loading preferences:', error);
       toast({
-        title: "Error",
-        description: "Failed to load notification preferences",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load notification preferences',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -93,28 +93,28 @@ function NotificationsContent() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const response = await fetch("/api/user/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(preferences),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save preferences");
+        throw new Error('Failed to save preferences');
       }
 
       setOriginalPreferences(preferences);
       setHasChanges(false);
       toast({
-        title: "Preferences saved",
-        description: "Your notification preferences have been updated",
+        title: 'Preferences saved',
+        description: 'Your notification preferences have been updated',
       });
     } catch (error) {
-      console.error("Error saving preferences:", error);
+      console.error('Error saving preferences:', error);
       toast({
-        title: "Error",
-        description: "Failed to save notification preferences",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save notification preferences',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -163,7 +163,7 @@ function NotificationsContent() {
             </div>
             <Switch
               checked={preferences.emailNotifications}
-              onCheckedChange={() => handleToggle("emailNotifications")}
+              onCheckedChange={() => handleToggle('emailNotifications')}
             />
           </div>
 
@@ -186,7 +186,7 @@ function NotificationsContent() {
                     </div>
                     <Switch
                       checked={preferences.emailCommentReplies}
-                      onCheckedChange={() => handleToggle("emailCommentReplies")}
+                      onCheckedChange={() => handleToggle('emailCommentReplies')}
                     />
                   </div>
 
@@ -195,7 +195,7 @@ function NotificationsContent() {
                       <Label>Mentions</Label>
                       <p className="text-sm text-muted-foreground">When someone mentions you in a comment</p>
                     </div>
-                    <Switch checked={preferences.emailMentions} onCheckedChange={() => handleToggle("emailMentions")} />
+                    <Switch checked={preferences.emailMentions} onCheckedChange={() => handleToggle('emailMentions')} />
                   </div>
                 </div>
               </div>
@@ -217,7 +217,7 @@ function NotificationsContent() {
                     </div>
                     <Switch
                       checked={preferences.emailVideoProcessing}
-                      onCheckedChange={() => handleToggle("emailVideoProcessing")}
+                      onCheckedChange={() => handleToggle('emailVideoProcessing')}
                     />
                   </div>
                 </div>
@@ -240,7 +240,7 @@ function NotificationsContent() {
                     </div>
                     <Switch
                       checked={preferences.emailWeeklyDigest}
-                      onCheckedChange={() => handleToggle("emailWeeklyDigest")}
+                      onCheckedChange={() => handleToggle('emailWeeklyDigest')}
                     />
                   </div>
 
@@ -251,7 +251,7 @@ function NotificationsContent() {
                     </div>
                     <Switch
                       checked={preferences.emailProductUpdates}
-                      onCheckedChange={() => handleToggle("emailProductUpdates")}
+                      onCheckedChange={() => handleToggle('emailProductUpdates')}
                     />
                   </div>
                 </div>
@@ -265,7 +265,7 @@ function NotificationsContent() {
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </CardFooter>
         )}
@@ -286,7 +286,7 @@ function NotificationsContent() {
               <Label className="text-base">Push notifications</Label>
               <p className="text-sm text-muted-foreground">Receive push notifications in your browser</p>
             </div>
-            <Switch checked={preferences.pushNotifications} onCheckedChange={() => handleToggle("pushNotifications")} />
+            <Switch checked={preferences.pushNotifications} onCheckedChange={() => handleToggle('pushNotifications')} />
           </div>
         </CardContent>
         {hasChanges && (
@@ -295,7 +295,7 @@ function NotificationsContent() {
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </CardFooter>
         )}

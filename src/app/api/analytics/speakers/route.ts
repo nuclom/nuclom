@@ -5,16 +5,16 @@
  * speaking patterns, and team balance metrics.
  */
 
-import { desc, eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { normalizeOne } from "@/lib/db/relations";
-import { speakerProfiles, videoSpeakers } from "@/lib/db/schema";
-import { DatabaseError } from "@/lib/effect";
+import { desc, eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { normalizeOne } from '@/lib/db/relations';
+import { speakerProfiles, videoSpeakers } from '@/lib/db/schema';
+import { DatabaseError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/analytics/speakers - Get organization-wide speaker statistics
@@ -27,16 +27,16 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user || !session.session?.activeOrganizationId) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const organizationId = session.session.activeOrganizationId;
 
   // Parse query params
   const searchParams = request.nextUrl.searchParams;
-  const startDateStr = searchParams.get("startDate");
-  const endDateStr = searchParams.get("endDate");
-  const limit = Number.parseInt(searchParams.get("limit") || "20", 10);
+  const startDateStr = searchParams.get('startDate');
+  const endDateStr = searchParams.get('endDate');
+  const limit = Number.parseInt(searchParams.get('limit') || '20', 10);
 
   const startDate = startDateStr ? new Date(startDateStr) : undefined;
   const endDate = endDateStr ? new Date(endDateStr) : undefined;
@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speaker profiles",
-          operation: "getSpeakerProfiles",
+          message: 'Failed to fetch speaker profiles',
+          operation: 'getSpeakerProfiles',
           cause: error,
         }),
     });
@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
           },
           catch: (error) =>
             new DatabaseError({
-              message: "Failed to get speaker stats",
-              operation: "getSpeakerStats",
+              message: 'Failed to get speaker stats',
+              operation: 'getSpeakerStats',
               cause: error,
             }),
         }),
