@@ -1,6 +1,8 @@
 import { Effect, Layer, Schema } from "effect";
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { handleEffectExit } from "@/lib/api-handler";
 import { auth } from "@/lib/auth";
+import { UnauthorizedError, ValidationError } from "@/lib/effect/errors";
 import { DatabaseLive } from "@/lib/effect/services/database";
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
 import { safeParse } from "@/lib/validation";
@@ -31,7 +33,7 @@ interface RouteParams {
 }
 
 // GET - Get a specific webhook
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   const { webhookId } = await params;
 
   const session = await auth.api.getSession({
@@ -39,7 +41,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Effect.runPromiseExit(Effect.fail(UnauthorizedError.default)).then(handleEffectExit);
   }
 
   const effect = Effect.gen(function* () {
@@ -48,17 +50,13 @@ export async function GET(request: Request, { params }: RouteParams) {
     return { webhook };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, WebhooksLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[Zapier Webhook GET Error]", err);
-    return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
-  }
+  const runnable = Effect.provide(effect, WebhooksLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }
 
 // PATCH - Update a webhook
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { webhookId } = await params;
 
   const session = await auth.api.getSession({
@@ -66,19 +64,23 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Effect.runPromiseExit(Effect.fail(UnauthorizedError.default)).then(handleEffectExit);
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid JSON body" }))).then(
+      handleEffectExit,
+    );
   }
 
   const result = safeParse(UpdateWebhookSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid request format" }))).then(
+      handleEffectExit,
+    );
   }
   const body = result.data;
 
@@ -93,17 +95,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return { webhook };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, WebhooksLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[Zapier Webhook PATCH Error]", err);
-    return NextResponse.json({ error: "Failed to update webhook" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, WebhooksLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }
 
 // DELETE - Delete a webhook
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { webhookId } = await params;
 
   const session = await auth.api.getSession({
@@ -111,7 +109,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Effect.runPromiseExit(Effect.fail(UnauthorizedError.default)).then(handleEffectExit);
   }
 
   const effect = Effect.gen(function* () {
@@ -120,11 +118,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return { success: true };
   });
 
-  try {
-    const result = await Effect.runPromise(Effect.provide(effect, WebhooksLayer));
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[Zapier Webhook DELETE Error]", err);
-    return NextResponse.json({ error: "Failed to delete webhook" }, { status: 500 });
-  }
+  const runnable = Effect.provide(effect, WebhooksLayer);
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }
