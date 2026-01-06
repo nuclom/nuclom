@@ -18,6 +18,7 @@ export type MonitoringEventType =
   | 'organization_created'
   | 'member_invited'
   | 'member_joined'
+  | 'beta_access_requested'
   // Billing events
   | 'subscription_created'
   | 'subscription_upgraded'
@@ -100,7 +101,7 @@ export interface SlackMonitoringServiceInterface {
    * Send an account event (user registration, organization creation)
    */
   readonly sendAccountEvent: (
-    type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined',
+    type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined' | 'beta_access_requested',
     data: {
       userId?: string;
       userName?: string;
@@ -109,6 +110,8 @@ export interface SlackMonitoringServiceInterface {
       organizationName?: string;
       inviterName?: string;
       role?: string;
+      useCase?: string;
+      company?: string;
     },
   ) => Effect.Effect<void, Error>;
 
@@ -195,6 +198,7 @@ const getEventCategory = (type: MonitoringEventType): EventCategory => {
     organization_created: 'accounts',
     member_invited: 'accounts',
     member_joined: 'accounts',
+    beta_access_requested: 'accounts',
     // Billing events
     subscription_created: 'billing',
     subscription_upgraded: 'billing',
@@ -240,6 +244,7 @@ const getEventEmoji = (type: MonitoringEventType): string => {
     organization_created: ':office:',
     member_invited: ':email:',
     member_joined: ':handshake:',
+    beta_access_requested: ':raising_hand:',
     subscription_created: ':tada:',
     subscription_upgraded: ':arrow_up:',
     subscription_downgraded: ':arrow_down:',
@@ -264,6 +269,7 @@ const getEventTitle = (type: MonitoringEventType): string => {
     organization_created: 'New Organization Created',
     member_invited: 'Member Invited',
     member_joined: 'Member Joined Organization',
+    beta_access_requested: 'Beta Access Requested',
     subscription_created: 'New Subscription',
     subscription_upgraded: 'Subscription Upgraded',
     subscription_downgraded: 'Subscription Downgraded',
@@ -480,6 +486,20 @@ const makeSlackMonitoringService = Effect.gen(function* () {
       });
     }
 
+    if (data.useCase) {
+      fields.push({
+        type: 'mrkdwn',
+        text: `*Use Case:* ${data.useCase}`,
+      });
+    }
+
+    if (data.company) {
+      fields.push({
+        type: 'mrkdwn',
+        text: `*Company:* ${data.company}`,
+      });
+    }
+
     if (fields.length > 0) {
       blocks.push({
         type: 'section',
@@ -614,7 +634,7 @@ export const sendSlackMonitoringEvent = (event: MonitoringEvent): Effect.Effect<
   });
 
 export const sendSlackAccountEvent = (
-  type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined',
+  type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined' | 'beta_access_requested',
   data: Parameters<SlackMonitoringServiceInterface['sendAccountEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
@@ -669,6 +689,8 @@ export async function notifySlackMonitoring(
     amount?: number;
     currency?: string;
     errorMessage?: string;
+    useCase?: string;
+    company?: string;
     [key: string]: unknown;
   },
 ): Promise<void> {
@@ -719,6 +741,12 @@ export async function notifySlackMonitoring(
     }
     if (data.errorMessage) {
       fields.push({ type: 'mrkdwn', text: `*Error:* ${data.errorMessage}` });
+    }
+    if (data.useCase) {
+      fields.push({ type: 'mrkdwn', text: `*Use Case:* ${data.useCase}` });
+    }
+    if (data.company) {
+      fields.push({ type: 'mrkdwn', text: `*Company:* ${data.company}` });
     }
 
     if (fields.length > 0) {
