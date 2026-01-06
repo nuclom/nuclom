@@ -257,6 +257,18 @@ export function logServerError(log: ServerErrorLog): void {
 }
 
 /**
+ * Safely parse a URL, returning null if invalid
+ */
+function safeParseUrl(url: string): URL | null {
+  if (!url) return null;
+  try {
+    return new URL(url);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Create error context from Next.js request
  */
 export function createErrorContext(
@@ -267,13 +279,13 @@ export function createErrorContext(
     requestId?: string;
   },
 ): ErrorContext {
-  const url = new URL(request.url);
+  const url = safeParseUrl(request.url);
 
   return {
     requestId: options?.requestId || request.headers.get('x-request-id') || crypto.randomUUID(),
     userId: options?.userId,
     organizationId: options?.organizationId,
-    path: url.pathname,
+    path: url?.pathname,
     method: request.method,
   };
 }

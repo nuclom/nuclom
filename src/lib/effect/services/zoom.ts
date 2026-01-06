@@ -368,9 +368,16 @@ const makeZoomService = Effect.gen(function* () {
     });
 
   const getDownloadUrl = (downloadUrl: string, accessToken: string): string => {
-    const url = new URL(downloadUrl);
-    url.searchParams.set('access_token', accessToken);
-    return url.toString();
+    if (!downloadUrl) {
+      throw new Error('Download URL is required');
+    }
+    try {
+      const url = new URL(downloadUrl);
+      url.searchParams.set('access_token', accessToken);
+      return url.toString();
+    } catch {
+      throw new Error(`Invalid download URL: ${downloadUrl}`);
+    }
   };
 
   const parseRecordings = (response: ZoomRecordingsResponse): ZoomRecording[] => {

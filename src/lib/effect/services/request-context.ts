@@ -101,16 +101,28 @@ export function makeRequestContextService(input: CreateRequestContextInput = {})
 }
 
 /**
+ * Safely parse a URL, returning null if invalid
+ */
+function safeParseUrl(url: string): URL | null {
+  if (!url) return null;
+  try {
+    return new URL(url);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Extract request context from NextRequest headers
  */
 export function extractRequestContext(request: Request): CreateRequestContextInput {
   const headers = request.headers;
-  const url = new URL(request.url);
+  const url = safeParseUrl(request.url);
 
   return {
     // Use existing correlation ID from upstream services if present
     correlationId: headers.get('x-correlation-id') ?? headers.get('x-request-id') ?? undefined,
-    path: url.pathname,
+    path: url?.pathname,
     method: request.method,
     userAgent: headers.get('user-agent') ?? undefined,
   };

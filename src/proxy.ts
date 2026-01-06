@@ -130,6 +130,22 @@ async function checkRateLimit(
 }
 
 // =============================================================================
+// URL Helper
+// =============================================================================
+
+/**
+ * Safely construct a URL with a base URL, returning null if invalid
+ */
+function safeConstructUrl(path: string, baseUrl: string): URL | null {
+  if (!baseUrl) return null;
+  try {
+    return new URL(path, baseUrl);
+  } catch {
+    return null;
+  }
+}
+
+// =============================================================================
 // Route Classification
 // =============================================================================
 
@@ -287,7 +303,32 @@ export async function proxy(request: NextRequest) {
       }
 
       // For page routes, redirect to sign-in
-      const signInUrl = new URL('/auth/sign-in', request.url);
+      const signInUrl = safeConstructUrl('/auth/sign-in', request.url);
+      if (!signInUrl) {
+        // Fallback: return 401 if we can't construct redirect URL
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized (invalid request URL)`,
+        );
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Authentication required',
+          }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-request-id': requestId,
+            },
+          },
+        );
+      }
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(
@@ -336,7 +377,32 @@ export async function proxy(request: NextRequest) {
       }
 
       // For page routes, redirect to sign-in
-      const signInUrl = new URL('/auth/sign-in', request.url);
+      const signInUrl = safeConstructUrl('/auth/sign-in', request.url);
+      if (!signInUrl) {
+        // Fallback: return 401 if we can't construct redirect URL
+        requestLogger.warn(
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
+          `← ${method} ${pathname} 401 Unauthorized (invalid request URL)`,
+        );
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Authentication required',
+          }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-request-id': requestId,
+            },
+          },
+        );
+      }
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(

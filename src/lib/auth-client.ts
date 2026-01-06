@@ -29,8 +29,9 @@ const getBaseURL = () => {
   if (env.NEXT_PUBLIC_VERCEL_URL) {
     return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
   }
-  // Fallback to relative URLs for local development
-  return '';
+  // Fallback to localhost for local development SSR
+  // This prevents Invalid URL errors when constructing full URLs
+  return 'http://localhost:3000';
 };
 
 export const authClient = createAuthClient({
