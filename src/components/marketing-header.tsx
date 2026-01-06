@@ -30,6 +30,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
 
   const handleLogout = async () => {
     try {
+      setMobileMenuOpen(false);
       await authClient.signOut();
       router.push('/');
       router.refresh();
