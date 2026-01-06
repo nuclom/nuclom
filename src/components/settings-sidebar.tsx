@@ -7,6 +7,7 @@ import {
   CreditCard,
   Globe,
   Key,
+  Link2,
   Lock,
   Plug,
   Shield,
@@ -48,6 +49,11 @@ export function SettingsSidebar({ organization }: { organization: string }) {
           href: `/${organization}/settings/account`,
           label: 'Account',
           icon: UserCog,
+        },
+        {
+          href: `/${organization}/settings/linked-accounts`,
+          label: 'Linked Accounts',
+          icon: Link2,
         },
         {
           href: `/${organization}/settings/security`,
