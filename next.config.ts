@@ -58,9 +58,9 @@ const nextConfig: NextConfig = {
     // Content Security Policy directives
     const cspDirectives = [
       "default-src 'self'",
-      // Allow scripts from self, inline (for Next.js), eval (for development), and Vercel Analytics
+      // Allow scripts from self, inline (for Next.js), eval (for development), Vercel Analytics, and Vercel Live
       process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://vercel.live"
         : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       // Allow styles from self and inline (required for styled-components/emotion)
       "style-src 'self' 'unsafe-inline'",
@@ -68,8 +68,10 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com",
       // Allow fonts from self and Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Allow connections to self, API endpoints, external services, and Vercel Analytics
-      "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com",
+      // Allow connections to self, API endpoints, external services, Vercel Analytics, and Vercel Live (dev)
+      process.env.NODE_ENV === "development"
+        ? "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com"
+        : "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com",
       // Allow media from self and R2 storage
       "media-src 'self' blob: https://*.r2.dev https://*.r2.cloudflarestorage.com",
       // Prevent embedding in iframes (except for allowed origins)
