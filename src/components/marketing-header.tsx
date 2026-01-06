@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LogOut, Menu, Play, Settings, User, X } from 'lucide-react';
+import { LogOut, Menu, Play, Settings, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -84,7 +84,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
           {user ? (
             <>
               <Button variant="outline" asChild>
-                <Link href={"/"}>Dashboard</Link>
+                <Link href={'/'}>Dashboard</Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -104,7 +104,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href={"/settings"}>
+                    <Link href={'/settings'}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </Link>

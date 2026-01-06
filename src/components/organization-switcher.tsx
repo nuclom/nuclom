@@ -115,11 +115,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
 
   if (loading) {
     return (
-      <Button
-        variant="outline"
-        className="h-9 w-full justify-between"
-        disabled
-      >
+      <Button variant="outline" className="h-9 w-full justify-between" disabled>
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
           <span className="font-medium">Loading...</span>
@@ -132,12 +128,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="h-9 w-full justify-between"
-        >
+        <Button variant="outline" role="combobox" aria-expanded={open} className="h-9 w-full justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage src={activeOrg?.logo || '/placeholder.svg'} alt={activeOrg?.name} />

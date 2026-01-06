@@ -76,9 +76,7 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
               <Clock className="h-5 w-5 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium">No recent activity</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Activity from your team will appear here
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Activity from your team will appear here</p>
           </div>
         ) : (
           <div className="space-y-4">
