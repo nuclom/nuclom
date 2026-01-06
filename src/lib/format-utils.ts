@@ -19,7 +19,7 @@
  */
 export function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "00:00";
+    return '00:00';
   }
 
   const hrs = Math.floor(seconds / 3600);
@@ -27,9 +27,9 @@ export function formatTime(seconds: number): string {
   const secs = Math.floor(seconds % 60);
 
   if (hrs > 0) {
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 /**
@@ -41,14 +41,14 @@ export function formatTime(seconds: number): string {
  */
 export function formatTimePrecise(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "00:00.000";
+    return '00:00.000';
   }
 
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   const ms = Math.round((seconds % 1) * 1000);
 
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
 }
 
 // =============================================================================
@@ -65,7 +65,7 @@ export function formatTimePrecise(seconds: number): string {
  */
 export function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "0:00";
+    return '0:00';
   }
 
   const hours = Math.floor(seconds / 3600);
@@ -73,9 +73,9 @@ export function formatDuration(seconds: number): string {
   const secs = Math.floor(seconds % 60);
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
 /**
@@ -87,7 +87,7 @@ export function formatDuration(seconds: number): string {
  * formatDurationHuman(45) // "45 min"
  */
 export function formatDurationHuman(minutes: number | null | undefined): string {
-  if (!minutes) return "Unknown duration";
+  if (!minutes) return 'Unknown duration';
   if (minutes < 60) return `${minutes} min`;
 
   const hours = Math.floor(minutes / 60);
@@ -103,7 +103,7 @@ export function formatDurationHuman(minutes: number | null | undefined): string 
  * formatDurationFromSeconds(5400) // "1h 30m"
  */
 export function formatDurationFromSeconds(seconds: number | null | undefined): string {
-  if (!seconds) return "Unknown duration";
+  if (!seconds) return 'Unknown duration';
   const totalMinutes = Math.round(seconds / 60);
   return formatDurationHuman(totalMinutes);
 }
@@ -120,15 +120,15 @@ export function formatDurationFromSeconds(seconds: number | null | undefined): s
  * formatDate(new Date()) // "Dec 31, 2024"
  */
 export function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return "Never";
+  if (!date) return 'Never';
 
   const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "Invalid date";
+  if (Number.isNaN(d.getTime())) return 'Invalid date';
 
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
@@ -139,17 +139,17 @@ export function formatDate(date: Date | string | null | undefined): string {
  * formatDateTime(new Date()) // "Dec 31, 2024, 11:30 AM"
  */
 export function formatDateTime(date: Date | string | null | undefined): string {
-  if (!date) return "Never";
+  if (!date) return 'Never';
 
   const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "Invalid date";
+  if (Number.isNaN(d.getTime())) return 'Invalid date';
 
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -162,30 +162,30 @@ export function formatDateTime(date: Date | string | null | undefined): string {
  * formatRelativeTime(new Date(Date.now() - 86400000 * 3)) // "3 days ago"
  */
 export function formatRelativeTime(date: Date | string | null | undefined): string {
-  if (!date) return "Unknown";
+  if (!date) return 'Unknown';
 
   const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "Unknown";
+  if (Number.isNaN(d.getTime())) return 'Unknown';
 
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   const days = Math.floor(diff / 86400000);
 
-  if (days < 0) return "In the future";
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
+  if (days < 0) return 'In the future';
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
   if (days < 7) return `${days} days ago`;
   if (days < 30) {
     const weeks = Math.floor(days / 7);
-    return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
   }
   if (days < 365) {
     const months = Math.floor(days / 30);
-    return months === 1 ? "1 month ago" : `${months} months ago`;
+    return months === 1 ? '1 month ago' : `${months} months ago`;
   }
 
   const years = Math.floor(days / 365);
-  return years === 1 ? "1 year ago" : `${years} years ago`;
+  return years === 1 ? '1 year ago' : `${years} years ago`;
 }
 
 // =============================================================================
@@ -215,9 +215,9 @@ export function formatCompactNumber(value: number): string {
  * formatFileSize(1048576) // "1 MB"
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
+  if (bytes === 0) return '0 B';
 
-  const units = ["B", "KB", "MB", "GB", "TB"];
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   const k = 1024;
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 

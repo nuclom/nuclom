@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { AlertCircle, CheckCircle, Upload, Video, X } from "lucide-react";
-import { type ChangeEvent, type FormEvent, useCallback, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { logger } from "@/lib/client-logger";
-import { cn } from "@/lib/utils";
+import { AlertCircle, CheckCircle, Upload, Video, X } from 'lucide-react';
+import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { logger } from '@/lib/client-logger';
+import { cn } from '@/lib/utils';
 
 interface VideoUploadProps {
   organizationId: string;
@@ -22,7 +22,7 @@ interface VideoUploadProps {
 }
 
 interface UploadState {
-  status: "idle" | "uploading" | "processing" | "success" | "error";
+  status: 'idle' | 'uploading' | 'processing' | 'success' | 'error';
   progress: number;
   message: string;
   error?: string;
@@ -37,27 +37,27 @@ export function VideoUpload({
   onCancel,
 }: VideoUploadProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [uploadState, setUploadState] = useState<UploadState>({
-    status: "idle",
+    status: 'idle',
     progress: 0,
-    message: "",
+    message: '',
   });
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileSelect = useCallback(
     (selectedFile: File) => {
       // Validate file type
-      const supportedFormats = ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv"];
-      const extension = selectedFile.name.toLowerCase().split(".").pop();
+      const supportedFormats = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv'];
+      const extension = selectedFile.name.toLowerCase().split('.').pop();
 
       if (!extension || !supportedFormats.includes(extension)) {
         setUploadState({
-          status: "error",
+          status: 'error',
           progress: 0,
-          message: "",
-          error: "Unsupported file format. Please select a video file (MP4, MOV, AVI, MKV, WebM, FLV, WMV).",
+          message: '',
+          error: 'Unsupported file format. Please select a video file (MP4, MOV, AVI, MKV, WebM, FLV, WMV).',
         });
         return;
       }
@@ -66,24 +66,24 @@ export function VideoUpload({
       const maxSize = 500 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
         setUploadState({
-          status: "error",
+          status: 'error',
           progress: 0,
-          message: "",
-          error: "File size too large. Maximum file size is 500MB.",
+          message: '',
+          error: 'File size too large. Maximum file size is 500MB.',
         });
         return;
       }
 
       setFile(selectedFile);
       setUploadState({
-        status: "idle",
+        status: 'idle',
         progress: 0,
-        message: "",
+        message: '',
       });
 
       // Auto-generate title from filename if not set
       if (!title) {
-        const nameWithoutExtension = selectedFile.name.replace(/\.[^/.]+$/, "");
+        const nameWithoutExtension = selectedFile.name.replace(/\.[^/.]+$/, '');
         setTitle(nameWithoutExtension);
       }
     },
@@ -100,9 +100,9 @@ export function VideoUpload({
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
@@ -124,75 +124,75 @@ export function VideoUpload({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!file || !title || uploadState.status === "uploading") {
+    if (!file || !title || uploadState.status === 'uploading') {
       return;
     }
 
     const formData = new FormData();
-    formData.append("video", file);
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("organizationId", organizationId);
-    formData.append("authorId", authorId);
-    if (channelId) formData.append("channelId", channelId);
-    if (seriesId) formData.append("seriesId", seriesId);
+    formData.append('video', file);
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('organizationId', organizationId);
+    formData.append('authorId', authorId);
+    if (channelId) formData.append('channelId', channelId);
+    if (seriesId) formData.append('seriesId', seriesId);
 
     setUploadState({
-      status: "uploading",
+      status: 'uploading',
       progress: 10,
-      message: "Starting upload...",
+      message: 'Starting upload...',
     });
 
     try {
-      const response = await fetch("/api/videos/upload", {
-        method: "POST",
+      const response = await fetch('/api/videos/upload', {
+        method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
+        throw new Error(errorData.error || 'Upload failed');
       }
 
       // Simulate processing progress
       setUploadState({
-        status: "processing",
+        status: 'processing',
         progress: 75,
-        message: "Processing video...",
+        message: 'Processing video...',
       });
 
       const result = await response.json();
 
       if (result.success) {
         setUploadState({
-          status: "success",
+          status: 'success',
           progress: 100,
-          message: "Upload complete!",
+          message: 'Upload complete!',
         });
 
         onUploadComplete?.(result.data);
       } else {
-        throw new Error(result.error || "Upload failed");
+        throw new Error(result.error || 'Upload failed');
       }
     } catch (error) {
-      logger.error("Video upload failed", error);
+      logger.error('Video upload failed', error);
       setUploadState({
-        status: "error",
+        status: 'error',
         progress: 0,
-        message: "",
-        error: error instanceof Error ? error.message : "An unexpected error occurred",
+        message: '',
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     }
   };
 
   const getProgressMessage = () => {
     switch (uploadState.status) {
-      case "uploading":
+      case 'uploading':
         return `Uploading... ${uploadState.progress}%`;
-      case "processing":
-        return "Processing video and generating thumbnail...";
-      case "success":
-        return "Video uploaded successfully!";
+      case 'processing':
+        return 'Processing video and generating thumbnail...';
+      case 'success':
+        return 'Video uploaded successfully!';
       default:
         return uploadState.message;
     }
@@ -211,9 +211,9 @@ export function VideoUpload({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
         <div
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-            dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-            uploadState.status === "uploading" || uploadState.status === "processing" ? "opacity-50" : "",
+            'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
+            dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
+            uploadState.status === 'uploading' || uploadState.status === 'processing' ? 'opacity-50' : '',
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -230,7 +230,7 @@ export function VideoUpload({
                 variant="outline"
                 size="sm"
                 onClick={() => setFile(null)}
-                disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               >
                 <X className="h-4 w-4 mr-1" />
                 Remove
@@ -249,13 +249,13 @@ export function VideoUpload({
                 onChange={handleFileChange}
                 className="hidden"
                 id="video-upload"
-                disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               />
               <Label htmlFor="video-upload" className="cursor-pointer">
                 <Button
                   type="button"
                   variant="outline"
-                  disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                  disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
                 >
                   Select Video File
                 </Button>
@@ -278,7 +278,7 @@ export function VideoUpload({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter video title"
               required
-              disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+              disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
             />
           </div>
 
@@ -290,12 +290,12 @@ export function VideoUpload({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter video description"
               rows={3}
-              disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+              disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
             />
           </div>
 
           {/* Progress Indicator */}
-          {(uploadState.status === "uploading" || uploadState.status === "processing") && (
+          {(uploadState.status === 'uploading' || uploadState.status === 'processing') && (
             <div className="space-y-2">
               <Progress value={uploadState.progress} className="w-full" />
               <p className="text-sm text-muted-foreground text-center">{getProgressMessage()}</p>
@@ -303,7 +303,7 @@ export function VideoUpload({
           )}
 
           {/* Error Message */}
-          {uploadState.status === "error" && uploadState.error && (
+          {uploadState.status === 'error' && uploadState.error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{uploadState.error}</AlertDescription>
@@ -311,7 +311,7 @@ export function VideoUpload({
           )}
 
           {/* Success Message */}
-          {uploadState.status === "success" && (
+          {uploadState.status === 'success' && (
             <Alert>
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>Video uploaded successfully!</AlertDescription>
@@ -322,19 +322,19 @@ export function VideoUpload({
           <div className="flex gap-2 pt-4">
             <Button
               type="submit"
-              disabled={!file || !title || uploadState.status === "uploading" || uploadState.status === "processing"}
+              disabled={!file || !title || uploadState.status === 'uploading' || uploadState.status === 'processing'}
               className="flex-1"
             >
-              {uploadState.status === "uploading" || uploadState.status === "processing"
-                ? "Uploading..."
-                : "Upload Video"}
+              {uploadState.status === 'uploading' || uploadState.status === 'processing'
+                ? 'Uploading...'
+                : 'Upload Video'}
             </Button>
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               >
                 Cancel
               </Button>

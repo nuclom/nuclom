@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Clock, Eye, TrendingUp } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Clock, Eye, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface TopVideo {
   videoId: string;
@@ -85,7 +85,7 @@ export function TopVideosTable({ videos, organizationSlug }: TopVideosTableProps
                       <div className="relative w-16 h-9 rounded overflow-hidden bg-muted flex-shrink-0">
                         <Image
                           src={item.video.thumbnailUrl}
-                          alt={item.video.title || "Video thumbnail"}
+                          alt={item.video.title || 'Video thumbnail'}
                           fill
                           className="object-cover"
                         />
@@ -93,7 +93,7 @@ export function TopVideosTable({ videos, organizationSlug }: TopVideosTableProps
                     ) : (
                       <div className="w-16 h-9 rounded bg-muted flex-shrink-0" />
                     )}
-                    <span className="font-medium truncate max-w-[200px]">{item.video?.title || "Unknown Video"}</span>
+                    <span className="font-medium truncate max-w-[200px]">{item.video?.title || 'Unknown Video'}</span>
                   </Link>
                 </TableCell>
                 <TableCell className="text-right">

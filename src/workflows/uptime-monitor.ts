@@ -13,10 +13,10 @@
  * - Admin notifications on service failures
  */
 
-import { sleep } from "workflow";
-import { createWorkflowLogger } from "./workflow-logger";
+import { sleep } from 'workflow';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("uptime-monitor");
+const log = createWorkflowLogger('uptime-monitor');
 
 // =============================================================================
 // Types
@@ -35,8 +35,8 @@ export interface UptimeMonitorResult {
 }
 
 export interface ServiceCheckResult {
-  service: "database" | "storage" | "ai" | "overall";
-  status: "healthy" | "degraded" | "unhealthy" | "not_configured";
+  service: 'database' | 'storage' | 'ai' | 'overall';
+  status: 'healthy' | 'degraded' | 'unhealthy' | 'not_configured';
   latencyMs: number;
   error?: string;
   metadata?: Record<string, unknown>;
@@ -50,20 +50,20 @@ async function checkDatabase(): Promise<ServiceCheckResult> {
   const startTime = performance.now();
 
   try {
-    const { sql } = await import("drizzle-orm");
-    const { db } = await import("@/lib/db");
+    const { sql } = await import('drizzle-orm');
+    const { db } = await import('@/lib/db');
 
     await db.execute(sql`SELECT 1`);
 
     return {
-      service: "database",
-      status: "healthy",
+      service: 'database',
+      status: 'healthy',
       latencyMs: Math.round(performance.now() - startTime),
     };
   } catch (error) {
     return {
-      service: "database",
-      status: "unhealthy",
+      service: 'database',
+      status: 'unhealthy',
       latencyMs: Math.round(performance.now() - startTime),
       error: error instanceof Error ? error.message : String(error),
     };
@@ -74,22 +74,22 @@ async function checkStorage(): Promise<ServiceCheckResult> {
   const startTime = performance.now();
 
   try {
-    const { HeadBucketCommand, S3Client } = await import("@aws-sdk/client-s3");
-    const { env } = await import("@/lib/env/server");
+    const { HeadBucketCommand, S3Client } = await import('@aws-sdk/client-s3');
+    const { env } = await import('@/lib/env/server');
 
     const isConfigured = env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET_NAME;
 
     if (!isConfigured) {
       return {
-        service: "storage",
-        status: "not_configured",
+        service: 'storage',
+        status: 'not_configured',
         latencyMs: 0,
-        error: "R2 storage is not configured",
+        error: 'R2 storage is not configured',
       };
     }
 
     const r2Client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID,
@@ -104,8 +104,8 @@ async function checkStorage(): Promise<ServiceCheckResult> {
     );
 
     return {
-      service: "storage",
-      status: "healthy",
+      service: 'storage',
+      status: 'healthy',
       latencyMs: Math.round(performance.now() - startTime),
       metadata: {
         bucket: env.R2_BUCKET_NAME,
@@ -113,8 +113,8 @@ async function checkStorage(): Promise<ServiceCheckResult> {
     };
   } catch (error) {
     return {
-      service: "storage",
-      status: "unhealthy",
+      service: 'storage',
+      status: 'unhealthy',
       latencyMs: Math.round(performance.now() - startTime),
       error: error instanceof Error ? error.message : String(error),
     };
@@ -125,10 +125,10 @@ async function checkAI(): Promise<ServiceCheckResult> {
   const startTime = performance.now();
 
   try {
-    const { gateway } = await import("@ai-sdk/gateway");
-    const { generateText } = await import("ai");
+    const { gateway } = await import('@ai-sdk/gateway');
+    const { generateText } = await import('ai');
 
-    const model = gateway("xai/grok-3");
+    const model = gateway('xai/grok-3');
 
     const result = await generateText({
       model,
@@ -136,26 +136,26 @@ async function checkAI(): Promise<ServiceCheckResult> {
     });
 
     if (!result.text) {
-      throw new Error("Empty response from AI service");
+      throw new Error('Empty response from AI service');
     }
 
     return {
-      service: "ai",
-      status: "healthy",
+      service: 'ai',
+      status: 'healthy',
       latencyMs: Math.round(performance.now() - startTime),
       metadata: {
-        model: "xai/grok-3",
-        provider: "vercel-ai-gateway",
+        model: 'xai/grok-3',
+        provider: 'vercel-ai-gateway',
       },
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const isConfigError =
-      errorMessage.includes("API key") || errorMessage.includes("authentication") || errorMessage.includes("401");
+      errorMessage.includes('API key') || errorMessage.includes('authentication') || errorMessage.includes('401');
 
     return {
-      service: "ai",
-      status: isConfigError ? "not_configured" : "unhealthy",
+      service: 'ai',
+      status: isConfigError ? 'not_configured' : 'unhealthy',
       latencyMs: Math.round(performance.now() - startTime),
       error: errorMessage,
     };
@@ -163,8 +163,8 @@ async function checkAI(): Promise<ServiceCheckResult> {
 }
 
 async function saveHealthCheckResults(results: ServiceCheckResult[]): Promise<void> {
-  const { db } = await import("@/lib/db");
-  const { healthChecks } = await import("@/lib/db/schema");
+  const { db } = await import('@/lib/db');
+  const { healthChecks } = await import('@/lib/db/schema');
 
   const now = new Date();
 
@@ -184,52 +184,52 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
   if (failedServices.length === 0) return;
 
   try {
-    const { db } = await import("@/lib/db");
-    const { notifications, users } = await import("@/lib/db/schema");
-    const { eq } = await import("drizzle-orm");
-    const { resend } = await import("@/lib/email");
-    const { env } = await import("@/lib/env/server");
+    const { db } = await import('@/lib/db');
+    const { notifications, users } = await import('@/lib/db/schema');
+    const { eq } = await import('drizzle-orm');
+    const { resend } = await import('@/lib/email');
+    const { env, getAppUrl } = await import('@/lib/env/server');
 
     // Get all admin users
     const adminUsers = await db.query.users.findMany({
-      where: eq(users.role, "admin"),
+      where: eq(users.role, 'admin'),
     });
 
     if (adminUsers.length === 0) {
-      log.warn({}, "No admin users found to notify");
+      log.warn({}, 'No admin users found to notify');
       return;
     }
 
     const failureMessage = failedServices
-      .map((s) => `- ${s.service}: ${s.status}${s.error ? ` (${s.error})` : ""}`)
-      .join("\n");
+      .map((s) => `- ${s.service}: ${s.status}${s.error ? ` (${s.error})` : ''}`)
+      .join('\n');
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || env.APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     // Create in-app notifications for each admin
     for (const admin of adminUsers) {
       await db.insert(notifications).values({
         userId: admin.id,
-        type: "video_processing_failed", // Reusing existing type for service alerts
-        title: "Service Health Alert",
+        type: 'video_processing_failed', // Reusing existing type for service alerts
+        title: 'Service Health Alert',
         body: `The following services are experiencing issues:\n${failureMessage}`,
-        resourceType: "video",
-        resourceId: "health-check",
+        resourceType: 'video',
+        resourceId: 'health-check',
       });
 
       // Send email notification
       if (admin.email) {
-        const fromEmail = env.RESEND_FROM_EMAIL ?? "alerts@nuclom.com";
+        const fromEmail = env.RESEND_FROM_EMAIL ?? 'alerts@nuclom.com';
         await resend.emails.send({
           from: fromEmail,
           to: admin.email,
           subject: `[ALERT] Service Health Issues Detected`,
           html: `
             <h2>Service Health Alert</h2>
-            <p>Hi ${admin.name || "Admin"},</p>
+            <p>Hi ${admin.name || 'Admin'},</p>
             <p>The following services are experiencing issues:</p>
             <ul>
-              ${failedServices.map((s) => `<li><strong>${s.service}</strong>: ${s.status}${s.error ? ` - ${s.error}` : ""}</li>`).join("")}
+              ${failedServices.map((s) => `<li><strong>${s.service}</strong>: ${s.status}${s.error ? ` - ${s.error}` : ''}</li>`).join('')}
             </ul>
             <p>Please check the <a href="${baseUrl}/status">status page</a> for more details.</p>
           `,
@@ -237,7 +237,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
       }
     }
   } catch (error) {
-    log.error({ error, failedServiceCount: failedServices.length }, "Failed to send admin notifications");
+    log.error({ error, failedServiceCount: failedServices.length }, 'Failed to send admin notifications');
   }
 }
 
@@ -261,7 +261,7 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
  * if the server restarts.
  */
 export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<UptimeMonitorResult> {
-  "use workflow";
+  'use workflow';
 
   const intervalMs = input.intervalMs ?? 5 * 60 * 1000; // 5 minutes default
   const maxChecks = input.maxChecks ?? 0; // 0 = infinite
@@ -272,25 +272,25 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
   while (maxChecks === 0 || checksPerformed < maxChecks) {
     // Step 1: Check all services in parallel
     const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
-    ("use step");
+    ('use step');
 
     // Step 2: Calculate overall status
     const results = [dbResult, storageResult, aiResult];
-    const activeResults = results.filter((r) => r.status !== "not_configured");
-    const allHealthy = activeResults.every((r) => r.status === "healthy");
-    const someHealthy = activeResults.some((r) => r.status === "healthy");
+    const activeResults = results.filter((r) => r.status !== 'not_configured');
+    const allHealthy = activeResults.every((r) => r.status === 'healthy');
+    const someHealthy = activeResults.some((r) => r.status === 'healthy');
 
-    let overallStatus: "healthy" | "degraded" | "unhealthy";
+    let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
     if (allHealthy) {
-      overallStatus = "healthy";
+      overallStatus = 'healthy';
     } else if (someHealthy) {
-      overallStatus = "degraded";
+      overallStatus = 'degraded';
     } else {
-      overallStatus = "unhealthy";
+      overallStatus = 'unhealthy';
     }
 
     const overallResult: ServiceCheckResult = {
-      service: "overall",
+      service: 'overall',
       status: overallStatus,
       latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
       metadata: {
@@ -302,13 +302,13 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
 
     // Step 3: Save results to database
     await saveHealthCheckResults([...results, overallResult]);
-    ("use step");
+    ('use step');
 
     // Step 4: Notify admins on failures
-    const failedServices = results.filter((r) => r.status === "unhealthy");
+    const failedServices = results.filter((r) => r.status === 'unhealthy');
     if (failedServices.length > 0) {
       await notifyAdminsOnFailure(failedServices);
-      ("use step");
+      ('use step');
     }
 
     checksPerformed++;
@@ -317,7 +317,7 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
     // Step 5: Sleep until next check
     if (maxChecks === 0 || checksPerformed < maxChecks) {
       await sleep(intervalMs);
-      ("use step");
+      ('use step');
     }
   }
 
@@ -331,27 +331,27 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
  * Run a single health check (useful for testing or manual checks)
  */
 export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
-  "use workflow";
+  'use workflow';
 
   const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
-  ("use step");
+  ('use step');
 
   const results = [dbResult, storageResult, aiResult];
-  const activeResults = results.filter((r) => r.status !== "not_configured");
-  const allHealthy = activeResults.every((r) => r.status === "healthy");
-  const someHealthy = activeResults.some((r) => r.status === "healthy");
+  const activeResults = results.filter((r) => r.status !== 'not_configured');
+  const allHealthy = activeResults.every((r) => r.status === 'healthy');
+  const someHealthy = activeResults.some((r) => r.status === 'healthy');
 
-  let overallStatus: "healthy" | "degraded" | "unhealthy";
+  let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
   if (allHealthy) {
-    overallStatus = "healthy";
+    overallStatus = 'healthy';
   } else if (someHealthy) {
-    overallStatus = "degraded";
+    overallStatus = 'degraded';
   } else {
-    overallStatus = "unhealthy";
+    overallStatus = 'unhealthy';
   }
 
   const overallResult: ServiceCheckResult = {
-    service: "overall",
+    service: 'overall',
     status: overallStatus,
     latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
   };
@@ -359,12 +359,12 @@ export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
   const allResults = [...results, overallResult];
 
   await saveHealthCheckResults(allResults);
-  ("use step");
+  ('use step');
 
-  const failedServices = results.filter((r) => r.status === "unhealthy");
+  const failedServices = results.filter((r) => r.status === 'unhealthy');
   if (failedServices.length > 0) {
     await notifyAdminsOnFailure(failedServices);
-    ("use step");
+    ('use step');
   }
 
   return allResults;

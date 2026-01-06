@@ -1,20 +1,42 @@
 // biome-ignore-all lint/correctness/noProcessGlobal: "This is a env file"
 
-import { Schema } from "effect";
+import { Schema } from 'effect';
 
 export const ClientEnv = Schema.Struct({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: Schema.optional(Schema.String),
-  NEXT_PUBLIC_APP_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   // Vercel automatic environment variables
   NEXT_PUBLIC_VERCEL_URL: Schema.optional(Schema.String),
   NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
+  NEXT_PUBLIC_VERCEL_ENV: Schema.optional(Schema.Literal('production', 'preview', 'development')),
 });
 
 export type ClientEnvType = typeof ClientEnv.Type;
 
 export const env = Schema.decodeUnknownSync(ClientEnv)({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
   NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
 });
+
+/**
+ * Get the application URL, computed from Vercel environment variables.
+ * Works in both client and server components.
+ * - In production: Uses NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+ * - In preview/staging: Uses NEXT_PUBLIC_VERCEL_URL
+ * - In local development: Falls back to http://localhost:3000
+ */
+export function getAppUrl(): string {
+  // Production environment - use the production URL
+  if (env.NEXT_PUBLIC_VERCEL_ENV === 'production' && env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  // Preview/staging environment - use the deployment URL
+  if (env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  // Local development fallback
+  return 'http://localhost:3000';
+}

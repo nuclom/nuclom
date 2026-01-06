@@ -8,15 +8,15 @@
  * GET /api/videos/[id]/subtitles/[lang].srt - Serve SRT subtitles (for compatibility)
  */
 
-import { eq } from "drizzle-orm";
-import { Effect } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, Translation } from "@/lib/effect";
-import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/effect/services/translation";
-import { generateSRT, generateWebVTT, type WebVTTOptions } from "@/lib/subtitles";
+import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, Translation } from '@/lib/effect';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/lib/effect/services/translation';
+import { generateSRT, generateWebVTT, type WebVTTOptions } from '@/lib/subtitles';
 
 // =============================================================================
 // Types
@@ -33,14 +33,14 @@ interface SubtitleParams {
 
 function parseLanguageAndFormat(lang: string): {
   language: SupportedLanguage;
-  format: "vtt" | "srt";
+  format: 'vtt' | 'srt';
 } | null {
   // Remove file extension and parse
   const match = lang.match(/^([a-z]{2})(?:\.(vtt|srt))?$/i);
   if (!match) return null;
 
   const langCode = match[1].toLowerCase() as SupportedLanguage;
-  const format = (match[2]?.toLowerCase() || "vtt") as "vtt" | "srt";
+  const format = (match[2]?.toLowerCase() || 'vtt') as 'vtt' | 'srt';
 
   // Validate language code
   if (!(langCode in SUPPORTED_LANGUAGES)) {
@@ -64,7 +64,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
       return yield* Effect.fail(
         new NotFoundError({
           message: `Invalid language or format: ${lang}. Use format like "en.vtt" or "es.srt"`,
-          entity: "Subtitle",
+          entity: 'Subtitle',
           id: lang,
         }),
       );
@@ -86,8 +86,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getSubtitles",
+          message: 'Failed to fetch video',
+          operation: 'getSubtitles',
           cause: error,
         }),
     });
@@ -95,8 +95,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
     if (!videoData) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id,
         }),
       );
@@ -104,19 +104,19 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
 
     // Check if transcript exists
     if (!videoData.transcriptSegments || videoData.transcriptSegments.length === 0) {
-      if (videoData.processingStatus === "transcribing" || videoData.processingStatus === "pending") {
+      if (videoData.processingStatus === 'transcribing' || videoData.processingStatus === 'pending') {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Transcript is still being generated. Please try again later.",
-            entity: "Transcript",
+            message: 'Transcript is still being generated. Please try again later.',
+            entity: 'Transcript',
             id,
           }),
         );
       }
       return yield* Effect.fail(
         new NotFoundError({
-          message: "No transcript available for this video",
-          entity: "Transcript",
+          message: 'No transcript available for this video',
+          entity: 'Transcript',
           id,
         }),
       );
@@ -125,7 +125,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
     let segments = videoData.transcriptSegments;
 
     // Handle translation if not English
-    if (language !== "en") {
+    if (language !== 'en') {
       const translationService = yield* Translation;
 
       // Check if translation is available
@@ -133,7 +133,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
         return yield* Effect.fail(
           new NotFoundError({
             message: `Translation to ${SUPPORTED_LANGUAGES[language].name} is not available. Only English subtitles are currently supported.`,
-            entity: "Translation",
+            entity: 'Translation',
             id: language,
           }),
         );
@@ -156,11 +156,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
       maxLineLength: 42,
     };
 
-    const content = format === "vtt" ? generateWebVTT(segments, options) : generateSRT(segments);
+    const content = format === 'vtt' ? generateWebVTT(segments, options) : generateSRT(segments);
 
     // Return response with appropriate content type
-    const contentType = format === "vtt" ? "text/vtt" : "text/srt";
-    const filename = `${videoData.title || "subtitles"}.${language}.${format}`;
+    const contentType = format === 'vtt' ? 'text/vtt' : 'text/srt';
+    const filename = `${videoData.title || 'subtitles'}.${language}.${format}`;
 
     return {
       content,
@@ -172,24 +172,24 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<S
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 
-  if (exit._tag === "Success") {
+  if (exit._tag === 'Success') {
     const { content, contentType, filename } = exit.value;
     return new NextResponse(content, {
       status: 200,
       headers: {
-        "Content-Type": `${contentType}; charset=utf-8`,
-        "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
-        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
-        "Access-Control-Allow-Origin": "*", // Allow CORS for video players
+        'Content-Type': `${contentType}; charset=utf-8`,
+        'Content-Disposition': `inline; filename="${encodeURIComponent(filename)}"`,
+        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Access-Control-Allow-Origin': '*', // Allow CORS for video players
       },
     });
   }
 
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
 }
 
 // =============================================================================
@@ -200,10 +200,10 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Max-Age": "86400",
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
     },
   });
 }

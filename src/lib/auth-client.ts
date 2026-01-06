@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { oauthProviderClient } from "@better-auth/oauth-provider/client";
-import { passkeyClient } from "@better-auth/passkey/client";
-import { ssoClient } from "@better-auth/sso/client";
-import { stripeClient } from "@better-auth/stripe/client";
+import { oauthProviderClient } from '@better-auth/oauth-provider/client';
+import { passkeyClient } from '@better-auth/passkey/client';
+import { ssoClient } from '@better-auth/sso/client';
+import { stripeClient } from '@better-auth/stripe/client';
 import {
   adminClient,
   apiKeyClient,
@@ -11,15 +11,15 @@ import {
   multiSessionClient,
   organizationClient,
   twoFactorClient,
-} from "better-auth/client/plugins";
-import { createAuthClient } from "better-auth/react";
-import { ac, organizationRoles } from "@/lib/access-control";
-import { env } from "@/lib/env/client";
+} from 'better-auth/client/plugins';
+import { createAuthClient } from 'better-auth/react';
+import { ac, organizationRoles } from '@/lib/access-control';
+import { env } from '@/lib/env/client';
 
 // Determine baseURL from Vercel automatic environment variables or browser origin
 const getBaseURL = () => {
   // In browser, use current origin (most reliable)
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return window.location.origin;
   }
   // In SSR, derive from Vercel automatic env vars
@@ -30,7 +30,7 @@ const getBaseURL = () => {
     return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
   }
   // Fallback to relative URLs for local development
-  return "";
+  return '';
 };
 
 export const authClient = createAuthClient({
@@ -66,8 +66,8 @@ export const { useSession, signIn, signOut, signUp, useActiveOrganization, organ
 export const { getLastUsedLoginMethod, isLastUsedLoginMethod, clearLastUsedLoginMethod } = authClient;
 
 // Helper types for subscription management
-export type SubscriptionPlan = "scale" | "pro";
-export type BillingPeriod = "monthly" | "yearly";
+export type SubscriptionPlan = 'scale' | 'pro';
+export type BillingPeriod = 'monthly' | 'yearly';
 
 // Helper function to upgrade subscription
 export async function upgradeSubscription(params: {
@@ -121,13 +121,13 @@ export async function openBillingPortal(returnUrl: string) {
 
 // Check if organization has active subscription
 export function hasActiveSubscription(subscriptions: Array<{ status: string }>) {
-  return subscriptions.some((sub) => sub.status === "active" || sub.status === "trialing");
+  return subscriptions.some((sub) => sub.status === 'active' || sub.status === 'trialing');
 }
 
 // Get current subscription status
 export function getSubscriptionStatus(subscriptions: Array<{ status: string; plan: string }>) {
-  const activeSub = subscriptions.find((sub) => sub.status === "active" || sub.status === "trialing");
+  const activeSub = subscriptions.find((sub) => sub.status === 'active' || sub.status === 'trialing');
   return activeSub
     ? { isActive: true, plan: activeSub.plan, status: activeSub.status }
-    : { isActive: false, plan: "free", status: "none" };
+    : { isActive: false, plan: 'free', status: 'none' };
 }

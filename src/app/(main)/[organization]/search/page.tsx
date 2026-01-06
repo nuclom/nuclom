@@ -1,12 +1,12 @@
-import { and, eq } from "drizzle-orm";
-import { Loader2 } from "lucide-react";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { SearchPageContent } from "@/components/search";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { channels, collections, members, organizations, users, videos } from "@/lib/db/schema";
+import { and, eq } from 'drizzle-orm';
+import { Loader2 } from 'lucide-react';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { SearchPageContent } from '@/components/search';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { channels, collections, members, organizations, users, videos } from '@/lib/db/schema';
 
 interface SearchPageProps {
   params: Promise<{ organization: string }>;
@@ -38,7 +38,7 @@ async function SearchLoader({
   });
 
   if (!session?.user) {
-    redirect("/login");
+    redirect('/login');
   }
 
   // Get organization
@@ -47,7 +47,7 @@ async function SearchLoader({
   });
 
   if (!org) {
-    redirect("/");
+    redirect('/');
   }
 
   // Verify user is a member of the organization
@@ -56,7 +56,7 @@ async function SearchLoader({
   });
 
   if (!membership) {
-    redirect("/");
+    redirect('/');
   }
 
   // Fetch filter options in parallel
@@ -105,7 +105,7 @@ async function SearchLoader({
               Search results for <span className="text-primary">"{query}"</span>
             </>
           ) : (
-            "Search"
+            'Search'
           )}
         </h1>
         <p className="text-muted-foreground mt-1">Search across videos, transcripts, and AI summaries</p>

@@ -1,5 +1,5 @@
 {
-  "id": "e36565f6-6185-4bf5-91ca-ef2b68cb1d75",
+  "id": "91a6b503-839d-45c1-870a-dbda5039daba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -6343,9 +6343,9 @@
           "notNull": false,
           "default": "'[]'::jsonb"
         },
-        "embedding": {
-          "name": "embedding",
-          "type": "jsonb",
+        "embedding_vector": {
+          "name": "embedding_vector",
+          "type": "vector(1536)",
           "primaryKey": false,
           "notNull": false
         },
@@ -6653,9 +6653,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "embedding": {
-          "name": "embedding",
-          "type": "jsonb",
+        "embedding_vector": {
+          "name": "embedding_vector",
+          "type": "vector(1536)",
           "primaryKey": false,
           "notNull": false
         },
@@ -7665,7 +7665,7 @@
         },
         "embedding": {
           "name": "embedding",
-          "type": "jsonb",
+          "type": "vector(1536)",
           "primaryKey": false,
           "notNull": false
         },
@@ -9744,9 +9744,13 @@
         },
         "search_vector": {
           "name": "search_vector",
-          "type": "text",
+          "type": "tsvector",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "generated": {
+            "as": "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(transcript, ''))",
+            "type": "stored"
+          }
         },
         "deleted_at": {
           "name": "deleted_at",

@@ -1201,7 +1201,7 @@ emailAndPassword: {
   enabled: true,
   requireEmailVerification: true,
   async sendVerificationEmail({ user, url, token }) {
-    const verificationLink = `${env.APP_URL}/verify-email?token=${token}`;
+    const verificationLink = `${getAppUrl()}/verify-email?token=${token}`;
 
     await resend.emails.send({
       from: "Nuclom <no-reply@nuclom.com>",
@@ -1231,15 +1231,11 @@ await authClient.sendVerificationEmail({ email });
 # Required for production
 BETTER_AUTH_SECRET=your-secret-key-here
 DATABASE_URL=postgresql://...
-APP_URL=https://your-domain.com
 RESEND_API_KEY=your-resend-api-key
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Optional
-BETTER_AUTH_URL=https://your-domain.com
 ```
 
 ### SSL/TLS Requirements

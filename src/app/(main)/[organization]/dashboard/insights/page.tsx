@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Brain, Download, Loader2, RefreshCw } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useState } from "react";
-import useSWR from "swr";
+import { Brain, Download, Loader2, RefreshCw } from 'lucide-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useState } from 'react';
+import useSWR from 'swr';
 import {
   ActionItemTracker,
   InsightsOverview,
@@ -12,16 +12,16 @@ import {
   MeetingEffectiveness,
   MeetingPatterns,
   TopicTrends,
-} from "@/components/insights";
-import { Button } from "@/components/ui/button";
+} from '@/components/insights';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface OrganizationData {
   id: string;
@@ -61,8 +61,8 @@ function InsightsContent() {
   const router = useRouter();
   const organizationSlug = params.organization as string;
 
-  const period = searchParams.get("period") || "30d";
-  const tab = searchParams.get("tab") || "overview";
+  const period = searchParams.get('period') || '30d';
+  const tab = searchParams.get('tab') || 'overview';
 
   // First fetch organization by slug
   const { data: orgData, isLoading: isOrgLoading } = useSWR<{ success: boolean; data: OrganizationData }>(
@@ -172,7 +172,7 @@ function InsightsContent() {
     mutatePatterns,
   ]);
 
-  const handleExport = async (format: "csv" | "json", type: string = "all") => {
+  const handleExport = async (format: 'csv' | 'json', type: string = 'all') => {
     if (!organizationId) return;
 
     setIsExporting(true);
@@ -182,12 +182,12 @@ function InsightsContent() {
       );
 
       if (!response.ok) {
-        throw new Error("Export failed");
+        throw new Error('Export failed');
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
       a.download = `insights-export-${type}-${period}.${format}`;
       document.body.appendChild(a);
@@ -195,7 +195,7 @@ function InsightsContent() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error("Export failed:", error);
+      console.error('Export failed:', error);
     } finally {
       setIsExporting(false);
     }
@@ -204,8 +204,8 @@ function InsightsContent() {
   const handleActionItemStatusChange = async (id: string, status: string) => {
     try {
       const response = await fetch(`/api/insights/action-items/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
 
@@ -214,7 +214,7 @@ function InsightsContent() {
         mutateOverview();
       }
     } catch (error) {
-      console.error("Failed to update action item:", error);
+      console.error('Failed to update action item:', error);
     }
   };
 
@@ -258,7 +258,7 @@ function InsightsContent() {
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
 
           <Select value={period} onValueChange={handlePeriodChange}>
@@ -285,11 +285,11 @@ function InsightsContent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("csv", "all")}>Export All (CSV)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("json", "all")}>Export All (JSON)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("csv", "videos")}>Videos Only (CSV)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("csv", "decisions")}>Decisions Only (CSV)</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("csv", "action-items")}>
+              <DropdownMenuItem onClick={() => handleExport('csv', 'all')}>Export All (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('json', 'all')}>Export All (JSON)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv', 'videos')}>Videos Only (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv', 'decisions')}>Decisions Only (CSV)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv', 'action-items')}>
                 Action Items (CSV)
               </DropdownMenuItem>
             </DropdownMenuContent>

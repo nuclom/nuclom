@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { CheckCircle2, Circle, Clock, Filter, Loader2, Play, User, Video, XCircle } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle2, Circle, Clock, Filter, Loader2, Play, User, Video, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +13,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ActionItem {
   id: string;
@@ -22,8 +22,8 @@ interface ActionItem {
   description: string | null;
   assignee: string | null;
   assigneeUserId: string | null;
-  status: "pending" | "in_progress" | "completed" | "cancelled";
-  priority: "high" | "medium" | "low";
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  priority: 'high' | 'medium' | 'low';
   dueDate: string | null;
   completedAt: string | null;
   timestampStart: number | null;
@@ -47,28 +47,28 @@ interface ActionItemStats {
 interface ActionItemTrackerProps {
   actionItems: ActionItem[];
   stats: ActionItemStats;
-  onStatusChange?: (id: string, status: ActionItem["status"]) => Promise<void>;
+  onStatusChange?: (id: string, status: ActionItem['status']) => Promise<void>;
   isLoading?: boolean;
 }
 
-function StatusIcon({ status }: { status: ActionItem["status"] }) {
+function StatusIcon({ status }: { status: ActionItem['status'] }) {
   switch (status) {
-    case "completed":
+    case 'completed':
       return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-    case "in_progress":
+    case 'in_progress':
       return <Play className="h-4 w-4 text-blue-600" />;
-    case "cancelled":
+    case 'cancelled':
       return <XCircle className="h-4 w-4 text-gray-400" />;
     default:
       return <Circle className="h-4 w-4 text-yellow-600" />;
   }
 }
 
-function PriorityBadge({ priority }: { priority: ActionItem["priority"] }) {
+function PriorityBadge({ priority }: { priority: ActionItem['priority'] }) {
   const variants = {
-    high: "destructive",
-    medium: "default",
-    low: "secondary",
+    high: 'destructive',
+    medium: 'default',
+    low: 'secondary',
   } as const;
 
   return (
@@ -82,18 +82,18 @@ function formatDate(dateString: string | null) {
   if (!dateString) return null;
   const date = new Date(dateString);
   return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
+    month: 'short',
+    day: 'numeric',
   });
 }
 
 export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoading }: ActionItemTrackerProps) {
-  const [filter, setFilter] = useState<ActionItem["status"] | "all">("all");
+  const [filter, setFilter] = useState<ActionItem['status'] | 'all'>('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const filteredItems = filter === "all" ? actionItems : actionItems.filter((item) => item.status === filter);
+  const filteredItems = filter === 'all' ? actionItems : actionItems.filter((item) => item.status === filter);
 
-  const handleStatusChange = async (id: string, newStatus: ActionItem["status"]) => {
+  const handleStatusChange = async (id: string, newStatus: ActionItem['status']) => {
     if (!onStatusChange) return;
 
     setUpdatingId(id);
@@ -105,7 +105,7 @@ export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoadin
   };
 
   const handleToggleComplete = async (item: ActionItem) => {
-    const newStatus = item.status === "completed" ? "pending" : "completed";
+    const newStatus = item.status === 'completed' ? 'pending' : 'completed';
     await handleStatusChange(item.id, newStatus);
   };
 
@@ -123,19 +123,19 @@ export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoadin
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4 mr-2" />
-                {filter === "all" ? "All" : filter.replace("_", " ")}
+                {filter === 'all' ? 'All' : filter.replace('_', ' ')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setFilter("all")}>All ({stats.total})</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("pending")}>Pending ({stats.pending})</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("in_progress")}>
+              <DropdownMenuItem onClick={() => setFilter('all')}>All ({stats.total})</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('pending')}>Pending ({stats.pending})</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('in_progress')}>
                 In Progress ({stats.inProgress})
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("completed")}>Completed ({stats.completed})</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter("cancelled")}>Cancelled ({stats.cancelled})</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('completed')}>Completed ({stats.completed})</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('cancelled')}>Cancelled ({stats.cancelled})</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -148,7 +148,7 @@ export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoadin
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
             <CheckCircle2 className="h-8 w-8 mb-2" />
-            <p>No action items {filter !== "all" ? `with status "${filter.replace("_", " ")}"` : ""}</p>
+            <p>No action items {filter !== 'all' ? `with status "${filter.replace('_', ' ')}"` : ''}</p>
           </div>
         ) : (
           <ScrollArea className="h-[400px] pr-4">
@@ -157,13 +157,13 @@ export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoadin
                 <div
                   key={item.id}
                   className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                    item.status === "completed" ? "bg-muted/50 opacity-75" : "hover:bg-muted/50"
+                    item.status === 'completed' ? 'bg-muted/50 opacity-75' : 'hover:bg-muted/50'
                   }`}
                 >
                   <div className="pt-0.5">
                     {onStatusChange ? (
                       <Checkbox
-                        checked={item.status === "completed"}
+                        checked={item.status === 'completed'}
                         disabled={updatingId === item.id}
                         onCheckedChange={() => handleToggleComplete(item)}
                       />
@@ -176,7 +176,7 @@ export function ActionItemTracker({ actionItems, stats, onStatusChange, isLoadin
                     <div className="flex items-center gap-2">
                       <p
                         className={`font-medium text-sm ${
-                          item.status === "completed" ? "line-through text-muted-foreground" : ""
+                          item.status === 'completed' ? 'line-through text-muted-foreground' : ''
                         }`}
                       >
                         {item.title}

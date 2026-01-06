@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { forwardRef } from "react";
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { forwardRef } from 'react';
+import { Button, type ButtonProps } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 /**
  * TouchButton - Button with minimum 44px touch target for mobile accessibility
  * Following Apple Human Interface Guidelines and WCAG 2.5.5
  */
 export const TouchButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, size = "default", ...props }, ref) => {
+  ({ className, size = 'default', ...props }, ref) => {
     return (
       <Button
         ref={ref}
         size={size}
         className={cn(
           // Minimum 44x44px touch target
-          "min-h-[44px] min-w-[44px]",
+          'min-h-[44px] min-w-[44px]',
           // Better touch feedback
-          "active:scale-95 transition-transform",
+          'active:scale-95 transition-transform',
           // Larger hit area for icon-only buttons
-          size === "icon" && "p-3",
+          size === 'icon' && 'p-3',
           className,
         )}
         {...props}
@@ -28,7 +28,7 @@ export const TouchButton = forwardRef<HTMLButtonElement, ButtonProps>(
     );
   },
 );
-TouchButton.displayName = "TouchButton";
+TouchButton.displayName = 'TouchButton';
 
 /**
  * TouchLink - Link with minimum 44px touch target
@@ -40,10 +40,10 @@ export const TouchLink = forwardRef<HTMLAnchorElement, React.AnchorHTMLAttribute
         ref={ref}
         className={cn(
           // Minimum 44x44px touch target
-          "min-h-[44px] min-w-[44px]",
-          "inline-flex items-center justify-center",
+          'min-h-[44px] min-w-[44px]',
+          'inline-flex items-center justify-center',
           // Better touch feedback
-          "active:opacity-70 transition-opacity",
+          'active:opacity-70 transition-opacity',
           className,
         )}
         {...props}
@@ -53,7 +53,7 @@ export const TouchLink = forwardRef<HTMLAnchorElement, React.AnchorHTMLAttribute
     );
   },
 );
-TouchLink.displayName = "TouchLink";
+TouchLink.displayName = 'TouchLink';
 
 /**
  * TouchArea - Generic touch target wrapper
@@ -66,10 +66,10 @@ interface TouchAreaProps extends React.HTMLAttributes<HTMLElement> {
 export const TouchArea = forwardRef<HTMLElement, TouchAreaProps>(({ className, onClick, children, ...props }, ref) => {
   const baseClassName = cn(
     // Minimum 44x44px touch target
-    "min-h-[44px] min-w-[44px]",
-    "flex items-center justify-center",
+    'min-h-[44px] min-w-[44px]',
+    'flex items-center justify-center',
     // Touch feedback for interactive elements
-    onClick && "cursor-pointer active:bg-muted/50 transition-colors",
+    onClick && 'cursor-pointer active:bg-muted/50 transition-colors',
     className,
   );
 
@@ -78,7 +78,7 @@ export const TouchArea = forwardRef<HTMLElement, TouchAreaProps>(({ className, o
       <button
         ref={ref as React.Ref<HTMLButtonElement>}
         type="button"
-        className={cn(baseClassName, "bg-transparent border-0")}
+        className={cn(baseClassName, 'bg-transparent border-0')}
         onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
         {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
@@ -97,7 +97,7 @@ export const TouchArea = forwardRef<HTMLElement, TouchAreaProps>(({ className, o
     </div>
   );
 });
-TouchArea.displayName = "TouchArea";
+TouchArea.displayName = 'TouchArea';
 
 /**
  * SwipeableCard - Card component with swipe gesture support
@@ -138,7 +138,7 @@ export function SwipeableCard({
 
   return (
     <div
-      className={cn("touch-pan-y", className)}
+      className={cn('touch-pan-y', className)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       {...props}
@@ -164,12 +164,12 @@ export function PullToRefresh({ children, className, onRefresh, threshold = 80, 
     const scrollTop = target.scrollTop ?? 0;
     if (scrollTop <= 0) {
       // Allow pull down
-      e.currentTarget.style.overscrollBehavior = "none";
+      e.currentTarget.style.overscrollBehavior = 'none';
     }
   };
 
   return (
-    <div className={cn("overflow-auto overscroll-y-contain", className)} onTouchMove={handleTouchMove} {...props}>
+    <div className={cn('overflow-auto overscroll-y-contain', className)} onTouchMove={handleTouchMove} {...props}>
       {children}
     </div>
   );
@@ -201,7 +201,7 @@ export function MobileBottomSheet({
         className="fixed inset-0 bg-black/50 z-40 animate-in fade-in"
         onClick={onClose}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
             e.preventDefault();
             onClose();
           }
@@ -210,11 +210,11 @@ export function MobileBottomSheet({
       {/* Sheet */}
       <div
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50",
-          "bg-background rounded-t-2xl",
-          "animate-in slide-in-from-bottom",
-          "max-h-[85vh] overflow-auto",
-          "pb-safe", // Safe area padding
+          'fixed bottom-0 left-0 right-0 z-50',
+          'bg-background rounded-t-2xl',
+          'animate-in slide-in-from-bottom',
+          'max-h-[85vh] overflow-auto',
+          'pb-safe', // Safe area padding
           className,
         )}
       >

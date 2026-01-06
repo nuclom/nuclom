@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { AlertTriangle, Home, RefreshCcw } from "lucide-react";
-import Link from "next/link";
-import { useEffect } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logErrorBoundary } from "@/lib/error-logging";
+import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { logErrorBoundary } from '@/lib/error-logging';
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -14,7 +14,7 @@ interface ErrorPageProps {
 }
 
 // Use window.location to detect dev mode in client component
-const IS_DEV = typeof window !== "undefined" && window.location.hostname === "localhost";
+const IS_DEV = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {

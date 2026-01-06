@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 interface UseKeyboardShortcutsOptions {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -47,79 +47,79 @@ export function useKeyboardShortcuts({
       }
 
       switch (e.key.toLowerCase()) {
-        case " ":
-        case "k":
+        case ' ':
+        case 'k':
           e.preventDefault();
           togglePlay();
           break;
-        case "arrowleft":
-        case "j":
+        case 'arrowleft':
+        case 'j':
           e.preventDefault();
           seekBackward();
           break;
-        case "arrowright":
-        case "l":
+        case 'arrowright':
+        case 'l':
           e.preventDefault();
           seekForward();
           break;
-        case "arrowup":
+        case 'arrowup':
           e.preventDefault();
           handleVolumeChange([Math.min(1, volume + 0.1)]);
           break;
-        case "arrowdown":
+        case 'arrowdown':
           e.preventDefault();
           handleVolumeChange([Math.max(0, volume - 0.1)]);
           break;
-        case "f":
+        case 'f':
           e.preventDefault();
           toggleFullscreen();
           break;
-        case "m":
+        case 'm':
           e.preventDefault();
           toggleMute();
           break;
-        case "p":
+        case 'p':
           e.preventDefault();
           togglePictureInPicture();
           break;
-        case "c":
+        case 'c':
           e.preventDefault();
           toggleCaptions();
           break;
-        case "r":
+        case 'r':
           e.preventDefault();
           toggleLoop();
           break;
-        case "?":
+        case '?':
           e.preventDefault();
           setShowKeyboardHelp((prev: boolean) => !prev);
           break;
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9":
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
           e.preventDefault();
           seek((Number.parseInt(e.key, 10) / 10) * duration);
           break;
-        case "home":
+        case 'home':
           e.preventDefault();
           seek(0);
           break;
-        case "end":
+        case 'end':
           e.preventDefault();
           seek(duration);
           break;
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     containerRef,
     togglePlay,

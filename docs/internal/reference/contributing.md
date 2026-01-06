@@ -580,8 +580,8 @@ import { z } from "zod/v4";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  NEXTAUTH_SECRET: z.string().min(32),
-  OPENAI_API_KEY: z.string().startsWith("sk-"),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  REPLICATE_API_TOKEN: z.string().startsWith("r8_").optional(),
 });
 
 export const env = envSchema.parse(process.env);

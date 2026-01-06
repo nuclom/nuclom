@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
+import { Suspense } from 'react';
 
 function CopyrightYearInner() {
   return <>{new Date().getFullYear()}</>;

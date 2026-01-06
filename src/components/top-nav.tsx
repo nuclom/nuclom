@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Film, HelpCircle, LogOut, Plus, Settings, User, Users } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Film, HelpCircle, LogOut, Plus, Settings, User, Users } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,14 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/use-auth";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import { CommandBar } from "./command-bar";
-import { NotificationBell } from "./notifications/notification-bell";
-import { OrganizationSwitcher } from "./organization-switcher";
-import { ThemeToggle } from "./theme-toggle";
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/use-auth';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import { CommandBar } from './command-bar';
+import { NotificationBell } from './notifications/notification-bell';
+import { OrganizationSwitcher } from './organization-switcher';
+import { ThemeToggle } from './theme-toggle';
 
 interface TopNavProps {
   organization: string;
@@ -36,19 +36,19 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
   const handleLogout = async () => {
     try {
       await authClient.signOut();
-      router.push("/login");
+      router.push('/login');
       router.refresh();
     } catch (error) {
-      logger.error("Logout failed", error);
+      logger.error('Logout failed', error);
     }
   };
 
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return "U";
+    if (!name) return 'U';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -99,9 +99,9 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9 ring-2 ring-border">
-                  <AvatarImage src={user?.image || "/placeholder.svg?height=36&width=36"} alt={user?.name || "User"} />
+                  <AvatarImage src={user?.image || '/placeholder.svg?height=36&width=36'} alt={user?.name || 'User'} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {isLoading ? "..." : getInitials(user?.name)}
+                    {isLoading ? '...' : getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -109,8 +109,8 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
             <DropdownMenuContent className="w-64" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1.5">
-                  <p className="text-sm font-semibold leading-none">{user?.name || "Loading..."}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+                  <p className="text-sm font-semibold leading-none">{user?.name || 'Loading...'}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ''}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

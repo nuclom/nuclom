@@ -5,29 +5,29 @@
  * using DeepL API for high-quality translations.
  */
 
-import { Context, Data, Effect, Layer, Schema } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { env } from "@/lib/env/server";
+import { Context, Data, Effect, Layer, Schema } from 'effect';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Error Types
 // =============================================================================
 
-export class TranslationNotConfiguredError extends Data.TaggedError("TranslationNotConfiguredError")<{
+export class TranslationNotConfiguredError extends Data.TaggedError('TranslationNotConfiguredError')<{
   readonly message: string;
 }> {
   static readonly default = new TranslationNotConfiguredError({
-    message: "DeepL API key not configured. Please set DEEPL_API_KEY environment variable.",
+    message: 'DeepL API key not configured. Please set DEEPL_API_KEY environment variable.',
   });
 }
 
-export class TranslationApiError extends Data.TaggedError("TranslationApiError")<{
+export class TranslationApiError extends Data.TaggedError('TranslationApiError')<{
   readonly message: string;
   readonly statusCode?: number;
   readonly cause?: unknown;
 }> {}
 
-export class UnsupportedLanguageError extends Data.TaggedError("UnsupportedLanguageError")<{
+export class UnsupportedLanguageError extends Data.TaggedError('UnsupportedLanguageError')<{
   readonly message: string;
   readonly language: string;
 }> {}
@@ -37,32 +37,32 @@ export class UnsupportedLanguageError extends Data.TaggedError("UnsupportedLangu
 // =============================================================================
 
 export const SupportedLanguageSchema = Schema.Literal(
-  "en",
-  "es",
-  "fr",
-  "de",
-  "pt",
-  "it",
-  "nl",
-  "pl",
-  "ru",
-  "ja",
-  "zh",
-  "ko",
-  "ar",
-  "tr",
-  "sv",
-  "da",
-  "fi",
-  "nb",
-  "el",
-  "cs",
-  "ro",
-  "hu",
-  "uk",
-  "id",
-  "vi",
-  "th",
+  'en',
+  'es',
+  'fr',
+  'de',
+  'pt',
+  'it',
+  'nl',
+  'pl',
+  'ru',
+  'ja',
+  'zh',
+  'ko',
+  'ar',
+  'tr',
+  'sv',
+  'da',
+  'fi',
+  'nb',
+  'el',
+  'cs',
+  'ro',
+  'hu',
+  'uk',
+  'id',
+  'vi',
+  'th',
 );
 
 export type SupportedLanguage = Schema.Schema.Type<typeof SupportedLanguageSchema>;
@@ -104,32 +104,32 @@ export type TranslatedTranscript = Schema.Schema.Type<typeof TranslatedTranscrip
 // =============================================================================
 
 export const SUPPORTED_LANGUAGES: Record<SupportedLanguage, LanguageInfo> = {
-  en: { code: "EN", name: "English", nativeName: "English", supportsFormality: false },
-  es: { code: "ES", name: "Spanish", nativeName: "Español", supportsFormality: true },
-  fr: { code: "FR", name: "French", nativeName: "Français", supportsFormality: true },
-  de: { code: "DE", name: "German", nativeName: "Deutsch", supportsFormality: true },
-  pt: { code: "PT", name: "Portuguese", nativeName: "Português", supportsFormality: true },
-  it: { code: "IT", name: "Italian", nativeName: "Italiano", supportsFormality: true },
-  nl: { code: "NL", name: "Dutch", nativeName: "Nederlands", supportsFormality: true },
-  pl: { code: "PL", name: "Polish", nativeName: "Polski", supportsFormality: true },
-  ru: { code: "RU", name: "Russian", nativeName: "Русский", supportsFormality: true },
-  ja: { code: "JA", name: "Japanese", nativeName: "日本語", supportsFormality: false },
-  zh: { code: "ZH", name: "Chinese", nativeName: "中文", supportsFormality: false },
-  ko: { code: "KO", name: "Korean", nativeName: "한국어", supportsFormality: false },
-  ar: { code: "AR", name: "Arabic", nativeName: "العربية", supportsFormality: false },
-  tr: { code: "TR", name: "Turkish", nativeName: "Türkçe", supportsFormality: false },
-  sv: { code: "SV", name: "Swedish", nativeName: "Svenska", supportsFormality: false },
-  da: { code: "DA", name: "Danish", nativeName: "Dansk", supportsFormality: false },
-  fi: { code: "FI", name: "Finnish", nativeName: "Suomi", supportsFormality: false },
-  nb: { code: "NB", name: "Norwegian", nativeName: "Norsk", supportsFormality: false },
-  el: { code: "EL", name: "Greek", nativeName: "Ελληνικά", supportsFormality: false },
-  cs: { code: "CS", name: "Czech", nativeName: "Čeština", supportsFormality: false },
-  ro: { code: "RO", name: "Romanian", nativeName: "Română", supportsFormality: false },
-  hu: { code: "HU", name: "Hungarian", nativeName: "Magyar", supportsFormality: false },
-  uk: { code: "UK", name: "Ukrainian", nativeName: "Українська", supportsFormality: false },
-  id: { code: "ID", name: "Indonesian", nativeName: "Bahasa Indonesia", supportsFormality: false },
-  vi: { code: "VI", name: "Vietnamese", nativeName: "Tiếng Việt", supportsFormality: false },
-  th: { code: "TH", name: "Thai", nativeName: "ไทย", supportsFormality: false },
+  en: { code: 'EN', name: 'English', nativeName: 'English', supportsFormality: false },
+  es: { code: 'ES', name: 'Spanish', nativeName: 'Español', supportsFormality: true },
+  fr: { code: 'FR', name: 'French', nativeName: 'Français', supportsFormality: true },
+  de: { code: 'DE', name: 'German', nativeName: 'Deutsch', supportsFormality: true },
+  pt: { code: 'PT', name: 'Portuguese', nativeName: 'Português', supportsFormality: true },
+  it: { code: 'IT', name: 'Italian', nativeName: 'Italiano', supportsFormality: true },
+  nl: { code: 'NL', name: 'Dutch', nativeName: 'Nederlands', supportsFormality: true },
+  pl: { code: 'PL', name: 'Polish', nativeName: 'Polski', supportsFormality: true },
+  ru: { code: 'RU', name: 'Russian', nativeName: 'Русский', supportsFormality: true },
+  ja: { code: 'JA', name: 'Japanese', nativeName: '日本語', supportsFormality: false },
+  zh: { code: 'ZH', name: 'Chinese', nativeName: '中文', supportsFormality: false },
+  ko: { code: 'KO', name: 'Korean', nativeName: '한국어', supportsFormality: false },
+  ar: { code: 'AR', name: 'Arabic', nativeName: 'العربية', supportsFormality: false },
+  tr: { code: 'TR', name: 'Turkish', nativeName: 'Türkçe', supportsFormality: false },
+  sv: { code: 'SV', name: 'Swedish', nativeName: 'Svenska', supportsFormality: false },
+  da: { code: 'DA', name: 'Danish', nativeName: 'Dansk', supportsFormality: false },
+  fi: { code: 'FI', name: 'Finnish', nativeName: 'Suomi', supportsFormality: false },
+  nb: { code: 'NB', name: 'Norwegian', nativeName: 'Norsk', supportsFormality: false },
+  el: { code: 'EL', name: 'Greek', nativeName: 'Ελληνικά', supportsFormality: false },
+  cs: { code: 'CS', name: 'Czech', nativeName: 'Čeština', supportsFormality: false },
+  ro: { code: 'RO', name: 'Romanian', nativeName: 'Română', supportsFormality: false },
+  hu: { code: 'HU', name: 'Hungarian', nativeName: 'Magyar', supportsFormality: false },
+  uk: { code: 'UK', name: 'Ukrainian', nativeName: 'Українська', supportsFormality: false },
+  id: { code: 'ID', name: 'Indonesian', nativeName: 'Bahasa Indonesia', supportsFormality: false },
+  vi: { code: 'VI', name: 'Vietnamese', nativeName: 'Tiếng Việt', supportsFormality: false },
+  th: { code: 'TH', name: 'Thai', nativeName: 'ไทย', supportsFormality: false },
 };
 
 // =============================================================================
@@ -140,7 +140,7 @@ export interface TranslationOptions {
   /** Source language (auto-detect if not provided) */
   sourceLanguage?: SupportedLanguage;
   /** Use formal/informal tone for supported languages */
-  formality?: "default" | "more" | "less";
+  formality?: 'default' | 'more' | 'less';
   /** Preserve formatting tags */
   preserveFormatting?: boolean;
   /** Split sentences for better translation */
@@ -197,7 +197,7 @@ export interface TranslationServiceInterface {
 // Translation Service Tag
 // =============================================================================
 
-export class Translation extends Context.Tag("Translation")<Translation, TranslationServiceInterface>() {}
+export class Translation extends Context.Tag('Translation')<Translation, TranslationServiceInterface>() {}
 
 // =============================================================================
 // DeepL API Types
@@ -221,7 +221,7 @@ const makeTranslationService = Effect.gen(function* () {
   const isConfigured = !!apiKey;
 
   // DeepL API endpoint (use free or pro based on key format)
-  const apiUrl = apiKey?.endsWith(":fx") ? "https://api-free.deepl.com/v2" : "https://api.deepl.com/v2";
+  const apiUrl = apiKey?.endsWith(':fx') ? 'https://api-free.deepl.com/v2' : 'https://api.deepl.com/v2';
 
   const isAvailable = (): boolean => isConfigured;
 
@@ -237,10 +237,10 @@ const makeTranslationService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${apiUrl}${endpoint}`, {
-            method: "POST",
+            method: 'POST',
             headers: {
               Authorization: `DeepL-Auth-Key ${apiKey}`,
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(body),
           });
@@ -295,15 +295,15 @@ const makeTranslationService = Effect.gen(function* () {
       }
 
       if (options?.splitSentences !== undefined) {
-        body.split_sentences = options.splitSentences ? "1" : "0";
+        body.split_sentences = options.splitSentences ? '1' : '0';
       }
 
-      const response = yield* callDeepLApi<DeepLResponse>("/translate", body);
+      const response = yield* callDeepLApi<DeepLResponse>('/translate', body);
 
       if (!response.translations || response.translations.length === 0) {
         return yield* Effect.fail(
           new TranslationApiError({
-            message: "No translation returned from DeepL",
+            message: 'No translation returned from DeepL',
           }),
         );
       }
@@ -347,7 +347,7 @@ const makeTranslationService = Effect.gen(function* () {
         body.formality = options.formality;
       }
 
-      const response = yield* callDeepLApi<DeepLResponse>("/translate", body);
+      const response = yield* callDeepLApi<DeepLResponse>('/translate', body);
 
       return response.translations.map((t) => ({
         text: t.text,
@@ -364,7 +364,7 @@ const makeTranslationService = Effect.gen(function* () {
       if (segments.length === 0) {
         return {
           segments: [],
-          sourceLanguage: options?.sourceLanguage || "en",
+          sourceLanguage: options?.sourceLanguage || 'en',
           targetLanguage,
         };
       }
@@ -386,7 +386,7 @@ const makeTranslationService = Effect.gen(function* () {
 
       return {
         segments: translatedSegments,
-        sourceLanguage: translations[0]?.detectedSourceLanguage || options?.sourceLanguage || "en",
+        sourceLanguage: translations[0]?.detectedSourceLanguage || options?.sourceLanguage || 'en',
         targetLanguage,
       };
     });
@@ -399,7 +399,7 @@ const makeTranslationService = Effect.gen(function* () {
   ): Effect.Effect<SupportedLanguage | null, TranslationApiError | TranslationNotConfiguredError> =>
     Effect.gen(function* () {
       // Use a translation call to detect language (translate to EN)
-      const result = yield* translateText(text.slice(0, 1000), "en");
+      const result = yield* translateText(text.slice(0, 1000), 'en');
 
       if (result.detectedSourceLanguage) {
         const langCode = result.detectedSourceLanguage.toLowerCase() as SupportedLanguage;

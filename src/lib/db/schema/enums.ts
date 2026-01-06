@@ -23,240 +23,240 @@
  * - Activity: activityTypeEnum, zapierWebhookEventEnum
  */
 
-import { pgEnum } from "drizzle-orm/pg-core";
+import { pgEnum } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Auth & User Enums
 // =============================================================================
 
-export const userRoleEnum = pgEnum("UserRole", ["user", "admin"]);
-export const organizationRoleEnum = pgEnum("OrganizationRole", ["owner", "member"]);
+export const userRoleEnum = pgEnum('UserRole', ['user', 'admin']);
+export const organizationRoleEnum = pgEnum('OrganizationRole', ['owner', 'member']);
 
 // =============================================================================
 // Video Processing Enums
 // =============================================================================
 
-export const processingStatusEnum = pgEnum("ProcessingStatus", [
-  "pending",
-  "transcribing",
-  "diarizing",
-  "analyzing",
-  "completed",
-  "failed",
+export const processingStatusEnum = pgEnum('ProcessingStatus', [
+  'pending',
+  'transcribing',
+  'diarizing',
+  'analyzing',
+  'completed',
+  'failed',
 ]);
 
 // =============================================================================
 // Comment & Reaction Enums
 // =============================================================================
 
-export const reactionTypeEnum = pgEnum("ReactionType", [
-  "like",
-  "love",
-  "laugh",
-  "surprised",
-  "sad",
-  "angry",
-  "thinking",
-  "celebrate",
+export const reactionTypeEnum = pgEnum('ReactionType', [
+  'like',
+  'love',
+  'laugh',
+  'surprised',
+  'sad',
+  'angry',
+  'thinking',
+  'celebrate',
 ]);
 
 // =============================================================================
 // Notification Enums
 // =============================================================================
 
-export const notificationTypeEnum = pgEnum("NotificationType", [
-  "comment_reply",
-  "comment_mention",
-  "new_comment_on_video",
-  "video_shared",
-  "video_processing_complete",
-  "video_processing_failed",
-  "invitation_received",
-  "trial_ending",
-  "subscription_created",
-  "subscription_updated",
-  "subscription_canceled",
-  "payment_failed",
-  "payment_succeeded",
+export const notificationTypeEnum = pgEnum('NotificationType', [
+  'comment_reply',
+  'comment_mention',
+  'new_comment_on_video',
+  'video_shared',
+  'video_processing_complete',
+  'video_processing_failed',
+  'invitation_received',
+  'trial_ending',
+  'subscription_created',
+  'subscription_updated',
+  'subscription_canceled',
+  'payment_failed',
+  'payment_succeeded',
 ]);
 
 // =============================================================================
 // Integration Enums
 // =============================================================================
 
-export const integrationProviderEnum = pgEnum("IntegrationProvider", [
-  "zoom",
-  "google_meet",
-  "slack",
-  "microsoft_teams",
-  "github",
+export const integrationProviderEnum = pgEnum('IntegrationProvider', [
+  'zoom',
+  'google_meet',
+  'slack',
+  'microsoft_teams',
+  'github',
 ]);
 
-export const importStatusEnum = pgEnum("ImportStatus", ["pending", "downloading", "processing", "completed", "failed"]);
+export const importStatusEnum = pgEnum('ImportStatus', ['pending', 'downloading', 'processing', 'completed', 'failed']);
 
 // =============================================================================
 // GitHub Context Enums
 // =============================================================================
 
-export const codeLinkTypeEnum = pgEnum("CodeLinkType", ["pr", "issue", "commit", "file", "directory"]);
+export const codeLinkTypeEnum = pgEnum('CodeLinkType', ['pr', 'issue', 'commit', 'file', 'directory']);
 
 // =============================================================================
 // Billing Enums
 // =============================================================================
 
-export const subscriptionStatusEnum = pgEnum("SubscriptionStatus", [
-  "active",
-  "canceled",
-  "past_due",
-  "trialing",
-  "incomplete",
-  "incomplete_expired",
-  "unpaid",
+export const subscriptionStatusEnum = pgEnum('SubscriptionStatus', [
+  'active',
+  'canceled',
+  'past_due',
+  'trialing',
+  'incomplete',
+  'incomplete_expired',
+  'unpaid',
 ]);
 
-export const invoiceStatusEnum = pgEnum("InvoiceStatus", ["draft", "open", "paid", "void", "uncollectible"]);
+export const invoiceStatusEnum = pgEnum('InvoiceStatus', ['draft', 'open', 'paid', 'void', 'uncollectible']);
 
 // =============================================================================
 // Knowledge Graph Enums
 // =============================================================================
 
-export const decisionStatusEnum = pgEnum("DecisionStatus", ["proposed", "decided", "revisited", "superseded"]);
-export const participantRoleEnum = pgEnum("ParticipantRole", ["decider", "participant", "mentioned"]);
-export const knowledgeNodeTypeEnum = pgEnum("KnowledgeNodeType", ["person", "topic", "artifact", "decision", "video"]);
-export const decisionTypeEnum = pgEnum("DecisionType", ["technical", "process", "product", "team", "other"]);
+export const decisionStatusEnum = pgEnum('DecisionStatus', ['proposed', 'decided', 'revisited', 'superseded']);
+export const participantRoleEnum = pgEnum('ParticipantRole', ['decider', 'participant', 'mentioned']);
+export const knowledgeNodeTypeEnum = pgEnum('KnowledgeNodeType', ['person', 'topic', 'artifact', 'decision', 'video']);
+export const decisionTypeEnum = pgEnum('DecisionType', ['technical', 'process', 'product', 'team', 'other']);
 
 // =============================================================================
 // AI Insights Enums
 // =============================================================================
 
-export const topicTrendEnum = pgEnum("TopicTrend", ["rising", "stable", "declining"]);
-export const actionItemStatusEnum = pgEnum("ActionItemStatus", ["pending", "in_progress", "completed", "cancelled"]);
-export const actionItemPriorityEnum = pgEnum("ActionItemPriority", ["high", "medium", "low"]);
+export const topicTrendEnum = pgEnum('TopicTrend', ['rising', 'stable', 'declining']);
+export const actionItemStatusEnum = pgEnum('ActionItemStatus', ['pending', 'in_progress', 'completed', 'cancelled']);
+export const actionItemPriorityEnum = pgEnum('ActionItemPriority', ['high', 'medium', 'low']);
 
 // =============================================================================
 // Legal & Compliance Enums
 // =============================================================================
 
-export const legalDocumentTypeEnum = pgEnum("LegalDocumentType", ["terms_of_service", "privacy_policy"]);
-export const consentActionEnum = pgEnum("ConsentAction", ["granted", "withdrawn", "updated"]);
-export const reportCategoryEnum = pgEnum("ReportCategory", [
-  "inappropriate",
-  "spam",
-  "copyright",
-  "harassment",
-  "other",
+export const legalDocumentTypeEnum = pgEnum('LegalDocumentType', ['terms_of_service', 'privacy_policy']);
+export const consentActionEnum = pgEnum('ConsentAction', ['granted', 'withdrawn', 'updated']);
+export const reportCategoryEnum = pgEnum('ReportCategory', [
+  'inappropriate',
+  'spam',
+  'copyright',
+  'harassment',
+  'other',
 ]);
-export const reportStatusEnum = pgEnum("ReportStatus", ["pending", "reviewing", "resolved", "dismissed"]);
-export const reportResolutionEnum = pgEnum("ReportResolution", [
-  "content_removed",
-  "user_warned",
-  "user_suspended",
-  "no_action",
+export const reportStatusEnum = pgEnum('ReportStatus', ['pending', 'reviewing', 'resolved', 'dismissed']);
+export const reportResolutionEnum = pgEnum('ReportResolution', [
+  'content_removed',
+  'user_warned',
+  'user_suspended',
+  'no_action',
 ]);
-export const reportResourceTypeEnum = pgEnum("ReportResourceType", ["video", "comment", "user"]);
+export const reportResourceTypeEnum = pgEnum('ReportResourceType', ['video', 'comment', 'user']);
 
 // =============================================================================
 // Audit Log Enums
 // =============================================================================
 
-export const auditLogCategoryEnum = pgEnum("AuditLogCategory", [
-  "authentication",
-  "authorization",
-  "user_management",
-  "organization_management",
-  "content_management",
-  "billing",
-  "security",
-  "integration",
-  "system",
+export const auditLogCategoryEnum = pgEnum('AuditLogCategory', [
+  'authentication',
+  'authorization',
+  'user_management',
+  'organization_management',
+  'content_management',
+  'billing',
+  'security',
+  'integration',
+  'system',
 ]);
-export const auditLogSeverityEnum = pgEnum("AuditLogSeverity", ["info", "warning", "error", "critical"]);
+export const auditLogSeverityEnum = pgEnum('AuditLogSeverity', ['info', 'warning', 'error', 'critical']);
 
 // =============================================================================
 // Video Analytics Enums
 // =============================================================================
 
-export const videoViewSourceEnum = pgEnum("VideoViewSource", ["direct", "share_link", "embed"]);
+export const videoViewSourceEnum = pgEnum('VideoViewSource', ['direct', 'share_link', 'embed']);
 
 // =============================================================================
 // Video Sharing Enums
 // =============================================================================
 
-export const videoShareLinkStatusEnum = pgEnum("VideoShareLinkStatus", ["active", "expired", "revoked"]);
-export const videoShareLinkAccessEnum = pgEnum("VideoShareLinkAccess", ["view", "comment", "download"]);
+export const videoShareLinkStatusEnum = pgEnum('VideoShareLinkStatus', ['active', 'expired', 'revoked']);
+export const videoShareLinkAccessEnum = pgEnum('VideoShareLinkAccess', ['view', 'comment', 'download']);
 
 // =============================================================================
 // Workflow Template Enums
 // =============================================================================
 
-export const workflowTemplateTypeEnum = pgEnum("WorkflowTemplateType", [
-  "onboarding",
-  "tutorial",
-  "meeting_recap",
-  "product_demo",
-  "training",
-  "marketing",
-  "custom",
+export const workflowTemplateTypeEnum = pgEnum('WorkflowTemplateType', [
+  'onboarding',
+  'tutorial',
+  'meeting_recap',
+  'product_demo',
+  'training',
+  'marketing',
+  'custom',
 ]);
 
 // =============================================================================
 // Video Clips Enums
 // =============================================================================
 
-export const clipTypeEnum = pgEnum("ClipType", ["auto", "manual"]);
-export const momentTypeEnum = pgEnum("MomentType", [
-  "decision",
-  "action_item",
-  "question",
-  "answer",
-  "emphasis",
-  "demonstration",
-  "conclusion",
-  "highlight",
+export const clipTypeEnum = pgEnum('ClipType', ['auto', 'manual']);
+export const momentTypeEnum = pgEnum('MomentType', [
+  'decision',
+  'action_item',
+  'question',
+  'answer',
+  'emphasis',
+  'demonstration',
+  'conclusion',
+  'highlight',
 ]);
-export const clipStatusEnum = pgEnum("ClipStatus", ["pending", "processing", "ready", "failed"]);
-export const highlightReelStatusEnum = pgEnum("HighlightReelStatus", ["draft", "rendering", "ready", "failed"]);
+export const clipStatusEnum = pgEnum('ClipStatus', ['pending', 'processing', 'ready', 'failed']);
+export const highlightReelStatusEnum = pgEnum('HighlightReelStatus', ['draft', 'rendering', 'ready', 'failed']);
 
 // =============================================================================
 // Health Check Enums
 // =============================================================================
 
-export const healthCheckServiceEnum = pgEnum("HealthCheckService", ["database", "storage", "ai", "overall"]);
-export const healthCheckStatusEnum = pgEnum("HealthCheckStatus", [
-  "healthy",
-  "degraded",
-  "unhealthy",
-  "not_configured",
+export const healthCheckServiceEnum = pgEnum('HealthCheckService', ['database', 'storage', 'ai', 'overall']);
+export const healthCheckStatusEnum = pgEnum('HealthCheckStatus', [
+  'healthy',
+  'degraded',
+  'unhealthy',
+  'not_configured',
 ]);
 
 // =============================================================================
 // Activity Feed Enums
 // =============================================================================
 
-export const activityTypeEnum = pgEnum("ActivityType", [
-  "video_uploaded",
-  "video_processed",
-  "video_shared",
-  "comment_added",
-  "comment_reply",
-  "reaction_added",
-  "member_joined",
-  "member_left",
-  "integration_connected",
-  "integration_disconnected",
-  "video_imported",
+export const activityTypeEnum = pgEnum('ActivityType', [
+  'video_uploaded',
+  'video_processed',
+  'video_shared',
+  'comment_added',
+  'comment_reply',
+  'reaction_added',
+  'member_joined',
+  'member_left',
+  'integration_connected',
+  'integration_disconnected',
+  'video_imported',
 ]);
 
 // =============================================================================
 // Zapier Webhook Enums
 // =============================================================================
 
-export const zapierWebhookEventEnum = pgEnum("ZapierWebhookEvent", [
-  "video.uploaded",
-  "video.processed",
-  "video.shared",
-  "comment.created",
-  "comment.replied",
-  "member.joined",
-  "member.left",
+export const zapierWebhookEventEnum = pgEnum('ZapierWebhookEvent', [
+  'video.uploaded',
+  'video.processed',
+  'video.shared',
+  'comment.created',
+  'comment.replied',
+  'member.joined',
+  'member.left',
 ]);

@@ -1,17 +1,17 @@
-import { Effect, Layer } from "effect";
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { MicrosoftTeams, MicrosoftTeamsLive } from "@/lib/effect/services/microsoft-teams";
-import { logger } from "@/lib/logger";
+import { Effect, Layer } from 'effect';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { MicrosoftTeams, MicrosoftTeamsLive } from '@/lib/effect/services/microsoft-teams';
+import { logger } from '@/lib/logger';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ChannelsLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const teamId = searchParams.get("teamId");
+  const teamId = searchParams.get('teamId');
 
   // Verify the user is authenticated
   const session = await auth.api.getSession({
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     const integrationRepo = yield* IntegrationRepository;
 
     // Get the user's Microsoft Teams integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "microsoft_teams");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'microsoft_teams');
 
     if (!integration) {
       return { teams: [], channels: [], connected: false };
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     const result = await Effect.runPromise(Effect.provide(effect, ChannelsLayer));
     return NextResponse.json(result);
   } catch (err) {
-    logger.error("[Teams Channels Error]", err instanceof Error ? err : new Error(String(err)));
-    return NextResponse.json({ error: "Failed to fetch Teams data" }, { status: 500 });
+    logger.error('[Teams Channels Error]', err instanceof Error ? err : new Error(String(err)));
+    return NextResponse.json({ error: 'Failed to fetch Teams data' }, { status: 500 });
   }
 }

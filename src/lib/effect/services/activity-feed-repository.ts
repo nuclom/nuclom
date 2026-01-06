@@ -4,19 +4,19 @@
  * Provides type-safe database operations for organization activity feeds.
  */
 
-import { and, desc, eq, type SQL, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import type { ActivityFeed, ActivityType, User } from "@/lib/db/schema";
-import { activityFeed, users } from "@/lib/db/schema";
-import { DatabaseError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, type SQL, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import type { ActivityFeed, ActivityType, User } from '@/lib/db/schema';
+import { activityFeed, users } from '@/lib/db/schema';
+import { DatabaseError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface ActivityWithActor extends ActivityFeed {
-  actor: Pick<User, "id" | "name" | "email" | "image"> | null;
+  actor: Pick<User, 'id' | 'name' | 'email' | 'image'> | null;
 }
 
 export interface CreateActivityInput {
@@ -183,7 +183,7 @@ export interface ActivityFeedRepositoryService {
 // Activity Feed Repository Tag
 // =============================================================================
 
-export class ActivityFeedRepository extends Context.Tag("ActivityFeedRepository")<
+export class ActivityFeedRepository extends Context.Tag('ActivityFeedRepository')<
   ActivityFeedRepository,
   ActivityFeedRepositoryService
 >() {}
@@ -273,8 +273,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch activity feed",
-          operation: "getActivityFeed",
+          message: 'Failed to fetch activity feed',
+          operation: 'getActivityFeed',
           cause: error,
         }),
     });
@@ -287,8 +287,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create activity",
-          operation: "createActivity",
+          message: 'Failed to create activity',
+          operation: 'createActivity',
           cause: error,
         }),
     });
@@ -302,8 +302,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "video_uploaded",
-      resourceType: "video",
+      activityType: 'video_uploaded',
+      resourceType: 'video',
       resourceId: videoId,
       metadata: { videoTitle },
     });
@@ -317,8 +317,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId: actorId ?? undefined,
-      activityType: "video_processed",
-      resourceType: "video",
+      activityType: 'video_processed',
+      resourceType: 'video',
       resourceId: videoId,
       metadata: { videoTitle },
     });
@@ -333,8 +333,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "video_shared",
-      resourceType: "video",
+      activityType: 'video_shared',
+      resourceType: 'video',
       resourceId: videoId,
       metadata: { videoTitle, sharedWith },
     });
@@ -349,8 +349,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "comment_added",
-      resourceType: "comment",
+      activityType: 'comment_added',
+      resourceType: 'comment',
       resourceId: commentId,
       metadata: { videoId, videoTitle },
     });
@@ -366,8 +366,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "comment_reply",
-      resourceType: "comment",
+      activityType: 'comment_reply',
+      resourceType: 'comment',
       resourceId: commentId,
       metadata: { videoId, videoTitle, parentCommentId },
     });
@@ -382,8 +382,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "reaction_added",
-      resourceType: "comment",
+      activityType: 'reaction_added',
+      resourceType: 'comment',
       resourceId: commentId,
       metadata: { reactionType, videoId },
     });
@@ -397,8 +397,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId: memberId,
-      activityType: "member_joined",
-      resourceType: "member",
+      activityType: 'member_joined',
+      resourceType: 'member',
       resourceId: memberId,
       metadata: { memberName, memberEmail },
     });
@@ -411,8 +411,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId: memberId,
-      activityType: "member_left",
-      resourceType: "member",
+      activityType: 'member_left',
+      resourceType: 'member',
       resourceId: memberId,
       metadata: { memberName },
     });
@@ -425,8 +425,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "integration_connected",
-      resourceType: "integration",
+      activityType: 'integration_connected',
+      resourceType: 'integration',
       metadata: { provider },
     });
 
@@ -438,8 +438,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "integration_disconnected",
-      resourceType: "integration",
+      activityType: 'integration_disconnected',
+      resourceType: 'integration',
       metadata: { provider },
     });
 
@@ -453,8 +453,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     createActivity({
       organizationId,
       actorId,
-      activityType: "video_imported",
-      resourceType: "video",
+      activityType: 'video_imported',
+      resourceType: 'video',
       resourceId: videoId,
       metadata: { videoTitle, source },
     });
@@ -481,8 +481,8 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get activity stats",
-          operation: "getActivityStats",
+          message: 'Failed to get activity stats',
+          operation: 'getActivityStats',
           cause: error,
         }),
     });

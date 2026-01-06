@@ -5,60 +5,60 @@
  * Uses Vercel AI SDK with XAI Grok-3 model and Effect schemas for validation.
  */
 
-import { gateway } from "@ai-sdk/gateway";
-import { generateObject, generateText, jsonSchema, streamText } from "ai";
-import { Context, Effect, JSONSchema, Layer, Schedule, Schema, Stream } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { AIServiceError } from "../errors";
+import { gateway } from '@ai-sdk/gateway';
+import { generateObject, generateText, jsonSchema, streamText } from 'ai';
+import { Context, Effect, JSONSchema, Layer, Schedule, Schema, Stream } from 'effect';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { AIServiceError } from '../errors';
 
 // =============================================================================
 // Effect Schemas for Structured AI Outputs
 // =============================================================================
 
 export const VideoSummarySchema = Schema.Struct({
-  summary: Schema.String.annotations({ description: "A concise 2-3 sentence summary of the video content" }),
+  summary: Schema.String.annotations({ description: 'A concise 2-3 sentence summary of the video content' }),
   keyPoints: Schema.Array(Schema.String).pipe(
     Schema.minItems(1),
     Schema.maxItems(10),
-    Schema.annotations({ description: "Key points discussed in the video" }),
+    Schema.annotations({ description: 'Key points discussed in the video' }),
   ),
-  actionItems: Schema.Array(Schema.String).annotations({ description: "Action items or tasks mentioned in the video" }),
+  actionItems: Schema.Array(Schema.String).annotations({ description: 'Action items or tasks mentioned in the video' }),
   topics: Schema.Array(Schema.String).pipe(
     Schema.maxItems(5),
-    Schema.annotations({ description: "Main topics covered in the video" }),
+    Schema.annotations({ description: 'Main topics covered in the video' }),
   ),
-  sentiment: Schema.Literal("positive", "neutral", "negative", "mixed").annotations({
-    description: "Overall sentiment of the content",
+  sentiment: Schema.Literal('positive', 'neutral', 'negative', 'mixed').annotations({
+    description: 'Overall sentiment of the content',
   }),
 });
 
 export const ActionItemSchema = Schema.Struct({
-  text: Schema.String.annotations({ description: "Description of the action item" }),
+  text: Schema.String.annotations({ description: 'Description of the action item' }),
   timestamp: Schema.optional(Schema.Number).annotations({
-    description: "Timestamp in seconds where this was mentioned",
+    description: 'Timestamp in seconds where this was mentioned',
   }),
-  priority: Schema.Literal("high", "medium", "low").annotations({ description: "Priority level based on urgency" }),
-  assignee: Schema.optional(Schema.String).annotations({ description: "Person assigned if mentioned" }),
-  dueDate: Schema.optional(Schema.String).annotations({ description: "Due date if mentioned" }),
+  priority: Schema.Literal('high', 'medium', 'low').annotations({ description: 'Priority level based on urgency' }),
+  assignee: Schema.optional(Schema.String).annotations({ description: 'Person assigned if mentioned' }),
+  dueDate: Schema.optional(Schema.String).annotations({ description: 'Due date if mentioned' }),
 });
 
 export const ActionItemsSchema = Schema.Struct({
   actionItems: Schema.Array(ActionItemSchema).annotations({
-    description: "List of action items extracted from the transcript",
+    description: 'List of action items extracted from the transcript',
   }),
-  hasDeadlines: Schema.Boolean.annotations({ description: "Whether any action items have explicit deadlines" }),
-  totalCount: Schema.Number.annotations({ description: "Total number of action items found" }),
+  hasDeadlines: Schema.Boolean.annotations({ description: 'Whether any action items have explicit deadlines' }),
+  totalCount: Schema.Number.annotations({ description: 'Total number of action items found' }),
 });
 
 export const ChapterSchema = Schema.Struct({
-  title: Schema.String.pipe(Schema.maxLength(100)).annotations({ description: "Chapter title" }),
+  title: Schema.String.pipe(Schema.maxLength(100)).annotations({ description: 'Chapter title' }),
   summary: Schema.optional(Schema.String.pipe(Schema.maxLength(500))).annotations({
-    description: "Brief summary of the chapter",
+    description: 'Brief summary of the chapter',
   }),
-  startTime: Schema.Number.annotations({ description: "Start time in seconds" }),
-  endTime: Schema.optional(Schema.Number).annotations({ description: "End time in seconds" }),
+  startTime: Schema.Number.annotations({ description: 'Start time in seconds' }),
+  endTime: Schema.optional(Schema.Number).annotations({ description: 'End time in seconds' }),
   keyMoments: Schema.optional(Schema.Array(Schema.String).pipe(Schema.maxItems(3))).annotations({
-    description: "Key moments in this chapter",
+    description: 'Key moments in this chapter',
   }),
 });
 
@@ -66,79 +66,79 @@ export const ChaptersSchema = Schema.Struct({
   chapters: Schema.Array(ChapterSchema).pipe(
     Schema.minItems(1),
     Schema.maxItems(15),
-    Schema.annotations({ description: "Video chapters" }),
+    Schema.annotations({ description: 'Video chapters' }),
   ),
-  totalDuration: Schema.Number.annotations({ description: "Total video duration in seconds" }),
+  totalDuration: Schema.Number.annotations({ description: 'Total video duration in seconds' }),
 });
 
 const ProgrammingLanguage = Schema.Literal(
-  "javascript",
-  "typescript",
-  "python",
-  "rust",
-  "go",
-  "java",
-  "csharp",
-  "cpp",
-  "ruby",
-  "php",
-  "swift",
-  "kotlin",
-  "shell",
-  "sql",
-  "html",
-  "css",
-  "json",
-  "yaml",
-  "markdown",
-  "other",
+  'javascript',
+  'typescript',
+  'python',
+  'rust',
+  'go',
+  'java',
+  'csharp',
+  'cpp',
+  'ruby',
+  'php',
+  'swift',
+  'kotlin',
+  'shell',
+  'sql',
+  'html',
+  'css',
+  'json',
+  'yaml',
+  'markdown',
+  'other',
 );
 
 export const CodeSnippetSchema = Schema.Struct({
-  language: ProgrammingLanguage.annotations({ description: "Programming language" }),
-  code: Schema.String.annotations({ description: "The code snippet" }),
+  language: ProgrammingLanguage.annotations({ description: 'Programming language' }),
+  code: Schema.String.annotations({ description: 'The code snippet' }),
   title: Schema.optional(Schema.String.pipe(Schema.maxLength(100))).annotations({
-    description: "Title describing what the code does",
+    description: 'Title describing what the code does',
   }),
   description: Schema.optional(Schema.String.pipe(Schema.maxLength(500))).annotations({
-    description: "Explanation of the code",
+    description: 'Explanation of the code',
   }),
   timestamp: Schema.optional(Schema.Number).annotations({
-    description: "Timestamp in seconds where this code was mentioned",
+    description: 'Timestamp in seconds where this code was mentioned',
   }),
-  context: Schema.optional(Schema.String).annotations({ description: "Context or use case for this code" }),
+  context: Schema.optional(Schema.String).annotations({ description: 'Context or use case for this code' }),
 });
 
 export const CodeSnippetsSchema = Schema.Struct({
-  snippets: Schema.Array(CodeSnippetSchema).annotations({ description: "Code snippets detected in the transcript" }),
+  snippets: Schema.Array(CodeSnippetSchema).annotations({ description: 'Code snippets detected in the transcript' }),
   primaryLanguage: Schema.optional(Schema.String).annotations({
-    description: "The primary programming language discussed",
+    description: 'The primary programming language discussed',
   }),
-  hasCommands: Schema.Boolean.annotations({ description: "Whether any terminal/CLI commands were detected" }),
+  hasCommands: Schema.Boolean.annotations({ description: 'Whether any terminal/CLI commands were detected' }),
 });
 
 const VideoCategory = Schema.Literal(
-  "tutorial",
-  "demo",
-  "presentation",
-  "meeting",
-  "interview",
-  "review",
-  "announcement",
-  "discussion",
-  "other",
+  'tutorial',
+  'demo',
+  'presentation',
+  'meeting',
+  'interview',
+  'review',
+  'announcement',
+  'discussion',
+  'other',
 );
 
-const TechnicalLevel = Schema.Literal("beginner", "intermediate", "advanced", "expert");
+const TechnicalLevel = Schema.Literal('beginner', 'intermediate', 'advanced', 'expert');
 
 export const VideoTagsSchema = Schema.Struct({
   tags: Schema.Array(Schema.String).pipe(
     Schema.minItems(3),
     Schema.maxItems(10),
-    Schema.annotations({ description: "Relevant tags for the video" }),
+    Schema.annotations({ description: 'Relevant tags for the video' }),
   ),
-  category: VideoCategory.annotations({ description: "Primary category of the video" }),
-  technicalLevel: Schema.optional(TechnicalLevel).annotations({ description: "Technical level of the content" }),
+  category: VideoCategory.annotations({ description: 'Primary category of the video' }),
+  technicalLevel: Schema.optional(TechnicalLevel).annotations({ description: 'Technical level of the content' }),
 });
 
 // =============================================================================
@@ -222,15 +222,15 @@ export interface AIStructuredServiceInterface {
 // AI Structured Service Tag
 // =============================================================================
 
-export class AIStructured extends Context.Tag("AIStructured")<AIStructured, AIStructuredServiceInterface>() {}
+export class AIStructured extends Context.Tag('AIStructured')<AIStructured, AIStructuredServiceInterface>() {}
 
 // =============================================================================
 // Retry Policy
 // =============================================================================
 
-const retryPolicy = Schedule.exponential("1 second").pipe(
-  Schedule.union(Schedule.spaced("500 millis")),
-  Schedule.upTo("30 seconds"),
+const retryPolicy = Schedule.exponential('1 second').pipe(
+  Schedule.union(Schedule.spaced('500 millis')),
+  Schedule.upTo('30 seconds'),
   Schedule.jittered,
 );
 
@@ -239,7 +239,7 @@ const retryPolicy = Schedule.exponential("1 second").pipe(
 // =============================================================================
 
 const makeAIStructuredService = Effect.gen(function* () {
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   // Helper to format time
   const formatTime = (seconds: number): string => {
@@ -247,9 +247,9 @@ const makeAIStructuredService = Effect.gen(function* () {
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
     if (hrs > 0) {
-      return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const generateVideoSummary = (transcript: string): Effect.Effect<VideoSummary, AIServiceError> =>
@@ -274,8 +274,8 @@ Provide:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate structured video summary",
-          operation: "generateVideoSummary",
+          message: 'Failed to generate structured video summary',
+          operation: 'generateVideoSummary',
           cause: error,
         }),
     }).pipe(Effect.retry(retryPolicy));
@@ -293,8 +293,8 @@ Provide:
           prompt: `Generate relevant tags and categorization for this video.
 
 Title: ${title}
-${description ? `Description: ${description}` : ""}
-${transcript ? `Transcript excerpt: ${transcript.slice(0, 2000)}` : ""}
+${description ? `Description: ${description}` : ''}
+${transcript ? `Transcript excerpt: ${transcript.slice(0, 2000)}` : ''}
 
 Provide:
 1. 3-10 relevant tags for discoverability
@@ -305,8 +305,8 @@ Provide:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate video tags",
-          operation: "generateVideoTags",
+          message: 'Failed to generate video tags',
+          operation: 'generateVideoTags',
           cause: error,
         }),
     }).pipe(
@@ -314,7 +314,7 @@ Provide:
       Effect.catchAll(() =>
         Effect.succeed({
           tags: [],
-          category: "other" as const,
+          category: 'other' as const,
         }),
       ),
     );
@@ -324,7 +324,7 @@ Provide:
   ): Effect.Effect<ActionItemsResult, AIServiceError> =>
     Effect.tryPromise({
       try: async () => {
-        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 
         const result = await generateObject({
           model,
@@ -344,8 +344,8 @@ For each action item:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to extract action items",
-          operation: "extractActionItems",
+          message: 'Failed to extract action items',
+          operation: 'extractActionItems',
           cause: error,
         }),
     }).pipe(
@@ -366,7 +366,7 @@ For each action item:
     Effect.tryPromise({
       try: async () => {
         const formattedTranscript = segments
-          ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n")
+          ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n')
           : transcript;
 
         const result = await generateObject({
@@ -395,8 +395,8 @@ For each snippet:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to detect code snippets",
-          operation: "detectCodeSnippets",
+          message: 'Failed to detect code snippets',
+          operation: 'detectCodeSnippets',
           cause: error,
         }),
     }).pipe(
@@ -423,7 +423,7 @@ For each snippet:
           };
         }
 
-        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+        const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 
         const duration = totalDuration || Math.max(...segments.map((s) => s.endTime));
 
@@ -431,7 +431,7 @@ For each snippet:
           model,
           schema: chaptersJsonSchema,
           prompt: `Generate chapters (key moments) for this video based on the transcript.
-${videoTitle ? `Video title: "${videoTitle}"` : ""}
+${videoTitle ? `Video title: "${videoTitle}"` : ''}
 
 Transcript (total duration: ${formatTime(duration)}):
 ${formattedTranscript}
@@ -449,8 +449,8 @@ Ensure chapters cover the entire video without gaps.`,
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate chapters",
-          operation: "generateChapters",
+          message: 'Failed to generate chapters',
+          operation: 'generateChapters',
           cause: error,
         }),
     }).pipe(
@@ -487,8 +487,8 @@ Format your response with clear sections for:
         } catch (error) {
           emit.fail(
             new AIServiceError({
-              message: "Failed to stream summary",
-              operation: "createSummaryStream",
+              message: 'Failed to stream summary',
+              operation: 'createSummaryStream',
               cause: error,
             }),
           );
@@ -524,8 +524,8 @@ Format:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate summary",
-          operation: "generateSimpleSummary",
+          message: 'Failed to generate summary',
+          operation: 'generateSimpleSummary',
           cause: error,
         }),
     }).pipe(Effect.retry(retryPolicy));

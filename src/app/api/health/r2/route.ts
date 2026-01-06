@@ -1,10 +1,10 @@
-import { HeadBucketCommand, S3Client } from "@aws-sdk/client-s3";
-import { connection } from "next/server";
-import { env } from "@/lib/env/server";
-import { logger } from "@/lib/logger";
+import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
+import { connection } from 'next/server';
+import { env } from '@/lib/env/server';
+import { logger } from '@/lib/logger';
 
 export interface R2HealthStatus {
-  status: "healthy" | "unhealthy" | "not_configured";
+  status: 'healthy' | 'unhealthy' | 'not_configured';
   latencyMs: number;
   timestamp: string;
   details?: {
@@ -24,16 +24,16 @@ export async function GET() {
 
   if (!isConfigured) {
     const response: R2HealthStatus = {
-      status: "not_configured",
+      status: 'not_configured',
       latencyMs: 0,
       timestamp: new Date().toISOString(),
-      error: "R2 storage is not configured",
+      error: 'R2 storage is not configured',
     };
 
     return Response.json(response, {
       status: 200,
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   }
@@ -41,7 +41,7 @@ export async function GET() {
   try {
     // Create S3 client for R2
     const r2Client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID,
@@ -59,31 +59,31 @@ export async function GET() {
     const latencyMs = Math.round(performance.now() - startTime);
 
     const response: R2HealthStatus = {
-      status: "healthy",
+      status: 'healthy',
       latencyMs,
       timestamp: new Date().toISOString(),
       details: {
         bucket: env.R2_BUCKET_NAME,
-        region: "auto",
+        region: 'auto',
       },
     };
 
-    logger.debug("R2 health check passed", { latencyMs, bucket: env.R2_BUCKET_NAME });
+    logger.debug('R2 health check passed', { latencyMs, bucket: env.R2_BUCKET_NAME });
 
     return Response.json(response, {
       status: 200,
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   } catch (error) {
     const latencyMs = Math.round(performance.now() - startTime);
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    logger.error("R2 health check failed", error instanceof Error ? error : new Error(errorMessage));
+    logger.error('R2 health check failed', error instanceof Error ? error : new Error(errorMessage));
 
     const response: R2HealthStatus = {
-      status: "unhealthy",
+      status: 'unhealthy',
       latencyMs,
       timestamp: new Date().toISOString(),
       error: errorMessage,
@@ -92,7 +92,7 @@ export async function GET() {
     return Response.json(response, {
       status: 503,
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   }

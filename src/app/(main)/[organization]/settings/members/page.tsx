@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Loader2, MoreHorizontal, Plus, Shield, UserMinus } from "lucide-react";
-import { useParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,21 +15,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
 
-import type { Member, Organization, User } from "@/lib/db/schema";
+import type { Member, Organization, User } from '@/lib/db/schema';
 
 type MemberWithUser = Member & {
   user: User;
@@ -44,10 +44,10 @@ function MembersSettingsContent() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState<{
     email: string;
-    role: "member" | "owner";
+    role: 'member' | 'owner';
   }>({
-    email: "",
-    role: "member",
+    email: '',
+    role: 'member',
   });
   const [inviting, setInviting] = useState(false);
 
@@ -61,9 +61,9 @@ function MembersSettingsContent() {
 
       if (!currentOrg) {
         toast({
-          title: "Error",
-          description: "Organization not found",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Organization not found',
+          variant: 'destructive',
         });
         return;
       }
@@ -83,11 +83,11 @@ function MembersSettingsContent() {
         setMembers(data || []);
       }
     } catch (error) {
-      console.error("Error loading organization and members:", error);
+      console.error('Error loading organization and members:', error);
       toast({
-        title: "Error",
-        description: "Failed to load organization members",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load organization members',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -109,28 +109,28 @@ function MembersSettingsContent() {
       });
 
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Invitation sent to ${inviteData.email}`,
       });
 
       setInviteDialogOpen(false);
-      setInviteData({ email: "", role: "member" });
+      setInviteData({ email: '', role: 'member' });
 
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error("Error inviting member:", error);
+      console.error('Error inviting member:', error);
       toast({
-        title: "Error",
-        description: "Failed to send invitation",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to send invitation',
+        variant: 'destructive',
       });
     } finally {
       setInviting(false);
     }
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: "member" | "owner") => {
+  const handleUpdateRole = async (memberId: string, newRole: 'member' | 'owner') => {
     if (!organization) return;
 
     try {
@@ -140,18 +140,18 @@ function MembersSettingsContent() {
       });
 
       toast({
-        title: "Success",
-        description: "Member role updated successfully",
+        title: 'Success',
+        description: 'Member role updated successfully',
       });
 
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error("Error updating member role:", error);
+      console.error('Error updating member role:', error);
       toast({
-        title: "Error",
-        description: "Failed to update member role",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update member role',
+        variant: 'destructive',
       });
     }
   };
@@ -168,30 +168,30 @@ function MembersSettingsContent() {
       });
 
       toast({
-        title: "Success",
+        title: 'Success',
         description: `${memberName} has been removed from the organization`,
       });
 
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error("Error removing member:", error);
+      console.error('Error removing member:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove member",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove member',
+        variant: 'destructive',
       });
     }
   };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role.toLowerCase()) {
-      case "owner":
-        return "default";
-      case "member":
-        return "outline";
+      case 'owner':
+        return 'default';
+      case 'member':
+        return 'outline';
       default:
-        return "outline";
+        return 'outline';
     }
   };
 
@@ -258,7 +258,7 @@ function MembersSettingsContent() {
                 <Label htmlFor="role">Role</Label>
                 <Select
                   value={inviteData.role}
-                  onValueChange={(value: "member" | "owner") => setInviteData((prev) => ({ ...prev, role: value }))}
+                  onValueChange={(value: 'member' | 'owner') => setInviteData((prev) => ({ ...prev, role: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
@@ -272,7 +272,7 @@ function MembersSettingsContent() {
             </div>
             <DialogFooter>
               <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
-                {inviting ? "Sending..." : "Send Invitation"}
+                {inviting ? 'Sending...' : 'Send Invitation'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -293,7 +293,7 @@ function MembersSettingsContent() {
                 <TableCell className="pl-6">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.user.image || "/placeholder.svg"} />
+                      <AvatarImage src={member.user.image || '/placeholder.svg'} />
                       <AvatarFallback>{member.user.name.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -313,13 +313,13 @@ function MembersSettingsContent() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {member.role !== "owner" && (
+                      {member.role !== 'owner' && (
                         <>
                           <DropdownMenuItem
-                            onClick={() => handleUpdateRole(member.id, member.role === "member" ? "owner" : "member")}
+                            onClick={() => handleUpdateRole(member.id, member.role === 'member' ? 'owner' : 'member')}
                           >
                             <Shield className="h-4 w-4 mr-2" />
-                            {member.role === "member" ? "Make Owner" : "Make Member"}
+                            {member.role === 'member' ? 'Make Owner' : 'Make Member'}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleRemoveMember(member.id, member.user.name)}

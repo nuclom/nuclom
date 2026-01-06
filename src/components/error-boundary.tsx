@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { AlertTriangle, RefreshCcw } from "lucide-react";
-import * as React from "react";
+import { AlertTriangle, RefreshCcw } from 'lucide-react';
+import * as React from 'react';
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logClientError } from "@/lib/error-logging";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { logClientError } from '@/lib/error-logging';
 
 // Use window.location to detect dev mode in client component
-const IS_DEV = typeof window !== "undefined" && window.location.hostname === "localhost";
+const IS_DEV = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -44,7 +44,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     logClientError({
       error,
       componentStack: errorInfo.componentStack ?? undefined,
-      context: "ErrorBoundary",
+      context: 'ErrorBoundary',
     });
 
     // Call optional onError callback
@@ -125,7 +125,7 @@ export function withErrorBoundary<P extends object>(Component: React.ComponentTy
     </ErrorBoundary>
   );
 
-  WrappedComponent.displayName = `WithErrorBoundary(${Component.displayName || Component.name || "Component"})`;
+  WrappedComponent.displayName = `WithErrorBoundary(${Component.displayName || Component.name || 'Component'})`;
 
   return WrappedComponent;
 }

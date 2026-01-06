@@ -33,389 +33,389 @@ import {
   Users,
   Video,
   Webhook,
-} from "lucide-react";
-import Link from "next/link";
-import { MarketingFooter } from "@/components/marketing-footer";
-import { MarketingHeader } from "@/components/marketing-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import Link from 'next/link';
+import { MarketingFooter } from '@/components/marketing-footer';
+import { MarketingHeader } from '@/components/marketing-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const featureCategories = [
   {
-    id: "ai-insights",
-    title: "AI-Powered Insights",
-    description: "Let AI understand your videos and extract valuable insights automatically",
+    id: 'ai-insights',
+    title: 'AI-Powered Insights',
+    description: 'Let AI understand your videos and extract valuable insights automatically',
     icon: Brain,
-    color: "from-purple-500/20 to-purple-500/5",
+    color: 'from-purple-500/20 to-purple-500/5',
     features: [
       {
         icon: Mic,
-        title: "Automatic Transcription",
+        title: 'Automatic Transcription',
         description:
-          "Convert video audio to accurate, searchable text using state-of-the-art speech recognition with support for multiple languages.",
+          'Convert video audio to accurate, searchable text using state-of-the-art speech recognition with support for multiple languages.',
       },
       {
         icon: Users,
-        title: "Speaker Diarization",
+        title: 'Speaker Diarization',
         description:
-          "Automatically identify and label different speakers in your videos, making it easy to follow who said what.",
+          'Automatically identify and label different speakers in your videos, making it easy to follow who said what.',
       },
       {
         icon: FileText,
-        title: "Smart Summaries",
+        title: 'Smart Summaries',
         description:
-          "Get AI-generated summaries that capture the key points of any video, saving hours of review time.",
+          'Get AI-generated summaries that capture the key points of any video, saving hours of review time.',
       },
       {
         icon: BookOpen,
-        title: "Automatic Chapters",
+        title: 'Automatic Chapters',
         description:
-          "Videos are automatically divided into logical chapters with timestamps and summaries for easy navigation.",
+          'Videos are automatically divided into logical chapters with timestamps and summaries for easy navigation.',
       },
       {
         icon: Lightbulb,
-        title: "Action Item Extraction",
+        title: 'Action Item Extraction',
         description:
-          "Never miss a task or follow-up. AI automatically identifies and extracts action items from meeting recordings.",
+          'Never miss a task or follow-up. AI automatically identifies and extracts action items from meeting recordings.',
       },
       {
         icon: Star,
-        title: "Key Moment Detection",
+        title: 'Key Moment Detection',
         description:
-          "Automatically identify important moments like decisions, questions, answers, and highlights in your videos.",
+          'Automatically identify important moments like decisions, questions, answers, and highlights in your videos.',
       },
       {
         icon: Code,
-        title: "Code Snippet Detection",
-        description: "Identify and extract code snippets mentioned in technical videos for easy reference and sharing.",
+        title: 'Code Snippet Detection',
+        description: 'Identify and extract code snippets mentioned in technical videos for easy reference and sharing.',
       },
       {
         icon: Search,
-        title: "Semantic Search",
+        title: 'Semantic Search',
         description:
-          "Find any moment by searching what was said. AI understands context and meaning, not just keywords.",
+          'Find any moment by searching what was said. AI understands context and meaning, not just keywords.',
       },
     ],
   },
   {
-    id: "knowledge-graph",
-    title: "Knowledge Graph & Decisions",
-    description: "Build an organizational knowledge base from your video content",
+    id: 'knowledge-graph',
+    title: 'Knowledge Graph & Decisions',
+    description: 'Build an organizational knowledge base from your video content',
     icon: Network,
-    color: "from-blue-500/20 to-blue-500/5",
+    color: 'from-blue-500/20 to-blue-500/5',
     features: [
       {
         icon: Lightbulb,
-        title: "Decision Tracking",
+        title: 'Decision Tracking',
         description:
-          "Automatically capture and track decisions made during video discussions with full context and participants.",
+          'Automatically capture and track decisions made during video discussions with full context and participants.',
       },
       {
         icon: Network,
-        title: "Knowledge Nodes",
+        title: 'Knowledge Nodes',
         description:
-          "Create interconnected knowledge entities linking people, topics, artifacts, decisions, and videos.",
+          'Create interconnected knowledge entities linking people, topics, artifacts, decisions, and videos.',
       },
       {
         icon: Link2,
-        title: "External Links",
+        title: 'External Links',
         description:
-          "Connect decisions to external entities like GitHub PRs, issues, code files, and documents for full traceability.",
+          'Connect decisions to external entities like GitHub PRs, issues, code files, and documents for full traceability.',
       },
       {
         icon: Clock,
-        title: "Decision Timeline",
+        title: 'Decision Timeline',
         description:
-          "View when decisions were made in relation to video timeline, providing historical context for your team.",
+          'View when decisions were made in relation to video timeline, providing historical context for your team.',
       },
     ],
   },
   {
-    id: "collaboration",
-    title: "Team Collaboration",
-    description: "Work together seamlessly on video content with your team",
+    id: 'collaboration',
+    title: 'Team Collaboration',
+    description: 'Work together seamlessly on video content with your team',
     icon: Users,
-    color: "from-green-500/20 to-green-500/5",
+    color: 'from-green-500/20 to-green-500/5',
     features: [
       {
         icon: MessageSquare,
-        title: "Time-Stamped Comments",
+        title: 'Time-Stamped Comments',
         description:
-          "Add comments at specific moments in videos. Jump directly to the relevant section when viewing feedback.",
+          'Add comments at specific moments in videos. Jump directly to the relevant section when viewing feedback.',
       },
       {
         icon: MessageSquare,
-        title: "Threaded Discussions",
+        title: 'Threaded Discussions',
         description:
-          "Engage in nested reply threads for detailed discussions. Keep conversations organized and contextual.",
+          'Engage in nested reply threads for detailed discussions. Keep conversations organized and contextual.',
       },
       {
         icon: Star,
-        title: "Rich Reactions",
+        title: 'Rich Reactions',
         description:
-          "Express yourself with emoji reactions including like, love, laugh, surprised, sad, thinking, and celebrate.",
+          'Express yourself with emoji reactions including like, love, laugh, surprised, sad, thinking, and celebrate.',
       },
       {
         icon: Bell,
-        title: "@Mentions & Notifications",
+        title: '@Mentions & Notifications',
         description:
-          "Mention team members to get their attention. Receive notifications for comments, mentions, and activity.",
+          'Mention team members to get their attention. Receive notifications for comments, mentions, and activity.',
       },
       {
         icon: Users,
-        title: "Real-Time Presence",
+        title: 'Real-Time Presence',
         description: "See who's currently watching or working on videos. Collaborate in real-time with your team.",
       },
       {
         icon: Share2,
-        title: "Activity Feed",
-        description: "Track team activity and engagement across all videos and channels in a unified activity stream.",
+        title: 'Activity Feed',
+        description: 'Track team activity and engagement across all videos and channels in a unified activity stream.',
       },
     ],
   },
   {
-    id: "video-management",
-    title: "Video Management",
-    description: "Organize, search, and manage your video library with ease",
+    id: 'video-management',
+    title: 'Video Management',
+    description: 'Organize, search, and manage your video library with ease',
     icon: Video,
-    color: "from-orange-500/20 to-orange-500/5",
+    color: 'from-orange-500/20 to-orange-500/5',
     features: [
       {
         icon: FolderOpen,
-        title: "Channels & Collections",
+        title: 'Channels & Collections',
         description:
-          "Organize videos into channels for different teams, projects, or topics. Create collections for easy access.",
+          'Organize videos into channels for different teams, projects, or topics. Create collections for easy access.',
       },
       {
         icon: Layers,
-        title: "Video Series",
+        title: 'Video Series',
         description:
-          "Create ordered playlists with viewer progress tracking. Perfect for training, onboarding, and tutorials.",
+          'Create ordered playlists with viewer progress tracking. Perfect for training, onboarding, and tutorials.',
       },
       {
         icon: Search,
-        title: "Full-Text Search",
+        title: 'Full-Text Search',
         description:
-          "Search across transcripts, titles, descriptions, and metadata. Find any video or moment instantly.",
+          'Search across transcripts, titles, descriptions, and metadata. Find any video or moment instantly.',
       },
       {
         icon: BarChart3,
-        title: "Video Analytics",
-        description: "Track view counts, watch time, engagement metrics, and viewer behavior for all your videos.",
+        title: 'Video Analytics',
+        description: 'Track view counts, watch time, engagement metrics, and viewer behavior for all your videos.',
       },
       {
         icon: Clock,
-        title: "Watch History",
+        title: 'Watch History',
         description: "Keep track of what you've watched and pick up where you left off. Never lose your progress.",
       },
       {
         icon: BookOpen,
-        title: "Watch Later",
-        description: "Bookmark videos to watch later. Build your personal queue of content to review.",
+        title: 'Watch Later',
+        description: 'Bookmark videos to watch later. Build your personal queue of content to review.',
       },
     ],
   },
   {
-    id: "clipping",
-    title: "Clipping & Content Creation",
-    description: "Create clips, highlights, and shareable content from your videos",
+    id: 'clipping',
+    title: 'Clipping & Content Creation',
+    description: 'Create clips, highlights, and shareable content from your videos',
     icon: Scissors,
-    color: "from-pink-500/20 to-pink-500/5",
+    color: 'from-pink-500/20 to-pink-500/5',
     features: [
       {
         icon: Scissors,
-        title: "Automatic Clips",
-        description: "AI automatically creates clips from key moments, decisions, and highlights in your videos.",
+        title: 'Automatic Clips',
+        description: 'AI automatically creates clips from key moments, decisions, and highlights in your videos.',
       },
       {
         icon: Play,
-        title: "Manual Clipping",
-        description: "Create custom clips with precise timestamps. Trim and export exactly the content you need.",
+        title: 'Manual Clipping',
+        description: 'Create custom clips with precise timestamps. Trim and export exactly the content you need.',
       },
       {
         icon: Layers,
-        title: "Highlight Reels",
+        title: 'Highlight Reels',
         description:
-          "Compile multiple clips into highlight videos. Perfect for summaries, training, and presentations.",
+          'Compile multiple clips into highlight videos. Perfect for summaries, training, and presentations.',
       },
       {
         icon: Quote,
-        title: "Quote Cards",
+        title: 'Quote Cards',
         description:
-          "Extract and share memorable quotes with beautiful styling. Great for social media and presentations.",
+          'Extract and share memorable quotes with beautiful styling. Great for social media and presentations.',
       },
     ],
   },
   {
-    id: "sharing",
-    title: "Sharing & Embedding",
-    description: "Share videos securely with anyone, anywhere",
+    id: 'sharing',
+    title: 'Sharing & Embedding',
+    description: 'Share videos securely with anyone, anywhere',
     icon: Share2,
-    color: "from-cyan-500/20 to-cyan-500/5",
+    color: 'from-cyan-500/20 to-cyan-500/5',
     features: [
       {
         icon: Link2,
-        title: "Shareable Links",
-        description: "Generate public or private shareable links for any video. Control who can access your content.",
+        title: 'Shareable Links',
+        description: 'Generate public or private shareable links for any video. Control who can access your content.',
       },
       {
         icon: Lock,
-        title: "Password Protection",
-        description: "Add password protection to shared videos for an extra layer of security on sensitive content.",
+        title: 'Password Protection',
+        description: 'Add password protection to shared videos for an extra layer of security on sensitive content.',
       },
       {
         icon: Layout,
-        title: "Embeddable Videos",
-        description: "Embed videos on external websites, documentation, or internal tools with customizable players.",
+        title: 'Embeddable Videos',
+        description: 'Embed videos on external websites, documentation, or internal tools with customizable players.',
       },
       {
         icon: Clock,
-        title: "Link Expiration",
-        description: "Set expiration dates on share links. Perfect for time-sensitive content and external reviews.",
+        title: 'Link Expiration',
+        description: 'Set expiration dates on share links. Perfect for time-sensitive content and external reviews.',
       },
       {
         icon: BarChart3,
-        title: "Share Analytics",
+        title: 'Share Analytics',
         description: "Track views and engagement on shared content. Know who's watching and how they're engaging.",
       },
     ],
   },
   {
-    id: "integrations",
-    title: "Integrations",
-    description: "Connect with the tools you already use",
+    id: 'integrations',
+    title: 'Integrations',
+    description: 'Connect with the tools you already use',
     icon: Webhook,
-    color: "from-indigo-500/20 to-indigo-500/5",
+    color: 'from-indigo-500/20 to-indigo-500/5',
     features: [
       {
         icon: Video,
-        title: "Zoom Integration",
-        description: "Automatically import and process Zoom recordings. Sync meeting metadata and participants.",
+        title: 'Zoom Integration',
+        description: 'Automatically import and process Zoom recordings. Sync meeting metadata and participants.',
       },
       {
         icon: Video,
-        title: "Google Meet",
-        description: "Import Google Meet recordings directly from Google Drive with full meeting context.",
+        title: 'Google Meet',
+        description: 'Import Google Meet recordings directly from Google Drive with full meeting context.',
       },
       {
         icon: MessageSquare,
-        title: "Slack Integration",
+        title: 'Slack Integration',
         description:
-          "Share videos and receive notifications in Slack channels. Collaborate where your team already works.",
+          'Share videos and receive notifications in Slack channels. Collaborate where your team already works.',
       },
       {
         icon: Users,
-        title: "Microsoft Teams",
-        description: "Integrate with Teams channels for seamless video sharing and collaboration.",
+        title: 'Microsoft Teams',
+        description: 'Integrate with Teams channels for seamless video sharing and collaboration.',
       },
       {
         icon: Github,
-        title: "GitHub Integration",
-        description: "Link videos to GitHub PRs, issues, commits, and files. Connect discussions to your codebase.",
+        title: 'GitHub Integration',
+        description: 'Link videos to GitHub PRs, issues, commits, and files. Connect discussions to your codebase.',
       },
       {
         icon: Webhook,
-        title: "Webhooks & API",
-        description: "Build custom integrations with our comprehensive API and webhook support for any workflow.",
+        title: 'Webhooks & API',
+        description: 'Build custom integrations with our comprehensive API and webhook support for any workflow.',
       },
     ],
   },
   {
-    id: "security",
-    title: "Security & Compliance",
-    description: "Enterprise-grade security for your most sensitive content",
+    id: 'security',
+    title: 'Security & Compliance',
+    description: 'Enterprise-grade security for your most sensitive content',
     icon: Shield,
-    color: "from-red-500/20 to-red-500/5",
+    color: 'from-red-500/20 to-red-500/5',
     features: [
       {
         icon: Key,
-        title: "SSO / SAML",
-        description: "Single Sign-On with SAML support. Integrate with your identity provider for secure access.",
+        title: 'SSO / SAML',
+        description: 'Single Sign-On with SAML support. Integrate with your identity provider for secure access.',
       },
       {
         icon: Lock,
-        title: "Two-Factor Authentication",
-        description: "TOTP-based 2FA for all accounts. Protect your team with an extra layer of security.",
+        title: 'Two-Factor Authentication',
+        description: 'TOTP-based 2FA for all accounts. Protect your team with an extra layer of security.',
       },
       {
         icon: Smartphone,
-        title: "Passkeys / WebAuthn",
-        description: "Support for hardware keys and biometric authentication. The future of passwordless security.",
+        title: 'Passkeys / WebAuthn',
+        description: 'Support for hardware keys and biometric authentication. The future of passwordless security.',
       },
       {
         icon: Users,
-        title: "Role-Based Access Control",
-        description: "Granular permissions with owner and member roles. Create custom roles for specific needs.",
+        title: 'Role-Based Access Control',
+        description: 'Granular permissions with owner and member roles. Create custom roles for specific needs.',
       },
       {
         icon: FileText,
-        title: "Audit Logs",
-        description: "Complete audit trail of all user actions. Export logs for compliance and security reviews.",
+        title: 'Audit Logs',
+        description: 'Complete audit trail of all user actions. Export logs for compliance and security reviews.',
       },
       {
         icon: Shield,
-        title: "GDPR Compliance",
-        description: "Full GDPR compliance with data export, consent tracking, and right to erasure support.",
+        title: 'GDPR Compliance',
+        description: 'Full GDPR compliance with data export, consent tracking, and right to erasure support.',
       },
     ],
   },
   {
-    id: "team-management",
-    title: "Team & Organization",
-    description: "Manage teams, permissions, and organizations at scale",
+    id: 'team-management',
+    title: 'Team & Organization',
+    description: 'Manage teams, permissions, and organizations at scale',
     icon: Settings,
-    color: "from-yellow-500/20 to-yellow-500/5",
+    color: 'from-yellow-500/20 to-yellow-500/5',
     features: [
       {
         icon: Users,
-        title: "Multi-Tenant Organizations",
-        description: "Support for multiple teams and organizations. Each team gets their own workspace and content.",
+        title: 'Multi-Tenant Organizations',
+        description: 'Support for multiple teams and organizations. Each team gets their own workspace and content.',
       },
       {
         icon: Bell,
-        title: "Member Invitations",
-        description: "Invite team members via email. Track pending and accepted invitations with ease.",
+        title: 'Member Invitations',
+        description: 'Invite team members via email. Track pending and accepted invitations with ease.',
       },
       {
         icon: Settings,
-        title: "Notification Preferences",
-        description: "Customize email and push notifications. Control frequency for comments, mentions, and digests.",
+        title: 'Notification Preferences',
+        description: 'Customize email and push notifications. Control frequency for comments, mentions, and digests.',
       },
       {
         icon: Palette,
-        title: "Custom Branding",
-        description: "Enterprise custom branding options. Make Nuclom feel like your own platform.",
+        title: 'Custom Branding',
+        description: 'Enterprise custom branding options. Make Nuclom feel like your own platform.',
       },
     ],
   },
   {
-    id: "developer",
-    title: "Developer Tools",
-    description: "Build integrations and automate workflows with our API",
+    id: 'developer',
+    title: 'Developer Tools',
+    description: 'Build integrations and automate workflows with our API',
     icon: Code,
-    color: "from-emerald-500/20 to-emerald-500/5",
+    color: 'from-emerald-500/20 to-emerald-500/5',
     features: [
       {
         icon: Key,
-        title: "API Keys",
-        description: "Create API keys for programmatic access. Configure rate limits per key for fair usage.",
+        title: 'API Keys',
+        description: 'Create API keys for programmatic access. Configure rate limits per key for fair usage.',
       },
       {
         icon: Webhook,
-        title: "Webhooks",
-        description: "Receive real-time notifications for events. Build automated workflows and integrations.",
+        title: 'Webhooks',
+        description: 'Receive real-time notifications for events. Build automated workflows and integrations.',
       },
       {
         icon: Globe,
-        title: "OAuth Applications",
+        title: 'OAuth Applications',
         description:
-          "Build OAuth integrations on top of Nuclom. Create third-party apps that integrate with our platform.",
+          'Build OAuth integrations on top of Nuclom. Create third-party apps that integrate with our platform.',
       },
       {
         icon: FileText,
-        title: "API Documentation",
-        description: "Comprehensive API reference with examples. Get started quickly with our developer guides.",
+        title: 'API Documentation',
+        description: 'Comprehensive API reference with examples. Get started quickly with our developer guides.',
       },
     ],
   },
@@ -484,7 +484,7 @@ export default function FeaturesPage() {
         <section
           key={category.id}
           id={category.id}
-          className={`py-20 px-4 sm:px-6 lg:px-8 ${index % 2 === 0 ? "" : "bg-muted/30"}`}
+          className={`py-20 px-4 sm:px-6 lg:px-8 ${index % 2 === 0 ? '' : 'bg-muted/30'}`}
         >
           <div className="w-full max-w-7xl mx-auto">
             <div className="text-center mb-16">

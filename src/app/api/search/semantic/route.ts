@@ -1,12 +1,12 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { connection } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Embedding } from "@/lib/effect/services/embedding";
-import { SemanticSearchRepository } from "@/lib/effect/services/semantic-search-repository";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { connection } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Embedding } from '@/lib/effect/services/embedding';
+import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // POST /api/search/semantic - Semantic search using embeddings
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     organizationId: Schema.optional(Schema.String),
     limit: Schema.optional(Schema.Number),
     threshold: Schema.optional(Schema.Number),
-    contentTypes: Schema.optional(Schema.Array(Schema.Literal("transcript_chunk", "decision"))),
+    contentTypes: Schema.optional(Schema.Array(Schema.Literal('transcript_chunk', 'decision'))),
     videoIds: Schema.optional(Schema.Array(Schema.String)),
     channelIds: Schema.optional(Schema.Array(Schema.String)),
   });
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
     if (!query || !query.trim()) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "query",
-          message: "Search query is required",
+          field: 'query',
+          message: 'Search query is required',
         }),
       );
     }
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -94,16 +94,16 @@ export async function GET(request: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || "";
-    const organizationId = searchParams.get("organizationId");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 100);
-    const threshold = parseFloat(searchParams.get("threshold") || "0.7");
+    const query = searchParams.get('q') || '';
+    const organizationId = searchParams.get('organizationId');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+    const threshold = parseFloat(searchParams.get('threshold') || '0.7');
 
     if (!query.trim()) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "q",
-          message: "Search query is required",
+          field: 'q',
+          message: 'Search query is required',
         }),
       );
     }
@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }

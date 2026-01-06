@@ -5,19 +5,19 @@
  * Uses fire-and-forget async processing pattern similar to video upload.
  */
 
-import { Effect, Layer } from "effect";
-import type { IntegrationProvider } from "@/lib/db/schema";
-import { AppLive } from "@/lib/effect/runtime";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { Storage } from "@/lib/effect/services/storage";
-import { TranscriptionLive } from "@/lib/effect/services/transcription";
-import { VideoAIProcessor, VideoAIProcessorLive } from "@/lib/effect/services/video-ai-processor";
-import { VideoRepository } from "@/lib/effect/services/video-repository";
-import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
-import { formatDuration } from "@/lib/format-utils";
-import { logger } from "@/lib/logger";
+import { Effect, Layer } from 'effect';
+import type { IntegrationProvider } from '@/lib/db/schema';
+import { AppLive } from '@/lib/effect/runtime';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { Storage } from '@/lib/effect/services/storage';
+import { TranscriptionLive } from '@/lib/effect/services/transcription';
+import { VideoAIProcessor, VideoAIProcessorLive } from '@/lib/effect/services/video-ai-processor';
+import { VideoRepository } from '@/lib/effect/services/video-repository';
+import { Zoom, ZoomLive } from '@/lib/effect/services/zoom';
+import { formatDuration } from '@/lib/format-utils';
+import { logger } from '@/lib/logger';
 
 // =============================================================================
 // Workflow Input Types
@@ -74,14 +74,14 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
 
     // Step 1: Update import status to downloading
     yield* integrationRepo.updateImportedMeeting(importedMeetingId, {
-      importStatus: "downloading",
+      importStatus: 'downloading',
     });
 
     // Step 2: Download the recording
     let fileBuffer: Buffer;
-    let contentType = "video/mp4";
+    let contentType = 'video/mp4';
 
-    if (provider === "zoom") {
+    if (provider === 'zoom') {
       const fullDownloadUrl = zoom.getDownloadUrl(downloadUrl, accessToken);
 
       const response = yield* Effect.tryPromise({
@@ -99,7 +99,7 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
       });
 
       fileBuffer = Buffer.from(arrayBuffer);
-      contentType = response.headers.get("content-type") || "video/mp4";
+      contentType = response.headers.get('content-type') || 'video/mp4';
     } else {
       // Google Meet
       const stream = yield* google.downloadFile(accessToken, externalId);
@@ -128,39 +128,39 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
 
     // Step 3: Upload to storage
     const filename = `${externalId}.mp4`;
-    const key = storage.generateFileKey(organizationId, filename, "video");
+    const key = storage.generateFileKey(organizationId, filename, 'video');
 
     const uploadResult = yield* storage.uploadLargeFile(fileBuffer, key, { contentType });
 
     // Step 4: Update status to processing
     yield* integrationRepo.updateImportedMeeting(importedMeetingId, {
-      importStatus: "processing",
+      importStatus: 'processing',
     });
 
     // Step 5: Create video record
     const estimatedDuration = Math.round(fileBuffer.length / 100000);
 
     const video = yield* videoRepo.createVideo({
-      title: meetingTitle || "Meeting Recording",
-      description: `Imported from ${provider === "zoom" ? "Zoom" : "Google Meet"}`,
+      title: meetingTitle || 'Meeting Recording',
+      description: `Imported from ${provider === 'zoom' ? 'Zoom' : 'Google Meet'}`,
       duration: formatDuration(estimatedDuration),
       videoUrl: uploadResult.url,
       authorId: userId,
       organizationId,
-      processingStatus: "pending",
+      processingStatus: 'pending',
     });
 
     // Step 6: Update imported meeting with video ID
     yield* integrationRepo.updateImportedMeeting(importedMeetingId, {
       videoId: video.id,
-      importStatus: "completed",
+      importStatus: 'completed',
       importedAt: new Date(),
     });
 
     // Step 7: Trigger AI processing in the background (fire and forget)
     const aiEffect = aiProcessor.processVideo(video.id, uploadResult.url, meetingTitle);
     Effect.runPromise(aiEffect).catch((err) => {
-      logger.error("Import meeting AI processing failed", err instanceof Error ? err : new Error(String(err)), {
+      logger.error('Import meeting AI processing failed', err instanceof Error ? err : new Error(String(err)), {
         videoId: video.id,
         importedMeetingId,
         provider,
@@ -185,7 +185,7 @@ export async function triggerImportMeeting(input: ImportMeetingInput): Promise<v
 
         yield* integrationRepo
           .updateImportedMeeting(input.importedMeetingId, {
-            importStatus: "failed",
+            importStatus: 'failed',
             importError: error instanceof Error ? error.message : String(error),
           })
           .pipe(Effect.catchAll(() => Effect.succeed(undefined)));
@@ -202,7 +202,7 @@ export async function triggerImportMeeting(input: ImportMeetingInput): Promise<v
 
   // Run in the background (fire and forget)
   Effect.runPromise(runnable).catch((err) => {
-    logger.error("Import meeting workflow failed", err instanceof Error ? err : new Error(String(err)), {
+    logger.error('Import meeting workflow failed', err instanceof Error ? err : new Error(String(err)), {
       importedMeetingId: input.importedMeetingId,
       provider: input.provider,
       externalId: input.externalId,

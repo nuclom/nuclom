@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Detail Client Component
@@ -9,10 +9,10 @@
  * - Synced video player and transcript
  */
 
-import { useCallback, useState } from "react";
-import type { TranscriptSegment, VideoChapter } from "@/lib/db/schema";
-import { TranscriptDisplay } from "./transcript-display";
-import { VideoPlayerWithProgress } from "./video-player-with-progress";
+import { useCallback, useState } from 'react';
+import type { TranscriptSegment, VideoChapter } from '@/lib/db/schema';
+import { TranscriptDisplay } from './transcript-display';
+import { VideoPlayerWithProgress } from './video-player-with-progress';
 
 // =============================================================================
 // Types
@@ -69,7 +69,7 @@ export function VideoDetailClient({
   // Handle seeking when transcript segment is clicked
   const handleSeek = useCallback((time: number) => {
     // Find the video element and seek
-    const videoElement = document.querySelector("video");
+    const videoElement = document.querySelector('video');
     if (videoElement) {
       videoElement.currentTime = time;
       if (videoElement.paused) {
@@ -109,7 +109,7 @@ export function VideoDetailClient({
           onSeek={handleSeek}
           onAddComment={onAddComment}
           autoScroll={true}
-          processingStatus={processingStatus as "pending" | "transcribing" | "analyzing" | "completed" | "failed"}
+          processingStatus={processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'}
           maxHeight="24rem"
         />
       )}
@@ -139,7 +139,7 @@ export interface VideoWithTranscriptProps {
   /** Processing status */
   processingStatus?: string;
   /** Layout: side-by-side or stacked */
-  layout?: "side-by-side" | "stacked";
+  layout?: 'side-by-side' | 'stacked';
   /** Optional className */
   className?: string;
 }
@@ -152,8 +152,8 @@ export function VideoWithTranscript({
   duration,
   transcriptSegments,
   chapters = [],
-  processingStatus = "completed",
-  layout = "side-by-side",
+  processingStatus = 'completed',
+  layout = 'side-by-side',
   className,
 }: VideoWithTranscriptProps) {
   const [currentTime, setCurrentTime] = useState(0);
@@ -163,7 +163,7 @@ export function VideoWithTranscript({
   }, []);
 
   const handleSeek = useCallback((time: number) => {
-    const videoElement = document.querySelector("video");
+    const videoElement = document.querySelector('video');
     if (videoElement) {
       videoElement.currentTime = time;
       if (videoElement.paused) {
@@ -180,9 +180,9 @@ export function VideoWithTranscript({
     summary: c.summary ?? undefined,
   }));
 
-  if (layout === "side-by-side") {
+  if (layout === 'side-by-side') {
     return (
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${className || ""}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 ${className || ''}`}>
         {/* Video Player */}
         <div>
           <VideoPlayerWithProgress
@@ -203,7 +203,7 @@ export function VideoWithTranscript({
             currentTime={currentTime}
             onSeek={handleSeek}
             autoScroll={true}
-            processingStatus={processingStatus as "pending" | "transcribing" | "analyzing" | "completed" | "failed"}
+            processingStatus={processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'}
             maxHeight="400px"
           />
         </div>
@@ -213,7 +213,7 @@ export function VideoWithTranscript({
 
   // Stacked layout
   return (
-    <div className={`space-y-6 ${className || ""}`}>
+    <div className={`space-y-6 ${className || ''}`}>
       <VideoPlayerWithProgress
         videoId={videoId}
         url={videoUrl}
@@ -229,7 +229,7 @@ export function VideoWithTranscript({
         currentTime={currentTime}
         onSeek={handleSeek}
         autoScroll={true}
-        processingStatus={processingStatus as "pending" | "transcribing" | "analyzing" | "completed" | "failed"}
+        processingStatus={processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'}
         maxHeight="24rem"
       />
     </div>

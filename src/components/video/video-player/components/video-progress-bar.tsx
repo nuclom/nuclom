@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useState } from "react";
-import type { VideoChapter } from "../types";
-import { formatTime } from "../utils";
+import { useCallback, useState } from 'react';
+import type { VideoChapter } from '../types';
+import { formatTime } from '../utils';
 
 interface VideoProgressBarProps {
   progressBarRef: React.RefObject<HTMLDivElement | null>;
@@ -130,7 +130,7 @@ export function VideoProgressBar({
         >
           {formatTime(hoverTime)}
           {chapters.length > 0 && (
-            <span className="block text-white/60 text-[10px]">{getHoveredChapter()?.title || ""}</span>
+            <span className="block text-white/60 text-[10px]">{getHoveredChapter()?.title || ''}</span>
           )}
         </div>
       )}

@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import type { CodeLinkType, DetectedCodeRef } from "@/lib/db/schema";
-import { CodeLinksRepository, NotFoundError, VideoRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { CodeReferenceDetector, CodeReferenceDetectorLive } from "@/lib/effect/services/code-reference-detector";
+import { Cause, Effect, Exit, Layer } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import type { CodeLinkType, DetectedCodeRef } from '@/lib/db/schema';
+import { CodeLinksRepository, NotFoundError, VideoRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { CodeReferenceDetector, CodeReferenceDetectorLive } from '@/lib/effect/services/code-reference-detector';
 
 // =============================================================================
 // POST /api/videos/[id]/detect-code-refs - Detect code references in video transcript
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         data: {
           videoId,
           references: [],
-          message: "No transcript available for this video",
+          message: 'No transcript available for this video',
         },
       };
     }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       // Filter to only high-confidence references that can be linked (PR, issue, commit, file)
       const linkableRefs = references.filter(
-        (ref) => ref.confidence >= 0.75 && ["pr", "issue", "commit", "file"].includes(ref.type) && ref.suggestedRepo,
+        (ref) => ref.confidence >= 0.75 && ['pr', 'issue', 'commit', 'file'].includes(ref.type) && ref.suggestedRepo,
       );
 
       if (linkableRefs.length > 0) {
@@ -129,10 +129,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json(data, { status: 200 });
@@ -148,15 +148,15 @@ function generateGitHubUrl(repo: string, type: CodeLinkType, ref: string): strin
   const baseUrl = `https://github.com/${repo}`;
 
   switch (type) {
-    case "pr":
+    case 'pr':
       return `${baseUrl}/pull/${ref}`;
-    case "issue":
+    case 'issue':
       return `${baseUrl}/issues/${ref}`;
-    case "commit":
+    case 'commit':
       return `${baseUrl}/commit/${ref}`;
-    case "file":
+    case 'file':
       return `${baseUrl}/blob/main/${ref}`;
-    case "directory":
+    case 'directory':
       return `${baseUrl}/tree/main/${ref}`;
     default:
       return baseUrl;

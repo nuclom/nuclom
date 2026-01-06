@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import { CreditCard, MoreVertical, Plus, Star, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreditCard, MoreVertical, Plus, Star, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { openBillingPortal } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import type { PaymentMethod } from "@/lib/db/schema";
+} from '@/components/ui/dropdown-menu';
+import { openBillingPortal } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import type { PaymentMethod } from '@/lib/db/schema';
 
 // Credit card brand icons mapping
 const cardBrandIcons: Record<string, string> = {
-  visa: "Visa",
-  mastercard: "Mastercard",
-  amex: "American Express",
-  discover: "Discover",
-  jcb: "JCB",
-  diners: "Diners Club",
-  unionpay: "UnionPay",
+  visa: 'Visa',
+  mastercard: 'Mastercard',
+  amex: 'American Express',
+  discover: 'Discover',
+  jcb: 'JCB',
+  diners: 'Diners Club',
+  unionpay: 'UnionPay',
 };
 
 interface PaymentMethodListProps {
@@ -51,7 +51,7 @@ export function PaymentMethodList({
         const result = await openBillingPortal(`${baseUrl}/${organizationSlug}/settings/billing`);
 
         if (result.error) {
-          toast.error(result.error.message || "Failed to open billing portal");
+          toast.error(result.error.message || 'Failed to open billing portal');
           return;
         }
 
@@ -59,8 +59,8 @@ export function PaymentMethodList({
           window.location.href = result.data.url;
         }
       } catch (error) {
-        logger.error("Error opening billing portal", error);
-        toast.error("Failed to open billing portal");
+        logger.error('Error opening billing portal', error);
+        toast.error('Failed to open billing portal');
       }
     });
   };
@@ -69,21 +69,21 @@ export function PaymentMethodList({
     startTransition(async () => {
       try {
         const response = await fetch(`/api/billing/payment-methods/${paymentMethodId}/default`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ organizationId }),
         });
 
         if (!response.ok) {
           const data = await response.json();
-          throw new Error(data.error || "Failed to set default payment method");
+          throw new Error(data.error || 'Failed to set default payment method');
         }
 
-        toast.success("Default payment method updated");
+        toast.success('Default payment method updated');
         router.refresh();
       } catch (error) {
-        logger.error("Error setting default payment method", error);
-        toast.error(error instanceof Error ? error.message : "Failed to set default payment method");
+        logger.error('Error setting default payment method', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to set default payment method');
       }
     });
   };
@@ -92,21 +92,21 @@ export function PaymentMethodList({
     startTransition(async () => {
       try {
         const response = await fetch(`/api/billing/payment-methods/${paymentMethodId}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ organizationId }),
         });
 
         if (!response.ok) {
           const data = await response.json();
-          throw new Error(data.error || "Failed to remove payment method");
+          throw new Error(data.error || 'Failed to remove payment method');
         }
 
-        toast.success("Payment method removed");
+        toast.success('Payment method removed');
         router.refresh();
       } catch (error) {
-        logger.error("Error removing payment method", error);
-        toast.error(error instanceof Error ? error.message : "Failed to remove payment method");
+        logger.error('Error removing payment method', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to remove payment method');
       }
     });
   };
@@ -125,7 +125,7 @@ export function PaymentMethodList({
           {isOwner && (
             <Button onClick={handleAddPaymentMethod} disabled={isPending}>
               <Plus className="mr-2 h-4 w-4" />
-              {isPending ? "Loading..." : "Manage Payment"}
+              {isPending ? 'Loading...' : 'Manage Payment'}
             </Button>
           )}
         </div>
@@ -152,7 +152,7 @@ export function PaymentMethodList({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        {cardBrandIcons[pm.brand ?? ""] || pm.brand || "Card"} **** {pm.last4}
+                        {cardBrandIcons[pm.brand ?? ''] || pm.brand || 'Card'} **** {pm.last4}
                       </span>
                       {pm.isDefault && (
                         <Badge variant="secondary">

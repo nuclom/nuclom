@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq } from 'drizzle-orm';
 import {
   Bookmark,
   CheckCircle2,
@@ -17,28 +17,28 @@ import {
   Tag,
   ThumbsUp,
   XCircle,
-} from "lucide-react";
-import { headers } from "next/headers";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { CommentList } from "@/components/comments";
-import { VideoDecisionsSidebar } from "@/components/knowledge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuoteCards, VideoActions, VideoPlayerWithProgress } from "@/components/video";
-import { CodeLinksSection } from "@/components/video/code-links-section";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import type { ActionItem, VideoChapter, VideoCodeSnippet } from "@/lib/db/schema";
-import { videoChapters, videoCodeSnippets } from "@/lib/db/schema";
-import { getCachedVideo } from "@/lib/effect";
-import type { CommentWithReplies } from "@/lib/effect/services/comment-repository";
-import { formatTime } from "@/lib/format-utils";
-import type { VideoWithDetails } from "@/lib/types";
+} from 'lucide-react';
+import { headers } from 'next/headers';
+import Image from 'next/image';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { CommentList } from '@/components/comments';
+import { VideoDecisionsSidebar } from '@/components/knowledge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { QuoteCards, VideoActions, VideoPlayerWithProgress } from '@/components/video';
+import { CodeLinksSection } from '@/components/video/code-links-section';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import type { ActionItem, VideoChapter, VideoCodeSnippet } from '@/lib/db/schema';
+import { videoChapters, videoCodeSnippets } from '@/lib/db/schema';
+import { getCachedVideo } from '@/lib/effect';
+import type { CommentWithReplies } from '@/lib/effect/services/comment-repository';
+import { formatTime } from '@/lib/format-utils';
+import type { VideoWithDetails } from '@/lib/types';
 
 // =============================================================================
 // Loading Skeletons
@@ -75,11 +75,11 @@ interface ProcessingStatusProps {
 
 function ProcessingStatus({ status, error }: ProcessingStatusProps) {
   const statusConfig = {
-    pending: { icon: Clock, color: "text-muted-foreground", label: "Pending", bg: "bg-muted" },
-    transcribing: { icon: Loader2, color: "text-blue-500", label: "Transcribing", bg: "bg-blue-500/10" },
-    analyzing: { icon: Sparkles, color: "text-purple-500", label: "Analyzing", bg: "bg-purple-500/10" },
-    completed: { icon: CheckCircle2, color: "text-green-500", label: "Completed", bg: "bg-green-500/10" },
-    failed: { icon: XCircle, color: "text-red-500", label: "Failed", bg: "bg-red-500/10" },
+    pending: { icon: Clock, color: 'text-muted-foreground', label: 'Pending', bg: 'bg-muted' },
+    transcribing: { icon: Loader2, color: 'text-blue-500', label: 'Transcribing', bg: 'bg-blue-500/10' },
+    analyzing: { icon: Sparkles, color: 'text-purple-500', label: 'Analyzing', bg: 'bg-purple-500/10' },
+    completed: { icon: CheckCircle2, color: 'text-green-500', label: 'Completed', bg: 'bg-green-500/10' },
+    failed: { icon: XCircle, color: 'text-red-500', label: 'Failed', bg: 'bg-red-500/10' },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
@@ -88,7 +88,7 @@ function ProcessingStatus({ status, error }: ProcessingStatusProps) {
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bg}`}>
       <Icon
-        className={`h-4 w-4 ${config.color} ${status === "transcribing" || status === "analyzing" ? "animate-spin" : ""}`}
+        className={`h-4 w-4 ${config.color} ${status === 'transcribing' || status === 'analyzing' ? 'animate-spin' : ''}`}
       />
       <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
       {error && <span className="text-xs text-red-500 ml-2">({error})</span>}
@@ -127,7 +127,7 @@ function TranscriptLine({ time, text, hasComment }: TranscriptLineProps) {
 // Transform comments to CommentWithReplies format
 // =============================================================================
 
-function transformCommentsToThreaded(comments: VideoWithDetails["comments"]): CommentWithReplies[] {
+function transformCommentsToThreaded(comments: VideoWithDetails['comments']): CommentWithReplies[] {
   const commentMap = new Map<string, CommentWithReplies>();
   const topLevelComments: CommentWithReplies[] = [];
 
@@ -210,7 +210,7 @@ function CodeSnippetsList({ snippets }: CodeSnippetsListProps) {
           <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b">
             <div className="flex items-center gap-2">
               <Code className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{snippet.title || "Code Snippet"}</span>
+              <span className="text-sm font-medium">{snippet.title || 'Code Snippet'}</span>
               {snippet.language && (
                 <Badge variant="secondary" className="text-xs">
                   {snippet.language}
@@ -247,9 +247,9 @@ function ActionItemsList({ items }: ActionItemsListProps) {
   }
 
   const priorityColors = {
-    high: "border-red-500/50 bg-red-500/5",
-    medium: "border-yellow-500/50 bg-yellow-500/5",
-    low: "border-green-500/50 bg-green-500/5",
+    high: 'border-red-500/50 bg-red-500/5',
+    medium: 'border-yellow-500/50 bg-yellow-500/5',
+    low: 'border-green-500/50 bg-green-500/5',
   };
 
   return (
@@ -257,7 +257,7 @@ function ActionItemsList({ items }: ActionItemsListProps) {
       {items.map((item, index) => (
         <li
           key={index}
-          className={`flex items-start gap-3 p-3 rounded-lg border ${priorityColors[item.priority || "low"]}`}
+          className={`flex items-start gap-3 p-3 rounded-lg border ${priorityColors[item.priority || 'low']}`}
         >
           <ListTodo className="h-4 w-4 text-muted-foreground mt-0.5" />
           <div className="flex-1">
@@ -308,7 +308,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
         }))
       : video.transcript
         ? video.transcript
-            .split("\n")
+            .split('\n')
             .filter(Boolean)
             .map((line, index) => ({
               time: formatTime(index * 15),
@@ -416,7 +416,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                 <CardContent className="text-sm">
                   {video.aiSummary ? (
                     <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
-                  ) : video.processingStatus === "analyzing" ? (
+                  ) : video.processingStatus === 'analyzing' ? (
                     <div className="flex items-center gap-2 text-muted-foreground py-4 justify-center">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Generating summary...</span>
@@ -448,7 +448,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                   <CardTitle className="text-base">Description</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  {video.description || "No description available."}
+                  {video.description || 'No description available.'}
                 </CardContent>
               </Card>
 
@@ -503,10 +503,10 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
           <div className="flex items-center gap-2 sm:gap-3 mt-3 text-sm text-muted-foreground flex-wrap">
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={video.author.image || undefined} alt={video.author.name || "Author"} />
-                <AvatarFallback>{video.author.name?.[0] || "A"}</AvatarFallback>
+                <AvatarImage src={video.author.image || undefined} alt={video.author.name || 'Author'} />
+                <AvatarFallback>{video.author.name?.[0] || 'A'}</AvatarFallback>
               </Avatar>
-              <span>{video.author.name || "Unknown Author"}</span>
+              <span>{video.author.name || 'Unknown Author'}</span>
             </div>
             <span className="hidden sm:inline">-</span>
             <span>{new Date(video.createdAt).toLocaleDateString()}</span>
@@ -539,7 +539,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                 <CardContent className="text-sm">
                   {video.aiSummary ? (
                     <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
-                  ) : video.processingStatus === "analyzing" ? (
+                  ) : video.processingStatus === 'analyzing' ? (
                     <div className="flex items-center gap-2 text-muted-foreground py-4 justify-center">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Generating summary...</span>
@@ -571,7 +571,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                   <CardTitle className="text-base">Description</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  {video.description || "No description available."}
+                  {video.description || 'No description available.'}
                 </CardContent>
               </Card>
 
@@ -631,7 +631,7 @@ function VideoDetail({ video, chapters, codeSnippets, organizationSlug, currentU
                   <TranscriptLine key={index} time={line.time} text={line.text} />
                 ))}
               </div>
-            ) : video.processingStatus === "pending" || video.processingStatus === "transcribing" ? (
+            ) : video.processingStatus === 'pending' || video.processingStatus === 'transcribing' ? (
               <div className="flex items-center gap-2 text-muted-foreground text-sm py-8 justify-center">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Transcript is being generated...</span>

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import type { SeriesWithVideoCount } from "@/lib/types";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import type { SeriesWithVideoCount } from '@/lib/types';
 
 interface SeriesFormProps {
   open: boolean;
@@ -30,9 +30,9 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState(series?.name ?? "");
-  const [description, setDescription] = useState(series?.description ?? "");
-  const [thumbnailUrl, setThumbnailUrl] = useState(series?.thumbnailUrl ?? "");
+  const [name, setName] = useState(series?.name ?? '');
+  const [description, setDescription] = useState(series?.description ?? '');
+  const [thumbnailUrl, setThumbnailUrl] = useState(series?.thumbnailUrl ?? '');
   const [isPublic, setIsPublic] = useState(series?.isPublic ?? false);
 
   const isEditing = !!series;
@@ -43,12 +43,12 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
     setError(null);
 
     try {
-      const url = isEditing ? `/api/series/${series.id}` : "/api/series";
-      const method = isEditing ? "PATCH" : "POST";
+      const url = isEditing ? `/api/series/${series.id}` : '/api/series';
+      const method = isEditing ? 'PATCH' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
           description: description || null,
@@ -60,14 +60,14 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to save series");
+        throw new Error(data.error || 'Failed to save series');
       }
 
       onOpenChange(false);
       router.refresh();
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,9 +76,9 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       // Reset form when closing
-      setName(series?.name ?? "");
-      setDescription(series?.description ?? "");
-      setThumbnailUrl(series?.thumbnailUrl ?? "");
+      setName(series?.name ?? '');
+      setDescription(series?.description ?? '');
+      setThumbnailUrl(series?.thumbnailUrl ?? '');
       setIsPublic(series?.isPublic ?? false);
       setError(null);
     }
@@ -90,9 +90,9 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Series" : "Create Series"}</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Series' : 'Create Series'}</DialogTitle>
             <DialogDescription>
-              {isEditing ? "Update the series details below." : "Create a new series to organize your videos."}
+              {isEditing ? 'Update the series details below.' : 'Create a new series to organize your videos.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -146,7 +146,7 @@ export function SeriesForm({ open, onOpenChange, organizationId, series, onSucce
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting || !name.trim()}>
-              {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create Series"}
+              {isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Series'}
             </Button>
           </DialogFooter>
         </form>

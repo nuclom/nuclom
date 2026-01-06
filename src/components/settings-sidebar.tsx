@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Bell,
@@ -14,11 +14,11 @@ import {
   UserCog,
   UserSquare2,
   Users,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 type NavItem = {
   href: string;
@@ -37,88 +37,88 @@ export function SettingsSidebar({ organization }: { organization: string }) {
 
   const navSections: NavSection[] = [
     {
-      title: "Personal",
+      title: 'Personal',
       items: [
         {
           href: `/${organization}/settings/profile`,
-          label: "Your Profile",
+          label: 'Your Profile',
           icon: User,
         },
         {
           href: `/${organization}/settings/account`,
-          label: "Account",
+          label: 'Account',
           icon: UserCog,
         },
         {
           href: `/${organization}/settings/security`,
-          label: "Security",
+          label: 'Security',
           icon: Shield,
         },
         {
           href: `/${organization}/settings/notifications`,
-          label: "Notifications",
+          label: 'Notifications',
           icon: Bell,
         },
       ],
     },
     {
-      title: "Organization",
+      title: 'Organization',
       items: [
         {
           href: `/${organization}/settings/organization`,
-          label: "General",
+          label: 'General',
           icon: Building,
         },
         {
           href: `/${organization}/settings/members`,
-          label: "Members",
+          label: 'Members',
           icon: Users,
         },
         {
           href: `/${organization}/settings/roles`,
-          label: "Roles & Permissions",
+          label: 'Roles & Permissions',
           icon: UserSquare2,
         },
         {
           href: `/${organization}/settings/billing`,
-          label: "Billing",
+          label: 'Billing',
           icon: CreditCard,
         },
       ],
     },
     {
-      title: "Enterprise",
+      title: 'Enterprise',
       items: [
         {
           href: `/${organization}/settings/sso`,
-          label: "Single Sign-On",
+          label: 'Single Sign-On',
           icon: Lock,
-          badge: "Enterprise",
+          badge: 'Enterprise',
         },
         {
           href: `/${organization}/settings/audit-logs`,
-          label: "Audit Logs",
+          label: 'Audit Logs',
           icon: ClipboardList,
-          badge: "Enterprise",
+          badge: 'Enterprise',
         },
       ],
     },
     {
-      title: "Developer",
+      title: 'Developer',
       items: [
         {
           href: `/${organization}/settings/api-keys`,
-          label: "API Keys",
+          label: 'API Keys',
           icon: Key,
         },
         {
           href: `/${organization}/settings/oauth-apps`,
-          label: "OAuth Apps",
+          label: 'OAuth Apps',
           icon: Globe,
         },
         {
           href: `/${organization}/settings/integrations`,
-          label: "Integrations",
+          label: 'Integrations',
           icon: Plug,
         },
       ],
@@ -140,10 +140,10 @@ export function SettingsSidebar({ organization }: { organization: string }) {
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                       pathname === item.href
-                        ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                        ? 'bg-muted text-foreground'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                     )}
                   >
                     <item.icon className="h-5 w-5" />

@@ -1,5 +1,5 @@
-import { VideoGridSkeleton } from "@/components/skeletons";
-import { Skeleton } from "@/components/ui/skeleton";
+import { VideoGridSkeleton } from '@/components/skeletons';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Loading() {
   return (

@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { AlertTriangle, ArrowLeft, Home, RefreshCcw } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logErrorBoundary } from "@/lib/error-logging";
+import { AlertTriangle, ArrowLeft, Home, RefreshCcw } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { logErrorBoundary } from '@/lib/error-logging';
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
-const IS_DEV = typeof window !== "undefined" && window.location.hostname === "localhost";
+const IS_DEV = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
 export default function OrganizationErrorPage({ error, reset }: ErrorPageProps) {
   const params = useParams();
@@ -63,7 +63,7 @@ export default function OrganizationErrorPage({ error, reset }: ErrorPageProps) 
           </Button>
           <div className="flex w-full gap-2">
             <Button variant="outline" className="flex-1" asChild>
-              <Link href={organization ? `/${organization}` : "/"}>
+              <Link href={organization ? `/${organization}` : '/'}>
                 <Home className="mr-2 h-4 w-4" />
                 Dashboard
               </Link>

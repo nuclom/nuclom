@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { Bell, Download, Info, RefreshCw, Shield } from "lucide-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { format } from 'date-fns';
+import { Bell, Download, Info, RefreshCw, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,16 +12,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
 
 interface Integration {
   id: string;
-  provider: "zoom" | "google_meet";
+  provider: 'zoom' | 'google_meet';
   connected: boolean;
   expiresAt: string | null;
   metadata: {
@@ -36,7 +36,7 @@ interface Integration {
 }
 
 interface IntegrationSettingsProps {
-  provider: "zoom" | "google_meet";
+  provider: 'zoom' | 'google_meet';
   integration: Integration | null;
   open: boolean;
   onClose: () => void;
@@ -52,7 +52,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
     importMinDuration: integration?.metadata?.importMinDuration ?? 5,
   });
 
-  const providerName = provider === "zoom" ? "Zoom" : "Google Meet";
+  const providerName = provider === 'zoom' ? 'Zoom' : 'Google Meet';
 
   const handleSave = async () => {
     if (!integration) return;
@@ -61,9 +61,9 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
       setSaving(true);
 
       const response = await fetch(`/api/integrations/${integration.id}/settings`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           autoImport: settings.autoImport,
@@ -73,22 +73,22 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save settings");
+        throw new Error('Failed to save settings');
       }
 
       toast({
-        title: "Settings Saved",
+        title: 'Settings Saved',
         description: `${providerName} integration settings have been updated.`,
       });
 
       onUpdate();
       onClose();
     } catch (error) {
-      logger.error("Failed to save settings", error);
+      logger.error('Failed to save settings', error);
       toast({
-        title: "Error",
-        description: "Failed to save integration settings",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save integration settings',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -119,23 +119,23 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Account</span>
-                <span className="font-medium">{integration.metadata?.email || "Connected"}</span>
+                <span className="font-medium">{integration.metadata?.email || 'Connected'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={isExpired ? "destructive" : "secondary"}>{isExpired ? "Expired" : "Active"}</Badge>
+                <Badge variant={isExpired ? 'destructive' : 'secondary'}>{isExpired ? 'Expired' : 'Active'}</Badge>
               </div>
               {integration.expiresAt && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Expires</span>
                   <span className="text-muted-foreground">
-                    {format(new Date(integration.expiresAt), "MMM d, yyyy h:mm a")}
+                    {format(new Date(integration.expiresAt), 'MMM d, yyyy h:mm a')}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Connected</span>
-                <span className="text-muted-foreground">{format(new Date(integration.createdAt), "MMM d, yyyy")}</span>
+                <span className="text-muted-foreground">{format(new Date(integration.createdAt), 'MMM d, yyyy')}</span>
               </div>
             </div>
 
@@ -238,7 +238,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
               <div className="text-sm text-muted-foreground">
                 <p className="font-medium text-foreground">About {providerName} integration</p>
                 <ul className="mt-2 space-y-1 list-disc list-inside">
-                  {provider === "zoom" ? (
+                  {provider === 'zoom' ? (
                     <>
                       <li>Imports cloud recordings from your Zoom account</li>
                       <li>Syncs meeting metadata including participants</li>
@@ -262,7 +262,7 @@ export function IntegrationSettings({ provider, integration, open, onClose, onUp
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Settings"}
+            {saving ? 'Saving...' : 'Save Settings'}
           </Button>
         </DialogFooter>
       </DialogContent>

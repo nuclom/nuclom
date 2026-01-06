@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Decision Timeline Component
@@ -11,18 +11,18 @@
  * - Shows participants and confidence scores
  */
 
-import { Calendar, ChevronRight, Clock, Lightbulb, MessageSquare, Settings, Users, Wrench } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useCallback, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { DecisionStatus, DecisionType } from "@/lib/db/schema";
-import { formatRelativeTime } from "@/lib/format-utils";
-import { cn } from "@/lib/utils";
+import { Calendar, ChevronRight, Clock, Lightbulb, MessageSquare, Settings, Users, Wrench } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { DecisionStatus, DecisionType } from '@/lib/db/schema';
+import { formatRelativeTime } from '@/lib/format-utils';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
@@ -69,42 +69,42 @@ export interface DecisionTimelineProps {
 const decisionTypeConfig: Record<DecisionType, { icon: React.ElementType; label: string; color: string }> = {
   technical: {
     icon: Wrench,
-    label: "Technical",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    label: 'Technical',
+    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   },
   process: {
     icon: Settings,
-    label: "Process",
-    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+    label: 'Process',
+    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   },
   product: {
     icon: Lightbulb,
-    label: "Product",
-    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    label: 'Product',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   },
   team: {
     icon: Users,
-    label: "Team",
-    color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    label: 'Team',
+    color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
   },
   other: {
     icon: MessageSquare,
-    label: "Other",
-    color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+    label: 'Other',
+    color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   },
 };
 
 const statusConfig: Record<DecisionStatus, { label: string; color: string }> = {
-  proposed: { label: "Proposed", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
-  decided: { label: "Decided", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-  revisited: { label: "Revisited", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-  superseded: { label: "Superseded", color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200" },
+  proposed: { label: 'Proposed', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  decided: { label: 'Decided', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  revisited: { label: 'Revisited', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  superseded: { label: 'Superseded', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' },
 };
 
 function formatTimestamp(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 // =============================================================================
@@ -124,20 +124,20 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
   return (
     <div
       className={cn(
-        "relative pl-8 pb-8 group cursor-pointer",
-        "before:absolute before:left-3 before:top-2 before:h-full before:w-px",
-        "before:bg-border group-last:before:hidden",
+        'relative pl-8 pb-8 group cursor-pointer',
+        'before:absolute before:left-3 before:top-2 before:h-full before:w-px',
+        'before:bg-border group-last:before:hidden',
       )}
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
+      onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
     >
       {/* Timeline dot */}
       <div
         className={cn(
-          "absolute left-0 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-background",
-          decision.status === "decided" ? "border-green-500" : "border-muted-foreground",
+          'absolute left-0 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-background',
+          decision.status === 'decided' ? 'border-green-500' : 'border-muted-foreground',
         )}
       >
         <TypeIcon className="h-3 w-3" />
@@ -169,10 +169,10 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
               </CardDescription>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <Badge variant="secondary" className={cn("text-xs", typeConfig.color)}>
+              <Badge variant="secondary" className={cn('text-xs', typeConfig.color)}>
                 {typeConfig.label}
               </Badge>
-              <Badge variant="outline" className={cn("text-xs", statusCfg.color)}>
+              <Badge variant="outline" className={cn('text-xs', statusCfg.color)}>
                 {statusCfg.label}
               </Badge>
             </div>
@@ -180,7 +180,7 @@ function DecisionItem({ decision, onClick }: DecisionItemProps) {
         </CardHeader>
         <CardContent className="pb-3">
           <Link
-            href={`/videos/${decision.video.id}${decision.timestampStart ? `?t=${decision.timestampStart}` : ""}`}
+            href={`/videos/${decision.video.id}${decision.timestampStart ? `?t=${decision.timestampStart}` : ''}`}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
@@ -270,16 +270,16 @@ export function DecisionTimeline({
   onDecisionClick,
   onLoadMore,
   hasMore = false,
-  maxHeight = "600px",
+  maxHeight = '600px',
   className,
 }: DecisionTimelineProps) {
-  const [typeFilter, setTypeFilter] = useState<DecisionType | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<DecisionStatus | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<DecisionType | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<DecisionStatus | 'all'>('all');
 
   // Filter decisions
   const filteredDecisions = decisions.filter((d) => {
-    if (typeFilter !== "all" && d.decisionType !== typeFilter) return false;
-    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    if (typeFilter !== 'all' && d.decisionType !== typeFilter) return false;
+    if (statusFilter !== 'all' && d.status !== statusFilter) return false;
     return true;
   });
 
@@ -291,10 +291,10 @@ export function DecisionTimeline({
   );
 
   return (
-    <div className={cn("flex flex-col", className)}>
+    <div className={cn('flex flex-col', className)}>
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as DecisionType | "all")}>
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as DecisionType | 'all')}>
           <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -308,7 +308,7 @@ export function DecisionTimeline({
           </SelectContent>
         </Select>
 
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as DecisionStatus | "all")}>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as DecisionStatus | 'all')}>
           <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue placeholder="Status" />
           </SelectTrigger>

@@ -1,9 +1,9 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { CommentRepository, MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { CommentRepository, MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/comments/[id] - Get a single comment
@@ -45,8 +45,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!body.content || body.content.trim().length === 0) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "content",
-          message: "Comment content is required",
+          field: 'content',
+          message: 'Comment content is required',
         }),
       );
     }
@@ -81,7 +81,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const commentRepo = yield* CommentRepository;
     const deletedComment = yield* commentRepo.deleteComment(id, user.id);
 
-    return { message: "Comment deleted successfully", id: deletedComment.id };
+    return { message: 'Comment deleted successfully', id: deletedComment.id };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

@@ -14,10 +14,10 @@ import type {
   SeriesVideo,
   User,
   Video,
-} from "./db/schema";
+} from './db/schema';
 
 // Omit internal fields from video types (searchVector, soft-delete fields)
-type VideoBase = Omit<Video, "searchVector" | "deletedAt" | "retentionUntil">;
+type VideoBase = Omit<Video, 'searchVector' | 'deletedAt' | 'retentionUntil'>;
 
 export type VideoWithAuthor = VideoBase & {
   author: User;
@@ -63,7 +63,7 @@ export type SearchResponse = {
 };
 
 export type SearchSuggestion = {
-  type: "recent" | "popular" | "video";
+  type: 'recent' | 'popular' | 'video';
   text: string;
   videoId?: string;
   count?: number;
@@ -139,8 +139,8 @@ export type CursorPaginatedResponse<T> = {
  * Unified pagination parameters
  */
 export type PaginationParams =
-  | { type: "offset"; page: number; limit: number }
-  | { type: "cursor"; cursor?: string; limit: number; direction?: "forward" | "backward" };
+  | { type: 'offset'; page: number; limit: number }
+  | { type: 'cursor'; cursor?: string; limit: number; direction?: 'forward' | 'backward' };
 
 // =============================================================================
 // Knowledge Graph Decision Types

@@ -5,7 +5,7 @@
  * Each error has a _tag field that serves as a discriminant for error matching.
  */
 
-import { Data } from "effect";
+import { Data } from 'effect';
 
 // =============================================================================
 // Base Application Errors
@@ -14,7 +14,7 @@ import { Data } from "effect";
 /**
  * Generic application error for unexpected failures
  */
-export class AppError extends Data.TaggedError("AppError")<{
+export class AppError extends Data.TaggedError('AppError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -22,7 +22,7 @@ export class AppError extends Data.TaggedError("AppError")<{
 /**
  * Configuration error for missing or invalid environment variables
  */
-export class ConfigurationError extends Data.TaggedError("ConfigurationError")<{
+export class ConfigurationError extends Data.TaggedError('ConfigurationError')<{
   readonly message: string;
   readonly key?: string;
 }> {}
@@ -34,16 +34,16 @@ export class ConfigurationError extends Data.TaggedError("ConfigurationError")<{
 /**
  * Error when user is not authenticated
  */
-export class UnauthorizedError extends Data.TaggedError("UnauthorizedError")<{
+export class UnauthorizedError extends Data.TaggedError('UnauthorizedError')<{
   readonly message: string;
 }> {
-  static readonly default = new UnauthorizedError({ message: "Unauthorized" });
+  static readonly default = new UnauthorizedError({ message: 'Unauthorized' });
 }
 
 /**
  * Error when user doesn't have permission to access a resource
  */
-export class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
+export class ForbiddenError extends Data.TaggedError('ForbiddenError')<{
   readonly message: string;
   readonly resource?: string;
 }> {}
@@ -51,7 +51,7 @@ export class ForbiddenError extends Data.TaggedError("ForbiddenError")<{
 /**
  * Error when session is invalid or expired
  */
-export class SessionError extends Data.TaggedError("SessionError")<{
+export class SessionError extends Data.TaggedError('SessionError')<{
   readonly message: string;
 }> {}
 
@@ -62,7 +62,7 @@ export class SessionError extends Data.TaggedError("SessionError")<{
 /**
  * Error for invalid input data
  */
-export class ValidationError extends Data.TaggedError("ValidationError")<{
+export class ValidationError extends Data.TaggedError('ValidationError')<{
   readonly message: string;
   readonly field?: string;
   readonly errors?: ReadonlyArray<{ field: string; message: string }>;
@@ -71,7 +71,7 @@ export class ValidationError extends Data.TaggedError("ValidationError")<{
 /**
  * Error when a required field is missing
  */
-export class MissingFieldError extends Data.TaggedError("MissingFieldError")<{
+export class MissingFieldError extends Data.TaggedError('MissingFieldError')<{
   readonly field: string;
   readonly message: string;
 }> {}
@@ -83,7 +83,7 @@ export class MissingFieldError extends Data.TaggedError("MissingFieldError")<{
 /**
  * Error when a database query fails
  */
-export class DatabaseError extends Data.TaggedError("DatabaseError")<{
+export class DatabaseError extends Data.TaggedError('DatabaseError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
@@ -92,7 +92,7 @@ export class DatabaseError extends Data.TaggedError("DatabaseError")<{
 /**
  * Error when a requested entity is not found
  */
-export class NotFoundError extends Data.TaggedError("NotFoundError")<{
+export class NotFoundError extends Data.TaggedError('NotFoundError')<{
   readonly message: string;
   readonly entity: string;
   readonly id?: string;
@@ -101,7 +101,7 @@ export class NotFoundError extends Data.TaggedError("NotFoundError")<{
 /**
  * Error when trying to create a duplicate entity
  */
-export class DuplicateError extends Data.TaggedError("DuplicateError")<{
+export class DuplicateError extends Data.TaggedError('DuplicateError')<{
   readonly message: string;
   readonly entity: string;
   readonly field?: string;
@@ -110,7 +110,7 @@ export class DuplicateError extends Data.TaggedError("DuplicateError")<{
 /**
  * Error when a database transaction fails
  */
-export class TransactionError extends Data.TaggedError("TransactionError")<{
+export class TransactionError extends Data.TaggedError('TransactionError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -122,18 +122,18 @@ export class TransactionError extends Data.TaggedError("TransactionError")<{
 /**
  * Error when storage service is not configured
  */
-export class StorageNotConfiguredError extends Data.TaggedError("StorageNotConfiguredError")<{
+export class StorageNotConfiguredError extends Data.TaggedError('StorageNotConfiguredError')<{
   readonly message: string;
 }> {
   static readonly default = new StorageNotConfiguredError({
-    message: "R2 storage not configured. Please set up R2 credentials.",
+    message: 'R2 storage not configured. Please set up R2 credentials.',
   });
 }
 
 /**
  * Error when file upload fails
  */
-export class UploadError extends Data.TaggedError("UploadError")<{
+export class UploadError extends Data.TaggedError('UploadError')<{
   readonly message: string;
   readonly filename?: string;
   readonly cause?: unknown;
@@ -142,7 +142,7 @@ export class UploadError extends Data.TaggedError("UploadError")<{
 /**
  * Error when file deletion fails
  */
-export class DeleteError extends Data.TaggedError("DeleteError")<{
+export class DeleteError extends Data.TaggedError('DeleteError')<{
   readonly message: string;
   readonly key?: string;
   readonly cause?: unknown;
@@ -151,7 +151,7 @@ export class DeleteError extends Data.TaggedError("DeleteError")<{
 /**
  * Error when generating presigned URL fails
  */
-export class PresignedUrlError extends Data.TaggedError("PresignedUrlError")<{
+export class PresignedUrlError extends Data.TaggedError('PresignedUrlError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -163,7 +163,7 @@ export class PresignedUrlError extends Data.TaggedError("PresignedUrlError")<{
 /**
  * Error when video format is not supported
  */
-export class UnsupportedFormatError extends Data.TaggedError("UnsupportedFormatError")<{
+export class UnsupportedFormatError extends Data.TaggedError('UnsupportedFormatError')<{
   readonly message: string;
   readonly format?: string;
   readonly supportedFormats: ReadonlyArray<string>;
@@ -172,7 +172,7 @@ export class UnsupportedFormatError extends Data.TaggedError("UnsupportedFormatE
 /**
  * Error when file size exceeds limit
  */
-export class FileSizeExceededError extends Data.TaggedError("FileSizeExceededError")<{
+export class FileSizeExceededError extends Data.TaggedError('FileSizeExceededError')<{
   readonly message: string;
   readonly fileSize: number;
   readonly maxSize: number;
@@ -181,9 +181,9 @@ export class FileSizeExceededError extends Data.TaggedError("FileSizeExceededErr
 /**
  * Error when video processing fails
  */
-export class VideoProcessingError extends Data.TaggedError("VideoProcessingError")<{
+export class VideoProcessingError extends Data.TaggedError('VideoProcessingError')<{
   readonly message: string;
-  readonly stage?: "uploading" | "processing" | "generating_thumbnail" | "complete";
+  readonly stage?: 'uploading' | 'processing' | 'generating_thumbnail' | 'complete';
   readonly cause?: unknown;
 }> {}
 
@@ -194,7 +194,7 @@ export class VideoProcessingError extends Data.TaggedError("VideoProcessingError
 /**
  * Error when AI service fails
  */
-export class AIServiceError extends Data.TaggedError("AIServiceError")<{
+export class AIServiceError extends Data.TaggedError('AIServiceError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
@@ -207,7 +207,7 @@ export class AIServiceError extends Data.TaggedError("AIServiceError")<{
 /**
  * Error for HTTP request failures
  */
-export class HttpError extends Data.TaggedError("HttpError")<{
+export class HttpError extends Data.TaggedError('HttpError')<{
   readonly message: string;
   readonly status: number;
   readonly body?: unknown;
@@ -216,7 +216,7 @@ export class HttpError extends Data.TaggedError("HttpError")<{
 /**
  * Error for API response parsing failures
  */
-export class ParseError extends Data.TaggedError("ParseError")<{
+export class ParseError extends Data.TaggedError('ParseError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -257,18 +257,18 @@ export type InputError = ValidationError | MissingFieldError;
 /**
  * Error when Stripe service is not configured
  */
-export class StripeNotConfiguredError extends Data.TaggedError("StripeNotConfiguredError")<{
+export class StripeNotConfiguredError extends Data.TaggedError('StripeNotConfiguredError')<{
   readonly message: string;
 }> {
   static readonly default = new StripeNotConfiguredError({
-    message: "Stripe is not configured. Please set up Stripe credentials.",
+    message: 'Stripe is not configured. Please set up Stripe credentials.',
   });
 }
 
 /**
  * Error when a Stripe API call fails
  */
-export class StripeApiError extends Data.TaggedError("StripeApiError")<{
+export class StripeApiError extends Data.TaggedError('StripeApiError')<{
   readonly message: string;
   readonly code?: string;
   readonly cause?: unknown;
@@ -277,14 +277,14 @@ export class StripeApiError extends Data.TaggedError("StripeApiError")<{
 /**
  * Error when webhook signature verification fails
  */
-export class WebhookSignatureError extends Data.TaggedError("WebhookSignatureError")<{
+export class WebhookSignatureError extends Data.TaggedError('WebhookSignatureError')<{
   readonly message: string;
 }> {}
 
 /**
  * Error when subscription operation fails
  */
-export class SubscriptionError extends Data.TaggedError("SubscriptionError")<{
+export class SubscriptionError extends Data.TaggedError('SubscriptionError')<{
   readonly message: string;
   readonly subscriptionId?: string;
   readonly cause?: unknown;
@@ -293,9 +293,9 @@ export class SubscriptionError extends Data.TaggedError("SubscriptionError")<{
 /**
  * Error when plan limit is exceeded
  */
-export class PlanLimitExceededError extends Data.TaggedError("PlanLimitExceededError")<{
+export class PlanLimitExceededError extends Data.TaggedError('PlanLimitExceededError')<{
   readonly message: string;
-  readonly resource: "storage" | "videos" | "members" | "bandwidth" | "ai_requests";
+  readonly resource: 'storage' | 'videos' | 'members' | 'bandwidth' | 'ai_requests';
   readonly currentUsage: number;
   readonly limit: number;
 }> {}
@@ -303,7 +303,7 @@ export class PlanLimitExceededError extends Data.TaggedError("PlanLimitExceededE
 /**
  * Error when payment fails
  */
-export class PaymentFailedError extends Data.TaggedError("PaymentFailedError")<{
+export class PaymentFailedError extends Data.TaggedError('PaymentFailedError')<{
   readonly message: string;
   readonly invoiceId?: string;
   readonly cause?: unknown;
@@ -312,7 +312,7 @@ export class PaymentFailedError extends Data.TaggedError("PaymentFailedError")<{
 /**
  * Error when plan is not found
  */
-export class PlanNotFoundError extends Data.TaggedError("PlanNotFoundError")<{
+export class PlanNotFoundError extends Data.TaggedError('PlanNotFoundError')<{
   readonly message: string;
   readonly planId: string;
 }> {}
@@ -320,7 +320,7 @@ export class PlanNotFoundError extends Data.TaggedError("PlanNotFoundError")<{
 /**
  * Error when organization has no subscription
  */
-export class NoSubscriptionError extends Data.TaggedError("NoSubscriptionError")<{
+export class NoSubscriptionError extends Data.TaggedError('NoSubscriptionError')<{
   readonly message: string;
   readonly organizationId: string;
 }> {}
@@ -328,7 +328,7 @@ export class NoSubscriptionError extends Data.TaggedError("NoSubscriptionError")
 /**
  * Error when usage tracking fails
  */
-export class UsageTrackingError extends Data.TaggedError("UsageTrackingError")<{
+export class UsageTrackingError extends Data.TaggedError('UsageTrackingError')<{
   readonly message: string;
   readonly organizationId: string;
   readonly cause?: unknown;
@@ -413,7 +413,7 @@ export type AppErrorUnion =
  * All possible error tags for discriminated union matching.
  * This type extracts the _tag literal from each error type.
  */
-export type AppErrorTag = AppErrorUnion["_tag"];
+export type AppErrorTag = AppErrorUnion['_tag'];
 
 /**
  * Type-safe error tag mapping helper.
@@ -440,12 +440,12 @@ export type ExtractErrorByTag<Tag extends AppErrorTag> = Extract<AppErrorUnion, 
  */
 export function isAppError(value: unknown): value is AppErrorUnion {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "_tag" in value &&
-    typeof (value as { _tag: unknown })._tag === "string" &&
-    "message" in value &&
-    typeof (value as { message: unknown }).message === "string"
+    '_tag' in value &&
+    typeof (value as { _tag: unknown })._tag === 'string' &&
+    'message' in value &&
+    typeof (value as { message: unknown }).message === 'string'
   );
 }
 

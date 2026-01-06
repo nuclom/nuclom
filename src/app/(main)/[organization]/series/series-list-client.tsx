@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { SeriesCard, SeriesForm } from "@/components/series";
-import { Button } from "@/components/ui/button";
-import type { SeriesProgressWithDetails, SeriesWithVideoCount } from "@/lib/types";
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { SeriesCard, SeriesForm } from '@/components/series';
+import { Button } from '@/components/ui/button';
+import type { SeriesProgressWithDetails, SeriesWithVideoCount } from '@/lib/types';
 
 interface SeriesListClientProps {
   organization: string;
@@ -27,16 +27,16 @@ export function SeriesListClient({ organization, organizationId, initialSeries }
   const handleDelete = async (seriesId: string) => {
     try {
       const response = await fetch(`/api/series/${seriesId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete series");
+        throw new Error('Failed to delete series');
       }
 
       setSeries((prev) => prev.filter((s) => s.id !== seriesId));
     } catch (error) {
-      console.error("Failed to delete series:", error);
+      console.error('Failed to delete series:', error);
     }
   };
 
@@ -61,7 +61,7 @@ export function SeriesListClient({ organization, organizationId, initialSeries }
         setSeries(data.data || []);
       }
     } catch (error) {
-      console.error("Failed to fetch series:", error);
+      console.error('Failed to fetch series:', error);
     }
   };
 

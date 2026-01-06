@@ -6,38 +6,38 @@
  * - commentReactions: Emoji reactions to comments
  */
 
-import { relations } from "drizzle-orm";
-import { index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
-import { users } from "./auth";
-import { reactionTypeEnum } from "./enums";
-import { videos } from "./videos";
+import { relations } from 'drizzle-orm';
+import { index, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { users } from './auth';
+import { reactionTypeEnum } from './enums';
+import { videos } from './videos';
 
 // =============================================================================
 // Comments
 // =============================================================================
 
 export const comments = pgTable(
-  "comments",
+  'comments',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    content: text("content").notNull(),
-    timestamp: text("timestamp"),
-    authorId: text("author_id")
+    content: text('content').notNull(),
+    timestamp: text('timestamp'),
+    authorId: text('author_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    parentId: text("parent_id"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    parentId: text('parent_id'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("comments_video_id_idx").on(table.videoId),
-    index("comments_author_id_idx").on(table.authorId),
-    index("comments_parent_id_idx").on(table.parentId),
+    index('comments_video_id_idx').on(table.videoId),
+    index('comments_author_id_idx').on(table.authorId),
+    index('comments_parent_id_idx').on(table.parentId),
   ],
 );
 
@@ -46,23 +46,23 @@ export const comments = pgTable(
 // =============================================================================
 
 export const commentReactions = pgTable(
-  "comment_reactions",
+  'comment_reactions',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    commentId: text("comment_id")
+    commentId: text('comment_id')
       .notNull()
-      .references(() => comments.id, { onDelete: "cascade" }),
-    userId: text("user_id")
+      .references(() => comments.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    reactionType: reactionTypeEnum("reaction_type").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => users.id, { onDelete: 'cascade' }),
+    reactionType: reactionTypeEnum('reaction_type').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => ({
     uniqueUserReaction: unique().on(table.commentId, table.userId, table.reactionType),
-    commentIdx: index("comment_reactions_comment_idx").on(table.commentId),
+    commentIdx: index('comment_reactions_comment_idx').on(table.commentId),
   }),
 );
 
@@ -91,10 +91,10 @@ export const commentRelations = relations(comments, ({ one, many }) => ({
   parent: one(comments, {
     fields: [comments.parentId],
     references: [comments.id],
-    relationName: "CommentThread",
+    relationName: 'CommentThread',
   }),
   replies: many(comments, {
-    relationName: "CommentThread",
+    relationName: 'CommentThread',
   }),
   reactions: many(commentReactions),
 }));

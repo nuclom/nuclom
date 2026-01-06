@@ -5,14 +5,14 @@
  * showing how much each speaker contributed.
  */
 
-import { desc, eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { normalizeOne } from "@/lib/db/relations";
-import { videoSpeakers, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
+import { desc, eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { normalizeOne } from '@/lib/db/relations';
+import { videoSpeakers, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/videos/[id]/analytics/talk-time - Get talk time distribution
@@ -32,8 +32,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -41,8 +41,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -70,8 +70,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speakers",
-          operation: "getSpeakers",
+          message: 'Failed to fetch speakers',
+          operation: 'getSpeakers',
           cause: error,
         }),
     });
@@ -84,7 +84,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
           videoTitle: video.title,
           duration: video.duration,
           hasSpeakers: false,
-          message: "No speaker data available for this video",
+          message: 'No speaker data available for this video',
         },
       };
     }
@@ -96,7 +96,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const percentages = speakers.map((s) => s.speakingPercentage || 0);
     const speakerCount = speakers.length;
     let balanceScore = 100;
-    let balanceRating: "excellent" | "good" | "fair" | "poor" = "excellent";
+    let balanceRating: 'excellent' | 'good' | 'fair' | 'poor' = 'excellent';
 
     if (speakerCount > 1) {
       const idealPercentage = 100 / speakerCount;
@@ -106,13 +106,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
       // Determine rating
       if (balanceScore >= 80) {
-        balanceRating = "excellent";
+        balanceRating = 'excellent';
       } else if (balanceScore >= 60) {
-        balanceRating = "good";
+        balanceRating = 'good';
       } else if (balanceScore >= 40) {
-        balanceRating = "fair";
+        balanceRating = 'fair';
       } else {
-        balanceRating = "poor";
+        balanceRating = 'poor';
       }
     }
 
@@ -121,7 +121,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const formatTime = (seconds: number) => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     return {
@@ -172,17 +172,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 function getBalanceDescription(score: number, speakerCount: number): string {
   if (speakerCount === 1) {
-    return "Single speaker video";
+    return 'Single speaker video';
   }
 
   if (score >= 80) {
-    return "Excellent balance - all participants contributed fairly equally";
+    return 'Excellent balance - all participants contributed fairly equally';
   }
   if (score >= 60) {
-    return "Good balance - most participants had meaningful contributions";
+    return 'Good balance - most participants had meaningful contributions';
   }
   if (score >= 40) {
-    return "Fair balance - some participants dominated the conversation";
+    return 'Fair balance - some participants dominated the conversation';
   }
-  return "Poor balance - conversation was dominated by one or few participants";
+  return 'Poor balance - conversation was dominated by one or few participants';
 }

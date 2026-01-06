@@ -4,8 +4,8 @@
  * Provides type-safe Zoom API operations for OAuth and recordings.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { HttpError } from "../errors";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { HttpError } from '../errors';
 
 // =============================================================================
 // Types
@@ -140,19 +140,19 @@ export interface ZoomServiceInterface {
 // Zoom Service Tag
 // =============================================================================
 
-export class Zoom extends Context.Tag("Zoom")<Zoom, ZoomServiceInterface>() {}
+export class Zoom extends Context.Tag('Zoom')<Zoom, ZoomServiceInterface>() {}
 
 // =============================================================================
 // Zoom Configuration
 // =============================================================================
 
-const ZOOM_API_BASE = "https://api.zoom.us/v2";
-const ZOOM_AUTH_BASE = "https://zoom.us";
+const ZOOM_API_BASE = 'https://api.zoom.us/v2';
+const ZOOM_AUTH_BASE = 'https://zoom.us';
 
 const ZoomConfigEffect = Config.all({
-  clientId: Config.string("ZOOM_CLIENT_ID").pipe(Config.option),
-  clientSecret: Config.string("ZOOM_CLIENT_SECRET").pipe(Config.option),
-  baseUrl: Config.string("NEXT_PUBLIC_URL").pipe(Config.option),
+  clientId: Config.string('ZOOM_CLIENT_ID').pipe(Config.option),
+  clientSecret: Config.string('ZOOM_CLIENT_SECRET').pipe(Config.option),
+  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
 });
 
 // =============================================================================
@@ -178,11 +178,11 @@ const makeZoomService = Effect.gen(function* () {
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error("Zoom is not configured");
+        throw new Error('Zoom is not configured');
       }
 
       const params = new URLSearchParams({
-        response_type: "code",
+        response_type: 'code',
         client_id: cfg.clientId,
         redirect_uri: cfg.redirectUri,
         state,
@@ -197,24 +197,24 @@ const makeZoomService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Zoom is not configured",
+            message: 'Zoom is not configured',
             status: 503,
           }),
         );
       }
 
-      const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64");
+      const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64');
 
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${ZOOM_AUTH_BASE}/oauth/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
               Authorization: `Basic ${credentials}`,
             },
             body: new URLSearchParams({
-              grant_type: "authorization_code",
+              grant_type: 'authorization_code',
               code,
               redirect_uri: cfg.redirectUri,
             }),
@@ -229,7 +229,7 @@ const makeZoomService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -243,24 +243,24 @@ const makeZoomService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Zoom is not configured",
+            message: 'Zoom is not configured',
             status: 503,
           }),
         );
       }
 
-      const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64");
+      const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64');
 
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${ZOOM_AUTH_BASE}/oauth/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
               Authorization: `Basic ${credentials}`,
             },
             body: new URLSearchParams({
-              grant_type: "refresh_token",
+              grant_type: 'refresh_token',
               refresh_token: refreshToken,
             }),
           });
@@ -274,7 +274,7 @@ const makeZoomService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -300,7 +300,7 @@ const makeZoomService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -321,7 +321,7 @@ const makeZoomService = Effect.gen(function* () {
         });
 
         if (nextPageToken) {
-          params.set("next_page_token", nextPageToken);
+          params.set('next_page_token', nextPageToken);
         }
 
         const res = await fetch(`${ZOOM_API_BASE}/users/me/recordings?${params.toString()}`, {
@@ -339,7 +339,7 @@ const makeZoomService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list recordings: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -362,14 +362,14 @@ const makeZoomService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get meeting recordings: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get meeting recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
 
   const getDownloadUrl = (downloadUrl: string, accessToken: string): string => {
     const url = new URL(downloadUrl);
-    url.searchParams.set("access_token", accessToken);
+    url.searchParams.set('access_token', accessToken);
     return url.toString();
   };
 
@@ -380,8 +380,8 @@ const makeZoomService = Effect.gen(function* () {
       // Find the MP4 file (main video recording)
       const videoFile =
         meeting.recording_files.find(
-          (f) => f.file_type === "MP4" && f.recording_type === "shared_screen_with_speaker_view",
-        ) || meeting.recording_files.find((f) => f.file_type === "MP4");
+          (f) => f.file_type === 'MP4' && f.recording_type === 'shared_screen_with_speaker_view',
+        ) || meeting.recording_files.find((f) => f.file_type === 'MP4');
 
       if (videoFile) {
         recordings.push({

@@ -2806,25 +2806,40 @@ paths:
         - Reports
       summary: List reports
       operationId: listReport
+      security:
+        - 
+          bearerAuth:[]
       responses:
         200:
           description: Success
+        401:
+          description: Unauthorized
     patch:
       tags:
         - Reports
       summary: Patch report
       operationId: patchReport
+      security:
+        - 
+          bearerAuth:[]
       responses:
         200:
           description: Success
+        401:
+          description: Unauthorized
     post:
       tags:
         - Reports
       summary: Create report
       operationId: createReport
+      security:
+        - 
+          bearerAuth:[]
       responses:
         201:
           description: Created successfully
+        401:
+          description: Unauthorized
   /repos/{owner}/{repo}/context:
     get:
       tags:

@@ -1,8 +1,8 @@
-import { and, desc, eq, gte } from "drizzle-orm";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { and, desc, eq, gte } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
 import {
   comments,
   dataExportRequests,
@@ -13,8 +13,8 @@ import {
   users,
   videoProgresses,
   videos,
-} from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
+} from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 
 // Rate limit: 1 export per 24 hours
 const EXPORT_RATE_LIMIT_HOURS = 24;
@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -48,7 +48,7 @@ export async function GET(_request: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "Rate limit exceeded",
+          error: 'Rate limit exceeded',
           message: `You can only request one data export every ${EXPORT_RATE_LIMIT_HOURS} hours. Please try again in ${timeRemaining} hours.`,
           nextAvailable: new Date(
             lastExport.createdAt.getTime() + EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000,
@@ -70,7 +70,7 @@ export async function GET(_request: NextRequest) {
       .limit(1);
 
     if (!result?.user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const userData = result.user;
@@ -146,8 +146,8 @@ export async function GET(_request: NextRequest) {
       exportInfo: {
         exportedAt: new Date().toISOString(),
         userId: userId,
-        format: "JSON",
-        version: "1.0",
+        format: 'JSON',
+        version: '1.0',
       },
       profile: {
         id: userData.id,
@@ -170,7 +170,7 @@ export async function GET(_request: NextRequest) {
       })),
       videos: userVideos.map((v) => ({
         ...v,
-        note: "Video file URLs are signed and will expire. Download your videos separately if needed.",
+        note: 'Video file URLs are signed and will expire. Download your videos separately if needed.',
       })),
       comments: userComments,
       videoProgress: userProgress,
@@ -184,20 +184,20 @@ export async function GET(_request: NextRequest) {
     // Record the export request
     await db.insert(dataExportRequests).values({
       userId,
-      status: "completed",
+      status: 'completed',
       completedAt: new Date(),
     });
 
     // Return the data as JSON
     return NextResponse.json(exportData, {
       headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="nuclom-data-export-${new Date().toISOString().split("T")[0]}.json"`,
+        'Content-Type': 'application/json',
+        'Content-Disposition': `attachment; filename="nuclom-data-export-${new Date().toISOString().split('T')[0]}.json"`,
       },
     });
   } catch (error) {
-    logger.error("Data export error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to export data. Please try again later." }, { status: 500 });
+    logger.error('Data export error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to export data. Please try again later.' }, { status: 500 });
   }
 }
 

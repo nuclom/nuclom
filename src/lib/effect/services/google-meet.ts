@@ -5,8 +5,8 @@
  * Google Meet recordings are stored in Google Drive.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { HttpError } from "../errors";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { HttpError } from '../errors';
 
 // =============================================================================
 // Types
@@ -119,8 +119,8 @@ export interface GoogleDriveSearchOptions {
   readonly folderId?: string;
   readonly pageSize?: number;
   readonly pageToken?: string;
-  readonly orderBy?: "createdTime" | "modifiedTime" | "name";
-  readonly orderDirection?: "asc" | "desc";
+  readonly orderBy?: 'createdTime' | 'modifiedTime' | 'name';
+  readonly orderDirection?: 'asc' | 'desc';
 }
 
 // =============================================================================
@@ -226,27 +226,27 @@ export interface GoogleMeetServiceInterface {
 // Google Meet Service Tag
 // =============================================================================
 
-export class GoogleMeet extends Context.Tag("GoogleMeet")<GoogleMeet, GoogleMeetServiceInterface>() {}
+export class GoogleMeet extends Context.Tag('GoogleMeet')<GoogleMeet, GoogleMeetServiceInterface>() {}
 
 // =============================================================================
 // Google Configuration
 // =============================================================================
 
-const GOOGLE_AUTH_BASE = "https://accounts.google.com";
-const GOOGLE_API_BASE = "https://www.googleapis.com";
+const GOOGLE_AUTH_BASE = 'https://accounts.google.com';
+const GOOGLE_API_BASE = 'https://www.googleapis.com';
 
 // Scopes needed for Google Meet recordings
 const GOOGLE_SCOPES = [
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
-  "https://www.googleapis.com/auth/drive.readonly",
-  "https://www.googleapis.com/auth/calendar.readonly",
-].join(" ");
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/calendar.readonly',
+].join(' ');
 
 const GoogleConfigEffect = Config.all({
-  clientId: Config.string("GOOGLE_CLIENT_ID").pipe(Config.option),
-  clientSecret: Config.string("GOOGLE_CLIENT_SECRET").pipe(Config.option),
-  baseUrl: Config.string("NEXT_PUBLIC_URL").pipe(Config.option),
+  clientId: Config.string('GOOGLE_CLIENT_ID').pipe(Config.option),
+  clientSecret: Config.string('GOOGLE_CLIENT_SECRET').pipe(Config.option),
+  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
 });
 
 // =============================================================================
@@ -272,16 +272,16 @@ const makeGoogleMeetService = Effect.gen(function* () {
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error("Google is not configured");
+        throw new Error('Google is not configured');
       }
 
       const params = new URLSearchParams({
-        response_type: "code",
+        response_type: 'code',
         client_id: cfg.clientId,
         redirect_uri: cfg.redirectUri,
         scope: GOOGLE_SCOPES,
-        access_type: "offline",
-        prompt: "consent",
+        access_type: 'offline',
+        prompt: 'consent',
         state,
       });
 
@@ -294,7 +294,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Google is not configured",
+            message: 'Google is not configured',
             status: 503,
           }),
         );
@@ -303,12 +303,12 @@ const makeGoogleMeetService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${GOOGLE_AUTH_BASE}/o/oauth2/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-              grant_type: "authorization_code",
+              grant_type: 'authorization_code',
               code,
               redirect_uri: cfg.redirectUri,
               client_id: cfg.clientId,
@@ -325,7 +325,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -339,7 +339,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Google is not configured",
+            message: 'Google is not configured',
             status: 503,
           }),
         );
@@ -348,12 +348,12 @@ const makeGoogleMeetService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${GOOGLE_AUTH_BASE}/o/oauth2/token`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-              grant_type: "refresh_token",
+              grant_type: 'refresh_token',
               refresh_token: refreshToken,
               client_id: cfg.clientId,
               client_secret: cfg.clientSecret,
@@ -369,7 +369,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -395,7 +395,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -414,13 +414,13 @@ const makeGoogleMeetService = Effect.gen(function* () {
         const params = new URLSearchParams({
           q: query,
           fields:
-            "kind,nextPageToken,incompleteSearch,files(id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents)",
-          orderBy: "createdTime desc",
+            'kind,nextPageToken,incompleteSearch,files(id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents)',
+          orderBy: 'createdTime desc',
           pageSize: pageSize.toString(),
         });
 
         if (pageToken) {
-          params.set("pageToken", pageToken);
+          params.set('pageToken', pageToken);
         }
 
         const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
@@ -438,7 +438,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list recordings: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -447,7 +447,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          fields: "id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents",
+          fields: 'id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents',
         });
 
         const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files/${fileId}?${params.toString()}`, {
@@ -465,7 +465,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get file: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get file: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -488,14 +488,14 @@ const makeGoogleMeetService = Effect.gen(function* () {
         }
 
         if (!res.body) {
-          throw new Error("No response body");
+          throw new Error('No response body');
         }
 
         return res.body;
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to download file: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -512,13 +512,13 @@ const makeGoogleMeetService = Effect.gen(function* () {
         const params = new URLSearchParams({
           timeMin,
           timeMax,
-          singleEvents: "true",
-          orderBy: "startTime",
+          singleEvents: 'true',
+          orderBy: 'startTime',
           maxResults: pageSize.toString(),
         });
 
         if (pageToken) {
-          params.set("pageToken", pageToken);
+          params.set('pageToken', pageToken);
         }
 
         const res = await fetch(`${GOOGLE_API_BASE}/calendar/v3/calendars/primary/events?${params.toString()}`, {
@@ -536,7 +536,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list calendar events: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -548,7 +548,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       let meetingTitle = file.name;
       const meetingMatch = file.name.match(/^(.+?)\s*\(/);
       if (meetingMatch) {
-        meetingTitle = meetingMatch[1].replace("Meeting Recording - ", "").trim();
+        meetingTitle = meetingMatch[1].replace('Meeting Recording - ', '').trim();
       }
 
       return {
@@ -557,7 +557,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
         meetingTitle,
         createdTime: new Date(file.createdTime),
         fileSize: file.size ? Number.parseInt(file.size, 10) : 0,
-        downloadUrl: file.webContentLink || "",
+        downloadUrl: file.webContentLink || '',
         mimeType: file.mimeType,
       };
     });
@@ -565,16 +565,16 @@ const makeGoogleMeetService = Effect.gen(function* () {
 
   // Video MIME types supported
   const VIDEO_MIME_TYPES = [
-    "video/mp4",
-    "video/quicktime",
-    "video/x-msvideo",
-    "video/x-matroska",
-    "video/webm",
-    "video/x-flv",
-    "video/x-ms-wmv",
-    "video/3gpp",
-    "video/mpeg",
-    "video/ogg",
+    'video/mp4',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-matroska',
+    'video/webm',
+    'video/x-flv',
+    'video/x-ms-wmv',
+    'video/3gpp',
+    'video/mpeg',
+    'video/ogg',
   ];
 
   const listVideoFiles = (
@@ -583,10 +583,10 @@ const makeGoogleMeetService = Effect.gen(function* () {
   ): Effect.Effect<GoogleDriveVideosResponse, HttpError> =>
     Effect.tryPromise({
       try: async () => {
-        const { folderId, pageSize = 50, pageToken, orderBy = "modifiedTime", orderDirection = "desc" } = options;
+        const { folderId, pageSize = 50, pageToken, orderBy = 'modifiedTime', orderDirection = 'desc' } = options;
 
         // Build query for all video files
-        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(" or ");
+        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
         let query = `(${mimeTypeQuery}) and trashed=false`;
 
         // Add folder filter if specified
@@ -597,15 +597,15 @@ const makeGoogleMeetService = Effect.gen(function* () {
         const params = new URLSearchParams({
           q: query,
           fields:
-            "kind,nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)",
+            'kind,nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
           orderBy: `${orderBy} ${orderDirection}`,
           pageSize: pageSize.toString(),
-          supportsAllDrives: "true",
-          includeItemsFromAllDrives: "true",
+          supportsAllDrives: 'true',
+          includeItemsFromAllDrives: 'true',
         });
 
         if (pageToken) {
-          params.set("pageToken", pageToken);
+          params.set('pageToken', pageToken);
         }
 
         const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
@@ -640,7 +640,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list video files: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list video files: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -663,15 +663,15 @@ const makeGoogleMeetService = Effect.gen(function* () {
 
         const params = new URLSearchParams({
           q: query,
-          fields: "nextPageToken,files(id,name,modifiedTime,parents)",
-          orderBy: "name",
+          fields: 'nextPageToken,files(id,name,modifiedTime,parents)',
+          orderBy: 'name',
           pageSize: pageSize.toString(),
-          supportsAllDrives: "true",
-          includeItemsFromAllDrives: "true",
+          supportsAllDrives: 'true',
+          includeItemsFromAllDrives: 'true',
         });
 
         if (pageToken) {
-          params.set("pageToken", pageToken);
+          params.set('pageToken', pageToken);
         }
 
         const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
@@ -699,7 +699,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list folders: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list folders: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -713,22 +713,22 @@ const makeGoogleMeetService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         // Build query for video files matching search term
-        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(" or ");
+        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
         const escapedQuery = searchQuery.replace(/'/g, "\\'");
         const query = `(${mimeTypeQuery}) and trashed=false and name contains '${escapedQuery}'`;
 
         const params = new URLSearchParams({
           q: query,
           fields:
-            "nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)",
-          orderBy: "modifiedTime desc",
+            'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
+          orderBy: 'modifiedTime desc',
           pageSize: pageSize.toString(),
-          supportsAllDrives: "true",
-          includeItemsFromAllDrives: "true",
+          supportsAllDrives: 'true',
+          includeItemsFromAllDrives: 'true',
         });
 
         if (pageToken) {
-          params.set("pageToken", pageToken);
+          params.set('pageToken', pageToken);
         }
 
         const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
@@ -763,7 +763,7 @@ const makeGoogleMeetService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to search videos: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to search videos: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });

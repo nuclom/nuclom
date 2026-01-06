@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userPreferences } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+import { eq } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { userPreferences } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
 
 const UpdatePreferencesSchema = Schema.Struct({
   emailNotifications: Schema.optional(Schema.Boolean),
@@ -16,7 +16,7 @@ const UpdatePreferencesSchema = Schema.Struct({
   emailWeeklyDigest: Schema.optional(Schema.Boolean),
   emailProductUpdates: Schema.optional(Schema.Boolean),
   pushNotifications: Schema.optional(Schema.Boolean),
-  theme: Schema.optional(Schema.Literal("light", "dark", "system")),
+  theme: Schema.optional(Schema.Literal('light', 'dark', 'system')),
   showActivityStatus: Schema.optional(Schema.Boolean),
 });
 
@@ -31,7 +31,7 @@ export async function GET() {
     });
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get user preferences or return defaults
@@ -49,15 +49,15 @@ export async function GET() {
         emailWeeklyDigest: false,
         emailProductUpdates: true,
         pushNotifications: true,
-        theme: "system",
+        theme: 'system',
         showActivityStatus: true,
       });
     }
 
     return NextResponse.json(preferences);
   } catch (error) {
-    logger.error("Error fetching user preferences", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to fetch preferences" }, { status: 500 });
+    logger.error('Error fetching user preferences', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to fetch preferences' }, { status: 500 });
   }
 }
 
@@ -72,13 +72,13 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const rawBody = await request.json();
     const result = safeParse(UpdatePreferencesSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
     }
     const {
       emailNotifications,
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest) {
       emailWeeklyDigest: emailWeeklyDigest ?? false,
       emailProductUpdates: emailProductUpdates ?? true,
       pushNotifications: pushNotifications ?? true,
-      theme: theme ?? "system",
+      theme: theme ?? 'system',
       showActivityStatus: showActivityStatus ?? true,
       updatedAt: new Date(),
     };
@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error updating user preferences", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to update preferences" }, { status: 500 });
+    logger.error('Error updating user preferences', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to update preferences' }, { status: 500 });
   }
 }

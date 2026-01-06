@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * API Hooks
@@ -7,11 +7,11 @@
  * Uses Effect-TS internally for type-safe error handling.
  */
 
-import { Either } from "effect";
-import { useEffect, useState } from "react";
-import { ApiError } from "@/lib/api";
-import { organizationApiEffect, runClientEffect, videoApiEffect } from "@/lib/effect/client";
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import { Either } from 'effect';
+import { useEffect, useState } from 'react';
+import { ApiError } from '@/lib/api';
+import { organizationApiEffect, runClientEffect, videoApiEffect } from '@/lib/effect/client';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 // =============================================================================
 // Types
@@ -23,13 +23,13 @@ interface UseApiState<T> {
   error: string | null;
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const isTaggedError = (error: unknown): error is { _tag: string; message: string; status?: number } =>
   isRecord(error) &&
-  typeof error._tag === "string" &&
-  typeof error.message === "string" &&
-  (error.status === undefined || typeof error.status === "number");
+  typeof error._tag === 'string' &&
+  typeof error.message === 'string' &&
+  (error.status === undefined || typeof error.status === 'number');
 
 // =============================================================================
 // Helper: Effect Error to Message
@@ -37,7 +37,7 @@ const isTaggedError = (error: unknown): error is { _tag: string; message: string
 
 const getErrorMessage = (error: unknown): string => {
   if (isTaggedError(error)) {
-    if (error._tag === "HttpError" && error.status) {
+    if (error._tag === 'HttpError' && error.status) {
       return `Failed to fetch data (${error.status})`;
     }
 
@@ -52,7 +52,7 @@ const getErrorMessage = (error: unknown): string => {
     return error.message;
   }
 
-  return "An unknown error occurred";
+  return 'An unknown error occurred';
 };
 
 // =============================================================================
@@ -219,4 +219,4 @@ export function useOrganizations(userId?: string) {
 // Re-export Effect-based hooks for more advanced usage
 // =============================================================================
 
-export { useEffectMutation, useEffectQuery, useErrorMessage } from "./use-effect";
+export { useEffectMutation, useEffectQuery, useErrorMessage } from './use-effect';

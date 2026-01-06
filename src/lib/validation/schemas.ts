@@ -1,39 +1,39 @@
-import { Schema } from "effect";
+import { Schema } from 'effect';
 
 // =============================================================================
 // Common Field Validators
 // =============================================================================
 
 export const EmailSchema = Schema.Trim.pipe(
-  Schema.minLength(1, { message: () => "Email is required" }),
-  Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => "Please enter a valid email address" }),
+  Schema.minLength(1, { message: () => 'Email is required' }),
+  Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => 'Please enter a valid email address' }),
 );
 
 export const PasswordSchema = Schema.String.pipe(
-  Schema.minLength(8, { message: () => "Password must be at least 8 characters" }),
-  Schema.maxLength(100, { message: () => "Password must be less than 100 characters" }),
+  Schema.minLength(8, { message: () => 'Password must be at least 8 characters' }),
+  Schema.maxLength(100, { message: () => 'Password must be less than 100 characters' }),
 );
 
 export const NameSchema = Schema.Trim.pipe(
-  Schema.minLength(1, { message: () => "Name is required" }),
-  Schema.maxLength(100, { message: () => "Name must be less than 100 characters" }),
+  Schema.minLength(1, { message: () => 'Name is required' }),
+  Schema.maxLength(100, { message: () => 'Name must be less than 100 characters' }),
 );
 
 export const SlugSchema = Schema.Trim.pipe(
-  Schema.minLength(1, { message: () => "Slug is required" }),
-  Schema.maxLength(50, { message: () => "Slug must be less than 50 characters" }),
-  Schema.pattern(/^[a-z0-9-]+$/, { message: () => "Slug can only contain lowercase letters, numbers, and hyphens" }),
+  Schema.minLength(1, { message: () => 'Slug is required' }),
+  Schema.maxLength(50, { message: () => 'Slug must be less than 50 characters' }),
+  Schema.pattern(/^[a-z0-9-]+$/, { message: () => 'Slug can only contain lowercase letters, numbers, and hyphens' }),
 );
 
 export const UrlOptionalSchema = Schema.optional(
   Schema.Union(
-    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Please enter a valid URL" })),
-    Schema.Literal(""),
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Please enter a valid URL' })),
+    Schema.Literal(''),
   ),
 );
 
 export const DescriptionOptionalSchema = Schema.optional(
-  Schema.String.pipe(Schema.maxLength(2000, { message: () => "Description must be less than 2000 characters" })),
+  Schema.String.pipe(Schema.maxLength(2000, { message: () => 'Description must be less than 2000 characters' })),
 );
 
 // =============================================================================
@@ -52,7 +52,7 @@ export const PaginationSchema = Schema.Struct({
 
 export const TimestampFormatSchema = Schema.String.pipe(
   Schema.pattern(/^\d+:\d{2}(:\d{2})?$/, {
-    message: () => "Invalid timestamp format (expected MM:SS or HH:MM:SS)",
+    message: () => 'Invalid timestamp format (expected MM:SS or HH:MM:SS)',
   }),
 );
 
@@ -62,19 +62,19 @@ export const TimestampFormatSchema = Schema.String.pipe(
 
 export const LoginSchema = Schema.Struct({
   email: EmailSchema,
-  password: Schema.String.pipe(Schema.minLength(1, { message: () => "Password is required" })),
+  password: Schema.String.pipe(Schema.minLength(1, { message: () => 'Password is required' })),
 });
 
 const BaseRegisterSchema = Schema.Struct({
   name: NameSchema,
   email: EmailSchema,
   password: PasswordSchema,
-  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => 'Please confirm your password' })),
 });
 
 export const RegisterSchema = BaseRegisterSchema.pipe(
   Schema.filter((data) => data.password === data.confirmPassword, {
-    message: () => "Passwords do not match",
+    message: () => 'Passwords do not match',
   }),
 );
 
@@ -84,28 +84,28 @@ export const ForgotPasswordSchema = Schema.Struct({
 
 const BaseResetPasswordSchema = Schema.Struct({
   password: PasswordSchema,
-  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => 'Please confirm your password' })),
   token: Schema.String,
 });
 
 export const ResetPasswordSchema = BaseResetPasswordSchema.pipe(
   Schema.filter((data) => data.password === data.confirmPassword, {
-    message: () => "Passwords do not match",
+    message: () => 'Passwords do not match',
   }),
 );
 
 const BaseChangePasswordSchema = Schema.Struct({
-  currentPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Current password is required" })),
+  currentPassword: Schema.String.pipe(Schema.minLength(1, { message: () => 'Current password is required' })),
   newPassword: PasswordSchema,
-  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => "Please confirm your password" })),
+  confirmPassword: Schema.String.pipe(Schema.minLength(1, { message: () => 'Please confirm your password' })),
 });
 
 export const ChangePasswordSchema = BaseChangePasswordSchema.pipe(
   Schema.filter((data) => data.newPassword === data.confirmPassword, {
-    message: () => "Passwords do not match",
+    message: () => 'Passwords do not match',
   }),
   Schema.filter((data) => data.currentPassword !== data.newPassword, {
-    message: () => "New password must be different from current password",
+    message: () => 'New password must be different from current password',
   }),
 );
 
@@ -117,7 +117,7 @@ export const UpdateProfileSchema = Schema.Struct({
   name: Schema.optional(NameSchema),
   avatarUrl: UrlOptionalSchema,
   bio: Schema.optional(
-    Schema.String.pipe(Schema.maxLength(500, { message: () => "Bio must be less than 500 characters" })),
+    Schema.String.pipe(Schema.maxLength(500, { message: () => 'Bio must be less than 500 characters' })),
   ),
 });
 
@@ -127,10 +127,10 @@ export const UpdateProfileSchema = Schema.Struct({
 
 export const SearchSchema = Schema.Struct({
   query: Schema.String.pipe(
-    Schema.minLength(1, { message: () => "Search query is required" }),
-    Schema.maxLength(200, { message: () => "Search query is too long" }),
+    Schema.minLength(1, { message: () => 'Search query is required' }),
+    Schema.maxLength(200, { message: () => 'Search query is too long' }),
   ),
-  type: Schema.optionalWith(Schema.Literal("all", "videos", "series", "channels"), { default: () => "all" as const }),
+  type: Schema.optionalWith(Schema.Literal('all', 'videos', 'series', 'channels'), { default: () => 'all' as const }),
   page: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1)), { default: () => 1 }),
   limit: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)), {
     default: () => 20,
@@ -145,12 +145,12 @@ export const ContactSchema = Schema.Struct({
   name: NameSchema,
   email: EmailSchema,
   subject: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Subject is required" }),
-    Schema.maxLength(200, { message: () => "Subject must be less than 200 characters" }),
+    Schema.minLength(1, { message: () => 'Subject is required' }),
+    Schema.maxLength(200, { message: () => 'Subject must be less than 200 characters' }),
   ),
   message: Schema.Trim.pipe(
-    Schema.minLength(10, { message: () => "Message must be at least 10 characters" }),
-    Schema.maxLength(5000, { message: () => "Message must be less than 5000 characters" }),
+    Schema.minLength(10, { message: () => 'Message must be at least 10 characters' }),
+    Schema.maxLength(5000, { message: () => 'Message must be less than 5000 characters' }),
   ),
 });
 
@@ -160,7 +160,7 @@ export const ContactSchema = Schema.Struct({
 
 export const InviteMemberSchema = Schema.Struct({
   email: EmailSchema,
-  role: Schema.Literal("admin", "member", "viewer"),
+  role: Schema.Literal('admin', 'member', 'viewer'),
 });
 
 // =============================================================================
@@ -169,24 +169,24 @@ export const InviteMemberSchema = Schema.Struct({
 
 export const CreateVideoSchema = Schema.Struct({
   title: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Title is required" }),
-    Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+    Schema.minLength(1, { message: () => 'Title is required' }),
+    Schema.maxLength(200, { message: () => 'Title must be 200 characters or less' }),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => 'Description must be 5000 characters or less' })),
     ),
     { nullable: true },
   ),
-  duration: Schema.String.pipe(Schema.minLength(1, { message: () => "Duration is required" })),
+  duration: Schema.String.pipe(Schema.minLength(1, { message: () => 'Duration is required' })),
   thumbnailUrl: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid thumbnail URL' })),
     ),
     { nullable: true },
   ),
   videoUrl: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid video URL" }))),
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid video URL' }))),
     { nullable: true },
   ),
   organizationId: UuidSchema,
@@ -199,13 +199,13 @@ export const CreateVideoSchema = Schema.Struct({
 export const UpdateVideoSchema = Schema.Struct({
   title: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Title is required" }),
-      Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+      Schema.minLength(1, { message: () => 'Title is required' }),
+      Schema.maxLength(200, { message: () => 'Title must be 200 characters or less' }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(5000, { message: () => 'Description must be 5000 characters or less' })),
     ),
     { nullable: true },
   ),
@@ -215,17 +215,17 @@ export const UpdateVideoSchema = Schema.Struct({
 
 export const VideoUploadSchema = Schema.Struct({
   title: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Title is required" }),
-    Schema.maxLength(200, { message: () => "Title must be 200 characters or less" }),
+    Schema.minLength(1, { message: () => 'Title is required' }),
+    Schema.maxLength(200, { message: () => 'Title must be 200 characters or less' }),
   ),
   description: Schema.optional(
-    Schema.Trim.pipe(Schema.maxLength(5000, { message: () => "Description must be 5000 characters or less" })),
+    Schema.Trim.pipe(Schema.maxLength(5000, { message: () => 'Description must be 5000 characters or less' })),
   ),
   organizationId: UuidSchema,
   authorId: UuidSchema,
   channelId: Schema.optional(UuidSchema),
   collectionId: Schema.optional(UuidSchema),
-  skipAIProcessing: Schema.optional(Schema.Literal("true", "false")),
+  skipAIProcessing: Schema.optional(Schema.Literal('true', 'false')),
 });
 
 export const GetVideosSchema = Schema.Struct({
@@ -243,23 +243,23 @@ export const GetVideosSchema = Schema.Struct({
 
 const BaseChapterSchema = Schema.Struct({
   title: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Title is required" }),
-    Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }),
+    Schema.minLength(1, { message: () => 'Title is required' }),
+    Schema.maxLength(100, { message: () => 'Title must be 100 characters or less' }),
   ),
   summary: Schema.optionalWith(
-    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Summary must be 500 characters or less" }))),
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(500, { message: () => 'Summary must be 500 characters or less' }))),
     { nullable: true },
   ),
-  startTime: Schema.Number.pipe(Schema.int(), Schema.nonNegative({ message: () => "Start time must be positive" })),
+  startTime: Schema.Number.pipe(Schema.int(), Schema.nonNegative({ message: () => 'Start time must be positive' })),
   endTime: Schema.optionalWith(
-    Schema.NullOr(Schema.Number.pipe(Schema.int(), Schema.positive({ message: () => "End time must be positive" }))),
+    Schema.NullOr(Schema.Number.pipe(Schema.int(), Schema.positive({ message: () => 'End time must be positive' }))),
     { nullable: true },
   ),
 });
 
 export const CreateChapterSchema = BaseChapterSchema.pipe(
   Schema.filter((data) => !data.endTime || data.endTime > data.startTime, {
-    message: () => "End time must be greater than start time",
+    message: () => 'End time must be greater than start time',
   }),
 );
 
@@ -269,22 +269,22 @@ export const CreateChapterSchema = BaseChapterSchema.pipe(
 
 export const CreateCodeSnippetSchema = Schema.Struct({
   code: Schema.String.pipe(
-    Schema.minLength(1, { message: () => "Code is required" }),
-    Schema.maxLength(10000, { message: () => "Code must be 10000 characters or less" }),
+    Schema.minLength(1, { message: () => 'Code is required' }),
+    Schema.maxLength(10000, { message: () => 'Code must be 10000 characters or less' }),
   ),
   language: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(50, { message: () => "Language must be 50 characters or less" })),
+      Schema.String.pipe(Schema.maxLength(50, { message: () => 'Language must be 50 characters or less' })),
     ),
     { nullable: true },
   ),
   title: Schema.optionalWith(
-    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(100, { message: () => "Title must be 100 characters or less" }))),
+    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(100, { message: () => 'Title must be 100 characters or less' }))),
     { nullable: true },
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => 'Description must be 500 characters or less' })),
     ),
     { nullable: true },
   ),
@@ -299,18 +299,18 @@ export const CreateCodeSnippetSchema = Schema.Struct({
 
 export const CreateSeriesSchema = Schema.Struct({
   name: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Name is required" }),
-    Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+    Schema.minLength(1, { message: () => 'Name is required' }),
+    Schema.maxLength(100, { message: () => 'Name must be 100 characters or less' }),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => "Description must be 1000 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => 'Description must be 1000 characters or less' })),
     ),
     { nullable: true },
   ),
   thumbnailUrl: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid thumbnail URL' })),
     ),
     { nullable: true },
   ),
@@ -321,19 +321,19 @@ export const CreateSeriesSchema = Schema.Struct({
 export const UpdateSeriesSchema = Schema.Struct({
   name: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Name is required" }),
-      Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+      Schema.minLength(1, { message: () => 'Name is required' }),
+      Schema.maxLength(100, { message: () => 'Name must be 100 characters or less' }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => "Description must be 1000 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(1000, { message: () => 'Description must be 1000 characters or less' })),
     ),
     { nullable: true },
   ),
   thumbnailUrl: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid thumbnail URL" })),
+      Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid thumbnail URL' })),
     ),
     { nullable: true },
   ),
@@ -355,7 +355,7 @@ export const AddVideoToSeriesSchema = Schema.Struct({
 });
 
 export const ReorderSeriesVideosSchema = Schema.Struct({
-  videoIds: Schema.Array(UuidSchema).pipe(Schema.minItems(1, { message: () => "At least one video ID is required" })),
+  videoIds: Schema.Array(UuidSchema).pipe(Schema.minItems(1, { message: () => 'At least one video ID is required' })),
 });
 
 // =============================================================================
@@ -364,8 +364,8 @@ export const ReorderSeriesVideosSchema = Schema.Struct({
 
 export const CreateCommentSchema = Schema.Struct({
   content: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Comment content is required" }),
-    Schema.maxLength(2000, { message: () => "Comment must be 2000 characters or less" }),
+    Schema.minLength(1, { message: () => 'Comment content is required' }),
+    Schema.maxLength(2000, { message: () => 'Comment must be 2000 characters or less' }),
   ),
   timestamp: Schema.optionalWith(Schema.NullOr(TimestampFormatSchema), { nullable: true }),
   parentId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
@@ -373,8 +373,8 @@ export const CreateCommentSchema = Schema.Struct({
 
 export const UpdateCommentSchema = Schema.Struct({
   content: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Comment content is required" }),
-    Schema.maxLength(2000, { message: () => "Comment must be 2000 characters or less" }),
+    Schema.minLength(1, { message: () => 'Comment content is required' }),
+    Schema.maxLength(2000, { message: () => 'Comment must be 2000 characters or less' }),
   ),
 });
 
@@ -384,26 +384,26 @@ export const UpdateCommentSchema = Schema.Struct({
 
 export const CreateOrganizationSchema = Schema.Struct({
   name: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Name is required" }),
-    Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+    Schema.minLength(1, { message: () => 'Name is required' }),
+    Schema.maxLength(100, { message: () => 'Name must be 100 characters or less' }),
   ),
   slug: Schema.optional(
     Schema.String.pipe(
-      Schema.minLength(1, { message: () => "Slug is required" }),
-      Schema.maxLength(50, { message: () => "Slug must be 50 characters or less" }),
+      Schema.minLength(1, { message: () => 'Slug is required' }),
+      Schema.maxLength(50, { message: () => 'Slug must be 50 characters or less' }),
       Schema.pattern(/^[a-z0-9-]+$/, {
-        message: () => "Slug must only contain lowercase letters, numbers, and hyphens",
+        message: () => 'Slug must only contain lowercase letters, numbers, and hyphens',
       }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => 'Description must be 500 characters or less' })),
     ),
     { nullable: true },
   ),
   logo: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid logo URL" }))),
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid logo URL' }))),
     { nullable: true },
   ),
 });
@@ -411,18 +411,18 @@ export const CreateOrganizationSchema = Schema.Struct({
 export const UpdateOrganizationSchema = Schema.Struct({
   name: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Name is required" }),
-      Schema.maxLength(100, { message: () => "Name must be 100 characters or less" }),
+      Schema.minLength(1, { message: () => 'Name is required' }),
+      Schema.maxLength(100, { message: () => 'Name must be 100 characters or less' }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(500, { message: () => "Description must be 500 characters or less" })),
+      Schema.Trim.pipe(Schema.maxLength(500, { message: () => 'Description must be 500 characters or less' })),
     ),
     { nullable: true },
   ),
   logo: Schema.optionalWith(
-    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid logo URL" }))),
+    Schema.NullOr(Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid logo URL' }))),
     { nullable: true },
   ),
 });
@@ -433,9 +433,9 @@ export const UpdateOrganizationSchema = Schema.Struct({
 
 export const CreateInvitationSchema = Schema.Struct({
   email: Schema.String.pipe(
-    Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => "Invalid email address" }),
+    Schema.filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s), { message: () => 'Invalid email address' }),
   ),
-  role: Schema.optionalWith(Schema.Literal("owner", "member"), { default: () => "member" as const }),
+  role: Schema.optionalWith(Schema.Literal('owner', 'member'), { default: () => 'member' as const }),
 });
 
 // =============================================================================
@@ -443,7 +443,7 @@ export const CreateInvitationSchema = Schema.Struct({
 // =============================================================================
 
 export const UpdateProgressSchema = Schema.Struct({
-  currentTime: Schema.String.pipe(Schema.minLength(1, { message: () => "Current time is required" })),
+  currentTime: Schema.String.pipe(Schema.minLength(1, { message: () => 'Current time is required' })),
   completed: Schema.optional(Schema.Boolean),
 });
 
@@ -470,71 +470,71 @@ export const UpdateNotificationSchema = Schema.Struct({
 // =============================================================================
 
 export const MomentTypeSchema = Schema.Literal(
-  "decision",
-  "action_item",
-  "question",
-  "answer",
-  "emphasis",
-  "demonstration",
-  "conclusion",
-  "highlight",
+  'decision',
+  'action_item',
+  'question',
+  'answer',
+  'emphasis',
+  'demonstration',
+  'conclusion',
+  'highlight',
 );
 
-export const ClipTypeSchema = Schema.Literal("auto", "manual");
+export const ClipTypeSchema = Schema.Literal('auto', 'manual');
 
-export const ClipStatusSchema = Schema.Literal("pending", "processing", "ready", "failed");
+export const ClipStatusSchema = Schema.Literal('pending', 'processing', 'ready', 'failed');
 
-export const HighlightReelStatusSchema = Schema.Literal("draft", "rendering", "ready", "failed");
+export const HighlightReelStatusSchema = Schema.Literal('draft', 'rendering', 'ready', 'failed');
 
 export const CreateClipSchema = Schema.Struct({
   title: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Title is required" }),
-    Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+    Schema.minLength(1, { message: () => 'Title is required' }),
+    Schema.maxLength(200, { message: () => 'Title must be less than 200 characters' }),
   ),
   description: Schema.optionalWith(
-    Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    Schema.String.pipe(Schema.maxLength(1000, { message: () => 'Description must be less than 1000 characters' })),
     { nullable: true },
   ),
-  startTime: Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Start time must be non-negative" })),
-  endTime: Schema.Number.pipe(Schema.greaterThan(0, { message: () => "End time must be positive" })),
+  startTime: Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => 'Start time must be non-negative' })),
+  endTime: Schema.Number.pipe(Schema.greaterThan(0, { message: () => 'End time must be positive' })),
   momentId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
   momentType: Schema.optional(MomentTypeSchema),
   transcriptExcerpt: Schema.optionalWith(
-    Schema.String.pipe(Schema.maxLength(5000, { message: () => "Transcript excerpt too long" })),
+    Schema.String.pipe(Schema.maxLength(5000, { message: () => 'Transcript excerpt too long' })),
     { nullable: true },
   ),
 }).pipe(
   Schema.filter((data) => data.endTime > data.startTime, {
-    message: () => "End time must be greater than start time",
+    message: () => 'End time must be greater than start time',
   }),
 );
 
 export const UpdateClipSchema = Schema.Struct({
   title: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Title is required" }),
-      Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+      Schema.minLength(1, { message: () => 'Title is required' }),
+      Schema.maxLength(200, { message: () => 'Title must be less than 200 characters' }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+      Schema.String.pipe(Schema.maxLength(1000, { message: () => 'Description must be less than 1000 characters' })),
     ),
     { nullable: true },
   ),
   startTime: Schema.optional(
-    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Start time must be non-negative" })),
+    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => 'Start time must be non-negative' })),
   ),
-  endTime: Schema.optional(Schema.Number.pipe(Schema.greaterThan(0, { message: () => "End time must be positive" }))),
+  endTime: Schema.optional(Schema.Number.pipe(Schema.greaterThan(0, { message: () => 'End time must be positive' }))),
 });
 
 export const CreateHighlightReelSchema = Schema.Struct({
   title: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Title is required" }),
-    Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+    Schema.minLength(1, { message: () => 'Title is required' }),
+    Schema.maxLength(200, { message: () => 'Title must be less than 200 characters' }),
   ),
   description: Schema.optionalWith(
-    Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+    Schema.String.pipe(Schema.maxLength(1000, { message: () => 'Description must be less than 1000 characters' })),
     { nullable: true },
   ),
   clipIds: Schema.optionalWith(Schema.Array(UuidSchema), { default: () => [] }),
@@ -543,13 +543,13 @@ export const CreateHighlightReelSchema = Schema.Struct({
 export const UpdateHighlightReelSchema = Schema.Struct({
   title: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Title is required" }),
-      Schema.maxLength(200, { message: () => "Title must be less than 200 characters" }),
+      Schema.minLength(1, { message: () => 'Title is required' }),
+      Schema.maxLength(200, { message: () => 'Title must be less than 200 characters' }),
     ),
   ),
   description: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(1000, { message: () => "Description must be less than 1000 characters" })),
+      Schema.String.pipe(Schema.maxLength(1000, { message: () => 'Description must be less than 1000 characters' })),
     ),
     { nullable: true },
   ),
@@ -558,15 +558,15 @@ export const UpdateHighlightReelSchema = Schema.Struct({
 
 export const CreateQuoteCardSchema = Schema.Struct({
   quoteText: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => "Quote text is required" }),
-    Schema.maxLength(500, { message: () => "Quote text must be less than 500 characters" }),
+    Schema.minLength(1, { message: () => 'Quote text is required' }),
+    Schema.maxLength(500, { message: () => 'Quote text must be less than 500 characters' }),
   ),
   speaker: Schema.optionalWith(
-    Schema.String.pipe(Schema.maxLength(100, { message: () => "Speaker name must be less than 100 characters" })),
+    Schema.String.pipe(Schema.maxLength(100, { message: () => 'Speaker name must be less than 100 characters' })),
     { nullable: true },
   ),
   timestampSeconds: Schema.optionalWith(
-    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => "Timestamp must be non-negative" })),
+    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => 'Timestamp must be non-negative' })),
     { nullable: true },
   ),
   templateId: Schema.optional(Schema.String),
@@ -575,13 +575,13 @@ export const CreateQuoteCardSchema = Schema.Struct({
 export const UpdateQuoteCardSchema = Schema.Struct({
   quoteText: Schema.optional(
     Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => "Quote text is required" }),
-      Schema.maxLength(500, { message: () => "Quote text must be less than 500 characters" }),
+      Schema.minLength(1, { message: () => 'Quote text is required' }),
+      Schema.maxLength(500, { message: () => 'Quote text must be less than 500 characters' }),
     ),
   ),
   speaker: Schema.optionalWith(
     Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(100, { message: () => "Speaker name must be less than 100 characters" })),
+      Schema.String.pipe(Schema.maxLength(100, { message: () => 'Speaker name must be less than 100 characters' })),
     ),
     { nullable: true },
   ),
@@ -592,13 +592,13 @@ export const UpdateQuoteCardSchema = Schema.Struct({
 // =============================================================================
 
 export const CreateCheckoutSchema = Schema.Struct({
-  planId: Schema.String.pipe(Schema.minLength(1, { message: () => "Plan ID is required" })),
-  billingPeriod: Schema.optionalWith(Schema.Literal("monthly", "yearly"), { default: () => "monthly" as const }),
+  planId: Schema.String.pipe(Schema.minLength(1, { message: () => 'Plan ID is required' })),
+  billingPeriod: Schema.optionalWith(Schema.Literal('monthly', 'yearly'), { default: () => 'monthly' as const }),
   successUrl: Schema.optional(
-    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid success URL" })),
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid success URL' })),
   ),
   cancelUrl: Schema.optional(
-    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => "Invalid cancel URL" })),
+    Schema.String.pipe(Schema.filter((s) => URL.canParse(s), { message: () => 'Invalid cancel URL' })),
   ),
 });
 
@@ -607,8 +607,8 @@ export const CreateCheckoutSchema = Schema.Struct({
 // =============================================================================
 
 export const ImportMeetingSchema = Schema.Struct({
-  meetingId: Schema.String.pipe(Schema.minLength(1, { message: () => "Meeting ID is required" })),
-  recordingId: Schema.String.pipe(Schema.minLength(1, { message: () => "Recording ID is required" })),
+  meetingId: Schema.String.pipe(Schema.minLength(1, { message: () => 'Meeting ID is required' })),
+  recordingId: Schema.String.pipe(Schema.minLength(1, { message: () => 'Recording ID is required' })),
   title: Schema.optional(Schema.Trim.pipe(Schema.maxLength(200))),
 });
 

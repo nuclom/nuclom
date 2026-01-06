@@ -1,9 +1,9 @@
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { NotificationRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { NotificationRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/notifications - Get user's notifications
@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
 
     // Parse query params
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
 
     // Fetch notifications
     const notificationRepo = yield* NotificationRepository;
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

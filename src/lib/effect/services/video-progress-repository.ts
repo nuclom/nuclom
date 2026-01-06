@@ -5,11 +5,11 @@
  * Enables "resume where you left off" functionality for users.
  */
 
-import { and, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { type VideoProgress, videoProgresses } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { and, eq } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { type VideoProgress, videoProgresses } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -88,7 +88,7 @@ export interface VideoProgressRepositoryService {
 // Video Progress Repository Tag
 // =============================================================================
 
-export class VideoProgressRepository extends Context.Tag("VideoProgressRepository")<
+export class VideoProgressRepository extends Context.Tag('VideoProgressRepository')<
   VideoProgressRepository,
   VideoProgressRepositoryService
 >() {}
@@ -123,8 +123,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video progress",
-          operation: "getProgress",
+          message: 'Failed to fetch video progress',
+          operation: 'getProgress',
           cause: error,
         }),
     });
@@ -185,8 +185,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to save video progress",
-          operation: "saveProgress",
+          message: 'Failed to save video progress',
+          operation: 'saveProgress',
           cause: error,
         }),
     });
@@ -211,8 +211,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch user video progress",
-          operation: "getUserProgress",
+          message: 'Failed to fetch user video progress',
+          operation: 'getUserProgress',
           cause: error,
         }),
     });
@@ -228,8 +228,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete video progress",
-            operation: "deleteProgress",
+            message: 'Failed to delete video progress',
+            operation: 'deleteProgress',
             cause: error,
           }),
       });
@@ -237,8 +237,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video progress not found",
-            entity: "VideoProgress",
+            message: 'Video progress not found',
+            entity: 'VideoProgress',
             id: `${videoId}:${userId}`,
           }),
         );
@@ -258,8 +258,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check video watch status",
-          operation: "hasWatched",
+          message: 'Failed to check video watch status',
+          operation: 'hasWatched',
           cause: error,
         }),
     });
@@ -302,7 +302,7 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
           .values({
             videoId,
             userId,
-            currentTime: "0",
+            currentTime: '0',
             completed: true,
             lastWatchedAt: now,
           })
@@ -318,8 +318,8 @@ const makeVideoProgressRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to mark video as completed",
-          operation: "markCompleted",
+          message: 'Failed to mark video as completed',
+          operation: 'markCompleted',
           cause: error,
         }),
     });

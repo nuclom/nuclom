@@ -5,15 +5,15 @@
  * using React Suspense and Effect Streams.
  */
 
-import { Effect, Stream } from "effect";
-import { AppLive } from "./runtime";
+import { Effect, Stream } from 'effect';
+import { AppLive } from './runtime';
 
 // =============================================================================
 // Streaming Types
 // =============================================================================
 
 export interface StreamChunk<T> {
-  readonly type: "data" | "done" | "error";
+  readonly type: 'data' | 'done' | 'error';
   readonly data?: T;
   readonly error?: string;
 }
@@ -32,13 +32,13 @@ export async function* streamToAsyncIterable<A, E>(stream: Stream.Stream<A, E, n
   try {
     const chunks = await Effect.runPromise(runnable);
     for (const item of chunks) {
-      yield { type: "data", data: item };
+      yield { type: 'data', data: item };
     }
-    yield { type: "done" };
+    yield { type: 'done' };
   } catch (error) {
     yield {
-      type: "error",
-      error: error instanceof Error ? error.message : "Stream error",
+      type: 'error',
+      error: error instanceof Error ? error.message : 'Stream error',
     };
   }
 }
@@ -84,7 +84,7 @@ export const createParallelLoaders = <T extends Record<string, Effect.Effect<unk
 // Streaming Server Actions
 // =============================================================================
 
-import { AI } from "./services/ai";
+import { AI } from './services/ai';
 
 /**
  * Stream AI summary generation
@@ -105,13 +105,13 @@ export async function* streamVideoSummary(transcript: string): AsyncGenerator<St
     const chunks = await Effect.runPromise(collectEffect);
 
     for (const chunk of chunks) {
-      yield { type: "data", data: chunk };
+      yield { type: 'data', data: chunk };
     }
-    yield { type: "done" };
+    yield { type: 'done' };
   } catch (error) {
     yield {
-      type: "error",
-      error: error instanceof Error ? error.message : "Streaming error",
+      type: 'error',
+      error: error instanceof Error ? error.message : 'Streaming error',
     };
   }
 }

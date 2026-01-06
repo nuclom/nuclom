@@ -1,8 +1,8 @@
-import { Cause, Effect, Exit } from "effect";
-import { connection, NextResponse } from "next/server";
-import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { Auth } from "@/lib/effect/services/auth";
-import { Billing } from "@/lib/effect/services/billing";
+import { Cause, Effect, Exit } from 'effect';
+import { connection, NextResponse } from 'next/server';
+import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Auth } from '@/lib/effect/services/auth';
+import { Billing } from '@/lib/effect/services/billing';
 
 // =============================================================================
 // GET /api/billing/plans - Get all available plans
@@ -27,10 +27,10 @@ export async function GET(request: Request) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json({ plans: data }),
   });

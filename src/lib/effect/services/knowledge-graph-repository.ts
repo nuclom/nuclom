@@ -5,9 +5,9 @@
  * decisions, participants, nodes, edges, and links.
  */
 
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { normalizeOne } from "@/lib/db/relations";
+import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { normalizeOne } from '@/lib/db/relations';
 import type {
   Decision,
   DecisionLink,
@@ -22,10 +22,10 @@ import type {
   NewDecisionParticipant,
   NewKnowledgeEdge,
   NewKnowledgeNode,
-} from "@/lib/db/schema";
-import { decisionLinks, decisionParticipants, decisions, knowledgeEdges, knowledgeNodes } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+} from '@/lib/db/schema';
+import { decisionLinks, decisionParticipants, decisions, knowledgeEdges, knowledgeNodes } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -99,9 +99,9 @@ export interface DecisionTimelineItem {
 
 function normalizeDecisionRelations(
   decision: Decision & {
-    video?: DecisionWithRelations["video"] | DecisionWithRelations["video"][];
-    participants?: DecisionWithRelations["participants"];
-    links?: DecisionWithRelations["links"];
+    video?: DecisionWithRelations['video'] | DecisionWithRelations['video'][];
+    participants?: DecisionWithRelations['participants'];
+    links?: DecisionWithRelations['links'];
   },
 ): DecisionWithRelations {
   return {
@@ -222,7 +222,7 @@ export interface KnowledgeGraphRepositoryInterface {
       tags: string[];
       participants: Array<{
         name: string;
-        role: "decider" | "participant" | "mentioned";
+        role: 'decider' | 'participant' | 'mentioned';
         attributedText?: string;
       }>;
       externalRefs?: Array<{
@@ -238,7 +238,7 @@ export interface KnowledgeGraphRepositoryInterface {
 // Service Tag
 // =============================================================================
 
-export class KnowledgeGraphRepository extends Context.Tag("KnowledgeGraphRepository")<
+export class KnowledgeGraphRepository extends Context.Tag('KnowledgeGraphRepository')<
   KnowledgeGraphRepository,
   KnowledgeGraphRepositoryInterface
 >() {}
@@ -260,7 +260,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create decision",
+          message: 'Failed to create decision',
           cause: error,
         }),
     });
@@ -288,14 +288,14 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get decision",
+          message: 'Failed to get decision',
           cause: error,
         }),
     }).pipe(
       Effect.flatMap((decision) =>
         decision
           ? Effect.succeed(normalizeDecisionRelations(decision))
-          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: "Decision", id })),
+          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: 'Decision', id })),
       ),
     );
 
@@ -314,14 +314,14 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update decision",
+          message: 'Failed to update decision',
           cause: error,
         }),
     }).pipe(
       Effect.flatMap((decision) =>
         decision
           ? Effect.succeed(decision)
-          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: "Decision", id })),
+          : Effect.fail(new NotFoundError({ message: `Decision ${id} not found`, entity: 'Decision', id })),
       ),
     );
 
@@ -332,7 +332,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete decision",
+          message: 'Failed to delete decision',
           cause: error,
         }),
     });
@@ -395,7 +395,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to list decisions",
+          message: 'Failed to list decisions',
           cause: error,
         }),
     });
@@ -409,7 +409,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add participant",
+          message: 'Failed to add participant',
           cause: error,
         }),
     });
@@ -423,7 +423,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add participants",
+          message: 'Failed to add participants',
           cause: error,
         }),
     });
@@ -437,7 +437,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to remove participant",
+          message: 'Failed to remove participant',
           cause: error,
         }),
     });
@@ -451,7 +451,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add link",
+          message: 'Failed to add link',
           cause: error,
         }),
     });
@@ -465,7 +465,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add links",
+          message: 'Failed to add links',
           cause: error,
         }),
     });
@@ -477,7 +477,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to remove link",
+          message: 'Failed to remove link',
           cause: error,
         }),
     });
@@ -503,7 +503,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get links by entity",
+          message: 'Failed to get links by entity',
           cause: error,
         }),
     });
@@ -517,7 +517,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create knowledge node",
+          message: 'Failed to create knowledge node',
           cause: error,
         }),
     });
@@ -544,14 +544,14 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get knowledge node",
+          message: 'Failed to get knowledge node',
           cause: error,
         }),
     }).pipe(
       Effect.flatMap((node) =>
         node
           ? Effect.succeed(normalizeKnowledgeNodeEdges(node))
-          : Effect.fail(new NotFoundError({ message: `Node ${id} not found`, entity: "KnowledgeNode", id })),
+          : Effect.fail(new NotFoundError({ message: `Node ${id} not found`, entity: 'KnowledgeNode', id })),
       ),
     );
 
@@ -568,7 +568,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get node by external ID",
+          message: 'Failed to get node by external ID',
           cause: error,
         }),
     });
@@ -597,7 +597,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to upsert knowledge node",
+          message: 'Failed to upsert knowledge node',
           cause: error,
         }),
     });
@@ -621,7 +621,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to list knowledge nodes",
+          message: 'Failed to list knowledge nodes',
           cause: error,
         }),
     });
@@ -635,7 +635,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create knowledge edge",
+          message: 'Failed to create knowledge edge',
           cause: error,
         }),
     });
@@ -649,7 +649,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create knowledge edges",
+          message: 'Failed to create knowledge edges',
           cause: error,
         }),
     });
@@ -661,7 +661,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete knowledge edge",
+          message: 'Failed to delete knowledge edge',
           cause: error,
         }),
     });
@@ -675,7 +675,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get edges between nodes",
+          message: 'Failed to get edges between nodes',
           cause: error,
         }),
     });
@@ -718,7 +718,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get knowledge graph",
+          message: 'Failed to get knowledge graph',
           cause: error,
         }),
     });
@@ -793,7 +793,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get decision timeline",
+          message: 'Failed to get decision timeline',
           cause: error,
         }),
     });
@@ -841,7 +841,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get decision context",
+          message: 'Failed to get decision context',
           cause: error,
         }),
     });
@@ -862,7 +862,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       tags: string[];
       participants: Array<{
         name: string;
-        role: "decider" | "participant" | "mentioned";
+        role: 'decider' | 'participant' | 'mentioned';
         attributedText?: string;
       }>;
       externalRefs?: Array<{
@@ -903,7 +903,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
           // Add participants
           if (extracted.participants.length > 0) {
             const participantData = extracted.participants.map(
-              (p: { name: string; role: "decider" | "participant" | "mentioned"; attributedText?: string }) => ({
+              (p: { name: string; role: 'decider' | 'participant' | 'mentioned'; attributedText?: string }) => ({
                 decisionId: decision.id,
                 userId: null,
                 speakerName: p.name,
@@ -918,10 +918,10 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
           if (extracted.externalRefs && extracted.externalRefs.length > 0) {
             const linkData = extracted.externalRefs.map((ref) => ({
               decisionId: decision.id,
-              entityType: ref.type.split(":")[0] ?? ref.type,
+              entityType: ref.type.split(':')[0] ?? ref.type,
               entityId: ref.id,
               entityRef: ref.id,
-              linkType: "references",
+              linkType: 'references',
               url: ref.url,
             }));
             await db.insert(decisionLinks).values(linkData);
@@ -932,7 +932,7 @@ const makeKnowledgeGraphRepository = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to save decisions from video",
+          message: 'Failed to save decisions from video',
           cause: error,
         }),
     });

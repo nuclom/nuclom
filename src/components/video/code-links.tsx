@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { CircleDot, File, Folder, GitCommit, GitPullRequest, Loader2, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { CodeLink } from "@/hooks/use-code-links";
-import type { CodeLinkType } from "@/lib/db/schema";
-import { formatTime } from "@/lib/format-utils";
+import { CircleDot, File, Folder, GitCommit, GitPullRequest, Loader2, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import type { CodeLink } from '@/hooks/use-code-links';
+import type { CodeLinkType } from '@/lib/db/schema';
+import { formatTime } from '@/lib/format-utils';
 
 // =============================================================================
 // Icon Mapping
@@ -23,28 +23,28 @@ const LINK_TYPE_CONFIG: Record<
 > = {
   pr: {
     icon: GitPullRequest,
-    label: "Pull Request",
-    color: "text-purple-500",
+    label: 'Pull Request',
+    color: 'text-purple-500',
   },
   issue: {
     icon: CircleDot,
-    label: "Issue",
-    color: "text-green-500",
+    label: 'Issue',
+    color: 'text-green-500',
   },
   commit: {
     icon: GitCommit,
-    label: "Commit",
-    color: "text-blue-500",
+    label: 'Commit',
+    color: 'text-blue-500',
   },
   file: {
     icon: File,
-    label: "File",
-    color: "text-orange-500",
+    label: 'File',
+    color: 'text-orange-500',
   },
   directory: {
     icon: Folder,
-    label: "Directory",
-    color: "text-yellow-500",
+    label: 'Directory',
+    color: 'text-yellow-500',
   },
 };
 
@@ -65,7 +65,7 @@ function CodeLinkItem({ link, currentUserId, onDelete }: CodeLinkItemProps) {
   const canDelete = currentUserId && link.createdById === currentUserId;
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to remove this code link?")) {
+    if (!confirm('Are you sure you want to remove this code link?')) {
       return;
     }
 

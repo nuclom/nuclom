@@ -5,9 +5,9 @@
  * These utilities are designed for use in Server Components and Server Actions.
  */
 
-import { Cause, Effect, Exit, Option } from "effect";
-import { revalidateTag } from "next/cache";
-import { cache } from "react";
+import { Cause, Effect, Exit, Option } from 'effect';
+import { revalidateTag } from 'next/cache';
+import { cache } from 'react';
 import type {
   PaginatedResponse,
   PaginatedResponse as PaginatedResponseType,
@@ -16,14 +16,14 @@ import type {
   SeriesWithVideos,
   VideoWithAuthor,
   VideoWithDetails,
-} from "@/lib/types";
-import { AppLive, type AppServices } from "./runtime";
-import { ChannelRepository } from "./services/channel-repository";
-import { OrganizationRepository } from "./services/organization-repository";
-import { SeriesRepository } from "./services/series-repository";
-import { type VideoProgressData, VideoProgressRepository } from "./services/video-progress-repository";
-import type { CreateVideoInput, UpdateVideoInput } from "./services/video-repository";
-import { VideoRepository } from "./services/video-repository";
+} from '@/lib/types';
+import { AppLive, type AppServices } from './runtime';
+import { ChannelRepository } from './services/channel-repository';
+import { OrganizationRepository } from './services/organization-repository';
+import { SeriesRepository } from './services/series-repository';
+import { type VideoProgressData, VideoProgressRepository } from './services/video-progress-repository';
+import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository';
+import { VideoRepository } from './services/video-repository';
 
 // =============================================================================
 // Server Effect Runner
@@ -47,7 +47,7 @@ export const runServerEffect = async <A, E>(effect: Effect.Effect<A, E, AppServi
       if (Option.isSome(defect)) {
         throw defect.value;
       }
-      throw new Error("Unknown error occurred");
+      throw new Error('Unknown error occurred');
     },
     onSuccess: (value) => value,
   });
@@ -68,7 +68,7 @@ export const runServerEffectSafe = async <A, E>(
       if (Option.isSome(error)) {
         return { success: false as const, error: error.value };
       }
-      return { success: false as const, error: new Error("Unexpected defect") };
+      return { success: false as const, error: new Error('Unexpected defect') };
     },
     onSuccess: (data) => ({ success: true as const, data }),
   });
@@ -136,9 +136,9 @@ export const getOrganizationBySlug = cache(async (slug: string) => {
  * Revalidate video-related caches
  */
 export const revalidateVideos = (organizationId?: string) => {
-  revalidateTag("videos", "max");
+  revalidateTag('videos', 'max');
   if (organizationId) {
-    revalidateTag(`videos:${organizationId}`, "max");
+    revalidateTag(`videos:${organizationId}`, 'max');
   }
 };
 
@@ -146,16 +146,16 @@ export const revalidateVideos = (organizationId?: string) => {
  * Revalidate a specific video cache
  */
 export const revalidateVideo = (videoId: string) => {
-  revalidateTag(`video:${videoId}`, "max");
+  revalidateTag(`video:${videoId}`, 'max');
 };
 
 /**
  * Revalidate organization-related caches
  */
 export const revalidateOrganizations = (userId?: string) => {
-  revalidateTag("organizations", "max");
+  revalidateTag('organizations', 'max');
   if (userId) {
-    revalidateTag(`organizations:user:${userId}`, "max");
+    revalidateTag(`organizations:user:${userId}`, 'max');
   }
 };
 
@@ -163,7 +163,7 @@ export const revalidateOrganizations = (userId?: string) => {
  * Revalidate a specific organization cache
  */
 export const revalidateOrganization = (slug: string) => {
-  revalidateTag(`organization:${slug}`, "max");
+  revalidateTag(`organization:${slug}`, 'max');
 };
 
 // =============================================================================
@@ -261,8 +261,8 @@ export const getUserVideoProgress = cache(async (userId: string, limit: number =
  * Revalidate video progress caches
  */
 export const revalidateVideoProgress = (videoId: string, userId: string) => {
-  revalidateTag(`video-progress:${videoId}:${userId}`, "max");
-  revalidateTag(`video-progress:user:${userId}`, "max");
+  revalidateTag(`video-progress:${videoId}:${userId}`, 'max');
+  revalidateTag(`video-progress:user:${userId}`, 'max');
 };
 
 // =============================================================================
@@ -355,9 +355,9 @@ export const getSeriesProgress = cache(
  * Revalidate series-related caches
  */
 export const revalidateSeries = (organizationId?: string) => {
-  revalidateTag("series", "max");
+  revalidateTag('series', 'max');
   if (organizationId) {
-    revalidateTag(`series:${organizationId}`, "max");
+    revalidateTag(`series:${organizationId}`, 'max');
   }
 };
 
@@ -365,15 +365,15 @@ export const revalidateSeries = (organizationId?: string) => {
  * Revalidate a specific series cache
  */
 export const revalidateSeriesById = (seriesId: string) => {
-  revalidateTag(`series:${seriesId}`, "max");
+  revalidateTag(`series:${seriesId}`, 'max');
 };
 
 /**
  * Revalidate series progress caches
  */
 export const revalidateSeriesProgress = (seriesId: string, userId: string) => {
-  revalidateTag(`series-progress:${seriesId}:${userId}`, "max");
-  revalidateTag(`series-progress:user:${userId}`, "max");
+  revalidateTag(`series-progress:${seriesId}:${userId}`, 'max');
+  revalidateTag(`series-progress:user:${userId}`, 'max');
 };
 
 // =============================================================================

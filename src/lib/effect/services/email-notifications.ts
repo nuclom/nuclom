@@ -4,9 +4,9 @@
  * Provides email notification functionality using Resend for various events.
  */
 
-import { Context, Data, Effect, Layer } from "effect";
-import { resend } from "@/lib/email";
-import { env } from "@/lib/env/server";
+import { Context, Data, Effect, Layer } from 'effect';
+import { resend } from '@/lib/email';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Types
@@ -40,7 +40,7 @@ export interface VideoProcessingNotificationData {
   readonly recipientName: string;
   readonly videoTitle: string;
   readonly videoUrl: string;
-  readonly status: "completed" | "failed";
+  readonly status: 'completed' | 'failed';
   readonly errorMessage?: string;
 }
 
@@ -56,12 +56,12 @@ export interface SubscriptionNotificationData {
   readonly recipientEmail: string;
   readonly recipientName: string;
   readonly organizationName: string;
-  readonly eventType: "created" | "updated" | "canceled" | "payment_failed" | "payment_succeeded";
+  readonly eventType: 'created' | 'updated' | 'canceled' | 'payment_failed' | 'payment_succeeded';
   readonly planName?: string;
   readonly billingUrl: string;
 }
 
-export class EmailError extends Data.TaggedError("EmailError")<{
+export class EmailError extends Data.TaggedError('EmailError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -82,7 +82,7 @@ export interface EmailNotificationServiceInterface {
 // Service Tag
 // =============================================================================
 
-export class EmailNotifications extends Context.Tag("EmailNotifications")<
+export class EmailNotifications extends Context.Tag('EmailNotifications')<
   EmailNotifications,
   EmailNotificationServiceInterface
 >() {}
@@ -107,7 +107,7 @@ const getBaseStyles = () => `
 `;
 
 const createCommentEmailHtml = (data: CommentNotificationData): string => {
-  const subject = data.isReply ? "replied to your comment" : "commented on your video";
+  const subject = data.isReply ? 'replied to your comment' : 'commented on your video';
   return `
 <!DOCTYPE html>
 <html>
@@ -124,7 +124,7 @@ const createCommentEmailHtml = (data: CommentNotificationData): string => {
         <p style="margin: 0; font-style: italic;">"${data.commentPreview}"</p>
       </div>
       <p style="text-align: center;">
-        <a href="${data.videoUrl}" class="button">View ${data.isReply ? "Reply" : "Comment"}</a>
+        <a href="${data.videoUrl}" class="button">View ${data.isReply ? 'Reply' : 'Comment'}</a>
       </p>
     </div>
     <div class="footer">
@@ -165,7 +165,7 @@ const createInvitationEmailHtml = (data: InvitationNotificationData): string => 
 </html>`;
 
 const createVideoProcessingEmailHtml = (data: VideoProcessingNotificationData): string => {
-  const isSuccess = data.status === "completed";
+  const isSuccess = data.status === 'completed';
   return `
 <!DOCTYPE html>
 <html>
@@ -177,18 +177,18 @@ const createVideoProcessingEmailHtml = (data: VideoProcessingNotificationData): 
     </div>
     <div class="content">
       <h2>Hi ${data.recipientName},</h2>
-      <p>Your video "${data.videoTitle}" has ${isSuccess ? "finished processing" : "failed to process"}.</p>
-      <div class="highlight ${isSuccess ? "success" : "error"}">
+      <p>Your video "${data.videoTitle}" has ${isSuccess ? 'finished processing' : 'failed to process'}.</p>
+      <div class="highlight ${isSuccess ? 'success' : 'error'}">
         ${
           isSuccess
             ? `<p style="margin: 0;">✅ <strong>Processing Complete!</strong></p>
            <p style="margin: 8px 0 0 0;">Your video is now ready with AI-generated summaries, transcriptions, and more.</p>`
             : `<p style="margin: 0;">❌ <strong>Processing Failed</strong></p>
-           <p style="margin: 8px 0 0 0;">${data.errorMessage || "An error occurred during processing. Please try again."}</p>`
+           <p style="margin: 8px 0 0 0;">${data.errorMessage || 'An error occurred during processing. Please try again.'}</p>`
         }
       </div>
       <p style="text-align: center;">
-        <a href="${data.videoUrl}" class="button">${isSuccess ? "View Video" : "Retry Processing"}</a>
+        <a href="${data.videoUrl}" class="button">${isSuccess ? 'View Video' : 'Retry Processing'}</a>
       </p>
     </div>
     <div class="footer">
@@ -214,8 +214,8 @@ const createTrialEndingEmailHtml = (data: TrialEndingNotificationData): string =
       <h2>Hi ${data.recipientName},</h2>
       <p>Your trial for <strong>${data.organizationName}</strong> is ending soon!</p>
       <div class="highlight warning">
-        <p style="margin: 0;">⏰ <strong>${daysLeft} day${daysLeft !== 1 ? "s" : ""} remaining</strong></p>
-        <p style="margin: 8px 0 0 0;">Your trial will end on ${data.trialEndsAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}.</p>
+        <p style="margin: 0;">⏰ <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining</strong></p>
+        <p style="margin: 8px 0 0 0;">Your trial will end on ${data.trialEndsAt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.</p>
       </div>
       <p>To continue using all the features you love, upgrade your plan before the trial ends.</p>
       <p style="text-align: center;">
@@ -235,45 +235,45 @@ const createTrialEndingEmailHtml = (data: TrialEndingNotificationData): string =
 const createSubscriptionEmailHtml = (data: SubscriptionNotificationData): string => {
   const getContent = () => {
     switch (data.eventType) {
-      case "created":
+      case 'created':
         return {
-          title: "Welcome to Nuclom Pro!",
-          message: `Your subscription to ${data.planName || "Nuclom Pro"} is now active.`,
+          title: 'Welcome to Nuclom Pro!',
+          message: `Your subscription to ${data.planName || 'Nuclom Pro'} is now active.`,
           highlight: `<p style="margin: 0;">🎉 <strong>Thank you for subscribing!</strong></p><p style="margin: 8px 0 0 0;">You now have access to all premium features.</p>`,
-          highlightClass: "success",
-          buttonText: "Get Started",
+          highlightClass: 'success',
+          buttonText: 'Get Started',
         };
-      case "updated":
+      case 'updated':
         return {
-          title: "Subscription Updated",
+          title: 'Subscription Updated',
           message: `Your subscription for ${data.organizationName} has been updated.`,
-          highlight: `<p style="margin: 0;">✅ <strong>Plan Updated</strong></p><p style="margin: 8px 0 0 0;">Your new plan: ${data.planName || "Updated Plan"}</p>`,
-          highlightClass: "",
-          buttonText: "View Details",
+          highlight: `<p style="margin: 0;">✅ <strong>Plan Updated</strong></p><p style="margin: 8px 0 0 0;">Your new plan: ${data.planName || 'Updated Plan'}</p>`,
+          highlightClass: '',
+          buttonText: 'View Details',
         };
-      case "canceled":
+      case 'canceled':
         return {
-          title: "Subscription Canceled",
+          title: 'Subscription Canceled',
           message: `Your subscription for ${data.organizationName} has been canceled.`,
           highlight: `<p style="margin: 0;">Your subscription will remain active until the end of your current billing period.</p>`,
-          highlightClass: "warning",
-          buttonText: "Reactivate Subscription",
+          highlightClass: 'warning',
+          buttonText: 'Reactivate Subscription',
         };
-      case "payment_failed":
+      case 'payment_failed':
         return {
-          title: "Payment Failed",
+          title: 'Payment Failed',
           message: `We couldn't process your payment for ${data.organizationName}.`,
           highlight: `<p style="margin: 0;">❌ <strong>Action Required</strong></p><p style="margin: 8px 0 0 0;">Please update your payment method to avoid service interruption.</p>`,
-          highlightClass: "error",
-          buttonText: "Update Payment Method",
+          highlightClass: 'error',
+          buttonText: 'Update Payment Method',
         };
-      case "payment_succeeded":
+      case 'payment_succeeded':
         return {
-          title: "Payment Successful",
+          title: 'Payment Successful',
           message: `Your payment for ${data.organizationName} was processed successfully.`,
           highlight: `<p style="margin: 0;">✅ <strong>Payment Received</strong></p><p style="margin: 8px 0 0 0;">Thank you for your payment!</p>`,
-          highlightClass: "success",
-          buttonText: "View Invoice",
+          highlightClass: 'success',
+          buttonText: 'View Invoice',
         };
     }
   };
@@ -313,7 +313,7 @@ const createSubscriptionEmailHtml = (data: SubscriptionNotificationData): string
 // =============================================================================
 
 const makeEmailNotificationService = Effect.gen(function* () {
-  const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+  const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   const sendEmail = (to: string, subject: string, html: string): Effect.Effect<void, EmailError> =>
     Effect.tryPromise({
@@ -349,7 +349,7 @@ const makeEmailNotificationService = Effect.gen(function* () {
 
     sendVideoProcessingNotification: (data) => {
       const subject =
-        data.status === "completed"
+        data.status === 'completed'
           ? `Your video "${data.videoTitle}" is ready!`
           : `Video processing failed: "${data.videoTitle}"`;
       const html = createVideoProcessingEmailHtml(data);
@@ -358,14 +358,14 @@ const makeEmailNotificationService = Effect.gen(function* () {
 
     sendTrialEndingNotification: (data) => {
       const daysLeft = Math.ceil((data.trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      const subject = `Your Nuclom trial ends in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`;
+      const subject = `Your Nuclom trial ends in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
       const html = createTrialEndingEmailHtml(data);
       return sendEmail(data.recipientEmail, subject, html);
     },
 
     sendSubscriptionNotification: (data) => {
       const subjects = {
-        created: `Welcome to Nuclom ${data.planName || "Pro"}!`,
+        created: `Welcome to Nuclom ${data.planName || 'Pro'}!`,
         updated: `Your Nuclom subscription has been updated`,
         canceled: `Your Nuclom subscription has been canceled`,
         payment_failed: `Action required: Payment failed for your Nuclom subscription`,

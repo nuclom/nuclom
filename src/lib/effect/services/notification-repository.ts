@@ -4,12 +4,12 @@
  * Provides type-safe database operations for notifications.
  */
 
-import { and, desc, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import type { Notification, User } from "@/lib/db/schema";
-import { comments, notifications, users, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import type { Notification, User } from '@/lib/db/schema';
+import { comments, notifications, users, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -20,19 +20,19 @@ export type NotificationWithActor = Notification & {
 };
 
 export type NotificationType =
-  | "comment_reply"
-  | "comment_mention"
-  | "new_comment_on_video"
-  | "video_shared"
-  | "video_processing_complete"
-  | "video_processing_failed"
-  | "invitation_received"
-  | "trial_ending"
-  | "subscription_created"
-  | "subscription_updated"
-  | "subscription_canceled"
-  | "payment_failed"
-  | "payment_succeeded";
+  | 'comment_reply'
+  | 'comment_mention'
+  | 'new_comment_on_video'
+  | 'video_shared'
+  | 'video_processing_complete'
+  | 'video_processing_failed'
+  | 'invitation_received'
+  | 'trial_ending'
+  | 'subscription_created'
+  | 'subscription_updated'
+  | 'subscription_canceled'
+  | 'payment_failed'
+  | 'payment_succeeded';
 
 export interface CreateNotificationInput {
   readonly userId: string;
@@ -103,7 +103,7 @@ export interface NotificationRepositoryService {
 // Notification Repository Tag
 // =============================================================================
 
-export class NotificationRepository extends Context.Tag("NotificationRepository")<
+export class NotificationRepository extends Context.Tag('NotificationRepository')<
   NotificationRepository,
   NotificationRepositoryService
 >() {}
@@ -147,8 +147,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch notifications",
-          operation: "getNotifications",
+          message: 'Failed to fetch notifications',
+          operation: 'getNotifications',
           cause: error,
         }),
     });
@@ -164,8 +164,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch unread count",
-          operation: "getUnreadCount",
+          message: 'Failed to fetch unread count',
+          operation: 'getUnreadCount',
           cause: error,
         }),
     });
@@ -178,8 +178,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create notification",
-          operation: "createNotification",
+          message: 'Failed to create notification',
+          operation: 'createNotification',
           cause: error,
         }),
     });
@@ -214,10 +214,10 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
           .insert(notifications)
           .values({
             userId: parentComment.authorId,
-            type: "comment_reply",
-            title: "New reply to your comment",
-            body: `${actor?.name || "Someone"} replied to your comment`,
-            resourceType: "video",
+            type: 'comment_reply',
+            title: 'New reply to your comment',
+            body: `${actor?.name || 'Someone'} replied to your comment`,
+            resourceType: 'video',
             resourceId: videoId,
             actorId,
           })
@@ -227,8 +227,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create comment reply notification",
-          operation: "notifyCommentReply",
+          message: 'Failed to create comment reply notification',
+          operation: 'notifyCommentReply',
           cause: error,
         }),
     });
@@ -259,10 +259,10 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
           .insert(notifications)
           .values({
             userId: video.authorId,
-            type: "new_comment_on_video",
-            title: "New comment on your video",
-            body: `${actor?.name || "Someone"} commented on "${video.title}"`,
-            resourceType: "video",
+            type: 'new_comment_on_video',
+            title: 'New comment on your video',
+            body: `${actor?.name || 'Someone'} commented on "${video.title}"`,
+            resourceType: 'video',
             resourceId: videoId,
             actorId,
           })
@@ -272,8 +272,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create new comment notification",
-          operation: "notifyNewCommentOnVideo",
+          message: 'Failed to create new comment notification',
+          operation: 'notifyNewCommentOnVideo',
           cause: error,
         }),
     });
@@ -290,8 +290,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to mark notification as read",
-            operation: "markAsRead",
+            message: 'Failed to mark notification as read',
+            operation: 'markAsRead',
             cause: error,
           }),
       });
@@ -299,8 +299,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Notification not found",
-            entity: "Notification",
+            message: 'Notification not found',
+            entity: 'Notification',
             id,
           }),
         );
@@ -321,8 +321,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to mark all notifications as read",
-          operation: "markAllAsRead",
+          message: 'Failed to mark all notifications as read',
+          operation: 'markAllAsRead',
           cause: error,
         }),
     });
@@ -338,8 +338,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete notification",
-            operation: "deleteNotification",
+            message: 'Failed to delete notification',
+            operation: 'deleteNotification',
             cause: error,
           }),
       });
@@ -347,8 +347,8 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Notification not found",
-            entity: "Notification",
+            message: 'Notification not found',
+            entity: 'Notification',
             id,
           }),
         );

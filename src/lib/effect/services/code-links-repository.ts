@@ -5,11 +5,11 @@
  * between videos and GitHub code artifacts (PRs, issues, commits, files).
  */
 
-import { and, desc, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { type CodeLinkType, codeLinks, users, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { type CodeLinkType, codeLinks, users, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -160,7 +160,7 @@ export interface CodeLinksRepositoryService {
 // Code Links Repository Tag
 // =============================================================================
 
-export class CodeLinksRepository extends Context.Tag("CodeLinksRepository")<
+export class CodeLinksRepository extends Context.Tag('CodeLinksRepository')<
   CodeLinksRepository,
   CodeLinksRepositoryService
 >() {}
@@ -213,8 +213,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch code links for video",
-          operation: "getCodeLinksForVideo",
+          message: 'Failed to fetch code links for video',
+          operation: 'getCodeLinksForVideo',
           cause: error,
         }),
     });
@@ -273,8 +273,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch code links by artifact",
-          operation: "getCodeLinksByArtifact",
+          message: 'Failed to fetch code links by artifact',
+          operation: 'getCodeLinksByArtifact',
           cause: error,
         }),
     });
@@ -326,8 +326,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch code links for repository",
-          operation: "getCodeLinksForRepo",
+          message: 'Failed to fetch code links for repository',
+          operation: 'getCodeLinksForRepo',
           cause: error,
         }),
     });
@@ -340,8 +340,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch code link",
-            operation: "getCodeLink",
+            message: 'Failed to fetch code link',
+            operation: 'getCodeLink',
             cause: error,
           }),
       });
@@ -349,8 +349,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Code link not found",
-            entity: "CodeLink",
+            message: 'Code link not found',
+            entity: 'CodeLink',
             id,
           }),
         );
@@ -367,8 +367,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create code link",
-          operation: "createCodeLink",
+          message: 'Failed to create code link',
+          operation: 'createCodeLink',
           cause: error,
         }),
     });
@@ -384,8 +384,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create code links",
-          operation: "createCodeLinks",
+          message: 'Failed to create code links',
+          operation: 'createCodeLinks',
           cause: error,
         }),
     });
@@ -405,8 +405,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update code link",
-            operation: "updateCodeLink",
+            message: 'Failed to update code link',
+            operation: 'updateCodeLink',
             cause: error,
           }),
       });
@@ -414,8 +414,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Code link not found",
-            entity: "CodeLink",
+            message: 'Code link not found',
+            entity: 'CodeLink',
             id,
           }),
         );
@@ -432,8 +432,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete code link",
-            operation: "deleteCodeLink",
+            message: 'Failed to delete code link',
+            operation: 'deleteCodeLink',
             cause: error,
           }),
       });
@@ -441,8 +441,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Code link not found",
-            entity: "CodeLink",
+            message: 'Code link not found',
+            entity: 'CodeLink',
             id,
           }),
         );
@@ -460,8 +460,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete auto-detected links",
-          operation: "deleteAutoDetectedLinks",
+          message: 'Failed to delete auto-detected links',
+          operation: 'deleteAutoDetectedLinks',
           cause: error,
         }),
     });
@@ -484,8 +484,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get repository summary",
-          operation: "getRepoSummary",
+          message: 'Failed to get repository summary',
+          operation: 'getRepoSummary',
           cause: error,
         }),
     });
@@ -525,8 +525,8 @@ const makeCodeLinksRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to search videos for repository",
-          operation: "searchVideosForRepo",
+          message: 'Failed to search videos for repository',
+          operation: 'searchVideosForRepo',
           cause: error,
         }),
     });

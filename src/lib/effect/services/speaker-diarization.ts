@@ -9,20 +9,20 @@
  * with combined transcription capabilities.
  */
 
-import { Context, Data, Effect, Layer } from "effect";
-import { env } from "@/lib/env/server";
+import { Context, Data, Effect, Layer } from 'effect';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Error Types
 // =============================================================================
 
-export class DiarizationError extends Data.TaggedError("DiarizationError")<{
+export class DiarizationError extends Data.TaggedError('DiarizationError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
 }> {}
 
-export class DiarizationNotConfiguredError extends Data.TaggedError("DiarizationNotConfiguredError")<{
+export class DiarizationNotConfiguredError extends Data.TaggedError('DiarizationNotConfiguredError')<{
   readonly message: string;
 }> {}
 
@@ -110,7 +110,7 @@ export interface SpeakerDiarizationServiceInterface {
 // Speaker Diarization Service Tag
 // =============================================================================
 
-export class SpeakerDiarization extends Context.Tag("SpeakerDiarization")<
+export class SpeakerDiarization extends Context.Tag('SpeakerDiarization')<
   SpeakerDiarization,
   SpeakerDiarizationServiceInterface
 >() {}
@@ -137,7 +137,7 @@ interface AssemblyAIUtterance {
 
 interface AssemblyAITranscriptResponse {
   id: string;
-  status: "queued" | "processing" | "completed" | "error";
+  status: 'queued' | 'processing' | 'completed' | 'error';
   text?: string;
   utterances?: AssemblyAIUtterance[];
   audio_duration?: number;
@@ -149,7 +149,7 @@ interface AssemblyAITranscriptResponse {
 // Speaker Diarization Service Implementation
 // =============================================================================
 
-const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
+const ASSEMBLYAI_API_URL = 'https://api.assemblyai.com/v2';
 const POLLING_INTERVAL_MS = 3000;
 const MAX_POLLING_ATTEMPTS = 200; // ~10 minutes max
 
@@ -167,7 +167,7 @@ const makeService = Effect.gen(function* () {
       if (!apiKey) {
         return yield* Effect.fail(
           new DiarizationNotConfiguredError({
-            message: "AssemblyAI API key not configured. Please set ASSEMBLYAI_API_KEY environment variable.",
+            message: 'AssemblyAI API key not configured. Please set ASSEMBLYAI_API_KEY environment variable.',
           }),
         );
       }
@@ -207,10 +207,10 @@ const submitTranscription = (
       };
 
       const response = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
-        method: "POST",
+        method: 'POST',
         headers: {
           Authorization: apiKey,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
       });
@@ -225,8 +225,8 @@ const submitTranscription = (
     },
     catch: (error) =>
       new DiarizationError({
-        message: "Failed to submit transcription request",
-        operation: "submitTranscription",
+        message: 'Failed to submit transcription request',
+        operation: 'submitTranscription',
         cause: error,
       }),
   });
@@ -242,15 +242,15 @@ const pollForCompletion = (
     for (let attempt = 0; attempt < MAX_POLLING_ATTEMPTS; attempt++) {
       const status = yield* checkTranscriptStatus(apiKey, transcriptId);
 
-      if (status.status === "completed") {
+      if (status.status === 'completed') {
         return status;
       }
 
-      if (status.status === "error") {
+      if (status.status === 'error') {
         return yield* Effect.fail(
           new DiarizationError({
-            message: status.error || "Transcription failed",
-            operation: "pollForCompletion",
+            message: status.error || 'Transcription failed',
+            operation: 'pollForCompletion',
           }),
         );
       }
@@ -261,8 +261,8 @@ const pollForCompletion = (
 
     return yield* Effect.fail(
       new DiarizationError({
-        message: "Transcription timed out after maximum polling attempts",
-        operation: "pollForCompletion",
+        message: 'Transcription timed out after maximum polling attempts',
+        operation: 'pollForCompletion',
       }),
     );
   });
@@ -291,8 +291,8 @@ const checkTranscriptStatus = (
     },
     catch: (error) =>
       new DiarizationError({
-        message: "Failed to check transcript status",
-        operation: "checkTranscriptStatus",
+        message: 'Failed to check transcript status',
+        operation: 'checkTranscriptStatus',
         cause: error,
       }),
   });
@@ -340,7 +340,7 @@ const processResult = (response: AssemblyAITranscriptResponse): DiarizationResul
   speakers.sort((a, b) => b.totalSpeakingTime - a.totalSpeakingTime);
 
   return {
-    transcript: response.text || "",
+    transcript: response.text || '',
     segments,
     speakers,
     duration: durationMs,

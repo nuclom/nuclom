@@ -1,7 +1,7 @@
-import { ArrowLeft, FileQuestion, Home } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, FileQuestion, Home } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function NotFound() {
   return (

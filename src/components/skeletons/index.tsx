@@ -5,9 +5,9 @@
  * Each skeleton mimics the layout of its corresponding component.
  */
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Video Skeletons
@@ -68,7 +68,7 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
   return (
     <div className="flex items-center gap-4 px-4 py-3 border-b">
       {Array.from({ length: columns }).map((_, i) => (
-        <Skeleton key={i} className={cn("h-4", i === 0 ? "w-8" : i === 1 ? "flex-1" : "w-24")} />
+        <Skeleton key={i} className={cn('h-4', i === 0 ? 'w-8' : i === 1 ? 'flex-1' : 'w-24')} />
       ))}
     </div>
   );
@@ -79,7 +79,7 @@ export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; column
     <div className="rounded-lg border">
       <div className="flex items-center gap-4 px-4 py-3 bg-muted/50 border-b">
         {Array.from({ length: columns }).map((_, i) => (
-          <Skeleton key={i} className={cn("h-4", i === 0 ? "w-8" : i === 1 ? "flex-1" : "w-24")} />
+          <Skeleton key={i} className={cn('h-4', i === 0 ? 'w-8' : i === 1 ? 'flex-1' : 'w-24')} />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, i) => (
@@ -299,20 +299,20 @@ export function LoadingOverlay({ show, children }: LoadingOverlayProps) {
 }
 
 interface SpinnerProps {
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export function Spinner({ size = "md", className }: SpinnerProps) {
+export function Spinner({ size = 'md', className }: SpinnerProps) {
   const sizeClasses = {
-    sm: "h-4 w-4 border-2",
-    md: "h-6 w-6 border-2",
-    lg: "h-8 w-8 border-4",
+    sm: 'h-4 w-4 border-2',
+    md: 'h-6 w-6 border-2',
+    lg: 'h-8 w-8 border-4',
   };
 
   return (
     <div
-      className={cn("animate-spin rounded-full border-primary border-t-transparent", sizeClasses[size], className)}
+      className={cn('animate-spin rounded-full border-primary border-t-transparent', sizeClasses[size], className)}
     />
   );
 }

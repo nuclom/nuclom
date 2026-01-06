@@ -6,7 +6,7 @@
  *
  * @see https://www.better-auth.com/docs/plugins/organization
  */
-import { createAccessControl } from "better-auth/plugins/access";
+import { createAccessControl } from 'better-auth/plugins/access';
 
 /**
  * Permission statement defining all resources and their possible actions.
@@ -14,40 +14,40 @@ import { createAccessControl } from "better-auth/plugins/access";
  */
 export const permissionStatement = {
   // Video content management
-  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
+  video: ['create', 'read', 'update', 'delete', 'share', 'download', 'comment', 'manage'],
 
   // Channel management
-  channel: ["create", "read", "update", "delete", "manage"],
+  channel: ['create', 'read', 'update', 'delete', 'manage'],
 
   // Collection management
-  collection: ["create", "read", "update", "delete", "share", "manage"],
+  collection: ['create', 'read', 'update', 'delete', 'share', 'manage'],
 
   // Comment management
-  comment: ["create", "read", "update", "delete", "comment"],
+  comment: ['create', 'read', 'update', 'delete', 'comment'],
 
   // Member management
-  member: ["read", "invite", "manage", "admin"],
+  member: ['read', 'invite', 'manage', 'admin'],
 
   // Organization settings
-  settings: ["read", "update", "manage", "admin"],
+  settings: ['read', 'update', 'manage', 'admin'],
 
   // Billing management
-  billing: ["read", "update", "manage", "admin"],
+  billing: ['read', 'update', 'manage', 'admin'],
 
   // Analytics access
-  analytics: ["read"],
+  analytics: ['read'],
 
   // Integration management
-  integration: ["create", "read", "update", "delete", "manage"],
+  integration: ['create', 'read', 'update', 'delete', 'manage'],
 
   // Audit log access
-  audit_log: ["read", "download"],
+  audit_log: ['read', 'download'],
 
   // Organization-level permissions (required by Better Auth)
-  organization: ["update", "delete"],
+  organization: ['update', 'delete'],
 
   // Invitation management (required by Better Auth)
-  invitation: ["create", "cancel"],
+  invitation: ['create', 'cancel'],
 } as const;
 
 /**
@@ -65,18 +65,18 @@ export const ac = createAccessControl(permissionStatement);
  * - Integrations and audit logs
  */
 export const ownerRole = ac.newRole({
-  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
-  channel: ["create", "read", "update", "delete", "manage"],
-  collection: ["create", "read", "update", "delete", "share", "manage"],
-  comment: ["create", "read", "update", "delete", "comment"],
-  member: ["read", "invite", "manage", "admin"],
-  settings: ["read", "update", "manage", "admin"],
-  billing: ["read", "update", "manage", "admin"],
-  analytics: ["read"],
-  integration: ["create", "read", "update", "delete", "manage"],
-  audit_log: ["read", "download"],
-  organization: ["update", "delete"],
-  invitation: ["create", "cancel"],
+  video: ['create', 'read', 'update', 'delete', 'share', 'download', 'comment', 'manage'],
+  channel: ['create', 'read', 'update', 'delete', 'manage'],
+  collection: ['create', 'read', 'update', 'delete', 'share', 'manage'],
+  comment: ['create', 'read', 'update', 'delete', 'comment'],
+  member: ['read', 'invite', 'manage', 'admin'],
+  settings: ['read', 'update', 'manage', 'admin'],
+  billing: ['read', 'update', 'manage', 'admin'],
+  analytics: ['read'],
+  integration: ['create', 'read', 'update', 'delete', 'manage'],
+  audit_log: ['read', 'download'],
+  organization: ['update', 'delete'],
+  invitation: ['create', 'cancel'],
 });
 
 /**
@@ -90,18 +90,18 @@ export const ownerRole = ac.newRole({
  * - Integrations and audit logs (read-only)
  */
 export const adminRole = ac.newRole({
-  video: ["create", "read", "update", "delete", "share", "download", "comment", "manage"],
-  channel: ["create", "read", "update", "delete", "manage"],
-  collection: ["create", "read", "update", "delete", "share", "manage"],
-  comment: ["create", "read", "update", "delete", "comment"],
-  member: ["read", "invite", "manage"],
-  settings: ["read", "update", "manage"],
-  billing: ["read"],
-  analytics: ["read"],
-  integration: ["create", "read", "update", "delete", "manage"],
-  audit_log: ["read"],
-  organization: ["update"],
-  invitation: ["create", "cancel"],
+  video: ['create', 'read', 'update', 'delete', 'share', 'download', 'comment', 'manage'],
+  channel: ['create', 'read', 'update', 'delete', 'manage'],
+  collection: ['create', 'read', 'update', 'delete', 'share', 'manage'],
+  comment: ['create', 'read', 'update', 'delete', 'comment'],
+  member: ['read', 'invite', 'manage'],
+  settings: ['read', 'update', 'manage'],
+  billing: ['read'],
+  analytics: ['read'],
+  integration: ['create', 'read', 'update', 'delete', 'manage'],
+  audit_log: ['read'],
+  organization: ['update'],
+  invitation: ['create', 'cancel'],
 });
 
 /**
@@ -114,12 +114,12 @@ export const adminRole = ac.newRole({
  * - Read-only member and analytics access
  */
 export const editorRole = ac.newRole({
-  video: ["create", "read", "update", "share", "download", "comment"],
-  channel: ["read"],
-  collection: ["create", "read", "update", "share"],
-  comment: ["create", "read", "update", "delete", "comment"],
-  member: ["read"],
-  analytics: ["read"],
+  video: ['create', 'read', 'update', 'share', 'download', 'comment'],
+  channel: ['read'],
+  collection: ['create', 'read', 'update', 'share'],
+  comment: ['create', 'read', 'update', 'delete', 'comment'],
+  member: ['read'],
+  analytics: ['read'],
 });
 
 /**
@@ -132,12 +132,12 @@ export const editorRole = ac.newRole({
  * - View analytics
  */
 export const memberRole = ac.newRole({
-  video: ["read", "comment", "download"],
-  channel: ["read"],
-  collection: ["read"],
-  comment: ["read", "comment"],
-  member: ["read"],
-  analytics: ["read"],
+  video: ['read', 'comment', 'download'],
+  channel: ['read'],
+  collection: ['read'],
+  comment: ['read', 'comment'],
+  member: ['read'],
+  analytics: ['read'],
 });
 
 /**

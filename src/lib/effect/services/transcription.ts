@@ -9,24 +9,24 @@
  * for text generation, Replicate for audio/video processing).
  */
 
-import { Context, Effect, Layer } from "effect";
-import Replicate from "replicate";
-import type { TranscriptSegment } from "@/lib/db/schema";
+import { Context, Effect, Layer } from 'effect';
+import Replicate from 'replicate';
+import type { TranscriptSegment } from '@/lib/db/schema';
 
 // =============================================================================
 // Error Types
 // =============================================================================
 
-import { Data } from "effect";
-import { env } from "@/lib/env/server";
+import { Data } from 'effect';
+import { env } from '@/lib/env/server';
 
-export class TranscriptionError extends Data.TaggedError("TranscriptionError")<{
+export class TranscriptionError extends Data.TaggedError('TranscriptionError')<{
   readonly message: string;
   readonly operation?: string;
   readonly cause?: unknown;
 }> {}
 
-export class AudioExtractionError extends Data.TaggedError("AudioExtractionError")<{
+export class AudioExtractionError extends Data.TaggedError('AudioExtractionError')<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -67,13 +67,13 @@ export interface TranscriptionServiceInterface {
 // Transcription Service Tag
 // =============================================================================
 
-export class Transcription extends Context.Tag("Transcription")<Transcription, TranscriptionServiceInterface>() {}
+export class Transcription extends Context.Tag('Transcription')<Transcription, TranscriptionServiceInterface>() {}
 
 // =============================================================================
 // Replicate Model
 // =============================================================================
 
-const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
+const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334';
 
 // =============================================================================
 // Transcription Service Implementation
@@ -90,13 +90,13 @@ const makeTranscriptionService = Effect.gen(function* () {
 
   const transcribeAudio = (
     _audioBuffer: Buffer,
-    _filename = "audio.mp3",
+    _filename = 'audio.mp3',
   ): Effect.Effect<TranscriptionResult, TranscriptionError> =>
     Effect.fail(
       new TranscriptionError({
         message:
-          "Direct buffer transcription not supported with Replicate. Use transcribeFromUrl with a publicly accessible URL.",
-        operation: "transcribeAudio",
+          'Direct buffer transcription not supported with Replicate. Use transcribeFromUrl with a publicly accessible URL.',
+        operation: 'transcribeAudio',
       }),
     );
 
@@ -105,8 +105,8 @@ const makeTranscriptionService = Effect.gen(function* () {
       if (!replicate) {
         return yield* Effect.fail(
           new TranscriptionError({
-            message: "Replicate API token not configured. Please set REPLICATE_API_TOKEN environment variable.",
-            operation: "transcribeFromUrl",
+            message: 'Replicate API token not configured. Please set REPLICATE_API_TOKEN environment variable.',
+            operation: 'transcribeFromUrl',
           }),
         );
       }
@@ -116,11 +116,11 @@ const makeTranscriptionService = Effect.gen(function* () {
           return (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
             input: {
               audio: videoUrl,
-              model: "large-v3",
+              model: 'large-v3',
               translate: false,
               temperature: 0,
-              transcription: "plain text",
-              suppress_tokens: "-1",
+              transcription: 'plain text',
+              suppress_tokens: '-1',
               logprob_threshold: -1,
               no_speech_threshold: 0.6,
               condition_on_previous_text: true,
@@ -134,8 +134,8 @@ const makeTranscriptionService = Effect.gen(function* () {
         },
         catch: (error) =>
           new TranscriptionError({
-            message: "Failed to transcribe video",
-            operation: "transcribeFromUrl",
+            message: 'Failed to transcribe video',
+            operation: 'transcribeFromUrl',
             cause: error,
           }),
       });
@@ -151,7 +151,7 @@ const makeTranscriptionService = Effect.gen(function* () {
       const duration = segments.length > 0 ? Math.max(...segments.map((s) => s.endTime)) : 0;
 
       return {
-        transcript: output.transcription || "",
+        transcript: output.transcription || '',
         segments,
         duration,
         language: output.detected_language,

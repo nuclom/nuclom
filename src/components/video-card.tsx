@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { Clock, Flag, MoreVertical, Play } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { ReportDialog } from "@/components/moderation/report-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Clock, Flag, MoreVertical, Play } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ReportDialog } from '@/components/moderation/report-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { formatRelativeTime } from "@/lib/format-utils";
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
-import type { VideoWithAuthor } from "@/lib/types";
+} from '@/components/ui/dropdown-menu';
+import { formatRelativeTime } from '@/lib/format-utils';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
+import type { VideoWithAuthor } from '@/lib/types';
 
 interface VideoCardProps {
   video: VideoWithAuthor & { views?: number };
@@ -35,7 +35,7 @@ export function VideoCard({
   progress = 0,
   showReportOption = true,
 }: VideoCardProps) {
-  const organizationSlug = organization || "default";
+  const organizationSlug = organization || 'default';
 
   return (
     <div className="group relative">
@@ -45,7 +45,7 @@ export function VideoCard({
             {/* Thumbnail */}
             <div className="relative aspect-video overflow-hidden rounded-xl border bg-muted group-hover:ring-2 ring-primary/50 transition-all duration-200">
               <Image
-                src={video.thumbnailUrl || "/placeholder.svg"}
+                src={video.thumbnailUrl || '/placeholder.svg'}
                 alt={video.title}
                 fill
                 sizes={IMAGE_SIZES.videoCard}
@@ -88,9 +88,9 @@ export function VideoCard({
             {/* Content */}
             <div className="flex items-start gap-3 mt-3">
               <Avatar className="h-9 w-9 ring-2 ring-background">
-                <AvatarImage src={video.author.image || "/placeholder.svg"} alt={video.author.name || "Author"} />
+                <AvatarImage src={video.author.image || '/placeholder.svg'} alt={video.author.name || 'Author'} />
                 <AvatarFallback className="text-xs font-medium">
-                  {video.author.name ? video.author.name.charAt(0).toUpperCase() : "A"}
+                  {video.author.name ? video.author.name.charAt(0).toUpperCase() : 'A'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">

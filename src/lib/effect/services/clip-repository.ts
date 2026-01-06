@@ -4,8 +4,8 @@
  * Provides type-safe database operations for video clips, moments, highlight reels, and quote cards.
  */
 
-import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
 import {
   type ClipMetadata,
   type ClipStatus,
@@ -20,11 +20,11 @@ import {
   users,
   videoClips,
   videoMoments,
-} from "@/lib/db/schema";
-import type { PaginatedResponse } from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
-import { Storage } from "./storage";
+} from '@/lib/db/schema';
+import type { PaginatedResponse } from '@/lib/types';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
+import { Storage } from './storage';
 
 // =============================================================================
 // Types
@@ -247,7 +247,7 @@ export interface ClipRepositoryService {
 // Clip Repository Tag
 // =============================================================================
 
-export class ClipRepository extends Context.Tag("ClipRepository")<ClipRepository, ClipRepositoryService>() {}
+export class ClipRepository extends Context.Tag('ClipRepository')<ClipRepository, ClipRepositoryService>() {}
 
 // =============================================================================
 // Clip Repository Implementation
@@ -272,8 +272,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video moments",
-          operation: "getMoments",
+          message: 'Failed to fetch video moments',
+          operation: 'getMoments',
           cause: error,
         }),
     });
@@ -292,8 +292,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video moments by type",
-          operation: "getMomentsByType",
+          message: 'Failed to fetch video moments by type',
+          operation: 'getMomentsByType',
           cause: error,
         }),
     });
@@ -306,8 +306,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create video moment",
-          operation: "createMoment",
+          message: 'Failed to create video moment',
+          operation: 'createMoment',
           cause: error,
         }),
     });
@@ -320,8 +320,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create video moments batch",
-          operation: "createMomentsBatch",
+          message: 'Failed to create video moments batch',
+          operation: 'createMomentsBatch',
           cause: error,
         }),
     });
@@ -333,8 +333,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete video moments",
-          operation: "deleteMomentsByVideoId",
+          message: 'Failed to delete video moments',
+          operation: 'deleteMomentsByVideoId',
           cause: error,
         }),
     });
@@ -415,8 +415,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video clips",
-          operation: "getClips",
+          message: 'Failed to fetch video clips',
+          operation: 'getClips',
           cause: error,
         }),
     });
@@ -493,8 +493,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch organization clips",
-          operation: "getClipsByOrganization",
+          message: 'Failed to fetch organization clips',
+          operation: 'getClipsByOrganization',
           cause: error,
         }),
     });
@@ -547,8 +547,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch clip",
-            operation: "getClip",
+            message: 'Failed to fetch clip',
+            operation: 'getClip',
             cause: error,
           }),
       });
@@ -556,8 +556,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!clipData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Clip not found",
-            entity: "VideoClip",
+            message: 'Clip not found',
+            entity: 'VideoClip',
             id,
           }),
         );
@@ -618,8 +618,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create clip",
-          operation: "createClip",
+          message: 'Failed to create clip',
+          operation: 'createClip',
           cause: error,
         }),
     });
@@ -639,8 +639,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update clip",
-            operation: "updateClip",
+            message: 'Failed to update clip',
+            operation: 'updateClip',
             cause: error,
           }),
       });
@@ -648,8 +648,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Clip not found",
-            entity: "VideoClip",
+            message: 'Clip not found',
+            entity: 'VideoClip',
             id,
           }),
         );
@@ -668,8 +668,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch clip for deletion",
-            operation: "deleteClip.fetch",
+            message: 'Failed to fetch clip for deletion',
+            operation: 'deleteClip.fetch',
             cause: error,
           }),
       });
@@ -677,8 +677,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!clipData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Clip not found",
-            entity: "VideoClip",
+            message: 'Clip not found',
+            entity: 'VideoClip',
             id,
           }),
         );
@@ -703,8 +703,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete clip",
-            operation: "deleteClip",
+            message: 'Failed to delete clip',
+            operation: 'deleteClip',
             cause: error,
           }),
       });
@@ -781,8 +781,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch highlight reels",
-          operation: "getHighlightReels",
+          message: 'Failed to fetch highlight reels',
+          operation: 'getHighlightReels',
           cause: error,
         }),
     });
@@ -830,8 +830,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch highlight reel",
-            operation: "getHighlightReel",
+            message: 'Failed to fetch highlight reel',
+            operation: 'getHighlightReel',
             cause: error,
           }),
       });
@@ -839,8 +839,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!reelData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Highlight reel not found",
-            entity: "HighlightReel",
+            message: 'Highlight reel not found',
+            entity: 'HighlightReel',
             id,
           }),
         );
@@ -898,8 +898,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create highlight reel",
-          operation: "createHighlightReel",
+          message: 'Failed to create highlight reel',
+          operation: 'createHighlightReel',
           cause: error,
         }),
     });
@@ -919,8 +919,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update highlight reel",
-            operation: "updateHighlightReel",
+            message: 'Failed to update highlight reel',
+            operation: 'updateHighlightReel',
             cause: error,
           }),
       });
@@ -928,8 +928,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Highlight reel not found",
-            entity: "HighlightReel",
+            message: 'Highlight reel not found',
+            entity: 'HighlightReel',
             id,
           }),
         );
@@ -946,8 +946,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch highlight reel for deletion",
-            operation: "deleteHighlightReel.fetch",
+            message: 'Failed to fetch highlight reel for deletion',
+            operation: 'deleteHighlightReel.fetch',
             cause: error,
           }),
       });
@@ -955,8 +955,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!reelData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Highlight reel not found",
-            entity: "HighlightReel",
+            message: 'Highlight reel not found',
+            entity: 'HighlightReel',
             id,
           }),
         );
@@ -980,8 +980,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete highlight reel",
-            operation: "deleteHighlightReel",
+            message: 'Failed to delete highlight reel',
+            operation: 'deleteHighlightReel',
             cause: error,
           }),
       });
@@ -1055,8 +1055,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch quote cards",
-          operation: "getQuoteCards",
+          message: 'Failed to fetch quote cards',
+          operation: 'getQuoteCards',
           cause: error,
         }),
     });
@@ -1101,8 +1101,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch quote card",
-            operation: "getQuoteCard",
+            message: 'Failed to fetch quote card',
+            operation: 'getQuoteCard',
             cause: error,
           }),
       });
@@ -1110,8 +1110,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!cardData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Quote card not found",
-            entity: "QuoteCard",
+            message: 'Quote card not found',
+            entity: 'QuoteCard',
             id,
           }),
         );
@@ -1164,8 +1164,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create quote card",
-          operation: "createQuoteCard",
+          message: 'Failed to create quote card',
+          operation: 'createQuoteCard',
           cause: error,
         }),
     });
@@ -1181,8 +1181,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update quote card",
-            operation: "updateQuoteCard",
+            message: 'Failed to update quote card',
+            operation: 'updateQuoteCard',
             cause: error,
           }),
       });
@@ -1190,8 +1190,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Quote card not found",
-            entity: "QuoteCard",
+            message: 'Quote card not found',
+            entity: 'QuoteCard',
             id,
           }),
         );
@@ -1208,8 +1208,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch quote card for deletion",
-            operation: "deleteQuoteCard.fetch",
+            message: 'Failed to fetch quote card for deletion',
+            operation: 'deleteQuoteCard.fetch',
             cause: error,
           }),
       });
@@ -1217,8 +1217,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (!cardData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Quote card not found",
-            entity: "QuoteCard",
+            message: 'Quote card not found',
+            entity: 'QuoteCard',
             id,
           }),
         );
@@ -1242,8 +1242,8 @@ const makeClipRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete quote card",
-            operation: "deleteQuoteCard",
+            message: 'Failed to delete quote card',
+            operation: 'deleteQuoteCard',
             cause: error,
           }),
       });

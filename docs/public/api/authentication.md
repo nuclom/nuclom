@@ -304,7 +304,6 @@ Required environment variables for authentication:
 ```env
 # Better Auth
 BETTER_AUTH_SECRET=your-secret-key-here
-BETTER_AUTH_URL=http://localhost:3000
 
 # OAuth Providers
 GITHUB_CLIENT_ID=your-github-client-id

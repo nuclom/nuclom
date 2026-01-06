@@ -6,7 +6,7 @@
  * across service boundaries.
  */
 
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer } from 'effect';
 
 // =============================================================================
 // Types
@@ -50,7 +50,7 @@ export interface RequestContextService {
 // Service Definition
 // =============================================================================
 
-export class RequestContextTag extends Context.Tag("RequestContext")<RequestContextTag, RequestContextService>() {}
+export class RequestContextTag extends Context.Tag('RequestContext')<RequestContextTag, RequestContextService>() {}
 
 // =============================================================================
 // Implementation
@@ -109,10 +109,10 @@ export function extractRequestContext(request: Request): CreateRequestContextInp
 
   return {
     // Use existing correlation ID from upstream services if present
-    correlationId: headers.get("x-correlation-id") ?? headers.get("x-request-id") ?? undefined,
+    correlationId: headers.get('x-correlation-id') ?? headers.get('x-request-id') ?? undefined,
     path: url.pathname,
     method: request.method,
-    userAgent: headers.get("user-agent") ?? undefined,
+    userAgent: headers.get('user-agent') ?? undefined,
   };
 }
 
@@ -170,7 +170,7 @@ export const enrichContextWithUser = (userId: string, organizationId?: string) =
  * Add correlation ID to response headers for tracing.
  */
 export function addCorrelationHeader(headers: Headers, correlationId: string): Headers {
-  headers.set("x-correlation-id", correlationId);
+  headers.set('x-correlation-id', correlationId);
   return headers;
 }
 

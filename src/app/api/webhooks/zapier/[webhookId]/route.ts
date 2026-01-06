@@ -1,11 +1,11 @@
-import { Effect, Layer, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { UnauthorizedError, ValidationError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
-import { safeParse } from "@/lib/validation";
+import { Effect, Layer, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { UnauthorizedError, ValidationError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { ZapierWebhooksService, ZapierWebhooksServiceLive } from '@/lib/effect/services/zapier-webhooks';
+import { safeParse } from '@/lib/validation';
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const WebhooksLayer = Layer.mergeAll(ZapierWebhooksWithDeps, DatabaseLive);
@@ -15,13 +15,13 @@ const UpdateWebhookSchema = Schema.Struct({
   events: Schema.optional(
     Schema.Array(
       Schema.Literal(
-        "video.uploaded",
-        "video.processed",
-        "video.shared",
-        "comment.created",
-        "comment.replied",
-        "member.joined",
-        "member.left",
+        'video.uploaded',
+        'video.processed',
+        'video.shared',
+        'comment.created',
+        'comment.replied',
+        'member.joined',
+        'member.left',
       ),
     ),
   ),
@@ -71,14 +71,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     rawBody = await request.json();
   } catch {
-    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid JSON body" }))).then(
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: 'Invalid JSON body' }))).then(
       handleEffectExit,
     );
   }
 
   const result = safeParse(UpdateWebhookSchema, rawBody);
   if (!result.success) {
-    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid request format" }))).then(
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: 'Invalid request format' }))).then(
       handleEffectExit,
     );
   }

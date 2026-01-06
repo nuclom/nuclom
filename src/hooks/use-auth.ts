@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from '@/lib/auth-client';
 
 export function useAuth() {
   const session = authClient.useSession();
@@ -20,7 +20,7 @@ export function useRequireAuth() {
   }
 
   if (!user) {
-    throw new Error("User must be authenticated to access this resource");
+    throw new Error('User must be authenticated to access this resource');
   }
 
   return { user, isLoading: false };

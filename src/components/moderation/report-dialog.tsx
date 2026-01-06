@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { AlertTriangle, Flag, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { AlertTriangle, Flag, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,15 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
 
-export type ReportResourceType = "video" | "comment" | "user";
-export type ReportCategory = "inappropriate" | "spam" | "copyright" | "harassment" | "other";
+export type ReportResourceType = 'video' | 'comment' | 'user';
+export type ReportCategory = 'inappropriate' | 'spam' | 'copyright' | 'harassment' | 'other';
 
 interface ReportDialogProps {
   resourceType: ReportResourceType;
@@ -31,42 +31,42 @@ interface ReportDialogProps {
 
 const categoryLabels: Record<ReportCategory, { label: string; description: string }> = {
   inappropriate: {
-    label: "Inappropriate Content",
-    description: "Contains nudity, violence, or other inappropriate material",
+    label: 'Inappropriate Content',
+    description: 'Contains nudity, violence, or other inappropriate material',
   },
   spam: {
-    label: "Spam or Misleading",
-    description: "Promotional content, scams, or misleading information",
+    label: 'Spam or Misleading',
+    description: 'Promotional content, scams, or misleading information',
   },
   copyright: {
-    label: "Copyright Violation",
-    description: "Infringes on intellectual property rights",
+    label: 'Copyright Violation',
+    description: 'Infringes on intellectual property rights',
   },
   harassment: {
-    label: "Harassment or Bullying",
-    description: "Targets or harasses individuals or groups",
+    label: 'Harassment or Bullying',
+    description: 'Targets or harasses individuals or groups',
   },
   other: {
-    label: "Other",
-    description: "Another issue not listed above",
+    label: 'Other',
+    description: 'Another issue not listed above',
   },
 };
 
 export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmitted }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<ReportCategory | null>(null);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const resourceLabel = resourceType === "video" ? "video" : resourceType === "comment" ? "comment" : "user";
+  const resourceLabel = resourceType === 'video' ? 'video' : resourceType === 'comment' ? 'comment' : 'user';
 
   const handleSubmit = useCallback(async () => {
     if (!category) {
       toast({
-        title: "Please select a category",
-        description: "Choose a reason for your report.",
-        variant: "destructive",
+        title: 'Please select a category',
+        description: 'Choose a reason for your report.',
+        variant: 'destructive',
       });
       return;
     }
@@ -74,9 +74,9 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resourceType,
           resourceId,
@@ -89,33 +89,33 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
 
       if (response.status === 409) {
         toast({
-          title: "Already reported",
-          description: "You have already reported this content. Our team will review it.",
+          title: 'Already reported',
+          description: 'You have already reported this content. Our team will review it.',
         });
         setOpen(false);
         return;
       }
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to submit report");
+        throw new Error(data.error || 'Failed to submit report');
       }
 
       toast({
-        title: "Report submitted",
-        description: "Thank you for your report. Our team will review it shortly.",
+        title: 'Report submitted',
+        description: 'Thank you for your report. Our team will review it shortly.',
       });
 
       // Reset and close
       setCategory(null);
-      setDescription("");
+      setDescription('');
       setOpen(false);
       onReportSubmitted?.();
     } catch (error) {
-      logger.error("Report submission error", error);
+      logger.error('Report submission error', error);
       toast({
-        title: "Error",
-        description: "Failed to submit report. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to submit report. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -126,7 +126,7 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
     if (!newOpen) {
       // Reset form when closing
       setCategory(null);
-      setDescription("");
+      setDescription('');
     }
     setOpen(newOpen);
   }, []);
@@ -157,7 +157,7 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
           {/* Category Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">What's the issue?</Label>
-            <RadioGroup value={category || ""} onValueChange={(value) => setCategory(value as ReportCategory)}>
+            <RadioGroup value={category || ''} onValueChange={(value) => setCategory(value as ReportCategory)}>
               {Object.entries(categoryLabels).map(([key, { label, description }]) => (
                 <div
                   key={key}
@@ -166,7 +166,7 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
                   className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => setCategory(key as ReportCategory)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                    if (e.key === 'Enter' || e.key === ' ') {
                       setCategory(key as ReportCategory);
                     }
                   }}
@@ -199,7 +199,7 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
           </div>
 
           <p className="text-xs text-muted-foreground">
-            By submitting this report, you agree to our{" "}
+            By submitting this report, you agree to our{' '}
             <Link href="/content-policy" className="text-primary hover:underline">
               Content Policy
             </Link>

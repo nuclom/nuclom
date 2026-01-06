@@ -1,12 +1,12 @@
-import { Users, VideoOff } from "lucide-react";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VideoCard } from "@/components/video-card";
-import { auth } from "@/lib/auth";
-import { getCachedChannel, getCachedChannelVideos, getCachedOrganizationBySlug } from "@/lib/effect";
+import { Users, VideoOff } from 'lucide-react';
+import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { Avatar } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VideoCard } from '@/components/video-card';
+import { auth } from '@/lib/auth';
+import { getCachedChannel, getCachedChannelVideos, getCachedOrganizationBySlug } from '@/lib/effect';
 
 // =============================================================================
 // Loading Skeleton Component
@@ -78,7 +78,7 @@ async function ChannelContent({ channelId, organizationSlug }: ChannelContentPro
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <Users className="h-4 w-4" />
             <span>
-              {channel.memberCount} {channel.memberCount === 1 ? "member" : "members"}
+              {channel.memberCount} {channel.memberCount === 1 ? 'member' : 'members'}
             </span>
           </div>
           {channel.description && <p className="text-muted-foreground mt-2 max-w-2xl">{channel.description}</p>}
@@ -109,7 +109,7 @@ async function ChannelLoader({ channelId, organizationSlug }: { channelId: strin
   });
 
   if (!session) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   // Verify organization exists (for access control)

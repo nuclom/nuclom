@@ -5,8 +5,8 @@
  * Sends notifications for account creation, billing events, platform usage, and errors.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { env } from "@/lib/env/server";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { env, getAppUrl } from '@/lib/env/server';
 
 // =============================================================================
 // Types
@@ -14,27 +14,27 @@ import { env } from "@/lib/env/server";
 
 export type MonitoringEventType =
   // Account events
-  | "user_registered"
-  | "organization_created"
-  | "member_invited"
-  | "member_joined"
+  | 'user_registered'
+  | 'organization_created'
+  | 'member_invited'
+  | 'member_joined'
   // Billing events
-  | "subscription_created"
-  | "subscription_upgraded"
-  | "subscription_downgraded"
-  | "subscription_canceled"
-  | "payment_succeeded"
-  | "payment_failed"
-  | "trial_started"
-  | "trial_ending"
+  | 'subscription_created'
+  | 'subscription_upgraded'
+  | 'subscription_downgraded'
+  | 'subscription_canceled'
+  | 'payment_succeeded'
+  | 'payment_failed'
+  | 'trial_started'
+  | 'trial_ending'
   // Platform usage
-  | "video_uploaded"
-  | "video_processed"
-  | "video_processing_failed"
+  | 'video_uploaded'
+  | 'video_processed'
+  | 'video_processing_failed'
   // Error events
-  | "api_error"
-  | "webhook_failed"
-  | "integration_error";
+  | 'api_error'
+  | 'webhook_failed'
+  | 'integration_error';
 
 export interface MonitoringEvent {
   readonly type: MonitoringEventType;
@@ -100,7 +100,7 @@ export interface SlackMonitoringServiceInterface {
    * Send an account event (user registration, organization creation)
    */
   readonly sendAccountEvent: (
-    type: "user_registered" | "organization_created" | "member_invited" | "member_joined",
+    type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined',
     data: {
       userId?: string;
       userName?: string;
@@ -117,14 +117,14 @@ export interface SlackMonitoringServiceInterface {
    */
   readonly sendBillingEvent: (
     type:
-      | "subscription_created"
-      | "subscription_upgraded"
-      | "subscription_downgraded"
-      | "subscription_canceled"
-      | "payment_succeeded"
-      | "payment_failed"
-      | "trial_started"
-      | "trial_ending",
+      | 'subscription_created'
+      | 'subscription_upgraded'
+      | 'subscription_downgraded'
+      | 'subscription_canceled'
+      | 'payment_succeeded'
+      | 'payment_failed'
+      | 'trial_started'
+      | 'trial_ending',
     data: {
       organizationId: string;
       organizationName: string;
@@ -141,7 +141,7 @@ export interface SlackMonitoringServiceInterface {
    * Send a video event
    */
   readonly sendVideoEvent: (
-    type: "video_uploaded" | "video_processed" | "video_processing_failed",
+    type: 'video_uploaded' | 'video_processed' | 'video_processing_failed',
     data: {
       videoId: string;
       videoTitle: string;
@@ -158,7 +158,7 @@ export interface SlackMonitoringServiceInterface {
    * Send an error event
    */
   readonly sendErrorEvent: (
-    type: "api_error" | "webhook_failed" | "integration_error",
+    type: 'api_error' | 'webhook_failed' | 'integration_error',
     data: {
       errorMessage: string;
       errorCode?: string;
@@ -177,7 +177,7 @@ export interface SlackMonitoringServiceInterface {
 // Slack Monitoring Service Tag
 // =============================================================================
 
-export class SlackMonitoring extends Context.Tag("SlackMonitoring")<
+export class SlackMonitoring extends Context.Tag('SlackMonitoring')<
   SlackMonitoring,
   SlackMonitoringServiceInterface
 >() {}
@@ -186,32 +186,32 @@ export class SlackMonitoring extends Context.Tag("SlackMonitoring")<
 // Event Categories
 // =============================================================================
 
-type EventCategory = "accounts" | "billing" | "usage" | "errors";
+type EventCategory = 'accounts' | 'billing' | 'usage' | 'errors';
 
 const getEventCategory = (type: MonitoringEventType): EventCategory => {
   const categoryMap: Record<MonitoringEventType, EventCategory> = {
     // Account events
-    user_registered: "accounts",
-    organization_created: "accounts",
-    member_invited: "accounts",
-    member_joined: "accounts",
+    user_registered: 'accounts',
+    organization_created: 'accounts',
+    member_invited: 'accounts',
+    member_joined: 'accounts',
     // Billing events
-    subscription_created: "billing",
-    subscription_upgraded: "billing",
-    subscription_downgraded: "billing",
-    subscription_canceled: "billing",
-    payment_succeeded: "billing",
-    payment_failed: "billing",
-    trial_started: "billing",
-    trial_ending: "billing",
+    subscription_created: 'billing',
+    subscription_upgraded: 'billing',
+    subscription_downgraded: 'billing',
+    subscription_canceled: 'billing',
+    payment_succeeded: 'billing',
+    payment_failed: 'billing',
+    trial_started: 'billing',
+    trial_ending: 'billing',
     // Usage events
-    video_uploaded: "usage",
-    video_processed: "usage",
-    video_processing_failed: "usage",
+    video_uploaded: 'usage',
+    video_processed: 'usage',
+    video_processing_failed: 'usage',
     // Error events
-    api_error: "errors",
-    webhook_failed: "errors",
-    integration_error: "errors",
+    api_error: 'errors',
+    webhook_failed: 'errors',
+    integration_error: 'errors',
   };
   return categoryMap[type];
 };
@@ -222,14 +222,12 @@ const getEventCategory = (type: MonitoringEventType): EventCategory => {
 
 const SlackMonitoringConfigEffect = Config.all({
   // Default webhook (fallback for all events)
-  defaultWebhook: Config.string("SLACK_MONITORING_WEBHOOK_URL").pipe(Config.option),
+  defaultWebhook: Config.string('SLACK_MONITORING_WEBHOOK_URL').pipe(Config.option),
   // Channel-specific webhooks
-  accountsWebhook: Config.string("SLACK_MONITORING_WEBHOOK_ACCOUNTS").pipe(Config.option),
-  billingWebhook: Config.string("SLACK_MONITORING_WEBHOOK_BILLING").pipe(Config.option),
-  usageWebhook: Config.string("SLACK_MONITORING_WEBHOOK_USAGE").pipe(Config.option),
-  errorsWebhook: Config.string("SLACK_MONITORING_WEBHOOK_ERRORS").pipe(Config.option),
-  // App URL for links
-  appUrl: Config.string("NEXT_PUBLIC_APP_URL").pipe(Config.option),
+  accountsWebhook: Config.string('SLACK_MONITORING_WEBHOOK_ACCOUNTS').pipe(Config.option),
+  billingWebhook: Config.string('SLACK_MONITORING_WEBHOOK_BILLING').pipe(Config.option),
+  usageWebhook: Config.string('SLACK_MONITORING_WEBHOOK_USAGE').pipe(Config.option),
+  errorsWebhook: Config.string('SLACK_MONITORING_WEBHOOK_ERRORS').pipe(Config.option),
 });
 
 // =============================================================================
@@ -238,55 +236,55 @@ const SlackMonitoringConfigEffect = Config.all({
 
 const getEventEmoji = (type: MonitoringEventType): string => {
   const emojiMap: Record<MonitoringEventType, string> = {
-    user_registered: ":wave:",
-    organization_created: ":office:",
-    member_invited: ":email:",
-    member_joined: ":handshake:",
-    subscription_created: ":tada:",
-    subscription_upgraded: ":arrow_up:",
-    subscription_downgraded: ":arrow_down:",
-    subscription_canceled: ":x:",
-    payment_succeeded: ":white_check_mark:",
-    payment_failed: ":rotating_light:",
-    trial_started: ":hourglass_flowing_sand:",
-    trial_ending: ":warning:",
-    video_uploaded: ":movie_camera:",
-    video_processed: ":clapper:",
-    video_processing_failed: ":no_entry:",
-    api_error: ":bug:",
-    webhook_failed: ":broken_heart:",
-    integration_error: ":electric_plug:",
+    user_registered: ':wave:',
+    organization_created: ':office:',
+    member_invited: ':email:',
+    member_joined: ':handshake:',
+    subscription_created: ':tada:',
+    subscription_upgraded: ':arrow_up:',
+    subscription_downgraded: ':arrow_down:',
+    subscription_canceled: ':x:',
+    payment_succeeded: ':white_check_mark:',
+    payment_failed: ':rotating_light:',
+    trial_started: ':hourglass_flowing_sand:',
+    trial_ending: ':warning:',
+    video_uploaded: ':movie_camera:',
+    video_processed: ':clapper:',
+    video_processing_failed: ':no_entry:',
+    api_error: ':bug:',
+    webhook_failed: ':broken_heart:',
+    integration_error: ':electric_plug:',
   };
-  return emojiMap[type] || ":bell:";
+  return emojiMap[type] || ':bell:';
 };
 
 const getEventTitle = (type: MonitoringEventType): string => {
   const titleMap: Record<MonitoringEventType, string> = {
-    user_registered: "New User Registered",
-    organization_created: "New Organization Created",
-    member_invited: "Member Invited",
-    member_joined: "Member Joined Organization",
-    subscription_created: "New Subscription",
-    subscription_upgraded: "Subscription Upgraded",
-    subscription_downgraded: "Subscription Downgraded",
-    subscription_canceled: "Subscription Canceled",
-    payment_succeeded: "Payment Successful",
-    payment_failed: "Payment Failed",
-    trial_started: "Trial Started",
-    trial_ending: "Trial Ending Soon",
-    video_uploaded: "Video Uploaded",
-    video_processed: "Video Processed",
-    video_processing_failed: "Video Processing Failed",
-    api_error: "API Error",
-    webhook_failed: "Webhook Delivery Failed",
-    integration_error: "Integration Error",
+    user_registered: 'New User Registered',
+    organization_created: 'New Organization Created',
+    member_invited: 'Member Invited',
+    member_joined: 'Member Joined Organization',
+    subscription_created: 'New Subscription',
+    subscription_upgraded: 'Subscription Upgraded',
+    subscription_downgraded: 'Subscription Downgraded',
+    subscription_canceled: 'Subscription Canceled',
+    payment_succeeded: 'Payment Successful',
+    payment_failed: 'Payment Failed',
+    trial_started: 'Trial Started',
+    trial_ending: 'Trial Ending Soon',
+    video_uploaded: 'Video Uploaded',
+    video_processed: 'Video Processed',
+    video_processing_failed: 'Video Processing Failed',
+    api_error: 'API Error',
+    webhook_failed: 'Webhook Delivery Failed',
+    integration_error: 'Integration Error',
   };
-  return titleMap[type] || "Platform Event";
+  return titleMap[type] || 'Platform Event';
 };
 
 const formatCurrency = (amount: number, currency: string): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
     currency: currency.toUpperCase(),
   }).format(amount / 100);
 };
@@ -320,7 +318,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
   const isConfigured =
     hasDefaultWebhook || hasAccountsWebhook || hasBillingWebhook || hasUsageWebhook || hasErrorsWebhook;
 
-  const appUrl = Option.getOrElse(config.appUrl, () => "https://app.nuclom.com");
+  const appUrl = getAppUrl();
 
   // Get the appropriate webhook URL for an event category
   const getWebhookUrl = (category: EventCategory): string | null => {
@@ -336,13 +334,13 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     };
 
     switch (category) {
-      case "accounts":
+      case 'accounts':
         return getWithFallback(config.accountsWebhook);
-      case "billing":
+      case 'billing':
         return getWithFallback(config.billingWebhook);
-      case "usage":
+      case 'usage':
         return getWithFallback(config.usageWebhook);
-      case "errors":
+      case 'errors':
         return getWithFallback(config.errorsWebhook);
       default:
         return Option.isSome(config.defaultWebhook) ? config.defaultWebhook.value : null;
@@ -353,9 +351,9 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const response = await fetch(webhookUrl, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
         });
@@ -366,7 +364,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
         }
       },
       catch: (error) =>
-        new Error(`Failed to send Slack notification: ${error instanceof Error ? error.message : "Unknown error"}`),
+        new Error(`Failed to send Slack notification: ${error instanceof Error ? error.message : 'Unknown error'}`),
     });
 
   const buildEventBlocks = (event: MonitoringEvent): SlackBlock[] => {
@@ -375,9 +373,9 @@ const makeSlackMonitoringService = Effect.gen(function* () {
 
     const blocks: SlackBlock[] = [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
+          type: 'plain_text',
           text: `${emoji} ${title}`,
           emoji: true,
         },
@@ -389,21 +387,21 @@ const makeSlackMonitoringService = Effect.gen(function* () {
 
     if (event.organizationName) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Organization:* ${event.organizationName}`,
       });
     }
 
     if (event.userName) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*User:* ${event.userName}`,
       });
     }
 
     if (event.userEmail) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Email:* ${event.userEmail}`,
       });
     }
@@ -413,49 +411,49 @@ const makeSlackMonitoringService = Effect.gen(function* () {
 
     if (data.planName) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Plan:* ${data.planName}`,
       });
     }
 
     if (data.previousPlan) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Previous Plan:* ${data.previousPlan}`,
       });
     }
 
     if (data.amount && data.currency) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Amount:* ${formatCurrency(data.amount as number, data.currency as string)}`,
       });
     }
 
     if (data.videoTitle) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Video:* ${data.videoTitle}`,
       });
     }
 
     if (data.duration) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Duration:* ${formatDuration(data.duration as number)}`,
       });
     }
 
     if (data.errorMessage) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Error:* ${data.errorMessage}`,
       });
     }
 
     if (data.endpoint) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Endpoint:* \`${data.endpoint}\``,
       });
     }
@@ -463,38 +461,38 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     if (data.trialEndsAt) {
       const trialDate = data.trialEndsAt as Date;
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Trial Ends:* ${trialDate.toLocaleDateString()}`,
       });
     }
 
     if (data.role) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Role:* ${data.role}`,
       });
     }
 
     if (data.inviterName) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Invited By:* ${data.inviterName}`,
       });
     }
 
     if (fields.length > 0) {
       blocks.push({
-        type: "section",
+        type: 'section',
         fields,
       });
     }
 
     // Add timestamp
     blocks.push({
-      type: "context",
+      type: 'context',
       elements: [
         {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `<!date^${Math.floor(event.timestamp.getTime() / 1000)}^{date_short_pretty} at {time}|${event.timestamp.toISOString()}>`,
         },
       ],
@@ -504,17 +502,17 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     if (event.organizationId) {
       const orgUrl = `${appUrl}/admin/organizations/${event.organizationId}`;
       blocks.push({
-        type: "actions",
+        type: 'actions',
         elements: [
           {
-            type: "button",
+            type: 'button',
             text: {
-              type: "plain_text",
-              text: "View Organization",
+              type: 'plain_text',
+              text: 'View Organization',
               emoji: true,
             },
             url: orgUrl,
-            action_id: "view_organization",
+            action_id: 'view_organization',
           },
         ],
       });
@@ -534,7 +532,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     }
 
     const blocks = buildEventBlocks(event);
-    const fallbackText = `${getEventEmoji(event.type)} ${getEventTitle(event.type)}${event.organizationName ? ` - ${event.organizationName}` : ""}`;
+    const fallbackText = `${getEventEmoji(event.type)} ${getEventTitle(event.type)}${event.organizationName ? ` - ${event.organizationName}` : ''}`;
 
     return sendWebhook(
       {
@@ -547,7 +545,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     );
   };
 
-  const sendAccountEvent: SlackMonitoringServiceInterface["sendAccountEvent"] = (type, data) =>
+  const sendAccountEvent: SlackMonitoringServiceInterface['sendAccountEvent'] = (type, data) =>
     sendEvent({
       type,
       timestamp: new Date(),
@@ -559,7 +557,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
       userEmail: data.userEmail,
     });
 
-  const sendBillingEvent: SlackMonitoringServiceInterface["sendBillingEvent"] = (type, data) =>
+  const sendBillingEvent: SlackMonitoringServiceInterface['sendBillingEvent'] = (type, data) =>
     sendEvent({
       type,
       timestamp: new Date(),
@@ -568,7 +566,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
       organizationName: data.organizationName,
     });
 
-  const sendVideoEvent: SlackMonitoringServiceInterface["sendVideoEvent"] = (type, data) =>
+  const sendVideoEvent: SlackMonitoringServiceInterface['sendVideoEvent'] = (type, data) =>
     sendEvent({
       type,
       timestamp: new Date(),
@@ -579,7 +577,7 @@ const makeSlackMonitoringService = Effect.gen(function* () {
       userName: data.userName,
     });
 
-  const sendErrorEvent: SlackMonitoringServiceInterface["sendErrorEvent"] = (type, data) =>
+  const sendErrorEvent: SlackMonitoringServiceInterface['sendErrorEvent'] = (type, data) =>
     sendEvent({
       type,
       timestamp: new Date(),
@@ -616,8 +614,8 @@ export const sendSlackMonitoringEvent = (event: MonitoringEvent): Effect.Effect<
   });
 
 export const sendSlackAccountEvent = (
-  type: "user_registered" | "organization_created" | "member_invited" | "member_joined",
-  data: Parameters<SlackMonitoringServiceInterface["sendAccountEvent"]>[1],
+  type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined',
+  data: Parameters<SlackMonitoringServiceInterface['sendAccountEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
     const service = yield* SlackMonitoring;
@@ -625,8 +623,8 @@ export const sendSlackAccountEvent = (
   });
 
 export const sendSlackBillingEvent = (
-  type: Parameters<SlackMonitoringServiceInterface["sendBillingEvent"]>[0],
-  data: Parameters<SlackMonitoringServiceInterface["sendBillingEvent"]>[1],
+  type: Parameters<SlackMonitoringServiceInterface['sendBillingEvent']>[0],
+  data: Parameters<SlackMonitoringServiceInterface['sendBillingEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
     const service = yield* SlackMonitoring;
@@ -634,8 +632,8 @@ export const sendSlackBillingEvent = (
   });
 
 export const sendSlackVideoEvent = (
-  type: "video_uploaded" | "video_processed" | "video_processing_failed",
-  data: Parameters<SlackMonitoringServiceInterface["sendVideoEvent"]>[1],
+  type: 'video_uploaded' | 'video_processed' | 'video_processing_failed',
+  data: Parameters<SlackMonitoringServiceInterface['sendVideoEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
     const service = yield* SlackMonitoring;
@@ -643,8 +641,8 @@ export const sendSlackVideoEvent = (
   });
 
 export const sendSlackErrorEvent = (
-  type: "api_error" | "webhook_failed" | "integration_error",
-  data: Parameters<SlackMonitoringServiceInterface["sendErrorEvent"]>[1],
+  type: 'api_error' | 'webhook_failed' | 'integration_error',
+  data: Parameters<SlackMonitoringServiceInterface['sendErrorEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
     const service = yield* SlackMonitoring;
@@ -689,9 +687,9 @@ export async function notifySlackMonitoring(
     // Build simple block message
     const blocks = [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
+          type: 'plain_text',
           text: `${emoji} ${title}`,
           emoji: true,
         },
@@ -702,55 +700,55 @@ export async function notifySlackMonitoring(
     const fields: Array<{ type: string; text: string }> = [];
 
     if (data.organizationName) {
-      fields.push({ type: "mrkdwn", text: `*Organization:* ${data.organizationName}` });
+      fields.push({ type: 'mrkdwn', text: `*Organization:* ${data.organizationName}` });
     }
     if (data.userName) {
-      fields.push({ type: "mrkdwn", text: `*User:* ${data.userName}` });
+      fields.push({ type: 'mrkdwn', text: `*User:* ${data.userName}` });
     }
     if (data.userEmail) {
-      fields.push({ type: "mrkdwn", text: `*Email:* ${data.userEmail}` });
+      fields.push({ type: 'mrkdwn', text: `*Email:* ${data.userEmail}` });
     }
     if (data.planName) {
-      fields.push({ type: "mrkdwn", text: `*Plan:* ${data.planName}` });
+      fields.push({ type: 'mrkdwn', text: `*Plan:* ${data.planName}` });
     }
     if (data.amount && data.currency) {
       fields.push({
-        type: "mrkdwn",
+        type: 'mrkdwn',
         text: `*Amount:* ${formatCurrency(data.amount, data.currency)}`,
       });
     }
     if (data.errorMessage) {
-      fields.push({ type: "mrkdwn", text: `*Error:* ${data.errorMessage}` });
+      fields.push({ type: 'mrkdwn', text: `*Error:* ${data.errorMessage}` });
     }
 
     if (fields.length > 0) {
       blocks.push({
-        type: "section",
+        type: 'section',
         fields,
       } as unknown as (typeof blocks)[0]);
     }
 
     // Add timestamp
     blocks.push({
-      type: "context",
+      type: 'context',
       elements: [
         {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `<!date^${Math.floor(Date.now() / 1000)}^{date_short_pretty} at {time}|${new Date().toISOString()}>`,
         },
       ],
     } as unknown as (typeof blocks)[0]);
 
     const payload = {
-      text: `${emoji} ${title}${data.organizationName ? ` - ${data.organizationName}` : ""}`,
+      text: `${emoji} ${title}${data.organizationName ? ` - ${data.organizationName}` : ''}`,
       blocks,
       unfurl_links: false,
       unfurl_media: false,
     };
 
     const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
@@ -759,7 +757,7 @@ export async function notifySlackMonitoring(
     }
   } catch (error) {
     // Log but don't throw - monitoring should never break the app
-    console.error("[SlackMonitoring] Failed to send notification:", error);
+    console.error('[SlackMonitoring] Failed to send notification:', error);
   }
 }
 

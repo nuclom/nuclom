@@ -36,7 +36,6 @@ DATABASE_URL="postgresql://username:password@localhost:5432/nuclom"
 ```env
 # Better Auth configuration
 BETTER_AUTH_SECRET="your-random-secret-key-here"
-BETTER_AUTH_URL="http://localhost:3000" # Your app URL
 
 # GitHub OAuth (optional)
 GITHUB_CLIENT_ID="your-github-client-id"
@@ -53,24 +52,15 @@ DISABLE_SIGNUPS="true"  # Set to "true" or "1" to disable signups
 ### AI Integration
 
 ```env
-# XAI API key for AI features (Grok-3)
-XAI_API_KEY="xai-your-api-key"
-
-# OpenAI API key for AI features (optional alternative)
-OPENAI_API_KEY="sk-your-openai-api-key"
-
-# AI Gateway (optional)
-AI_GATEWAY_URL="https://gateway.ai.cloudflare.com/v1/account-id/gateway-id"
+# AI Gateway for text generation (uses XAI Grok-3 via Vercel AI SDK)
+# No API key needed - uses @ai-sdk/gateway
 ```
 
 ### Video Processing
 
 ```env
-# Replicate API key for video processing (transcription, thumbnails)
+# Replicate API key for video transcription (Whisper model)
 REPLICATE_API_TOKEN="r8_your-replicate-token"
-
-# Application URL (for workflow callbacks)
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### File Storage
@@ -81,7 +71,6 @@ R2_ACCOUNT_ID="your-r2-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key"
 R2_SECRET_ACCESS_KEY="your-r2-secret-key"
 R2_BUCKET_NAME="nuclom-videos"
-R2_PUBLIC_URL="https://your-domain.com" # Custom domain or R2 public URL
 ```
 
 ## Environment Setup by Service
@@ -179,25 +168,13 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 ### AI Integration Setup
 
-#### OpenAI
+#### AI Services
 
-1. Go to OpenAI Platform
-2. Create an API key
-3. Set the environment variable
+The application uses:
+- **XAI Grok-3** via `@ai-sdk/gateway` for text generation (summaries, tags, action items)
+- **Replicate Whisper** for video transcription
 
-```env
-OPENAI_API_KEY="sk-your-openai-api-key"
-```
-
-#### Cloudflare AI Gateway (Optional)
-
-1. Go to Cloudflare Dashboard
-2. Create an AI Gateway
-3. Set the gateway URL
-
-```env
-AI_GATEWAY_URL="https://gateway.ai.cloudflare.com/v1/account-id/gateway-id"
-```
+No additional API keys are needed for text generation as it uses the Vercel AI SDK gateway.
 
 ### File Storage Setup
 
@@ -214,7 +191,6 @@ R2_ACCOUNT_ID="your-r2-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key"
 R2_SECRET_ACCESS_KEY="your-r2-secret-key"
 R2_BUCKET_NAME="nuclom-videos"
-R2_PUBLIC_URL="https://your-domain.com"
 ```
 
 ## Environment Validation
@@ -230,7 +206,7 @@ import { z } from "zod/v4";
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(1),
-  OPENAI_API_KEY: z.string().min(1).optional(),
+  REPLICATE_API_TOKEN: z.string().min(1).optional(),
   // ... other variables
 });
 
@@ -336,10 +312,6 @@ pool.query('SELECT NOW()', (err, res) => {
 ### Test API Keys
 
 ```bash
-# Test OpenAI API key
-curl -H "Authorization: Bearer $OPENAI_API_KEY" \
-  https://api.openai.com/v1/models
-
 # Test authentication endpoints
 curl http://localhost:3000/api/auth/session
 ```
@@ -375,7 +347,7 @@ curl -I http://localhost:3000/api/auth/callback/github
 
 ```bash
 # Check if all required variables are set
-env | grep -E "(DATABASE_URL|BETTER_AUTH_SECRET|OPENAI_API_KEY)"
+env | grep -E "(DATABASE_URL|BETTER_AUTH_SECRET|REPLICATE_API_TOKEN)"
 
 # Validate environment
 pnpm build  # This will fail if required variables are missing

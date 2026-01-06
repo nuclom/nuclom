@@ -1,13 +1,13 @@
-import { eq } from "drizzle-orm";
-import { Effect, Option, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Presence } from "@/lib/effect/services/presence";
-import { validateOptional } from "@/lib/validation";
+import { eq } from 'drizzle-orm';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Presence } from '@/lib/effect/services/presence';
+import { validateOptional } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/presence - Get all users currently watching a video
@@ -39,7 +39,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 const UpdatePresenceBodySchema = Schema.Struct({
   currentTime: Schema.optional(Schema.Number),
-  status: Schema.optional(Schema.Literal("online", "away", "busy")),
+  status: Schema.optional(Schema.Literal('online', 'away', 'busy')),
 });
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!userId) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Authentication required for presence tracking",
+          message: 'Authentication required for presence tracking',
         }),
       );
     }
@@ -71,8 +71,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const presenceService = yield* Presence;
     yield* presenceService.updatePresence(userId, video.organizationId, {
       videoId,
-      status: body?.status || "online",
+      status: body?.status || 'online',
       currentTime: body?.currentTime,
     });
 

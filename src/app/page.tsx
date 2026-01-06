@@ -20,13 +20,13 @@ import {
   Video,
   Webhook,
   Zap,
-} from "lucide-react";
-import Link from "next/link";
-import { MarketingFooter } from "@/components/marketing-footer";
-import { MarketingHeader } from "@/components/marketing-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import Link from 'next/link';
+import { MarketingFooter } from '@/components/marketing-footer';
+import { MarketingHeader } from '@/components/marketing-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function LandingPage() {
   return (

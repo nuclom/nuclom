@@ -1,12 +1,12 @@
-import { Cause, Effect, Exit, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { ChannelRepository } from "@/lib/effect/services/channel-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { mapErrorToApiResponse } from '@/lib/api-errors';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { ChannelRepository } from '@/lib/effect/services/channel-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { validateRequestBody } from '@/lib/validation';
 
 const CreateChannelSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
@@ -19,8 +19,8 @@ const CreateChannelSchema = Schema.Struct({
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const page = Number.parseInt(url.searchParams.get("page") ?? "1", 10);
-  const limit = Number.parseInt(url.searchParams.get("limit") ?? "20", 10);
+  const page = Number.parseInt(url.searchParams.get('page') ?? '1', 10);
+  const limit = Number.parseInt(url.searchParams.get('limit') ?? '20', 10);
 
   const effect = Effect.gen(function* () {
     const authService = yield* Auth;
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     if (Option.isNone(activeOrg)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "No active organization found",
+          message: 'No active organization found',
         }),
       );
     }
@@ -91,10 +91,10 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json(data, { status: 201 }),
   });

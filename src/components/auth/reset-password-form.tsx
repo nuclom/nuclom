@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import { resetPasswordSchema, safeParse } from "@/lib/validation";
+import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import { resetPasswordSchema, safeParse } from '@/lib/validation';
 
 export function ResetPasswordForm() {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,11 +24,11 @@ export function ResetPasswordForm() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
 
   useEffect(() => {
     if (!token) {
-      setTokenError("No reset token provided. Please request a new password reset link.");
+      setTokenError('No reset token provided. Please request a new password reset link.');
     }
   }, [token]);
 
@@ -40,11 +40,11 @@ export function ResetPasswordForm() {
     if (/\d/.test(pwd)) strength++;
     if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
 
-    if (strength <= 1) return { strength: 1, label: "Weak", color: "bg-red-500" };
-    if (strength <= 2) return { strength: 2, label: "Fair", color: "bg-orange-500" };
-    if (strength <= 3) return { strength: 3, label: "Good", color: "bg-yellow-500" };
-    if (strength <= 4) return { strength: 4, label: "Strong", color: "bg-green-500" };
-    return { strength: 5, label: "Very Strong", color: "bg-green-600" };
+    if (strength <= 1) return { strength: 1, label: 'Weak', color: 'bg-red-500' };
+    if (strength <= 2) return { strength: 2, label: 'Fair', color: 'bg-orange-500' };
+    if (strength <= 3) return { strength: 3, label: 'Good', color: 'bg-yellow-500' };
+    if (strength <= 4) return { strength: 4, label: 'Strong', color: 'bg-green-500' };
+    return { strength: 5, label: 'Very Strong', color: 'bg-green-600' };
   };
 
   const passwordStrength = getPasswordStrength(password);
@@ -60,7 +60,7 @@ export function ResetPasswordForm() {
     const result = safeParse(resetPasswordSchema, { password, confirmPassword, token });
     if (!result.success) {
       const firstError = result.error.issues[0];
-      setError(firstError?.message || "Please check your input");
+      setError(firstError?.message || 'Please check your input');
       setIsLoading(false);
       return;
     }
@@ -72,23 +72,23 @@ export function ResetPasswordForm() {
       });
 
       if (response.error) {
-        if (response.error.message?.toLowerCase().includes("expired")) {
-          setTokenError("This reset link has expired. Please request a new one.");
-        } else if (response.error.message?.toLowerCase().includes("invalid")) {
-          setTokenError("This reset link is invalid. Please request a new one.");
+        if (response.error.message?.toLowerCase().includes('expired')) {
+          setTokenError('This reset link has expired. Please request a new one.');
+        } else if (response.error.message?.toLowerCase().includes('invalid')) {
+          setTokenError('This reset link is invalid. Please request a new one.');
         } else {
-          setError(response.error.message || "Failed to reset password");
+          setError(response.error.message || 'Failed to reset password');
         }
       } else {
         setIsSuccess(true);
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          router.push("/login");
+          router.push('/login');
         }, 3000);
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
-      logger.error("Password reset failed", err);
+      setError('An unexpected error occurred. Please try again.');
+      logger.error('Password reset failed', err);
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +159,7 @@ export function ResetPasswordForm() {
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -186,7 +186,7 @@ export function ResetPasswordForm() {
                     <div
                       key={level}
                       className={`h-1.5 flex-1 rounded-full transition-colors ${
-                        level <= passwordStrength.strength ? passwordStrength.color : "bg-gray-200"
+                        level <= passwordStrength.strength ? passwordStrength.color : 'bg-gray-200'
                       }`}
                     />
                   ))}
@@ -201,7 +201,7 @@ export function ResetPasswordForm() {
             <div className="relative">
               <Input
                 id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Confirm your new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -232,7 +232,7 @@ export function ResetPasswordForm() {
                 Resetting password...
               </>
             ) : (
-              "Reset password"
+              'Reset password'
             )}
           </Button>
         </form>

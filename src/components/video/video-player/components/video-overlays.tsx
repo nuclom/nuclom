@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AlertCircle, Loader2, Play, Repeat } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import type { VideoChapter } from "../types";
+import { AlertCircle, Loader2, Play, Repeat } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import type { VideoChapter } from '../types';
 
 interface LoadingOverlayProps {
   visible: boolean;
@@ -30,7 +30,7 @@ export function ErrorOverlay({ visible, message, onRetry }: ErrorOverlayProps) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white gap-3">
       <AlertCircle className="h-12 w-12 text-destructive" />
-      <p className="text-sm">{message || "Failed to load video"}</p>
+      <p className="text-sm">{message || 'Failed to load video'}</p>
       <Button variant="outline" size="sm" onClick={onRetry}>
         Retry
       </Button>

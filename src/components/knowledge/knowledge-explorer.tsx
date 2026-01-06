@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { FileText, GitPullRequest, Maximize2, Minimize2, Search, User, Video, ZoomIn, ZoomOut } from "lucide-react";
-import type * as React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { FileText, GitPullRequest, Maximize2, Minimize2, Search, User, Video, ZoomIn, ZoomOut } from 'lucide-react';
+import type * as React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 // Types for the knowledge graph
 interface GraphNode {
   id: string;
-  type: "person" | "topic" | "artifact" | "decision" | "video";
+  type: 'person' | 'topic' | 'artifact' | 'decision' | 'video';
   label: string;
   metadata?: Record<string, unknown>;
   // Position for force-directed layout
@@ -42,27 +42,27 @@ interface KnowledgeExplorerProps {
 }
 
 // Node colors by type
-const NODE_COLORS: Record<GraphNode["type"], { fill: string; stroke: string }> = {
-  person: { fill: "#dbeafe", stroke: "#3b82f6" },
-  topic: { fill: "#dcfce7", stroke: "#22c55e" },
-  artifact: { fill: "#fef3c7", stroke: "#f59e0b" },
-  decision: { fill: "#f3e8ff", stroke: "#a855f7" },
-  video: { fill: "#fee2e2", stroke: "#ef4444" },
+const NODE_COLORS: Record<GraphNode['type'], { fill: string; stroke: string }> = {
+  person: { fill: '#dbeafe', stroke: '#3b82f6' },
+  topic: { fill: '#dcfce7', stroke: '#22c55e' },
+  artifact: { fill: '#fef3c7', stroke: '#f59e0b' },
+  decision: { fill: '#f3e8ff', stroke: '#a855f7' },
+  video: { fill: '#fee2e2', stroke: '#ef4444' },
 };
 
 // Node icons by type
-const NodeIcon: React.FC<{ type: GraphNode["type"]; className?: string }> = ({ type, className }) => {
-  const iconClass = cn("h-4 w-4", className);
+const NodeIcon: React.FC<{ type: GraphNode['type']; className?: string }> = ({ type, className }) => {
+  const iconClass = cn('h-4 w-4', className);
   switch (type) {
-    case "person":
+    case 'person':
       return <User className={iconClass} />;
-    case "topic":
+    case 'topic':
       return <FileText className={iconClass} />;
-    case "artifact":
+    case 'artifact':
       return <GitPullRequest className={iconClass} />;
-    case "decision":
+    case 'decision':
       return <FileText className={iconClass} />;
-    case "video":
+    case 'video':
       return <Video className={iconClass} />;
   }
 };
@@ -235,8 +235,8 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
   const [error, setError] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<GraphNode["type"] | "all">("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<GraphNode['type'] | 'all'>('all');
   const [zoom, setZoom] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -272,13 +272,13 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
         const params = new URLSearchParams({ organizationId });
         const response = await fetch(`/api/knowledge/graph?${params}`);
         if (!response.ok) {
-          throw new Error("Failed to fetch knowledge graph");
+          throw new Error('Failed to fetch knowledge graph');
         }
         const data = await response.json();
         setNodes(data.nodes || []);
         setEdges(data.edges || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
@@ -290,8 +290,8 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
   // Filter nodes based on search and type
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
-      const matchesSearch = searchQuery === "" || node.label.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = filterType === "all" || node.type === filterType;
+      const matchesSearch = searchQuery === '' || node.label.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = filterType === 'all' || node.type === filterType;
       return matchesSearch && matchesType;
     });
   }, [nodes, searchQuery, filterType]);
@@ -309,7 +309,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
   const handleNodeClick = useCallback(
     (node: GraphNode) => {
       setSelectedNode(node);
-      if (node.type === "decision" && onDecisionClick) {
+      if (node.type === 'decision' && onDecisionClick) {
         onDecisionClick(node.id);
       }
       onNodeClick?.(node);
@@ -336,8 +336,8 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   // Get connected nodes for selected node
@@ -390,7 +390,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
   }
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle>Knowledge Explorer</CardTitle>
@@ -419,7 +419,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
               className="pl-8"
             />
           </div>
-          <Select value={filterType} onValueChange={(value) => setFilterType(value as GraphNode["type"] | "all")}>
+          <Select value={filterType} onValueChange={(value) => setFilterType(value as GraphNode['type'] | 'all')}>
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Filter type" />
             </SelectTrigger>
@@ -439,8 +439,8 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
           {/* Graph visualization */}
           <div
             ref={containerRef}
-            className={cn("relative overflow-hidden bg-muted/20", selectedNode ? "w-2/3" : "w-full")}
-            style={{ height: isFullscreen ? "100vh" : "500px" }}
+            className={cn('relative overflow-hidden bg-muted/20', selectedNode ? 'w-2/3' : 'w-full')}
+            style={{ height: isFullscreen ? '100vh' : '500px' }}
           >
             <svg
               ref={svgRef}
@@ -448,7 +448,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
               height={dimensions.height}
               style={{
                 transform: `scale(${zoom})`,
-                transformOrigin: "center center",
+                transformOrigin: 'center center',
               }}
               role="img"
               aria-label="Knowledge graph visualization"
@@ -471,7 +471,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                       y1={sourcePos.y}
                       x2={targetPos.x}
                       y2={targetPos.y}
-                      stroke={isHighlighted ? "#6366f1" : "#d1d5db"}
+                      stroke={isHighlighted ? '#6366f1' : '#d1d5db'}
                       strokeWidth={isHighlighted ? 2 : 1}
                       strokeOpacity={isHighlighted ? 1 : 0.5}
                     />
@@ -497,10 +497,10 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                     <g
                       key={node.id}
                       transform={`translate(${pos.x}, ${pos.y})`}
-                      style={{ cursor: "pointer", opacity }}
+                      style={{ cursor: 'pointer', opacity }}
                       onClick={() => handleNodeClick(node)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
+                        if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           handleNodeClick(node);
                         }
@@ -514,13 +514,13 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                       <circle
                         r={radius}
                         fill={colors.fill}
-                        stroke={isSelected ? "#6366f1" : colors.stroke}
+                        stroke={isSelected ? '#6366f1' : colors.stroke}
                         strokeWidth={isSelected ? 3 : isHovered ? 2 : 1.5}
                       />
                       {/* Icon in center */}
-                      <foreignObject x={-8} y={-8} width={16} height={16} style={{ pointerEvents: "none" }}>
+                      <foreignObject x={-8} y={-8} width={16} height={16} style={{ pointerEvents: 'none' }}>
                         <div className="flex items-center justify-center w-full h-full">
-                          <NodeIcon type={node.type} className={cn("h-4 w-4", `text-[${colors.stroke}]`)} />
+                          <NodeIcon type={node.type} className={cn('h-4 w-4', `text-[${colors.stroke}]`)} />
                         </div>
                       </foreignObject>
                       {/* Label */}
@@ -528,7 +528,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                         y={radius + 14}
                         textAnchor="middle"
                         className="text-xs fill-foreground pointer-events-none"
-                        style={{ fontSize: "11px" }}
+                        style={{ fontSize: '11px' }}
                       >
                         {node.label.length > 20 ? `${node.label.slice(0, 18)}...` : node.label}
                       </text>
@@ -601,7 +601,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                       <div className="text-sm text-muted-foreground space-y-1">
                         {Object.entries(selectedNode.metadata).map(([key, value]) => (
                           <div key={key} className="flex justify-between">
-                            <span className="capitalize">{key.replace(/([A-Z])/g, " $1").trim()}:</span>
+                            <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
                             <span className="font-medium text-foreground">{String(value)}</span>
                           </div>
                         ))}
@@ -641,7 +641,7 @@ export function KnowledgeExplorer({ organizationId, className, onNodeClick, onDe
                   </div>
 
                   {/* Actions for decision nodes */}
-                  {selectedNode.type === "decision" && (
+                  {selectedNode.type === 'decision' && (
                     <div className="mt-4 pt-4 border-t">
                       <Button className="w-full" onClick={() => onDecisionClick?.(selectedNode.id)}>
                         View Decision Details

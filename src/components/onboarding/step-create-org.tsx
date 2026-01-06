@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { ArrowRight, Building2, Loader2 } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ArrowRight, Building2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface StepCreateOrgProps {
   onNext: (data: { name: string; slug: string }) => void;
@@ -14,12 +14,12 @@ interface StepCreateOrgProps {
 }
 
 export function StepCreateOrg({ onNext, onBack, isLoading, error }: StepCreateOrgProps) {
-  const [orgName, setOrgName] = useState("");
+  const [orgName, setOrgName] = useState('');
 
   const slug = orgName
     .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

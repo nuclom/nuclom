@@ -1,8 +1,8 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { VideoRepository } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { VideoRepository } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // POST /api/videos/[id]/restore - Restore a soft-deleted video
@@ -18,7 +18,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     const response: ApiResponse = {
       success: true,
       data: {
-        message: "Video restored successfully",
+        message: 'Video restored successfully',
         video: restoredVideo,
       },
     };

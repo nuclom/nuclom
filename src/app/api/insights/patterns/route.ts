@@ -1,11 +1,11 @@
-import { and, avg, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { videoSpeakers, videos } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect/errors";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, avg, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { videoSpeakers, videos } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect/errors';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,17 +13,17 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
 });
 
 function getDateRangeForPeriod(period: string): Date {
   const now = new Date();
   switch (period) {
-    case "7d":
+    case '7d':
       return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    case "30d":
+    case '30d':
       return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    case "90d":
+    case '90d':
       return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     default:
       return new Date(0);
@@ -54,15 +54,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch time distribution: ${error}`,
-          operation: "getTimeDistribution",
+          operation: 'getTimeDistribution',
         }),
     });
 
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch speaker participation: ${error}`,
-          operation: "getSpeakerParticipation",
+          operation: 'getSpeakerParticipation',
         }),
     });
 
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch weekly frequency: ${error}`,
-          operation: "getWeeklyFrequency",
+          operation: 'getWeeklyFrequency',
         }),
     });
 
@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
         for (const speakers of videoSpeakersMap.values()) {
           for (let i = 0; i < speakers.length; i++) {
             for (let j = i + 1; j < speakers.length; j++) {
-              const key = [speakers[i], speakers[j]].sort().join("|||");
+              const key = [speakers[i], speakers[j]].sort().join('|||');
               coAppearanceMap.set(key, (coAppearanceMap.get(key) || 0) + 1);
             }
           }
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
         // Convert to array and sort
         const coAppearanceList = Array.from(coAppearanceMap.entries())
           .map(([key, count]) => {
-            const [speaker1, speaker2] = key.split("|||");
+            const [speaker1, speaker2] = key.split('|||');
             return { speaker1, speaker2, count };
           })
           .sort((a, b) => b.count - a.count)
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch co-appearances: ${error}`,
-          operation: "getCoAppearances",
+          operation: 'getCoAppearances',
         }),
     });
 
@@ -204,12 +204,12 @@ export async function GET(request: NextRequest) {
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch duration stats: ${error}`,
-          operation: "getDurationStats",
+          operation: 'getDurationStats',
         }),
     });
 
     // Format time distribution for heatmap
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const heatmapData = dayNames.map((day, dayIndex) => {
       const hours = Array.from({ length: 24 }, (_, hour) => {
         const entry = timeDistribution.find((d) => Number(d.dayOfWeek) === dayIndex && Number(d.hour) === hour);

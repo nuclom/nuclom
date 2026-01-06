@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Transcript Hook
@@ -7,8 +7,8 @@
  * Handles fetching, saving, and editing transcripts.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import type { TranscriptSegment } from "@/lib/db/schema";
+import { useCallback, useEffect, useState } from 'react';
+import type { TranscriptSegment } from '@/lib/db/schema';
 
 // =============================================================================
 // Types
@@ -19,7 +19,7 @@ export interface TranscriptData {
   title: string;
   transcript: string | null;
   segments: TranscriptSegment[];
-  processingStatus: "pending" | "transcribing" | "analyzing" | "completed" | "failed";
+  processingStatus: 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed';
 }
 
 export interface UseTranscriptOptions {
@@ -35,7 +35,7 @@ export interface UseTranscriptReturn {
   /** Current transcript segments */
   segments: TranscriptSegment[];
   /** Processing status */
-  processingStatus: "pending" | "transcribing" | "analyzing" | "completed" | "failed" | null;
+  processingStatus: 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed' | null;
   /** Whether data is loading */
   isLoading: boolean;
   /** Whether data is being saved */
@@ -65,7 +65,7 @@ export function useTranscript({
 }: UseTranscriptOptions): UseTranscriptReturn {
   const [segments, setSegments] = useState<TranscriptSegment[]>(initialSegments || []);
   const [originalSegments, setOriginalSegments] = useState<TranscriptSegment[]>(initialSegments || []);
-  const [processingStatus, setProcessingStatus] = useState<TranscriptData["processingStatus"] | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<TranscriptData['processingStatus'] | null>(null);
   const [isLoading, setIsLoading] = useState(!initialSegments);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +85,7 @@ export function useTranscript({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch transcript");
+        throw new Error(data.error || 'Failed to fetch transcript');
       }
 
       if (data.success && data.data) {
@@ -94,7 +94,7 @@ export function useTranscript({
         setProcessingStatus(data.data.processingStatus);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch transcript");
+      setError(err instanceof Error ? err.message : 'Failed to fetch transcript');
     } finally {
       setIsLoading(false);
     }
@@ -125,9 +125,9 @@ export function useTranscript({
 
       try {
         const response = await fetch(`/api/videos/${videoId}/transcript`, {
-          method: "PUT",
+          method: 'PUT',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ segments: newSegments }),
         });
@@ -135,7 +135,7 @@ export function useTranscript({
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Failed to save transcript");
+          throw new Error(data.error || 'Failed to save transcript');
         }
 
         // Update local state
@@ -143,7 +143,7 @@ export function useTranscript({
         setOriginalSegments(newSegments);
         return true;
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to save transcript");
+        setError(err instanceof Error ? err.message : 'Failed to save transcript');
         return false;
       } finally {
         setIsSaving(false);

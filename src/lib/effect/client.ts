@@ -5,8 +5,8 @@
  * These utilities are designed to work in browser environments.
  */
 
-import { Effect, type Either, pipe } from "effect";
-import { HttpError, ParseError } from "./errors";
+import { Effect, type Either, pipe } from 'effect';
+import { HttpError, ParseError } from './errors';
 
 // =============================================================================
 // Types
@@ -18,7 +18,7 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
-export interface FetchOptions extends Omit<RequestInit, "body"> {
+export interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
@@ -26,7 +26,7 @@ export interface FetchOptions extends Omit<RequestInit, "body"> {
 // Client-side Effect HTTP Client
 // =============================================================================
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = '/api';
 
 /**
  * Make an HTTP request using Effect
@@ -39,7 +39,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
       try: () =>
         fetch(url, {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             ...options?.headers,
           },
           ...options,
@@ -47,7 +47,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
         }),
       catch: (error) =>
         new HttpError({
-          message: error instanceof Error ? error.message : "Network error",
+          message: error instanceof Error ? error.message : 'Network error',
           status: 0,
         }),
     });
@@ -59,7 +59,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
           try: () => response.json() as Promise<{ error?: string }>,
           catch: () =>
             new ParseError({
-              message: "Failed to parse error response",
+              message: 'Failed to parse error response',
             }),
         }),
         Effect.catchAll(() => Effect.succeed({} as { error?: string })),
@@ -78,7 +78,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
       try: () => response.json() as Promise<ApiResponse<T>>,
       catch: (error) =>
         new ParseError({
-          message: "Failed to parse response",
+          message: 'Failed to parse response',
           cause: error,
         }),
     });
@@ -86,7 +86,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
     if (!data.success) {
       return yield* Effect.fail(
         new HttpError({
-          message: data.error || "API request failed",
+          message: data.error || 'API request failed',
           status: response.status,
         }),
       );
@@ -112,7 +112,7 @@ export const runClientEffectUnsafe = <A, E>(effect: Effect.Effect<A, E, never>):
 // Video API Client (Effect-based)
 // =============================================================================
 
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from "@/lib/types";
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 export const videoApiEffect = {
   getVideos: (
@@ -141,8 +141,8 @@ export const videoApiEffect = {
     channelId?: string;
     seriesId?: string;
   }): Effect.Effect<VideoWithDetails, HttpError | ParseError> =>
-    fetchEffect("/videos", {
-      method: "POST",
+    fetchEffect('/videos', {
+      method: 'POST',
       body: data,
     }),
 
@@ -159,13 +159,13 @@ export const videoApiEffect = {
     }>,
   ): Effect.Effect<VideoWithDetails, HttpError | ParseError> =>
     fetchEffect(`/videos/${id}`, {
-      method: "PUT",
+      method: 'PUT',
       body: data,
     }),
 
   deleteVideo: (id: string): Effect.Effect<void, HttpError | ParseError> =>
     fetchEffect(`/videos/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
     }),
 };
 
@@ -177,7 +177,7 @@ export const organizationApiEffect = {
   getOrganizations: (userId?: string): Effect.Effect<unknown[], HttpError | ParseError> => {
     const searchParams = new URLSearchParams();
     if (userId) {
-      searchParams.append("userId", userId);
+      searchParams.append('userId', userId);
     }
     return fetchEffect(`/organizations?${searchParams.toString()}`);
   },
@@ -190,8 +190,8 @@ export const organizationApiEffect = {
     description?: string;
     ownerId: string;
   }): Effect.Effect<unknown, HttpError | ParseError> =>
-    fetchEffect("/organizations", {
-      method: "POST",
+    fetchEffect('/organizations', {
+      method: 'POST',
       body: data,
     }),
 };
@@ -227,19 +227,19 @@ export const uploadVideoEffect = (
 ): Effect.Effect<UploadResult, HttpError> =>
   Effect.async<UploadResult, HttpError>((resume) => {
     const formData = new FormData();
-    formData.append("video", file);
-    formData.append("title", metadata.title);
-    if (metadata.description) formData.append("description", metadata.description);
-    formData.append("organizationId", metadata.organizationId);
-    formData.append("authorId", metadata.authorId);
-    if (metadata.channelId) formData.append("channelId", metadata.channelId);
-    if (metadata.seriesId) formData.append("seriesId", metadata.seriesId);
+    formData.append('video', file);
+    formData.append('title', metadata.title);
+    if (metadata.description) formData.append('description', metadata.description);
+    formData.append('organizationId', metadata.organizationId);
+    formData.append('authorId', metadata.authorId);
+    if (metadata.channelId) formData.append('channelId', metadata.channelId);
+    if (metadata.seriesId) formData.append('seriesId', metadata.seriesId);
 
     const xhr = new XMLHttpRequest();
 
     // Track upload progress
     if (onProgress) {
-      xhr.upload.addEventListener("progress", (event) => {
+      xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100);
           onProgress(progress);
@@ -247,7 +247,7 @@ export const uploadVideoEffect = (
       });
     }
 
-    xhr.addEventListener("load", () => {
+    xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response = JSON.parse(xhr.responseText);
@@ -257,7 +257,7 @@ export const uploadVideoEffect = (
             resume(
               Effect.fail(
                 new HttpError({
-                  message: response.error || "Upload failed",
+                  message: response.error || 'Upload failed',
                   status: xhr.status,
                 }),
               ),
@@ -267,7 +267,7 @@ export const uploadVideoEffect = (
           resume(
             Effect.fail(
               new HttpError({
-                message: "Invalid response format",
+                message: 'Invalid response format',
                 status: xhr.status,
               }),
             ),
@@ -297,29 +297,29 @@ export const uploadVideoEffect = (
       }
     });
 
-    xhr.addEventListener("error", () => {
+    xhr.addEventListener('error', () => {
       resume(
         Effect.fail(
           new HttpError({
-            message: "Network error occurred",
+            message: 'Network error occurred',
             status: 0,
           }),
         ),
       );
     });
 
-    xhr.addEventListener("timeout", () => {
+    xhr.addEventListener('timeout', () => {
       resume(
         Effect.fail(
           new HttpError({
-            message: "Upload timeout",
+            message: 'Upload timeout',
             status: 0,
           }),
         ),
       );
     });
 
-    xhr.open("POST", `${API_BASE_URL}/videos/upload`);
+    xhr.open('POST', `${API_BASE_URL}/videos/upload`);
     xhr.timeout = 300000; // 5 minutes timeout
     xhr.send(formData);
   });
@@ -351,7 +351,7 @@ export const videoProgressApiEffect = {
     data: { currentTime: number; completed?: boolean },
   ): Effect.Effect<VideoProgressResponse, HttpError | ParseError> =>
     fetchEffect(`/videos/${videoId}/progress`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: data,
     }),
 
@@ -360,6 +360,6 @@ export const videoProgressApiEffect = {
    */
   deleteProgress: (videoId: string): Effect.Effect<void, HttpError | ParseError> =>
     fetchEffect(`/videos/${videoId}/progress`, {
-      method: "DELETE",
+      method: 'DELETE',
     }),
 };

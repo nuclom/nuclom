@@ -1,18 +1,18 @@
-import { Effect, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from "@/lib/effect";
-import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import type { ApiResponse } from "@/lib/types";
+import { Effect, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@/lib/effect';
+import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import type { ApiResponse } from '@/lib/types';
 import {
   sanitizeDescription,
   sanitizeTitle,
   validateFormData,
   validateVideoFile,
   videoUploadSchema,
-} from "@/lib/validation";
-import { processVideoWorkflow } from "@/workflows/video-processing";
+} from '@/lib/validation';
+import { processVideoWorkflow } from '@/workflows/video-processing';
 
 // =============================================================================
 // Types
@@ -33,11 +33,11 @@ interface UploadResponse {
 export async function POST(request: NextRequest) {
   const effect = Effect.gen(function* () {
     // Check content type
-    const contentType = request.headers.get("content-type");
-    if (!contentType?.includes("multipart/form-data")) {
+    const contentType = request.headers.get('content-type');
+    if (!contentType?.includes('multipart/form-data')) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Content-Type must be multipart/form-data",
+          message: 'Content-Type must be multipart/form-data',
         }),
       );
     }
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       try: () => request.formData(),
       catch: () =>
         new ValidationError({
-          message: "Invalid form data",
+          message: 'Invalid form data',
         }),
     });
 
@@ -55,23 +55,23 @@ export async function POST(request: NextRequest) {
     const validatedData = yield* validateFormData(videoUploadSchema, formData);
 
     // Get the video file
-    const file = formData.get("video") as File | null;
+    const file = formData.get('video') as File | null;
     if (!file) {
-      return yield* Effect.fail(new MissingFieldError({ field: "video", message: "Video file is required" }));
+      return yield* Effect.fail(new MissingFieldError({ field: 'video', message: 'Video file is required' }));
     }
 
     // Sanitize user-provided content to prevent XSS
     const sanitizedTitle = sanitizeTitle(validatedData.title);
     const sanitizedDescription = validatedData.description ? sanitizeDescription(validatedData.description) : undefined;
 
-    const skipAIProcessing = validatedData.skipAIProcessing === "true";
+    const skipAIProcessing = validatedData.skipAIProcessing === 'true';
 
     // Read file into buffer for validation
     const arrayBuffer = yield* Effect.tryPromise({
       try: () => file.arrayBuffer(),
       catch: () =>
         new ValidationError({
-          message: "Failed to read file",
+          message: 'Failed to read file',
         }),
     });
 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       organizationId: validatedData.organizationId,
       channelId: validatedData.channelId || undefined,
       collectionId: validatedData.collectionId || undefined,
-      processingStatus: skipAIProcessing ? "completed" : "pending",
+      processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
 
     return {
@@ -131,11 +131,11 @@ export async function POST(request: NextRequest) {
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 
-  if (exit._tag === "Success") {
+  if (exit._tag === 'Success') {
     const data = exit.value;
     // Trigger AI processing using durable workflow
     if (!data.skipAIProcessing && data.videoUrl) {
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         videoTitle: data.videoTitle,
       }).catch((err) => {
         // Log but don't fail - workflow will retry on its own
-        console.error("[Video Processing Workflow Error]", err);
+        console.error('[Video Processing Workflow Error]', err);
       });
     }
 
@@ -164,5 +164,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: 201 });
   }
 
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
 }

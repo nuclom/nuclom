@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { HardDrive, Sparkles, Users, Video, Wifi } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import type { UsageSummary } from "@/lib/effect/services/billing-repository";
-import { cn } from "@/lib/utils";
+import { HardDrive, Sparkles, Users, Video, Wifi } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import type { UsageSummary } from '@/lib/effect/services/billing-repository';
+import { cn } from '@/lib/utils';
 
 interface UsageChartProps {
   usage: UsageSummary;
 }
 
 const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return "0 B";
+  if (bytes === 0) return '0 B';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -19,15 +19,15 @@ const formatBytes = (bytes: number): string => {
 };
 
 const formatLimit = (value: number): string => {
-  if (value === -1) return "Unlimited";
+  if (value === -1) return 'Unlimited';
   return value.toLocaleString();
 };
 
 const _getProgressColor = (percentage: number): string => {
-  if (percentage >= 90) return "bg-destructive";
-  if (percentage >= 75) return "bg-orange-500";
-  if (percentage >= 50) return "bg-yellow-500";
-  return "bg-primary";
+  if (percentage >= 90) return 'bg-destructive';
+  if (percentage >= 75) return 'bg-orange-500';
+  if (percentage >= 50) return 'bg-yellow-500';
+  return 'bg-primary';
 };
 
 interface UsageItemProps {
@@ -40,7 +40,7 @@ interface UsageItemProps {
 }
 
 function UsageItem({ icon: Icon, label, current, limit, percentage, unit }: UsageItemProps) {
-  const isUnlimited = limit === "Unlimited" || limit === -1;
+  const isUnlimited = limit === 'Unlimited' || limit === -1;
 
   return (
     <div className="space-y-2">
@@ -50,18 +50,18 @@ function UsageItem({ icon: Icon, label, current, limit, percentage, unit }: Usag
           <span className="text-sm font-medium">{label}</span>
         </div>
         <span className="text-sm text-muted-foreground">
-          {typeof current === "number" ? formatBytes(current) : current}
+          {typeof current === 'number' ? formatBytes(current) : current}
           {!isUnlimited && (
             <>
-              {" / "}
-              {typeof limit === "number" ? formatBytes(limit) : limit}
+              {' / '}
+              {typeof limit === 'number' ? formatBytes(limit) : limit}
             </>
           )}
           {unit && ` ${unit}`}
         </span>
       </div>
       {!isUnlimited && (
-        <Progress value={percentage} className={cn("h-2", percentage >= 90 && "[&>div]:bg-destructive")} />
+        <Progress value={percentage} className={cn('h-2', percentage >= 90 && '[&>div]:bg-destructive')} />
       )}
       {isUnlimited && (
         <div className="h-2 flex items-center">
@@ -125,23 +125,23 @@ export function UsageOverview({ usage }: UsageOverviewProps) {
   const usageItems = [
     {
       icon: HardDrive,
-      label: "Storage",
+      label: 'Storage',
       value: formatBytes(usage.storageUsed),
-      limit: usage.limits.storage === -1 ? "Unlimited" : formatBytes(usage.limits.storage),
+      limit: usage.limits.storage === -1 ? 'Unlimited' : formatBytes(usage.limits.storage),
       percentage: usage.percentages.storage,
     },
     {
       icon: Video,
-      label: "Videos",
+      label: 'Videos',
       value: usage.videosUploaded.toString(),
       limit: formatLimit(usage.limits.videos),
       percentage: usage.percentages.videos,
     },
     {
       icon: Users,
-      label: "Bandwidth",
+      label: 'Bandwidth',
       value: formatBytes(usage.bandwidthUsed),
-      limit: usage.limits.bandwidth === -1 ? "Unlimited" : formatBytes(usage.limits.bandwidth),
+      limit: usage.limits.bandwidth === -1 ? 'Unlimited' : formatBytes(usage.limits.bandwidth),
       percentage: usage.percentages.bandwidth,
     },
   ];
@@ -157,10 +157,10 @@ export function UsageOverview({ usage }: UsageOverviewProps) {
           <CardContent>
             <div className="text-2xl font-bold">{item.value}</div>
             <p className="text-xs text-muted-foreground">of {item.limit}</p>
-            {item.limit !== "Unlimited" && (
+            {item.limit !== 'Unlimited' && (
               <Progress
                 value={item.percentage}
-                className={cn("mt-2 h-1", item.percentage >= 90 && "[&>div]:bg-destructive")}
+                className={cn('mt-2 h-1', item.percentage >= 90 && '[&>div]:bg-destructive')}
               />
             )}
           </CardContent>

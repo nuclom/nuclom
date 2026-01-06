@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { CheckCircle2, Eye, EyeOff, Github } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { authClient, getLastUsedLoginMethod } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
+import { CheckCircle2, Eye, EyeOff, Github } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { authClient, getLastUsedLoginMethod } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
 
 interface LoginFormProps {
   readonly redirectTo?: string;
@@ -19,17 +19,17 @@ interface LoginFormProps {
 // Map login method IDs to display labels
 function getLoginMethodLabel(method: string): string {
   const labels: Record<string, string> = {
-    email: "Email",
-    github: "GitHub",
-    google: "Google",
-    passkey: "Passkey",
+    email: 'Email',
+    github: 'GitHub',
+    google: 'Google',
+    passkey: 'Passkey',
   };
   return labels[method] ?? method;
 }
 
 export function LoginForm({ redirectTo }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const searchParams = useSearchParams();
 
   // Get redirect URL from search params or use default
-  const finalRedirectTo = redirectTo || searchParams.get("redirectTo") || "/onboarding";
+  const finalRedirectTo = redirectTo || searchParams.get('redirectTo') || '/onboarding';
 
   // Fetch last login method on component mount
   useEffect(() => {
@@ -47,9 +47,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         const result = await getLastUsedLoginMethod();
         // Handle different return types from the API
         if (result) {
-          if (typeof result === "string") {
+          if (typeof result === 'string') {
             setLastLoginMethod(result);
-          } else if (typeof result === "object") {
+          } else if (typeof result === 'object') {
             const data = (result as { data?: string }).data;
             if (data) {
               setLastLoginMethod(data);
@@ -75,14 +75,14 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       });
 
       if (result.error) {
-        setError(result.error.message || "Failed to sign in");
+        setError(result.error.message || 'Failed to sign in');
       } else {
         router.push(finalRedirectTo);
         router.refresh();
       }
     } catch (err) {
-      setError("An unexpected error occurred");
-      logger.error("Login failed", err);
+      setError('An unexpected error occurred');
+      logger.error('Login failed', err);
     } finally {
       setIsLoading(false);
     }
@@ -94,12 +94,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
     try {
       await authClient.signIn.social({
-        provider: "github",
+        provider: 'github',
         callbackURL: finalRedirectTo,
       });
     } catch (err) {
-      setError("Failed to sign in with GitHub");
-      logger.error("GitHub login failed", err);
+      setError('Failed to sign in with GitHub');
+      logger.error('GitHub login failed', err);
       setIsLoading(false);
     }
   };
@@ -142,7 +142,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -163,7 +163,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           </div>
           {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
 
@@ -177,21 +177,21 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         </div>
 
         <Button
-          variant={lastLoginMethod === "github" ? "default" : "outline"}
+          variant={lastLoginMethod === 'github' ? 'default' : 'outline'}
           className="w-full"
           onClick={handleGithubLogin}
           disabled={isLoading}
         >
           <Github className="mr-2 h-4 w-4" />
           GitHub
-          {lastLoginMethod === "github" && " (recommended)"}
+          {lastLoginMethod === 'github' && ' (recommended)'}
         </Button>
       </CardContent>
       <CardFooter className="text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
+        Don't have an account?{' '}
         <Button variant="link" className="p-0 h-auto font-normal" disabled={isLoading} asChild>
           <a
-            href={`/register${finalRedirectTo !== "/onboarding" ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ""}`}
+            href={`/register${finalRedirectTo !== '/onboarding' ? `?redirectTo=${encodeURIComponent(finalRedirectTo)}` : ''}`}
           >
             Sign up
           </a>

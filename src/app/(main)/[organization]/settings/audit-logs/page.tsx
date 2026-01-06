@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   AlertCircle,
@@ -13,13 +13,13 @@ import {
   RefreshCw,
   Search,
   User,
-} from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -35,13 +35,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
 
 type AuditLog = {
   id: string;
@@ -51,7 +51,7 @@ type AuditLog = {
   category: string;
   action: string;
   description: string | null;
-  severity: "info" | "warning" | "error" | "critical";
+  severity: 'info' | 'warning' | 'error' | 'critical';
   resourceType: string | null;
   resourceId: string | null;
   resourceName: string | null;
@@ -71,22 +71,22 @@ type Stats = {
 };
 
 const CATEGORIES = [
-  { value: "authentication", label: "Authentication" },
-  { value: "authorization", label: "Authorization" },
-  { value: "user_management", label: "User Management" },
-  { value: "organization_management", label: "Organization" },
-  { value: "content_management", label: "Content" },
-  { value: "billing", label: "Billing" },
-  { value: "security", label: "Security" },
-  { value: "integration", label: "Integration" },
-  { value: "system", label: "System" },
+  { value: 'authentication', label: 'Authentication' },
+  { value: 'authorization', label: 'Authorization' },
+  { value: 'user_management', label: 'User Management' },
+  { value: 'organization_management', label: 'Organization' },
+  { value: 'content_management', label: 'Content' },
+  { value: 'billing', label: 'Billing' },
+  { value: 'security', label: 'Security' },
+  { value: 'integration', label: 'Integration' },
+  { value: 'system', label: 'System' },
 ];
 
 const SEVERITIES = [
-  { value: "info", label: "Info", color: "bg-blue-500" },
-  { value: "warning", label: "Warning", color: "bg-yellow-500" },
-  { value: "error", label: "Error", color: "bg-red-500" },
-  { value: "critical", label: "Critical", color: "bg-purple-500" },
+  { value: 'info', label: 'Info', color: 'bg-blue-500' },
+  { value: 'warning', label: 'Warning', color: 'bg-yellow-500' },
+  { value: 'error', label: 'Error', color: 'bg-red-500' },
+  { value: 'critical', label: 'Critical', color: 'bg-purple-500' },
 ];
 
 function AuditLogsContent() {
@@ -105,29 +105,29 @@ function AuditLogsContent() {
   const [exporting, setExporting] = useState(false);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSeverities, setSelectedSeverities] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState("30");
-  const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
+  const [dateRange, setDateRange] = useState('30');
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
 
   const loadLogs = useCallback(async () => {
     try {
       setLoading(true);
       const searchParams = new URLSearchParams();
-      searchParams.set("limit", String(limit));
-      searchParams.set("offset", String(page * limit));
+      searchParams.set('limit', String(limit));
+      searchParams.set('offset', String(page * limit));
 
       if (selectedCategories.length > 0) {
-        searchParams.set("categories", selectedCategories.join(","));
+        searchParams.set('categories', selectedCategories.join(','));
       }
       if (selectedSeverities.length > 0) {
-        searchParams.set("severity", selectedSeverities.join(","));
+        searchParams.set('severity', selectedSeverities.join(','));
       }
-      if (dateRange !== "all") {
+      if (dateRange !== 'all') {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - parseInt(dateRange, 10));
-        searchParams.set("startDate", startDate.toISOString());
+        searchParams.set('startDate', startDate.toISOString());
       }
 
       const response = await fetch(`/api/organizations/${organizationId}/audit-logs?${searchParams}`);
@@ -140,11 +140,11 @@ function AuditLogsContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error("Error loading audit logs:", error);
+      console.error('Error loading audit logs:', error);
       toast({
-        title: "Error",
-        description: "Failed to load audit logs",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load audit logs',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -160,7 +160,7 @@ function AuditLogsContent() {
         setStats(data.data);
       }
     } catch (error) {
-      console.error("Error loading stats:", error);
+      console.error('Error loading stats:', error);
     }
   }, [organizationId, dateRange]);
 
@@ -180,15 +180,15 @@ function AuditLogsContent() {
       if (selectedSeverities.length > 0) {
         filters.severity = selectedSeverities;
       }
-      if (dateRange !== "all") {
+      if (dateRange !== 'all') {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - parseInt(dateRange, 10));
         filters.startDate = startDate.toISOString();
       }
 
       const response = await fetch(`/api/organizations/${organizationId}/audit-logs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format: exportFormat, filters }),
       });
 
@@ -196,19 +196,19 @@ function AuditLogsContent() {
 
       if (data.success) {
         toast({
-          title: "Export started",
-          description: "Your audit log export is being processed. Check back shortly.",
+          title: 'Export started',
+          description: 'Your audit log export is being processed. Check back shortly.',
         });
         setExportDialogOpen(false);
       } else {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error("Error exporting:", error);
+      console.error('Error exporting:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start export",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to start export',
+        variant: 'destructive',
       });
     } finally {
       setExporting(false);
@@ -223,7 +223,7 @@ function AuditLogsContent() {
     const severityConfig = SEVERITIES.find((s) => s.value === severity);
     return (
       <Badge variant="outline" className="gap-1.5">
-        <div className={`w-2 h-2 rounded-full ${severityConfig?.color || "bg-gray-500"}`} />
+        <div className={`w-2 h-2 rounded-full ${severityConfig?.color || 'bg-gray-500'}`} />
         {severityConfig?.label || severity}
       </Badge>
     );
@@ -469,7 +469,7 @@ function AuditLogsContent() {
                         <span className="text-sm">{log.actorEmail || log.actorType}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{log.ipAddress || "-"}</TableCell>
+                    <TableCell className="font-mono text-xs">{log.ipAddress || '-'}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />
@@ -568,11 +568,11 @@ function AuditLogsContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">IP Address</Label>
-                  <p className="font-mono text-sm">{selectedLog.ipAddress || "-"}</p>
+                  <p className="font-mono text-sm">{selectedLog.ipAddress || '-'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">User Agent</Label>
-                  <p className="text-sm truncate">{selectedLog.userAgent || "-"}</p>
+                  <p className="text-sm truncate">{selectedLog.userAgent || '-'}</p>
                 </div>
               </div>
 
@@ -621,7 +621,7 @@ function AuditLogsContent() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Export Format</Label>
-              <RadioGroup value={exportFormat} onValueChange={(v) => setExportFormat(v as "csv" | "json")}>
+              <RadioGroup value={exportFormat} onValueChange={(v) => setExportFormat(v as 'csv' | 'json')}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="csv" id="csv" />
                   <Label htmlFor="csv" className="font-normal">
@@ -640,11 +640,11 @@ function AuditLogsContent() {
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm font-medium mb-2">Export will include:</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>Time range: {dateRange === "all" ? "All time" : `Last ${dateRange} days`}</li>
+                <li>Time range: {dateRange === 'all' ? 'All time' : `Last ${dateRange} days`}</li>
                 {selectedCategories.length > 0 && (
-                  <li>Categories: {selectedCategories.map(getCategoryLabel).join(", ")}</li>
+                  <li>Categories: {selectedCategories.map(getCategoryLabel).join(', ')}</li>
                 )}
-                {selectedSeverities.length > 0 && <li>Severities: {selectedSeverities.join(", ")}</li>}
+                {selectedSeverities.length > 0 && <li>Severities: {selectedSeverities.join(', ')}</li>}
                 {selectedCategories.length === 0 && selectedSeverities.length === 0 && (
                   <li>All categories and severities</li>
                 )}

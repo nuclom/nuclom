@@ -8,13 +8,13 @@
  * - Collaborative filtering patterns
  */
 
-import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { users, videoProgresses, videos } from "@/lib/db/schema";
-import { formatDuration } from "@/lib/format-utils";
-import type { VideoWithAuthor } from "@/lib/types";
-import { DatabaseError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, inArray, isNull, ne, notInArray, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { users, videoProgresses, videos } from '@/lib/db/schema';
+import { formatDuration } from '@/lib/format-utils';
+import type { VideoWithAuthor } from '@/lib/types';
+import { DatabaseError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -69,7 +69,7 @@ export interface RecommendationsServiceInterface {
   readonly getTrending: (
     organizationId: string,
     limit?: number,
-    timeframe?: "day" | "week" | "month",
+    timeframe?: 'day' | 'week' | 'month',
   ) => Effect.Effect<TrendingVideo[], DatabaseError>;
 
   /**
@@ -105,7 +105,7 @@ export interface RecommendationsServiceInterface {
 // Recommendations Service Tag
 // =============================================================================
 
-export class Recommendations extends Context.Tag("Recommendations")<
+export class Recommendations extends Context.Tag('Recommendations')<
   Recommendations,
   RecommendationsServiceInterface
 >() {}
@@ -115,7 +115,7 @@ export class Recommendations extends Context.Tag("Recommendations")<
 // =============================================================================
 
 const parseDuration = (duration: string): number => {
-  const parts = duration.split(":").map(Number);
+  const parts = duration.split(':').map(Number);
   if (parts.length === 3) {
     return parts[0] * 3600 + parts[1] * 60 + parts[2];
   }
@@ -181,7 +181,7 @@ const makeRecommendationsService = Effect.gen(function* () {
         const conditions = [
           eq(videos.organizationId, organizationId),
           isNull(videos.deletedAt),
-          eq(videos.processingStatus, "completed"),
+          eq(videos.processingStatus, 'completed'),
         ];
 
         if (allExcludeIds.length > 0) {
@@ -270,8 +270,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get recommendations",
-          operation: "getRecommendations",
+          message: 'Failed to get recommendations',
+          operation: 'getRecommendations',
           cause: error,
         }),
     });
@@ -379,8 +379,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get continue watching",
-          operation: "getContinueWatching",
+          message: 'Failed to get continue watching',
+          operation: 'getContinueWatching',
           cause: error,
         }),
     });
@@ -388,13 +388,13 @@ const makeRecommendationsService = Effect.gen(function* () {
   const getTrending = (
     organizationId: string,
     limit = 10,
-    timeframe: "day" | "week" | "month" = "week",
+    timeframe: 'day' | 'week' | 'month' = 'week',
   ): Effect.Effect<TrendingVideo[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         // Calculate timeframe date
         const now = new Date();
-        const timeframeDays = timeframe === "day" ? 1 : timeframe === "week" ? 7 : 30;
+        const timeframeDays = timeframe === 'day' ? 1 : timeframe === 'week' ? 7 : 30;
         const sinceDate = new Date(now.getTime() - timeframeDays * 24 * 60 * 60 * 1000);
 
         // Get view counts for videos in timeframe
@@ -483,8 +483,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get trending videos",
-          operation: "getTrending",
+          message: 'Failed to get trending videos',
+          operation: 'getTrending',
           cause: error,
         }),
     });
@@ -514,7 +514,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           eq(videos.organizationId, organizationId),
           isNull(videos.deletedAt),
           ne(videos.id, videoId),
-          eq(videos.processingStatus, "completed"),
+          eq(videos.processingStatus, 'completed'),
         ];
 
         const similarVideos = await db
@@ -589,8 +589,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get similar videos",
-          operation: "getSimilarVideos",
+          message: 'Failed to get similar videos',
+          operation: 'getSimilarVideos',
           cause: error,
         }),
     });
@@ -659,8 +659,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get recently watched",
-          operation: "getRecentlyWatched",
+          message: 'Failed to get recently watched',
+          operation: 'getRecentlyWatched',
           cause: error,
         }),
     });
@@ -709,7 +709,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           eq(videos.organizationId, organizationId),
           isNull(videos.deletedAt),
           inArray(videos.channelId, favoriteChannelIds),
-          eq(videos.processingStatus, "completed"),
+          eq(videos.processingStatus, 'completed'),
         ];
 
         if (excludeIds.length > 0) {
@@ -766,8 +766,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get videos from favorite channels",
-          operation: "getFromFavoriteChannels",
+          message: 'Failed to get videos from favorite channels',
+          operation: 'getFromFavoriteChannels',
           cause: error,
         }),
     });
@@ -809,8 +809,8 @@ const makeRecommendationsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to record view",
-          operation: "recordView",
+          message: 'Failed to record view',
+          operation: 'recordView',
           cause: error,
         }),
     });
@@ -859,7 +859,7 @@ export const getContinueWatching = (
 export const getTrending = (
   organizationId: string,
   limit?: number,
-  timeframe?: "day" | "week" | "month",
+  timeframe?: 'day' | 'week' | 'month',
 ): Effect.Effect<TrendingVideo[], DatabaseError, Recommendations> =>
   Effect.gen(function* () {
     const service = yield* Recommendations;

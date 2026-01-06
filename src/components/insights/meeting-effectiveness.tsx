@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { BarChart3, CheckCircle2, Clock, Eye, Lightbulb, ListTodo, Target, TrendingUp, Video } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { BarChart3, CheckCircle2, Clock, Eye, Lightbulb, ListTodo, Target, TrendingUp, Video } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface EffectivenessMetrics {
   totalMeetings: number;
@@ -40,17 +40,17 @@ interface MeetingEffectivenessProps {
 
 function ScoreRing({ score, label }: { score: number; label: string }) {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    if (score >= 40) return "text-orange-600";
-    return "text-red-600";
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    if (score >= 40) return 'text-orange-600';
+    return 'text-red-600';
   };
 
   const getProgressColor = (score: number) => {
-    if (score >= 80) return "bg-green-600";
-    if (score >= 60) return "bg-yellow-600";
-    if (score >= 40) return "bg-orange-600";
-    return "bg-red-600";
+    if (score >= 80) return 'bg-green-600';
+    if (score >= 60) return 'bg-yellow-600';
+    if (score >= 40) return 'bg-orange-600';
+    return 'bg-red-600';
   };
 
   return (
@@ -72,7 +72,7 @@ function ScoreRing({ score, label }: { score: number; label: string }) {
             style={{
               strokeDasharray: `${2 * Math.PI * 40}`,
               strokeDashoffset: `${2 * Math.PI * 40 * (1 - score / 100)}`,
-              stroke: "currentColor",
+              stroke: 'currentColor',
             }}
           />
         </svg>
@@ -117,10 +117,10 @@ export function MeetingEffectiveness({
   weeklyTrends,
 }: MeetingEffectivenessProps) {
   const breakdownItems = [
-    { label: "Decision Making", value: scoreBreakdown.decisionMaking, icon: Lightbulb },
-    { label: "Follow-through", value: scoreBreakdown.followThrough, icon: CheckCircle2 },
-    { label: "Engagement", value: scoreBreakdown.engagement, icon: Eye },
-    { label: "Consistency", value: scoreBreakdown.consistency, icon: TrendingUp },
+    { label: 'Decision Making', value: scoreBreakdown.decisionMaking, icon: Lightbulb },
+    { label: 'Follow-through', value: scoreBreakdown.followThrough, icon: CheckCircle2 },
+    { label: 'Engagement', value: scoreBreakdown.engagement, icon: Eye },
+    { label: 'Consistency', value: scoreBreakdown.consistency, icon: TrendingUp },
   ];
 
   // Calculate max for trend chart normalization
@@ -231,7 +231,7 @@ export function MeetingEffectiveness({
                     </div>
                     {index % 2 === 0 && (
                       <span className="text-[10px] text-muted-foreground">
-                        {new Date(week.week).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        {new Date(week.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                       </span>
                     )}
                   </div>

@@ -1,18 +1,18 @@
-import { and, eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { type AuditLogFilters, AuditLogger } from "@/lib/audit-log";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { type AuditLogCategory, type AuditLogSeverity, members } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
-import { safeParse } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { type AuditLogFilters, AuditLogger } from '@/lib/audit-log';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { type AuditLogCategory, type AuditLogSeverity, members } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
+import { safeParse } from '@/lib/validation';
 
 // Schema for export request
 const ExportRequestSchema = Schema.Struct({
-  format: Schema.Literal("csv", "json"),
+  format: Schema.Literal('csv', 'json'),
   filters: Schema.optional(
     Schema.Struct({
       startDate: Schema.optional(Schema.String),
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId } = await params;
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (!membership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     headers: await headers(),
     body: {
       permissions: {
-        audit_log: ["read"],
+        audit_log: ['read'],
       },
     },
   });
@@ -75,44 +75,44 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const filters: AuditLogFilters = {};
 
     // Parse date filters
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     if (startDate) filters.startDate = new Date(startDate);
     if (endDate) filters.endDate = new Date(endDate);
 
     // Parse category filter
-    const categories = searchParams.get("categories");
+    const categories = searchParams.get('categories');
     if (categories) {
-      filters.categories = categories.split(",") as AuditLogCategory[];
+      filters.categories = categories.split(',') as AuditLogCategory[];
     }
 
     // Parse action filter
-    const actions = searchParams.get("actions");
+    const actions = searchParams.get('actions');
     if (actions) {
-      filters.actions = actions.split(",");
+      filters.actions = actions.split(',');
     }
 
     // Parse actor filter
-    const actorIds = searchParams.get("actorIds");
+    const actorIds = searchParams.get('actorIds');
     if (actorIds) {
-      filters.actorIds = actorIds.split(",");
+      filters.actorIds = actorIds.split(',');
     }
 
     // Parse severity filter
-    const severity = searchParams.get("severity");
+    const severity = searchParams.get('severity');
     if (severity) {
-      filters.severity = severity.split(",") as AuditLogSeverity[];
+      filters.severity = severity.split(',') as AuditLogSeverity[];
     }
 
     // Parse resource filter
-    const resourceType = searchParams.get("resourceType");
-    const resourceId = searchParams.get("resourceId");
+    const resourceType = searchParams.get('resourceType');
+    const resourceId = searchParams.get('resourceId');
     if (resourceType) filters.resourceType = resourceType;
     if (resourceId) filters.resourceId = resourceId;
 
     // Parse pagination
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
     filters.limit = Math.min(limit, 100); // Max 100 per page
     filters.offset = offset;
 
@@ -129,9 +129,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
   } catch (error) {
-    logger.error("[Audit] Query error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[Audit] Query error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to query audit logs" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to query audit logs' },
       { status: 500 },
     );
   }
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId } = await params;
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (!membership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     headers: await headers(),
     body: {
       permissions: {
-        audit_log: ["download"],
+        audit_log: ['download'],
       },
     },
   });
@@ -212,13 +212,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       success: true,
       data: {
         exportId,
-        message: "Export requested. Check status at /api/organizations/[id]/audit-logs/exports/[exportId]",
+        message: 'Export requested. Check status at /api/organizations/[id]/audit-logs/exports/[exportId]',
       },
     });
   } catch (error) {
-    logger.error("[Audit] Export request error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[Audit] Export request error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to request export" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to request export' },
       { status: 500 },
     );
   }

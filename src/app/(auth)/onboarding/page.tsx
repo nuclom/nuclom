@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { Film } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { OnboardingProgress } from "@/components/onboarding/onboarding-progress";
-import { StepComplete } from "@/components/onboarding/step-complete";
-import { StepCreateOrg } from "@/components/onboarding/step-create-org";
-import { StepIntegrations } from "@/components/onboarding/step-integrations";
-import { StepPersonalize } from "@/components/onboarding/step-personalize";
-import { StepWelcome } from "@/components/onboarding/step-welcome";
-import { useAuth } from "@/hooks/use-auth";
-import { authClient } from "@/lib/auth-client";
+import { Film } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { OnboardingProgress } from '@/components/onboarding/onboarding-progress';
+import { StepComplete } from '@/components/onboarding/step-complete';
+import { StepCreateOrg } from '@/components/onboarding/step-create-org';
+import { StepIntegrations } from '@/components/onboarding/step-integrations';
+import { StepPersonalize } from '@/components/onboarding/step-personalize';
+import { StepWelcome } from '@/components/onboarding/step-welcome';
+import { useAuth } from '@/hooks/use-auth';
+import { authClient } from '@/lib/auth-client';
 
 const ONBOARDING_STEPS = [
-  { id: "welcome", title: "Welcome" },
-  { id: "personalize", title: "About You" },
-  { id: "workspace", title: "Workspace" },
-  { id: "integrations", title: "Integrations" },
-  { id: "complete", title: "Complete" },
+  { id: 'welcome', title: 'Welcome' },
+  { id: 'personalize', title: 'About You' },
+  { id: 'workspace', title: 'Workspace' },
+  { id: 'integrations', title: 'Integrations' },
+  { id: 'complete', title: 'Complete' },
 ];
 
 interface OnboardingData {
@@ -47,7 +47,7 @@ export default function OnboardingPage() {
           return;
         }
       } catch (err) {
-        console.error("Error checking organizations:", err);
+        console.error('Error checking organizations:', err);
       }
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export default function OnboardingPage() {
       });
 
       if (createError) {
-        setError(createError.message || "Failed to create workspace");
+        setError(createError.message || 'Failed to create workspace');
         return;
       }
 
@@ -96,8 +96,8 @@ export default function OnboardingPage() {
         handleNext();
       }
     } catch (err) {
-      console.error("Error creating organization:", err);
-      setError("An unexpected error occurred. Please try again.");
+      console.error('Error creating organization:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setCreating(false);
     }
@@ -155,7 +155,7 @@ export default function OnboardingPage() {
           {currentStep === 4 && onboardingData.organizationSlug && (
             <StepComplete
               organizationSlug={onboardingData.organizationSlug}
-              organizationName={onboardingData.organizationName || "Your Workspace"}
+              organizationName={onboardingData.organizationName || 'Your Workspace'}
             />
           )}
         </div>
@@ -164,7 +164,7 @@ export default function OnboardingPage() {
       {/* Footer */}
       <footer className="py-4 text-center text-sm text-muted-foreground">
         <p>
-          Need help?{" "}
+          Need help?{' '}
           <a href="/support" className="underline hover:text-foreground">
             Contact support
           </a>

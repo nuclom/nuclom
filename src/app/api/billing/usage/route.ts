@@ -1,12 +1,12 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { Billing } from "@/lib/effect/services/billing";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { Billing } from '@/lib/effect/services/billing';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { validateRequestBody } from '@/lib/validation';
 
 const UsageHistoryRequestSchema = Schema.Struct({
   organizationId: Schema.String,
@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
 
     // Get organization from query params
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
+    const organizationId = searchParams.get('organizationId');
 
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }

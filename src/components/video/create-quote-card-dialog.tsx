@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Loader2, Quote } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Quote } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreateQuoteCardDialogProps {
   videoId: string;
@@ -31,11 +31,11 @@ interface CreateQuoteCardDialogProps {
 function formatTimeInput(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function parseTimeInput(timeStr: string): number | null {
-  const parts = timeStr.split(":").map((p) => Number.parseInt(p, 10));
+  const parts = timeStr.split(':').map((p) => Number.parseInt(p, 10));
   if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
     return parts[0] * 60 + parts[1];
   }
@@ -55,10 +55,10 @@ export function CreateQuoteCardDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [quoteText, setQuoteText] = useState(initialData?.quoteText || "");
-  const [speaker, setSpeaker] = useState(initialData?.speaker || "");
+  const [quoteText, setQuoteText] = useState(initialData?.quoteText || '');
+  const [speaker, setSpeaker] = useState(initialData?.speaker || '');
   const [timestampStr, setTimestampStr] = useState(
-    initialData?.timestampSeconds !== undefined ? formatTimeInput(initialData.timestampSeconds) : "",
+    initialData?.timestampSeconds !== undefined ? formatTimeInput(initialData.timestampSeconds) : '',
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,9 +66,9 @@ export function CreateQuoteCardDialog({
 
     if (!quoteText.trim()) {
       toast({
-        title: "Quote text required",
-        description: "Please enter the quote text",
-        variant: "destructive",
+        title: 'Quote text required',
+        description: 'Please enter the quote text',
+        variant: 'destructive',
       });
       return;
     }
@@ -78,9 +78,9 @@ export function CreateQuoteCardDialog({
       const parsed = parseTimeInput(timestampStr);
       if (parsed === null) {
         toast({
-          title: "Invalid timestamp format",
-          description: "Please use MM:SS or HH:MM:SS format",
-          variant: "destructive",
+          title: 'Invalid timestamp format',
+          description: 'Please use MM:SS or HH:MM:SS format',
+          variant: 'destructive',
         });
         return;
       }
@@ -91,8 +91,8 @@ export function CreateQuoteCardDialog({
 
     try {
       const response = await fetch(`/api/videos/${videoId}/quote-cards`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quoteText: quoteText.trim(),
           speaker: speaker.trim() || undefined,
@@ -102,26 +102,26 @@ export function CreateQuoteCardDialog({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create quote card");
+        throw new Error(error.error || 'Failed to create quote card');
       }
 
       toast({
-        title: "Quote card created",
-        description: "Your quote card has been created successfully.",
+        title: 'Quote card created',
+        description: 'Your quote card has been created successfully.',
       });
 
       // Reset form
-      setQuoteText("");
-      setSpeaker("");
-      setTimestampStr("");
+      setQuoteText('');
+      setSpeaker('');
+      setTimestampStr('');
 
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
       toast({
-        title: "Failed to create quote card",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
+        title: 'Failed to create quote card',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -187,7 +187,7 @@ export function CreateQuoteCardDialog({
                   Creating...
                 </>
               ) : (
-                "Create Quote Card"
+                'Create Quote Card'
               )}
             </Button>
           </DialogFooter>

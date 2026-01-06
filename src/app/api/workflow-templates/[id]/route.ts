@@ -1,18 +1,18 @@
-import { eq, sql } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { workflowTemplates } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+import { eq, sql } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { workflowTemplates } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
 
 const UpdateTemplateSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
   description: Schema.optional(Schema.String),
   type: Schema.optional(
-    Schema.Literal("meeting_recap", "tutorial", "product_demo", "training", "onboarding", "marketing", "custom"),
+    Schema.Literal('meeting_recap', 'tutorial', 'product_demo', 'training', 'onboarding', 'marketing', 'custom'),
   ),
   icon: Schema.optional(Schema.String),
   config: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
@@ -30,13 +30,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const [template] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!template) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     return NextResponse.json({ template });
   } catch (error) {
-    logger.error("Get template error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    logger.error('Get template error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -53,25 +53,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if template exists and user has permission
     const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!existing) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     // Can't edit system templates
     if (existing.isSystem) {
-      return NextResponse.json({ error: "Cannot edit system templates" }, { status: 403 });
+      return NextResponse.json({ error: 'Cannot edit system templates' }, { status: 403 });
     }
 
     const rawBody = await request.json();
     const result = safeParse(UpdateTemplateSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
     }
     const { name, description, type, icon, config, isActive } = result.data;
 
@@ -91,8 +91,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ template });
   } catch (error) {
-    logger.error("Update template error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    logger.error('Update template error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -109,27 +109,27 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if template exists and user has permission
     const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!existing) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     // Can't delete system templates
     if (existing.isSystem) {
-      return NextResponse.json({ error: "Cannot delete system templates" }, { status: 403 });
+      return NextResponse.json({ error: 'Cannot delete system templates' }, { status: 403 });
     }
 
     await db.delete(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Delete template error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    logger.error('Delete template error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -146,7 +146,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Increment usage count
@@ -159,16 +159,16 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
       .returning();
 
     if (!template) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       template,
-      message: "Template applied successfully",
+      message: 'Template applied successfully',
     });
   } catch (error) {
-    logger.error("Apply template error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    logger.error('Apply template error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

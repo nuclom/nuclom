@@ -1,23 +1,23 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import type { CodeLinkType } from "@/lib/db/schema";
-import { CodeLinksRepository, NotFoundError, VideoRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { safeParse } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import type { CodeLinkType } from '@/lib/db/schema';
+import { CodeLinksRepository, NotFoundError, VideoRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { safeParse } from '@/lib/validation';
 
 // =============================================================================
 // Validation Schemas
 // =============================================================================
 
 const CreateCodeLinkSchema = Schema.Struct({
-  type: Schema.Literal("pr", "issue", "commit", "file", "directory"),
+  type: Schema.Literal('pr', 'issue', 'commit', 'file', 'directory'),
   repo: Schema.String.pipe(
     Schema.pattern(/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/, {
-      message: () => "Invalid repository format (owner/repo)",
+      message: () => 'Invalid repository format (owner/repo)',
     }),
   ),
-  ref: Schema.String.pipe(Schema.minLength(1, { message: () => "Reference is required" })),
+  ref: Schema.String.pipe(Schema.minLength(1, { message: () => 'Reference is required' })),
   context: Schema.optional(Schema.String),
   timestamp: Schema.optional(Schema.Number),
   timestampEnd: Schema.optional(Schema.Number),
@@ -38,8 +38,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -79,14 +79,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Parse and validate request body
     const body = yield* Effect.tryPromise({
       try: () => request.json(),
-      catch: () => new Error("Invalid JSON body"),
+      catch: () => new Error('Invalid JSON body'),
     });
 
     const parseResult = safeParse(CreateCodeLinkSchema, body);
     if (!parseResult.success) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: parseResult.error.issues.map((e) => e.message).join(", "),
+        _tag: 'ValidationError' as const,
+        message: parseResult.error.issues.map((e) => e.message).join(', '),
       });
     }
 
@@ -99,8 +99,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -136,10 +136,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json(data, { status: 201 });
@@ -159,12 +159,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id: videoId } = yield* Effect.promise(() => params);
     const { searchParams } = new URL(request.url);
-    const linkId = searchParams.get("linkId");
+    const linkId = searchParams.get('linkId');
 
     if (!linkId) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: "linkId query parameter is required",
+        _tag: 'ValidationError' as const,
+        message: 'linkId query parameter is required',
       });
     }
 
@@ -174,8 +174,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     if (existingLink.videoId !== videoId) {
       return yield* Effect.fail({
-        _tag: "ForbiddenError" as const,
-        message: "Code link does not belong to this video",
+        _tag: 'ForbiddenError' as const,
+        message: 'Code link does not belong to this video',
       });
     }
 
@@ -201,15 +201,15 @@ function generateGitHubUrl(repo: string, type: CodeLinkType, ref: string): strin
   const baseUrl = `https://github.com/${repo}`;
 
   switch (type) {
-    case "pr":
+    case 'pr':
       return `${baseUrl}/pull/${ref}`;
-    case "issue":
+    case 'issue':
       return `${baseUrl}/issues/${ref}`;
-    case "commit":
+    case 'commit':
       return `${baseUrl}/commit/${ref}`;
-    case "file":
+    case 'file':
       return `${baseUrl}/blob/main/${ref}`;
-    case "directory":
+    case 'directory':
       return `${baseUrl}/tree/main/${ref}`;
     default:
       return baseUrl;

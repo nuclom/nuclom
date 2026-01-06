@@ -4,18 +4,18 @@
  * Provides webhook management and delivery for Zapier integration.
  */
 
-import crypto from "node:crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import crypto from 'node:crypto';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
 import type {
   NewZapierWebhookDelivery,
   ZapierWebhook,
   ZapierWebhookDelivery,
   ZapierWebhookEvent,
-} from "@/lib/db/schema";
-import { zapierWebhookDeliveries, zapierWebhooks } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+} from '@/lib/db/schema';
+import { zapierWebhookDeliveries, zapierWebhooks } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -141,7 +141,7 @@ export interface ZapierWebhooksServiceInterface {
 // Zapier Webhooks Service Tag
 // =============================================================================
 
-export class ZapierWebhooksService extends Context.Tag("ZapierWebhooksService")<
+export class ZapierWebhooksService extends Context.Tag('ZapierWebhooksService')<
   ZapierWebhooksService,
   ZapierWebhooksServiceInterface
 >() {}
@@ -154,13 +154,13 @@ const makeZapierWebhooksService = Effect.gen(function* () {
   const { db } = yield* Database;
 
   const generateSecret = (): string => {
-    return crypto.randomBytes(32).toString("hex");
+    return crypto.randomBytes(32).toString('hex');
   };
 
   const generateSignature = (secret: string, payload: string): string => {
-    const hmac = crypto.createHmac("sha256", secret);
+    const hmac = crypto.createHmac('sha256', secret);
     hmac.update(payload);
-    return `sha256=${hmac.digest("hex")}`;
+    return `sha256=${hmac.digest('hex')}`;
   };
 
   const verifySignature = (secret: string, payload: string, signature: string): boolean => {
@@ -206,8 +206,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch webhooks",
-          operation: "getWebhooks",
+          message: 'Failed to fetch webhooks',
+          operation: 'getWebhooks',
           cause: error,
         }),
     });
@@ -220,8 +220,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch webhook",
-            operation: "getWebhook",
+            message: 'Failed to fetch webhook',
+            operation: 'getWebhook',
             cause: error,
           }),
       });
@@ -229,8 +229,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Webhook not found",
-            entity: "ZapierWebhook",
+            message: 'Webhook not found',
+            entity: 'ZapierWebhook',
             id,
           }),
         );
@@ -254,8 +254,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create webhook",
-          operation: "createWebhook",
+          message: 'Failed to create webhook',
+          operation: 'createWebhook',
           cause: error,
         }),
     });
@@ -275,8 +275,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update webhook",
-            operation: "updateWebhook",
+            message: 'Failed to update webhook',
+            operation: 'updateWebhook',
             cause: error,
           }),
       });
@@ -284,8 +284,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Webhook not found",
-            entity: "ZapierWebhook",
+            message: 'Webhook not found',
+            entity: 'ZapierWebhook',
             id,
           }),
         );
@@ -302,8 +302,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete webhook",
-            operation: "deleteWebhook",
+            message: 'Failed to delete webhook',
+            operation: 'deleteWebhook',
             cause: error,
           }),
       });
@@ -311,8 +311,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Webhook not found",
-            entity: "ZapierWebhook",
+            message: 'Webhook not found',
+            entity: 'ZapierWebhook',
             id,
           }),
         );
@@ -338,8 +338,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch webhooks for event",
-          operation: "getWebhooksForEvent",
+          message: 'Failed to fetch webhooks for event',
+          operation: 'getWebhooksForEvent',
           cause: error,
         }),
     });
@@ -360,12 +360,12 @@ const makeZapierWebhooksService = Effect.gen(function* () {
 
         try {
           const response = await fetch(webhook.targetUrl, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
-              "X-Nuclom-Signature": signature,
-              "X-Nuclom-Event": payload.event,
-              "X-Nuclom-Timestamp": payload.timestamp,
+              'Content-Type': 'application/json',
+              'X-Nuclom-Signature': signature,
+              'X-Nuclom-Event': payload.event,
+              'X-Nuclom-Timestamp': payload.timestamp,
             },
             body: payloadString,
             signal: AbortSignal.timeout(30000), // 30 second timeout
@@ -375,7 +375,7 @@ const makeZapierWebhooksService = Effect.gen(function* () {
           responseBody = await response.text().catch(() => undefined);
           success = response.ok;
         } catch (err) {
-          error = err instanceof Error ? err.message : "Unknown error";
+          error = err instanceof Error ? err.message : 'Unknown error';
           success = false;
         }
 
@@ -420,8 +420,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to deliver webhook",
-          operation: "deliverWebhook",
+          message: 'Failed to deliver webhook',
+          operation: 'deliverWebhook',
           cause: error,
         }),
     });
@@ -481,8 +481,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch deliveries",
-          operation: "getDeliveries",
+          message: 'Failed to fetch deliveries',
+          operation: 'getDeliveries',
           cause: error,
         }),
     });
@@ -500,8 +500,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch delivery",
-            operation: "retryDelivery",
+            message: 'Failed to fetch delivery',
+            operation: 'retryDelivery',
             cause: error,
           }),
       });
@@ -509,8 +509,8 @@ const makeZapierWebhooksService = Effect.gen(function* () {
       if (!deliveryResult.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Delivery not found",
-            entity: "ZapierWebhookDelivery",
+            message: 'Delivery not found',
+            entity: 'ZapierWebhookDelivery',
             id: deliveryId,
           }),
         );

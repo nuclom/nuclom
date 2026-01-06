@@ -5,14 +5,14 @@
  * Creates the video record in the database and triggers processing.
  */
 
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { Storage, ValidationError, VideoRepository } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
-import { sanitizeDescription, sanitizeTitle, validate } from "@/lib/validation";
-import { processVideoWorkflow } from "@/workflows/video-processing";
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { Storage, ValidationError, VideoRepository } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
+import { sanitizeDescription, sanitizeTitle, validate } from '@/lib/validation';
+import { processVideoWorkflow } from '@/workflows/video-processing';
 
 // =============================================================================
 // Types
@@ -73,11 +73,11 @@ interface BulkConfirmUploadResponse {
 }
 
 // Estimated duration for videos (will be updated during processing)
-const PLACEHOLDER_DURATION = "0:00";
+const PLACEHOLDER_DURATION = '0:00';
 
 const isBulkConfirmUploadRequest = (
   value: ConfirmUploadRequest | BulkConfirmUploadRequest,
-): value is BulkConfirmUploadRequest => "uploads" in value;
+): value is BulkConfirmUploadRequest => 'uploads' in value;
 
 // =============================================================================
 // POST /api/videos/upload/confirm - Confirm upload and create video record
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse request body
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.json();
     body = await Effect.runPromise(validate(ConfirmUploadBodySchema, rawBody));
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
   // Determine if this is a bulk or single confirmation request
@@ -129,7 +129,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
 
   // Validate required fields
   if (!uploadId || !fileKey || !filename || !title || !organizationId || !authorId) {
-    return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -140,7 +140,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
     if (!storage.isConfigured) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Storage is not configured",
+          message: 'Storage is not configured',
         }),
       );
     }
@@ -163,13 +163,13 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       organizationId,
       channelId: channelId || undefined,
       collectionId: collectionId || undefined,
-      processingStatus: skipAIProcessing ? "completed" : "pending",
+      processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
 
     return {
       videoId: video.id,
       videoUrl,
-      thumbnailUrl: "",
+      thumbnailUrl: '',
       processingStatus: video.processingStatus,
       skipAIProcessing: skipAIProcessing ?? false,
       videoTitle: sanitizedTitle,
@@ -179,7 +179,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 
@@ -193,7 +193,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       videoTitle: data.videoTitle,
       organizationId: body.organizationId,
     }).catch((err) => {
-      console.error("[Video Processing Workflow Error]", err);
+      console.error('[Video Processing Workflow Error]', err);
     });
   }
 
@@ -215,14 +215,14 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
 
   // Validate required fields
   if (!uploads || uploads.length === 0 || !organizationId || !authorId) {
-    return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
   }
 
   // Validate each upload
   for (const upload of uploads) {
     if (!upload.uploadId || !upload.fileKey || !upload.filename || !upload.title) {
       return NextResponse.json(
-        { success: false, error: "Each upload must have uploadId, fileKey, filename, and title" },
+        { success: false, error: 'Each upload must have uploadId, fileKey, filename, and title' },
         { status: 400 },
       );
     }
@@ -236,12 +236,12 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
     if (!storage.isConfigured) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Storage is not configured",
+          message: 'Storage is not configured',
         }),
       );
     }
 
-    const results: BulkConfirmUploadResponse["videos"] = [];
+    const results: BulkConfirmUploadResponse['videos'] = [];
     let succeeded = 0;
     let failed = 0;
 
@@ -261,7 +261,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
           organizationId,
           channelId: channelId || undefined,
           collectionId: collectionId || undefined,
-          processingStatus: skipAIProcessing ? "completed" : "pending",
+          processingStatus: skipAIProcessing ? 'completed' : 'pending',
         });
 
         results.push({
@@ -296,7 +296,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 

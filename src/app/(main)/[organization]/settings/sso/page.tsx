@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Check, Copy, Key, Loader2, Lock, Plus, Shield, Trash2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Copy, Key, Loader2, Lock, Plus, Shield, Trash2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,13 +15,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
 
 type SSOProvider = {
   id: string;
@@ -46,16 +46,16 @@ function SSOContent() {
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   // Form state
-  const [providerType, setProviderType] = useState<"saml" | "oidc">("oidc");
-  const [providerId, setProviderId] = useState("");
-  const [issuer, setIssuer] = useState("");
-  const [domain, setDomain] = useState("");
+  const [providerType, setProviderType] = useState<'saml' | 'oidc'>('oidc');
+  const [providerId, setProviderId] = useState('');
+  const [issuer, setIssuer] = useState('');
+  const [domain, setDomain] = useState('');
   // OIDC fields
-  const [clientId, setClientId] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
   // SAML fields
-  const [entryPoint, setEntryPoint] = useState("");
-  const [certificate, setCertificate] = useState("");
+  const [entryPoint, setEntryPoint] = useState('');
+  const [certificate, setCertificate] = useState('');
 
   const { data: activeOrg } = authClient.useActiveOrganization();
 
@@ -67,11 +67,11 @@ function SSOContent() {
       // In a production app, you'd fetch providers from the database
       setProviders([]);
     } catch (error) {
-      console.error("Error loading SSO providers:", error);
+      console.error('Error loading SSO providers:', error);
       toast({
-        title: "Error",
-        description: "Failed to load SSO configuration",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load SSO configuration',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -83,22 +83,22 @@ function SSOContent() {
   }, [loadProviders]);
 
   const resetForm = () => {
-    setProviderId("");
-    setIssuer("");
-    setDomain("");
-    setClientId("");
-    setClientSecret("");
-    setEntryPoint("");
-    setCertificate("");
+    setProviderId('');
+    setIssuer('');
+    setDomain('');
+    setClientId('');
+    setClientSecret('');
+    setEntryPoint('');
+    setCertificate('');
     setVerificationToken(null);
   };
 
   const handleRegisterProvider = async () => {
     if (!providerId || !issuer || !domain) {
       toast({
-        title: "Missing fields",
-        description: "Provider ID, Issuer, and Domain are required",
-        variant: "destructive",
+        title: 'Missing fields',
+        description: 'Provider ID, Issuer, and Domain are required',
+        variant: 'destructive',
       });
       return;
     }
@@ -108,12 +108,12 @@ function SSOContent() {
 
       const callbackUrl = `${baseUrl}/api/auth/sso/saml2/callback/${providerId}`;
 
-      if (providerType === "oidc") {
+      if (providerType === 'oidc') {
         if (!clientId || !clientSecret) {
           toast({
-            title: "Missing fields",
-            description: "Client ID and Client Secret are required for OIDC",
-            variant: "destructive",
+            title: 'Missing fields',
+            description: 'Client ID and Client Secret are required for OIDC',
+            variant: 'destructive',
           });
           return;
         }
@@ -126,7 +126,7 @@ function SSOContent() {
           oidcConfig: {
             clientId,
             clientSecret,
-            scopes: ["openid", "email", "profile"],
+            scopes: ['openid', 'email', 'profile'],
           },
         });
 
@@ -136,9 +136,9 @@ function SSOContent() {
       } else {
         if (!entryPoint || !certificate) {
           toast({
-            title: "Missing fields",
-            description: "Entry Point and Certificate are required for SAML",
-            variant: "destructive",
+            title: 'Missing fields',
+            description: 'Entry Point and Certificate are required for SAML',
+            variant: 'destructive',
           });
           return;
         }
@@ -169,13 +169,13 @@ function SSOContent() {
       if (verificationResult.data?.domainVerificationToken) {
         setVerificationToken(verificationResult.data.domainVerificationToken);
         toast({
-          title: "SSO Provider Registered",
-          description: "Provider registered. Complete domain verification to enable SSO.",
+          title: 'SSO Provider Registered',
+          description: 'Provider registered. Complete domain verification to enable SSO.',
         });
       } else {
         toast({
-          title: "SSO Provider Registered",
-          description: "SSO provider has been configured successfully.",
+          title: 'SSO Provider Registered',
+          description: 'SSO provider has been configured successfully.',
         });
         setConfigDialogOpen(false);
         resetForm();
@@ -183,11 +183,11 @@ function SSOContent() {
 
       await loadProviders();
     } catch (error) {
-      console.error("Error registering SSO provider:", error);
+      console.error('Error registering SSO provider:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to register SSO provider",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to register SSO provider',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -210,19 +210,19 @@ function SSOContent() {
       }
 
       toast({
-        title: "Domain Verified",
-        description: "Your domain has been verified. SSO is now active.",
+        title: 'Domain Verified',
+        description: 'Your domain has been verified. SSO is now active.',
       });
 
       setConfigDialogOpen(false);
       resetForm();
       await loadProviders();
     } catch (error) {
-      console.error("Error verifying domain:", error);
+      console.error('Error verifying domain:', error);
       toast({
-        title: "Verification Failed",
-        description: error instanceof Error ? error.message : "Domain verification failed. Check your DNS records.",
-        variant: "destructive",
+        title: 'Verification Failed',
+        description: error instanceof Error ? error.message : 'Domain verification failed. Check your DNS records.',
+        variant: 'destructive',
       });
     } finally {
       setVerifying(false);
@@ -236,29 +236,29 @@ function SSOContent() {
       // Note: Better Auth SSO doesn't have a built-in delete endpoint
       // You would need to delete from the database directly or add a custom endpoint
       toast({
-        title: "Provider Deleted",
-        description: "SSO provider has been removed",
+        title: 'Provider Deleted',
+        description: 'SSO provider has been removed',
       });
 
       setDeleteDialogOpen(false);
       setSelectedProvider(null);
       await loadProviders();
     } catch (error) {
-      console.error("Error deleting SSO provider:", error);
+      console.error('Error deleting SSO provider:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete provider",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete provider',
+        variant: 'destructive',
       });
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: "Copied to clipboard" });
+    toast({ title: 'Copied to clipboard' });
   };
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
   if (loading) {
     return (
@@ -326,8 +326,8 @@ function SSOContent() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{provider.providerId}</p>
-                    <Badge variant={provider.domainVerified ? "default" : "secondary"}>
-                      {provider.domainVerified ? "Verified" : "Pending Verification"}
+                    <Badge variant={provider.domainVerified ? 'default' : 'secondary'}>
+                      {provider.domainVerified ? 'Verified' : 'Pending Verification'}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{provider.domain}</p>
@@ -448,7 +448,7 @@ function SSOContent() {
             </div>
           ) : (
             <>
-              <Tabs value={providerType} onValueChange={(v) => setProviderType(v as "saml" | "oidc")}>
+              <Tabs value={providerType} onValueChange={(v) => setProviderType(v as 'saml' | 'oidc')}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="oidc">OpenID Connect</TabsTrigger>
                   <TabsTrigger value="saml">SAML 2.0</TabsTrigger>

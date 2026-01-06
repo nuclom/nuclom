@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
+import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
 
 interface Invitation {
   id: string;
@@ -93,7 +93,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
           </div>
           <CardTitle className="text-2xl font-bold text-center">Invitation Expired</CardTitle>
           <CardDescription className="text-center">
-            This invitation to join <strong>{invitation.organization.name}</strong> has expired. Please ask{" "}
+            This invitation to join <strong>{invitation.organization.name}</strong> has expired. Please ask{' '}
             {invitation.inviter.name} to send you a new invitation.
           </CardDescription>
         </CardHeader>
@@ -107,7 +107,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
   }
 
   // 3. Already accepted - redirect
-  if (invitation.status === "accepted") {
+  if (invitation.status === 'accepted') {
     const orgSlug = invitation.organization.slug || invitation.organizationId;
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -157,7 +157,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
             You're invited to join {invitation.organization.name}
           </CardTitle>
           <CardDescription className="text-center">
-            <span className="font-medium">{invitation.inviter.name}</span> invited you as a{" "}
+            <span className="font-medium">{invitation.inviter.name}</span> invited you as a{' '}
             <span className="font-medium capitalize">{invitation.role}</span>
           </CardDescription>
         </CardHeader>
@@ -189,7 +189,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         await authClient.signOut();
         router.refresh();
       } catch (err) {
-        logger.error("Sign out failed", err);
+        logger.error('Sign out failed', err);
         setIsSigningOut(false);
       }
     };
@@ -246,9 +246,9 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
 
       if (result.error) {
         toast({
-          title: "Error",
-          description: result.error.message || "Failed to accept invitation",
-          variant: "destructive",
+          title: 'Error',
+          description: result.error.message || 'Failed to accept invitation',
+          variant: 'destructive',
         });
         setIsAccepting(false);
         return;
@@ -256,26 +256,26 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
 
       // Send notification to inviter
       try {
-        await fetch("/api/notifications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: invitation.inviterId,
-            type: "invitation_accepted",
+            type: 'invitation_accepted',
             title: `${session.user.name} joined ${invitation.organization.name}`,
             body: `Your invitation was accepted.`,
-            resourceType: "organization",
+            resourceType: 'organization',
             resourceId: invitation.organizationId,
             actorId: session.user.id,
           }),
         });
       } catch (notificationError) {
         // Don't block on notification failure
-        logger.error("Failed to send notification", notificationError);
+        logger.error('Failed to send notification', notificationError);
       }
 
       toast({
-        title: "Welcome!",
+        title: 'Welcome!',
         description: `You've joined ${invitation.organization.name}`,
       });
 
@@ -283,11 +283,11 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       router.push(`/${orgSlug}`);
       router.refresh();
     } catch (err) {
-      logger.error("Failed to accept invitation", err);
+      logger.error('Failed to accept invitation', err);
       toast({
-        title: "Error",
-        description: "Failed to accept invitation. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to accept invitation. Please try again.',
+        variant: 'destructive',
       });
       setIsAccepting(false);
     }
@@ -302,27 +302,27 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
 
       if (result.error) {
         toast({
-          title: "Error",
-          description: result.error.message || "Failed to decline invitation",
-          variant: "destructive",
+          title: 'Error',
+          description: result.error.message || 'Failed to decline invitation',
+          variant: 'destructive',
         });
         setIsDeclining(false);
         return;
       }
 
       toast({
-        title: "Invitation declined",
-        description: "The invitation has been declined.",
+        title: 'Invitation declined',
+        description: 'The invitation has been declined.',
       });
 
-      router.push("/");
+      router.push('/');
       router.refresh();
     } catch (err) {
-      logger.error("Failed to decline invitation", err);
+      logger.error('Failed to decline invitation', err);
       toast({
-        title: "Error",
-        description: "Failed to decline invitation. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to decline invitation. Please try again.',
+        variant: 'destructive',
       });
       setIsDeclining(false);
     }
@@ -345,7 +345,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         </div>
         <CardTitle className="text-2xl font-bold text-center">Join {invitation.organization.name}</CardTitle>
         <CardDescription className="text-center">
-          <span className="font-medium">{invitation.inviter.name}</span> invited you as a{" "}
+          <span className="font-medium">{invitation.inviter.name}</span> invited you as a{' '}
           <span className="font-medium capitalize">{invitation.role}</span>
         </CardDescription>
       </CardHeader>
@@ -358,7 +358,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
                 Accepting...
               </>
             ) : (
-              "Accept Invitation"
+              'Accept Invitation'
             )}
           </Button>
           <Button variant="outline" className="w-full" onClick={handleDecline} disabled={isAccepting || isDeclining}>
@@ -368,7 +368,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
                 Declining...
               </>
             ) : (
-              "Decline"
+              'Decline'
             )}
           </Button>
         </div>

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ViewsChartProps {
   data: Array<{
@@ -16,14 +16,14 @@ export function ViewsChart({ data, period }: ViewsChartProps) {
 
   const periodLabel = useMemo(() => {
     switch (period) {
-      case "7d":
-        return "Last 7 days";
-      case "30d":
-        return "Last 30 days";
-      case "90d":
-        return "Last 90 days";
+      case '7d':
+        return 'Last 7 days';
+      case '30d':
+        return 'Last 30 days';
+      case '90d':
+        return 'Last 90 days';
       default:
-        return "All time";
+        return 'All time';
     }
   }, [period]);
 
@@ -52,9 +52,9 @@ export function ViewsChart({ data, period }: ViewsChartProps) {
           {data.map((day, index) => {
             const height = (day.viewCount / maxViews) * 100;
             const date = new Date(day.date);
-            const formattedDate = date.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
+            const formattedDate = date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
             });
 
             return (
@@ -71,7 +71,7 @@ export function ViewsChart({ data, period }: ViewsChartProps) {
                 </div>
                 {(index === 0 || index === data.length - 1 || data.length <= 14) && (
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 )}
               </div>

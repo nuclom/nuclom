@@ -4,8 +4,8 @@
  * Provides database operations for billing-related entities.
  */
 
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { Context, Effect, Layer, Option } from 'effect';
 import {
   type Invoice,
   invoices,
@@ -23,9 +23,9 @@ import {
   type Usage,
   usage,
   videos,
-} from "@/lib/db/schema";
-import { DatabaseError, NoSubscriptionError, NotFoundError, PlanNotFoundError, UsageTrackingError } from "../errors";
-import { Database, type DrizzleDB } from "./database";
+} from '@/lib/db/schema';
+import { DatabaseError, NoSubscriptionError, NotFoundError, PlanNotFoundError, UsageTrackingError } from '../errors';
+import { Database, type DrizzleDB } from './database';
 
 // =============================================================================
 // Types
@@ -143,12 +143,12 @@ export interface BillingRepositoryService {
   readonly getOrCreateCurrentUsage: (organizationId: string) => Effect.Effect<Usage, DatabaseError>;
   readonly incrementUsage: (
     organizationId: string,
-    field: "storageUsed" | "videosUploaded" | "bandwidthUsed" | "aiRequests",
+    field: 'storageUsed' | 'videosUploaded' | 'bandwidthUsed' | 'aiRequests',
     amount: number,
   ) => Effect.Effect<Usage, UsageTrackingError>;
   readonly decrementUsage: (
     organizationId: string,
-    field: "storageUsed" | "videosUploaded",
+    field: 'storageUsed' | 'videosUploaded',
     amount: number,
   ) => Effect.Effect<Usage, UsageTrackingError>;
   readonly getUsageSummary: (
@@ -185,7 +185,7 @@ export interface BillingRepositoryService {
 // Service Tag
 // =============================================================================
 
-export class BillingRepository extends Context.Tag("BillingRepository")<
+export class BillingRepository extends Context.Tag('BillingRepository')<
   BillingRepository,
   BillingRepositoryService
 >() {}
@@ -253,8 +253,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get plans",
-          operation: "getPlans",
+          message: 'Failed to get plans',
+          operation: 'getPlans',
           cause: error,
         }),
     }),
@@ -268,8 +268,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get plan",
-            operation: "getPlan",
+            message: 'Failed to get plan',
+            operation: 'getPlan',
             cause: error,
           }),
       });
@@ -296,8 +296,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get plan by Stripe price",
-            operation: "getPlanByStripePrice",
+            message: 'Failed to get plan by Stripe price',
+            operation: 'getPlanByStripePrice',
             cause: error,
           }),
       });
@@ -328,8 +328,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get subscription",
-            operation: "getSubscription",
+            message: 'Failed to get subscription',
+            operation: 'getSubscription',
             cause: error,
           }),
       });
@@ -337,7 +337,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!subscription) {
         return yield* Effect.fail(
           new NoSubscriptionError({
-            message: "Organization has no active subscription",
+            message: 'Organization has no active subscription',
             organizationId,
           }),
         );
@@ -372,8 +372,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get subscription",
-            operation: "getSubscriptionOption",
+            message: 'Failed to get subscription',
+            operation: 'getSubscriptionOption',
             cause: error,
           }),
       });
@@ -407,8 +407,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create subscription",
-          operation: "createSubscription",
+          message: 'Failed to create subscription',
+          operation: 'createSubscription',
           cause: error,
         }),
     }),
@@ -425,8 +425,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update subscription",
-          operation: "updateSubscription",
+          message: 'Failed to update subscription',
+          operation: 'updateSubscription',
           cause: error,
         }),
     }),
@@ -440,8 +440,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get subscription by Stripe ID",
-            operation: "getSubscriptionByStripeId",
+            message: 'Failed to get subscription by Stripe ID',
+            operation: 'getSubscriptionByStripeId',
             cause: error,
           }),
       });
@@ -449,8 +449,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!subscription) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Subscription not found",
-            entity: "Subscription",
+            message: 'Subscription not found',
+            entity: 'Subscription',
             id: stripeSubscriptionId,
           }),
         );
@@ -489,8 +489,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get current usage",
-            operation: "getCurrentUsage",
+            message: 'Failed to get current usage',
+            operation: 'getCurrentUsage',
             cause: error,
           }),
       });
@@ -498,7 +498,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!usageRecord) {
         // Return empty usage if not found
         return {
-          id: "",
+          id: '',
           organizationId,
           periodStart,
           periodEnd,
@@ -525,8 +525,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get current usage",
-            operation: "getOrCreateCurrentUsage",
+            message: 'Failed to get current usage',
+            operation: 'getOrCreateCurrentUsage',
             cause: error,
           }),
       });
@@ -552,8 +552,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
             .returning(),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to create usage record",
-            operation: "getOrCreateCurrentUsage",
+            message: 'Failed to create usage record',
+            operation: 'getOrCreateCurrentUsage',
             cause: error,
           }),
       });
@@ -569,7 +569,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           Effect.mapError(
             (error) =>
               new UsageTrackingError({
-                message: "Failed to get current usage",
+                message: 'Failed to get current usage',
                 organizationId,
                 cause: error,
               }),
@@ -605,7 +605,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           Effect.mapError(
             (error) =>
               new UsageTrackingError({
-                message: "Failed to get current usage",
+                message: 'Failed to get current usage',
                 organizationId,
                 cause: error,
               }),
@@ -669,8 +669,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get usage history",
-          operation: "getUsageHistory",
+          message: 'Failed to get usage history',
+          operation: 'getUsageHistory',
           cause: error,
         }),
     }),
@@ -684,8 +684,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create invoice",
-          operation: "createInvoice",
+          message: 'Failed to create invoice',
+          operation: 'createInvoice',
           cause: error,
         }),
     }),
@@ -702,8 +702,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update invoice",
-          operation: "updateInvoice",
+          message: 'Failed to update invoice',
+          operation: 'updateInvoice',
           cause: error,
         }),
     }),
@@ -718,8 +718,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get invoices",
-          operation: "getInvoices",
+          message: 'Failed to get invoices',
+          operation: 'getInvoices',
           cause: error,
         }),
     }),
@@ -733,8 +733,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get invoice",
-            operation: "getInvoice",
+            message: 'Failed to get invoice',
+            operation: 'getInvoice',
             cause: error,
           }),
       });
@@ -742,8 +742,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!invoice) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Invoice not found",
-            entity: "Invoice",
+            message: 'Invoice not found',
+            entity: 'Invoice',
             id: invoiceId,
           }),
         );
@@ -761,8 +761,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           }),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to get invoice by Stripe ID",
-            operation: "getInvoiceByStripeId",
+            message: 'Failed to get invoice by Stripe ID',
+            operation: 'getInvoiceByStripeId',
             cause: error,
           }),
       });
@@ -770,8 +770,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       if (!invoice) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Invoice not found",
-            entity: "Invoice",
+            message: 'Invoice not found',
+            entity: 'Invoice',
             id: stripeInvoiceId,
           }),
         );
@@ -789,8 +789,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create payment method",
-          operation: "createPaymentMethod",
+          message: 'Failed to create payment method',
+          operation: 'createPaymentMethod',
           cause: error,
         }),
     }),
@@ -804,8 +804,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get payment methods",
-          operation: "getPaymentMethods",
+          message: 'Failed to get payment methods',
+          operation: 'getPaymentMethods',
           cause: error,
         }),
     }),
@@ -817,8 +817,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to delete payment method",
-          operation: "deletePaymentMethod",
+          message: 'Failed to delete payment method',
+          operation: 'deletePaymentMethod',
           cause: error,
         }),
     }),
@@ -840,8 +840,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to set default payment method",
-          operation: "setDefaultPaymentMethod",
+          message: 'Failed to set default payment method',
+          operation: 'setDefaultPaymentMethod',
           cause: error,
         }),
     }),
@@ -863,7 +863,7 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       // Get plan limits from subscription
       const planLimits = subscription
         ? subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan)
-        : getPlanLimitsByName("free");
+        : getPlanLimitsByName('free');
 
       return {
         subscription,
@@ -886,8 +886,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get member count",
-          operation: "getMemberCount",
+          message: 'Failed to get member count',
+          operation: 'getMemberCount',
           cause: error,
         }),
     }),
@@ -909,8 +909,8 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get video count",
-          operation: "getVideoCount",
+          message: 'Failed to get video count',
+          operation: 'getVideoCount',
           cause: error,
         }),
     }),
@@ -950,11 +950,11 @@ export const getUsageSummary = (organizationId: string) =>
 
 export const incrementUsage = (
   organizationId: string,
-  field: "storageUsed" | "videosUploaded" | "bandwidthUsed" | "aiRequests",
+  field: 'storageUsed' | 'videosUploaded' | 'bandwidthUsed' | 'aiRequests',
   amount: number,
 ) => Effect.flatMap(BillingRepository, (repo) => repo.incrementUsage(organizationId, field, amount));
 
-export const decrementUsage = (organizationId: string, field: "storageUsed" | "videosUploaded", amount: number) =>
+export const decrementUsage = (organizationId: string, field: 'storageUsed' | 'videosUploaded', amount: number) =>
   Effect.flatMap(BillingRepository, (repo) => repo.decrementUsage(organizationId, field, amount));
 
 export const getBillingInfo = (organizationId: string) =>

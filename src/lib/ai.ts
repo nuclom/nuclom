@@ -1,10 +1,10 @@
-import { gateway } from "@ai-sdk/gateway";
-import { generateText, streamText } from "ai";
-import { logger } from "@/lib/logger";
+import { gateway } from '@ai-sdk/gateway';
+import { generateText, streamText } from 'ai';
+import { logger } from '@/lib/logger';
 
 // AI service for video analysis and summaries
 export class AIService {
-  private model = gateway("xai/grok-3");
+  private model = gateway('xai/grok-3');
 
   async generateVideoSummary(transcript: string): Promise<string> {
     try {
@@ -30,7 +30,7 @@ Please format the response as:
 
       return text;
     } catch (error) {
-      throw new Error(`Failed to generate video summary: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(`Failed to generate video summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -41,14 +41,14 @@ Please format the response as:
         prompt: `Based on this video title and description, generate 5-8 relevant tags:
 
 Title: ${title}
-Description: ${description || "N/A"}
+Description: ${description || 'N/A'}
 
 Return only the tags as a comma-separated list.`,
       });
 
-      return text.split(",").map((tag) => tag.trim());
+      return text.split(',').map((tag) => tag.trim());
     } catch (error) {
-      logger.warn("Failed to generate video tags", { error: error instanceof Error ? error.message : "Unknown error" });
+      logger.warn('Failed to generate video tags', { error: error instanceof Error ? error.message : 'Unknown error' });
       return [];
     }
   }
@@ -64,11 +64,11 @@ ${transcript}
 Return each action item on a new line, or "None" if no action items are found.`,
       });
 
-      const items = text.split("\n").filter((item) => item.trim() && !item.includes("None"));
-      return items.map((item) => item.replace(/^[-*]\s*/, "").trim());
+      const items = text.split('\n').filter((item) => item.trim() && !item.includes('None'));
+      return items.map((item) => item.replace(/^[-*]\s*/, '').trim());
     } catch (error) {
-      logger.warn("Failed to extract action items", {
-        error: error instanceof Error ? error.message : "Unknown error",
+      logger.warn('Failed to extract action items', {
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return [];
     }

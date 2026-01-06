@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
+import { Cause, Effect, Exit, Layer, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { Zoom, ZoomLive } from '@/lib/effect/services/zoom';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const MeetingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive);
@@ -36,9 +36,9 @@ interface ZoomMeetingListResponse {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-  const type = searchParams.get("type") || "scheduled"; // scheduled, live, upcoming, previous
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const type = searchParams.get('type') || 'scheduled'; // scheduled, live, upcoming, previous
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const zoom = yield* Zoom;
 
     // Get user's Zoom integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "zoom");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'zoom');
 
     if (!integration) {
       return { meetings: [] };
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Access token expired. Please reconnect your account.",
+            message: 'Access token expired. Please reconnect your account.',
           }),
         );
       }
@@ -86,14 +86,14 @@ export async function GET(request: NextRequest) {
       try: async () => {
         const params = new URLSearchParams({
           type,
-          page_size: "100",
+          page_size: '100',
         });
 
         if (from) {
-          params.set("from", from.split("T")[0]);
+          params.set('from', from.split('T')[0]);
         }
         if (to) {
-          params.set("to", to.split("T")[0]);
+          params.set('to', to.split('T')[0]);
         }
 
         const res = await fetch(`https://api.zoom.us/v2/users/me/meetings?${params.toString()}`, {
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
         return res.json() as Promise<ZoomMeetingListResponse>;
       },
       catch: (error) =>
-        new Error(`Failed to fetch meetings: ${error instanceof Error ? error.message : "Unknown error"}`),
+        new Error(`Failed to fetch meetings: ${error instanceof Error ? error.message : 'Unknown error'}`),
     });
 
     return {
@@ -130,9 +130,9 @@ export async function GET(request: NextRequest) {
         if (err instanceof UnauthorizedError) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
-        console.error("[Zoom Meetings Error]", err);
+        console.error('[Zoom Meetings Error]', err);
       }
-      return NextResponse.json({ success: false, error: "Failed to fetch meetings" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to fetch meetings' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

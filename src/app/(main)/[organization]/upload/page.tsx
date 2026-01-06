@@ -1,15 +1,15 @@
-import { eq } from "drizzle-orm";
-import { ArrowLeft } from "lucide-react";
-import { headers } from "next/headers";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VideoUpload } from "@/components/video-upload";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { organizations } from "@/lib/db/schema";
+import { eq } from 'drizzle-orm';
+import { ArrowLeft } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VideoUpload } from '@/components/video-upload';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { organizations } from '@/lib/db/schema';
 
 function UploadSkeleton() {
   return (
@@ -34,14 +34,14 @@ async function UploadContent({ params }: { params: Promise<{ organization: strin
   });
 
   if (!session) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   // Get organization by slug
   const organization = await db.select().from(organizations).where(eq(organizations.slug, organizationSlug)).limit(1);
 
   if (!organization.length) {
-    redirect("/");
+    redirect('/');
   }
 
   const authorId = session.user.id;

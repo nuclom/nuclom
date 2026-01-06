@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Loader2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,13 +13,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
 
 type Organization = {
   id: string;
@@ -37,8 +37,8 @@ function OrganizationSettingsContent() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
+    name: '',
+    slug: '',
   });
 
   const loadOrganization = useCallback(async () => {
@@ -55,11 +55,11 @@ function OrganizationSettingsContent() {
         });
       }
     } catch (error) {
-      console.error("Error loading organization:", error);
+      console.error('Error loading organization:', error);
       toast({
-        title: "Error",
-        description: "Failed to load organization details",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load organization details',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -83,8 +83,8 @@ function OrganizationSettingsContent() {
       });
 
       toast({
-        title: "Success",
-        description: "Organization updated successfully",
+        title: 'Success',
+        description: 'Organization updated successfully',
       });
 
       // If slug changed, redirect to new URL
@@ -92,11 +92,11 @@ function OrganizationSettingsContent() {
         router.push(`/${formData.slug}/settings/organization`);
       }
     } catch (error) {
-      console.error("Error updating organization:", error);
+      console.error('Error updating organization:', error);
       toast({
-        title: "Error",
-        description: "Failed to update organization",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update organization',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -113,18 +113,18 @@ function OrganizationSettingsContent() {
       });
 
       toast({
-        title: "Success",
-        description: "Organization deleted successfully",
+        title: 'Success',
+        description: 'Organization deleted successfully',
       });
 
       // Redirect to home or organization list
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Error deleting organization:", error);
+      console.error('Error deleting organization:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete organization",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete organization',
+        variant: 'destructive',
       });
     } finally {
       setDeleting(false);
@@ -194,7 +194,7 @@ function OrganizationSettingsContent() {
       </CardContent>
       <CardFooter className="bg-muted/50 border-t px-6 py-4 flex justify-between">
         <Button onClick={handleSave} disabled={saving || !formData.name.trim() || !formData.slug.trim()}>
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -216,7 +216,7 @@ function OrganizationSettingsContent() {
                 onClick={handleDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {deleting ? "Deleting..." : "Delete Organization"}
+                {deleting ? 'Deleting...' : 'Delete Organization'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

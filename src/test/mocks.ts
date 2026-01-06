@@ -1,6 +1,6 @@
-import { vi } from "vitest";
-import type { Organization, User, Video } from "@/lib/db/schema";
-import type { VideoWithAuthor } from "@/lib/types";
+import { vi } from 'vitest';
+import type { Organization, User, Video } from '@/lib/db/schema';
+import type { VideoWithAuthor } from '@/lib/types';
 
 /**
  * Creates a mock database object for testing Effect-TS services
@@ -32,14 +32,14 @@ export function createMockDatabase() {
  */
 export function createMockUser(overrides: Partial<User> = {}): User {
   return {
-    id: "user-123",
-    email: "test@example.com",
-    name: "Test User",
-    image: "/avatar.png",
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
+    id: 'user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    image: '/avatar.png',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
     emailVerified: true,
-    role: "user",
+    role: 'user',
     banned: null,
     banReason: null,
     banExpires: null,
@@ -51,32 +51,32 @@ export function createMockUser(overrides: Partial<User> = {}): User {
 }
 
 // Omit internal fields from video types (searchVector, soft-delete fields) for testing
-type TestVideo = Omit<Video, "searchVector" | "deletedAt" | "retentionUntil">;
+type TestVideo = Omit<Video, 'searchVector' | 'deletedAt' | 'retentionUntil'>;
 
 /**
  * Creates a mock video for testing with all required fields from schema
  */
 export function createMockVideo(overrides: Partial<TestVideo> = {}): TestVideo {
   return {
-    id: "video-123",
-    title: "Test Video",
-    description: "A test video description",
-    duration: "10:30",
-    thumbnailUrl: "/thumbnail.jpg",
-    videoUrl: "/video.mp4",
-    authorId: "user-123",
-    organizationId: "org-123",
+    id: 'video-123',
+    title: 'Test Video',
+    description: 'A test video description',
+    duration: '10:30',
+    thumbnailUrl: '/thumbnail.jpg',
+    videoUrl: '/video.mp4',
+    authorId: 'user-123',
+    organizationId: 'org-123',
     channelId: null,
     collectionId: null,
-    transcript: "Sample transcript text",
+    transcript: 'Sample transcript text',
     transcriptSegments: [],
-    processingStatus: "completed",
+    processingStatus: 'completed',
     processingError: null,
-    aiSummary: "AI generated summary",
-    aiTags: ["test", "video"],
+    aiSummary: 'AI generated summary',
+    aiTags: ['test', 'video'],
     aiActionItems: [],
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
     ...overrides,
   };
 }
@@ -86,11 +86,11 @@ export function createMockVideo(overrides: Partial<TestVideo> = {}): TestVideo {
  */
 export function createMockOrganization(overrides: Partial<Organization> = {}): Organization {
   return {
-    id: "org-123",
-    name: "Test Organization",
-    slug: "test-org",
-    logo: "/logo.png",
-    createdAt: new Date("2024-01-01"),
+    id: 'org-123',
+    name: 'Test Organization',
+    slug: 'test-org',
+    logo: '/logo.png',
+    createdAt: new Date('2024-01-01'),
     metadata: null,
     ...overrides,
   };

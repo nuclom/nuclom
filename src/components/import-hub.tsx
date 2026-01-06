@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Cloud, FileVideo, HardDrive, Plus, Upload, Video } from "lucide-react";
-import { useState } from "react";
-import { BulkVideoUpload } from "@/components/bulk-video-upload";
-import { GoogleDrivePicker } from "@/components/integrations/google-drive-picker";
-import { RecordingBrowser } from "@/components/integrations/recording-browser";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Cloud, FileVideo, HardDrive, Plus, Upload, Video } from 'lucide-react';
+import { useState } from 'react';
+import { BulkVideoUpload } from '@/components/bulk-video-upload';
+import { GoogleDrivePicker } from '@/components/integrations/google-drive-picker';
+import { RecordingBrowser } from '@/components/integrations/recording-browser';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImportHubProps {
   organizationId: string;
@@ -46,15 +46,15 @@ export function ImportHub({
 }: ImportHubProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("local");
+  const [activeTab, setActiveTab] = useState('local');
   const [showZoomBrowser, setShowZoomBrowser] = useState(false);
   const [showMeetBrowser, setShowMeetBrowser] = useState(false);
   const [showDrivePicker, setShowDrivePicker] = useState(false);
 
   const handleBulkUploadComplete = (results: Array<{ videoId: string; title: string }>) => {
     toast({
-      title: "Videos Uploaded",
-      description: `${results.length} video${results.length !== 1 ? "s" : ""} uploaded successfully.`,
+      title: 'Videos Uploaded',
+      description: `${results.length} video${results.length !== 1 ? 's' : ''} uploaded successfully.`,
     });
     onImportComplete?.(results.length);
     setOpen(false);
@@ -62,15 +62,15 @@ export function ImportHub({
 
   const handleGoogleDriveImport = async (files: Array<{ id: string; name: string; size: number }>) => {
     // Use the existing import API
-    const response = await fetch("/api/integrations/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/integrations/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        provider: "google_meet",
+        provider: 'google_meet',
         recordings: files.map((f) => ({
           externalId: f.id,
           downloadUrl: `https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`,
-          title: f.name.replace(/\.[^/.]+$/, ""),
+          title: f.name.replace(/\.[^/.]+$/, ''),
           fileSize: f.size,
         })),
       }),
@@ -79,7 +79,7 @@ export function ImportHub({
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.error || "Import failed");
+      throw new Error(data.error || 'Import failed');
     }
 
     onImportComplete?.(data.data.imported);
@@ -89,45 +89,45 @@ export function ImportHub({
 
   const importSources: ImportSource[] = [
     {
-      id: "local",
-      name: "Local Files",
-      description: "Upload video files from your computer",
+      id: 'local',
+      name: 'Local Files',
+      description: 'Upload video files from your computer',
       icon: <Upload className="h-6 w-6" />,
       available: true,
     },
     {
-      id: "google-drive",
-      name: "Google Drive",
-      description: "Import videos stored in Google Drive",
+      id: 'google-drive',
+      name: 'Google Drive',
+      description: 'Import videos stored in Google Drive',
       icon: <HardDrive className="h-6 w-6" />,
       available: true,
     },
     {
-      id: "google-meet",
-      name: "Google Meet",
-      description: "Import recordings from Google Meet",
+      id: 'google-meet',
+      name: 'Google Meet',
+      description: 'Import recordings from Google Meet',
       icon: <Video className="h-6 w-6" />,
       available: true,
     },
     {
-      id: "zoom",
-      name: "Zoom",
-      description: "Import recordings from Zoom meetings",
+      id: 'zoom',
+      name: 'Zoom',
+      description: 'Import recordings from Zoom meetings',
       icon: <Video className="h-6 w-6" />,
       available: true,
     },
     {
-      id: "dropbox",
-      name: "Dropbox",
-      description: "Import videos from Dropbox",
+      id: 'dropbox',
+      name: 'Dropbox',
+      description: 'Import videos from Dropbox',
       icon: <Cloud className="h-6 w-6" />,
       available: false,
       comingSoon: true,
     },
     {
-      id: "onedrive",
-      name: "OneDrive",
-      description: "Import videos from Microsoft OneDrive",
+      id: 'onedrive',
+      name: 'OneDrive',
+      description: 'Import videos from Microsoft OneDrive',
       icon: <Cloud className="h-6 w-6" />,
       available: false,
       comingSoon: true,
@@ -180,23 +180,23 @@ export function ImportHub({
             <TabsContent value="sources" className="mt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {importSources
-                  .filter((s) => s.id !== "local")
+                  .filter((s) => s.id !== 'local')
                   .map((source) => (
                     <Card
                       key={source.id}
                       className={`cursor-pointer transition-all hover:shadow-md ${
-                        source.available ? "hover:border-primary" : "opacity-60 cursor-not-allowed"
+                        source.available ? 'hover:border-primary' : 'opacity-60 cursor-not-allowed'
                       }`}
                       onClick={() => {
                         if (!source.available) return;
                         switch (source.id) {
-                          case "google-drive":
+                          case 'google-drive':
                             setShowDrivePicker(true);
                             break;
-                          case "google-meet":
+                          case 'google-meet':
                             setShowMeetBrowser(true);
                             break;
-                          case "zoom":
+                          case 'zoom':
                             setShowZoomBrowser(true);
                             break;
                         }
@@ -274,8 +274,8 @@ interface ImportButtonProps {
   organizationSlug: string;
   authorId: string;
   channelId?: string;
-  variant?: "default" | "outline" | "ghost";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
 }
 
 export function ImportButton({
@@ -283,8 +283,8 @@ export function ImportButton({
   organizationSlug,
   authorId,
   channelId,
-  variant: _variant = "default", // Reserved for future use
-  size: _size = "default", // Reserved for future use
+  variant: _variant = 'default', // Reserved for future use
+  size: _size = 'default', // Reserved for future use
 }: ImportButtonProps) {
   return (
     <ImportHub

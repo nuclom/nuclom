@@ -1,9 +1,9 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { Cause, Effect, Exit, Layer, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const IntegrationsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
@@ -14,7 +14,7 @@ const IntegrationsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, Database
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const organizationId = searchParams.get("organizationId");
+  const organizationId = searchParams.get('organizationId');
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   if (!organizationId) {
-    return NextResponse.json({ success: false, error: "organizationId is required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'organizationId is required' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -51,9 +51,9 @@ export async function GET(request: NextRequest) {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       if (Option.isSome(error)) {
-        console.error("[Integrations Error]", error.value);
+        console.error('[Integrations Error]', error.value);
       }
-      return NextResponse.json({ success: false, error: "Failed to fetch integrations" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to fetch integrations' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const integrationId = searchParams.get("id");
+  const integrationId = searchParams.get('id');
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -75,11 +75,11 @@ export async function DELETE(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   if (!integrationId) {
-    return NextResponse.json({ success: false, error: "id is required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'id is required' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -117,7 +117,7 @@ export async function DELETE(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 403 });
         }
       }
-      return NextResponse.json({ success: false, error: "Failed to delete integration" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to delete integration' }, { status: 500 });
     },
     onSuccess: () => {
       return NextResponse.json({ success: true });

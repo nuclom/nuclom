@@ -1,11 +1,11 @@
-import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { and, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videos, videoViews } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/[id]/analytics - Get organization analytics
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const FullLayer = createFullLayer();
 
   const url = new URL(request.url);
-  const period = url.searchParams.get("period") || "30d";
+  const period = url.searchParams.get('period') || '30d';
 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
@@ -33,15 +33,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -50,13 +50,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .where(and(eq(videoViews.organizationId, organizationId), gte(videoViews.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch total views",
-          operation: "getTotalViews",
+          message: 'Failed to fetch total views',
+          operation: 'getTotalViews',
         }),
     });
     const totalViews = totalViewsResult[0]?.count || 0;
@@ -93,8 +93,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           ),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch unique viewers",
-          operation: "getUniqueViewers",
+          message: 'Failed to fetch unique viewers',
+          operation: 'getUniqueViewers',
         }),
     });
     const uniqueViewers = uniqueViewersResult[0]?.count || 0;
@@ -108,8 +108,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .where(and(eq(videoViews.organizationId, organizationId), gte(videoViews.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch watch time",
-          operation: "getWatchTime",
+          message: 'Failed to fetch watch time',
+          operation: 'getWatchTime',
         }),
     });
     const totalWatchTime = Number(watchTimeResult[0]?.total) || 0;
@@ -123,8 +123,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .where(and(eq(videoViews.organizationId, organizationId), gte(videoViews.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch avg completion",
-          operation: "getAvgCompletion",
+          message: 'Failed to fetch avg completion',
+          operation: 'getAvgCompletion',
         }),
     });
     const avgCompletionPercent = Math.round(Number(avgCompletionResult[0]?.avg) || 0);
@@ -146,8 +146,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .limit(10),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch top videos",
-          operation: "getTopVideos",
+          message: 'Failed to fetch top videos',
+          operation: 'getTopVideos',
         }),
     });
 
@@ -163,8 +163,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           : Promise.resolve([]),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch video details",
-          operation: "getVideoDetails",
+          message: 'Failed to fetch video details',
+          operation: 'getVideoDetails',
         }),
     });
 
@@ -184,8 +184,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           .orderBy(sql`DATE(${videoViews.createdAt})`),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch views by day",
-          operation: "getViewsByDay",
+          message: 'Failed to fetch views by day',
+          operation: 'getViewsByDay',
         }),
     });
 
@@ -194,8 +194,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       try: () => db.select({ count: count() }).from(videos).where(eq(videos.organizationId, organizationId)),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch video count",
-          operation: "getVideoCount",
+          message: 'Failed to fetch video count',
+          operation: 'getVideoCount',
         }),
     });
     const totalVideos = videoCountResult[0]?.count || 0;
@@ -228,10 +228,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

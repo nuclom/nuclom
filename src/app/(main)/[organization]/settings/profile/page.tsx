@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
+import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,16 +13,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { useAuth } from "@/hooks/use-auth";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/hooks/use-auth';
+import { authClient } from '@/lib/auth-client';
 
 interface UserData {
   id: string;
@@ -36,19 +36,19 @@ interface UserData {
 
 function ProfileForm() {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.name || "");
+  const [name, setName] = useState(user?.name || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState<{
-    type: "success" | "error";
+    type: 'success' | 'error';
     text: string;
   } | null>(null);
 
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return "U";
+    if (!name) return 'U';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -65,15 +65,15 @@ function ProfileForm() {
 
       if (result.error) {
         setMessage({
-          type: "error",
-          text: result.error.message || "Failed to update profile",
+          type: 'error',
+          text: result.error.message || 'Failed to update profile',
         });
       } else {
-        setMessage({ type: "success", text: "Profile updated successfully!" });
+        setMessage({ type: 'success', text: 'Profile updated successfully!' });
       }
     } catch (error) {
-      console.error("Profile update error:", error);
-      setMessage({ type: "error", text: "An unexpected error occurred" });
+      console.error('Profile update error:', error);
+      setMessage({ type: 'error', text: 'An unexpected error occurred' });
     } finally {
       setIsUpdating(false);
     }
@@ -89,7 +89,7 @@ function ProfileForm() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user?.image || "/placeholder.svg?height=80&width=80"} />
+              <AvatarImage src={user?.image || '/placeholder.svg?height=80&width=80'} />
               <AvatarFallback className="text-lg">{getInitials(user?.name)}</AvatarFallback>
             </Avatar>
             <Button type="button" variant="outline" disabled={isUpdating}>
@@ -108,7 +108,7 @@ function ProfileForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" value={user?.email || ""} disabled className="bg-muted" />
+            <Input id="email" type="email" value={user?.email || ''} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">
               Email address cannot be changed. Contact support if you need to update it.
             </p>
@@ -116,9 +116,9 @@ function ProfileForm() {
           {message && (
             <div
               className={`text-sm p-3 rounded-md ${
-                message.type === "success"
-                  ? "text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/20"
-                  : "text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/20"
+                message.type === 'success'
+                  ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/20'
+                  : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/20'
               }`}
             >
               {message.text}
@@ -127,7 +127,7 @@ function ProfileForm() {
         </CardContent>
         <CardFooter className="bg-muted/50 border-t px-6 py-4">
           <Button type="submit" disabled={isUpdating || !name.trim()}>
-            {isUpdating ? "Saving..." : "Save Changes"}
+            {isUpdating ? 'Saving...' : 'Save Changes'}
           </Button>
         </CardFooter>
       </form>
@@ -144,20 +144,20 @@ function PrivacyDataSection() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [isUpdatingConsent, setIsUpdatingConsent] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Fetch user data
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const response = await fetch("/api/users/me");
+        const response = await fetch('/api/users/me');
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
           setMarketingConsent(data.marketingConsent ?? false);
         }
       } catch (error) {
-        console.error("Failed to fetch user data:", error);
+        console.error('Failed to fetch user data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -170,33 +170,33 @@ function PrivacyDataSection() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/users/me/export");
+      const response = await fetch('/api/users/me/export');
 
       if (response.status === 429) {
         const data = await response.json();
-        setMessage({ type: "error", text: data.message });
+        setMessage({ type: 'error', text: data.message });
         return;
       }
 
       if (!response.ok) {
-        throw new Error("Export failed");
+        throw new Error('Export failed');
       }
 
       // Download the JSON file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `nuclom-data-export-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `nuclom-data-export-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      setMessage({ type: "success", text: "Your data has been exported successfully." });
+      setMessage({ type: 'success', text: 'Your data has been exported successfully.' });
     } catch (error) {
-      console.error("Export error:", error);
-      setMessage({ type: "error", text: "Failed to export data. Please try again." });
+      console.error('Export error:', error);
+      setMessage({ type: 'error', text: 'Failed to export data. Please try again.' });
     } finally {
       setIsExporting(false);
     }
@@ -207,14 +207,14 @@ function PrivacyDataSection() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/users/me", {
-        method: "DELETE",
+      const response = await fetch('/api/users/me', {
+        method: 'DELETE',
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Deletion failed");
+        throw new Error(data.error || 'Deletion failed');
       }
 
       setUserData((prev) =>
@@ -226,10 +226,10 @@ function PrivacyDataSection() {
             }
           : null,
       );
-      setMessage({ type: "success", text: data.message });
+      setMessage({ type: 'success', text: data.message });
     } catch (error) {
-      console.error("Delete error:", error);
-      setMessage({ type: "error", text: "Failed to request account deletion. Please try again." });
+      console.error('Delete error:', error);
+      setMessage({ type: 'error', text: 'Failed to request account deletion. Please try again.' });
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -241,16 +241,16 @@ function PrivacyDataSection() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/users/me", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel_deletion" }),
+      const response = await fetch('/api/users/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel_deletion' }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to cancel deletion");
+        throw new Error(data.error || 'Failed to cancel deletion');
       }
 
       setUserData((prev) =>
@@ -262,10 +262,10 @@ function PrivacyDataSection() {
             }
           : null,
       );
-      setMessage({ type: "success", text: data.message });
+      setMessage({ type: 'success', text: data.message });
     } catch (error) {
-      console.error("Cancel deletion error:", error);
-      setMessage({ type: "error", text: "Failed to cancel deletion. Please try again." });
+      console.error('Cancel deletion error:', error);
+      setMessage({ type: 'error', text: 'Failed to cancel deletion. Please try again.' });
     } finally {
       setIsCancelling(false);
     }
@@ -276,24 +276,24 @@ function PrivacyDataSection() {
     setMessage(null);
 
     try {
-      const response = await fetch("/api/users/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ marketingConsent: checked }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update consent");
+        throw new Error('Failed to update consent');
       }
 
       setMarketingConsent(checked);
       setMessage({
-        type: "success",
-        text: checked ? "Marketing communications enabled." : "Marketing communications disabled.",
+        type: 'success',
+        text: checked ? 'Marketing communications enabled.' : 'Marketing communications disabled.',
       });
     } catch (error) {
-      console.error("Consent update error:", error);
-      setMessage({ type: "error", text: "Failed to update preferences." });
+      console.error('Consent update error:', error);
+      setMessage({ type: 'error', text: 'Failed to update preferences.' });
     } finally {
       setIsUpdatingConsent(false);
     }
@@ -319,7 +319,7 @@ function PrivacyDataSection() {
           Privacy & Data
         </CardTitle>
         <CardDescription>
-          Manage your data, privacy settings, and account. Learn more in our{" "}
+          Manage your data, privacy settings, and account. Learn more in our{' '}
           <Link href="/privacy" className="text-primary hover:underline">
             Privacy Policy
           </Link>
@@ -413,13 +413,13 @@ function PrivacyDataSection() {
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-3">
               <p className="text-sm text-destructive font-medium">Account deletion scheduled</p>
               <p className="text-sm text-muted-foreground">
-                Your account will be permanently deleted on{" "}
+                Your account will be permanently deleted on{' '}
                 <strong>
-                  {new Date(userData.deletionScheduledFor as string).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
+                  {new Date(userData.deletionScheduledFor as string).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
                   })}
                 </strong>
                 .
@@ -431,7 +431,7 @@ function PrivacyDataSection() {
                     Cancelling...
                   </>
                 ) : (
-                  "Cancel Deletion"
+                  'Cancel Deletion'
                 )}
               </Button>
             </div>
@@ -447,9 +447,9 @@ function PrivacyDataSection() {
         {message && (
           <div
             className={`text-sm p-3 rounded-md ${
-              message.type === "success"
-                ? "text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/20"
-                : "text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/20"
+              message.type === 'success'
+                ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/20'
+                : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/20'
             }`}
           >
             {message.text}
@@ -485,7 +485,7 @@ function PrivacyDataSection() {
                   Deleting...
                 </>
               ) : (
-                "Delete Account"
+                'Delete Account'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

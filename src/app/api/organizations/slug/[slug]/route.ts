@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { organizations } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { eq } from 'drizzle-orm';
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { organizations } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/slug/[slug] - Get organization by slug
@@ -22,8 +22,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch organization",
-          operation: "getOrganizationBySlug",
+          message: 'Failed to fetch organization',
+          operation: 'getOrganizationBySlug',
           cause: error,
         }),
     });
@@ -31,8 +31,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!organization) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Organization not found",
-          entity: "Organization",
+          message: 'Organization not found',
+          entity: 'Organization',
           id: resolvedParams.slug,
         }),
       );
@@ -52,10 +52,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { format, formatDistanceToNow, subDays } from "date-fns";
+import { format, formatDistanceToNow, subDays } from 'date-fns';
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -16,11 +16,11 @@ import {
   Search,
   Video,
   X,
-} from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,12 +37,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
-import { formatDurationHuman, formatFileSize } from "@/lib/format-utils";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
+import { formatDurationHuman, formatFileSize } from '@/lib/format-utils';
 
 interface Recording {
   id: string;
@@ -59,15 +59,15 @@ interface Recording {
 }
 
 interface RecordingBrowserProps {
-  provider: "zoom" | "google_meet";
+  provider: 'zoom' | 'google_meet';
   open: boolean;
   onClose: () => void;
   organizationSlug: string;
 }
 
-type SortField = "date" | "name" | "duration" | "size";
-type SortOrder = "asc" | "desc";
-type DateRange = "7" | "30" | "90" | "all";
+type SortField = 'date' | 'name' | 'duration' | 'size';
+type SortOrder = 'asc' | 'desc';
+type DateRange = '7' | '30' | '90' | 'all';
 
 export function RecordingBrowser({
   provider,
@@ -83,14 +83,14 @@ export function RecordingBrowser({
   const [nextPageToken, setNextPageToken] = useState<string | undefined>();
 
   // Search and filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField>("date");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [dateRange, setDateRange] = useState<DateRange>("30");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [dateRange, setDateRange] = useState<DateRange>('30');
   const [minDuration, setMinDuration] = useState<number | null>(null);
-  const [_viewMode, _setViewMode] = useState<"list" | "grid">("list");
+  const [_viewMode, _setViewMode] = useState<'list' | 'grid'>('list');
 
-  const providerName = provider === "zoom" ? "Zoom" : "Google Meet";
+  const providerName = provider === 'zoom' ? 'Zoom' : 'Google Meet';
 
   const loadRecordings = useCallback(
     async (reset = false) => {
@@ -98,25 +98,25 @@ export function RecordingBrowser({
         setLoading(true);
 
         const endpoint =
-          provider === "zoom" ? "/api/integrations/zoom/recordings" : "/api/integrations/google/recordings";
+          provider === 'zoom' ? '/api/integrations/zoom/recordings' : '/api/integrations/google/recordings';
 
         const params = new URLSearchParams();
         if (!reset && nextPageToken) {
-          params.set("pageToken", nextPageToken);
+          params.set('pageToken', nextPageToken);
         }
 
         // Add date range filter
-        if (dateRange !== "all") {
+        if (dateRange !== 'all') {
           const fromDate = subDays(new Date(), Number.parseInt(dateRange, 10));
-          params.set("from", fromDate.toISOString().split("T")[0]);
-          params.set("to", new Date().toISOString().split("T")[0]);
+          params.set('from', fromDate.toISOString().split('T')[0]);
+          params.set('to', new Date().toISOString().split('T')[0]);
         }
 
         const response = await fetch(`${endpoint}?${params.toString()}`);
         const data = await response.json();
 
         if (!data.success) {
-          throw new Error(data.error || "Failed to load recordings");
+          throw new Error(data.error || 'Failed to load recordings');
         }
 
         if (reset) {
@@ -126,11 +126,11 @@ export function RecordingBrowser({
         }
         setNextPageToken(data.data.nextPageToken);
       } catch (error) {
-        logger.error("Failed to load recordings", error);
+        logger.error('Failed to load recordings', error);
         toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to load recordings",
-          variant: "destructive",
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to load recordings',
+          variant: 'destructive',
         });
       } finally {
         setLoading(false);
@@ -144,7 +144,7 @@ export function RecordingBrowser({
       setRecordings([]);
       setSelected(new Set());
       setNextPageToken(undefined);
-      setSearchQuery("");
+      setSearchQuery('');
       loadRecordings(true);
     }
   }, [open, loadRecordings]);
@@ -157,7 +157,7 @@ export function RecordingBrowser({
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((r) => {
-        const title = r.topic || r.meetingTitle || r.name || "";
+        const title = r.topic || r.meetingTitle || r.name || '';
         return title.toLowerCase().includes(query);
       });
     }
@@ -172,27 +172,27 @@ export function RecordingBrowser({
       let comparison = 0;
 
       switch (sortField) {
-        case "date": {
+        case 'date': {
           const dateA = a.startTime || a.createdTime;
           const dateB = b.startTime || b.createdTime;
           comparison = (dateA ? new Date(dateA).getTime() : 0) - (dateB ? new Date(dateB).getTime() : 0);
           break;
         }
-        case "name": {
-          const nameA = (a.topic || a.meetingTitle || a.name || "").toLowerCase();
-          const nameB = (b.topic || b.meetingTitle || b.name || "").toLowerCase();
+        case 'name': {
+          const nameA = (a.topic || a.meetingTitle || a.name || '').toLowerCase();
+          const nameB = (b.topic || b.meetingTitle || b.name || '').toLowerCase();
           comparison = nameA.localeCompare(nameB);
           break;
         }
-        case "duration":
+        case 'duration':
           comparison = a.duration - b.duration;
           break;
-        case "size":
+        case 'size':
           comparison = a.fileSize - b.fileSize;
           break;
       }
 
-      return sortOrder === "asc" ? comparison : -comparison;
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
 
     return result;
@@ -228,16 +228,16 @@ export function RecordingBrowser({
       const recordingsToImport = selectedRecordings.map((r) => ({
         externalId: r.id,
         downloadUrl: r.downloadUrl,
-        title: r.topic || r.meetingTitle || r.name || "Meeting Recording",
+        title: r.topic || r.meetingTitle || r.name || 'Meeting Recording',
         duration: r.duration,
         fileSize: r.fileSize,
         meetingDate: (r.startTime || r.createdTime)?.toISOString(),
       }));
 
-      const response = await fetch("/api/integrations/import", {
-        method: "POST",
+      const response = await fetch('/api/integrations/import', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           provider,
@@ -248,21 +248,21 @@ export function RecordingBrowser({
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || "Failed to import recordings");
+        throw new Error(data.error || 'Failed to import recordings');
       }
 
       toast({
-        title: "Import Started",
-        description: `${data.data.imported} recording${data.data.imported !== 1 ? "s" : ""} are being imported. You'll find them in your videos once complete.`,
+        title: 'Import Started',
+        description: `${data.data.imported} recording${data.data.imported !== 1 ? 's' : ''} are being imported. You'll find them in your videos once complete.`,
       });
 
       onClose();
     } catch (error) {
-      logger.error("Failed to import recordings", error);
+      logger.error('Failed to import recordings', error);
       toast({
-        title: "Import Failed",
-        description: error instanceof Error ? error.message : "Failed to import recordings",
-        variant: "destructive",
+        title: 'Import Failed',
+        description: error instanceof Error ? error.message : 'Failed to import recordings',
+        variant: 'destructive',
       });
     } finally {
       setImporting(false);
@@ -308,7 +308,7 @@ export function RecordingBrowser({
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setSearchQuery('')}
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -320,13 +320,13 @@ export function RecordingBrowser({
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <CalendarDays className="h-4 w-4" />
-                  {dateRange === "all"
-                    ? "All time"
-                    : dateRange === "7"
-                      ? "Last 7 days"
-                      : dateRange === "30"
-                        ? "Last 30 days"
-                        : "Last 90 days"}
+                  {dateRange === 'all'
+                    ? 'All time'
+                    : dateRange === '7'
+                      ? 'Last 7 days'
+                      : dateRange === '30'
+                        ? 'Last 30 days'
+                        : 'Last 90 days'}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -345,7 +345,7 @@ export function RecordingBrowser({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
-                  {sortOrder === "asc" ? <ArrowUpAZ className="h-4 w-4" /> : <ArrowDownAZ className="h-4 w-4" />}
+                  {sortOrder === 'asc' ? <ArrowUpAZ className="h-4 w-4" /> : <ArrowDownAZ className="h-4 w-4" />}
                   Sort
                 </Button>
               </DropdownMenuTrigger>
@@ -379,8 +379,8 @@ export function RecordingBrowser({
                 <DropdownMenuLabel>Minimum Duration</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup
-                  value={minDuration?.toString() || "none"}
-                  onValueChange={(v) => setMinDuration(v === "none" ? null : Number.parseInt(v, 10))}
+                  value={minDuration?.toString() || 'none'}
+                  onValueChange={(v) => setMinDuration(v === 'none' ? null : Number.parseInt(v, 10))}
                 >
                   <DropdownMenuRadioItem value="none">No minimum</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="5">5+ minutes</DropdownMenuRadioItem>
@@ -392,7 +392,7 @@ export function RecordingBrowser({
             </DropdownMenu>
 
             <Button variant="ghost" size="icon" onClick={() => loadRecordings(true)} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
 
@@ -414,14 +414,14 @@ export function RecordingBrowser({
                     {getTotalSelectedSize()}
                   </>
                 ) : (
-                  `${filteredRecordings.length} recording${filteredRecordings.length !== 1 ? "s" : ""}`
+                  `${filteredRecordings.length} recording${filteredRecordings.length !== 1 ? 's' : ''}`
                 )}
               </span>
             </div>
             {searchQuery && (
               <Badge variant="secondary" className="gap-1">
                 <Search className="h-3 w-3" />
-                {filteredRecordings.length} result{filteredRecordings.length !== 1 ? "s" : ""}
+                {filteredRecordings.length} result{filteredRecordings.length !== 1 ? 's' : ''}
               </Badge>
             )}
           </div>
@@ -439,7 +439,7 @@ export function RecordingBrowser({
               {searchQuery ? (
                 <>
                   <p className="text-muted-foreground">No recordings match your search</p>
-                  <Button variant="link" className="mt-2" onClick={() => setSearchQuery("")}>
+                  <Button variant="link" className="mt-2" onClick={() => setSearchQuery('')}>
                     Clear search
                   </Button>
                 </>
@@ -447,7 +447,7 @@ export function RecordingBrowser({
                 <>
                   <p className="text-muted-foreground">No recordings found</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Recordings from the last {dateRange === "all" ? "" : `${dateRange} days`} will appear here
+                    Recordings from the last {dateRange === 'all' ? '' : `${dateRange} days`} will appear here
                   </p>
                 </>
               )}
@@ -456,7 +456,7 @@ export function RecordingBrowser({
             <div className="space-y-2">
               {filteredRecordings.map((recording) => {
                 const date = recording.startTime || recording.createdTime;
-                const title = recording.topic || recording.meetingTitle || recording.name || "Meeting Recording";
+                const title = recording.topic || recording.meetingTitle || recording.name || 'Meeting Recording';
                 const isSelected = selected.has(recording.id);
 
                 return (
@@ -466,12 +466,12 @@ export function RecordingBrowser({
                     tabIndex={0}
                     className={`group flex items-start gap-3 p-4 rounded-lg border transition-all cursor-pointer hover:shadow-sm ${
                       isSelected
-                        ? "bg-primary/5 border-primary/50 shadow-sm"
-                        : "hover:bg-muted/50 hover:border-muted-foreground/20"
+                        ? 'bg-primary/5 border-primary/50 shadow-sm'
+                        : 'hover:bg-muted/50 hover:border-muted-foreground/20'
                     }`}
                     onClick={() => handleToggle(recording.id)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         handleToggle(recording.id);
                       }
@@ -494,7 +494,7 @@ export function RecordingBrowser({
                             {date && (
                               <span className="flex items-center gap-1.5">
                                 <Calendar className="h-3.5 w-3.5" />
-                                <span>{format(new Date(date), "MMM d, yyyy")}</span>
+                                <span>{format(new Date(date), 'MMM d, yyyy')}</span>
                                 <span className="text-muted-foreground/60">
                                   ({formatDistanceToNow(new Date(date), { addSuffix: true })})
                                 </span>
@@ -531,7 +531,7 @@ export function RecordingBrowser({
                       Loading...
                     </>
                   ) : (
-                    "Load More Recordings"
+                    'Load More Recordings'
                   )}
                 </Button>
               )}
@@ -543,7 +543,7 @@ export function RecordingBrowser({
           <div className="flex-1 text-sm text-muted-foreground hidden sm:block">
             {selected.size > 0 && (
               <span>
-                Ready to import {selected.size} recording{selected.size !== 1 ? "s" : ""}
+                Ready to import {selected.size} recording{selected.size !== 1 ? 's' : ''}
               </span>
             )}
           </div>
@@ -559,8 +559,8 @@ export function RecordingBrowser({
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                Import {selected.size > 0 ? `${selected.size} ` : ""}Recording
-                {selected.size !== 1 ? "s" : ""}
+                Import {selected.size > 0 ? `${selected.size} ` : ''}Recording
+                {selected.size !== 1 ? 's' : ''}
               </>
             )}
           </Button>

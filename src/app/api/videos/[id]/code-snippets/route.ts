@@ -1,11 +1,11 @@
-import { asc, eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videoCodeSnippets, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { asc, eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videoCodeSnippets, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/videos/[id]/code-snippets - Get video code snippets
@@ -25,8 +25,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -34,8 +34,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -51,8 +51,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
           .orderBy(asc(videoCodeSnippets.timestamp)),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch code snippets",
-          operation: "getCodeSnippets",
+          message: 'Failed to fetch code snippets',
+          operation: 'getCodeSnippets',
           cause: error,
         }),
     });

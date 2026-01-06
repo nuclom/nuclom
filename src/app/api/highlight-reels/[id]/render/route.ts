@@ -1,9 +1,9 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { ClipRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { renderHighlightReelWorkflow } from "@/workflows/highlight-reel-render";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { ClipRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { renderHighlightReelWorkflow } from '@/workflows/highlight-reel-render';
 
 // =============================================================================
 // POST /api/highlight-reels/[id]/render - Start rendering a highlight reel
@@ -24,8 +24,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Validate that the reel has clips
     if (!reel.clipIds || reel.clipIds.length === 0) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: "Highlight reel must have at least one clip",
+        _tag: 'ValidationError' as const,
+        message: 'Highlight reel must have at least one clip',
       });
     }
 
@@ -41,10 +41,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       success: true,
       data: {
         id: reel.id,
-        status: "rendering",
+        status: 'rendering',
         clipCount: reel.clipIds.length,
       },
-      message: "Highlight reel rendering started. The video will be ready shortly.",
+      message: 'Highlight reel rendering started. The video will be ready shortly.',
     };
   });
 

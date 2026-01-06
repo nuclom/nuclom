@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { FileVideo, Folder, History, Search, Share2, Video } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { FileVideo, Folder, History, Search, Share2, Video } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   title: string;
@@ -72,7 +72,7 @@ export function EmptySearch({ query }: { query?: string }) {
       description={
         query
           ? `We couldn't find anything matching "${query}". Try a different search term.`
-          : "Start typing to search for videos, channels, or team members."
+          : 'Start typing to search for videos, channels, or team members.'
       }
     />
   );

@@ -4,12 +4,12 @@
  * Provides type-safe database operations for channels.
  */
 
-import { desc, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { channels, videos } from "@/lib/db/schema";
-import type { PaginatedResponse } from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { desc, eq } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { channels, videos } from '@/lib/db/schema';
+import type { PaginatedResponse } from '@/lib/types';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -88,7 +88,7 @@ export interface ChannelRepositoryService {
 // Channel Repository Tag
 // =============================================================================
 
-export class ChannelRepository extends Context.Tag("ChannelRepository")<
+export class ChannelRepository extends Context.Tag('ChannelRepository')<
   ChannelRepository,
   ChannelRepositoryService
 >() {}
@@ -142,8 +142,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch channels",
-          operation: "getChannels",
+          message: 'Failed to fetch channels',
+          operation: 'getChannels',
           cause: error,
         }),
     });
@@ -154,8 +154,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
         try: () => db.select().from(channels).where(eq(channels.id, id)).limit(1),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch channel",
-            operation: "getChannel",
+            message: 'Failed to fetch channel',
+            operation: 'getChannel',
             cause: error,
           }),
       });
@@ -163,8 +163,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Channel not found",
-            entity: "Channel",
+            message: 'Channel not found',
+            entity: 'Channel',
             id,
           }),
         );
@@ -188,8 +188,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create channel",
-          operation: "createChannel",
+          message: 'Failed to create channel',
+          operation: 'createChannel',
           cause: error,
         }),
     });
@@ -209,8 +209,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update channel",
-            operation: "updateChannel",
+            message: 'Failed to update channel',
+            operation: 'updateChannel',
             cause: error,
           }),
       });
@@ -218,8 +218,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Channel not found",
-            entity: "Channel",
+            message: 'Channel not found',
+            entity: 'Channel',
             id,
           }),
         );
@@ -237,8 +237,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to unassign videos from channel",
-            operation: "deleteChannel.unassignVideos",
+            message: 'Failed to unassign videos from channel',
+            operation: 'deleteChannel.unassignVideos',
             cause: error,
           }),
       });
@@ -249,8 +249,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete channel",
-            operation: "deleteChannel",
+            message: 'Failed to delete channel',
+            operation: 'deleteChannel',
             cause: error,
           }),
       });
@@ -258,8 +258,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Channel not found",
-            entity: "Channel",
+            message: 'Channel not found',
+            entity: 'Channel',
             id,
           }),
         );
@@ -297,8 +297,8 @@ const makeChannelRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch channel videos",
-          operation: "getChannelVideos",
+          message: 'Failed to fetch channel videos',
+          operation: 'getChannelVideos',
           cause: error,
         }),
     });

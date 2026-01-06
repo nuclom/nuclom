@@ -7,13 +7,13 @@
  * Uses better-auth's built-in session management via multiSession plugin
  */
 
-import { and, desc, eq, gt } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { sessions } from "@/lib/db/schema";
-import { Auth } from "@/lib/effect/services/auth";
+import { and, desc, eq, gt } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { sessions } from '@/lib/db/schema';
+import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // GET /api/user/sessions - List active sessions
@@ -94,7 +94,7 @@ export async function DELETE(request: NextRequest) {
     console.log(`[Session] User ${user.id} revoked ${revokedCount} other sessions`);
 
     return {
-      message: "All other sessions have been revoked",
+      message: 'All other sessions have been revoked',
       revokedCount,
     };
   });
@@ -115,38 +115,38 @@ function parseUserAgent(userAgent: string | null): {
   device: string;
 } {
   if (!userAgent) {
-    return { browser: "Unknown", os: "Unknown", device: "Unknown" };
+    return { browser: 'Unknown', os: 'Unknown', device: 'Unknown' };
   }
 
   // Simple user agent parsing
-  let browser = "Unknown";
-  let os = "Unknown";
-  let device = "Desktop";
+  let browser = 'Unknown';
+  let os = 'Unknown';
+  let device = 'Desktop';
 
   // Detect browser
-  if (userAgent.includes("Firefox")) {
-    browser = "Firefox";
-  } else if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
-    browser = "Chrome";
-  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
-    browser = "Safari";
-  } else if (userAgent.includes("Edg")) {
-    browser = "Edge";
+  if (userAgent.includes('Firefox')) {
+    browser = 'Firefox';
+  } else if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+    browser = 'Chrome';
+  } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+    browser = 'Safari';
+  } else if (userAgent.includes('Edg')) {
+    browser = 'Edge';
   }
 
   // Detect OS
-  if (userAgent.includes("Windows")) {
-    os = "Windows";
-  } else if (userAgent.includes("Mac OS")) {
-    os = "macOS";
-  } else if (userAgent.includes("Linux")) {
-    os = "Linux";
-  } else if (userAgent.includes("Android")) {
-    os = "Android";
-    device = "Mobile";
-  } else if (userAgent.includes("iPhone") || userAgent.includes("iPad")) {
-    os = "iOS";
-    device = userAgent.includes("iPad") ? "Tablet" : "Mobile";
+  if (userAgent.includes('Windows')) {
+    os = 'Windows';
+  } else if (userAgent.includes('Mac OS')) {
+    os = 'macOS';
+  } else if (userAgent.includes('Linux')) {
+    os = 'Linux';
+  } else if (userAgent.includes('Android')) {
+    os = 'Android';
+    device = 'Mobile';
+  } else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+    os = 'iOS';
+    device = userAgent.includes('iPad') ? 'Tablet' : 'Mobile';
   }
 
   return { browser, os, device };

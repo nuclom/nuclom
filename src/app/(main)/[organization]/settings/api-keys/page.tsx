@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -14,14 +14,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
-import { formatDate } from "@/lib/format-utils";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
+import { formatDate } from '@/lib/format-utils';
 
 type ApiKey = {
   id: string;
@@ -41,8 +41,8 @@ function ApiKeysContent() {
   const [loading, setLoading] = useState(true);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newKeyName, setNewKeyName] = useState("");
-  const [newKeyExpiration, setNewKeyExpiration] = useState("30");
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyExpiration, setNewKeyExpiration] = useState('30');
   const [creating, setCreating] = useState(false);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [showNewKey, setShowNewKey] = useState(false);
@@ -54,19 +54,19 @@ function ApiKeysContent() {
     try {
       setLoading(true);
       // Use fetch directly since the client doesn't expose listApiKeys
-      const response = await fetch("/api/auth/api-key/list", {
-        credentials: "include",
+      const response = await fetch('/api/auth/api-key/list', {
+        credentials: 'include',
       });
       if (response.ok) {
         const data = await response.json();
         setApiKeys(data as ApiKey[]);
       }
     } catch (error) {
-      console.error("Error loading API keys:", error);
+      console.error('Error loading API keys:', error);
       toast({
-        title: "Error",
-        description: "Failed to load API keys",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load API keys',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -90,9 +90,9 @@ function ApiKeysContent() {
 
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to create API key",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to create API key',
+          variant: 'destructive',
         });
         return;
       }
@@ -101,17 +101,17 @@ function ApiKeysContent() {
         setNewlyCreatedKey((data as { key?: string }).key || null);
         setShowNewKey(true);
         toast({
-          title: "API key created",
+          title: 'API key created',
           description: "Your new API key has been created. Copy it now - you won't see it again!",
         });
         await loadApiKeys();
       }
     } catch (error) {
-      console.error("Error creating API key:", error);
+      console.error('Error creating API key:', error);
       toast({
-        title: "Error",
-        description: "Failed to create API key",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create API key',
+        variant: 'destructive',
       });
     } finally {
       setCreating(false);
@@ -124,8 +124,8 @@ function ApiKeysContent() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: "Copied",
-        description: "API key copied to clipboard",
+        title: 'Copied',
+        description: 'API key copied to clipboard',
       });
     }
   };
@@ -140,25 +140,25 @@ function ApiKeysContent() {
 
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to delete API key",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to delete API key',
+          variant: 'destructive',
         });
         return;
       }
 
       toast({
-        title: "API key deleted",
-        description: "The API key has been permanently deleted",
+        title: 'API key deleted',
+        description: 'The API key has been permanently deleted',
       });
       setKeyToDelete(null);
       await loadApiKeys();
     } catch (error) {
-      console.error("Error deleting API key:", error);
+      console.error('Error deleting API key:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete API key",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete API key',
+        variant: 'destructive',
       });
     } finally {
       setDeleting(false);
@@ -169,8 +169,8 @@ function ApiKeysContent() {
     setCreateDialogOpen(false);
     setNewlyCreatedKey(null);
     setShowNewKey(false);
-    setNewKeyName("");
-    setNewKeyExpiration("30");
+    setNewKeyName('');
+    setNewKeyExpiration('30');
   };
 
   const isExpired = (expiresAt: Date | null | undefined) => {
@@ -240,18 +240,18 @@ function ApiKeysContent() {
               <TableBody>
                 {apiKeys.map((key) => (
                   <TableRow key={key.id}>
-                    <TableCell className="font-medium">{key.name || "Unnamed key"}</TableCell>
+                    <TableCell className="font-medium">{key.name || 'Unnamed key'}</TableCell>
                     <TableCell>
                       <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {key.prefix || "nc_"}...{key.start || "****"}
+                        {key.prefix || 'nc_'}...{key.start || '****'}
                       </code>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatDate(key.createdAt)}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {key.expiresAt ? formatDate(key.expiresAt) : "Never"}
+                      {key.expiresAt ? formatDate(key.expiresAt) : 'Never'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {key.lastRequest ? formatDate(key.lastRequest) : "Never"}
+                      {key.lastRequest ? formatDate(key.lastRequest) : 'Never'}
                     </TableCell>
                     <TableCell>
                       {!key.enabled ? (
@@ -315,11 +315,11 @@ function ApiKeysContent() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{newlyCreatedKey ? "API Key Created" : "Create API Key"}</DialogTitle>
+            <DialogTitle>{newlyCreatedKey ? 'API Key Created' : 'Create API Key'}</DialogTitle>
             <DialogDescription>
               {newlyCreatedKey
                 ? "Copy your new API key. You won't be able to see it again!"
-                : "Create a new API key for programmatic access"}
+                : 'Create a new API key for programmatic access'}
             </DialogDescription>
           </DialogHeader>
 
@@ -334,7 +334,7 @@ function ApiKeysContent() {
                 <Label>Your API Key</Label>
                 <div className="flex items-center gap-2">
                   <Input
-                    type={showNewKey ? "text" : "password"}
+                    type={showNewKey ? 'text' : 'password'}
                     value={newlyCreatedKey}
                     readOnly
                     className="font-mono"
@@ -382,7 +382,7 @@ function ApiKeysContent() {
                   Cancel
                 </Button>
                 <Button onClick={handleCreateKey} disabled={creating}>
-                  {creating ? "Creating..." : "Create Key"}
+                  {creating ? 'Creating...' : 'Create Key'}
                 </Button>
               </DialogFooter>
             </div>
@@ -402,9 +402,9 @@ function ApiKeysContent() {
           <div className="space-y-4">
             {keyToDelete && (
               <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">{keyToDelete.name || "Unnamed key"}</p>
+                <p className="font-medium">{keyToDelete.name || 'Unnamed key'}</p>
                 <p className="text-sm text-muted-foreground">
-                  {keyToDelete.prefix || "nc_"}...{keyToDelete.start || "****"}
+                  {keyToDelete.prefix || 'nc_'}...{keyToDelete.start || '****'}
                 </p>
               </div>
             )}
@@ -413,7 +413,7 @@ function ApiKeysContent() {
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDeleteKey} disabled={deleting}>
-                {deleting ? "Deleting..." : "Delete Key"}
+                {deleting ? 'Deleting...' : 'Delete Key'}
               </Button>
             </DialogFooter>
           </div>

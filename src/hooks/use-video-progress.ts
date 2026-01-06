@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Progress Hook
@@ -7,10 +7,10 @@
  * Automatically saves progress to the server and restores position on mount.
  */
 
-import { Either } from "effect";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { VideoProgress } from "@/components/video/video-player";
-import { runClientEffect, videoProgressApiEffect } from "@/lib/effect/client";
+import { Either } from 'effect';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { VideoProgress } from '@/components/video/video-player';
+import { runClientEffect, videoProgressApiEffect } from '@/lib/effect/client';
 
 // =============================================================================
 // Types
@@ -105,7 +105,7 @@ export function useVideoProgress({
       Either.match(result, {
         onLeft: (err) => {
           // Don't show error for 401 (not logged in) - just start from beginning
-          if ("status" in err && err.status === 401) {
+          if ('status' in err && err.status === 401) {
             setInitialProgress(0);
           } else {
             setError(err.message);

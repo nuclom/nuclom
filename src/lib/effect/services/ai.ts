@@ -5,11 +5,11 @@
  * Uses Vercel AI SDK with XAI Grok-3 model.
  */
 
-import { gateway } from "@ai-sdk/gateway";
-import { generateText, streamText } from "ai";
-import { Context, Effect, Layer, pipe, Stream } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { AIServiceError } from "../errors";
+import { gateway } from '@ai-sdk/gateway';
+import { generateText, streamText } from 'ai';
+import { Context, Effect, Layer, pipe, Stream } from 'effect';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { AIServiceError } from '../errors';
 
 // =============================================================================
 // Types
@@ -39,7 +39,7 @@ export interface CodeSnippetResult {
 export interface ActionItemResult {
   readonly text: string;
   readonly timestamp?: number;
-  readonly priority?: "high" | "medium" | "low";
+  readonly priority?: 'high' | 'medium' | 'low';
 }
 
 export interface AIServiceInterface {
@@ -94,14 +94,14 @@ export interface AIServiceInterface {
 // AI Service Tag
 // =============================================================================
 
-export class AI extends Context.Tag("AI")<AI, AIServiceInterface>() {}
+export class AI extends Context.Tag('AI')<AI, AIServiceInterface>() {}
 
 // =============================================================================
 // AI Service Implementation
 // =============================================================================
 
 const makeAIService = Effect.gen(function* () {
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   const generateVideoSummary = (transcript: string): Effect.Effect<string, AIServiceError> =>
     Effect.tryPromise({
@@ -130,8 +130,8 @@ Please format the response as:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate video summary",
-          operation: "generateVideoSummary",
+          message: 'Failed to generate video summary',
+          operation: 'generateVideoSummary',
           cause: error,
         }),
     });
@@ -148,20 +148,20 @@ Please format the response as:
             prompt: `Based on this video title and description, generate 5-8 relevant tags:
 
 Title: ${title}
-Description: ${description || "N/A"}
+Description: ${description || 'N/A'}
 
 Return only the tags as a comma-separated list.`,
           });
 
           return text
-            .split(",")
+            .split(',')
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0);
         },
         catch: (error) =>
           new AIServiceError({
-            message: "Failed to generate video tags",
-            operation: "generateVideoTags",
+            message: 'Failed to generate video tags',
+            operation: 'generateVideoTags',
             cause: error,
           }),
       }),
@@ -182,13 +182,13 @@ ${transcript}
 Return each action item on a new line, or "None" if no action items are found.`,
           });
 
-          const items = text.split("\n").filter((item) => item.trim() && !item.includes("None"));
-          return items.map((item) => item.replace(/^[-*]\s*/, "").trim());
+          const items = text.split('\n').filter((item) => item.trim() && !item.includes('None'));
+          return items.map((item) => item.replace(/^[-*]\s*/, '').trim());
         },
         catch: (error) =>
           new AIServiceError({
-            message: "Failed to extract action items",
-            operation: "extractActionItems",
+            message: 'Failed to extract action items',
+            operation: 'extractActionItems',
             cause: error,
           }),
       }),
@@ -214,8 +214,8 @@ ${transcript}`,
         } catch (error) {
           emit.fail(
             new AIServiceError({
-              message: "Failed to stream summary",
-              operation: "createSummaryStream",
+              message: 'Failed to stream summary',
+              operation: 'createSummaryStream',
               cause: error,
             }),
           );
@@ -232,7 +232,7 @@ ${transcript}`,
       Effect.tryPromise({
         try: async () => {
           // Format segments with timestamps for context
-          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 
           const { text } = await generateText({
             model,
@@ -265,8 +265,8 @@ If no action items are found, return an empty array: []`,
         },
         catch: (error) =>
           new AIServiceError({
-            message: "Failed to extract action items with timestamps",
-            operation: "extractActionItemsWithTimestamps",
+            message: 'Failed to extract action items with timestamps',
+            operation: 'extractActionItemsWithTimestamps',
             cause: error,
           }),
       }),
@@ -281,7 +281,7 @@ If no action items are found, return an empty array: []`,
       Effect.tryPromise({
         try: async () => {
           const formattedTranscript = segments
-            ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n")
+            ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n')
             : transcript;
 
           const { text } = await generateText({
@@ -331,8 +331,8 @@ If no code snippets are detected, return an empty array: []`,
         },
         catch: (error) =>
           new AIServiceError({
-            message: "Failed to detect code snippets",
-            operation: "detectCodeSnippets",
+            message: 'Failed to detect code snippets',
+            operation: 'detectCodeSnippets',
             cause: error,
           }),
       }),
@@ -350,14 +350,14 @@ If no code snippets are detected, return an empty array: []`,
             return [];
           }
 
-          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+          const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 
           const totalDuration = Math.max(...segments.map((s) => s.endTime));
 
           const { text } = await generateText({
             model,
             prompt: `Analyze this timestamped transcript and generate chapters (key moments) for the video.
-${videoTitle ? `Video title: "${videoTitle}"` : ""}
+${videoTitle ? `Video title: "${videoTitle}"` : ''}
 
 Transcript (total duration: ${formatTime(totalDuration)}):
 ${formattedTranscript}
@@ -399,8 +399,8 @@ Ensure chapters cover the entire video duration without gaps.`,
         },
         catch: (error) =>
           new AIServiceError({
-            message: "Failed to generate chapters",
-            operation: "generateChapters",
+            message: 'Failed to generate chapters',
+            operation: 'generateChapters',
             cause: error,
           }),
       }),
@@ -425,9 +425,9 @@ const formatTime = (seconds: number): string => {
   const secs = Math.floor(seconds % 60);
 
   if (hrs > 0) {
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 // =============================================================================

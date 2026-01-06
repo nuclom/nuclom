@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Loader2, MoreVertical, Plus, Quote, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, MoreVertical, Plus, Quote, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { QuoteCard } from "@/hooks/use-quote-cards";
-import { useQuoteCards } from "@/hooks/use-quote-cards";
-import { formatTime } from "@/lib/format-utils";
-import { CreateQuoteCardDialog } from "./create-quote-card-dialog";
+} from '@/components/ui/dropdown-menu';
+import type { QuoteCard } from '@/hooks/use-quote-cards';
+import { useQuoteCards } from '@/hooks/use-quote-cards';
+import { formatTime } from '@/lib/format-utils';
+import { CreateQuoteCardDialog } from './create-quote-card-dialog';
 
 interface QuoteCardsProps {
   videoId: string;
@@ -37,7 +37,7 @@ export function QuoteCards({ videoId, initialCards = [], currentUser, onTimestam
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
 
   const handleDelete = async (cardId: string) => {
-    if (!confirm("Are you sure you want to delete this quote card?")) {
+    if (!confirm('Are you sure you want to delete this quote card?')) {
       return;
     }
 
@@ -148,11 +148,11 @@ export function QuoteCards({ videoId, initialCards = [], currentUser, onTimestam
                       {card.creator && (
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t">
                           <Avatar className="h-5 w-5">
-                            <AvatarImage src={card.creator.image || undefined} alt={card.creator.name || "User"} />
-                            <AvatarFallback className="text-xs">{card.creator.name?.[0] || "U"}</AvatarFallback>
+                            <AvatarImage src={card.creator.image || undefined} alt={card.creator.name || 'User'} />
+                            <AvatarFallback className="text-xs">{card.creator.name?.[0] || 'U'}</AvatarFallback>
                           </Avatar>
                           <span className="text-xs text-muted-foreground">
-                            Created by {card.creator.name || "Unknown"}
+                            Created by {card.creator.name || 'Unknown'}
                           </span>
                         </div>
                       )}

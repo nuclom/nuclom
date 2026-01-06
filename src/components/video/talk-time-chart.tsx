@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Talk Time Chart Component
@@ -7,12 +7,12 @@
  * among speakers in a video.
  */
 
-import { BarChart3, Clock } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { getSpeakerColor, type Speaker } from "./speaker-legend";
+import { BarChart3, Clock } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { getSpeakerColor, type Speaker } from './speaker-legend';
 
 // =============================================================================
 // Types
@@ -41,41 +41,41 @@ function formatTime(seconds: number): string {
   const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function getBalanceInfo(score: number): { label: string; color: string; bgColor: string; description: string } {
   if (score >= 80) {
     return {
-      label: "Excellent",
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-100 dark:bg-green-900/30",
-      description: "Participation is well balanced",
+      label: 'Excellent',
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-100 dark:bg-green-900/30',
+      description: 'Participation is well balanced',
     };
   }
   if (score >= 60) {
     return {
-      label: "Good",
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-100 dark:bg-blue-900/30",
-      description: "Most participants contributed meaningfully",
+      label: 'Good',
+      color: 'text-blue-600 dark:text-blue-400',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+      description: 'Most participants contributed meaningfully',
     };
   }
   if (score >= 40) {
     return {
-      label: "Fair",
-      color: "text-yellow-600 dark:text-yellow-400",
-      bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-      description: "Some participants dominated the conversation",
+      label: 'Fair',
+      color: 'text-yellow-600 dark:text-yellow-400',
+      bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
+      description: 'Some participants dominated the conversation',
     };
   }
   return {
-    label: "Poor",
-    color: "text-red-600 dark:text-red-400",
-    bgColor: "bg-red-100 dark:bg-red-900/30",
-    description: "Conversation was dominated by few participants",
+    label: 'Poor',
+    color: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-100 dark:bg-red-900/30',
+    description: 'Conversation was dominated by few participants',
   };
 }
 
@@ -141,17 +141,17 @@ export function TalkTimeChart({
                     {/* biome-ignore lint/a11y/noStaticElementInteractions: Interactive behavior is conditional based on onSpeakerClick prop */}
                     <div
                       className={cn(
-                        "space-y-1.5",
-                        onSpeakerClick && "cursor-pointer hover:opacity-80 transition-opacity",
+                        'space-y-1.5',
+                        onSpeakerClick && 'cursor-pointer hover:opacity-80 transition-opacity',
                       )}
                       onClick={() => onSpeakerClick?.(speaker.id)}
                       onKeyDown={(e) => {
-                        if ((e.key === "Enter" || e.key === " ") && onSpeakerClick) {
+                        if ((e.key === 'Enter' || e.key === ' ') && onSpeakerClick) {
                           e.preventDefault();
                           onSpeakerClick(speaker.id);
                         }
                       }}
-                      role={onSpeakerClick ? "button" : undefined}
+                      role={onSpeakerClick ? 'button' : undefined}
                       tabIndex={onSpeakerClick ? 0 : undefined}
                     >
                       {/* Speaker info row */}
@@ -162,15 +162,15 @@ export function TalkTimeChart({
                               <AvatarImage src={speaker.linkedUser.image || undefined} />
                               <AvatarFallback className="text-[8px]">
                                 {speaker.linkedUser.name
-                                  .split(" ")
+                                  .split(' ')
                                   .map((n) => n[0])
-                                  .join("")
+                                  .join('')
                                   .toUpperCase()
                                   .slice(0, 2)}
                               </AvatarFallback>
                             </Avatar>
                           ) : (
-                            <div className={cn("h-5 w-5 rounded-full flex-shrink-0", color.bg)} />
+                            <div className={cn('h-5 w-5 rounded-full flex-shrink-0', color.bg)} />
                           )}
                           <span className="text-sm font-medium truncate">{speaker.displayName}</span>
                         </div>
@@ -186,7 +186,7 @@ export function TalkTimeChart({
                       {/* Progress bar */}
                       <div className="relative h-2 w-full bg-muted rounded-full overflow-hidden">
                         <div
-                          className={cn("absolute inset-y-0 left-0 rounded-full transition-all", color.bg)}
+                          className={cn('absolute inset-y-0 left-0 rounded-full transition-all', color.bg)}
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -207,13 +207,13 @@ export function TalkTimeChart({
 
         {/* Balance score */}
         {balance && (
-          <div className={cn("rounded-lg p-3 mt-4", balance.bgColor)}>
+          <div className={cn('rounded-lg p-3 mt-4', balance.bgColor)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Balance Score</span>
-                <span className={cn("text-sm font-bold", balance.color)}>{balanceScore}/100</span>
+                <span className={cn('text-sm font-bold', balance.color)}>{balanceScore}/100</span>
               </div>
-              <span className={cn("text-sm font-medium", balance.color)}>{balance.label}</span>
+              <span className={cn('text-sm font-medium', balance.color)}>{balance.label}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">{balance.description}</p>
           </div>

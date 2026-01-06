@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { HttpError, NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { Zoom, ZoomLive, type ZoomRecording } from "@/lib/effect/services/zoom";
+import { Cause, Effect, Exit, Layer, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { HttpError, NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { Zoom, ZoomLive, type ZoomRecording } from '@/lib/effect/services/zoom';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const RecordingsLayer = Layer.mergeAll(ZoomLive, IntegrationRepositoryWithDeps, DatabaseLive);
@@ -20,9 +20,9 @@ interface RecordingsResponse {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-  const pageToken = searchParams.get("pageToken") || undefined;
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
+  const pageToken = searchParams.get('pageToken') || undefined;
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -30,26 +30,26 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Default date range: last 30 days
   const now = new Date();
-  const defaultTo = now.toISOString().split("T")[0];
-  const defaultFrom = new Date(now.setDate(now.getDate() - 30)).toISOString().split("T")[0];
+  const defaultTo = now.toISOString().split('T')[0];
+  const defaultFrom = new Date(now.setDate(now.getDate() - 30)).toISOString().split('T')[0];
 
   const effect = Effect.gen(function* () {
     const zoom = yield* Zoom;
     const integrationRepo = yield* IntegrationRepository;
 
     // Get user's Zoom integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "zoom");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'zoom');
 
     if (!integration) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Zoom integration not found. Please connect your Zoom account.",
-          entity: "Integration",
+          message: 'Zoom integration not found. Please connect your Zoom account.',
+          entity: 'Integration',
         }),
       );
     }
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Zoom access token expired. Please reconnect your account.",
+            message: 'Zoom access token expired. Please reconnect your account.',
           }),
         );
       }
@@ -105,8 +105,8 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: err.status });
         }
       }
-      console.error("[Zoom Recordings Error]", cause);
-      return NextResponse.json({ success: false, error: "Failed to fetch recordings" }, { status: 500 });
+      console.error('[Zoom Recordings Error]', cause);
+      return NextResponse.json({ success: false, error: 'Failed to fetch recordings' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

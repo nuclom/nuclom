@@ -9,10 +9,10 @@
  * - processedWebhookEvents: Webhook idempotency
  */
 
-import { relations } from "drizzle-orm";
-import { bigint, boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
-import { organizations } from "./auth";
-import { invoiceStatusEnum } from "./enums";
+import { relations } from 'drizzle-orm';
+import { bigint, boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { organizations } from './auth';
+import { invoiceStatusEnum } from './enums';
 
 // =============================================================================
 // JSONB Types
@@ -37,20 +37,20 @@ export type PlanFeatures = {
 // Plans
 // =============================================================================
 
-export const plans = pgTable("plans", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  stripePriceIdMonthly: text("stripe_price_id_monthly"),
-  stripePriceIdYearly: text("stripe_price_id_yearly"),
-  priceMonthly: integer("price_monthly").notNull().default(0), // cents
-  priceYearly: integer("price_yearly"), // cents
-  limits: jsonb("limits").$type<PlanLimits>().notNull(),
-  features: jsonb("features").$type<PlanFeatures>().notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  sortOrder: integer("sort_order").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+export const plans = pgTable('plans', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  stripePriceIdMonthly: text('stripe_price_id_monthly'),
+  stripePriceIdYearly: text('stripe_price_id_yearly'),
+  priceMonthly: integer('price_monthly').notNull().default(0), // cents
+  priceYearly: integer('price_yearly'), // cents
+  limits: jsonb('limits').$type<PlanLimits>().notNull(),
+  features: jsonb('features').$type<PlanFeatures>().notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // =============================================================================
@@ -58,26 +58,26 @@ export const plans = pgTable("plans", {
 // =============================================================================
 
 export const usage = pgTable(
-  "usage",
+  'usage',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    periodStart: timestamp("period_start").notNull(),
-    periodEnd: timestamp("period_end").notNull(),
-    storageUsed: bigint("storage_used", { mode: "number" }).default(0).notNull(), // bytes
-    videosUploaded: integer("videos_uploaded").default(0).notNull(),
-    bandwidthUsed: bigint("bandwidth_used", { mode: "number" }).default(0).notNull(), // bytes
-    aiRequests: integer("ai_requests").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    periodStart: timestamp('period_start').notNull(),
+    periodEnd: timestamp('period_end').notNull(),
+    storageUsed: bigint('storage_used', { mode: 'number' }).default(0).notNull(), // bytes
+    videosUploaded: integer('videos_uploaded').default(0).notNull(),
+    bandwidthUsed: bigint('bandwidth_used', { mode: 'number' }).default(0).notNull(), // bytes
+    aiRequests: integer('ai_requests').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.organizationId, table.periodStart),
-    index("usage_organization_id_idx").on(table.organizationId),
+    index('usage_organization_id_idx').on(table.organizationId),
   ],
 );
 
@@ -86,32 +86,32 @@ export const usage = pgTable(
 // =============================================================================
 
 export const invoices = pgTable(
-  "invoices",
+  'invoices',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    stripeInvoiceId: text("stripe_invoice_id").unique(),
-    stripePaymentIntentId: text("stripe_payment_intent_id"),
-    amount: integer("amount").notNull(), // cents
-    amountPaid: integer("amount_paid").default(0).notNull(), // cents
-    currency: text("currency").default("usd").notNull(),
-    status: invoiceStatusEnum("status").notNull(),
-    pdfUrl: text("pdf_url"),
-    hostedInvoiceUrl: text("hosted_invoice_url"),
-    periodStart: timestamp("period_start"),
-    periodEnd: timestamp("period_end"),
-    dueDate: timestamp("due_date"),
-    paidAt: timestamp("paid_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    stripeInvoiceId: text('stripe_invoice_id').unique(),
+    stripePaymentIntentId: text('stripe_payment_intent_id'),
+    amount: integer('amount').notNull(), // cents
+    amountPaid: integer('amount_paid').default(0).notNull(), // cents
+    currency: text('currency').default('usd').notNull(),
+    status: invoiceStatusEnum('status').notNull(),
+    pdfUrl: text('pdf_url'),
+    hostedInvoiceUrl: text('hosted_invoice_url'),
+    periodStart: timestamp('period_start'),
+    periodEnd: timestamp('period_end'),
+    dueDate: timestamp('due_date'),
+    paidAt: timestamp('paid_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("invoices_organization_id_idx").on(table.organizationId),
-    index("invoices_status_idx").on(table.status),
+    index('invoices_organization_id_idx').on(table.organizationId),
+    index('invoices_status_idx').on(table.status),
   ],
 );
 
@@ -120,24 +120,24 @@ export const invoices = pgTable(
 // =============================================================================
 
 export const paymentMethods = pgTable(
-  "payment_methods",
+  'payment_methods',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text("organization_id")
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    stripePaymentMethodId: text("stripe_payment_method_id").notNull().unique(),
-    type: text("type").notNull(), // 'card', 'bank_account', etc.
-    brand: text("brand"), // 'visa', 'mastercard', etc.
-    last4: text("last4"),
-    expMonth: integer("exp_month"),
-    expYear: integer("exp_year"),
-    isDefault: boolean("is_default").default(false).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    stripePaymentMethodId: text('stripe_payment_method_id').notNull().unique(),
+    type: text('type').notNull(), // 'card', 'bank_account', etc.
+    brand: text('brand'), // 'visa', 'mastercard', etc.
+    last4: text('last4'),
+    expMonth: integer('exp_month'),
+    expYear: integer('exp_year'),
+    isDefault: boolean('is_default').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("payment_methods_organization_id_idx").on(table.organizationId)],
+  (table) => [index('payment_methods_organization_id_idx').on(table.organizationId)],
 );
 
 // =============================================================================
@@ -145,16 +145,16 @@ export const paymentMethods = pgTable(
 // =============================================================================
 
 export const processedWebhookEvents = pgTable(
-  "processed_webhook_events",
+  'processed_webhook_events',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    eventId: text("event_id").notNull().unique(), // Stripe event ID (evt_xxx)
-    eventType: text("event_type").notNull(), // e.g., 'invoice.paid'
-    source: text("source").notNull().default("stripe"), // 'stripe', 'github', etc.
-    processedAt: timestamp("processed_at").defaultNow().notNull(),
-    expiresAt: timestamp("expires_at")
+    eventId: text('event_id').notNull().unique(), // Stripe event ID (evt_xxx)
+    eventType: text('event_type').notNull(), // e.g., 'invoice.paid'
+    source: text('source').notNull().default('stripe'), // 'stripe', 'github', etc.
+    processedAt: timestamp('processed_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at')
       .notNull()
       .$defaultFn(() => {
         const date = new Date();
@@ -163,9 +163,9 @@ export const processedWebhookEvents = pgTable(
       }),
   },
   (table) => ({
-    eventIdIdx: index("processed_webhook_events_event_id_idx").on(table.eventId),
-    expiresAtIdx: index("processed_webhook_events_expires_at_idx").on(table.expiresAt),
-    sourceTypeIdx: index("processed_webhook_events_source_type_idx").on(table.source, table.eventType),
+    eventIdIdx: index('processed_webhook_events_event_id_idx').on(table.eventId),
+    expiresAtIdx: index('processed_webhook_events_expires_at_idx').on(table.expiresAt),
+    sourceTypeIdx: index('processed_webhook_events_source_type_idx').on(table.source, table.eventType),
   }),
 );
 

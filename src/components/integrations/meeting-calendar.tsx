@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   addDays,
@@ -12,7 +12,7 @@ import {
   startOfMonth,
   startOfWeek,
   subMonths,
-} from "date-fns";
+} from 'date-fns';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -23,20 +23,20 @@ import {
   Users,
   Video,
   VideoOff,
-} from "lucide-react";
-import Link from "next/link";
-import type * as React from "react";
-import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
+} from 'lucide-react';
+import Link from 'next/link';
+import type * as React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
 
 interface Integration {
   id: string;
-  provider: "zoom" | "google_meet";
+  provider: 'zoom' | 'google_meet';
   connected: boolean;
   expiresAt: string | null;
   metadata: {
@@ -54,7 +54,7 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   meetingLink?: string;
-  provider: "zoom" | "google_meet";
+  provider: 'zoom' | 'google_meet';
   hasRecording?: boolean;
   attendees?: Array<{ email: string; name?: string; status?: string }>;
   conferenceId?: string;
@@ -63,7 +63,7 @@ interface CalendarEvent {
 interface MeetingCalendarProps {
   integrations: Integration[];
   organizationSlug: string;
-  onImportRecording: (provider: "zoom" | "google_meet") => void;
+  onImportRecording: (provider: 'zoom' | 'google_meet') => void;
 }
 
 export function MeetingCalendar({
@@ -76,10 +76,10 @@ export function MeetingCalendar({
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
-  const [_activeView, _setActiveView] = useState<"month" | "week" | "day">("month");
+  const [_activeView, _setActiveView] = useState<'month' | 'week' | 'day'>('month');
 
-  const hasZoom = integrations.some((i) => i.provider === "zoom");
-  const hasGoogle = integrations.some((i) => i.provider === "google_meet");
+  const hasZoom = integrations.some((i) => i.provider === 'zoom');
+  const hasGoogle = integrations.some((i) => i.provider === 'google_meet');
 
   const loadEvents = useCallback(async () => {
     if (integrations.length === 0) return;
@@ -113,12 +113,12 @@ export function MeetingCalendar({
                 conferenceData?: { conferenceId?: string };
               }) => ({
                 id: event.id,
-                title: event.summary || "Untitled Meeting",
+                title: event.summary || 'Untitled Meeting',
                 description: event.description,
-                start: new Date(event.start.dateTime || event.start.date || ""),
-                end: new Date(event.end.dateTime || event.end.date || ""),
+                start: new Date(event.start.dateTime || event.start.date || ''),
+                end: new Date(event.end.dateTime || event.end.date || ''),
                 meetingLink: event.hangoutLink,
-                provider: "google_meet" as const,
+                provider: 'google_meet' as const,
                 attendees: event.attendees?.map((a) => ({
                   email: a.email,
                   name: a.displayName,
@@ -130,7 +130,7 @@ export function MeetingCalendar({
             allEvents.push(...googleEvents);
           }
         } catch (error) {
-          logger.error("Failed to load Google Calendar events", error);
+          logger.error('Failed to load Google Calendar events', error);
         }
       }
 
@@ -153,18 +153,18 @@ export function MeetingCalendar({
                 join_url?: string;
               }) => ({
                 id: meeting.id,
-                title: meeting.topic || "Zoom Meeting",
+                title: meeting.topic || 'Zoom Meeting',
                 description: meeting.agenda,
                 start: new Date(meeting.start_time),
                 end: new Date(new Date(meeting.start_time).getTime() + meeting.duration * 60000),
                 meetingLink: meeting.join_url,
-                provider: "zoom" as const,
+                provider: 'zoom' as const,
               }),
             );
             allEvents.push(...zoomEvents);
           }
         } catch (error) {
-          logger.error("Failed to load Zoom meetings", error);
+          logger.error('Failed to load Zoom meetings', error);
         }
       }
 
@@ -172,11 +172,11 @@ export function MeetingCalendar({
       allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
       setEvents(allEvents);
     } catch (error) {
-      logger.error("Failed to load calendar events", error);
+      logger.error('Failed to load calendar events', error);
       toast({
-        title: "Error",
-        description: "Failed to load calendar events",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load calendar events',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -187,8 +187,8 @@ export function MeetingCalendar({
     loadEvents();
   }, [loadEvents]);
 
-  const navigateMonth = (direction: "prev" | "next") => {
-    setCurrentMonth((prev) => (direction === "prev" ? subMonths(prev, 1) : addMonths(prev, 1)));
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth((prev) => (direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)));
   };
 
   const goToToday = () => {
@@ -226,18 +226,18 @@ export function MeetingCalendar({
           onClick={() => setSelectedDate(currentDay)}
           className={`
             relative min-h-[80px] p-1 text-left border-b border-r transition-colors
-            ${isCurrentMonth ? "bg-background" : "bg-muted/30 text-muted-foreground"}
-            ${isSelected ? "bg-primary/10 ring-2 ring-primary ring-inset" : "hover:bg-muted/50"}
-            ${isTodayDate ? "font-semibold" : ""}
+            ${isCurrentMonth ? 'bg-background' : 'bg-muted/30 text-muted-foreground'}
+            ${isSelected ? 'bg-primary/10 ring-2 ring-primary ring-inset' : 'hover:bg-muted/50'}
+            ${isTodayDate ? 'font-semibold' : ''}
           `}
         >
           <span
             className={`
             inline-flex items-center justify-center w-6 h-6 text-sm rounded-full
-            ${isTodayDate ? "bg-primary text-primary-foreground" : ""}
+            ${isTodayDate ? 'bg-primary text-primary-foreground' : ''}
           `}
           >
-            {format(currentDay, "d")}
+            {format(currentDay, 'd')}
           </span>
           <div className="mt-1 space-y-0.5 overflow-hidden">
             {dayEvents.slice(0, 3).map((event) => (
@@ -245,7 +245,7 @@ export function MeetingCalendar({
                 key={event.id}
                 className={`
                   text-[10px] px-1 py-0.5 rounded truncate
-                  ${event.provider === "zoom" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" : "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"}
+                  ${event.provider === 'zoom' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'}
                 `}
               >
                 {event.title}
@@ -285,16 +285,16 @@ export function MeetingCalendar({
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <CardTitle className="text-lg">{format(currentMonth, "MMMM yyyy")}</CardTitle>
+              <CardTitle className="text-lg">{format(currentMonth, 'MMMM yyyy')}</CardTitle>
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={() => navigateMonth("prev")}>
+              <Button variant="ghost" size="icon" onClick={() => navigateMonth('prev')}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigateMonth("next")}>
+              <Button variant="ghost" size="icon" onClick={() => navigateMonth('next')}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -309,7 +309,7 @@ export function MeetingCalendar({
             <div>
               {/* Day headers */}
               <div className="grid grid-cols-7 text-center text-sm font-medium text-muted-foreground border-b">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                   <div key={day} className="py-2 border-r last:border-r-0">
                     {day}
                   </div>
@@ -326,12 +326,12 @@ export function MeetingCalendar({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            {selectedDate ? format(selectedDate, "EEEE, MMMM d") : "Select a date"}
+            {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
           </CardTitle>
           <CardDescription>
             {selectedDateEvents.length > 0
-              ? `${selectedDateEvents.length} meeting${selectedDateEvents.length !== 1 ? "s" : ""}`
-              : "No meetings scheduled"}
+              ? `${selectedDateEvents.length} meeting${selectedDateEvents.length !== 1 ? 's' : ''}`
+              : 'No meetings scheduled'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -348,7 +348,7 @@ export function MeetingCalendar({
                     key={event.id}
                     className={`
                       p-3 rounded-lg border transition-colors
-                      ${event.provider === "zoom" ? "border-blue-200 dark:border-blue-800" : "border-green-200 dark:border-green-800"}
+                      ${event.provider === 'zoom' ? 'border-blue-200 dark:border-blue-800' : 'border-green-200 dark:border-green-800'}
                     `}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -357,20 +357,20 @@ export function MeetingCalendar({
                         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                           <Clock className="h-3.5 w-3.5" />
                           <span>
-                            {format(event.start, "h:mm a")} - {format(event.end, "h:mm a")}
+                            {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
                           </span>
                         </div>
                         {event.attendees && event.attendees.length > 0 && (
                           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                             <Users className="h-3.5 w-3.5" />
                             <span>
-                              {event.attendees.length} attendee{event.attendees.length !== 1 ? "s" : ""}
+                              {event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}
                             </span>
                           </div>
                         )}
                       </div>
                       <Badge variant="outline" className="shrink-0 text-xs">
-                        {event.provider === "zoom" ? "Zoom" : "Meet"}
+                        {event.provider === 'zoom' ? 'Zoom' : 'Meet'}
                       </Badge>
                     </div>
 

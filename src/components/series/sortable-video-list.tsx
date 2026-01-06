@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   closestCenter,
@@ -8,23 +8,23 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from "@dnd-kit/core";
+} from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Play, Trash2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
-import type { SeriesVideoWithDetails } from "@/lib/types";
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Play, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
+import type { SeriesVideoWithDetails } from '@/lib/types';
 
 interface SortableVideoItemProps {
   item: SeriesVideoWithDetails;
@@ -49,7 +49,7 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
     <Card
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 ${isDragging ? "opacity-50 shadow-lg" : ""}`}
+      className={`flex items-center gap-3 p-3 ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
     >
       <button type="button" className="cursor-grab active:cursor-grabbing touch-none" {...attributes} {...listeners}>
         <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -62,7 +62,7 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
         className="relative h-16 w-28 flex-shrink-0 rounded overflow-hidden group"
       >
         <Image
-          src={video.thumbnailUrl || "/placeholder.svg"}
+          src={video.thumbnailUrl || '/placeholder.svg'}
           alt={video.title}
           fill
           sizes={IMAGE_SIZES.thumbnail}

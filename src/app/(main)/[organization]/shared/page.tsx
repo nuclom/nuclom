@@ -1,12 +1,12 @@
-import { Share2, VideoOff } from "lucide-react";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VideoCard } from "@/components/video-card";
-import { auth } from "@/lib/auth";
-import type { Organization } from "@/lib/db/schema";
-import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from "@/lib/effect";
+import { Share2, VideoOff } from 'lucide-react';
+import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VideoCard } from '@/components/video-card';
+import { auth } from '@/lib/auth';
+import type { Organization } from '@/lib/db/schema';
+import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from '@/lib/effect';
 
 // =============================================================================
 // Loading Skeleton Component
@@ -86,7 +86,7 @@ async function SharedVideosLoader({ params }: { params: Promise<{ organization: 
   });
 
   if (!session) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   // Get organization by slug using cached Effect query

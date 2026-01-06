@@ -1,5 +1,5 @@
-import { Effect } from "effect";
-import { ValidationError } from "@/lib/effect/errors";
+import { Effect } from 'effect';
+import { ValidationError } from '@/lib/effect/errors';
 
 /**
  * File type magic bytes signatures.
@@ -8,56 +8,56 @@ import { ValidationError } from "@/lib/effect/errors";
 const FILE_SIGNATURES: Record<string, { signature: number[]; offset?: number; mimeType: string }[]> = {
   // Video formats
   mp4: [
-    { signature: [0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70], mimeType: "video/mp4" },
-    { signature: [0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70], mimeType: "video/mp4" },
-    { signature: [0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70], mimeType: "video/mp4" },
+    { signature: [0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70], mimeType: 'video/mp4' },
+    { signature: [0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70], mimeType: 'video/mp4' },
+    { signature: [0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70], mimeType: 'video/mp4' },
     // ftypisom, ftypmp42, etc.
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d], offset: 4, mimeType: "video/mp4" },
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32], offset: 4, mimeType: "video/mp4" },
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x53, 0x4e, 0x56], offset: 4, mimeType: "video/mp4" },
+    { signature: [0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d], offset: 4, mimeType: 'video/mp4' },
+    { signature: [0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32], offset: 4, mimeType: 'video/mp4' },
+    { signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x53, 0x4e, 0x56], offset: 4, mimeType: 'video/mp4' },
   ],
   mov: [
-    { signature: [0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74], mimeType: "video/quicktime" },
-    { signature: [0x66, 0x74, 0x79, 0x70, 0x71, 0x74], offset: 4, mimeType: "video/quicktime" },
-    { signature: [0x6d, 0x6f, 0x6f, 0x76], offset: 4, mimeType: "video/quicktime" },
-    { signature: [0x66, 0x72, 0x65, 0x65], offset: 4, mimeType: "video/quicktime" },
-    { signature: [0x6d, 0x64, 0x61, 0x74], offset: 4, mimeType: "video/quicktime" },
-    { signature: [0x77, 0x69, 0x64, 0x65], offset: 4, mimeType: "video/quicktime" },
+    { signature: [0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x71, 0x74], mimeType: 'video/quicktime' },
+    { signature: [0x66, 0x74, 0x79, 0x70, 0x71, 0x74], offset: 4, mimeType: 'video/quicktime' },
+    { signature: [0x6d, 0x6f, 0x6f, 0x76], offset: 4, mimeType: 'video/quicktime' },
+    { signature: [0x66, 0x72, 0x65, 0x65], offset: 4, mimeType: 'video/quicktime' },
+    { signature: [0x6d, 0x64, 0x61, 0x74], offset: 4, mimeType: 'video/quicktime' },
+    { signature: [0x77, 0x69, 0x64, 0x65], offset: 4, mimeType: 'video/quicktime' },
   ],
-  webm: [{ signature: [0x1a, 0x45, 0xdf, 0xa3], mimeType: "video/webm" }],
-  mkv: [{ signature: [0x1a, 0x45, 0xdf, 0xa3], mimeType: "video/x-matroska" }],
+  webm: [{ signature: [0x1a, 0x45, 0xdf, 0xa3], mimeType: 'video/webm' }],
+  mkv: [{ signature: [0x1a, 0x45, 0xdf, 0xa3], mimeType: 'video/x-matroska' }],
   avi: [
     {
       signature: [0x52, 0x49, 0x46, 0x46], // RIFF
-      mimeType: "video/x-msvideo",
+      mimeType: 'video/x-msvideo',
     },
   ],
-  wmv: [{ signature: [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11], mimeType: "video/x-ms-wmv" }],
-  flv: [{ signature: [0x46, 0x4c, 0x56, 0x01], mimeType: "video/x-flv" }],
-  "3gp": [{ signature: [0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70], offset: 4, mimeType: "video/3gpp" }],
-  m4v: [{ signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x56], offset: 4, mimeType: "video/x-m4v" }],
+  wmv: [{ signature: [0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11], mimeType: 'video/x-ms-wmv' }],
+  flv: [{ signature: [0x46, 0x4c, 0x56, 0x01], mimeType: 'video/x-flv' }],
+  '3gp': [{ signature: [0x66, 0x74, 0x79, 0x70, 0x33, 0x67, 0x70], offset: 4, mimeType: 'video/3gpp' }],
+  m4v: [{ signature: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x56], offset: 4, mimeType: 'video/x-m4v' }],
 
   // Image formats
-  jpg: [{ signature: [0xff, 0xd8, 0xff], mimeType: "image/jpeg" }],
-  jpeg: [{ signature: [0xff, 0xd8, 0xff], mimeType: "image/jpeg" }],
-  png: [{ signature: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], mimeType: "image/png" }],
+  jpg: [{ signature: [0xff, 0xd8, 0xff], mimeType: 'image/jpeg' }],
+  jpeg: [{ signature: [0xff, 0xd8, 0xff], mimeType: 'image/jpeg' }],
+  png: [{ signature: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], mimeType: 'image/png' }],
   gif: [
-    { signature: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], mimeType: "image/gif" },
-    { signature: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], mimeType: "image/gif" },
+    { signature: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], mimeType: 'image/gif' },
+    { signature: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], mimeType: 'image/gif' },
   ],
-  webp: [{ signature: [0x52, 0x49, 0x46, 0x46], mimeType: "image/webp" }], // Starts with RIFF
-  svg: [{ signature: [0x3c, 0x3f, 0x78, 0x6d, 0x6c], mimeType: "image/svg+xml" }], // <?xml
+  webp: [{ signature: [0x52, 0x49, 0x46, 0x46], mimeType: 'image/webp' }], // Starts with RIFF
+  svg: [{ signature: [0x3c, 0x3f, 0x78, 0x6d, 0x6c], mimeType: 'image/svg+xml' }], // <?xml
 };
 
 /**
  * Supported video formats for upload
  */
-export const SUPPORTED_VIDEO_EXTENSIONS = ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v", "3gp"];
+export const SUPPORTED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv', 'm4v', '3gp'];
 
 /**
  * Supported image formats for thumbnails
  */
-export const SUPPORTED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp"];
+export const SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 /**
  * Maximum file sizes in bytes
@@ -72,8 +72,8 @@ export const MAX_FILE_SIZES = {
  * Gets the file extension from a filename.
  */
 export function getFileExtension(filename: string): string {
-  const parts = filename.toLowerCase().split(".");
-  return parts.length > 1 ? parts[parts.length - 1] : "";
+  const parts = filename.toLowerCase().split('.');
+  return parts.length > 1 ? parts[parts.length - 1] : '';
 }
 
 /**
@@ -130,7 +130,7 @@ export function validateFileMagicBytes(
     if (!allowedExtensions.includes(extension)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: `File extension .${extension} is not allowed. Supported: ${allowedExtensions.join(", ")}`,
+          message: `File extension .${extension} is not allowed. Supported: ${allowedExtensions.join(', ')}`,
         }),
       );
     }
@@ -153,7 +153,7 @@ export function validateFileMagicBytes(
 
     if (!matched) {
       // Special case for AVI: also check for "AVI " at offset 8
-      if (extension === "avi" && bytes.length >= 12) {
+      if (extension === 'avi' && bytes.length >= 12) {
         const aviCheck = bytes[8] === 0x41 && bytes[9] === 0x56 && bytes[10] === 0x49 && bytes[11] === 0x20;
         if (checkSignature(bytes, [0x52, 0x49, 0x46, 0x46], 0) && aviCheck) {
           matched = true;
@@ -161,7 +161,7 @@ export function validateFileMagicBytes(
       }
 
       // Special case for WebP: check for WEBP after RIFF
-      if (extension === "webp" && bytes.length >= 12) {
+      if (extension === 'webp' && bytes.length >= 12) {
         const webpCheck = bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
         if (checkSignature(bytes, [0x52, 0x49, 0x46, 0x46], 0) && webpCheck) {
           matched = true;
@@ -193,7 +193,7 @@ export function validateVideoFile(
         ? new Uint8Array(
             yield* Effect.tryPromise({
               try: () => file.arrayBuffer(),
-              catch: () => new ValidationError({ message: "Failed to read file" }),
+              catch: () => new ValidationError({ message: 'Failed to read file' }),
             }),
           )
         : new Uint8Array(file.buffer);
@@ -234,7 +234,7 @@ export function validateImageFile(
         ? new Uint8Array(
             yield* Effect.tryPromise({
               try: () => file.arrayBuffer(),
-              catch: () => new ValidationError({ message: "Failed to read file" }),
+              catch: () => new ValidationError({ message: 'Failed to read file' }),
             }),
           )
         : new Uint8Array(file.buffer);

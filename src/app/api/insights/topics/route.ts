@@ -1,11 +1,11 @@
-import { and, count, desc, eq, gte } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { aiTopics, knowledgeNodes } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, count, desc, eq, gte } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { aiTopics, knowledgeNodes } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,7 +13,7 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
   limit: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.between(1, 50)), {
     default: () => 20,
   }),
@@ -47,15 +47,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -64,13 +64,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -87,8 +87,8 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch topics",
-          operation: "getTopics",
+          message: 'Failed to fetch topics',
+          operation: 'getTopics',
         }),
     });
 
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(knowledgeNodes.organizationId, organizationId),
-              eq(knowledgeNodes.type, "topic"),
+              eq(knowledgeNodes.type, 'topic'),
               gte(knowledgeNodes.createdAt, startDate),
             ),
           )
@@ -113,8 +113,8 @@ export async function GET(request: NextRequest) {
           .limit(limit),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch topic nodes",
-          operation: "getTopicNodes",
+          message: 'Failed to fetch topic nodes',
+          operation: 'getTopicNodes',
         }),
     });
 
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(knowledgeNodes.organizationId, organizationId),
-              eq(knowledgeNodes.type, "topic"),
+              eq(knowledgeNodes.type, 'topic'),
               gte(knowledgeNodes.createdAt, midPeriod),
             ),
           )
@@ -141,8 +141,8 @@ export async function GET(request: NextRequest) {
           .limit(10),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch recent topics",
-          operation: "getRecentTopics",
+          message: 'Failed to fetch recent topics',
+          operation: 'getRecentTopics',
         }),
     });
 
@@ -153,16 +153,16 @@ export async function GET(request: NextRequest) {
     const topicsWithTrends = topicNodesResult.map((topic) => {
       const recentCount = recentTopicsMap.get(topic.name) || 0;
 
-      let trend: "rising" | "stable" | "declining" = "stable";
+      let trend: 'rising' | 'stable' | 'declining' = 'stable';
       let trendScore = 0;
 
       if (topic.count > 0) {
         const recentRatio = recentCount / topic.count;
         if (recentRatio > 0.6) {
-          trend = "rising";
+          trend = 'rising';
           trendScore = Math.round((recentRatio - 0.5) * 200);
         } else if (recentRatio < 0.3) {
-          trend = "declining";
+          trend = 'declining';
           trendScore = Math.round((recentRatio - 0.5) * 200);
         }
       }
@@ -204,8 +204,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Get rising/declining summary
-    const risingTopics = combinedTopics.filter((t) => t.trend === "rising").slice(0, 5);
-    const decliningTopics = combinedTopics.filter((t) => t.trend === "declining").slice(0, 5);
+    const risingTopics = combinedTopics.filter((t) => t.trend === 'rising').slice(0, 5);
+    const decliningTopics = combinedTopics.filter((t) => t.trend === 'declining').slice(0, 5);
 
     return {
       topics: combinedTopics,

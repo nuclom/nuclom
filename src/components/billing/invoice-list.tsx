@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { Download, ExternalLink, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { Invoice } from "@/lib/db/schema";
+import { format } from 'date-fns';
+import { Download, ExternalLink, FileText } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { Invoice } from '@/lib/db/schema';
 
 interface InvoiceListProps {
   invoices: Invoice[];
 }
 
 const formatCurrency = (amount: number, currency: string): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
     currency: currency.toUpperCase(),
   }).format(amount / 100);
 };
 
-const getStatusBadge = (status: Invoice["status"]) => {
+const getStatusBadge = (status: Invoice['status']) => {
   const variants: Record<
-    Invoice["status"],
-    { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+    Invoice['status'],
+    { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }
   > = {
-    paid: { variant: "default", label: "Paid" },
-    open: { variant: "secondary", label: "Open" },
-    draft: { variant: "outline", label: "Draft" },
-    void: { variant: "outline", label: "Void" },
-    uncollectible: { variant: "destructive", label: "Uncollectible" },
+    paid: { variant: 'default', label: 'Paid' },
+    open: { variant: 'secondary', label: 'Open' },
+    draft: { variant: 'outline', label: 'Draft' },
+    void: { variant: 'outline', label: 'Void' },
+    uncollectible: { variant: 'destructive', label: 'Uncollectible' },
   };
 
   const { variant, label } = variants[status];
@@ -74,15 +74,15 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
           <TableBody>
             {invoices.map((invoice) => (
               <TableRow key={invoice.id}>
-                <TableCell>{invoice.createdAt ? format(new Date(invoice.createdAt), "MMM d, yyyy") : "—"}</TableCell>
+                <TableCell>{invoice.createdAt ? format(new Date(invoice.createdAt), 'MMM d, yyyy') : '—'}</TableCell>
                 <TableCell>
                   {invoice.periodStart && invoice.periodEnd ? (
                     <>
-                      {format(new Date(invoice.periodStart), "MMM d")} -{" "}
-                      {format(new Date(invoice.periodEnd), "MMM d, yyyy")}
+                      {format(new Date(invoice.periodStart), 'MMM d')} -{' '}
+                      {format(new Date(invoice.periodEnd), 'MMM d, yyyy')}
                     </>
                   ) : (
-                    "—"
+                    '—'
                   )}
                 </TableCell>
                 <TableCell className="font-medium">{formatCurrency(invoice.amount, invoice.currency)}</TableCell>
@@ -131,7 +131,7 @@ export function InvoiceCard({ invoice }: InvoiceCardProps) {
           <FileText className="h-8 w-8 text-muted-foreground" />
           <div>
             <p className="font-medium">
-              {invoice.createdAt ? format(new Date(invoice.createdAt), "MMMM d, yyyy") : "Invoice"}
+              {invoice.createdAt ? format(new Date(invoice.createdAt), 'MMMM d, yyyy') : 'Invoice'}
             </p>
             <p className="text-sm text-muted-foreground">{formatCurrency(invoice.amount, invoice.currency)}</p>
           </div>

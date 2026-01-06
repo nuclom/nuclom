@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { invitations, organizations, users } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
+import { eq } from 'drizzle-orm';
+import { type NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { invitations, organizations, users } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/invitations/[id] - Get invitation details
@@ -44,7 +44,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!invitation[0]) {
       const response: ApiResponse = {
         success: false,
-        error: "Invitation not found",
+        error: 'Invitation not found',
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -55,10 +55,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
     return NextResponse.json(response);
   } catch (error) {
-    logger.error("[GET /api/invitations/[id]]", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[GET /api/invitations/[id]]', error instanceof Error ? error : new Error(String(error)));
     const response: ApiResponse = {
       success: false,
-      error: "Internal server error",
+      error: 'Internal server error',
     };
     return NextResponse.json(response, { status: 500 });
   }
