@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { type AppErrorTag, type AppErrorUnion, isAppError } from "@/lib/effect/errors";
 import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
 import { env } from "@/lib/env/server";
 import { logger } from "@/lib/logger";
@@ -111,7 +112,17 @@ interface ErrorMapping {
   status: number;
 }
 
-const errorTagMapping: Record<string, ErrorMapping> = {
+/**
+ * Type-safe error tag mapping using AppErrorTag.
+ * TypeScript will error if any error tag is missing from this mapping.
+ *
+ * This ensures all errors defined in errors.ts are properly mapped to HTTP responses.
+ */
+const errorTagMapping: Record<AppErrorTag, ErrorMapping> = {
+  // Base errors
+  AppError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
+  ConfigurationError: { code: ErrorCodes.INTERNAL_CONFIGURATION_ERROR, status: 500 },
+
   // Auth errors
   UnauthorizedError: { code: ErrorCodes.AUTH_UNAUTHORIZED, status: 401 },
   ForbiddenError: { code: ErrorCodes.AUTH_FORBIDDEN, status: 403 },
@@ -121,11 +132,11 @@ const errorTagMapping: Record<string, ErrorMapping> = {
   ValidationError: { code: ErrorCodes.VALIDATION_FAILED, status: 400 },
   MissingFieldError: { code: ErrorCodes.VALIDATION_MISSING_FIELD, status: 400 },
 
-  // Not found errors
+  // Database errors
+  DatabaseError: { code: ErrorCodes.DATABASE_ERROR, status: 500 },
   NotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
-
-  // Conflict errors
   DuplicateError: { code: ErrorCodes.CONFLICT_DUPLICATE, status: 409 },
+  TransactionError: { code: ErrorCodes.DATABASE_TRANSACTION_FAILED, status: 500 },
 
   // Storage errors
   StorageNotConfiguredError: { code: ErrorCodes.STORAGE_NOT_CONFIGURED, status: 503 },
@@ -138,6 +149,13 @@ const errorTagMapping: Record<string, ErrorMapping> = {
   FileSizeExceededError: { code: ErrorCodes.VIDEO_FILE_TOO_LARGE, status: 400 },
   VideoProcessingError: { code: ErrorCodes.VIDEO_PROCESSING_FAILED, status: 500 },
 
+  // AI errors
+  AIServiceError: { code: ErrorCodes.INTERNAL_AI_SERVICE_ERROR, status: 500 },
+
+  // HTTP errors
+  HttpError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
+  ParseError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
+
   // Billing errors
   StripeNotConfiguredError: { code: ErrorCodes.BILLING_NOT_CONFIGURED, status: 503 },
   StripeApiError: { code: ErrorCodes.BILLING_STRIPE_ERROR, status: 500 },
@@ -148,23 +166,13 @@ const errorTagMapping: Record<string, ErrorMapping> = {
   PlanNotFoundError: { code: ErrorCodes.NOT_FOUND_PLAN, status: 404 },
   NoSubscriptionError: { code: ErrorCodes.BILLING_NO_SUBSCRIPTION, status: 403 },
   UsageTrackingError: { code: ErrorCodes.BILLING_STRIPE_ERROR, status: 500 },
-
-  // Database errors
-  DatabaseError: { code: ErrorCodes.DATABASE_ERROR, status: 500 },
-  TransactionError: { code: ErrorCodes.DATABASE_TRANSACTION_FAILED, status: 500 },
-
-  // Other errors
-  ConfigurationError: { code: ErrorCodes.INTERNAL_CONFIGURATION_ERROR, status: 500 },
-  AIServiceError: { code: ErrorCodes.INTERNAL_AI_SERVICE_ERROR, status: 500 },
-  HttpError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
-  ParseError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
-  AppError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
 };
 
 /**
- * Extract additional details from specific error types
+ * Extract additional details from specific error types.
+ * Uses type narrowing for type-safe property access.
  */
-function extractErrorDetails(error: TaggedError): Record<string, unknown> | undefined {
+function extractErrorDetails(error: AppErrorUnion): Record<string, unknown> | undefined {
   switch (error._tag) {
     case "ValidationError":
       return error.errors ? { fields: error.errors } : error.field ? { field: error.field } : undefined;
@@ -186,60 +194,60 @@ function extractErrorDetails(error: TaggedError): Record<string, unknown> | unde
       return { format: error.format, supportedFormats: error.supportedFormats };
     case "VideoProcessingError":
       return error.stage ? { stage: error.stage } : undefined;
+    case "ForbiddenError":
+      return error.resource ? { resource: error.resource } : undefined;
     default:
       return undefined;
   }
-}
-
-interface TaggedError {
-  _tag: string;
-  message: string;
-  [key: string]: unknown;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function isTaggedError(value: unknown): value is TaggedError {
-  return isRecord(value) && typeof value._tag === "string" && typeof value.message === "string";
+/**
+ * Type-safe mapping of AppErrorUnion to API response.
+ * This function is the preferred way to handle known application errors.
+ */
+export function mapAppErrorToResponse(error: AppErrorUnion): NextResponse<ApiErrorResponse> {
+  const mapping = errorTagMapping[error._tag];
+  const details = extractErrorDetails(error);
+
+  // Log non-client errors server-side and send to Slack
+  if (mapping.status >= 500) {
+    logger.error(`API Error: ${error._tag}`, new Error(error.message), {
+      errorTag: error._tag,
+    });
+    // Send Slack notification for server errors (fire-and-forget)
+    notifySlackMonitoring("api_error", {
+      errorMessage: error.message,
+      errorCode: error._tag,
+    }).catch(() => {});
+  }
+
+  return createErrorResponse(mapping.code, error.message, mapping.status, details);
 }
 
 /**
- * Map any Effect-TS TaggedError to a standardized API response
- * This replaces the mapErrorToResponse function in API routes
+ * Map any Effect-TS TaggedError to a standardized API response.
+ * This handles both typed AppErrorUnion and unknown errors.
+ *
+ * For type-safe error handling, prefer using mapAppErrorToResponse with typed errors.
  */
 export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResponse> {
-  // Handle TaggedError from Effect-TS
-  if (isTaggedError(error)) {
-    const taggedError = error;
-    const mapping = errorTagMapping[taggedError._tag];
+  // Handle typed AppErrorUnion from Effect-TS
+  if (isAppError(error)) {
+    return mapAppErrorToResponse(error);
+  }
 
-    if (mapping) {
-      const details = extractErrorDetails(taggedError);
-
-      // Log non-client errors server-side and send to Slack
-      if (mapping.status >= 500) {
-        logger.error(`API Error: ${taggedError._tag}`, new Error(taggedError.message), {
-          errorTag: taggedError._tag,
-        });
-        // Send Slack notification for server errors (fire-and-forget)
-        notifySlackMonitoring("api_error", {
-          errorMessage: taggedError.message,
-          errorCode: taggedError._tag,
-        }).catch(() => {});
-      }
-
-      return createErrorResponse(mapping.code, taggedError.message, mapping.status, details);
-    }
-
-    // Unknown tagged error - treat as internal error
-    logger.error(`Unknown tagged error: ${taggedError._tag}`, new Error(taggedError.message), {
-      errorTag: taggedError._tag,
+  // Handle unknown tagged errors (errors from libraries or legacy code)
+  if (isRecord(error) && typeof error._tag === "string" && typeof error.message === "string") {
+    logger.error(`Unknown tagged error: ${error._tag}`, new Error(error.message as string), {
+      errorTag: error._tag,
     });
     notifySlackMonitoring("api_error", {
-      errorMessage: taggedError.message,
-      errorCode: `Unknown: ${taggedError._tag}`,
+      errorMessage: error.message as string,
+      errorCode: `Unknown: ${error._tag}`,
     }).catch(() => {});
     return createErrorResponse(ErrorCodes.INTERNAL_ERROR, "An unexpected error occurred", 500);
   }

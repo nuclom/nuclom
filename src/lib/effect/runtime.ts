@@ -43,12 +43,73 @@ import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./ser
 import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
 
 // =============================================================================
+// Layer Composition Utilities
+// =============================================================================
+
+/**
+ * Helper to provide a single dependency to a layer.
+ *
+ * @example
+ * ```typescript
+ * const RepoWithDeps = withDep(RepoLive, DatabaseLive);
+ * ```
+ */
+function withDep<A, E, R1, A2, E2, R2>(
+  layer: Layer.Layer<A, E, R1>,
+  dep: Layer.Layer<A2, E2, R2>,
+): Layer.Layer<A, E | E2, Exclude<R1, A2> | R2> {
+  return layer.pipe(Layer.provide(dep)) as Layer.Layer<A, E | E2, Exclude<R1, A2> | R2>;
+}
+
+/**
+ * Helper to provide two dependencies to a layer.
+ *
+ * @example
+ * ```typescript
+ * const RepoWithDeps = withDeps2(RepoLive, DatabaseLive, StorageLive);
+ * ```
+ */
+function withDeps2<A, E, R1, A2, E2, R2, A3, E3, R3>(
+  layer: Layer.Layer<A, E, R1>,
+  dep1: Layer.Layer<A2, E2, R2>,
+  dep2: Layer.Layer<A3, E3, R3>,
+): Layer.Layer<A, E | E2 | E3, Exclude<Exclude<R1, A2>, A3> | R2 | R3> {
+  return layer.pipe(Layer.provide(Layer.merge(dep1, dep2))) as Layer.Layer<
+    A,
+    E | E2 | E3,
+    Exclude<Exclude<R1, A2>, A3> | R2 | R3
+  >;
+}
+
+/**
+ * Helper to provide multiple dependencies to a layer (4 deps max).
+ *
+ * @example
+ * ```typescript
+ * const BillingWithDeps = withDeps(BillingLive, BillingRepositoryLive, StripeServiceLive, DatabaseLive, EmailNotificationsLive);
+ * ```
+ */
+function withDeps<A, E, R1, A2, E2, R2, A3, E3, R3, A4, E4, R4, A5, E5, R5>(
+  layer: Layer.Layer<A, E, R1>,
+  dep1: Layer.Layer<A2, E2, R2>,
+  dep2: Layer.Layer<A3, E3, R3>,
+  dep3: Layer.Layer<A4, E4, R4>,
+  dep4: Layer.Layer<A5, E5, R5>,
+): Layer.Layer<A, E | E2 | E3 | E4 | E5, Exclude<Exclude<Exclude<Exclude<R1, A2>, A3>, A4>, A5> | R2 | R3 | R4 | R5> {
+  return layer.pipe(Layer.provide(Layer.mergeAll(dep1, dep2, dep3, dep4))) as Layer.Layer<
+    A,
+    E | E2 | E3 | E4 | E5,
+    Exclude<Exclude<Exclude<Exclude<R1, A2>, A3>, A4>, A5> | R2 | R3 | R4 | R5
+  >;
+}
+
+// =============================================================================
 // Layer Composition
 // =============================================================================
 
 /**
  * Full application layer (without Auth - Auth is request-scoped)
- * Using Layer.provide to properly compose dependent layers
+ * Using withDeps helper to properly compose dependent layers
  */
 
 // Base services layer (no dependencies on other services)
@@ -64,31 +125,39 @@ const BaseServicesLive = Layer.mergeAll(
   SlackMonitoringLive,
 );
 
-// VideoProcessor depends on Storage - provide its dependency
-const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
+// =============================================================================
+// Layer Dependencies (Type-safe with withDep/withDeps2 helpers)
+// =============================================================================
 
-// Repositories depend on Database - provide their dependencies
-// VideoRepository depends on both Database and Storage
-const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
-const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const PresenceWithDeps = PresenceLive.pipe(Layer.provide(DatabaseLive));
-const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
-// ClipRepository depends on Database and Storage
-const ClipRepositoryWithDeps = ClipRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
-const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const KnowledgeGraphRepositoryWithDeps = KnowledgeGraphRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SemanticSearchRepositoryWithDeps = SemanticSearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
+// VideoProcessor depends on Storage
+const VideoProcessorWithDeps = withDep(VideoProcessorLive, StorageLive);
+
+// Repositories with Database dependency only
+const OrganizationRepositoryWithDeps = withDep(OrganizationRepositoryLive, DatabaseLive);
+const VideoProgressRepositoryWithDeps = withDep(VideoProgressRepositoryLive, DatabaseLive);
+const CommentRepositoryWithDeps = withDep(CommentRepositoryLive, DatabaseLive);
+const PresenceWithDeps = withDep(PresenceLive, DatabaseLive);
+const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, DatabaseLive);
+const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
+const BillingRepositoryWithDeps = withDep(BillingRepositoryLive, DatabaseLive);
+const SearchRepositoryWithDeps = withDep(SearchRepositoryLive, DatabaseLive);
+const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
+const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
+const CodeLinksRepositoryWithDeps = withDep(CodeLinksRepositoryLive, DatabaseLive);
+const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
+const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
+
+// Repositories with Database + Storage dependencies
+const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
+const ClipRepositoryWithDeps = withDeps2(ClipRepositoryLive, DatabaseLive, StorageLive);
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
-const BillingWithDeps = BillingLive.pipe(
-  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive, DatabaseLive, EmailNotificationsLive)),
+const BillingWithDeps = withDeps(
+  BillingLive,
+  BillingRepositoryWithDeps,
+  StripeServiceLive,
+  DatabaseLive,
+  EmailNotificationsLive,
 );
 
 // Combine application services that have their dependencies resolved
