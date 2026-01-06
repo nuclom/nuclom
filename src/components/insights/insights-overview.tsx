@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { CheckCircle2, FileVideo, Lightbulb, ListTodo, TrendingDown, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { CheckCircle2, FileVideo, Lightbulb, ListTodo, TrendingDown, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface InsightsOverviewData {
   totalVideosAnalyzed: number;
@@ -28,26 +28,26 @@ interface InsightsOverviewProps {
 export function InsightsOverview({ data, trends }: InsightsOverviewProps) {
   const metrics = [
     {
-      title: "Videos Analyzed",
+      title: 'Videos Analyzed',
       value: data.totalVideosAnalyzed.toLocaleString(),
       icon: FileVideo,
       description: `${data.totalHoursAnalyzed} hours of content`,
       trend: trends?.videosChange,
     },
     {
-      title: "Decisions Extracted",
+      title: 'Decisions Extracted',
       value: data.totalDecisions.toLocaleString(),
       icon: Lightbulb,
       description: `${data.avgConfidence}% avg. confidence`,
     },
     {
-      title: "Action Items",
+      title: 'Action Items',
       value: data.actionItems.total.toLocaleString(),
       icon: ListTodo,
       description: `${data.actionItems.pending} pending`,
     },
     {
-      title: "Completion Rate",
+      title: 'Completion Rate',
       value: `${data.actionItems.completionRate}%`,
       icon: CheckCircle2,
       description: `${data.actionItems.completed} completed`,
@@ -67,7 +67,7 @@ export function InsightsOverview({ data, trends }: InsightsOverviewProps) {
               <div className="flex items-center gap-2">
                 <div className="text-2xl font-bold">{metric.value}</div>
                 {metric.trend !== undefined && metric.trend !== 0 && (
-                  <div className={`flex items-center text-xs ${metric.trend > 0 ? "text-green-600" : "text-red-600"}`}>
+                  <div className={`flex items-center text-xs ${metric.trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {metric.trend > 0 ? (
                       <TrendingUp className="h-3 w-3 mr-0.5" />
                     ) : (

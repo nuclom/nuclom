@@ -4,8 +4,8 @@
  * Provides type-safe Slack API operations for OAuth and messaging.
  */
 
-import { Config, Context, Effect, Layer, Option } from "effect";
-import { HttpError } from "../errors";
+import { Config, Context, Effect, Layer, Option } from 'effect';
+import { HttpError } from '../errors';
 
 // =============================================================================
 // Types
@@ -195,20 +195,20 @@ export interface SlackServiceInterface {
 // Slack Service Tag
 // =============================================================================
 
-export class Slack extends Context.Tag("Slack")<Slack, SlackServiceInterface>() {}
+export class Slack extends Context.Tag('Slack')<Slack, SlackServiceInterface>() {}
 
 // =============================================================================
 // Slack Configuration
 // =============================================================================
 
-const SLACK_API_BASE = "https://slack.com/api";
-const SLACK_AUTH_BASE = "https://slack.com";
+const SLACK_API_BASE = 'https://slack.com/api';
+const SLACK_AUTH_BASE = 'https://slack.com';
 
 const SlackConfigEffect = Config.all({
-  clientId: Config.string("SLACK_CLIENT_ID").pipe(Config.option),
-  clientSecret: Config.string("SLACK_CLIENT_SECRET").pipe(Config.option),
-  signingSecret: Config.string("SLACK_SIGNING_SECRET").pipe(Config.option),
-  baseUrl: Config.string("NEXT_PUBLIC_URL").pipe(Config.option),
+  clientId: Config.string('SLACK_CLIENT_ID').pipe(Config.option),
+  clientSecret: Config.string('SLACK_CLIENT_SECRET').pipe(Config.option),
+  signingSecret: Config.string('SLACK_SIGNING_SECRET').pipe(Config.option),
+  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
 });
 
 // =============================================================================
@@ -238,10 +238,10 @@ const makeSlackService = Effect.gen(function* () {
     Effect.sync(() => {
       const cfg = getConfig();
       if (!cfg) {
-        throw new Error("Slack is not configured");
+        throw new Error('Slack is not configured');
       }
 
-      const scopes = ["channels:read", "chat:write", "incoming-webhook", "users:read", "users:read.email"].join(",");
+      const scopes = ['channels:read', 'chat:write', 'incoming-webhook', 'users:read', 'users:read.email'].join(',');
 
       const params = new URLSearchParams({
         client_id: cfg.clientId,
@@ -259,7 +259,7 @@ const makeSlackService = Effect.gen(function* () {
       if (!cfg) {
         return yield* Effect.fail(
           new HttpError({
-            message: "Slack is not configured",
+            message: 'Slack is not configured',
             status: 503,
           }),
         );
@@ -268,9 +268,9 @@ const makeSlackService = Effect.gen(function* () {
       const response = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${SLACK_API_BASE}/oauth.v2.access`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
               client_id: cfg.clientId,
@@ -294,7 +294,7 @@ const makeSlackService = Effect.gen(function* () {
         },
         catch: (error) =>
           new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : "Unknown error"}`,
+            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
             status: 500,
           }),
       });
@@ -325,7 +325,7 @@ const makeSlackService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -334,13 +334,13 @@ const makeSlackService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const params = new URLSearchParams({
-          types: "public_channel,private_channel",
-          exclude_archived: "true",
-          limit: "100",
+          types: 'public_channel,private_channel',
+          exclude_archived: 'true',
+          limit: '100',
         });
 
         if (cursor) {
-          params.set("cursor", cursor);
+          params.set('cursor', cursor);
         }
 
         const res = await fetch(`${SLACK_API_BASE}/conversations.list?${params.toString()}`, {
@@ -363,7 +363,7 @@ const makeSlackService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to list channels: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -375,10 +375,10 @@ const makeSlackService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         const res = await fetch(`${SLACK_API_BASE}/chat.postMessage`, {
-          method: "POST",
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
         });
@@ -397,7 +397,7 @@ const makeSlackService = Effect.gen(function* () {
       },
       catch: (error) =>
         new HttpError({
-          message: `Failed to send message: ${error instanceof Error ? error.message : "Unknown error"}`,
+          message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           status: 500,
         }),
     });
@@ -412,31 +412,31 @@ const makeSlackService = Effect.gen(function* () {
   ): Effect.Effect<SlackMessageResponse, HttpError> => {
     const blocks: SlackBlock[] = [
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
-          text: `:movie_camera: *New Video*\n*${videoTitle}*${authorName ? `\nBy ${authorName}` : ""}`,
+          type: 'mrkdwn',
+          text: `:movie_camera: *New Video*\n*${videoTitle}*${authorName ? `\nBy ${authorName}` : ''}`,
         },
         accessory: thumbnailUrl
           ? {
-              type: "image",
+              type: 'image',
               image_url: thumbnailUrl,
               alt_text: videoTitle,
             }
           : undefined,
       },
       {
-        type: "actions",
+        type: 'actions',
         elements: [
           {
-            type: "button",
+            type: 'button',
             text: {
-              type: "plain_text",
-              text: "Watch Video",
+              type: 'plain_text',
+              text: 'Watch Video',
               emoji: true,
             },
             url: videoUrl,
-            action_id: "watch_video",
+            action_id: 'watch_video',
           },
         ],
       },
@@ -464,10 +464,10 @@ const makeSlackService = Effect.gen(function* () {
 
       // Compute expected signature
       const sigBaseString = `v0:${timestamp}:${body}`;
-      const crypto = require("node:crypto");
-      const hmac = crypto.createHmac("sha256", cfg.signingSecret);
+      const crypto = require('node:crypto');
+      const hmac = crypto.createHmac('sha256', cfg.signingSecret);
       hmac.update(sigBaseString);
-      const expectedSignature = `v0=${hmac.digest("hex")}`;
+      const expectedSignature = `v0=${hmac.digest('hex')}`;
 
       // Compare signatures using timing-safe comparison
       try {

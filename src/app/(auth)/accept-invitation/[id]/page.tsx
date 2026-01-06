@@ -1,12 +1,12 @@
-import { Suspense } from "react";
-import { AcceptInvitationForm } from "@/components/auth/accept-invitation-form";
-import { env } from "@/lib/env/server";
+import { Suspense } from 'react';
+import { AcceptInvitationForm } from '@/components/auth/accept-invitation-form';
+import { getAppUrl } from '@/lib/env/server';
 
 async function getInvitation(id: string) {
   try {
     // Use absolute URL for server-side fetch
-    const response = await fetch(`${env.APP_URL}/api/invitations/${id}`, {
-      cache: "no-store",
+    const response = await fetch(`${getAppUrl()}/api/invitations/${id}`, {
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -16,7 +16,7 @@ async function getInvitation(id: string) {
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
-    console.error("Error fetching invitation:", error);
+    console.error('Error fetching invitation:', error);
     return null;
   }
 }

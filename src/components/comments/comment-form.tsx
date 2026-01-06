@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Clock, Loader2, Send, X } from "lucide-react";
-import { type FormEvent, useCallback, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { Clock, Loader2, Send, X } from 'lucide-react';
+import { type FormEvent, useCallback, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface CommentFormProps {
   videoId: string;
@@ -29,14 +29,14 @@ export function CommentForm({
   parentId,
   onSubmit,
   onCancel,
-  placeholder = "Add a comment...",
+  placeholder = 'Add a comment...',
   user,
   showTimestamp = true,
   initialTimestamp,
   compact = false,
 }: CommentFormProps) {
-  const [content, setContent] = useState("");
-  const [timestamp, setTimestamp] = useState(initialTimestamp || "");
+  const [content, setContent] = useState('');
+  const [timestamp, setTimestamp] = useState(initialTimestamp || '');
   const [showTimestampInput, setShowTimestampInput] = useState(!!initialTimestamp);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -54,8 +54,8 @@ export function CommentForm({
           timestamp: showTimestampInput && timestamp ? timestamp : undefined,
           parentId,
         });
-        setContent("");
-        setTimestamp("");
+        setContent('');
+        setTimestamp('');
         setShowTimestampInput(false);
         setIsFocused(false);
       } finally {
@@ -66,8 +66,8 @@ export function CommentForm({
   );
 
   const handleCancel = useCallback(() => {
-    setContent("");
-    setTimestamp("");
+    setContent('');
+    setTimestamp('');
     setShowTimestampInput(false);
     setIsFocused(false);
     onCancel?.();
@@ -76,12 +76,12 @@ export function CommentForm({
   const isExpanded = isFocused || content.length > 0 || parentId;
 
   return (
-    <form onSubmit={handleSubmit} className={cn("space-y-3", compact && "space-y-2")}>
+    <form onSubmit={handleSubmit} className={cn('space-y-3', compact && 'space-y-2')}>
       <div className="flex gap-3">
         {!compact && user && (
           <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
-            <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+            <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+            <AvatarFallback>{user.name?.[0] || 'U'}</AvatarFallback>
           </Avatar>
         )}
 
@@ -93,9 +93,9 @@ export function CommentForm({
             placeholder={placeholder}
             disabled={isSubmitting}
             className={cn(
-              "resize-none transition-all",
-              compact ? "min-h-[60px]" : "min-h-[80px]",
-              !isExpanded && "min-h-[40px]",
+              'resize-none transition-all',
+              compact ? 'min-h-[60px]' : 'min-h-[80px]',
+              !isExpanded && 'min-h-[40px]',
             )}
             rows={isExpanded ? 3 : 1}
           />
@@ -137,7 +137,7 @@ export function CommentForm({
                       className="h-8 w-8"
                       onClick={() => {
                         setShowTimestampInput(false);
-                        setTimestamp("");
+                        setTimestamp('');
                       }}
                     >
                       <X className="h-4 w-4" />
@@ -158,7 +158,7 @@ export function CommentForm({
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-1" />
-                      {parentId ? "Reply" : "Comment"}
+                      {parentId ? 'Reply' : 'Comment'}
                     </>
                   )}
                 </Button>

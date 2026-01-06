@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Calendar, CheckCircle, Clock, FileVideo, Lightbulb, Sparkles, TrendingUp, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, CheckCircle, Clock, FileVideo, Lightbulb, Sparkles, TrendingUp, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SummaryStats {
   totalVideos: number;
@@ -73,12 +73,12 @@ export function InsightsSummary({
             </Badge>
           </div>
           <CardDescription>
-            Generated on{" "}
+            Generated on{' '}
             {new Date(summary.generatedAt).toLocaleDateString(undefined, {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </CardDescription>
         </CardHeader>

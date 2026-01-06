@@ -1,12 +1,12 @@
-import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { aiActionItems, videos } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
-import { validateQueryParams, validateRequestBody } from "@/lib/validation";
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { aiActionItems, videos } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
+import { validateQueryParams, validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -14,9 +14,9 @@ import { validateQueryParams, validateRequestBody } from "@/lib/validation";
 
 const getQuerySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
-  status: Schema.optional(Schema.Literal("pending", "in_progress", "completed", "cancelled")),
-  priority: Schema.optional(Schema.Literal("high", "medium", "low")),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
+  status: Schema.optional(Schema.Literal('pending', 'in_progress', 'completed', 'cancelled')),
+  priority: Schema.optional(Schema.Literal('high', 'medium', 'low')),
   assigneeUserId: Schema.optional(Schema.String),
   videoId: Schema.optional(Schema.String),
   page: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.positive()), { default: () => 1 }),
@@ -32,7 +32,7 @@ const createActionItemSchema = Schema.Struct({
   description: Schema.optional(Schema.String.pipe(Schema.maxLength(2000))),
   assignee: Schema.optional(Schema.String),
   assigneeUserId: Schema.optional(Schema.String),
-  priority: Schema.optionalWith(Schema.Literal("high", "medium", "low"), { default: () => "medium" as const }),
+  priority: Schema.optionalWith(Schema.Literal('high', 'medium', 'low'), { default: () => 'medium' as const }),
   dueDate: Schema.optional(Schema.String), // ISO date string
   timestampStart: Schema.optional(Schema.Number),
   timestampEnd: Schema.optional(Schema.Number),
@@ -64,15 +64,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -81,13 +81,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -140,8 +140,8 @@ export async function GET(request: NextRequest) {
           .offset(offset),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action items",
-          operation: "getActionItems",
+          message: 'Failed to fetch action items',
+          operation: 'getActionItems',
         }),
     });
 
@@ -154,8 +154,8 @@ export async function GET(request: NextRequest) {
           .where(and(...conditions)),
       catch: () =>
         new DatabaseError({
-          message: "Failed to count action items",
-          operation: "countActionItems",
+          message: 'Failed to count action items',
+          operation: 'countActionItems',
         }),
     });
     const totalCount = Number(countResult[0]?.count) || 0;
@@ -173,8 +173,8 @@ export async function GET(request: NextRequest) {
           .groupBy(aiActionItems.status),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action items stats",
-          operation: "getActionItemsStats",
+          message: 'Failed to fetch action items stats',
+          operation: 'getActionItemsStats',
         }),
     });
 
@@ -209,10 +209,10 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -248,15 +248,15 @@ export async function POST(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -283,8 +283,8 @@ export async function POST(request: NextRequest) {
           .returning(),
       catch: () =>
         new DatabaseError({
-          message: "Failed to create action item",
-          operation: "createActionItem",
+          message: 'Failed to create action item',
+          operation: 'createActionItem',
         }),
     });
 
@@ -297,10 +297,10 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Building2, Rocket, Sparkles, Users, Video } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Building2, Rocket, Sparkles, Users, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface StepWelcomeProps {
   userName?: string;
@@ -13,18 +13,18 @@ export function StepWelcome({ userName, onNext }: StepWelcomeProps) {
   const features = [
     {
       icon: Video,
-      title: "Record & Upload",
-      description: "Share screen recordings and video updates with your team",
+      title: 'Record & Upload',
+      description: 'Share screen recordings and video updates with your team',
     },
     {
       icon: Users,
-      title: "Collaborate",
-      description: "Comment, react, and discuss videos with timestamps",
+      title: 'Collaborate',
+      description: 'Comment, react, and discuss videos with timestamps',
     },
     {
       icon: Sparkles,
-      title: "AI-Powered",
-      description: "Get automatic transcripts, summaries, and action items",
+      title: 'AI-Powered',
+      description: 'Get automatic transcripts, summaries, and action items',
     },
   ];
 
@@ -34,7 +34,7 @@ export function StepWelcome({ userName, onNext }: StepWelcomeProps) {
         <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
           <Rocket className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome{userName ? `, ${userName}` : ""}! 👋</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome{userName ? `, ${userName}` : ''}! 👋</h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
           Nuclom helps your team communicate better with async video. Let's get you set up in just a few minutes.
         </p>

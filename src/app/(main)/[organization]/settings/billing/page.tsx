@@ -1,15 +1,15 @@
-import { Effect, Exit, Layer, Option } from "effect";
-import { Loader2 } from "lucide-react";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { BillingDashboard } from "@/components/billing";
-import { auth } from "@/lib/auth";
-import { AppLive } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-import { Billing } from "@/lib/effect/services/billing";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { Effect, Exit, Layer, Option } from 'effect';
+import { Loader2 } from 'lucide-react';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { BillingDashboard } from '@/components/billing';
+import { auth } from '@/lib/auth';
+import { AppLive } from '@/lib/effect';
+import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
+import { Billing } from '@/lib/effect/services/billing';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
 
 interface BillingPageProps {
   params: Promise<{ organization: string }>;
@@ -43,7 +43,7 @@ async function getBillingData(organizationSlug: string) {
 
     // Get user's role in organization
     const roleOption = yield* orgRepo.getUserRole(user.id, org.id);
-    const isOwner = Option.isSome(roleOption) && roleOption.value === "owner";
+    const isOwner = Option.isSome(roleOption) && roleOption.value === 'owner';
 
     // Get billing info
     const billingRepo = yield* BillingRepository;
@@ -92,14 +92,14 @@ async function BillingContent({ params, searchParams }: BillingPageProps) {
 
   return (
     <div className="space-y-6">
-      {success === "true" && (
+      {success === 'true' && (
         <div className="rounded-lg bg-green-50 p-4 text-green-800 dark:bg-green-950 dark:text-green-200">
           <p className="font-medium">Subscription activated successfully!</p>
           <p className="text-sm">Thank you for upgrading. Your new plan is now active.</p>
         </div>
       )}
 
-      {canceled === "true" && (
+      {canceled === 'true' && (
         <div className="rounded-lg bg-yellow-50 p-4 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
           <p className="font-medium">Checkout was canceled</p>
           <p className="text-sm">No charges were made. Feel free to try again when you're ready.</p>

@@ -1,11 +1,11 @@
-import { and, avg, count, eq, gte, sql } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { aiActionItems, decisions, videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, avg, count, eq, gte, sql } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { aiActionItems, decisions, videos, videoViews } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,7 +13,7 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
 });
 
 // =============================================================================
@@ -21,7 +21,7 @@ const querySchema = Schema.Struct({
 // =============================================================================
 
 function parseDurationToSeconds(duration: string): number {
-  const parts = duration.split(":").map(Number);
+  const parts = duration.split(':').map(Number);
   if (parts.length === 3) {
     return parts[0] * 3600 + parts[1] * 60 + parts[2];
   } else if (parts.length === 2) {
@@ -58,15 +58,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -75,13 +75,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
           where: (videos, { and, eq, gte }) =>
             and(
               eq(videos.organizationId, organizationId),
-              eq(videos.processingStatus, "completed"),
+              eq(videos.processingStatus, 'completed'),
               gte(videos.createdAt, startDate),
             ),
           columns: {
@@ -106,8 +106,8 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch video stats",
-          operation: "getVideoStats",
+          message: 'Failed to fetch video stats',
+          operation: 'getVideoStats',
         }),
     });
 
@@ -128,14 +128,14 @@ export async function GET(request: NextRequest) {
           .groupBy(decisions.videoId),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch decisions stats",
-          operation: "getDecisionsStats",
+          message: 'Failed to fetch decisions stats',
+          operation: 'getDecisionsStats',
         }),
     });
 
     const totalDecisions = decisionsResult.reduce((acc, d) => acc + d.decisionCount, 0);
     const meetingsWithDecisions = decisionsResult.length;
-    const avgDecisionsPerMeeting = totalMeetings > 0 ? (totalDecisions / totalMeetings).toFixed(1) : "0";
+    const avgDecisionsPerMeeting = totalMeetings > 0 ? (totalDecisions / totalMeetings).toFixed(1) : '0';
     const decisionRate = totalMeetings > 0 ? Math.round((meetingsWithDecisions / totalMeetings) * 100) : 0;
 
     // Get action items per meeting
@@ -152,14 +152,14 @@ export async function GET(request: NextRequest) {
           .groupBy(aiActionItems.videoId),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action items stats",
-          operation: "getActionItemsStats",
+          message: 'Failed to fetch action items stats',
+          operation: 'getActionItemsStats',
         }),
     });
 
     const totalActionItems = actionItemsResult.reduce((acc, a) => acc + a.itemCount, 0);
     const completedActionItems = actionItemsResult.reduce((acc, a) => acc + Number(a.completedCount), 0);
-    const avgActionItemsPerMeeting = totalMeetings > 0 ? (totalActionItems / totalMeetings).toFixed(1) : "0";
+    const avgActionItemsPerMeeting = totalMeetings > 0 ? (totalActionItems / totalMeetings).toFixed(1) : '0';
     const actionItemCompletionRate =
       totalActionItems > 0 ? Math.round((completedActionItems / totalActionItems) * 100) : 0;
 
@@ -175,8 +175,8 @@ export async function GET(request: NextRequest) {
           .where(and(eq(videoViews.organizationId, organizationId), gte(videoViews.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch engagement stats",
-          operation: "getEngagementStats",
+          message: 'Failed to fetch engagement stats',
+          operation: 'getEngagementStats',
         }),
     });
 
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(videos.organizationId, organizationId),
-              eq(videos.processingStatus, "completed"),
+              eq(videos.processingStatus, 'completed'),
               gte(videos.createdAt, startDate),
             ),
           )
@@ -219,8 +219,8 @@ export async function GET(request: NextRequest) {
           .orderBy(sql`DATE_TRUNC('week', ${videos.createdAt})`),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch weekly trends",
-          operation: "getWeeklyTrends",
+          message: 'Failed to fetch weekly trends',
+          operation: 'getWeeklyTrends',
         }),
     });
 

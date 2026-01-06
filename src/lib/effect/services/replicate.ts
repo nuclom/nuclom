@@ -5,9 +5,9 @@
  * Uses Replicate's cloud-based AI models for transcription and video analysis.
  */
 
-import { Config, Context, Effect, Layer, Option, pipe } from "effect";
-import Replicate from "replicate";
-import { AIServiceError } from "../errors";
+import { Config, Context, Effect, Layer, Option, pipe } from 'effect';
+import Replicate from 'replicate';
+import { AIServiceError } from '../errors';
 
 // =============================================================================
 // Types
@@ -81,20 +81,20 @@ export interface ReplicateService {
 // Replicate Service Tag
 // =============================================================================
 
-export class ReplicateAPI extends Context.Tag("ReplicateAPI")<ReplicateAPI, ReplicateService>() {}
+export class ReplicateAPI extends Context.Tag('ReplicateAPI')<ReplicateAPI, ReplicateService>() {}
 
 // =============================================================================
 // Replicate Configuration
 // =============================================================================
 
-const ReplicateConfigEffect = Config.string("REPLICATE_API_TOKEN").pipe(Config.option);
+const ReplicateConfigEffect = Config.string('REPLICATE_API_TOKEN').pipe(Config.option);
 
 // =============================================================================
 // Model Identifiers
 // =============================================================================
 
-const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
-const VIDEO_TO_GIF_MODEL = "fofr/video-to-gif:79bdd53be0a7a5f7c2f4813aba9c2a33e29e5dcf82d01f988d4e5c1c2a17c10e";
+const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334';
+const VIDEO_TO_GIF_MODEL = 'fofr/video-to-gif:79bdd53be0a7a5f7c2f4813aba9c2a33e29e5dcf82d01f988d4e5c1c2a17c10e';
 
 // =============================================================================
 // Replicate Service Implementation
@@ -116,8 +116,8 @@ const makeReplicateService = Effect.gen(function* () {
     if (!isConfigured || !client) {
       return Effect.fail(
         new AIServiceError({
-          message: "Replicate API not configured. Please set REPLICATE_API_TOKEN.",
-          operation: "ensureConfigured",
+          message: 'Replicate API not configured. Please set REPLICATE_API_TOKEN.',
+          operation: 'ensureConfigured',
         }),
       );
     }
@@ -135,8 +135,8 @@ const makeReplicateService = Effect.gen(function* () {
           },
           catch: (error) =>
             new AIServiceError({
-              message: `Replicate model run failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-              operation: "run",
+              message: `Replicate model run failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              operation: 'run',
               cause: error,
             }),
         }),
@@ -152,11 +152,11 @@ const makeReplicateService = Effect.gen(function* () {
             const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
               input: {
                 audio: videoUrl,
-                model: "large-v3",
+                model: 'large-v3',
                 translate: false,
                 temperature: 0,
-                transcription: "plain text",
-                suppress_tokens: "-1",
+                transcription: 'plain text',
+                suppress_tokens: '-1',
                 logprob_threshold: -1,
                 no_speech_threshold: 0.6,
                 condition_on_previous_text: true,
@@ -169,7 +169,7 @@ const makeReplicateService = Effect.gen(function* () {
             };
 
             return {
-              text: output.transcription || "",
+              text: output.transcription || '',
               segments: output.segments?.map((seg) => ({
                 start: seg.start,
                 end: seg.end,
@@ -180,8 +180,8 @@ const makeReplicateService = Effect.gen(function* () {
           },
           catch: (error) =>
             new AIServiceError({
-              message: `Transcription failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-              operation: "transcribe",
+              message: `Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              operation: 'transcribe',
               cause: error,
             }),
         }),
@@ -208,7 +208,7 @@ const makeReplicateService = Effect.gen(function* () {
 
             // The output is typically a URL to the generated content
             const url =
-              typeof output === "string" ? output : Array.isArray(output) && output.length > 0 ? String(output[0]) : "";
+              typeof output === 'string' ? output : Array.isArray(output) && output.length > 0 ? String(output[0]) : '';
 
             return {
               url,
@@ -217,8 +217,8 @@ const makeReplicateService = Effect.gen(function* () {
           },
           catch: (error) =>
             new AIServiceError({
-              message: `Thumbnail generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-              operation: "generateThumbnail",
+              message: `Thumbnail generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              operation: 'generateThumbnail',
               cause: error,
             }),
         }),
@@ -249,7 +249,7 @@ const makeReplicateService = Effect.gen(function* () {
           duration: estimatedDuration,
           width: 1920,
           height: 1080,
-          codec: "h264",
+          codec: 'h264',
           fps: 30,
           bitrate: Math.floor((fileSize * 8) / estimatedDuration),
           fileSize,
@@ -257,8 +257,8 @@ const makeReplicateService = Effect.gen(function* () {
       },
       catch: (error) =>
         new AIServiceError({
-          message: `Metadata extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-          operation: "extractMetadata",
+          message: `Metadata extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          operation: 'extractMetadata',
           cause: error,
         }),
     });

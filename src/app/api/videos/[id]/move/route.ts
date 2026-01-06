@@ -1,14 +1,14 @@
-import { Effect, Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { ForbiddenError, ValidationError, VideoRepository } from "@/lib/effect";
-import { ChannelRepository } from "@/lib/effect/services/channel-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { SeriesRepository } from "@/lib/effect/services/series-repository";
-import type { ApiResponse } from "@/lib/types";
-import { safeParse } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { ForbiddenError, ValidationError, VideoRepository } from '@/lib/effect';
+import { ChannelRepository } from '@/lib/effect/services/channel-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { SeriesRepository } from '@/lib/effect/services/series-repository';
+import type { ApiResponse } from '@/lib/types';
+import { safeParse } from '@/lib/validation';
 
 const MoveVideoSchema = Schema.Struct({
   channelId: Schema.optional(Schema.NullOr(Schema.String)),
@@ -32,13 +32,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const rawBody = await request.json();
   const result = safeParse(MoveVideoSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request format' }, { status: 400 });
   }
   const { channelId, collectionId } = result.data;
 
@@ -55,8 +55,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!isMemberResult) {
       return yield* Effect.fail(
         new ForbiddenError({
-          message: "Access denied",
-          resource: "Video",
+          message: 'Access denied',
+          resource: 'Video',
         }),
       );
     }
@@ -70,8 +70,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (channel.organizationId !== video.organizationId) {
         return yield* Effect.fail(
           new ValidationError({
-            message: "Channel does not belong to the same organization as the video",
-            field: "channelId",
+            message: 'Channel does not belong to the same organization as the video',
+            field: 'channelId',
           }),
         );
       }
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (collection.organizationId !== video.organizationId) {
         return yield* Effect.fail(
           new ValidationError({
-            message: "Collection does not belong to the same organization as the video",
-            field: "collectionId",
+            message: 'Collection does not belong to the same organization as the video',
+            field: 'collectionId',
           }),
         );
       }
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const response: ApiResponse = {
       success: true,
       data: {
-        message: "Video moved successfully",
+        message: 'Video moved successfully',
         video: updatedVideo,
       },
     };

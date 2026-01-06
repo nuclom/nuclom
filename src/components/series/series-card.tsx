@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { MoreHorizontal, Pencil, Play, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
-import type { SeriesProgressWithDetails, SeriesWithVideoCount } from "@/lib/types";
+} from '@/components/ui/dropdown-menu';
+import { Progress } from '@/components/ui/progress';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
+import type { SeriesProgressWithDetails, SeriesWithVideoCount } from '@/lib/types';
 
 interface SeriesCardProps {
   series: SeriesWithVideoCount & { progress?: SeriesProgressWithDetails };
@@ -48,7 +48,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
         <Link href={`/${organization}/series/${series.id}`}>
           <div className="relative aspect-video overflow-hidden">
             <Image
-              src={series.thumbnailUrl || "/placeholder.svg"}
+              src={series.thumbnailUrl || '/placeholder.svg'}
               alt={series.name}
               fill
               sizes={IMAGE_SIZES.seriesCard}
@@ -59,7 +59,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded-sm">
-              {series.videoCount} video{series.videoCount !== 1 ? "s" : ""}
+              {series.videoCount} video{series.videoCount !== 1 ? 's' : ''}
             </div>
             {hasProgress && (
               <div className="absolute bottom-0 left-0 right-0">
@@ -86,7 +86,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={handleDelete} disabled={isDeleting}>
               <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -98,7 +98,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
         {series.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{series.description}</p>}
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-muted-foreground">
-            {series.videoCount} video{series.videoCount !== 1 ? "s" : ""}
+            {series.videoCount} video{series.videoCount !== 1 ? 's' : ''}
           </span>
           {hasProgress && <span className="text-xs text-muted-foreground">{progressPercentage}% complete</span>}
         </div>

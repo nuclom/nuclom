@@ -1,13 +1,13 @@
-import { and, eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
-import { safeParse } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
+import { safeParse } from '@/lib/validation';
 
 // Schema for creating a role
 const CreateRoleSchema = Schema.Struct({
@@ -25,7 +25,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId } = await params;
@@ -37,7 +37,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (!membership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
@@ -54,9 +54,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       data: roles,
     });
   } catch (error) {
-    logger.error("[RBAC] Get roles error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[RBAC] Get roles error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to get roles" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to get roles' },
       { status: 500 },
     );
   }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId } = await params;
@@ -82,20 +82,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
   });
 
-  if (!membership || membership.role !== "owner") {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Only owners can create roles" }, { status: 403 });
+  if (!membership || membership.role !== 'owner') {
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Only owners can create roles' }, { status: 403 });
   }
 
   try {
     const rawBody = await request.json();
     const result = safeParse(CreateRoleSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Role name is required" }, { status: 400 });
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Role name is required' }, { status: 400 });
     }
     const { name, permissions } = result.data;
 
     if (!name) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Role name is required" }, { status: 400 });
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Role name is required' }, { status: 400 });
     }
 
     // Convert readonly record to mutable
@@ -118,9 +118,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: role,
     });
   } catch (error) {
-    logger.error("[RBAC] Create role error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[RBAC] Create role error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to create role" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to create role' },
       { status: 500 },
     );
   }

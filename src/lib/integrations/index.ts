@@ -14,7 +14,7 @@ export {
   SlackIntegrationLayer,
   TeamsIntegrationLayer,
   ZoomIntegrationLayer,
-} from "./layer-builders";
+} from './layer-builders';
 // OAuth Handler utilities
 export {
   encodeOAuthState,
@@ -27,4 +27,4 @@ export {
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from "./oauth-handler";
+} from './oauth-handler';

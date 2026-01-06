@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { Clock, Search, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { formatDistanceToNow } from 'date-fns';
+import { Clock, Search, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,10 +14,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { logger } from "@/lib/client-logger";
-import type { SearchHistoryWithUser } from "@/lib/types";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/client-logger';
+import type { SearchHistoryWithUser } from '@/lib/types';
 
 interface SearchHistoryProps {
   history: SearchHistoryWithUser[];
@@ -39,14 +39,14 @@ export function SearchHistory({ history, organizationId, organization, onRefresh
   const handleClearHistory = async () => {
     try {
       const response = await fetch(`/api/search/history?organizationId=${organizationId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (response.ok) {
         onRefresh();
       }
     } catch (error) {
-      logger.error("Failed to clear history", error);
+      logger.error('Failed to clear history', error);
     }
   };
 
@@ -109,7 +109,7 @@ export function SearchHistory({ history, organizationId, organization, onRefresh
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-xs text-muted-foreground">
-                {item.resultsCount} result{item.resultsCount !== 1 ? "s" : ""}
+                {item.resultsCount} result{item.resultsCount !== 1 ? 's' : ''}
               </span>
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}

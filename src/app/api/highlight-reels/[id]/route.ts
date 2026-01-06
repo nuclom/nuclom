@@ -1,10 +1,10 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { ClipRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
-import { updateHighlightReelSchema } from "@/lib/validation/schemas";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { ClipRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
+import { updateHighlightReelSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/highlight-reels/[id] - Get a single highlight reel
@@ -80,7 +80,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return {
       success: true,
-      message: "Highlight reel deleted successfully",
+      message: 'Highlight reel deleted successfully',
     };
   });
 

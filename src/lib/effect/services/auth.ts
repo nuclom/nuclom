@@ -4,9 +4,9 @@
  * Provides Effect wrappers around Better-Auth for type-safe authentication.
  */
 
-import type { Session, User } from "better-auth";
-import { Context, Effect, Layer, Option, pipe } from "effect";
-import { ForbiddenError, UnauthorizedError } from "../errors";
+import type { Session, User } from 'better-auth';
+import { Context, Effect, Layer, Option, pipe } from 'effect';
+import { ForbiddenError, UnauthorizedError } from '../errors';
 
 // =============================================================================
 // Types
@@ -51,7 +51,7 @@ export interface AuthServiceInterface {
 // Auth Service Tag
 // =============================================================================
 
-export class Auth extends Context.Tag("Auth")<Auth, AuthServiceInterface>() {}
+export class Auth extends Context.Tag('Auth')<Auth, AuthServiceInterface>() {}
 
 // =============================================================================
 // Auth Instance Type (for dependency injection)
@@ -77,7 +77,7 @@ export const makeAuthService = (authInstance: AuthInstance) =>
         try: async () => {
           const result = await authInstance.api.getSession({ headers });
           if (!result) {
-            throw new Error("No session");
+            throw new Error('No session');
           }
           return result;
         },
@@ -101,13 +101,13 @@ export const makeAuthService = (authInstance: AuthInstance) =>
         getSession(headers),
         Effect.flatMap((session) => {
           const roles = Array.isArray(role) ? role : [role];
-          const userRole = (session.user as { role?: string }).role ?? "";
+          const userRole = (session.user as { role?: string }).role ?? '';
 
           if (!roles.includes(userRole)) {
             return Effect.fail(
               new ForbiddenError({
-                message: `Required role: ${roles.join(" or ")}`,
-                resource: "auth",
+                message: `Required role: ${roles.join(' or ')}`,
+                resource: 'auth',
               }),
             );
           }
@@ -117,7 +117,7 @@ export const makeAuthService = (authInstance: AuthInstance) =>
       );
 
     const requireAdmin = (headers: Headers): Effect.Effect<UserSession, UnauthorizedError | ForbiddenError> =>
-      requireRole(headers, "admin");
+      requireRole(headers, 'admin');
 
     return {
       getSession,

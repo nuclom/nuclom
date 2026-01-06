@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import { logger } from "@/lib/client-logger";
-import type { CaptionTrack } from "../types";
+import { useCallback, useEffect, useState } from 'react';
+import { logger } from '@/lib/client-logger';
+import type { CaptionTrack } from '../types';
 
 interface UseCaptionsOptions {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -40,7 +40,7 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
           }
         })
         .catch((err) => {
-          logger.error("Failed to load caption tracks", err);
+          logger.error('Failed to load caption tracks', err);
         });
     }
   }, [videoId, customCaptionTracks]);
@@ -51,7 +51,7 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
 
     if (captionsEnabled) {
       Array.from(video.textTracks).forEach((track) => {
-        track.mode = "disabled";
+        track.mode = 'disabled';
       });
       setCaptionsEnabled(false);
     } else {
@@ -60,9 +60,9 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
         setSelectedCaptionTrack(trackToEnable);
         Array.from(video.textTracks).forEach((track) => {
           if (track.language === trackToEnable) {
-            track.mode = "showing";
+            track.mode = 'showing';
           } else {
-            track.mode = "disabled";
+            track.mode = 'disabled';
           }
         });
         setCaptionsEnabled(true);
@@ -77,7 +77,7 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
 
       if (trackCode === null) {
         Array.from(video.textTracks).forEach((track) => {
-          track.mode = "disabled";
+          track.mode = 'disabled';
         });
         setCaptionsEnabled(false);
         setSelectedCaptionTrack(null);
@@ -86,9 +86,9 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
         setCaptionsEnabled(true);
         Array.from(video.textTracks).forEach((track) => {
           if (track.language === trackCode) {
-            track.mode = "showing";
+            track.mode = 'showing';
           } else {
-            track.mode = "disabled";
+            track.mode = 'disabled';
           }
         });
       }

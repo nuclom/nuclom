@@ -1,9 +1,9 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { DocsMarkdown } from "@/components/docs/docs-markdown";
-import { getAllDocsPaths, getDocsContent } from "@/lib/docs/markdown";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { DocsMarkdown } from '@/components/docs/docs-markdown';
+import { getAllDocsPaths, getDocsContent } from '@/lib/docs/markdown';
 
 interface PageProps {
   params: Promise<{
@@ -15,7 +15,7 @@ export async function generateStaticParams() {
   // Generate internal doc paths only
   const allPaths = getAllDocsPaths();
   const internalPaths = allPaths
-    .filter((path) => path[0] === "internal")
+    .filter((path) => path[0] === 'internal')
     .map((path) => ({
       slug: path.slice(1).length === 0 ? undefined : path.slice(1),
     }));
@@ -25,12 +25,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug = [] } = await params;
-  const fullSlug = ["internal", ...slug];
+  const fullSlug = ['internal', ...slug];
   const content = await getDocsContent(fullSlug);
 
   if (!content) {
     return {
-      title: "Not Found",
+      title: 'Not Found',
     };
   }
 
@@ -56,7 +56,7 @@ function DocsContentSkeleton() {
 
 async function InternalDocsContent({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug = [] } = await params;
-  const fullSlug = ["internal", ...slug];
+  const fullSlug = ['internal', ...slug];
   const content = await getDocsContent(fullSlug);
 
   if (!content) {

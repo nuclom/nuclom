@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { ArrowDown, ArrowUp, Minus, TrendingDown, TrendingUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowDown, ArrowUp, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Topic {
   id: string | null;
   name: string;
   mentionCount: number;
   videoCount: number | null;
-  trend: "rising" | "stable" | "declining";
+  trend: 'rising' | 'stable' | 'declining';
   trendScore: number;
   keywords: string[];
   lastMentionedAt: string | null;
@@ -28,8 +28,8 @@ interface TopicTrendsProps {
   };
 }
 
-function TrendIcon({ trend, score }: { trend: "rising" | "stable" | "declining"; score: number }) {
-  if (trend === "rising") {
+function TrendIcon({ trend, score }: { trend: 'rising' | 'stable' | 'declining'; score: number }) {
+  if (trend === 'rising') {
     return (
       <div className="flex items-center text-green-600">
         <ArrowUp className="h-4 w-4" />
@@ -37,7 +37,7 @@ function TrendIcon({ trend, score }: { trend: "rising" | "stable" | "declining";
       </div>
     );
   }
-  if (trend === "declining") {
+  if (trend === 'declining') {
     return (
       <div className="flex items-center text-red-600">
         <ArrowDown className="h-4 w-4" />
@@ -52,14 +52,14 @@ function TrendIcon({ trend, score }: { trend: "rising" | "stable" | "declining";
   );
 }
 
-function getTrendBadgeVariant(trend: "rising" | "stable" | "declining") {
+function getTrendBadgeVariant(trend: 'rising' | 'stable' | 'declining') {
   switch (trend) {
-    case "rising":
-      return "default";
-    case "declining":
-      return "destructive";
+    case 'rising':
+      return 'default';
+    case 'declining':
+      return 'destructive';
     default:
-      return "secondary";
+      return 'secondary';
   }
 }
 

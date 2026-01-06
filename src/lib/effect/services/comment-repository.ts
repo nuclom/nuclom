@@ -5,12 +5,12 @@
  * threaded replies, real-time updates, and timestamped comments.
  */
 
-import { asc, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import type { Comment, User } from "@/lib/db/schema";
-import { comments, users, videos } from "@/lib/db/schema";
-import { DatabaseError, ForbiddenError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { asc, eq } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import type { Comment, User } from '@/lib/db/schema';
+import { comments, users, videos } from '@/lib/db/schema';
+import { DatabaseError, ForbiddenError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -35,7 +35,7 @@ export interface UpdateCommentInput {
 }
 
 export interface CommentEvent {
-  readonly type: "created" | "updated" | "deleted";
+  readonly type: 'created' | 'updated' | 'deleted';
   readonly comment: CommentWithAuthor;
   readonly videoId: string;
 }
@@ -87,7 +87,7 @@ export interface CommentRepositoryService {
 // Comment Repository Tag
 // =============================================================================
 
-export class CommentRepository extends Context.Tag("CommentRepository")<
+export class CommentRepository extends Context.Tag('CommentRepository')<
   CommentRepository,
   CommentRepositoryService
 >() {}
@@ -168,8 +168,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch comments",
-          operation: "getComments",
+          message: 'Failed to fetch comments',
+          operation: 'getComments',
           cause: error,
         }),
     });
@@ -187,8 +187,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch comment",
-            operation: "getComment",
+            message: 'Failed to fetch comment',
+            operation: 'getComment',
             cause: error,
           }),
       });
@@ -196,8 +196,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Comment not found",
-            entity: "Comment",
+            message: 'Comment not found',
+            entity: 'Comment',
             id,
           }),
         );
@@ -215,8 +215,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to verify video",
-            operation: "createComment.verifyVideo",
+            message: 'Failed to verify video',
+            operation: 'createComment.verifyVideo',
             cause: error,
           }),
       });
@@ -224,8 +224,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
       if (!videoExists.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id: data.videoId,
           }),
         );
@@ -240,8 +240,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
           },
           catch: (error) =>
             new DatabaseError({
-              message: "Failed to verify parent comment",
-              operation: "createComment.verifyParent",
+              message: 'Failed to verify parent comment',
+              operation: 'createComment.verifyParent',
               cause: error,
             }),
         });
@@ -249,8 +249,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         if (!parentExists.length) {
           return yield* Effect.fail(
             new NotFoundError({
-              message: "Parent comment not found",
-              entity: "Comment",
+              message: 'Parent comment not found',
+              entity: 'Comment',
               id: data.parentId,
             }),
           );
@@ -264,8 +264,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to create comment",
-            operation: "createComment",
+            message: 'Failed to create comment',
+            operation: 'createComment',
             cause: error,
           }),
       });
@@ -286,8 +286,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
       if (existingComment.authorId !== authorId) {
         return yield* Effect.fail(
           new ForbiddenError({
-            message: "You can only edit your own comments",
-            resource: "Comment",
+            message: 'You can only edit your own comments',
+            resource: 'Comment',
           }),
         );
       }
@@ -303,8 +303,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update comment",
-            operation: "updateComment",
+            message: 'Failed to update comment',
+            operation: 'updateComment',
             cause: error,
           }),
       });
@@ -334,8 +334,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
           },
           catch: (error) =>
             new DatabaseError({
-              message: "Failed to verify video ownership",
-              operation: "deleteComment.verifyOwner",
+              message: 'Failed to verify video ownership',
+              operation: 'deleteComment.verifyOwner',
               cause: error,
             }),
         });
@@ -343,8 +343,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         if (!videoData.length || videoData[0].authorId !== userId) {
           return yield* Effect.fail(
             new ForbiddenError({
-              message: "You can only delete your own comments or comments on your videos",
-              resource: "Comment",
+              message: 'You can only delete your own comments or comments on your videos',
+              resource: 'Comment',
             }),
           );
         }
@@ -357,8 +357,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete comment replies",
-            operation: "deleteComment.deleteReplies",
+            message: 'Failed to delete comment replies',
+            operation: 'deleteComment.deleteReplies',
             cause: error,
           }),
       });
@@ -370,8 +370,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete comment",
-            operation: "deleteComment",
+            message: 'Failed to delete comment',
+            operation: 'deleteComment',
             cause: error,
           }),
       });
@@ -401,8 +401,8 @@ const makeCommentRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch comments by timestamp",
-          operation: "getCommentsByTimestamp",
+          message: 'Failed to fetch comments by timestamp',
+          operation: 'getCommentsByTimestamp',
           cause: error,
         }),
     });

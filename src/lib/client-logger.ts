@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Client-side Logger Utility
@@ -10,7 +10,7 @@
  */
 
 // biome-ignore lint/correctness/noProcessGlobal: Required for client-side development detection
-const isDev = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 
 /**
  * Client-side logger - only outputs in development
@@ -32,7 +32,7 @@ export const logger = {
    */
   debug(message: string, data?: unknown): void {
     if (isDev) {
-      console.debug(`[DEBUG] ${message}`, data !== undefined ? data : "");
+      console.debug(`[DEBUG] ${message}`, data !== undefined ? data : '');
     }
   },
 
@@ -41,7 +41,7 @@ export const logger = {
    */
   info(message: string, data?: unknown): void {
     if (isDev) {
-      console.info(`[INFO] ${message}`, data !== undefined ? data : "");
+      console.info(`[INFO] ${message}`, data !== undefined ? data : '');
     }
   },
 
@@ -50,7 +50,7 @@ export const logger = {
    */
   warn(message: string, data?: unknown): void {
     if (isDev) {
-      console.warn(`[WARN] ${message}`, data !== undefined ? data : "");
+      console.warn(`[WARN] ${message}`, data !== undefined ? data : '');
     }
   },
 
@@ -59,7 +59,7 @@ export const logger = {
    */
   error(message: string, error?: unknown, context?: Record<string, unknown>): void {
     if (isDev) {
-      const errorMessage = error instanceof Error ? error.message : String(error ?? "");
+      const errorMessage = error instanceof Error ? error.message : String(error ?? '');
       if (context) {
         console.error(`[ERROR] ${message}`, errorMessage, context);
       } else if (errorMessage) {

@@ -5,15 +5,15 @@
  * This enables uploading videos of any size directly from the browser to cloud storage.
  */
 
-import { Effect, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { Storage, ValidationError } from "@/lib/effect";
-import { trackVideoUpload } from "@/lib/effect/services/billing-middleware";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import type { ApiResponse } from "@/lib/types";
-import { validate } from "@/lib/validation";
+import { Effect, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { Storage, ValidationError } from '@/lib/effect';
+import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import type { ApiResponse } from '@/lib/types';
+import { validate } from '@/lib/validation';
 
 // =============================================================================
 // Types
@@ -56,16 +56,16 @@ interface BulkPresignedUploadResponse {
 
 // Supported video MIME types
 const SUPPORTED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/x-msvideo",
-  "video/x-matroska",
-  "video/webm",
-  "video/x-flv",
-  "video/x-ms-wmv",
-  "video/3gpp",
-  "video/mpeg",
-  "video/ogg",
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-matroska',
+  'video/webm',
+  'video/x-flv',
+  'video/x-ms-wmv',
+  'video/3gpp',
+  'video/mpeg',
+  'video/ogg',
 ];
 
 // Maximum file size: 5GB (Cloudflare R2 supports up to 5TB, but we limit for practical reasons)
@@ -80,7 +80,7 @@ type BulkPresignedUploadRequest = Schema.Schema.Type<typeof BulkPresignedUploadR
 
 const isBulkPresignedUploadRequest = (
   value: PresignedUploadRequest | BulkPresignedUploadRequest,
-): value is BulkPresignedUploadRequest => "files" in value;
+): value is BulkPresignedUploadRequest => 'files' in value;
 
 // =============================================================================
 // POST /api/videos/upload/presigned - Generate presigned upload URL(s)
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse request body
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.json();
     body = await Effect.runPromise(validate(PresignedUploadBodySchema, rawBody));
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
   // Determine if this is a bulk or single upload request
@@ -119,7 +119,7 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
   // Validate request
   if (!filename || !contentType || !fileSize || !organizationId) {
     return NextResponse.json(
-      { success: false, error: "Missing required fields: filename, contentType, fileSize, organizationId" },
+      { success: false, error: 'Missing required fields: filename, contentType, fileSize, organizationId' },
       { status: 400 },
     );
   }
@@ -129,7 +129,7 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
     return NextResponse.json(
       {
         success: false,
-        error: `Unsupported content type: ${contentType}. Supported types: ${SUPPORTED_VIDEO_TYPES.join(", ")}`,
+        error: `Unsupported content type: ${contentType}. Supported types: ${SUPPORTED_VIDEO_TYPES.join(', ')}`,
       },
       { status: 400 },
     );
@@ -150,7 +150,7 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
     if (!storage.isConfigured) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Storage is not configured",
+          message: 'Storage is not configured',
         }),
       );
     }
@@ -165,7 +165,7 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
     }
 
     // Generate unique file key
-    const fileKey = storage.generateFileKey(organizationId, filename, "video");
+    const fileKey = storage.generateFileKey(organizationId, filename, 'video');
 
     // Generate presigned upload URL
     const uploadUrl = yield* storage.generatePresignedUploadUrl(fileKey, contentType, PRESIGNED_URL_EXPIRATION);
@@ -184,7 +184,7 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 
@@ -202,7 +202,7 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
   // Validate request
   if (!files || files.length === 0 || !organizationId) {
     return NextResponse.json(
-      { success: false, error: "Missing required fields: files, organizationId" },
+      { success: false, error: 'Missing required fields: files, organizationId' },
       { status: 400 },
     );
   }
@@ -211,7 +211,7 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
   for (const file of files) {
     if (!file.filename || !file.contentType || !file.fileSize) {
       return NextResponse.json(
-        { success: false, error: "Each file must have filename, contentType, and fileSize" },
+        { success: false, error: 'Each file must have filename, contentType, and fileSize' },
         { status: 400 },
       );
     }
@@ -236,7 +236,7 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
 
   // Limit bulk uploads to 20 files at a time
   if (files.length > 20) {
-    return NextResponse.json({ success: false, error: "Maximum 20 files can be uploaded at once" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Maximum 20 files can be uploaded at once' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -246,7 +246,7 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
     if (!storage.isConfigured) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Storage is not configured",
+          message: 'Storage is not configured',
         }),
       );
     }
@@ -261,10 +261,10 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
     }
 
     // Generate presigned URLs for each file
-    const uploads: BulkPresignedUploadResponse["uploads"] = [];
+    const uploads: BulkPresignedUploadResponse['uploads'] = [];
 
     for (const file of files) {
-      const fileKey = storage.generateFileKey(organizationId, file.filename, "video");
+      const fileKey = storage.generateFileKey(organizationId, file.filename, 'video');
       const uploadUrl = yield* storage.generatePresignedUploadUrl(fileKey, file.contentType, PRESIGNED_URL_EXPIRATION);
       const uploadId = crypto.randomUUID();
 
@@ -283,7 +283,7 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
   const runnable = Effect.provide(effect, createPublicLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Failure") {
+  if (exit._tag === 'Failure') {
     return mapErrorToApiResponse(exit.cause);
   }
 

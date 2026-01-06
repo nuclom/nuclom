@@ -5,8 +5,8 @@
  * This file is manually maintained and defines application-specific relations.
  */
 
-import { relations } from "drizzle-orm";
-import { aiActionItems, aiTopics } from "./ai-insights";
+import { relations } from 'drizzle-orm';
+import { aiActionItems, aiTopics } from './ai-insights';
 import {
   accounts,
   apikeys,
@@ -22,12 +22,12 @@ import {
   subscriptions,
   twoFactors,
   users,
-} from "./auth";
-import { invoices, paymentMethods, usage } from "./billing";
-import { comments } from "./comments";
-import { decisions, knowledgeNodes } from "./knowledge";
-import { userExtensions, userPreferences } from "./user-extensions";
-import { channels, collections, videoProgresses, videos } from "./videos";
+} from './auth';
+import { invoices, paymentMethods, usage } from './billing';
+import { comments } from './comments';
+import { decisions, knowledgeNodes } from './knowledge';
+import { userExtensions, userPreferences } from './user-extensions';
+import { channels, collections, videoProgresses, videos } from './videos';
 
 // =============================================================================
 // User Relations

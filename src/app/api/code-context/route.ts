@@ -1,9 +1,9 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { connection } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import type { CodeLinkType } from "@/lib/db/schema";
-import { CodeLinksRepository } from "@/lib/effect";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { connection } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import type { CodeLinkType } from '@/lib/db/schema';
+import { CodeLinksRepository } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/code-context - Get videos linked to a code artifact
@@ -14,38 +14,38 @@ export async function GET(request: NextRequest) {
 
   const effect = Effect.gen(function* () {
     const { searchParams } = new URL(request.url);
-    const repo = searchParams.get("repo");
-    const type = searchParams.get("type") as CodeLinkType | null;
-    const ref = searchParams.get("ref");
+    const repo = searchParams.get('repo');
+    const type = searchParams.get('type') as CodeLinkType | null;
+    const ref = searchParams.get('ref');
 
     // Validate required parameters
     if (!repo) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: "repo query parameter is required (format: owner/repo)",
+        _tag: 'ValidationError' as const,
+        message: 'repo query parameter is required (format: owner/repo)',
       });
     }
 
     if (!type) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: "type query parameter is required (pr, issue, commit, file, directory)",
+        _tag: 'ValidationError' as const,
+        message: 'type query parameter is required (pr, issue, commit, file, directory)',
       });
     }
 
     if (!ref) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: "ref query parameter is required (PR number, commit SHA, or file path)",
+        _tag: 'ValidationError' as const,
+        message: 'ref query parameter is required (PR number, commit SHA, or file path)',
       });
     }
 
     // Validate type
-    const validTypes: CodeLinkType[] = ["pr", "issue", "commit", "file", "directory"];
+    const validTypes: CodeLinkType[] = ['pr', 'issue', 'commit', 'file', 'directory'];
     if (!validTypes.includes(type)) {
       return yield* Effect.fail({
-        _tag: "ValidationError" as const,
-        message: `Invalid type. Must be one of: ${validTypes.join(", ")}`,
+        _tag: 'ValidationError' as const,
+        message: `Invalid type. Must be one of: ${validTypes.join(', ')}`,
       });
     }
 

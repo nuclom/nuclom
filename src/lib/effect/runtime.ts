@@ -5,42 +5,103 @@
  * Following Effect-TS + Next.js best practices for managing stateful services.
  */
 
-import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from "effect";
-import { globalValue } from "effect/GlobalValue";
-import { NextResponse } from "next/server";
-import { createLogger } from "@/lib/logger";
+import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from 'effect';
+import { globalValue } from 'effect/GlobalValue';
+import { NextResponse } from 'next/server';
+import { createLogger } from '@/lib/logger';
 
-const log = createLogger("effect-runtime");
+const log = createLogger('effect-runtime');
 
-import { env } from "@/lib/env/server";
+import { env } from '@/lib/env/server';
 // Services
-import { type AI, AILive } from "./services/ai";
-import { makeAuthLayer } from "./services/auth";
-import { type Billing, BillingLive } from "./services/billing";
-import { type BillingRepository, BillingRepositoryLive } from "./services/billing-repository";
-import { type ChannelRepository, ChannelRepositoryLive } from "./services/channel-repository";
-import { type ClipRepository, ClipRepositoryLive } from "./services/clip-repository";
-import { type CodeLinksRepository, CodeLinksRepositoryLive } from "./services/code-links-repository";
-import { type CommentRepository, CommentRepositoryLive } from "./services/comment-repository";
-import { type Database, DatabaseLive } from "./services/database";
-import { type EmailNotifications, EmailNotificationsLive } from "./services/email-notifications";
-import { type Embedding, EmbeddingLive } from "./services/embedding";
-import { type IntegrationRepository, IntegrationRepositoryLive } from "./services/integration-repository";
-import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from "./services/knowledge-graph-repository";
-import { type NotificationRepository, NotificationRepositoryLive } from "./services/notification-repository";
-import { type OrganizationRepository, OrganizationRepositoryLive } from "./services/organization-repository";
-import { type Presence, PresenceLive } from "./services/presence";
-import { type ReplicateAPI, ReplicateLive } from "./services/replicate";
-import { type SearchRepository, SearchRepositoryLive } from "./services/search-repository";
-import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from "./services/semantic-search-repository";
-import { type SeriesRepository, SeriesRepositoryLive } from "./services/series-repository";
-import { type SlackMonitoring, SlackMonitoringLive } from "./services/slack-monitoring";
-import { type Storage, StorageLive } from "./services/storage";
-import { StripeServiceLive, type StripeServiceTag } from "./services/stripe";
-import { type Translation, TranslationLive } from "./services/translation";
-import { type VideoProcessor, VideoProcessorLive } from "./services/video-processor";
-import { type VideoProgressRepository, VideoProgressRepositoryLive } from "./services/video-progress-repository";
-import { type VideoRepository, VideoRepositoryLive } from "./services/video-repository";
+import { type AI, AILive } from './services/ai';
+import { makeAuthLayer } from './services/auth';
+import { type Billing, BillingLive } from './services/billing';
+import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
+import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
+import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
+import { type CodeLinksRepository, CodeLinksRepositoryLive } from './services/code-links-repository';
+import { type CommentRepository, CommentRepositoryLive } from './services/comment-repository';
+import { type Database, DatabaseLive } from './services/database';
+import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
+import { type Embedding, EmbeddingLive } from './services/embedding';
+import { type IntegrationRepository, IntegrationRepositoryLive } from './services/integration-repository';
+import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from './services/knowledge-graph-repository';
+import { type NotificationRepository, NotificationRepositoryLive } from './services/notification-repository';
+import { type OrganizationRepository, OrganizationRepositoryLive } from './services/organization-repository';
+import { type Presence, PresenceLive } from './services/presence';
+import { type ReplicateAPI, ReplicateLive } from './services/replicate';
+import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
+import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
+import { type SeriesRepository, SeriesRepositoryLive } from './services/series-repository';
+import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
+import { type Storage, StorageLive } from './services/storage';
+import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
+import { type Translation, TranslationLive } from './services/translation';
+import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
+import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
+import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
+
+// =============================================================================
+// Layer Composition Utilities
+// =============================================================================
+
+/**
+ * Helper to provide a single dependency to a layer.
+ *
+ * @example
+ * ```typescript
+ * const RepoWithDeps = withDep(RepoLive, DatabaseLive);
+ * ```
+ */
+function withDep<A, E, R1, A2, E2, R2>(
+  layer: Layer.Layer<A, E, R1>,
+  dep: Layer.Layer<A2, E2, R2>,
+): Layer.Layer<A, E | E2, Exclude<R1, A2> | R2> {
+  return layer.pipe(Layer.provide(dep)) as Layer.Layer<A, E | E2, Exclude<R1, A2> | R2>;
+}
+
+/**
+ * Helper to provide two dependencies to a layer.
+ *
+ * @example
+ * ```typescript
+ * const RepoWithDeps = withDeps2(RepoLive, DatabaseLive, StorageLive);
+ * ```
+ */
+function withDeps2<A, E, R1, A2, E2, R2, A3, E3, R3>(
+  layer: Layer.Layer<A, E, R1>,
+  dep1: Layer.Layer<A2, E2, R2>,
+  dep2: Layer.Layer<A3, E3, R3>,
+): Layer.Layer<A, E | E2 | E3, Exclude<Exclude<R1, A2>, A3> | R2 | R3> {
+  return layer.pipe(Layer.provide(Layer.merge(dep1, dep2))) as Layer.Layer<
+    A,
+    E | E2 | E3,
+    Exclude<Exclude<R1, A2>, A3> | R2 | R3
+  >;
+}
+
+/**
+ * Helper to provide multiple dependencies to a layer (4 deps max).
+ *
+ * @example
+ * ```typescript
+ * const BillingWithDeps = withDeps(BillingLive, BillingRepositoryLive, StripeServiceLive, DatabaseLive, EmailNotificationsLive);
+ * ```
+ */
+function withDeps<A, E, R1, A2, E2, R2, A3, E3, R3, A4, E4, R4, A5, E5, R5>(
+  layer: Layer.Layer<A, E, R1>,
+  dep1: Layer.Layer<A2, E2, R2>,
+  dep2: Layer.Layer<A3, E3, R3>,
+  dep3: Layer.Layer<A4, E4, R4>,
+  dep4: Layer.Layer<A5, E5, R5>,
+): Layer.Layer<A, E | E2 | E3 | E4 | E5, Exclude<Exclude<Exclude<Exclude<R1, A2>, A3>, A4>, A5> | R2 | R3 | R4 | R5> {
+  return layer.pipe(Layer.provide(Layer.mergeAll(dep1, dep2, dep3, dep4))) as Layer.Layer<
+    A,
+    E | E2 | E3 | E4 | E5,
+    Exclude<Exclude<Exclude<Exclude<R1, A2>, A3>, A4>, A5> | R2 | R3 | R4 | R5
+  >;
+}
 
 // =============================================================================
 // Layer Composition
@@ -48,7 +109,7 @@ import { type VideoRepository, VideoRepositoryLive } from "./services/video-repo
 
 /**
  * Full application layer (without Auth - Auth is request-scoped)
- * Using Layer.provide to properly compose dependent layers
+ * Using withDeps helper to properly compose dependent layers
  */
 
 // Base services layer (no dependencies on other services)
@@ -64,31 +125,39 @@ const BaseServicesLive = Layer.mergeAll(
   SlackMonitoringLive,
 );
 
-// VideoProcessor depends on Storage - provide its dependency
-const VideoProcessorWithDeps = VideoProcessorLive.pipe(Layer.provide(StorageLive));
+// =============================================================================
+// Layer Dependencies (Type-safe with withDep/withDeps2 helpers)
+// =============================================================================
 
-// Repositories depend on Database - provide their dependencies
-// VideoRepository depends on both Database and Storage
-const VideoRepositoryWithDeps = VideoRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
-const OrganizationRepositoryWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const VideoProgressRepositoryWithDeps = VideoProgressRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const CommentRepositoryWithDeps = CommentRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const PresenceWithDeps = PresenceLive.pipe(Layer.provide(DatabaseLive));
-const NotificationRepositoryWithDeps = NotificationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const BillingRepositoryWithDeps = BillingRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SearchRepositoryWithDeps = SearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SeriesRepositoryWithDeps = SeriesRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ChannelRepositoryWithDeps = ChannelRepositoryLive.pipe(Layer.provide(DatabaseLive));
-// ClipRepository depends on Database and Storage
-const ClipRepositoryWithDeps = ClipRepositoryLive.pipe(Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive)));
-const CodeLinksRepositoryWithDeps = CodeLinksRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const KnowledgeGraphRepositoryWithDeps = KnowledgeGraphRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const SemanticSearchRepositoryWithDeps = SemanticSearchRepositoryLive.pipe(Layer.provide(DatabaseLive));
+// VideoProcessor depends on Storage
+const VideoProcessorWithDeps = withDep(VideoProcessorLive, StorageLive);
+
+// Repositories with Database dependency only
+const OrganizationRepositoryWithDeps = withDep(OrganizationRepositoryLive, DatabaseLive);
+const VideoProgressRepositoryWithDeps = withDep(VideoProgressRepositoryLive, DatabaseLive);
+const CommentRepositoryWithDeps = withDep(CommentRepositoryLive, DatabaseLive);
+const PresenceWithDeps = withDep(PresenceLive, DatabaseLive);
+const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, DatabaseLive);
+const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
+const BillingRepositoryWithDeps = withDep(BillingRepositoryLive, DatabaseLive);
+const SearchRepositoryWithDeps = withDep(SearchRepositoryLive, DatabaseLive);
+const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
+const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
+const CodeLinksRepositoryWithDeps = withDep(CodeLinksRepositoryLive, DatabaseLive);
+const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
+const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
+
+// Repositories with Database + Storage dependencies
+const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
+const ClipRepositoryWithDeps = withDeps2(ClipRepositoryLive, DatabaseLive, StorageLive);
 
 // Billing service depends on BillingRepository, StripeService, Database, and EmailNotifications
-const BillingWithDeps = BillingLive.pipe(
-  Layer.provide(Layer.mergeAll(BillingRepositoryWithDeps, StripeServiceLive, DatabaseLive, EmailNotificationsLive)),
+const BillingWithDeps = withDeps(
+  BillingLive,
+  BillingRepositoryWithDeps,
+  StripeServiceLive,
+  DatabaseLive,
+  EmailNotificationsLive,
 );
 
 // Combine application services that have their dependencies resolved
@@ -154,7 +223,7 @@ export type AppServices =
  * Global managed runtime for the application
  * Using GlobalValue to ensure single instance across HMR in development
  */
-export const AppRuntime = globalValue("@nuclom/effect-runtime", () => ManagedRuntime.make(AppLive));
+export const AppRuntime = globalValue('@nuclom/effect-runtime', () => ManagedRuntime.make(AppLive));
 
 // =============================================================================
 // Runtime Helpers
@@ -186,73 +255,73 @@ export const runEffectSync = <A>(effect: Effect.Effect<A, never, never>): A => E
  */
 export const mapErrorToResponse = (error: unknown): NextResponse => {
   // Handle tagged errors
-  if (error && typeof error === "object" && "_tag" in error) {
+  if (error && typeof error === 'object' && '_tag' in error) {
     const taggedError = error as { _tag: string; message: string };
 
     switch (taggedError._tag) {
-      case "UnauthorizedError":
+      case 'UnauthorizedError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 401 });
 
-      case "ForbiddenError":
+      case 'ForbiddenError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 403 });
 
-      case "NotFoundError":
+      case 'NotFoundError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
 
-      case "ValidationError":
-      case "MissingFieldError":
-      case "UnsupportedFormatError":
-      case "FileSizeExceededError":
+      case 'ValidationError':
+      case 'MissingFieldError':
+      case 'UnsupportedFormatError':
+      case 'FileSizeExceededError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
-      case "StorageNotConfiguredError":
-      case "StripeNotConfiguredError":
+      case 'StorageNotConfiguredError':
+      case 'StripeNotConfiguredError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
 
-      case "PlanLimitExceededError":
+      case 'PlanLimitExceededError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
 
-      case "NoSubscriptionError":
-      case "PlanNotFoundError":
+      case 'NoSubscriptionError':
+      case 'PlanNotFoundError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 404 });
 
-      case "PaymentFailedError":
-      case "SubscriptionError":
+      case 'PaymentFailedError':
+      case 'SubscriptionError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 402 });
 
-      case "WebhookSignatureError":
+      case 'WebhookSignatureError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
-      case "TranslationNotConfiguredError":
+      case 'TranslationNotConfiguredError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
 
-      case "SubtitleError":
-      case "UnsupportedLanguageError":
+      case 'SubtitleError':
+      case 'UnsupportedLanguageError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
-      case "DatabaseError":
-      case "TransactionError":
-      case "UploadError":
-      case "VideoProcessingError":
-      case "AIServiceError":
-      case "TranscriptionError":
-      case "AudioExtractionError":
-      case "VideoAIProcessingError":
-      case "StripeApiError":
-      case "UsageTrackingError":
-      case "TranslationApiError":
-        log.error({ tag: taggedError._tag, message: taggedError.message }, "Service error");
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      case 'DatabaseError':
+      case 'TransactionError':
+      case 'UploadError':
+      case 'VideoProcessingError':
+      case 'AIServiceError':
+      case 'TranscriptionError':
+      case 'AudioExtractionError':
+      case 'VideoAIProcessingError':
+      case 'StripeApiError':
+      case 'UsageTrackingError':
+      case 'TranslationApiError':
+        log.error({ tag: taggedError._tag, message: taggedError.message }, 'Service error');
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
 
       default:
-        log.error({ tag: taggedError._tag, err: error }, "Unknown tagged error");
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        log.error({ tag: taggedError._tag, err: error }, 'Unknown tagged error');
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     }
   }
 
   // Handle regular errors
-  log.error({ err: error }, "Unhandled error");
-  return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+  log.error({ err: error }, 'Unhandled error');
+  return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
 };
 
 /**
@@ -277,9 +346,9 @@ export const createHandler = <A, E extends { _tag: string; message: string }>(
         // Handle defects (unexpected errors)
         const defect = Cause.dieOption(cause);
         if (Option.isSome(defect)) {
-          log.error({ defect: defect.value }, "Effect defect");
+          log.error({ defect: defect.value }, 'Effect defect');
         }
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
       },
       onSuccess: (data) => {
         const responseData = options?.transform ? options.transform(data) : data;
@@ -313,7 +382,7 @@ export const createAuthenticatedHandler = <A, E extends { _tag: string; message:
         if (Option.isSome(error)) {
           return mapErrorToResponse(error.value);
         }
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
       },
       onSuccess: (data) => {
         const responseData = options?.transform ? options.transform(data) : data;
@@ -346,7 +415,7 @@ export const effectToResponse = async <A, E>(
       if (Option.isSome(error)) {
         return mapErrorToResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       const responseData = options?.transform ? options.transform(data) : data;
@@ -375,7 +444,7 @@ export const effectWithLayersToResponse = async <A, E, R>(
       if (Option.isSome(error)) {
         return mapErrorToResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       const responseData = options?.transform ? options.transform(data) : data;
@@ -396,7 +465,7 @@ export const DevLoggerLive = Logger.replace(Logger.defaultLogger, Logger.prettyL
 /**
  * Minimum log level layer
  */
-export const LogLevelLive = Logger.minimumLogLevel(env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info);
+export const LogLevelLive = Logger.minimumLogLevel(env.NODE_ENV === 'development' ? LogLevel.Debug : LogLevel.Info);
 
 /**
  * Full logging configuration

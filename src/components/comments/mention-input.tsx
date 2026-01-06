@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { createMention } from "@/lib/mentions";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import useSWR from 'swr';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { createMention } from '@/lib/mentions';
+import { cn } from '@/lib/utils';
 
 interface Member {
   id: string;
@@ -35,7 +35,7 @@ export function MentionInput({
   value,
   onChange,
   organizationId,
-  placeholder = "Add a comment...",
+  placeholder = 'Add a comment...',
   disabled = false,
   className,
   onFocus,
@@ -44,7 +44,7 @@ export function MentionInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const [mentionStartPosition, setMentionStartPosition] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -64,14 +64,14 @@ export function MentionInput({
     if (!textarea) return;
 
     // Create a hidden div to measure text position
-    const div = document.createElement("div");
+    const div = document.createElement('div');
     const styles = window.getComputedStyle(textarea);
 
     // Copy relevant styles
-    div.style.position = "absolute";
-    div.style.visibility = "hidden";
-    div.style.whiteSpace = "pre-wrap";
-    div.style.wordWrap = "break-word";
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
     div.style.width = styles.width;
     div.style.font = styles.font;
     div.style.padding = styles.padding;
@@ -111,7 +111,7 @@ export function MentionInput({
         setSelectedIndex(0);
       } else {
         setShowSuggestions(false);
-        setQuery("");
+        setQuery('');
       }
 
       setCursorPosition(cursor);
@@ -140,7 +140,7 @@ export function MentionInput({
 
       onChange(newValue);
       setShowSuggestions(false);
-      setQuery("");
+      setQuery('');
 
       // Focus and set cursor position after the mention
       setTimeout(() => {
@@ -161,25 +161,25 @@ export function MentionInput({
       if (!showSuggestions || members.length === 0) return;
 
       switch (e.key) {
-        case "ArrowDown":
+        case 'ArrowDown':
           e.preventDefault();
           setSelectedIndex((prev) => (prev + 1) % members.length);
           break;
-        case "ArrowUp":
+        case 'ArrowUp':
           e.preventDefault();
           setSelectedIndex((prev) => (prev - 1 + members.length) % members.length);
           break;
-        case "Enter":
+        case 'Enter':
           if (showSuggestions) {
             e.preventDefault();
             insertMention(members[selectedIndex]);
           }
           break;
-        case "Escape":
+        case 'Escape':
           e.preventDefault();
           setShowSuggestions(false);
           break;
-        case "Tab":
+        case 'Tab':
           if (showSuggestions) {
             e.preventDefault();
             insertMention(members[selectedIndex]);
@@ -212,8 +212,8 @@ export function MentionInput({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -228,7 +228,7 @@ export function MentionInput({
         placeholder={placeholder}
         disabled={disabled}
         rows={rows}
-        className={cn("resize-none", className)}
+        className={cn('resize-none', className)}
       />
       {showSuggestions && members.length > 0 && (
         <div
@@ -242,15 +242,15 @@ export function MentionInput({
                 key={member.id}
                 type="button"
                 className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors",
-                  index === selectedIndex && "bg-accent",
+                  'w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent transition-colors',
+                  index === selectedIndex && 'bg-accent',
                 )}
                 onClick={() => insertMention(member)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={member.user.image || undefined} alt={member.user.name || "User"} />
-                  <AvatarFallback className="text-xs">{member.user.name?.[0] || "U"}</AvatarFallback>
+                  <AvatarImage src={member.user.image || undefined} alt={member.user.name || 'User'} />
+                  <AvatarFallback className="text-xs">{member.user.name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{member.user.name}</p>

@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader, parsePaginationParams } from "@/lib/api-utils";
-import { MissingFieldError, SeriesRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { CachePresets, getCacheControlHeader, parsePaginationParams } from '@/lib/api-utils';
+import { MissingFieldError, SeriesRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
 
 const CreateSeriesSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
@@ -26,14 +26,14 @@ export async function GET(request: NextRequest) {
 
     // Parse query params with validation
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
+    const organizationId = searchParams.get('organizationId');
     const { page, limit } = parsePaginationParams(searchParams);
 
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -49,14 +49,14 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) =>
       NextResponse.json(data, {
         headers: {
-          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
         },
       }),
   });
@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      return error._tag === "Some"
+      return error._tag === 'Some'
         ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error("Internal server error"));
+        : mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json(data, { status: 201 }),
   });

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Check, Copy, ExternalLink, Eye, EyeOff, Globe, Loader2, Plus, Settings2, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Copy, ExternalLink, Eye, EyeOff, Globe, Loader2, Plus, Settings2, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,12 +15,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
 
 // Types matching better-auth's OAuth provider API
 type OAuthClient = {
@@ -63,16 +63,16 @@ function OAuthAppsContent() {
   const [revokeApp, setRevokeApp] = useState<OAuthConsent | null>(null);
 
   // Form state
-  const [appName, setAppName] = useState("");
-  const [appIcon, setAppIcon] = useState("");
-  const [redirectUrls, setRedirectUrls] = useState("");
+  const [appName, setAppName] = useState('');
+  const [appIcon, setAppIcon] = useState('');
+  const [redirectUrls, setRedirectUrls] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [revoking, setRevoking] = useState(false);
 
   // Secret visibility
   const [showSecret, setShowSecret] = useState(false);
-  const [copied, setCopied] = useState<"id" | "secret" | null>(null);
+  const [copied, setCopied] = useState<'id' | 'secret' | null>(null);
 
   // Newly created app with secret
   const [newApp, setNewApp] = useState<OAuthClient | null>(null);
@@ -86,20 +86,20 @@ function OAuthAppsContent() {
       if (clientsResult.data) {
         // Map from better-auth's API types to our local types
         const clients: OAuthClient[] = clientsResult.data.map((client) => {
-          const metadataStr = typeof client.metadata === "string" ? client.metadata : null;
+          const metadataStr = typeof client.metadata === 'string' ? client.metadata : null;
           const metadata = parseMetadata(metadataStr);
           const redirectURIs = Array.isArray(client.redirectURIs) ? (client.redirectURIs as string[]) : [];
           const createdAtValue = client.createdAt;
           const createdAt =
             createdAtValue instanceof Date
               ? createdAtValue
-              : typeof createdAtValue === "string" || typeof createdAtValue === "number"
+              : typeof createdAtValue === 'string' || typeof createdAtValue === 'number'
                 ? new Date(createdAtValue)
                 : null;
           return {
-            id: String(client.clientId || ""),
-            clientId: String(client.clientId || ""),
-            name: typeof client.name === "string" ? client.name : null,
+            id: String(client.clientId || ''),
+            clientId: String(client.clientId || ''),
+            name: typeof client.name === 'string' ? client.name : null,
             icon: metadata.icon || null,
             redirectURIs,
             disabled: client.disabled || false,
@@ -122,11 +122,11 @@ function OAuthAppsContent() {
         setAuthorizedApps(consents);
       }
     } catch (error) {
-      console.error("Error loading OAuth apps:", error);
+      console.error('Error loading OAuth apps:', error);
       toast({
-        title: "Error",
-        description: "Failed to load OAuth applications",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load OAuth applications',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -140,9 +140,9 @@ function OAuthAppsContent() {
   const handleCreateApp = async () => {
     if (!appName.trim()) {
       toast({
-        title: "Error",
-        description: "Application name is required",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Application name is required',
+        variant: 'destructive',
       });
       return;
     }
@@ -152,7 +152,7 @@ function OAuthAppsContent() {
 
       // Parse redirect URLs (one per line)
       const redirectUris = redirectUrls
-        .split("\n")
+        .split('\n')
         .map((url) => url.trim())
         .filter(Boolean);
 
@@ -165,14 +165,14 @@ function OAuthAppsContent() {
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Failed to create application");
+        throw new Error(result.error.message || 'Failed to create application');
       }
 
       if (result.data) {
         setNewApp({
-          id: String(result.data.clientId || ""),
-          clientId: String(result.data.clientId || ""),
-          clientSecret: String(result.data.clientSecret || ""),
+          id: String(result.data.clientId || ''),
+          clientId: String(result.data.clientId || ''),
+          clientSecret: String(result.data.clientSecret || ''),
           name: appName,
           icon: appIcon || null,
           redirectURIs: redirectUris,
@@ -182,16 +182,16 @@ function OAuthAppsContent() {
       }
 
       toast({
-        title: "Application created",
+        title: 'Application created',
         description: "Your OAuth application has been created. Save the client secret - you won't see it again!",
       });
       await loadOAuthApps();
     } catch (error) {
-      console.error("Error creating OAuth app:", error);
+      console.error('Error creating OAuth app:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create OAuth application",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create OAuth application',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -206,7 +206,7 @@ function OAuthAppsContent() {
 
       // Parse redirect URLs
       const redirectUris = redirectUrls
-        .split("\n")
+        .split('\n')
         .map((url) => url.trim())
         .filter(Boolean);
 
@@ -220,22 +220,22 @@ function OAuthAppsContent() {
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Failed to update application");
+        throw new Error(result.error.message || 'Failed to update application');
       }
 
       toast({
-        title: "Application updated",
-        description: "Your OAuth application has been updated",
+        title: 'Application updated',
+        description: 'Your OAuth application has been updated',
       });
       setEditingApp(null);
       resetForm();
       await loadOAuthApps();
     } catch (error) {
-      console.error("Error updating OAuth app:", error);
+      console.error('Error updating OAuth app:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update OAuth application",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update OAuth application',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -253,21 +253,21 @@ function OAuthAppsContent() {
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Failed to delete application");
+        throw new Error(result.error.message || 'Failed to delete application');
       }
 
       toast({
-        title: "Application deleted",
-        description: "The OAuth application has been deleted",
+        title: 'Application deleted',
+        description: 'The OAuth application has been deleted',
       });
       setAppToDelete(null);
       await loadOAuthApps();
     } catch (error) {
-      console.error("Error deleting OAuth app:", error);
+      console.error('Error deleting OAuth app:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete OAuth application",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete OAuth application',
+        variant: 'destructive',
       });
     } finally {
       setDeleting(false);
@@ -285,49 +285,49 @@ function OAuthAppsContent() {
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Failed to revoke access");
+        throw new Error(result.error.message || 'Failed to revoke access');
       }
 
       toast({
-        title: "Access revoked",
-        description: "The application no longer has access to your account",
+        title: 'Access revoked',
+        description: 'The application no longer has access to your account',
       });
       setRevokeApp(null);
       await loadOAuthApps();
     } catch (error) {
-      console.error("Error revoking consent:", error);
+      console.error('Error revoking consent:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to revoke application access",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to revoke application access',
+        variant: 'destructive',
       });
     } finally {
       setRevoking(false);
     }
   };
 
-  const handleCopy = async (text: string, type: "id" | "secret") => {
+  const handleCopy = async (text: string, type: 'id' | 'secret') => {
     await navigator.clipboard.writeText(text);
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
     toast({
-      title: "Copied",
-      description: `${type === "id" ? "Client ID" : "Client Secret"} copied to clipboard`,
+      title: 'Copied',
+      description: `${type === 'id' ? 'Client ID' : 'Client Secret'} copied to clipboard`,
     });
   };
 
   const resetForm = () => {
-    setAppName("");
-    setAppIcon("");
-    setRedirectUrls("");
+    setAppName('');
+    setAppIcon('');
+    setRedirectUrls('');
     setShowSecret(false);
   };
 
   const openEditDialog = (app: OAuthClient) => {
     setEditingApp(app);
-    setAppName(app.name || "");
-    setAppIcon(app.icon || "");
-    setRedirectUrls(app.redirectURIs.join("\n"));
+    setAppName(app.name || '');
+    setAppIcon(app.icon || '');
+    setRedirectUrls(app.redirectURIs.join('\n'));
   };
 
   const closeCreateDialog = () => {
@@ -390,14 +390,14 @@ function OAuthAppsContent() {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={app.icon || undefined} />
-                      <AvatarFallback>{(app.name || "A").charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback>{(app.name || 'A').charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{app.name || "Unnamed App"}</h3>
+                        <h3 className="font-medium">{app.name || 'Unnamed App'}</h3>
                         {app.disabled && <Badge variant="secondary">Disabled</Badge>}
                       </div>
-                      <p className="text-sm text-muted-foreground">Client ID: {app.clientId || "N/A"}</p>
+                      <p className="text-sm text-muted-foreground">Client ID: {app.clientId || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -434,7 +434,7 @@ function OAuthAppsContent() {
               {authorizedApps.map((consent) => (
                 <div key={consent.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-medium">App: {consent.clientId || "Unknown"}</h3>
+                    <h3 className="font-medium">App: {consent.clientId || 'Unknown'}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       {consent.scopes.map((scope) => (
                         <Badge key={scope} variant="outline" className="text-xs">
@@ -443,7 +443,7 @@ function OAuthAppsContent() {
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Authorized: {consent.createdAt ? consent.createdAt.toLocaleDateString() : "Unknown"}
+                      Authorized: {consent.createdAt ? consent.createdAt.toLocaleDateString() : 'Unknown'}
                     </p>
                   </div>
                   <Button variant="destructive" size="sm" onClick={() => setRevokeApp(consent)}>
@@ -466,25 +466,25 @@ function OAuthAppsContent() {
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Authorization Endpoint</h4>
             <code className="block bg-muted p-2 rounded text-sm">
-              {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/oauth2/authorize
+              {typeof window !== 'undefined' ? window.location.origin : ''}/api/auth/oauth2/authorize
             </code>
           </div>
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Token Endpoint</h4>
             <code className="block bg-muted p-2 rounded text-sm">
-              {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/oauth2/token
+              {typeof window !== 'undefined' ? window.location.origin : ''}/api/auth/oauth2/token
             </code>
           </div>
           <div className="space-y-2">
             <h4 className="font-medium text-sm">UserInfo Endpoint</h4>
             <code className="block bg-muted p-2 rounded text-sm">
-              {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/oauth2/userinfo
+              {typeof window !== 'undefined' ? window.location.origin : ''}/api/auth/oauth2/userinfo
             </code>
           </div>
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Supported Scopes</h4>
             <div className="flex flex-wrap gap-2">
-              {["openid", "profile", "email", "offline_access"].map((scope) => (
+              {['openid', 'profile', 'email', 'offline_access'].map((scope) => (
                 <Badge key={scope} variant="outline">
                   {scope}
                 </Badge>
@@ -515,14 +515,14 @@ function OAuthAppsContent() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {newApp ? "Application Created" : editingApp ? "Edit Application" : "Create OAuth Application"}
+              {newApp ? 'Application Created' : editingApp ? 'Edit Application' : 'Create OAuth Application'}
             </DialogTitle>
             <DialogDescription>
               {newApp
                 ? "Save your client credentials. You won't see the secret again!"
                 : editingApp
-                  ? "Update your OAuth application settings"
-                  : "Create a new OAuth application for external integrations"}
+                  ? 'Update your OAuth application settings'
+                  : 'Create a new OAuth application for external integrations'}
             </DialogDescription>
           </DialogHeader>
 
@@ -537,9 +537,9 @@ function OAuthAppsContent() {
               <div className="space-y-2">
                 <Label>Client ID</Label>
                 <div className="flex items-center gap-2">
-                  <Input value={newApp.clientId || ""} readOnly className="font-mono" />
-                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientId || "", "id")}>
-                    {copied === "id" ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  <Input value={newApp.clientId || ''} readOnly className="font-mono" />
+                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientId || '', 'id')}>
+                    {copied === 'id' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -548,16 +548,16 @@ function OAuthAppsContent() {
                 <Label>Client Secret</Label>
                 <div className="flex items-center gap-2">
                   <Input
-                    type={showSecret ? "text" : "password"}
-                    value={newApp.clientSecret || ""}
+                    type={showSecret ? 'text' : 'password'}
+                    value={newApp.clientSecret || ''}
                     readOnly
                     className="font-mono"
                   />
                   <Button variant="outline" size="icon" onClick={() => setShowSecret(!showSecret)}>
                     {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientSecret || "", "secret")}>
-                    {copied === "secret" ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  <Button variant="outline" size="icon" onClick={() => handleCopy(newApp.clientSecret || '', 'secret')}>
+                    {copied === 'secret' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -613,7 +613,7 @@ function OAuthAppsContent() {
                   Cancel
                 </Button>
                 <Button onClick={editingApp ? handleUpdateApp : handleCreateApp} disabled={saving}>
-                  {saving ? "Saving..." : editingApp ? "Update" : "Create Application"}
+                  {saving ? 'Saving...' : editingApp ? 'Update' : 'Create Application'}
                 </Button>
               </DialogFooter>
             </div>
@@ -633,8 +633,8 @@ function OAuthAppsContent() {
           <div className="space-y-4">
             {appToDelete && (
               <div className="p-3 bg-muted rounded-lg">
-                <p className="font-medium">{appToDelete.name || "Unnamed App"}</p>
-                <p className="text-sm text-muted-foreground">Client ID: {appToDelete.clientId || "N/A"}</p>
+                <p className="font-medium">{appToDelete.name || 'Unnamed App'}</p>
+                <p className="text-sm text-muted-foreground">Client ID: {appToDelete.clientId || 'N/A'}</p>
               </div>
             )}
             <DialogFooter>
@@ -642,7 +642,7 @@ function OAuthAppsContent() {
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDeleteApp} disabled={deleting}>
-                {deleting ? "Deleting..." : "Delete Application"}
+                {deleting ? 'Deleting...' : 'Delete Application'}
               </Button>
             </DialogFooter>
           </div>
@@ -663,7 +663,7 @@ function OAuthAppsContent() {
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleRevokeConsent} disabled={revoking}>
-              {revoking ? "Revoking..." : "Revoke Access"}
+              {revoking ? 'Revoking...' : 'Revoke Access'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { organizations, videoShareLinks, videos } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
+import { eq } from 'drizzle-orm';
+import { connection, type NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { organizations, videoShareLinks, videos } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 
 // =============================================================================
 // GET /api/embed/[id] - Get embed video data
@@ -33,16 +33,16 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     if (shareLink) {
       // Validate share link
-      if (shareLink.status !== "active") {
-        return NextResponse.json({ success: false, error: "This video is no longer available" }, { status: 410 });
+      if (shareLink.status !== 'active') {
+        return NextResponse.json({ success: false, error: 'This video is no longer available' }, { status: 410 });
       }
 
       if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
-        return NextResponse.json({ success: false, error: "This video link has expired" }, { status: 410 });
+        return NextResponse.json({ success: false, error: 'This video link has expired' }, { status: 410 });
       }
 
       if (shareLink.maxViews && (shareLink.viewCount ?? 0) >= shareLink.maxViews) {
-        return NextResponse.json({ success: false, error: "This video has reached its view limit" }, { status: 410 });
+        return NextResponse.json({ success: false, error: 'This video has reached its view limit' }, { status: 410 });
       }
 
       videoId = shareLink.videoId;
@@ -63,7 +63,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       .where(eq(videos.id, videoId));
 
     if (!video || !video.videoUrl) {
-      return NextResponse.json({ success: false, error: "Video not found" }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
     }
 
     // Get organization
@@ -85,30 +85,30 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         thumbnailUrl: video.thumbnailUrl,
         duration: video.duration,
         organization: {
-          name: org?.name || "Unknown",
-          slug: org?.slug || "",
+          name: org?.name || 'Unknown',
+          slug: org?.slug || '',
         },
         isShareLink,
       },
     });
 
     // Allow embedding from any origin
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
     return response;
   } catch (error) {
-    logger.error("Embed API error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    logger.error('Embed API error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 // Handle preflight requests for CORS
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 200 });
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
   return response;
 }

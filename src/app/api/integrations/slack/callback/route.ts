@@ -1,16 +1,16 @@
-import { Effect } from "effect";
-import { Slack } from "@/lib/effect/services/slack";
+import { Effect } from 'effect';
+import { Slack } from '@/lib/effect/services/slack';
 import {
   errorRedirect,
   SlackIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from "@/lib/integrations";
-import { logger } from "@/lib/logger";
+} from '@/lib/integrations';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
-  const validation = await validateOAuthCallback(request, "slack");
+  const validation = await validateOAuthCallback(request, 'slack');
   if (!validation.success) {
     return validation.redirect;
   }
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     yield* saveIntegration({
       userId,
       organizationId,
-      provider: "slack",
+      provider: 'slack',
       tokens: {
         access_token: tokens.access_token,
         scope: tokens.scope,
@@ -46,9 +46,9 @@ export async function GET(request: Request) {
 
   try {
     await Effect.runPromise(Effect.provide(effect, SlackIntegrationLayer));
-    return successRedirect(organizationId, "slack");
+    return successRedirect(organizationId, 'slack');
   } catch (err) {
-    logger.error("[Slack Callback Error]", err instanceof Error ? err : new Error(String(err)));
-    return errorRedirect(organizationId, "slack");
+    logger.error('[Slack Callback Error]', err instanceof Error ? err : new Error(String(err)));
+    return errorRedirect(organizationId, 'slack');
   }
 }

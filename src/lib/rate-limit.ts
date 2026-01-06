@@ -9,10 +9,10 @@
  * - Sliding window rate limiting algorithm
  */
 
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
-import { NextResponse } from "next/server";
-import { env } from "@/lib/env/server";
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+import { NextResponse } from 'next/server';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Types
@@ -141,7 +141,7 @@ function getRateLimiter(config: RateLimitConfig, prefix: string): Ratelimit | nu
  */
 function getApiRateLimiter(): Ratelimit | null {
   if (apiRateLimiter === null) {
-    apiRateLimiter = getRateLimiter(API_RATE_LIMIT, "api");
+    apiRateLimiter = getRateLimiter(API_RATE_LIMIT, 'api');
   }
   return apiRateLimiter;
 }
@@ -151,7 +151,7 @@ function getApiRateLimiter(): Ratelimit | null {
  */
 function getAuthRateLimiter(): Ratelimit | null {
   if (authRateLimiter === null) {
-    authRateLimiter = getRateLimiter(AUTH_RATE_LIMIT, "auth");
+    authRateLimiter = getRateLimiter(AUTH_RATE_LIMIT, 'auth');
   }
   return authRateLimiter;
 }
@@ -161,7 +161,7 @@ function getAuthRateLimiter(): Ratelimit | null {
  */
 function getSensitiveRateLimiter(): Ratelimit | null {
   if (sensitiveRateLimiter === null) {
-    sensitiveRateLimiter = getRateLimiter(SENSITIVE_RATE_LIMIT, "sensitive");
+    sensitiveRateLimiter = getRateLimiter(SENSITIVE_RATE_LIMIT, 'sensitive');
   }
   return sensitiveRateLimiter;
 }
@@ -171,7 +171,7 @@ function getSensitiveRateLimiter(): Ratelimit | null {
  */
 function getUploadRateLimiter(): Ratelimit | null {
   if (uploadRateLimiter === null) {
-    uploadRateLimiter = getRateLimiter(UPLOAD_RATE_LIMIT, "upload");
+    uploadRateLimiter = getRateLimiter(UPLOAD_RATE_LIMIT, 'upload');
   }
   return uploadRateLimiter;
 }
@@ -181,7 +181,7 @@ function getUploadRateLimiter(): Ratelimit | null {
  */
 function getBillingRateLimiter(): Ratelimit | null {
   if (billingRateLimiter === null) {
-    billingRateLimiter = getRateLimiter(BILLING_RATE_LIMIT, "billing");
+    billingRateLimiter = getRateLimiter(BILLING_RATE_LIMIT, 'billing');
   }
   return billingRateLimiter;
 }
@@ -209,18 +209,18 @@ async function checkRateLimitRedis(identifier: string, rateLimiter: Ratelimit): 
  */
 export function getClientIdentifier(request: Request): string {
   // Check for API key first
-  const apiKey = request.headers.get("x-api-key");
+  const apiKey = request.headers.get('x-api-key');
   if (apiKey) {
     // Use a hash of the API key prefix for identification
     return `api:${apiKey.slice(0, 10)}`;
   }
 
   // Fall back to IP address
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
 
-  const ip = cfConnectingIp || realIp || forwardedFor?.split(",")[0].trim() || "unknown";
+  const ip = cfConnectingIp || realIp || forwardedFor?.split(',')[0].trim() || 'unknown';
 
   return `ip:${ip}`;
 }
@@ -230,13 +230,13 @@ export function getClientIdentifier(request: Request): string {
  */
 function createRateLimitHeaders(result: RateLimitResult): Record<string, string> {
   const headers: Record<string, string> = {
-    "X-RateLimit-Limit": String(result.limit),
-    "X-RateLimit-Remaining": String(result.remaining),
-    "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
+    'X-RateLimit-Limit': String(result.limit),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
   };
 
   if (!result.success) {
-    headers["Retry-After"] = String(Math.ceil((result.resetAt - Date.now()) / 1000));
+    headers['Retry-After'] = String(Math.ceil((result.resetAt - Date.now()) / 1000));
   }
 
   return headers;
@@ -250,7 +250,7 @@ function createRateLimitResponse(result: RateLimitResult): NextResponse {
 
   return NextResponse.json(
     {
-      error: "Too Many Requests",
+      error: 'Too Many Requests',
       message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
       retryAfter,
     },

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { CircleDot, File, Folder, GitCommit, GitPullRequest, Link2, Loader2 } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { CircleDot, File, Folder, GitCommit, GitPullRequest, Link2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import type { CreateCodeLinkInput } from "@/hooks/use-code-links";
-import type { CodeLinkType } from "@/lib/db/schema";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import type { CreateCodeLinkInput } from '@/hooks/use-code-links';
+import type { CodeLinkType } from '@/lib/db/schema';
 
 // =============================================================================
 // Link Type Options
@@ -29,34 +29,34 @@ const LINK_TYPE_OPTIONS: Array<{
   description: string;
 }> = [
   {
-    value: "pr",
-    label: "Pull Request",
+    value: 'pr',
+    label: 'Pull Request',
     icon: GitPullRequest,
-    description: "Link to a GitHub pull request",
+    description: 'Link to a GitHub pull request',
   },
   {
-    value: "issue",
-    label: "Issue",
+    value: 'issue',
+    label: 'Issue',
     icon: CircleDot,
-    description: "Link to a GitHub issue",
+    description: 'Link to a GitHub issue',
   },
   {
-    value: "commit",
-    label: "Commit",
+    value: 'commit',
+    label: 'Commit',
     icon: GitCommit,
-    description: "Link to a specific commit",
+    description: 'Link to a specific commit',
   },
   {
-    value: "file",
-    label: "File",
+    value: 'file',
+    label: 'File',
     icon: File,
-    description: "Link to a specific file",
+    description: 'Link to a specific file',
   },
   {
-    value: "directory",
-    label: "Directory",
+    value: 'directory',
+    label: 'Directory',
     icon: Folder,
-    description: "Link to a directory",
+    description: 'Link to a directory',
   },
 ];
 
@@ -67,13 +67,13 @@ const LINK_TYPE_OPTIONS: Array<{
 function formatTimeInput(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function parseTimeInput(timeStr: string): number | null {
   if (!timeStr.trim()) return null;
 
-  const parts = timeStr.split(":").map((p) => Number.parseInt(p, 10));
+  const parts = timeStr.split(':').map((p) => Number.parseInt(p, 10));
   if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
     return parts[0] * 60 + parts[1];
   }
@@ -98,23 +98,23 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
-  const [type, setType] = useState<CodeLinkType>("pr");
-  const [repo, setRepo] = useState("");
-  const [ref, setRef] = useState("");
-  const [context, setContext] = useState("");
+  const [type, setType] = useState<CodeLinkType>('pr');
+  const [repo, setRepo] = useState('');
+  const [ref, setRef] = useState('');
+  const [context, setContext] = useState('');
   const [timestampStr, setTimestampStr] = useState(
-    initialTimestamp !== undefined ? formatTimeInput(initialTimestamp) : "",
+    initialTimestamp !== undefined ? formatTimeInput(initialTimestamp) : '',
   );
-  const [timestampEndStr, setTimestampEndStr] = useState("");
+  const [timestampEndStr, setTimestampEndStr] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const resetForm = () => {
-    setType("pr");
-    setRepo("");
-    setRef("");
-    setContext("");
-    setTimestampStr(initialTimestamp !== undefined ? formatTimeInput(initialTimestamp) : "");
-    setTimestampEndStr("");
+    setType('pr');
+    setRepo('');
+    setRef('');
+    setContext('');
+    setTimestampStr(initialTimestamp !== undefined ? formatTimeInput(initialTimestamp) : '');
+    setTimestampEndStr('');
     setErrors({});
   };
 
@@ -124,32 +124,32 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
     // Validate repo format (owner/repo)
     const repoPattern = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
     if (!repo.trim()) {
-      newErrors.repo = "Repository is required";
+      newErrors.repo = 'Repository is required';
     } else if (!repoPattern.test(repo)) {
-      newErrors.repo = "Invalid format. Use owner/repo (e.g., facebook/react)";
+      newErrors.repo = 'Invalid format. Use owner/repo (e.g., facebook/react)';
     }
 
     // Validate ref
     if (!ref.trim()) {
-      newErrors.ref = "Reference is required";
+      newErrors.ref = 'Reference is required';
     }
 
     // Validate timestamps if provided
     if (timestampStr.trim()) {
       const timestamp = parseTimeInput(timestampStr);
       if (timestamp === null) {
-        newErrors.timestamp = "Invalid time format. Use MM:SS or HH:MM:SS";
+        newErrors.timestamp = 'Invalid time format. Use MM:SS or HH:MM:SS';
       }
     }
 
     if (timestampEndStr.trim()) {
       const timestampEnd = parseTimeInput(timestampEndStr);
       if (timestampEnd === null) {
-        newErrors.timestampEnd = "Invalid time format. Use MM:SS or HH:MM:SS";
+        newErrors.timestampEnd = 'Invalid time format. Use MM:SS or HH:MM:SS';
       } else if (timestampStr.trim()) {
         const timestamp = parseTimeInput(timestampStr);
         if (timestamp !== null && timestampEnd <= timestamp) {
-          newErrors.timestampEnd = "End time must be after start time";
+          newErrors.timestampEnd = 'End time must be after start time';
         }
       }
     }
@@ -254,7 +254,7 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
                 placeholder="owner/repo (e.g., facebook/react)"
                 value={repo}
                 onChange={(e) => setRepo(e.target.value)}
-                className={errors.repo ? "border-destructive" : ""}
+                className={errors.repo ? 'border-destructive' : ''}
               />
               {errors.repo && <p className="text-xs text-destructive">{errors.repo}</p>}
             </div>
@@ -267,17 +267,17 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
               <Input
                 id="ref"
                 placeholder={
-                  type === "pr"
-                    ? "PR number (e.g., 123)"
-                    : type === "issue"
-                      ? "Issue number (e.g., 456)"
-                      : type === "commit"
-                        ? "Commit hash (e.g., abc123)"
-                        : "File or directory path"
+                  type === 'pr'
+                    ? 'PR number (e.g., 123)'
+                    : type === 'issue'
+                      ? 'Issue number (e.g., 456)'
+                      : type === 'commit'
+                        ? 'Commit hash (e.g., abc123)'
+                        : 'File or directory path'
                 }
                 value={ref}
                 onChange={(e) => setRef(e.target.value)}
-                className={errors.ref ? "border-destructive" : ""}
+                className={errors.ref ? 'border-destructive' : ''}
               />
               {errors.ref && <p className="text-xs text-destructive">{errors.ref}</p>}
             </div>
@@ -303,7 +303,7 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
                   placeholder="MM:SS"
                   value={timestampStr}
                   onChange={(e) => setTimestampStr(e.target.value)}
-                  className={errors.timestamp ? "border-destructive" : ""}
+                  className={errors.timestamp ? 'border-destructive' : ''}
                 />
                 {errors.timestamp && <p className="text-xs text-destructive">{errors.timestamp}</p>}
               </div>
@@ -314,7 +314,7 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
                   placeholder="MM:SS"
                   value={timestampEndStr}
                   onChange={(e) => setTimestampEndStr(e.target.value)}
-                  className={errors.timestampEnd ? "border-destructive" : ""}
+                  className={errors.timestampEnd ? 'border-destructive' : ''}
                 />
                 {errors.timestampEnd && <p className="text-xs text-destructive">{errors.timestampEnd}</p>}
               </div>
@@ -332,7 +332,7 @@ export function AddCodeLinkDialog({ open, onOpenChange, onSubmit, initialTimesta
                   Adding...
                 </>
               ) : (
-                "Add Link"
+                'Add Link'
               )}
             </Button>
           </DialogFooter>

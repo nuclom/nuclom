@@ -5,13 +5,13 @@
  * using dependency injection patterns.
  */
 
-import { type Context, Effect, Layer } from "effect";
-import { vi } from "vitest";
-import type { Comment, User, Video } from "@/lib/db/schema";
-import type { CommentWithAuthor, CommentWithReplies } from "@/lib/effect/services/comment-repository";
-import type { NotificationWithActor } from "@/lib/effect/services/notification-repository";
-import type { PaginatedResponse, VideoWithAuthor } from "@/lib/types";
-import { createMockOrganization, createMockUser, createMockVideo } from "./mocks";
+import { type Context, Effect, Layer } from 'effect';
+import { vi } from 'vitest';
+import type { Comment, User, Video } from '@/lib/db/schema';
+import type { CommentWithAuthor, CommentWithReplies } from '@/lib/effect/services/comment-repository';
+import type { NotificationWithActor } from '@/lib/effect/services/notification-repository';
+import type { PaginatedResponse, VideoWithAuthor } from '@/lib/types';
+import { createMockOrganization, createMockUser, createMockVideo } from './mocks';
 
 // =============================================================================
 // Mock Database Service
@@ -91,11 +91,11 @@ export function createMockDatabaseService(): MockDatabaseService {
   db.set.mockReturnValue(db);
   db.delete.mockReturnValue(db);
 
-  return { db: db as unknown as MockDatabaseService["db"], client: {} };
+  return { db: db as unknown as MockDatabaseService['db'], client: {} };
 }
 
 // Import Database tag from the actual service
-import { Database } from "@/lib/effect/services/database";
+import { Database } from '@/lib/effect/services/database';
 
 /**
  * Creates a mock Database layer for testing
@@ -124,12 +124,12 @@ export function createMockStorageService(): MockStorageService {
     uploadFile: vi
       .fn()
       .mockImplementation((_buffer, key) =>
-        Effect.succeed({ key, url: `https://storage.example.com/${key}`, etag: "mock-etag" }),
+        Effect.succeed({ key, url: `https://storage.example.com/${key}`, etag: 'mock-etag' }),
       ),
     uploadLargeFile: vi
       .fn()
       .mockImplementation((_buffer, key) =>
-        Effect.succeed({ key, url: `https://storage.example.com/${key}`, etag: "mock-etag" }),
+        Effect.succeed({ key, url: `https://storage.example.com/${key}`, etag: 'mock-etag' }),
       ),
     deleteFile: vi.fn().mockImplementation(() => Effect.void),
     generatePresignedUploadUrl: vi
@@ -138,12 +138,12 @@ export function createMockStorageService(): MockStorageService {
     getPublicUrl: vi.fn().mockImplementation((key) => `https://storage.example.com/${key}`),
     generateFileKey: vi
       .fn()
-      .mockImplementation((orgId, filename, type = "video") => `${orgId}/${type}s/${Date.now()}-${filename}`),
+      .mockImplementation((orgId, filename, type = 'video') => `${orgId}/${type}s/${Date.now()}-${filename}`),
     isConfigured: true,
   };
 }
 
-import { Storage } from "@/lib/effect/services/storage";
+import { Storage } from '@/lib/effect/services/storage';
 
 export function createMockStorageLayer(mockStorage?: MockStorageService) {
   const storage = mockStorage ?? createMockStorageService();
@@ -154,8 +154,8 @@ export function createMockStorageLayer(mockStorage?: MockStorageService) {
 // Mock VideoRepository Service
 // =============================================================================
 
-import { DatabaseError, DeleteError, NotFoundError } from "@/lib/effect/errors";
-import { VideoRepository, type VideoRepositoryService } from "@/lib/effect/services/video-repository";
+import { DatabaseError, DeleteError, NotFoundError } from '@/lib/effect/errors';
+import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/services/video-repository';
 
 export interface MockVideoRepositoryService {
   getVideos: ReturnType<typeof vi.fn>;
@@ -212,7 +212,7 @@ export function createMockVideoRepositoryLayer(mockRepo?: MockVideoRepositorySer
 // Mock CommentRepository Service
 // =============================================================================
 
-import { CommentRepository, type CommentRepositoryService } from "@/lib/effect/services/comment-repository";
+import { CommentRepository, type CommentRepositoryService } from '@/lib/effect/services/comment-repository';
 
 export interface MockCommentRepositoryService {
   getComments: ReturnType<typeof vi.fn>;
@@ -248,7 +248,7 @@ export function createMockCommentRepositoryLayer(mockRepo?: MockCommentRepositor
 import {
   NotificationRepository,
   type NotificationRepositoryService,
-} from "@/lib/effect/services/notification-repository";
+} from '@/lib/effect/services/notification-repository';
 
 export interface MockNotificationRepositoryService {
   getNotifications: ReturnType<typeof vi.fn>;
@@ -286,7 +286,7 @@ export function createMockNotificationRepositoryLayer(mockRepo?: MockNotificatio
 import {
   OrganizationRepository,
   type OrganizationRepositoryService,
-} from "@/lib/effect/services/organization-repository";
+} from '@/lib/effect/services/organization-repository';
 
 export interface MockOrganizationRepositoryService {
   getOrganization: ReturnType<typeof vi.fn>;
@@ -327,7 +327,7 @@ export function createMockOrganizationRepositoryLayer(mockRepo?: MockOrganizatio
 // Mock Auth Service
 // =============================================================================
 
-import { Auth, type AuthServiceInterface } from "@/lib/effect/services/auth";
+import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
 
 export interface MockAuthService {
   getSession: ReturnType<typeof vi.fn>;
@@ -339,7 +339,7 @@ export interface MockAuthService {
 
 export function createMockAuthService(user?: User): MockAuthService {
   const mockUser = user ?? createMockUser();
-  const mockSession = { user: mockUser, session: { id: "session-123" } };
+  const mockSession = { user: mockUser, session: { id: 'session-123' } };
 
   return {
     getSession: vi.fn().mockImplementation(() => Effect.succeed(mockSession)),
@@ -359,7 +359,7 @@ export function createMockAuthLayer(mockAuth?: MockAuthService) {
 // Mock AI Service
 // =============================================================================
 
-import { AI, type AIServiceInterface } from "@/lib/effect/services/ai";
+import { AI, type AIServiceInterface } from '@/lib/effect/services/ai';
 
 export interface MockAIService {
   generateVideoSummary: ReturnType<typeof vi.fn>;
@@ -374,18 +374,18 @@ export interface MockAIService {
 
 export function createMockAIService(): MockAIService {
   return {
-    generateVideoSummary: vi.fn().mockImplementation(() => Effect.succeed("## Summary\nTest summary content")),
-    generateVideoTags: vi.fn().mockImplementation(() => Effect.succeed(["tag1", "tag2", "tag3"])),
-    extractActionItems: vi.fn().mockImplementation(() => Effect.succeed(["Action item 1", "Action item 2"])),
+    generateVideoSummary: vi.fn().mockImplementation(() => Effect.succeed('## Summary\nTest summary content')),
+    generateVideoTags: vi.fn().mockImplementation(() => Effect.succeed(['tag1', 'tag2', 'tag3'])),
+    extractActionItems: vi.fn().mockImplementation(() => Effect.succeed(['Action item 1', 'Action item 2'])),
     extractActionItemsWithTimestamps: vi
       .fn()
-      .mockImplementation(() => Effect.succeed([{ text: "Action item 1", timestamp: 60, priority: "high" as const }])),
+      .mockImplementation(() => Effect.succeed([{ text: 'Action item 1', timestamp: 60, priority: 'high' as const }])),
     detectCodeSnippets: vi.fn().mockImplementation(() => Effect.succeed([])),
     generateChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
     createSummaryStream: vi.fn(),
     analyzeTranscriptForInsights: vi
       .fn()
-      .mockImplementation(() => Effect.succeed({ topics: [], sentiment: "neutral" })),
+      .mockImplementation(() => Effect.succeed({ topics: [], sentiment: 'neutral' })),
   };
 }
 
@@ -398,7 +398,7 @@ export function createMockAILayer(mockAI?: MockAIService) {
 // Mock Stripe Service
 // =============================================================================
 
-import { type StripeService, StripeServiceTag } from "@/lib/effect/services/stripe";
+import { type StripeService, StripeServiceTag } from '@/lib/effect/services/stripe';
 
 export interface MockStripeService {
   createCustomer: ReturnType<typeof vi.fn>;
@@ -414,16 +414,16 @@ export interface MockStripeService {
 
 export function createMockStripeService(): MockStripeService {
   return {
-    createCustomer: vi.fn().mockImplementation(() => Effect.succeed({ id: "cus_test123" })),
+    createCustomer: vi.fn().mockImplementation(() => Effect.succeed({ id: 'cus_test123' })),
     createCheckoutSession: vi
       .fn()
-      .mockImplementation(() => Effect.succeed({ url: "https://checkout.stripe.com/test" })),
-    createPortalSession: vi.fn().mockImplementation(() => Effect.succeed({ url: "https://portal.stripe.com/test" })),
-    createSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: "sub_test123", status: "active" })),
-    cancelSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: "sub_test123", status: "canceled" })),
-    updateSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: "sub_test123", status: "active" })),
-    getSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: "sub_test123", status: "active" })),
-    verifyWebhookSignature: vi.fn().mockImplementation(() => Effect.succeed({ type: "customer.subscription.updated" })),
+      .mockImplementation(() => Effect.succeed({ url: 'https://checkout.stripe.com/test' })),
+    createPortalSession: vi.fn().mockImplementation(() => Effect.succeed({ url: 'https://portal.stripe.com/test' })),
+    createSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: 'sub_test123', status: 'active' })),
+    cancelSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: 'sub_test123', status: 'canceled' })),
+    updateSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: 'sub_test123', status: 'active' })),
+    getSubscription: vi.fn().mockImplementation(() => Effect.succeed({ id: 'sub_test123', status: 'active' })),
+    verifyWebhookSignature: vi.fn().mockImplementation(() => Effect.succeed({ type: 'customer.subscription.updated' })),
     isConfigured: true,
   };
 }
@@ -457,14 +457,14 @@ export function createMockCommentWithAuthor(
 ): CommentWithAuthor {
   const author = createMockUser(userOverrides);
   return {
-    id: "comment-123",
-    content: "Test comment content",
-    timestamp: "00:01:30",
+    id: 'comment-123',
+    content: 'Test comment content',
+    timestamp: '00:01:30',
     authorId: author.id,
-    videoId: "video-123",
+    videoId: 'video-123',
     parentId: null,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
     author,
     ...commentOverrides,
   } as CommentWithAuthor;
@@ -482,15 +482,15 @@ export function createMockCommentWithReplies(
 
 export function createMockNotification(overrides: Record<string, unknown> = {}): NotificationWithActor {
   return {
-    id: "notification-123",
-    type: "comment" as const,
-    title: "New Comment",
-    message: "Someone commented on your video",
+    id: 'notification-123',
+    type: 'comment' as const,
+    title: 'New Comment',
+    message: 'Someone commented on your video',
     read: false,
-    userId: "user-123",
-    videoId: "video-123",
-    commentId: "comment-123",
-    createdAt: new Date("2024-01-01"),
+    userId: 'user-123',
+    videoId: 'video-123',
+    commentId: 'comment-123',
+    createdAt: new Date('2024-01-01'),
     video: null,
     comment: null,
     fromUser: null,
@@ -519,14 +519,14 @@ export async function runWithLayerExit<A, E, R>(effect: Effect.Effect<A, E, R>, 
 /**
  * Creates a failure Effect for testing error handling
  */
-export function createDatabaseError(message = "Database error") {
-  return new DatabaseError({ message, operation: "test" });
+export function createDatabaseError(message = 'Database error') {
+  return new DatabaseError({ message, operation: 'test' });
 }
 
 export function createNotFoundError(entity: string, id: string) {
   return new NotFoundError({ message: `${entity} not found`, entity, id });
 }
 
-export function createDeleteError(message = "Delete failed") {
+export function createDeleteError(message = 'Delete failed') {
   return new DeleteError({ message });
 }

@@ -26,4 +26,4 @@ export {
   type VideoProgress,
   VideoProgressBar,
   type VideoState,
-} from "./video-player/index";
+} from './video-player/index';

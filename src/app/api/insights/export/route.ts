@@ -1,27 +1,27 @@
-import { and, desc, eq, gte } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer } from "@/lib/api-handler";
-import { aiActionItems, decisions, videoSpeakers, videos } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError, ValidationError } from "@/lib/effect/errors";
-import { Database } from "@/lib/effect/services/database";
+import { and, desc, eq, gte } from 'drizzle-orm';
+import { Cause, Effect, Exit } from 'effect';
+import { connection, type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer } from '@/lib/api-handler';
+import { aiActionItems, decisions, videoSpeakers, videos } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError, ValidationError } from '@/lib/effect/errors';
+import { Database } from '@/lib/effect/services/database';
 
 function validateQueryParams(searchParams: URLSearchParams) {
-  const organizationId = searchParams.get("organizationId");
-  const period = searchParams.get("period") || "30d";
-  const type = searchParams.get("type") || "all";
-  const format = searchParams.get("format") || "csv";
+  const organizationId = searchParams.get('organizationId');
+  const period = searchParams.get('period') || '30d';
+  const type = searchParams.get('type') || 'all';
+  const format = searchParams.get('format') || 'csv';
 
   if (!organizationId) {
-    return Effect.fail(new UnauthorizedError({ message: "Organization ID is required" }));
+    return Effect.fail(new UnauthorizedError({ message: 'Organization ID is required' }));
   }
 
-  if (!["csv", "json"].includes(format)) {
-    return Effect.fail(new ValidationError({ message: "Format must be csv or json" }));
+  if (!['csv', 'json'].includes(format)) {
+    return Effect.fail(new ValidationError({ message: 'Format must be csv or json' }));
   }
 
-  if (!["all", "videos", "decisions", "action-items", "speakers"].includes(type)) {
-    return Effect.fail(new ValidationError({ message: "Invalid export type" }));
+  if (!['all', 'videos', 'decisions', 'action-items', 'speakers'].includes(type)) {
+    return Effect.fail(new ValidationError({ message: 'Invalid export type' }));
   }
 
   return Effect.succeed({ organizationId, period, type, format });
@@ -30,11 +30,11 @@ function validateQueryParams(searchParams: URLSearchParams) {
 function getDateRangeForPeriod(period: string): Date {
   const now = new Date();
   switch (period) {
-    case "7d":
+    case '7d':
       return new Date(now.setDate(now.getDate() - 7));
-    case "30d":
+    case '30d':
       return new Date(now.setDate(now.getDate() - 30));
-    case "90d":
+    case '90d':
       return new Date(now.setDate(now.getDate() - 90));
     default:
       return new Date(0);
@@ -42,18 +42,18 @@ function getDateRangeForPeriod(period: string): Date {
 }
 
 function escapeCSV(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return "";
+  if (value === null || value === undefined) return '';
   const str = String(value);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 }
 
 function toCSV(headers: string[], rows: (string | number | null | undefined)[][]): string {
-  const headerLine = headers.map(escapeCSV).join(",");
-  const dataLines = rows.map((row) => row.map(escapeCSV).join(","));
-  return [headerLine, ...dataLines].join("\n");
+  const headerLine = headers.map(escapeCSV).join(',');
+  const dataLines = rows.map((row) => row.map(escapeCSV).join(','));
+  return [headerLine, ...dataLines].join('\n');
 }
 
 export async function GET(request: NextRequest) {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const exportData: Record<string, unknown> = {};
 
     // Export videos
-    if (type === "all" || type === "videos") {
+    if (type === 'all' || type === 'videos') {
       const videoData = yield* Effect.tryPromise({
         try: async () => {
           const result = await db
@@ -84,13 +84,13 @@ export async function GET(request: NextRequest) {
             .orderBy(desc(videos.createdAt));
           return result;
         },
-        catch: (error) => new DatabaseError({ message: `Failed to fetch videos: ${error}`, operation: "exportVideos" }),
+        catch: (error) => new DatabaseError({ message: `Failed to fetch videos: ${error}`, operation: 'exportVideos' }),
       });
 
       exportData.videos = videoData.map((v) => ({
         id: v.id,
         title: v.title,
-        description: v.description || "",
+        description: v.description || '',
         durationSeconds: v.duration,
         durationMinutes: Math.round(Number(v.duration) / 60),
         createdAt: v.createdAt?.toISOString(),
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Export decisions
-    if (type === "all" || type === "decisions") {
+    if (type === 'all' || type === 'decisions') {
       const decisionData = yield* Effect.tryPromise({
         try: async () => {
           const result = await db
@@ -118,22 +118,22 @@ export async function GET(request: NextRequest) {
           return result;
         },
         catch: (error) =>
-          new DatabaseError({ message: `Failed to fetch decisions: ${error}`, operation: "exportDecisions" }),
+          new DatabaseError({ message: `Failed to fetch decisions: ${error}`, operation: 'exportDecisions' }),
       });
 
       exportData.decisions = decisionData.map((d) => ({
         id: d.id,
         summary: d.summary,
-        context: d.context || "",
+        context: d.context || '',
         status: d.status,
         decisionType: d.decisionType,
-        videoId: d.videoId || "",
+        videoId: d.videoId || '',
         createdAt: d.createdAt?.toISOString(),
       }));
     }
 
     // Export action items
-    if (type === "all" || type === "action-items") {
+    if (type === 'all' || type === 'action-items') {
       const actionItemData = yield* Effect.tryPromise({
         try: async () => {
           const result = await db
@@ -156,18 +156,18 @@ export async function GET(request: NextRequest) {
           return result;
         },
         catch: (error) =>
-          new DatabaseError({ message: `Failed to fetch action items: ${error}`, operation: "exportActionItems" }),
+          new DatabaseError({ message: `Failed to fetch action items: ${error}`, operation: 'exportActionItems' }),
       });
 
       exportData.actionItems = actionItemData.map((a) => ({
         id: a.id,
         title: a.title,
-        description: a.description || "",
-        assignee: a.assignee || "",
+        description: a.description || '',
+        assignee: a.assignee || '',
         status: a.status,
         priority: a.priority,
-        dueDate: a.dueDate?.toISOString() || "",
-        completedAt: a.completedAt?.toISOString() || "",
+        dueDate: a.dueDate?.toISOString() || '',
+        completedAt: a.completedAt?.toISOString() || '',
         videoId: a.videoId,
         confidence: a.confidence,
         createdAt: a.createdAt?.toISOString(),
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Export speakers
-    if (type === "all" || type === "speakers") {
+    if (type === 'all' || type === 'speakers') {
       const speakerData = yield* Effect.tryPromise({
         try: async () => {
           const result = await db
@@ -192,7 +192,7 @@ export async function GET(request: NextRequest) {
           return result;
         },
         catch: (error) =>
-          new DatabaseError({ message: `Failed to fetch speakers: ${error}`, operation: "exportSpeakers" }),
+          new DatabaseError({ message: `Failed to fetch speakers: ${error}`, operation: 'exportSpeakers' }),
       });
 
       exportData.speakers = speakerData.map((s) => ({
@@ -215,29 +215,29 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         const err = error.value;
-        if ("_tag" in err && err._tag === "UnauthorizedError") {
+        if ('_tag' in err && err._tag === 'UnauthorizedError') {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
-        if ("_tag" in err && err._tag === "ValidationError") {
+        if ('_tag' in err && err._tag === 'ValidationError') {
           return NextResponse.json({ success: false, error: err.message }, { status: 400 });
         }
-        const message = "message" in err ? err.message : "Database error";
+        const message = 'message' in err ? err.message : 'Database error';
         return NextResponse.json({ success: false, error: message }, { status: 500 });
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (result) => {
       const { exportData, format, type, period } = result;
-      const timestamp = new Date().toISOString().split("T")[0];
+      const timestamp = new Date().toISOString().split('T')[0];
       const filename = `insights-export-${type}-${period}-${timestamp}`;
 
-      if (format === "json") {
+      if (format === 'json') {
         return new NextResponse(JSON.stringify(exportData, null, 2), {
           headers: {
-            "Content-Type": "application/json",
-            "Content-Disposition": `attachment; filename="${filename}.json"`,
+            'Content-Type': 'application/json',
+            'Content-Disposition': `attachment; filename="${filename}.json"`,
           },
         });
       }
@@ -255,17 +255,17 @@ export async function GET(request: NextRequest) {
           createdAt: string;
           hasSummary: boolean;
         }>;
-        csvSections.push("# Videos");
+        csvSections.push('# Videos');
         csvSections.push(
           toCSV(
-            ["ID", "Title", "Description", "Duration (min)", "Created At", "Has Summary"],
+            ['ID', 'Title', 'Description', 'Duration (min)', 'Created At', 'Has Summary'],
             videosTyped.map((v) => [
               v.id,
               v.title,
               v.description,
               v.durationMinutes,
               v.createdAt,
-              v.hasSummary ? "Yes" : "No",
+              v.hasSummary ? 'Yes' : 'No',
             ]),
           ),
         );
@@ -281,10 +281,10 @@ export async function GET(request: NextRequest) {
           videoId: string;
           createdAt: string;
         }>;
-        csvSections.push("\n# Decisions");
+        csvSections.push('\n# Decisions');
         csvSections.push(
           toCSV(
-            ["ID", "Summary", "Context", "Status", "Type", "Video ID", "Created At"],
+            ['ID', 'Summary', 'Context', 'Status', 'Type', 'Video ID', 'Created At'],
             decisionsTyped.map((d) => [d.id, d.summary, d.context, d.status, d.decisionType, d.videoId, d.createdAt]),
           ),
         );
@@ -304,21 +304,21 @@ export async function GET(request: NextRequest) {
           confidence: number | null;
           createdAt: string;
         }>;
-        csvSections.push("\n# Action Items");
+        csvSections.push('\n# Action Items');
         csvSections.push(
           toCSV(
             [
-              "ID",
-              "Title",
-              "Description",
-              "Assignee",
-              "Status",
-              "Priority",
-              "Due Date",
-              "Completed At",
-              "Video ID",
-              "Confidence",
-              "Created At",
+              'ID',
+              'Title',
+              'Description',
+              'Assignee',
+              'Status',
+              'Priority',
+              'Due Date',
+              'Completed At',
+              'Video ID',
+              'Confidence',
+              'Created At',
             ],
             actionItemsTyped.map((a) => [
               a.id,
@@ -345,10 +345,10 @@ export async function GET(request: NextRequest) {
           speakingPercentage: number | null;
           segmentCount: number;
         }>;
-        csvSections.push("\n# Speakers");
+        csvSections.push('\n# Speakers');
         csvSections.push(
           toCSV(
-            ["Video ID", "Speaker Label", "Speaking Time (sec)", "Speaking %", "Segment Count"],
+            ['Video ID', 'Speaker Label', 'Speaking Time (sec)', 'Speaking %', 'Segment Count'],
             speakersTyped.map((s) => [
               s.videoId,
               s.speakerLabel,
@@ -360,12 +360,12 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const csvContent = csvSections.join("\n");
+      const csvContent = csvSections.join('\n');
 
       return new NextResponse(csvContent, {
         headers: {
-          "Content-Type": "text/csv",
-          "Content-Disposition": `attachment; filename="${filename}.csv"`,
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="${filename}.csv"`,
         },
       });
     },

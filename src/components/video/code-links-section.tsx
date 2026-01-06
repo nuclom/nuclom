@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { GitBranch, Plus } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCodeLinks } from "@/hooks/use-code-links";
-import { AddCodeLinkDialog } from "./add-code-link-dialog";
-import { CodeLinks } from "./code-links";
+import { GitBranch, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCodeLinks } from '@/hooks/use-code-links';
+import { AddCodeLinkDialog } from './add-code-link-dialog';
+import { CodeLinks } from './code-links';
 
 // =============================================================================
 // Code Links Section Component

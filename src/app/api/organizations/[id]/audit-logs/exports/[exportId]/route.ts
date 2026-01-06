@@ -1,12 +1,12 @@
-import { and, eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { AuditLogger } from "@/lib/audit-log";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { members } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import type { ApiResponse } from "@/lib/types";
+import { and, eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { AuditLogger } from '@/lib/audit-log';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/[id]/audit-logs/exports/[exportId] - Get export status
@@ -18,7 +18,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const { id: organizationId, exportId } = await params;
@@ -30,7 +30,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (!membership) {
     return NextResponse.json<ApiResponse>(
-      { success: false, error: "Not a member of this organization" },
+      { success: false, error: 'Not a member of this organization' },
       { status: 403 },
     );
   }
@@ -39,12 +39,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const exportStatus = await AuditLogger.getExportStatus(exportId);
 
     if (!exportStatus) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Export not found" }, { status: 404 });
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Export not found' }, { status: 404 });
     }
 
     // Verify the export belongs to this organization
     if (exportStatus.organizationId !== organizationId) {
-      return NextResponse.json<ApiResponse>({ success: false, error: "Export not found" }, { status: 404 });
+      return NextResponse.json<ApiResponse>({ success: false, error: 'Export not found' }, { status: 404 });
     }
 
     return NextResponse.json<ApiResponse>({
@@ -54,7 +54,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         format: exportStatus.format,
         status: exportStatus.status,
         recordCount: exportStatus.recordCount,
-        downloadUrl: exportStatus.status === "completed" ? exportStatus.downloadUrl : null,
+        downloadUrl: exportStatus.status === 'completed' ? exportStatus.downloadUrl : null,
         expiresAt: exportStatus.expiresAt,
         errorMessage: exportStatus.errorMessage,
         createdAt: exportStatus.createdAt,
@@ -62,9 +62,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
   } catch (error) {
-    logger.error("[Audit] Export status error", error instanceof Error ? error : new Error(String(error)));
+    logger.error('[Audit] Export status error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : "Failed to get export status" },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to get export status' },
       { status: 500 },
     );
   }

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { REACTIONS, type ReactionType } from "./reaction-picker";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { REACTIONS, type ReactionType } from './reaction-picker';
 
 interface GroupedReaction {
   type: ReactionType;
@@ -24,7 +24,7 @@ export function ReactionDisplay({ reactions, onReactionClick, disabled }: Reacti
 
   const getEmoji = (type: ReactionType): string => {
     const reaction = REACTIONS.find((r) => r.type === type);
-    return reaction?.emoji || "👍";
+    return reaction?.emoji || '👍';
   };
 
   return (
@@ -38,11 +38,11 @@ export function ReactionDisplay({ reactions, onReactionClick, disabled }: Reacti
                 onClick={() => onReactionClick?.(reaction.type)}
                 disabled={disabled}
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors",
+                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors',
                   reaction.hasReacted
-                    ? "bg-primary/10 text-primary hover:bg-primary/20"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
-                  disabled && "cursor-not-allowed opacity-50",
+                    ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80',
+                  disabled && 'cursor-not-allowed opacity-50',
                 )}
               >
                 <span>{getEmoji(reaction.type)}</span>
@@ -53,8 +53,8 @@ export function ReactionDisplay({ reactions, onReactionClick, disabled }: Reacti
               <p className="text-xs">
                 {reaction.users
                   .slice(0, 5)
-                  .map((u) => u.name || "Anonymous")
-                  .join(", ")}
+                  .map((u) => u.name || 'Anonymous')
+                  .join(', ')}
                 {reaction.users.length > 5 && ` and ${reaction.users.length - 5} more`}
               </p>
             </TooltipContent>

@@ -1,8 +1,8 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import { MissingFieldError, SeriesRepository } from "@/lib/effect";
-import { validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { MissingFieldError, SeriesRepository } from '@/lib/effect';
+import { validateRequestBody } from '@/lib/validation';
 
 const AddVideoSchema = Schema.Struct({
   videoId: Schema.String,
@@ -28,13 +28,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Parse query params
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
+    const organizationId = searchParams.get('organizationId');
 
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }
@@ -77,10 +77,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json(data, { status: 201 }),
   });

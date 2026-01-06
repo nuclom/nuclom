@@ -16,12 +16,12 @@
  * - No lost processing on deploy
  */
 
-import { FatalError } from "workflow";
-import type { HighlightReelStatus } from "@/lib/db/schema";
-import { env } from "@/lib/env/server";
-import { createWorkflowLogger } from "./workflow-logger";
+import { FatalError } from 'workflow';
+import type { HighlightReelStatus } from '@/lib/db/schema';
+import { env } from '@/lib/env/server';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("highlight-reel-render");
+const log = createWorkflowLogger('highlight-reel-render');
 
 // =============================================================================
 // Types
@@ -64,9 +64,9 @@ async function updateReelStatus(
   storageKey?: string,
   duration?: number,
 ): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { highlightReels } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { highlightReels } = await import('@/lib/db/schema');
 
   await db
     .update(highlightReels)
@@ -81,12 +81,12 @@ async function updateReelStatus(
 }
 
 async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
-  const { db } = await import("@/lib/db");
-  const { videoClips, videos } = await import("@/lib/db/schema");
-  const { inArray, eq } = await import("drizzle-orm");
+  const { db } = await import('@/lib/db');
+  const { videoClips, videos } = await import('@/lib/db/schema');
+  const { inArray, eq } = await import('drizzle-orm');
 
   if (clipIds.length === 0) {
-    throw new FatalError("No clips provided for highlight reel");
+    throw new FatalError('No clips provided for highlight reel');
   }
 
   // Fetch all clips with their parent video information
@@ -100,13 +100,13 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
     .where(inArray(videoClips.id, clipIds));
 
   if (clipsData.length === 0) {
-    throw new FatalError("No clips found for the provided IDs");
+    throw new FatalError('No clips found for the provided IDs');
   }
 
   if (clipsData.length !== clipIds.length) {
     log.warn(
       { expected: clipIds.length, found: clipsData.length },
-      "Some clips were not found, continuing with available clips",
+      'Some clips were not found, continuing with available clips',
     );
   }
 
@@ -121,7 +121,7 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
       const { clip, video } = data;
 
       if (!video.videoUrl) {
-        log.error({ clipId, videoId: video.id }, "Video has no URL, skipping clip");
+        log.error({ clipId, videoId: video.id }, 'Video has no URL, skipping clip');
         return null;
       }
 
@@ -143,16 +143,16 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
 async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<RenderedVideo> {
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
-    throw new FatalError("Replicate API token not configured. Please set REPLICATE_API_TOKEN.");
+    throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
   }
 
-  const { default: Replicate } = await import("replicate");
+  const { default: Replicate } = await import('replicate');
   const replicate = new Replicate({ auth: replicateToken });
 
   // Use a video concatenation/editing model from Replicate
   // Note: This uses a general-purpose FFmpeg-based model for video editing
   // Model: noxinc/video-concat - concatenates multiple video clips
-  const VIDEO_CONCAT_MODEL = "noxinc/video-concat:latest";
+  const VIDEO_CONCAT_MODEL = 'noxinc/video-concat:latest';
 
   try {
     // Prepare input for the video concatenation model
@@ -163,14 +163,14 @@ async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<Rendere
       end: segment.endTime,
     }));
 
-    log.info({ segmentCount: segments.length }, "Starting video concatenation with Replicate");
+    log.info({ segmentCount: segments.length }, 'Starting video concatenation with Replicate');
 
     const output = (await replicate.run(VIDEO_CONCAT_MODEL as `${string}/${string}`, {
       input: {
         segments: videoSegments,
-        output_format: "mp4",
-        codec: "h264",
-        quality: "high",
+        output_format: 'mp4',
+        codec: 'h264',
+        quality: 'high',
       },
     })) as { video_url?: string; duration?: number } | string;
 
@@ -178,17 +178,17 @@ async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<Rendere
     let videoUrl: string;
     let duration: number;
 
-    if (typeof output === "string") {
+    if (typeof output === 'string') {
       videoUrl = output;
       duration = segments.reduce((sum, seg) => sum + seg.duration, 0);
     } else if (output.video_url) {
       videoUrl = output.video_url;
       duration = output.duration || segments.reduce((sum, seg) => sum + seg.duration, 0);
     } else {
-      throw new Error("Invalid output format from video concatenation model");
+      throw new Error('Invalid output format from video concatenation model');
     }
 
-    log.info({ videoUrl, duration }, "Video concatenation completed successfully");
+    log.info({ videoUrl, duration }, 'Video concatenation completed successfully');
 
     return {
       url: videoUrl,
@@ -196,10 +196,10 @@ async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<Rendere
     };
   } catch (error) {
     // If the specific model is not available, throw a fatal error with helpful message
-    log.error({ error, segmentCount: segments.length }, "Video concatenation failed");
+    log.error({ error, segmentCount: segments.length }, 'Video concatenation failed');
 
     throw new FatalError(
-      `Video concatenation failed: ${error instanceof Error ? error.message : "Unknown error"}. ` +
+      `Video concatenation failed: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
         `Please ensure the video concatenation model is available on Replicate or implement a custom solution.`,
     );
   }
@@ -223,7 +223,7 @@ async function downloadAndUploadVideo(
   const storageKey = `${organizationId}/highlight-reels/${reelId}-${timestamp}.mp4`;
 
   // Upload to R2 storage
-  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+  const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -231,11 +231,11 @@ async function downloadAndUploadVideo(
   const bucketName = env.R2_BUCKET_NAME;
 
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
-    throw new FatalError("R2 storage not configured. Please set R2_* environment variables.");
+    throw new FatalError('R2 storage not configured. Please set R2_* environment variables.');
   }
 
   const s3Client = new S3Client({
-    region: "auto",
+    region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId,
@@ -248,13 +248,13 @@ async function downloadAndUploadVideo(
       Bucket: bucketName,
       Key: storageKey,
       Body: videoBuffer,
-      ContentType: "video/mp4",
+      ContentType: 'video/mp4',
     }),
   );
 
   const publicUrl = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${storageKey}`;
 
-  log.info({ storageKey, publicUrl }, "Video uploaded to R2 storage");
+  log.info({ storageKey, publicUrl }, 'Video uploaded to R2 storage');
 
   return { storageKey, publicUrl };
 }
@@ -280,61 +280,61 @@ async function downloadAndUploadVideo(
  * from the last successful step.
  */
 export async function renderHighlightReelWorkflow(input: HighlightReelRenderInput): Promise<HighlightReelRenderResult> {
-  "use workflow";
+  'use workflow';
 
   const { reelId, organizationId } = input;
 
   try {
     // Step 1: Get the highlight reel data
-    const { db } = await import("@/lib/db");
-    const { highlightReels } = await import("@/lib/db/schema");
-    const { eq } = await import("drizzle-orm");
+    const { db } = await import('@/lib/db');
+    const { highlightReels } = await import('@/lib/db/schema');
+    const { eq } = await import('drizzle-orm');
 
     const reel = await db.query.highlightReels.findFirst({
       where: eq(highlightReels.id, reelId),
     });
-    ("use step");
+    ('use step');
 
     if (!reel) {
-      throw new FatalError("Highlight reel not found");
+      throw new FatalError('Highlight reel not found');
     }
 
     if (!reel.clipIds || reel.clipIds.length === 0) {
-      throw new FatalError("Highlight reel has no clips");
+      throw new FatalError('Highlight reel has no clips');
     }
 
     // Step 2: Update status to "rendering"
-    await updateReelStatus(reelId, "rendering");
-    ("use step");
+    await updateReelStatus(reelId, 'rendering');
+    ('use step');
 
     // Step 3: Get all clip segments
-    log.info({ reelId, clipCount: reel.clipIds.length }, "Fetching clip segments");
+    log.info({ reelId, clipCount: reel.clipIds.length }, 'Fetching clip segments');
     const segments = await getClipSegments(reel.clipIds);
-    ("use step");
+    ('use step');
 
     if (segments.length === 0) {
-      throw new FatalError("No valid clip segments found");
+      throw new FatalError('No valid clip segments found');
     }
 
-    log.info({ reelId, segmentCount: segments.length }, "Retrieved clip segments");
+    log.info({ reelId, segmentCount: segments.length }, 'Retrieved clip segments');
 
     // Step 4: Render the highlight reel
-    log.info({ reelId }, "Starting highlight reel rendering");
+    log.info({ reelId }, 'Starting highlight reel rendering');
     const renderedVideo = await renderHighlightReel(segments);
-    ("use step");
+    ('use step');
 
-    log.info({ reelId, videoUrl: renderedVideo.url }, "Highlight reel rendered successfully");
+    log.info({ reelId, videoUrl: renderedVideo.url }, 'Highlight reel rendered successfully');
 
     // Step 5: Download and upload to R2 storage
-    log.info({ reelId }, "Uploading rendered video to R2 storage");
+    log.info({ reelId }, 'Uploading rendered video to R2 storage');
     const { storageKey } = await downloadAndUploadVideo(renderedVideo.url, organizationId, reelId);
-    ("use step");
+    ('use step');
 
     // Step 6: Update highlight reel with final data
-    await updateReelStatus(reelId, "ready", undefined, storageKey, renderedVideo.duration);
-    ("use step");
+    await updateReelStatus(reelId, 'ready', undefined, storageKey, renderedVideo.duration);
+    ('use step');
 
-    log.info({ reelId, storageKey, duration: renderedVideo.duration }, "Highlight reel rendering completed");
+    log.info({ reelId, storageKey, duration: renderedVideo.duration }, 'Highlight reel rendering completed');
 
     return {
       reelId,
@@ -345,10 +345,10 @@ export async function renderHighlightReelWorkflow(input: HighlightReelRenderInpu
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    log.error({ reelId, error }, "Highlight reel rendering failed");
+    log.error({ reelId, error }, 'Highlight reel rendering failed');
 
     // Update status to failed
-    await updateReelStatus(reelId, "failed", errorMessage);
+    await updateReelStatus(reelId, 'failed', errorMessage);
 
     // Re-throw FatalErrors to stop retrying
     if (error instanceof FatalError) {

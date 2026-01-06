@@ -7,14 +7,14 @@
  * PUT /api/videos/[id]/transcript - Update transcript segments
  */
 
-import { eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
+import { eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
 
 // =============================================================================
 // Validation Schemas
@@ -54,8 +54,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video transcript",
-          operation: "getTranscript",
+          message: 'Failed to fetch video transcript',
+          operation: 'getTranscript',
           cause: error,
         }),
     });
@@ -63,8 +63,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!videoData) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id,
         }),
       );
@@ -100,16 +100,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       try: () => request.json(),
       catch: () =>
         new ValidationError({
-          message: "Invalid request body",
+          message: 'Invalid request body',
         }),
     });
 
     // Validate with schema
     const parseResult = Schema.decodeUnknownEither(UpdateTranscriptSchema)(body);
-    if (parseResult._tag === "Left") {
+    if (parseResult._tag === 'Left') {
       return yield* Effect.fail(
         new ValidationError({
-          message: "Invalid transcript data format",
+          message: 'Invalid transcript data format',
         }),
       );
     }
@@ -162,8 +162,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "updateTranscript",
+          message: 'Failed to fetch video',
+          operation: 'updateTranscript',
           cause: error,
         }),
     });
@@ -171,15 +171,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (!existingVideo) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id,
         }),
       );
     }
 
     // Generate full transcript text from segments
-    const fullTranscript = segments.map((s) => s.text).join(" ");
+    const fullTranscript = segments.map((s) => s.text).join(' ');
 
     // Update video with new transcript
     yield* Effect.tryPromise({
@@ -194,8 +194,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           .where(eq(videos.id, id)),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update transcript",
-          operation: "updateTranscript",
+          message: 'Failed to update transcript',
+          operation: 'updateTranscript',
           cause: error,
         }),
     });
@@ -205,7 +205,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       data: {
         videoId: id,
         segments,
-        message: "Transcript updated successfully",
+        message: 'Transcript updated successfully',
       },
     };
   });

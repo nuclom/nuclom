@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit, Layer, Option } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { HttpError, NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { GoogleMeet, GoogleMeetLive, type GoogleMeetRecording } from "@/lib/effect/services/google-meet";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
+import { Cause, Effect, Exit, Layer, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { HttpError, NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive, type GoogleMeetRecording } from '@/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const RecordingsLayer = Layer.mergeAll(GoogleMeetLive, IntegrationRepositoryWithDeps, DatabaseLive);
@@ -20,8 +20,8 @@ interface RecordingsResponse {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const pageToken = searchParams.get("pageToken") || undefined;
-  const pageSize = Number.parseInt(searchParams.get("pageSize") || "50", 10);
+  const pageToken = searchParams.get('pageToken') || undefined;
+  const pageSize = Number.parseInt(searchParams.get('pageSize') || '50', 10);
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
     const integrationRepo = yield* IntegrationRepository;
 
     // Get user's Google Meet integration
-    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, "google_meet");
+    const integration = yield* integrationRepo.getIntegrationByProvider(session.user.id, 'google_meet');
 
     if (!integration) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Google Meet integration not found. Please connect your Google account.",
-          entity: "Integration",
+          message: 'Google Meet integration not found. Please connect your Google account.',
+          entity: 'Integration',
         }),
       );
     }
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Google access token expired. Please reconnect your account.",
+            message: 'Google access token expired. Please reconnect your account.',
           }),
         );
       }
@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: err.status });
         }
       }
-      console.error("[Google Recordings Error]", cause);
-      return NextResponse.json({ success: false, error: "Failed to fetch recordings" }, { status: 500 });
+      console.error('[Google Recordings Error]', cause);
+      return NextResponse.json({ success: false, error: 'Failed to fetch recordings' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

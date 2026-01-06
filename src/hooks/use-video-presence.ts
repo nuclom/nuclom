@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Video Presence Hook
@@ -7,10 +7,10 @@
  * Shows who is currently watching the video with automatic heartbeat updates.
  */
 
-import { Either } from "effect";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchEffect, runClientEffect } from "@/lib/effect/client";
-import type { UserPresenceInfo } from "@/lib/effect/services/presence";
+import { Either } from 'effect';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { fetchEffect, runClientEffect } from '@/lib/effect/client';
+import type { UserPresenceInfo } from '@/lib/effect/services/presence';
 
 // =============================================================================
 // Types
@@ -62,7 +62,7 @@ export function useVideoPresence({
 
     const result = await runClientEffect(
       fetchEffect<{ success: boolean; data: UserPresenceInfo[] }>(`/videos/${videoId}/presence`, {
-        method: "GET",
+        method: 'GET',
       }),
     );
 
@@ -88,10 +88,10 @@ export function useVideoPresence({
 
       const result = await runClientEffect(
         fetchEffect(`/videos/${videoId}/presence`, {
-          method: "POST",
+          method: 'POST',
           body: {
             currentTime,
-            status: "online",
+            status: 'online',
           },
         }),
       );

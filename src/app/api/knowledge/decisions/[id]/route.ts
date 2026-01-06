@@ -1,9 +1,9 @@
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { KnowledgeGraphRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { KnowledgeGraphRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Update Schema
@@ -15,8 +15,8 @@ const updateDecisionSchema = Schema.Struct({
   reasoning: Schema.optional(Schema.String.pipe(Schema.maxLength(1000))),
   timestampStart: Schema.optional(Schema.Number),
   timestampEnd: Schema.optional(Schema.Number),
-  decisionType: Schema.optional(Schema.Literal("technical", "process", "product", "team", "other")),
-  status: Schema.optional(Schema.Literal("proposed", "decided", "revisited", "superseded")),
+  decisionType: Schema.optional(Schema.Literal('technical', 'process', 'product', 'team', 'other')),
+  status: Schema.optional(Schema.Literal('proposed', 'decided', 'revisited', 'superseded')),
   confidence: Schema.optional(Schema.Number.pipe(Schema.between(0, 100))),
   tags: Schema.optional(Schema.Array(Schema.String)),
 });

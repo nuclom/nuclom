@@ -7,11 +7,11 @@
  * - Get users who reacted
  */
 
-import { and, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { type CommentReaction, commentReactions, type ReactionType, users } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { and, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { type CommentReaction, commentReactions, type ReactionType, users } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -106,7 +106,7 @@ export interface CommentReactionsServiceInterface {
 // Comment Reactions Service Tag
 // =============================================================================
 
-export class CommentReactionsService extends Context.Tag("CommentReactionsService")<
+export class CommentReactionsService extends Context.Tag('CommentReactionsService')<
   CommentReactionsService,
   CommentReactionsServiceInterface
 >() {}
@@ -157,8 +157,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add reaction",
-          operation: "addReaction",
+          message: 'Failed to add reaction',
+          operation: 'addReaction',
           cause: error,
         }),
     });
@@ -183,8 +183,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
 
         if (result.length === 0) {
           throw new NotFoundError({
-            message: "Reaction not found",
-            entity: "CommentReaction",
+            message: 'Reaction not found',
+            entity: 'CommentReaction',
           });
         }
       },
@@ -193,8 +193,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
           return error;
         }
         return new DatabaseError({
-          message: "Failed to remove reaction",
-          operation: "removeReaction",
+          message: 'Failed to remove reaction',
+          operation: 'removeReaction',
           cause: error,
         });
       },
@@ -237,8 +237,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to toggle reaction",
-          operation: "toggleReaction",
+          message: 'Failed to toggle reaction',
+          operation: 'toggleReaction',
           cause: error,
         }),
     });
@@ -262,8 +262,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get reaction counts",
-          operation: "getReactionCounts",
+          message: 'Failed to get reaction counts',
+          operation: 'getReactionCounts',
           cause: error,
         }),
     });
@@ -330,8 +330,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get reactions for comments",
-          operation: "getReactionsForComments",
+          message: 'Failed to get reactions for comments',
+          operation: 'getReactionsForComments',
           cause: error,
         }),
     });
@@ -372,8 +372,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get reaction users",
-          operation: "getReactionUsers",
+          message: 'Failed to get reaction users',
+          operation: 'getReactionUsers',
           cause: error,
         }),
     });
@@ -390,8 +390,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get user reactions",
-          operation: "getUserReactions",
+          message: 'Failed to get user reactions',
+          operation: 'getUserReactions',
           cause: error,
         }),
     });
@@ -419,8 +419,8 @@ const makeCommentReactionsService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check reaction",
-          operation: "hasReacted",
+          message: 'Failed to check reaction',
+          operation: 'hasReacted',
           cause: error,
         }),
     });

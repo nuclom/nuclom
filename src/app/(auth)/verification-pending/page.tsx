@@ -1,5 +1,5 @@
-import { Suspense } from "react";
-import { VerificationPendingForm } from "@/components/auth/verification-pending-form";
+import { Suspense } from 'react';
+import { VerificationPendingForm } from '@/components/auth/verification-pending-form';
 
 export default function VerificationPendingPage() {
   return (

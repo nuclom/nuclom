@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Keyboard, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { KEYBOARD_SHORTCUTS } from "../types";
+import { Keyboard, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { KEYBOARD_SHORTCUTS } from '../types';
 
 interface KeyboardHelpModalProps {
   visible: boolean;

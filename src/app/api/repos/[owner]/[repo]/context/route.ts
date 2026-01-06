@@ -1,7 +1,7 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { CodeLinksRepository } from "@/lib/effect";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { CodeLinksRepository } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/repos/[owner]/[repo]/context - Get all video context for a repository
@@ -24,11 +24,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const topVideos = yield* codeLinksRepo.searchVideosForRepo(fullRepoName, undefined, 10);
 
     // Group links by type
-    const prs = links.filter((l) => l.linkType === "pr");
-    const issues = links.filter((l) => l.linkType === "issue");
-    const commits = links.filter((l) => l.linkType === "commit");
-    const files = links.filter((l) => l.linkType === "file");
-    const directories = links.filter((l) => l.linkType === "directory");
+    const prs = links.filter((l) => l.linkType === 'pr');
+    const issues = links.filter((l) => l.linkType === 'issue');
+    const commits = links.filter((l) => l.linkType === 'commit');
+    const files = links.filter((l) => l.linkType === 'file');
+    const directories = links.filter((l) => l.linkType === 'directory');
 
     // Get unique PRs, issues, etc. with their videos
     const groupByRef = (items: typeof links) => {

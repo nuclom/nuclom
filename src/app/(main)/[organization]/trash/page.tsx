@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { Clock, Loader2, RotateCcw, Trash2 } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { formatDistanceToNow } from 'date-fns';
+import { Clock, Loader2, RotateCcw, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,11 +14,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
 
 interface DeletedVideo {
   id: string;
@@ -90,7 +90,7 @@ function TrashVideoCard({
           {/* Thumbnail */}
           <div className="relative aspect-video overflow-hidden bg-muted">
             <Image
-              src={video.thumbnailUrl || "/placeholder.svg"}
+              src={video.thumbnailUrl || '/placeholder.svg'}
               alt={video.title}
               fill
               sizes={IMAGE_SIZES.videoCard}
@@ -106,7 +106,7 @@ function TrashVideoCard({
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
               <div className="bg-destructive/90 text-destructive-foreground text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5">
                 <Clock className="h-3 w-3" />
-                {daysUntilPermanentDeletion > 0 ? `${daysUntilPermanentDeletion} days left` : "Expires today"}
+                {daysUntilPermanentDeletion > 0 ? `${daysUntilPermanentDeletion} days left` : 'Expires today'}
               </div>
             </div>
           </div>
@@ -214,16 +214,16 @@ export default function TrashPage() {
 
   const fetchDeletedVideos = useCallback(async () => {
     try {
-      const response = await fetch("/api/videos/deleted");
+      const response = await fetch('/api/videos/deleted');
       if (!response.ok) {
-        throw new Error("Failed to fetch deleted videos");
+        throw new Error('Failed to fetch deleted videos');
       }
       const data: DeletedVideosResponse = await response.json();
       if (data.success && data.data) {
         setVideos(data.data.data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -236,35 +236,35 @@ export default function TrashPage() {
   const handleRestore = async (videoId: string) => {
     try {
       const response = await fetch(`/api/videos/${videoId}/restore`, {
-        method: "POST",
+        method: 'POST',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to restore video");
+        throw new Error('Failed to restore video');
       }
 
       // Remove from list
       setVideos((prev) => prev.filter((v) => v.id !== videoId));
       router.refresh();
     } catch (err) {
-      console.error("Failed to restore video:", err);
+      console.error('Failed to restore video:', err);
     }
   };
 
   const handlePermanentDelete = async (videoId: string) => {
     try {
       const response = await fetch(`/api/videos/${videoId}?permanent=true`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete video");
+        throw new Error('Failed to delete video');
       }
 
       // Remove from list
       setVideos((prev) => prev.filter((v) => v.id !== videoId));
     } catch (err) {
-      console.error("Failed to delete video:", err);
+      console.error('Failed to delete video:', err);
     }
   };
 

@@ -1,13 +1,13 @@
-import { sql } from "drizzle-orm";
-import { Effect, Exit } from "effect";
-import { connection } from "next/server";
-import { createPublicLayer } from "@/lib/api-handler";
-import { Database } from "@/lib/effect/services/database";
-import { env } from "@/lib/env/server";
-import { logger } from "@/lib/logger";
+import { sql } from 'drizzle-orm';
+import { Effect, Exit } from 'effect';
+import { connection } from 'next/server';
+import { createPublicLayer } from '@/lib/api-handler';
+import { Database } from '@/lib/effect/services/database';
+import { env } from '@/lib/env/server';
+import { logger } from '@/lib/logger';
 
 export interface HealthStatus {
-  status: "healthy" | "degraded" | "unhealthy";
+  status: 'healthy' | 'degraded' | 'unhealthy';
   checks: {
     database: boolean;
     storage: boolean;
@@ -44,7 +44,7 @@ export async function GET() {
       Effect.match({
         onSuccess: () => true,
         onFailure: (error) => {
-          logger.error("Health check failed: database", error instanceof Error ? error : new Error(String(error)));
+          logger.error('Health check failed: database', error instanceof Error ? error : new Error(String(error)));
           return false;
         },
       }),
@@ -55,18 +55,18 @@ export async function GET() {
     const allHealthy = Object.values(checks).every(Boolean);
     const someHealthy = Object.values(checks).some(Boolean);
 
-    let status: HealthStatus["status"];
+    let status: HealthStatus['status'];
     if (allHealthy) {
-      status = "healthy";
+      status = 'healthy';
     } else if (someHealthy) {
-      status = "degraded";
+      status = 'degraded';
     } else {
-      status = "unhealthy";
+      status = 'unhealthy';
     }
 
     const durationMs = Math.round(performance.now() - startTime);
 
-    logger.info("Health check completed", {
+    logger.info('Health check completed', {
       status,
       checks,
       durationMs,
@@ -76,7 +76,7 @@ export async function GET() {
       status,
       checks,
       timestamp: new Date().toISOString(),
-      version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
+      version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'dev',
       durationMs,
     } satisfies HealthStatus;
   });
@@ -88,20 +88,20 @@ export async function GET() {
   return Exit.match(exit, {
     onFailure: () => {
       const response: HealthStatus = {
-        status: "unhealthy",
+        status: 'unhealthy',
         checks: { database: false, storage: false, ai: false },
         timestamp: new Date().toISOString(),
-        version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "dev",
+        version: env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'dev',
       };
       return Response.json(response, {
         status: 503,
-        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
       });
     },
     onSuccess: (data: HealthStatus) => {
       return Response.json(data, {
-        status: data.status === "unhealthy" ? 503 : 200,
-        headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+        status: data.status === 'unhealthy' ? 503 : 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
       });
     },
   });

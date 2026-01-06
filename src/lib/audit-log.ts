@@ -1,19 +1,19 @@
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import { headers } from "next/headers";
-import { db } from "./db";
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { db } from './db';
 import {
   type AuditLogCategory,
   type AuditLogSeverity,
   auditLogExports,
   auditLogs,
   type NewAuditLog,
-} from "./db/schema";
-import { env } from "./env/server";
+} from './db/schema';
+import { env } from './env/server';
 
 export interface AuditLogContext {
   actorId?: string;
   actorEmail?: string;
-  actorType?: "user" | "system" | "api_key" | "sso";
+  actorType?: 'user' | 'system' | 'api_key' | 'sso';
   organizationId?: string;
   requestId?: string;
   sessionId?: string;
@@ -46,7 +46,7 @@ export interface AuditLogFilters {
 }
 
 export interface AuditLogExportOptions {
-  format: "csv" | "json";
+  format: 'csv' | 'json';
   filters: AuditLogFilters;
 }
 
@@ -60,21 +60,21 @@ export class AuditLogger {
    */
   static async log(entry: AuditLogEntry, context: AuditLogContext = {}): Promise<string> {
     const headerList = await headers();
-    const ipAddress = headerList.get("x-forwarded-for")?.split(",")[0]?.trim() || headerList.get("x-real-ip");
-    const userAgent = headerList.get("user-agent");
-    const requestId = headerList.get("x-request-id") || crypto.randomUUID();
+    const ipAddress = headerList.get('x-forwarded-for')?.split(',')[0]?.trim() || headerList.get('x-real-ip');
+    const userAgent = headerList.get('user-agent');
+    const requestId = headerList.get('x-request-id') || crypto.randomUUID();
 
     const id = crypto.randomUUID();
     const auditLog: NewAuditLog = {
       id,
       actorId: context.actorId || null,
       actorEmail: context.actorEmail || null,
-      actorType: context.actorType || "user",
+      actorType: context.actorType || 'user',
       organizationId: context.organizationId || null,
       category: entry.category,
       action: entry.action,
       description: entry.description || null,
-      severity: entry.severity || "info",
+      severity: entry.severity || 'info',
       resourceType: entry.resourceType || null,
       resourceId: entry.resourceId || null,
       resourceName: entry.resourceName || null,
@@ -90,8 +90,8 @@ export class AuditLogger {
     await db.insert(auditLogs).values(auditLog);
 
     // Log to console in development
-    if (env.NODE_ENV === "development") {
-      console.log(`[Audit] ${entry.category}.${entry.action}: ${entry.description || "No description"}`);
+    if (env.NODE_ENV === 'development') {
+      console.log(`[Audit] ${entry.category}.${entry.action}: ${entry.description || 'No description'}`);
     }
 
     return id;
@@ -101,26 +101,26 @@ export class AuditLogger {
    * Log authentication events
    */
   static async logAuth(
-    action: "login" | "logout" | "login_failed" | "password_reset" | "2fa_enabled" | "2fa_disabled" | "sso_login",
+    action: 'login' | 'logout' | 'login_failed' | 'password_reset' | '2fa_enabled' | '2fa_disabled' | 'sso_login',
     context: AuditLogContext,
     metadata?: Record<string, unknown>,
   ): Promise<string> {
     const descriptions: Record<string, string> = {
-      login: "User logged in successfully",
-      logout: "User logged out",
-      login_failed: "Login attempt failed",
-      password_reset: "Password was reset",
-      "2fa_enabled": "Two-factor authentication enabled",
-      "2fa_disabled": "Two-factor authentication disabled",
-      sso_login: "User logged in via SSO",
+      login: 'User logged in successfully',
+      logout: 'User logged out',
+      login_failed: 'Login attempt failed',
+      password_reset: 'Password was reset',
+      '2fa_enabled': 'Two-factor authentication enabled',
+      '2fa_disabled': 'Two-factor authentication disabled',
+      sso_login: 'User logged in via SSO',
     };
 
     return AuditLogger.log(
       {
-        category: "authentication",
+        category: 'authentication',
         action: `user.${action}`,
         description: descriptions[action],
-        severity: action === "login_failed" ? "warning" : "info",
+        severity: action === 'login_failed' ? 'warning' : 'info',
         metadata,
       },
       context,
@@ -131,7 +131,7 @@ export class AuditLogger {
    * Log authorization events
    */
   static async logAuthz(
-    action: "permission_granted" | "permission_denied" | "role_assigned" | "role_removed",
+    action: 'permission_granted' | 'permission_denied' | 'role_assigned' | 'role_removed',
     context: AuditLogContext,
     details: {
       resourceType?: string;
@@ -151,10 +151,10 @@ export class AuditLogger {
 
     return AuditLogger.log(
       {
-        category: "authorization",
+        category: 'authorization',
         action: `access.${action}`,
         description: descriptions[action],
-        severity: action === "permission_denied" ? "warning" : "info",
+        severity: action === 'permission_denied' ? 'warning' : 'info',
         resourceType: details.resourceType,
         resourceId: details.resourceId,
         resourceName: details.resourceName,
@@ -168,8 +168,8 @@ export class AuditLogger {
    * Log content management events
    */
   static async logContent(
-    action: "created" | "updated" | "deleted" | "shared" | "downloaded",
-    resourceType: "video" | "channel" | "collection" | "comment",
+    action: 'created' | 'updated' | 'deleted' | 'shared' | 'downloaded',
+    resourceType: 'video' | 'channel' | 'collection' | 'comment',
     context: AuditLogContext,
     details: {
       resourceId: string;
@@ -180,7 +180,7 @@ export class AuditLogger {
   ): Promise<string> {
     return AuditLogger.log(
       {
-        category: "content_management",
+        category: 'content_management',
         action: `${resourceType}.${action}`,
         description: `${resourceType} ${action}: ${details.resourceName || details.resourceId}`,
         resourceType,
@@ -197,7 +197,7 @@ export class AuditLogger {
    * Log organization management events
    */
   static async logOrgManagement(
-    action: "member_added" | "member_removed" | "settings_updated" | "sso_configured" | "storage_configured",
+    action: 'member_added' | 'member_removed' | 'settings_updated' | 'sso_configured' | 'storage_configured',
     context: AuditLogContext,
     details: {
       targetUserId?: string;
@@ -209,14 +209,14 @@ export class AuditLogger {
     const descriptions: Record<string, string> = {
       member_added: `Member added: ${details.targetEmail || details.targetUserId}`,
       member_removed: `Member removed: ${details.targetEmail || details.targetUserId}`,
-      settings_updated: "Organization settings updated",
-      sso_configured: "SSO configuration updated",
-      storage_configured: "Storage configuration updated",
+      settings_updated: 'Organization settings updated',
+      sso_configured: 'SSO configuration updated',
+      storage_configured: 'Storage configuration updated',
     };
 
     return AuditLogger.log(
       {
-        category: "organization_management",
+        category: 'organization_management',
         action: `org.${action}`,
         description: descriptions[action],
         previousValue: details.previousValue,
@@ -232,30 +232,30 @@ export class AuditLogger {
    */
   static async logSecurity(
     action:
-      | "session_revoked"
-      | "api_key_created"
-      | "api_key_revoked"
-      | "suspicious_activity"
-      | "rate_limit_exceeded"
-      | "permission_escalation",
+      | 'session_revoked'
+      | 'api_key_created'
+      | 'api_key_revoked'
+      | 'suspicious_activity'
+      | 'rate_limit_exceeded'
+      | 'permission_escalation',
     context: AuditLogContext,
     details?: Record<string, unknown>,
   ): Promise<string> {
     const severityMap: Record<string, AuditLogSeverity> = {
-      session_revoked: "warning",
-      api_key_created: "info",
-      api_key_revoked: "info",
-      suspicious_activity: "error",
-      rate_limit_exceeded: "warning",
-      permission_escalation: "critical",
+      session_revoked: 'warning',
+      api_key_created: 'info',
+      api_key_revoked: 'info',
+      suspicious_activity: 'error',
+      rate_limit_exceeded: 'warning',
+      permission_escalation: 'critical',
     };
 
     return AuditLogger.log(
       {
-        category: "security",
+        category: 'security',
         action: `security.${action}`,
-        description: action.replace(/_/g, " "),
-        severity: severityMap[action] || "info",
+        description: action.replace(/_/g, ' '),
+        severity: severityMap[action] || 'info',
         metadata: details,
       },
       context,
@@ -340,7 +340,7 @@ export class AuditLogger {
       organizationId,
       requestedBy,
       format: options.format,
-      status: "pending",
+      status: 'pending',
       filters: {
         startDate: options.filters.startDate?.toISOString(),
         endDate: options.filters.endDate?.toISOString(),
@@ -372,7 +372,7 @@ export class AuditLogger {
 
     try {
       // Update status to processing
-      await db.update(auditLogExports).set({ status: "processing" }).where(eq(auditLogExports.id, exportId));
+      await db.update(auditLogExports).set({ status: 'processing' }).where(eq(auditLogExports.id, exportId));
 
       // Build filters from stored filter data
       const filters: AuditLogFilters = {};
@@ -414,25 +414,25 @@ export class AuditLogger {
 
       // Generate export content
       let content: string;
-      if (exportRequest.format === "json") {
+      if (exportRequest.format === 'json') {
         content = JSON.stringify(allLogs, null, 2);
       } else {
         // CSV format
         const csvHeaders = [
-          "id",
-          "timestamp",
-          "category",
-          "action",
-          "description",
-          "severity",
-          "actor_id",
-          "actor_email",
-          "actor_type",
-          "resource_type",
-          "resource_id",
-          "resource_name",
-          "ip_address",
-          "user_agent",
+          'id',
+          'timestamp',
+          'category',
+          'action',
+          'description',
+          'severity',
+          'actor_id',
+          'actor_email',
+          'actor_type',
+          'resource_type',
+          'resource_id',
+          'resource_name',
+          'ip_address',
+          'user_agent',
         ];
         const csvRows = allLogs.map((log) =>
           [
@@ -440,32 +440,32 @@ export class AuditLogger {
             log.createdAt.toISOString(),
             log.category,
             log.action,
-            log.description || "",
+            log.description || '',
             log.severity,
-            log.actorId || "",
-            log.actorEmail || "",
+            log.actorId || '',
+            log.actorEmail || '',
             log.actorType,
-            log.resourceType || "",
-            log.resourceId || "",
-            log.resourceName || "",
-            log.ipAddress || "",
-            log.userAgent || "",
+            log.resourceType || '',
+            log.resourceId || '',
+            log.resourceName || '',
+            log.ipAddress || '',
+            log.userAgent || '',
           ]
             .map((val) => `"${String(val).replace(/"/g, '""')}"`)
-            .join(","),
+            .join(','),
         );
-        content = [csvHeaders.join(","), ...csvRows].join("\n");
+        content = [csvHeaders.join(','), ...csvRows].join('\n');
       }
 
       // In a real implementation, upload to storage and generate a signed URL
       // For now, we'll store a placeholder
-      const downloadUrl = `data:${exportRequest.format === "json" ? "application/json" : "text/csv"};base64,${Buffer.from(content).toString("base64")}`;
+      const downloadUrl = `data:${exportRequest.format === 'json' ? 'application/json' : 'text/csv'};base64,${Buffer.from(content).toString('base64')}`;
 
       // Update export record
       await db
         .update(auditLogExports)
         .set({
-          status: "completed",
+          status: 'completed',
           downloadUrl,
           recordCount: allLogs.length,
           completedAt: new Date(),
@@ -477,8 +477,8 @@ export class AuditLogger {
       await db
         .update(auditLogExports)
         .set({
-          status: "failed",
-          errorMessage: error instanceof Error ? error.message : "Unknown error",
+          status: 'failed',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
           completedAt: new Date(),
         })
         .where(eq(auditLogExports.id, exportId));

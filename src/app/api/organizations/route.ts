@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { OrganizationRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { SlackMonitoring } from "@/lib/effect/services/slack-monitoring";
-import { validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { mapErrorToApiResponse } from '@/lib/api-errors';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { OrganizationRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
+import { validateRequestBody } from '@/lib/validation';
 
 const CreateOrganizationSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     // Send Slack monitoring notification
     const slackMonitoring = yield* SlackMonitoring;
     yield* slackMonitoring
-      .sendAccountEvent("organization_created", {
+      .sendAccountEvent('organization_created', {
         organizationId: org.id,
         organizationName: org.name,
         userId: user.id,
@@ -76,10 +76,10 @@ export async function POST(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json(data, { status: 201 }),
   });

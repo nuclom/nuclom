@@ -280,7 +280,7 @@ Status: 500
 ```json
 {
   "success": false,
-  "error": "Transcription service not available. Please configure OPENAI_API_KEY."
+  "error": "Transcription service not available. Please configure REPLICATE_API_TOKEN."
 }
 ```
 Status: 500
@@ -302,12 +302,11 @@ Status: 500
 Required environment variables for AI processing:
 
 ```bash
-# OpenAI API Key (for Whisper transcription)
-OPENAI_API_KEY=sk-...
-
-# AI Gateway URL (for XAI Grok-3)
-AI_GATEWAY_URL=https://gateway.ai.example.com
+# Replicate API Token (for Whisper transcription)
+REPLICATE_API_TOKEN=r8_...
 ```
+
+The AI text generation (summaries, tags, action items) uses XAI Grok-3 via the Vercel AI SDK gateway and requires no additional configuration.
 
 ## Architecture
 

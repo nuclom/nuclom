@@ -27,7 +27,7 @@ import type {
   twoFactors,
   users,
   verifications,
-} from "./auth";
+} from './auth';
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -106,7 +106,7 @@ import type {
   videoViewSourceEnum,
   workflowTemplateTypeEnum,
   zapierWebhookEventEnum,
-} from "./enums";
+} from './enums';
 
 // Auth enums
 export type UserRole = (typeof userRoleEnum.enumValues)[number];

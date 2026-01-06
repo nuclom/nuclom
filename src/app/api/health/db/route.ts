@@ -1,9 +1,9 @@
-import { sql } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { logger } from "@/lib/logger";
+import { sql } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 export interface DatabaseHealthStatus {
-  status: "healthy" | "unhealthy";
+  status: 'healthy' | 'unhealthy';
   latencyMs: number;
   timestamp: string;
   details?: {
@@ -23,27 +23,27 @@ export async function GET() {
     const latencyMs = Math.round(performance.now() - startTime);
 
     const response: DatabaseHealthStatus = {
-      status: "healthy",
+      status: 'healthy',
       latencyMs,
       timestamp: new Date().toISOString(),
     };
 
-    logger.debug("Database health check passed", { latencyMs });
+    logger.debug('Database health check passed', { latencyMs });
 
     return Response.json(response, {
       status: 200,
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   } catch (error) {
     const latencyMs = Math.round(performance.now() - startTime);
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    logger.error("Database health check failed", error instanceof Error ? error : new Error(errorMessage));
+    logger.error('Database health check failed', error instanceof Error ? error : new Error(errorMessage));
 
     const response: DatabaseHealthStatus = {
-      status: "unhealthy",
+      status: 'unhealthy',
       latencyMs,
       timestamp: new Date().toISOString(),
       error: errorMessage,
@@ -52,7 +52,7 @@ export async function GET() {
     return Response.json(response, {
       status: 503,
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   }

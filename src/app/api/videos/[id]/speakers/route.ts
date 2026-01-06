@@ -5,15 +5,15 @@
  * getting talk time distribution, and linking speakers to org members.
  */
 
-import { desc, eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { normalizeOne } from "@/lib/db/relations";
-import { speakerProfiles, videoSpeakers, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError } from "@/lib/effect";
-import { validateRequestBody } from "@/lib/validation";
+import { desc, eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { normalizeOne } from '@/lib/db/relations';
+import { speakerProfiles, videoSpeakers, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/speakers - Get speakers in a video with talk time stats
@@ -33,8 +33,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -42,8 +42,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -72,8 +72,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speakers",
-          operation: "getSpeakers",
+          message: 'Failed to fetch speakers',
+          operation: 'getSpeakers',
           cause: error,
         }),
     });
@@ -151,8 +151,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!speakerId) {
       return yield* Effect.fail(
         new DatabaseError({
-          message: "speakerId is required",
-          operation: "validateInput",
+          message: 'speakerId is required',
+          operation: 'validateInput',
         }),
       );
     }
@@ -168,8 +168,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch speaker",
-          operation: "getSpeaker",
+          message: 'Failed to fetch speaker',
+          operation: 'getSpeaker',
           cause: error,
         }),
     });
@@ -177,8 +177,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!videoSpeaker || videoSpeaker.videoId !== videoId) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Speaker not found in this video",
-          entity: "VideoSpeaker",
+          message: 'Speaker not found in this video',
+          entity: 'VideoSpeaker',
           id: speakerId,
         }),
       );
@@ -202,8 +202,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         try: () => db.update(speakerProfiles).set(updates).where(eq(speakerProfiles.id, profileId)),
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update speaker profile",
-            operation: "updateProfile",
+            message: 'Failed to update speaker profile',
+            operation: 'updateProfile',
             cause: error,
           }),
       });

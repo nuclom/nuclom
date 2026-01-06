@@ -5,36 +5,36 @@
  * to build a knowledge graph of team decisions over time.
  */
 
-import { gateway } from "@ai-sdk/gateway";
-import { generateObject, jsonSchema } from "ai";
-import { Context, Effect, JSONSchema, Layer, Schedule, Schema } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { AIServiceError } from "../errors";
+import { gateway } from '@ai-sdk/gateway';
+import { generateObject, jsonSchema } from 'ai';
+import { Context, Effect, JSONSchema, Layer, Schedule, Schema } from 'effect';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { AIServiceError } from '../errors';
 
 // =============================================================================
 // Effect Schemas for Decision Extraction
 // =============================================================================
 
-export const DecisionTypeSchema = Schema.Literal("technical", "process", "product", "team", "other");
+export const DecisionTypeSchema = Schema.Literal('technical', 'process', 'product', 'team', 'other');
 
-export const DecisionStatusSchema = Schema.Literal("proposed", "decided", "revisited", "superseded");
+export const DecisionStatusSchema = Schema.Literal('proposed', 'decided', 'revisited', 'superseded');
 
 export const ParticipantSchema = Schema.Struct({
-  name: Schema.String.annotations({ description: "Name of the participant as mentioned in the transcript" }),
-  role: Schema.Literal("decider", "participant", "mentioned").annotations({
-    description: "Role in the decision: decider (made the call), participant (discussed), mentioned (referenced)",
+  name: Schema.String.annotations({ description: 'Name of the participant as mentioned in the transcript' }),
+  role: Schema.Literal('decider', 'participant', 'mentioned').annotations({
+    description: 'Role in the decision: decider (made the call), participant (discussed), mentioned (referenced)',
   }),
   attributedText: Schema.optional(Schema.String).annotations({
-    description: "What this person said that contributed to the decision",
+    description: 'What this person said that contributed to the decision',
   }),
 });
 
 export const ExternalReferenceSchema = Schema.Struct({
   type: Schema.String.annotations({
-    description: "Type of reference: github:pr, github:issue, linear:issue, notion:page, file, url, etc.",
+    description: 'Type of reference: github:pr, github:issue, linear:issue, notion:page, file, url, etc.',
   }),
-  id: Schema.String.annotations({ description: "The identifier (e.g., PR #123, issue key)" }),
-  url: Schema.optional(Schema.String).annotations({ description: "URL if available" }),
+  id: Schema.String.annotations({ description: 'The identifier (e.g., PR #123, issue key)' }),
+  url: Schema.optional(Schema.String).annotations({ description: 'URL if available' }),
 });
 
 export const ExtractedDecisionSchema = Schema.Struct({
@@ -42,52 +42,52 @@ export const ExtractedDecisionSchema = Schema.Struct({
     description: "Clear summary of what was decided, e.g., 'We decided to use PostgreSQL instead of MongoDB'",
   }),
   context: Schema.optional(Schema.String.pipe(Schema.maxLength(2000))).annotations({
-    description: "The surrounding discussion and context that led to this decision",
+    description: 'The surrounding discussion and context that led to this decision',
   }),
   reasoning: Schema.optional(Schema.String.pipe(Schema.maxLength(1000))).annotations({
-    description: "Why this decision was made - the rationale and factors considered",
+    description: 'Why this decision was made - the rationale and factors considered',
   }),
   timestampStart: Schema.Number.annotations({
-    description: "Start timestamp in seconds where this decision is discussed",
+    description: 'Start timestamp in seconds where this decision is discussed',
   }),
   timestampEnd: Schema.optional(Schema.Number).annotations({
-    description: "End timestamp in seconds where this decision discussion ends",
+    description: 'End timestamp in seconds where this decision discussion ends',
   }),
   decisionType: DecisionTypeSchema.annotations({
-    description: "Type of decision: technical, process, product, team, or other",
+    description: 'Type of decision: technical, process, product, team, or other',
   }),
   status: DecisionStatusSchema.annotations({
-    description: "Status: proposed (not final), decided (final), revisited (reconsidering), superseded (replaced)",
+    description: 'Status: proposed (not final), decided (final), revisited (reconsidering), superseded (replaced)',
   }),
   confidence: Schema.Number.pipe(Schema.between(0, 100)).annotations({
-    description: "AI confidence score 0-100 that this is actually a decision",
+    description: 'AI confidence score 0-100 that this is actually a decision',
   }),
   participants: Schema.Array(ParticipantSchema).annotations({
-    description: "People involved in making or discussing this decision",
+    description: 'People involved in making or discussing this decision',
   }),
   alternatives: Schema.optional(Schema.Array(Schema.String)).annotations({
-    description: "Alternative options that were considered but not chosen",
+    description: 'Alternative options that were considered but not chosen',
   }),
   externalRefs: Schema.optional(Schema.Array(ExternalReferenceSchema)).annotations({
-    description: "References to external artifacts like PRs, issues, documents mentioned",
+    description: 'References to external artifacts like PRs, issues, documents mentioned',
   }),
   tags: Schema.Array(Schema.String).pipe(Schema.maxItems(10)).annotations({
-    description: "Topic tags for this decision (e.g., database, authentication, performance)",
+    description: 'Topic tags for this decision (e.g., database, authentication, performance)',
   }),
 });
 
 export const DecisionExtractionResultSchema = Schema.Struct({
   decisions: Schema.Array(ExtractedDecisionSchema).annotations({
-    description: "List of decisions extracted from the transcript",
+    description: 'List of decisions extracted from the transcript',
   }),
   totalDecisions: Schema.Number.annotations({
-    description: "Total number of decisions found",
+    description: 'Total number of decisions found',
   }),
   primaryTopics: Schema.Array(Schema.String).pipe(Schema.maxItems(5)).annotations({
-    description: "The main topics discussed in this video",
+    description: 'The main topics discussed in this video',
   }),
   hasActionItems: Schema.Boolean.annotations({
-    description: "Whether the video contains action items related to decisions",
+    description: 'Whether the video contains action items related to decisions',
   }),
 });
 
@@ -142,7 +142,7 @@ export interface DecisionExtractionServiceInterface {
 // Service Tag
 // =============================================================================
 
-export class DecisionExtraction extends Context.Tag("DecisionExtraction")<
+export class DecisionExtraction extends Context.Tag('DecisionExtraction')<
   DecisionExtraction,
   DecisionExtractionServiceInterface
 >() {}
@@ -151,9 +151,9 @@ export class DecisionExtraction extends Context.Tag("DecisionExtraction")<
 // Retry Policy
 // =============================================================================
 
-const retryPolicy = Schedule.exponential("1 second").pipe(
-  Schedule.union(Schedule.spaced("500 millis")),
-  Schedule.upTo("30 seconds"),
+const retryPolicy = Schedule.exponential('1 second').pipe(
+  Schedule.union(Schedule.spaced('500 millis')),
+  Schedule.upTo('30 seconds'),
   Schedule.jittered,
 );
 
@@ -199,13 +199,13 @@ const formatTime = (seconds: number): string => {
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
   if (hrs > 0) {
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const formatSegmentsForPrompt = (segments: ReadonlyArray<TranscriptSegment>): string => {
-  return segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+  return segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 };
 
 // =============================================================================
@@ -213,7 +213,7 @@ const formatSegmentsForPrompt = (segments: ReadonlyArray<TranscriptSegment>): st
 // =============================================================================
 
 const makeDecisionExtractionService = Effect.gen(function* () {
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   const extractDecisions = (
     segments: ReadonlyArray<TranscriptSegment>,
@@ -238,7 +238,7 @@ const makeDecisionExtractionService = Effect.gen(function* () {
           schema: decisionExtractionJsonSchema,
           prompt: `${DECISION_EXTRACTION_PROMPT}
 
-${videoTitle ? `Video Title: "${videoTitle}"` : ""}
+${videoTitle ? `Video Title: "${videoTitle}"` : ''}
 Total Duration: ${formatTime(totalDuration)}
 
 Transcript:
@@ -249,8 +249,8 @@ ${formattedTranscript}`,
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to extract decisions from transcript",
-          operation: "extractDecisions",
+          message: 'Failed to extract decisions from transcript',
+          operation: 'extractDecisions',
           cause: error,
         }),
     }).pipe(
@@ -285,7 +285,7 @@ ${formattedTranscript}`,
           schema: decisionExtractionJsonSchema,
           prompt: `${DECISION_EXTRACTION_PROMPT}
 
-${videoTitle ? `Video Title: "${videoTitle}"` : ""}
+${videoTitle ? `Video Title: "${videoTitle}"` : ''}
 
 Transcript:
 ${transcript.slice(0, 20000)}
@@ -297,8 +297,8 @@ Note: This transcript does not have timestamps, so use your best estimate for wh
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to extract decisions from text",
-          operation: "extractDecisionsFromText",
+          message: 'Failed to extract decisions from text',
+          operation: 'extractDecisionsFromText',
           cause: error,
         }),
     }).pipe(
@@ -328,8 +328,8 @@ Note: This transcript does not have timestamps, so use your best estimate for wh
 
 Current Decision:
 - Summary: ${decision.summary}
-- Context: ${decision.context || "None provided"}
-- Reasoning: ${decision.reasoning || "None provided"}
+- Context: ${decision.context || 'None provided'}
+- Reasoning: ${decision.reasoning || 'None provided'}
 - Type: ${decision.decisionType}
 - Status: ${decision.status}
 - Confidence: ${decision.confidence}
@@ -349,8 +349,8 @@ Please update the decision with:
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to refine decision",
-          operation: "refineDecision",
+          message: 'Failed to refine decision',
+          operation: 'refineDecision',
           cause: error,
         }),
     }).pipe(Effect.retry(retryPolicy));

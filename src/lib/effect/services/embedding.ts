@@ -5,11 +5,11 @@
  * Embeddings are 1536-dimensional vectors used for semantic similarity search.
  */
 
-import { gateway } from "@ai-sdk/gateway";
-import { embed, embedMany } from "ai";
-import { Context, Effect, Layer } from "effect";
-import type { TranscriptSegment } from "@/lib/db/schema";
-import { AIServiceError } from "../errors";
+import { gateway } from '@ai-sdk/gateway';
+import { embed, embedMany } from 'ai';
+import { Context, Effect, Layer } from 'effect';
+import type { TranscriptSegment } from '@/lib/db/schema';
+import { AIServiceError } from '../errors';
 
 // =============================================================================
 // Types
@@ -86,7 +86,7 @@ export interface EmbeddingServiceInterface {
 // Embedding Service Tag
 // =============================================================================
 
-export class Embedding extends Context.Tag("Embedding")<Embedding, EmbeddingServiceInterface>() {}
+export class Embedding extends Context.Tag('Embedding')<Embedding, EmbeddingServiceInterface>() {}
 
 // =============================================================================
 // Helper Functions
@@ -113,7 +113,7 @@ const splitIntoSentences = (text: string): string[] => {
 // =============================================================================
 
 const makeEmbeddingService = Effect.gen(function* () {
-  const embeddingModel = gateway.textEmbeddingModel("text-embedding-3-small");
+  const embeddingModel = gateway.textEmbeddingModel('text-embedding-3-small');
 
   const generateEmbedding = (text: string): Effect.Effect<readonly number[], AIServiceError> =>
     Effect.tryPromise({
@@ -126,8 +126,8 @@ const makeEmbeddingService = Effect.gen(function* () {
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate embedding",
-          operation: "generateEmbedding",
+          message: 'Failed to generate embedding',
+          operation: 'generateEmbedding',
           cause: error,
         }),
     });
@@ -158,8 +158,8 @@ const makeEmbeddingService = Effect.gen(function* () {
       },
       catch: (error) =>
         new AIServiceError({
-          message: "Failed to generate embeddings batch",
-          operation: "generateEmbeddings",
+          message: 'Failed to generate embeddings batch',
+          operation: 'generateEmbeddings',
           cause: error,
         }),
     });
@@ -196,7 +196,7 @@ const makeEmbeddingService = Effect.gen(function* () {
           if (currentChunk.tokenCount + segmentTokens > maxTokens && currentChunk.texts.length > 0) {
             // Save current chunk
             chunks.push({
-              text: currentChunk.texts.join(" "),
+              text: currentChunk.texts.join(' '),
               chunkIndex: chunks.length,
               timestampStart: currentChunk.startTime,
               timestampEnd: currentChunk.endTime,
@@ -235,7 +235,7 @@ const makeEmbeddingService = Effect.gen(function* () {
         // Don't forget the last chunk
         if (currentChunk.texts.length > 0) {
           chunks.push({
-            text: currentChunk.texts.join(" "),
+            text: currentChunk.texts.join(' '),
             chunkIndex: chunks.length,
             timestampStart: currentChunk.startTime,
             timestampEnd: currentChunk.endTime,
@@ -254,7 +254,7 @@ const makeEmbeddingService = Effect.gen(function* () {
           if (currentChunk.tokenCount + sentenceTokens > maxTokens && currentChunk.texts.length > 0) {
             // Save current chunk
             chunks.push({
-              text: currentChunk.texts.join(" "),
+              text: currentChunk.texts.join(' '),
               chunkIndex: chunks.length,
               tokenCount: currentChunk.tokenCount,
             });
@@ -286,7 +286,7 @@ const makeEmbeddingService = Effect.gen(function* () {
         // Don't forget the last chunk
         if (currentChunk.texts.length > 0) {
           chunks.push({
-            text: currentChunk.texts.join(" "),
+            text: currentChunk.texts.join(' '),
             chunkIndex: chunks.length,
             tokenCount: currentChunk.tokenCount,
           });

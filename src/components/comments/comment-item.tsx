@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { Check, Clock, Edit2, Flag, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useState } from "react";
-import { ReportDialog } from "@/components/moderation/report-dialog";
+import { formatDistanceToNow } from 'date-fns';
+import { Check, Clock, Edit2, Flag, Link2, Loader2, MoreHorizontal, Reply, Trash2, X } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
+import { ReportDialog } from '@/components/moderation/report-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,24 +14,24 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/client-logger";
-import type { CommentWithAuthor } from "@/lib/effect/services/comment-repository";
-import { parseMentions } from "@/lib/mentions";
-import { cn } from "@/lib/utils";
-import { groupReactions, ReactionDisplay } from "./reaction-display";
-import { ReactionPicker, type ReactionType } from "./reaction-picker";
+} from '@/components/ui/dropdown-menu';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/client-logger';
+import type { CommentWithAuthor } from '@/lib/effect/services/comment-repository';
+import { parseMentions } from '@/lib/mentions';
+import { cn } from '@/lib/utils';
+import { groupReactions, ReactionDisplay } from './reaction-display';
+import { ReactionPicker, type ReactionType } from './reaction-picker';
 
 interface CommentReaction {
   id: string;
@@ -63,7 +63,7 @@ function CommentContent({ content }: { content: string }) {
   return (
     <p className="mt-1 text-sm whitespace-pre-wrap break-words">
       {parts.map((part, i) =>
-        typeof part === "string" ? (
+        typeof part === 'string' ? (
           part
         ) : (
           <Link
@@ -145,9 +145,9 @@ export function CommentItem({
     async (commentId: string, reactionType: ReactionType | null) => {
       if (!currentUserId) {
         toast({
-          title: "Sign in required",
-          description: "Please sign in to react to comments",
-          variant: "destructive",
+          title: 'Sign in required',
+          description: 'Please sign in to react to comments',
+          variant: 'destructive',
         });
         return;
       }
@@ -155,13 +155,13 @@ export function CommentItem({
       try {
         if (reactionType === null) {
           // Remove reaction
-          await fetch(`/api/comments/${commentId}/reactions`, { method: "DELETE" });
+          await fetch(`/api/comments/${commentId}/reactions`, { method: 'DELETE' });
           setReactions((prev) => prev.filter((r) => r.userId !== currentUserId));
         } else {
           // Add or update reaction
           await fetch(`/api/comments/${commentId}/reactions`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reactionType }),
           });
           setReactions((prev) => {
@@ -174,11 +174,11 @@ export function CommentItem({
         }
         onReactionChange?.();
       } catch (error) {
-        logger.error("Failed to update reaction", error);
+        logger.error('Failed to update reaction', error);
         toast({
-          title: "Failed to update reaction",
-          description: "Please try again",
-          variant: "destructive",
+          title: 'Failed to update reaction',
+          description: 'Please try again',
+          variant: 'destructive',
         });
       }
     },
@@ -201,7 +201,7 @@ export function CommentItem({
       ? `${window.location.origin}/${organizationSlug}/videos/${comment.videoId}?comment=${comment.id}`
       : `${window.location.href}?comment=${comment.id}`;
     navigator.clipboard.writeText(url);
-    toast({ title: "Link copied!" });
+    toast({ title: 'Link copied!' });
   }, [comment.id, comment.videoId, organizationSlug, toast]);
 
   const formattedDate = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true });
@@ -213,15 +213,15 @@ export function CommentItem({
     <>
       <div
         className={cn(
-          "group flex gap-3 p-3 rounded-lg transition-colors",
-          isReplyTarget && "bg-muted/50 ring-1 ring-primary/20",
-          depth > 0 && "ml-10",
+          'group flex gap-3 p-3 rounded-lg transition-colors',
+          isReplyTarget && 'bg-muted/50 ring-1 ring-primary/20',
+          depth > 0 && 'ml-10',
         )}
         id={`comment-${comment.id}`}
       >
         <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage src={comment.author.image || undefined} alt={comment.author.name || "User"} />
-          <AvatarFallback>{comment.author.name?.[0] || "U"}</AvatarFallback>
+          <AvatarImage src={comment.author.image || undefined} alt={comment.author.name || 'User'} />
+          <AvatarFallback>{comment.author.name?.[0] || 'U'}</AvatarFallback>
         </Avatar>
 
         <div className="flex-1 min-w-0">
@@ -243,7 +243,7 @@ export function CommentItem({
               })()}
             <span className="text-xs text-muted-foreground">
               {formattedDate}
-              {wasEdited && " (edited)"}
+              {wasEdited && ' (edited)'}
             </span>
           </div>
 
@@ -360,7 +360,7 @@ export function CommentItem({
             <AlertDialogTitle>Delete comment?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this comment
-              {comment.parentId ? "" : " and all its replies"}.
+              {comment.parentId ? '' : ' and all its replies'}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

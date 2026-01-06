@@ -15,7 +15,7 @@
 // Types
 // =============================================================================
 
-import { env } from "@/lib/env/server";
+import { env } from '@/lib/env/server';
 
 export interface ErrorContext {
   /** Unique request ID for tracing */
@@ -58,10 +58,10 @@ export interface ServerErrorLog {
 
 interface StructuredErrorLog {
   timestamp: string;
-  level: "error";
+  level: 'error';
   service: string;
   environment: string;
-  type: "CLIENT_ERROR" | "API_ERROR" | "SERVER_ERROR" | "UNHANDLED_REJECTION" | "GLOBAL_ERROR";
+  type: 'CLIENT_ERROR' | 'API_ERROR' | 'SERVER_ERROR' | 'UNHANDLED_REJECTION' | 'GLOBAL_ERROR';
   error: {
     name: string;
     message: string;
@@ -82,19 +82,19 @@ interface StructuredErrorLog {
 // Configuration
 // =============================================================================
 
-const SERVICE_NAME = "nuclom";
+const SERVICE_NAME = 'nuclom';
 
 // Detect environment
-const IS_SERVER = typeof window === "undefined";
-const IS_PROD = IS_SERVER ? env.NODE_ENV === "production" : !window.location.hostname.includes("localhost");
-const ENVIRONMENT = IS_PROD ? "production" : "development";
+const IS_SERVER = typeof window === 'undefined';
+const IS_PROD = IS_SERVER ? env.NODE_ENV === 'production' : !window.location.hostname.includes('localhost');
+const ENVIRONMENT = IS_PROD ? 'production' : 'development';
 
 // =============================================================================
 // Structured Error Formatting
 // =============================================================================
 
 function createStructuredError(
-  type: StructuredErrorLog["type"],
+  type: StructuredErrorLog['type'],
   error: Error & { digest?: string; code?: string },
   options?: {
     context?: ErrorContext;
@@ -104,7 +104,7 @@ function createStructuredError(
 ): StructuredErrorLog {
   const log: StructuredErrorLog = {
     timestamp: new Date().toISOString(),
-    level: "error",
+    level: 'error',
     service: SERVICE_NAME,
     environment: ENVIRONMENT,
     type,
@@ -129,7 +129,7 @@ function createStructuredError(
   }
 
   // Add client info if in browser
-  if (!IS_SERVER && typeof window !== "undefined") {
+  if (!IS_SERVER && typeof window !== 'undefined') {
     log.client = {
       url: window.location.href,
       userAgent: navigator.userAgent,
@@ -147,15 +147,15 @@ function outputError(log: StructuredErrorLog): void {
   } else {
     // In development, output human-readable format
     console.group(`[${log.type}] ${log.error.name}: ${log.error.message}`);
-    console.error("Error:", log.error);
+    console.error('Error:', log.error);
     if (log.context) {
-      console.error("Context:", log.context);
+      console.error('Context:', log.context);
     }
     if (log.metadata) {
-      console.error("Metadata:", log.metadata);
+      console.error('Metadata:', log.metadata);
     }
     if (log.client) {
-      console.error("Client:", log.client);
+      console.error('Client:', log.client);
     }
     console.groupEnd();
   }
@@ -169,9 +169,9 @@ function outputError(log: StructuredErrorLog): void {
  * Log a client-side React error (e.g., from Error Boundary)
  */
 export function logClientError(log: ClientErrorLog): void {
-  const structuredLog = createStructuredError("CLIENT_ERROR", log.error, {
+  const structuredLog = createStructuredError('CLIENT_ERROR', log.error, {
     context: {
-      path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
     },
     metadata: {
       ...log.metadata,
@@ -188,9 +188,9 @@ export function logClientError(log: ClientErrorLog): void {
  */
 export function logApiError(log: ApiErrorLog): void {
   const error = new Error(log.message);
-  error.name = "ApiError";
+  error.name = 'ApiError';
 
-  const structuredLog = createStructuredError("API_ERROR", error, {
+  const structuredLog = createStructuredError('API_ERROR', error, {
     context: {
       path: log.url,
       method: log.method,
@@ -211,9 +211,9 @@ export function logApiError(log: ApiErrorLog): void {
 export function logUnhandledRejection(event: PromiseRejectionEvent): void {
   const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
 
-  const structuredLog = createStructuredError("UNHANDLED_REJECTION", error, {
+  const structuredLog = createStructuredError('UNHANDLED_REJECTION', error, {
     context: {
-      path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
     },
   });
 
@@ -226,9 +226,9 @@ export function logUnhandledRejection(event: PromiseRejectionEvent): void {
 export function logGlobalError(event: ErrorEvent): void {
   const error = event.error instanceof Error ? event.error : new Error(event.message);
 
-  const structuredLog = createStructuredError("GLOBAL_ERROR", error, {
+  const structuredLog = createStructuredError('GLOBAL_ERROR', error, {
     context: {
-      path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
     },
     metadata: {
       filename: event.filename,
@@ -248,7 +248,7 @@ export function logGlobalError(event: ErrorEvent): void {
  * Log a server-side error with full context
  */
 export function logServerError(log: ServerErrorLog): void {
-  const structuredLog = createStructuredError("SERVER_ERROR", log.error, {
+  const structuredLog = createStructuredError('SERVER_ERROR', log.error, {
     context: log.context,
     metadata: log.metadata,
   });
@@ -270,7 +270,7 @@ export function createErrorContext(
   const url = new URL(request.url);
 
   return {
-    requestId: options?.requestId || request.headers.get("x-request-id") || crypto.randomUUID(),
+    requestId: options?.requestId || request.headers.get('x-request-id') || crypto.randomUUID(),
     userId: options?.userId,
     organizationId: options?.organizationId,
     path: url.pathname,
@@ -322,12 +322,12 @@ export function logErrorBoundary(
     organizationId?: string;
   },
 ): void {
-  const structuredLog = createStructuredError("CLIENT_ERROR", error, {
+  const structuredLog = createStructuredError('CLIENT_ERROR', error, {
     context: {
       digest: options?.digest || error.digest,
       userId: options?.userId,
       organizationId: options?.organizationId,
-      path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
     },
     componentStack: options?.componentStack,
   });
@@ -346,14 +346,14 @@ let handlersInitialized = false;
  * Call this once in your app's entry point
  */
 export function initializeErrorHandlers(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   if (handlersInitialized) return;
 
   // Handle unhandled promise rejections
-  window.addEventListener("unhandledrejection", logUnhandledRejection);
+  window.addEventListener('unhandledrejection', logUnhandledRejection);
 
   // Handle global errors
-  window.addEventListener("error", logGlobalError);
+  window.addEventListener('error', logGlobalError);
 
   handlersInitialized = true;
 }
@@ -362,11 +362,11 @@ export function initializeErrorHandlers(): void {
  * Clean up global error handlers
  */
 export function cleanupErrorHandlers(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   if (!handlersInitialized) return;
 
-  window.removeEventListener("unhandledrejection", logUnhandledRejection);
-  window.removeEventListener("error", logGlobalError);
+  window.removeEventListener('unhandledrejection', logUnhandledRejection);
+  window.removeEventListener('error', logGlobalError);
 
   handlersInitialized = false;
 }

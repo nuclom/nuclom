@@ -1,24 +1,24 @@
-import { Effect, Layer } from "effect";
-import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { UnauthorizedError } from "@/lib/effect/errors";
-import { Auth, type AuthServiceInterface } from "@/lib/effect/services/auth";
-import { VideoRepository, type VideoRepositoryService } from "@/lib/effect/services/video-repository";
-import { createMockSession, createMockVideo } from "@/test/mocks";
+import { Effect, Layer } from 'effect';
+import { NextRequest } from 'next/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { UnauthorizedError } from '@/lib/effect/errors';
+import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
+import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/services/video-repository';
+import { createMockSession, createMockVideo } from '@/test/mocks';
 
 // Mock the api-handler module to provide test layers
-vi.mock("@/lib/api-handler", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/api-handler")>();
+vi.mock('@/lib/api-handler', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api-handler')>();
   return {
     ...actual,
     createFullLayer: vi.fn(),
   };
 });
 
-import { createFullLayer } from "@/lib/api-handler";
-import { GET, POST } from "./route";
+import { createFullLayer } from '@/lib/api-handler';
+import { GET, POST } from './route';
 
-describe("Videos API Route", () => {
+describe('Videos API Route', () => {
   // Helper to create a mock auth service
   const createMockAuthService = (authenticated = true): AuthServiceInterface => {
     const session = createMockSession();
@@ -26,29 +26,29 @@ describe("Videos API Route", () => {
       getSession: vi
         .fn()
         .mockImplementation(() =>
-          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: 'Unauthorized' })),
         ),
       getSessionOption: vi
         .fn()
         .mockImplementation(() =>
           authenticated
-            ? Effect.succeed({ _tag: "Some" as const, value: session })
-            : Effect.succeed({ _tag: "None" as const }),
+            ? Effect.succeed({ _tag: 'Some' as const, value: session })
+            : Effect.succeed({ _tag: 'None' as const }),
         ),
       requireAuth: vi
         .fn()
         .mockImplementation(() =>
-          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: 'Unauthorized' })),
         ),
       requireRole: vi
         .fn()
         .mockImplementation(() =>
-          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: 'Unauthorized' })),
         ),
       requireAdmin: vi
         .fn()
         .mockImplementation(() =>
-          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: "Unauthorized" })),
+          authenticated ? Effect.succeed(session) : Effect.fail(new UnauthorizedError({ message: 'Unauthorized' })),
         ),
     };
   };
@@ -103,28 +103,28 @@ describe("Videos API Route", () => {
     vi.resetAllMocks();
   });
 
-  describe("GET /api/videos", () => {
-    it("should return 400 when organizationId is missing", async () => {
+  describe('GET /api/videos', () => {
+    it('should return 400 when organizationId is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
-        method: "GET",
+      const request = new NextRequest('http://localhost:3000/api/videos', {
+        method: 'GET',
       });
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_FAILED");
+      expect(data.error.code).toBe('VALIDATION_FAILED');
     });
 
-    it("should return 401 when user is not authenticated", async () => {
+    it('should return 401 when user is not authenticated', async () => {
       setupTestLayer({ authenticated: false });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000",
+        'http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
         {
-          method: "GET",
+          method: 'GET',
         },
       );
 
@@ -132,17 +132,17 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
-      expect(data.error.message).toBe("Unauthorized");
+      expect(data.error.code).toBe('AUTH_UNAUTHORIZED');
+      expect(data.error.message).toBe('Unauthorized');
     });
 
-    it("should return paginated videos on success", async () => {
+    it('should return paginated videos on success', async () => {
       const { mockVideoRepo } = setupTestLayer();
 
       const request = new NextRequest(
-        "http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000",
+        'http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
         {
-          method: "GET",
+          method: 'GET',
         },
       );
 
@@ -152,19 +152,19 @@ describe("Videos API Route", () => {
       expect(response.status).toBe(200);
       expect(data.data).toHaveLength(1);
       expect(data.pagination.page).toBe(1);
-      expect(mockVideoRepo.getVideos).toHaveBeenCalledWith("550e8400-e29b-41d4-a716-446655440000", 1, 20);
+      expect(mockVideoRepo.getVideos).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440000', 1, 20);
     });
   });
 
-  describe("POST /api/videos", () => {
-    it("should return 400 when title is missing", async () => {
+  describe('POST /api/videos', () => {
+    it('should return 400 when title is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
-        method: "POST",
+      const request = new NextRequest('http://localhost:3000/api/videos', {
+        method: 'POST',
         body: JSON.stringify({
-          duration: "10:30",
-          organizationId: "550e8400-e29b-41d4-a716-446655440000",
+          duration: '10:30',
+          organizationId: '550e8400-e29b-41d4-a716-446655440000',
         }),
       });
 
@@ -172,17 +172,17 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_FAILED");
+      expect(data.error.code).toBe('VALIDATION_FAILED');
     });
 
-    it("should return 400 when duration is missing", async () => {
+    it('should return 400 when duration is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
-        method: "POST",
+      const request = new NextRequest('http://localhost:3000/api/videos', {
+        method: 'POST',
         body: JSON.stringify({
-          title: "Test Video",
-          organizationId: "550e8400-e29b-41d4-a716-446655440000",
+          title: 'Test Video',
+          organizationId: '550e8400-e29b-41d4-a716-446655440000',
         }),
       });
 
@@ -190,18 +190,18 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error.code).toBe("VALIDATION_FAILED");
+      expect(data.error.code).toBe('VALIDATION_FAILED');
     });
 
-    it("should return 401 when user is not authenticated", async () => {
+    it('should return 401 when user is not authenticated', async () => {
       setupTestLayer({ authenticated: false });
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
-        method: "POST",
+      const request = new NextRequest('http://localhost:3000/api/videos', {
+        method: 'POST',
         body: JSON.stringify({
-          title: "Test Video",
-          duration: "10:30",
-          organizationId: "550e8400-e29b-41d4-a716-446655440000",
+          title: 'Test Video',
+          duration: '10:30',
+          organizationId: '550e8400-e29b-41d4-a716-446655440000',
         }),
       });
 
@@ -209,19 +209,19 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data.error.code).toBe("AUTH_UNAUTHORIZED");
-      expect(data.error.message).toBe("Unauthorized");
+      expect(data.error.code).toBe('AUTH_UNAUTHORIZED');
+      expect(data.error.message).toBe('Unauthorized');
     });
 
-    it("should create video and return 201 on success", async () => {
+    it('should create video and return 201 on success', async () => {
       const { mockVideoRepo } = setupTestLayer();
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
-        method: "POST",
+      const request = new NextRequest('http://localhost:3000/api/videos', {
+        method: 'POST',
         body: JSON.stringify({
-          title: "Test Video",
-          duration: "10:30",
-          organizationId: "550e8400-e29b-41d4-a716-446655440000",
+          title: 'Test Video',
+          duration: '10:30',
+          organizationId: '550e8400-e29b-41d4-a716-446655440000',
         }),
       });
 
@@ -229,8 +229,8 @@ describe("Videos API Route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.id).toBe("video-123");
-      expect(data.title).toBe("Test Video");
+      expect(data.id).toBe('video-123');
+      expect(data.title).toBe('Test Video');
       expect(mockVideoRepo.createVideo).toHaveBeenCalled();
     });
   });

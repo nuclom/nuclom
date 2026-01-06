@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Calendar, Clock, TrendingUp, Users } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Calendar, Clock, TrendingUp, Users } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface HeatmapHour {
   hour: number;
@@ -63,7 +63,7 @@ interface MeetingPatternsProps {
 }
 
 function formatHour(hour: number): string {
-  const ampm = hour >= 12 ? "PM" : "AM";
+  const ampm = hour >= 12 ? 'PM' : 'AM';
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
   return `${displayHour}${ampm}`;
 }
@@ -83,7 +83,7 @@ function HeatmapCell({ count, maxCount }: { count: number; maxCount: number }) {
     <div
       className="w-3 h-3 rounded-sm transition-colors"
       style={{
-        backgroundColor: count === 0 ? "var(--muted)" : `hsl(var(--primary) / ${0.2 + intensity * 0.8})`,
+        backgroundColor: count === 0 ? 'var(--muted)' : `hsl(var(--primary) / ${0.2 + intensity * 0.8})`,
       }}
       title={`${count} meetings`}
     />
@@ -113,7 +113,7 @@ export function MeetingPatterns({ timeDistribution, speakerPatterns, meetingFreq
             {/* Hour labels */}
             <div className="flex gap-[2px] ml-20">
               {[0, 3, 6, 9, 12, 15, 18, 21].map((hour) => (
-                <div key={hour} className="text-[10px] text-muted-foreground" style={{ width: "36px" }}>
+                <div key={hour} className="text-[10px] text-muted-foreground" style={{ width: '36px' }}>
                   {formatHour(hour)}
                 </div>
               ))}
@@ -236,7 +236,7 @@ export function MeetingPatterns({ timeDistribution, speakerPatterns, meetingFreq
                       />
                     </div>
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(week.week).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      {new Date(week.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 );

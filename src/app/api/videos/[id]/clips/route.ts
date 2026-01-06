@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import type { MomentType } from "@/lib/db/schema";
-import { ClipRepository, VideoRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateQueryParams, validateRequestBody } from "@/lib/validation";
-import { createClipSchema, PaginationSchema } from "@/lib/validation/schemas";
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import type { MomentType } from '@/lib/db/schema';
+import { ClipRepository, VideoRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateQueryParams, validateRequestBody } from '@/lib/validation';
+import { createClipSchema, PaginationSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/videos/[id]/clips - List all clips for a video
@@ -77,10 +77,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => NextResponse.json({ success: true, data }, { status: 201 }),
   });

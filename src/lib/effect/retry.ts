@@ -8,7 +8,7 @@
  * - Error filtering (only retry on specific errors)
  */
 
-import { type Duration, Effect, Schedule } from "effect";
+import { type Duration, Effect, Schedule } from 'effect';
 
 // =============================================================================
 // Types
@@ -43,8 +43,8 @@ export interface RetryWithFallbackConfig<A, E, R> extends RetryConfig {
  */
 export const apiRetryConfig: RetryConfig = {
   maxAttempts: 3,
-  initialDelay: "500 millis",
-  maxDelay: "10 seconds",
+  initialDelay: '500 millis',
+  maxDelay: '10 seconds',
   factor: 2,
   jitter: true,
 };
@@ -54,11 +54,11 @@ export const apiRetryConfig: RetryConfig = {
  */
 export const criticalRetryConfig: RetryConfig = {
   maxAttempts: 5,
-  initialDelay: "1 second",
-  maxDelay: "30 seconds",
+  initialDelay: '1 second',
+  maxDelay: '30 seconds',
   factor: 2,
   jitter: true,
-  maxDuration: "2 minutes",
+  maxDuration: '2 minutes',
 };
 
 /**
@@ -66,8 +66,8 @@ export const criticalRetryConfig: RetryConfig = {
  */
 export const lightRetryConfig: RetryConfig = {
   maxAttempts: 2,
-  initialDelay: "200 millis",
-  maxDelay: "2 seconds",
+  initialDelay: '200 millis',
+  maxDelay: '2 seconds',
   factor: 2,
   jitter: true,
 };
@@ -77,11 +77,11 @@ export const lightRetryConfig: RetryConfig = {
  */
 export const networkRetryConfig: RetryConfig = {
   maxAttempts: 4,
-  initialDelay: "1 second",
-  maxDelay: "60 seconds",
+  initialDelay: '1 second',
+  maxDelay: '60 seconds',
   factor: 2,
   jitter: true,
-  maxDuration: "5 minutes",
+  maxDuration: '5 minutes',
 };
 
 // =============================================================================
@@ -94,8 +94,8 @@ export const networkRetryConfig: RetryConfig = {
 export function createRetrySchedule(config: RetryConfig = {}): Schedule.Schedule<number, unknown, never> {
   const {
     maxAttempts = 3,
-    initialDelay = "500 millis",
-    maxDelay = "30 seconds",
+    initialDelay = '500 millis',
+    maxDelay = '30 seconds',
     factor = 2,
     jitter = true,
     maxDuration,
@@ -196,7 +196,7 @@ export function withRetryAndTimeout<A, E, R>(
   return Effect.retry(effect, schedule).pipe(
     Effect.timeoutFail({
       duration: timeout,
-      onTimeout: () => new TimeoutError({ message: "Operation timed out" }),
+      onTimeout: () => new TimeoutError({ message: 'Operation timed out' }),
     }),
   );
 }
@@ -205,19 +205,19 @@ export function withRetryAndTimeout<A, E, R>(
 // Error Types
 // =============================================================================
 
-import { Data } from "effect";
+import { Data } from 'effect';
 
 /**
  * Timeout error when operation exceeds time limit
  */
-export class TimeoutError extends Data.TaggedError("TimeoutError")<{
+export class TimeoutError extends Data.TaggedError('TimeoutError')<{
   readonly message: string;
 }> {}
 
 /**
  * Retry exhausted error when all attempts fail
  */
-export class RetryExhaustedError extends Data.TaggedError("RetryExhaustedError")<{
+export class RetryExhaustedError extends Data.TaggedError('RetryExhaustedError')<{
   readonly message: string;
   readonly attempts: number;
   readonly lastError?: unknown;
@@ -234,15 +234,15 @@ export function isRetryableError(error: unknown): boolean {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     return (
-      message.includes("network") ||
-      message.includes("timeout") ||
-      message.includes("econnrefused") ||
-      message.includes("econnreset") ||
-      message.includes("rate limit") ||
-      message.includes("429") ||
-      message.includes("503") ||
-      message.includes("502") ||
-      message.includes("504")
+      message.includes('network') ||
+      message.includes('timeout') ||
+      message.includes('econnrefused') ||
+      message.includes('econnreset') ||
+      message.includes('rate limit') ||
+      message.includes('429') ||
+      message.includes('503') ||
+      message.includes('502') ||
+      message.includes('504')
     );
   }
   return false;
@@ -279,8 +279,8 @@ export function retryApiRequest<A, E, R>(effect: Effect.Effect<A, E, R>): Effect
 export function retryDbOperation<A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> {
   return withRetry(effect, {
     maxAttempts: 3,
-    initialDelay: "100 millis",
-    maxDelay: "5 seconds",
+    initialDelay: '100 millis',
+    maxDelay: '5 seconds',
     factor: 2,
     jitter: true,
   });
@@ -299,10 +299,10 @@ export function retryExternalService<A, E, R>(effect: Effect.Effect<A, E, R>): E
 export function retryUpload<A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> {
   return withRetry(effect, {
     maxAttempts: 3,
-    initialDelay: "2 seconds",
-    maxDelay: "30 seconds",
+    initialDelay: '2 seconds',
+    maxDelay: '30 seconds',
     factor: 2,
     jitter: true,
-    maxDuration: "5 minutes",
+    maxDuration: '5 minutes',
   });
 }

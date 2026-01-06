@@ -12,14 +12,14 @@
  * - Consumes no resources during sleep
  */
 
-import { and, isNotNull, lt } from "drizzle-orm";
-import { sleep } from "workflow";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
-import { env } from "@/lib/env/server";
-import { createWorkflowLogger } from "./workflow-logger";
+import { and, isNotNull, lt } from 'drizzle-orm';
+import { sleep } from 'workflow';
+import { db } from '@/lib/db';
+import { videos } from '@/lib/db/schema';
+import { env } from '@/lib/env/server';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("cleanup-workflow");
+const log = createWorkflowLogger('cleanup-workflow');
 
 // =============================================================================
 // Types
@@ -48,7 +48,7 @@ async function cleanupExpiredVideos(): Promise<number> {
   }
 
   // Delete videos from R2 storage
-  const { S3Client, DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+  const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -57,7 +57,7 @@ async function cleanupExpiredVideos(): Promise<number> {
 
   if (accountId && accessKeyId && secretAccessKey && bucketName) {
     const client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId,
@@ -71,7 +71,7 @@ async function cleanupExpiredVideos(): Promise<number> {
         try {
           // Extract key from URL
           const url = new URL(video.videoUrl);
-          const key = url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname;
+          const key = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname;
 
           await client.send(
             new DeleteObjectCommand({
@@ -80,7 +80,7 @@ async function cleanupExpiredVideos(): Promise<number> {
             }),
           );
         } catch (error) {
-          log.error({ videoId: video.id, error }, "Failed to delete file for video");
+          log.error({ videoId: video.id, error }, 'Failed to delete file for video');
         }
       }
     }
@@ -109,22 +109,22 @@ async function cleanupExpiredVideos(): Promise<number> {
  * It will then run forever, cleaning up expired videos daily.
  */
 export async function scheduledCleanupWorkflow(): Promise<never> {
-  "use workflow";
+  'use workflow';
 
-  log.info({}, "Starting scheduled video cleanup workflow");
+  log.info({}, 'Starting scheduled video cleanup workflow');
 
   while (true) {
     try {
       const deletedCount = await cleanupExpiredVideos();
-      log.info({ deletedCount: deletedCount, timestamp: new Date().toISOString() }, "Deleted expired videos");
-      ("use step");
+      log.info({ deletedCount: deletedCount, timestamp: new Date().toISOString() }, 'Deleted expired videos');
+      ('use step');
     } catch (error) {
-      log.error({ error }, "Error during cleanup");
-      ("use step");
+      log.error({ error }, 'Error during cleanup');
+      ('use step');
     }
 
     // Sleep for 24 hours
-    await sleep("24 hours");
+    await sleep('24 hours');
   }
 }
 
@@ -132,7 +132,7 @@ export async function scheduledCleanupWorkflow(): Promise<never> {
  * Run a single cleanup operation (for manual triggering or testing).
  */
 export async function runCleanupOnce(): Promise<CleanupResult> {
-  "use workflow";
+  'use workflow';
 
   const deletedCount = await cleanupExpiredVideos();
 

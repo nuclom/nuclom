@@ -4,18 +4,18 @@
  * Provides type-safe database operations for series (collections).
  */
 
-import { and, asc, count, desc, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { collections, seriesProgress, seriesVideos, users, videos } from "@/lib/db/schema";
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { collections, seriesProgress, seriesVideos, users, videos } from '@/lib/db/schema';
 import type {
   PaginatedResponse,
   SeriesProgressWithDetails,
   SeriesVideoWithDetails,
   SeriesWithVideoCount,
   SeriesWithVideos,
-} from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+} from '@/lib/types';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -140,7 +140,7 @@ export interface SeriesRepositoryService {
 // Series Repository Tag
 // =============================================================================
 
-export class SeriesRepository extends Context.Tag("SeriesRepository")<SeriesRepository, SeriesRepositoryService>() {}
+export class SeriesRepository extends Context.Tag('SeriesRepository')<SeriesRepository, SeriesRepositoryService>() {}
 
 // =============================================================================
 // Series Repository Implementation
@@ -173,7 +173,7 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
             videoCount: sql<number>`(
               SELECT COUNT(*)::int FROM ${seriesVideos}
               WHERE ${seriesVideos.seriesId} = ${collections.id}
-            )`.as("video_count"),
+            )`.as('video_count'),
             createdBy: {
               id: users.id,
               email: users.email,
@@ -216,8 +216,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch series",
-          operation: "getSeries",
+          message: 'Failed to fetch series',
+          operation: 'getSeries',
           cause: error,
         }),
     });
@@ -260,8 +260,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch series",
-            operation: "getSeriesWithVideos",
+            message: 'Failed to fetch series',
+            operation: 'getSeriesWithVideos',
             cause: error,
           }),
       });
@@ -269,8 +269,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       if (!seriesData.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Series not found",
-            entity: "Series",
+            message: 'Series not found',
+            entity: 'Series',
             id,
           }),
         );
@@ -342,8 +342,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch series videos",
-            operation: "getSeriesWithVideos.videos",
+            message: 'Failed to fetch series videos',
+            operation: 'getSeriesWithVideos.videos',
             cause: error,
           }),
       });
@@ -373,8 +373,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create series",
-          operation: "createSeries",
+          message: 'Failed to create series',
+          operation: 'createSeries',
           cause: error,
         }),
     });
@@ -394,8 +394,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to update series",
-            operation: "updateSeries",
+            message: 'Failed to update series',
+            operation: 'updateSeries',
             cause: error,
           }),
       });
@@ -403,8 +403,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Series not found",
-            entity: "Series",
+            message: 'Series not found',
+            entity: 'Series',
             id,
           }),
         );
@@ -421,8 +421,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to delete series",
-            operation: "deleteSeries",
+            message: 'Failed to delete series',
+            operation: 'deleteSeries',
             cause: error,
           }),
       });
@@ -430,8 +430,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Series not found",
-            entity: "Series",
+            message: 'Series not found',
+            entity: 'Series',
             id,
           }),
         );
@@ -467,8 +467,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add video to series",
-          operation: "addVideoToSeries",
+          message: 'Failed to add video to series',
+          operation: 'addVideoToSeries',
           cause: error,
         }),
     });
@@ -487,8 +487,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to remove video from series",
-            operation: "removeVideoFromSeries",
+            message: 'Failed to remove video from series',
+            operation: 'removeVideoFromSeries',
             cause: error,
           }),
       });
@@ -496,8 +496,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       if (!result.length) {
         return yield* Effect.fail(
           new NotFoundError({
-            message: "Video not found in series",
-            entity: "SeriesVideo",
+            message: 'Video not found in series',
+            entity: 'SeriesVideo',
             id: `${seriesId}/${videoId}`,
           }),
         );
@@ -519,8 +519,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to reorder videos",
-          operation: "reorderVideos",
+          message: 'Failed to reorder videos',
+          operation: 'reorderVideos',
           cause: error,
         }),
     });
@@ -603,8 +603,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch series progress",
-          operation: "getSeriesProgress",
+          message: 'Failed to fetch series progress',
+          operation: 'getSeriesProgress',
           cause: error,
         }),
     });
@@ -651,8 +651,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update series progress",
-          operation: "updateSeriesProgress",
+          message: 'Failed to update series progress',
+          operation: 'updateSeriesProgress',
           cause: error,
         }),
     });
@@ -702,8 +702,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to mark video as completed",
-          operation: "markVideoCompleted",
+          message: 'Failed to mark video as completed',
+          operation: 'markVideoCompleted',
           cause: error,
         }),
     });
@@ -723,8 +723,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
         },
         catch: (error) =>
           new DatabaseError({
-            message: "Failed to fetch user progress",
-            operation: "getSeriesWithProgress",
+            message: 'Failed to fetch user progress',
+            operation: 'getSeriesWithProgress',
             cause: error,
           }),
       });
@@ -790,8 +790,8 @@ const makeSeriesRepositoryService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch available videos",
-          operation: "getAvailableVideos",
+          message: 'Failed to fetch available videos',
+          operation: 'getAvailableVideos',
           cause: error,
         }),
     });

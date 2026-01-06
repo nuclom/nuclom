@@ -1,10 +1,10 @@
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { apikeys, comments, notifications, userPreferences, users, videoProgresses, videos } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
+import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { apikeys, comments, notifications, userPreferences, users, videoProgresses, videos } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
 
 // =============================================================================
 // POST /api/user/export - Export all user data (GDPR compliance)
@@ -17,7 +17,7 @@ export async function POST() {
     });
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -129,12 +129,12 @@ export async function POST() {
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,
       headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="nuclom-data-export-${new Date().toISOString().split("T")[0]}.json"`,
+        'Content-Type': 'application/json',
+        'Content-Disposition': `attachment; filename="nuclom-data-export-${new Date().toISOString().split('T')[0]}.json"`,
       },
     });
   } catch (error) {
-    logger.error("Error exporting user data", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to export data" }, { status: 500 });
+    logger.error('Error exporting user data', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to export data' }, { status: 500 });
   }
 }

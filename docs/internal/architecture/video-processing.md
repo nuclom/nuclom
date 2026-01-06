@@ -316,9 +316,6 @@ REPLICATE_API_TOKEN=r8_xxx...
 
 # Optional (for AI summary)
 XAI_API_KEY=xai_xxx...
-
-# Next.js workflow
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### Next.js Configuration

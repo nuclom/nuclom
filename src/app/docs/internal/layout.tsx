@@ -1,56 +1,56 @@
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { RootProvider } from "fumadocs-ui/provider/next";
-import type React from "react";
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import type React from 'react';
 
 // Internal docs tree - only shown when viewing internal docs
 const internalTree = {
-  name: "Internal Docs",
+  name: 'Internal Docs',
   children: [
     {
-      type: "page" as const,
-      name: "Overview",
-      url: "/docs/internal",
+      type: 'page' as const,
+      name: 'Overview',
+      url: '/docs/internal',
     },
     {
-      type: "folder" as const,
-      name: "Architecture",
+      type: 'folder' as const,
+      name: 'Architecture',
       defaultOpen: true,
       children: [
-        { type: "page" as const, name: "Overview", url: "/docs/internal/architecture" },
-        { type: "page" as const, name: "Summary", url: "/docs/internal/architecture/summary" },
-        { type: "page" as const, name: "Authentication", url: "/docs/internal/architecture/authentication" },
-        { type: "page" as const, name: "Database", url: "/docs/internal/architecture/database" },
-        { type: "page" as const, name: "Frontend", url: "/docs/internal/architecture/frontend" },
-        { type: "page" as const, name: "Backend", url: "/docs/internal/architecture/backend" },
-        { type: "page" as const, name: "Video Processing", url: "/docs/internal/architecture/video-processing" },
-        { type: "page" as const, name: "Workflows", url: "/docs/internal/architecture/workflows" },
-        { type: "page" as const, name: "Effect.js", url: "/docs/internal/architecture/effect-ts" },
-        { type: "page" as const, name: "Integrations", url: "/docs/internal/architecture/integrations" },
-        { type: "page" as const, name: "Accessibility", url: "/docs/internal/architecture/accessibility" },
-        { type: "page" as const, name: "Deployment", url: "/docs/internal/architecture/deployment" },
+        { type: 'page' as const, name: 'Overview', url: '/docs/internal/architecture' },
+        { type: 'page' as const, name: 'Summary', url: '/docs/internal/architecture/summary' },
+        { type: 'page' as const, name: 'Authentication', url: '/docs/internal/architecture/authentication' },
+        { type: 'page' as const, name: 'Database', url: '/docs/internal/architecture/database' },
+        { type: 'page' as const, name: 'Frontend', url: '/docs/internal/architecture/frontend' },
+        { type: 'page' as const, name: 'Backend', url: '/docs/internal/architecture/backend' },
+        { type: 'page' as const, name: 'Video Processing', url: '/docs/internal/architecture/video-processing' },
+        { type: 'page' as const, name: 'Workflows', url: '/docs/internal/architecture/workflows' },
+        { type: 'page' as const, name: 'Effect.js', url: '/docs/internal/architecture/effect-ts' },
+        { type: 'page' as const, name: 'Integrations', url: '/docs/internal/architecture/integrations' },
+        { type: 'page' as const, name: 'Accessibility', url: '/docs/internal/architecture/accessibility' },
+        { type: 'page' as const, name: 'Deployment', url: '/docs/internal/architecture/deployment' },
       ],
     },
     {
-      type: "folder" as const,
-      name: "Reference",
+      type: 'folder' as const,
+      name: 'Reference',
       children: [
-        { type: "page" as const, name: "Overview", url: "/docs/internal/reference" },
-        { type: "page" as const, name: "Development Setup", url: "/docs/internal/reference/development-setup" },
-        { type: "page" as const, name: "Database Setup", url: "/docs/internal/reference/database-setup" },
-        { type: "page" as const, name: "Environment Config", url: "/docs/internal/reference/environment-config" },
-        { type: "page" as const, name: "Components", url: "/docs/internal/reference/components" },
-        { type: "page" as const, name: "Hooks", url: "/docs/internal/reference/hooks" },
-        { type: "page" as const, name: "Styling", url: "/docs/internal/reference/styling" },
-        { type: "page" as const, name: "Testing", url: "/docs/internal/reference/testing" },
-        { type: "page" as const, name: "Migrations", url: "/docs/internal/reference/migrations" },
-        { type: "page" as const, name: "Data Integrity", url: "/docs/internal/reference/data-integrity" },
-        { type: "page" as const, name: "Contributing", url: "/docs/internal/reference/contributing" },
+        { type: 'page' as const, name: 'Overview', url: '/docs/internal/reference' },
+        { type: 'page' as const, name: 'Development Setup', url: '/docs/internal/reference/development-setup' },
+        { type: 'page' as const, name: 'Database Setup', url: '/docs/internal/reference/database-setup' },
+        { type: 'page' as const, name: 'Environment Config', url: '/docs/internal/reference/environment-config' },
+        { type: 'page' as const, name: 'Components', url: '/docs/internal/reference/components' },
+        { type: 'page' as const, name: 'Hooks', url: '/docs/internal/reference/hooks' },
+        { type: 'page' as const, name: 'Styling', url: '/docs/internal/reference/styling' },
+        { type: 'page' as const, name: 'Testing', url: '/docs/internal/reference/testing' },
+        { type: 'page' as const, name: 'Migrations', url: '/docs/internal/reference/migrations' },
+        { type: 'page' as const, name: 'Data Integrity', url: '/docs/internal/reference/data-integrity' },
+        { type: 'page' as const, name: 'Contributing', url: '/docs/internal/reference/contributing' },
       ],
     },
     {
-      type: "folder" as const,
-      name: "Business",
-      children: [{ type: "page" as const, name: "Pricing Strategy", url: "/docs/internal/pricing" }],
+      type: 'folder' as const,
+      name: 'Business',
+      children: [{ type: 'page' as const, name: 'Pricing Strategy', url: '/docs/internal/pricing' }],
     },
   ],
 };
@@ -60,25 +60,25 @@ export default function InternalDocsLayout({ children }: { children: React.React
     <RootProvider>
       <DocsLayout
         nav={{
-          title: "Internal Docs",
-          url: "/docs/internal",
+          title: 'Internal Docs',
+          url: '/docs/internal',
         }}
         links={[
           {
-            text: "Home",
-            url: "/",
+            text: 'Home',
+            url: '/',
           },
           {
-            text: "Public Docs",
-            url: "/docs",
+            text: 'Public Docs',
+            url: '/docs',
           },
           {
-            text: "Architecture",
-            url: "/docs/internal/architecture",
+            text: 'Architecture',
+            url: '/docs/internal/architecture',
           },
           {
-            text: "Reference",
-            url: "/docs/internal/reference",
+            text: 'Reference',
+            url: '/docs/internal/reference',
           },
         ]}
         sidebar={{

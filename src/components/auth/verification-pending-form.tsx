@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import { Mail, RefreshCw } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
+import { Mail, RefreshCw } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
 
 export function VerificationPendingForm() {
   const [isResending, setIsResending] = useState(false);
-  const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error">("idle");
+  const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const email = searchParams.get("email");
+  const email = searchParams.get('email');
 
   const handleResendEmail = async () => {
     if (!email) {
-      setResendStatus("error");
-      setErrorMessage("Email address not found");
+      setResendStatus('error');
+      setErrorMessage('Email address not found');
       return;
     }
 
     setIsResending(true);
-    setResendStatus("idle");
+    setResendStatus('idle');
     setErrorMessage(null);
 
     try {
@@ -32,15 +32,15 @@ export function VerificationPendingForm() {
       });
 
       if (result.error) {
-        setResendStatus("error");
-        setErrorMessage(result.error.message || "Failed to resend verification email");
+        setResendStatus('error');
+        setErrorMessage(result.error.message || 'Failed to resend verification email');
       } else {
-        setResendStatus("success");
+        setResendStatus('success');
       }
     } catch (err) {
-      setResendStatus("error");
-      setErrorMessage("An unexpected error occurred");
-      logger.error("Resend verification failed", err);
+      setResendStatus('error');
+      setErrorMessage('An unexpected error occurred');
+      logger.error('Resend verification failed', err);
     } finally {
       setIsResending(false);
     }
@@ -51,8 +51,8 @@ export function VerificationPendingForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Check your email</CardTitle>
         <CardDescription className="text-center">
-          We've sent a verification link to{" "}
-          {email ? <span className="font-medium text-foreground">{email}</span> : "your email address"}.
+          We've sent a verification link to{' '}
+          {email ? <span className="font-medium text-foreground">{email}</span> : 'your email address'}.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -65,14 +65,14 @@ export function VerificationPendingForm() {
           <p>Click the link in the email to verify your account.</p>
           <p>If you don't see the email, check your spam folder.</p>
         </div>
-        {resendStatus === "success" && (
+        {resendStatus === 'success' && (
           <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950/20 p-3 rounded-md text-center">
             Verification email sent! Check your inbox.
           </div>
         )}
-        {resendStatus === "error" && (
+        {resendStatus === 'error' && (
           <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md text-center">
-            {errorMessage || "Failed to resend verification email"}
+            {errorMessage || 'Failed to resend verification email'}
           </div>
         )}
       </CardContent>

@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import { Cause, Effect, Exit } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videoShareLinks } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
+import { eq } from 'drizzle-orm';
+import { Cause, Effect, Exit } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videoShareLinks } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/share/[id] - Get share link data for public access
@@ -32,8 +32,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch share link",
-          operation: "getShareLink",
+          message: 'Failed to fetch share link',
+          operation: 'getShareLink',
           cause: error,
         }),
     });
@@ -41,18 +41,18 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!shareLink) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Share link not found or has been revoked",
-          entity: "VideoShareLink",
+          message: 'Share link not found or has been revoked',
+          entity: 'VideoShareLink',
           id,
         }),
       );
     }
 
     // Check if link is active
-    if (shareLink.status !== "active") {
+    if (shareLink.status !== 'active') {
       return yield* Effect.fail(
         new ValidationError({
-          message: "This share link has been revoked",
+          message: 'This share link has been revoked',
         }),
       );
     }
@@ -61,17 +61,17 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
       // Update status to expired
       yield* Effect.tryPromise({
-        try: () => db.update(videoShareLinks).set({ status: "expired" }).where(eq(videoShareLinks.id, id)),
+        try: () => db.update(videoShareLinks).set({ status: 'expired' }).where(eq(videoShareLinks.id, id)),
         catch: () =>
           new DatabaseError({
-            message: "Failed to update status",
-            operation: "updateStatus",
+            message: 'Failed to update status',
+            operation: 'updateStatus',
           }),
       });
 
       return yield* Effect.fail(
         new ValidationError({
-          message: "This share link has expired",
+          message: 'This share link has expired',
         }),
       );
     }
@@ -80,7 +80,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (shareLink.maxViews && (shareLink.viewCount ?? 0) >= shareLink.maxViews) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "This share link has reached its view limit",
+          message: 'This share link has reached its view limit',
         }),
       );
     }
@@ -105,10 +105,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -136,8 +136,8 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch share link",
-          operation: "getShareLink",
+          message: 'Failed to fetch share link',
+          operation: 'getShareLink',
           cause: error,
         }),
     });
@@ -145,8 +145,8 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     if (!shareLink) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Share link not found",
-          entity: "VideoShareLink",
+          message: 'Share link not found',
+          entity: 'VideoShareLink',
           id,
         }),
       );
@@ -165,8 +165,8 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
           .where(eq(videoShareLinks.id, id)),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to track view",
-          operation: "trackView",
+          message: 'Failed to track view',
+          operation: 'trackView',
           cause: error,
         }),
     });
@@ -180,10 +180,10 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

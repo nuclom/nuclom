@@ -1,14 +1,14 @@
-import { Upload, VideoOff } from "lucide-react";
-import { headers } from "next/headers";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { VideoCard } from "@/components/video-card";
-import { auth } from "@/lib/auth";
-import type { Organization } from "@/lib/db/schema";
-import { getCachedOrganizationBySlug, getCachedVideosByAuthor } from "@/lib/effect";
+import { Upload, VideoOff } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VideoCard } from '@/components/video-card';
+import { auth } from '@/lib/auth';
+import type { Organization } from '@/lib/db/schema';
+import { getCachedOrganizationBySlug, getCachedVideosByAuthor } from '@/lib/effect';
 
 // =============================================================================
 // Loading Skeleton Component
@@ -98,7 +98,7 @@ async function MyVideosLoader({ params }: { params: Promise<{ organization: stri
   });
 
   if (!session) {
-    redirect("/auth/sign-in");
+    redirect('/auth/sign-in');
   }
 
   // Get organization by slug using cached Effect query

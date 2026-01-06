@@ -1,16 +1,16 @@
-import { Effect } from "effect";
-import { GitHub } from "@/lib/effect/services/github";
+import { Effect } from 'effect';
+import { GitHub } from '@/lib/effect/services/github';
 import {
   errorRedirect,
   GitHubIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from "@/lib/integrations";
-import { logger } from "@/lib/logger";
+} from '@/lib/integrations';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
-  const validation = await validateOAuthCallback(request, "github");
+  const validation = await validateOAuthCallback(request, 'github');
   if (!validation.success) {
     return validation.redirect;
   }
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     yield* saveIntegration({
       userId,
       organizationId,
-      provider: "github",
+      provider: 'github',
       tokens: {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -57,9 +57,9 @@ export async function GET(request: Request) {
 
   try {
     await Effect.runPromise(Effect.provide(effect, GitHubIntegrationLayer));
-    return successRedirect(organizationId, "github");
+    return successRedirect(organizationId, 'github');
   } catch (err) {
-    logger.error("[GitHub Callback Error]", err instanceof Error ? err : new Error(String(err)));
-    return errorRedirect(organizationId, "github");
+    logger.error('[GitHub Callback Error]', err instanceof Error ? err : new Error(String(err)));
+    return errorRedirect(organizationId, 'github');
   }
 }

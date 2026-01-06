@@ -1,16 +1,16 @@
-import { Effect, Layer } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { AppLive, NotFoundError } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
-import { TranscriptionLive } from "@/lib/effect/services/transcription";
+import { Effect, Layer } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { AppLive, NotFoundError } from '@/lib/effect';
+import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
+import { TranscriptionLive } from '@/lib/effect/services/transcription';
 import {
   VideoAIProcessingError,
   VideoAIProcessor,
   VideoAIProcessorLive,
-} from "@/lib/effect/services/video-ai-processor";
-import { VideoRepository } from "@/lib/effect/services/video-repository";
+} from '@/lib/effect/services/video-ai-processor';
+import { VideoRepository } from '@/lib/effect/services/video-repository';
 
 // Build the layer with all required dependencies
 const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
@@ -33,11 +33,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Get video details using repository (proper Effect pattern)
     const videoRepo = yield* VideoRepository;
     const video = yield* videoRepo.getVideo(videoId).pipe(
-      Effect.catchTag("NotFoundError", () =>
+      Effect.catchTag('NotFoundError', () =>
         Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id: videoId,
           }),
         ),
@@ -48,16 +48,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video.videoUrl) {
       return yield* Effect.fail(
         new VideoAIProcessingError({
-          message: "Video URL not available for processing",
+          message: 'Video URL not available for processing',
           videoId,
         }),
       );
     }
 
     // Check if already processing
-    if (video.processingStatus === "transcribing" || video.processingStatus === "analyzing") {
+    if (video.processingStatus === 'transcribing' || video.processingStatus === 'analyzing') {
       return {
-        message: "Video is already being processed",
+        message: 'Video is already being processed',
         status: video.processingStatus,
       };
     }
@@ -76,8 +76,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
 
       return {
-        message: "AI analysis completed",
-        status: "completed",
+        message: 'AI analysis completed',
+        status: 'completed',
         summary: result.summary,
         tags: result.tags,
         actionItems: result.actionItems,
@@ -90,8 +90,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const result = yield* processor.processVideo(videoId, video.videoUrl, video.title);
 
     return {
-      message: "Video processing completed",
-      status: "completed",
+      message: 'Video processing completed',
+      status: 'completed',
       summary: result.summary,
       tags: result.tags,
       actionItems: result.actionItems,
@@ -121,11 +121,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     // Get video processing status using repository
     const videoRepo = yield* VideoRepository;
     const video = yield* videoRepo.getVideo(videoId).pipe(
-      Effect.catchTag("NotFoundError", () =>
+      Effect.catchTag('NotFoundError', () =>
         Effect.fail(
           new NotFoundError({
-            message: "Video not found",
-            entity: "Video",
+            message: 'Video not found',
+            entity: 'Video',
             id: videoId,
           }),
         ),

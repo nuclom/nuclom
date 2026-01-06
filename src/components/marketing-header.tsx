@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { LogOut, Menu, Play, Settings, User, X } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { LogOut, Menu, Play, Settings, User, X } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +13,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/use-auth";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import { ThemeToggle } from "./theme-toggle";
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/use-auth';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import { ThemeToggle } from './theme-toggle';
 
 interface MarketingHeaderProps {
   showDocs?: boolean;
@@ -31,25 +31,25 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
   const handleLogout = async () => {
     try {
       await authClient.signOut();
-      router.push("/");
+      router.push('/');
       router.refresh();
     } catch (error) {
-      logger.error("Logout failed", error);
+      logger.error('Logout failed', error);
     }
   };
 
   const getInitials = (name: string | null | undefined) => {
-    if (!name) return "U";
+    if (!name) return 'U';
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
 
   // Redirect to onboarding which will handle organization selection
-  const dashboardUrl = "/onboarding";
+  const dashboardUrl = '/onboarding';
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -89,7 +89,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-transparent hover:ring-primary/20 transition-all">
-                  <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+                  <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
                   <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                     {getInitials(user.name)}
                   </AvatarFallback>
@@ -98,7 +98,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
+                    <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
@@ -185,13 +185,13 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 py-2">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+                    <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium">{user.name || "User"}</p>
+                    <p className="text-sm font-medium">{user.name || 'User'}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>

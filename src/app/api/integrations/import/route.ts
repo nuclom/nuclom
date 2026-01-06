@@ -1,20 +1,20 @@
-import { Cause, Effect, Exit, Layer, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { NotFoundError, UnauthorizedError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { GoogleMeet, GoogleMeetLive } from "@/lib/effect/services/google-meet";
-import { IntegrationRepository, IntegrationRepositoryLive } from "@/lib/effect/services/integration-repository";
-import { Zoom, ZoomLive } from "@/lib/effect/services/zoom";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
-import { importMeetingWorkflow } from "@/workflows/import-meeting";
+import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
+import { Zoom, ZoomLive } from '@/lib/effect/services/zoom';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
+import { importMeetingWorkflow } from '@/workflows/import-meeting';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ImportLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive, GoogleMeetLive);
 
 const ImportRecordingSchema = Schema.Struct({
-  provider: Schema.Literal("zoom", "google_meet"),
+  provider: Schema.Literal('zoom', 'google_meet'),
   recordings: Schema.Array(
     Schema.Struct({
       externalId: Schema.String,
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   // Parse and validate request body
@@ -46,17 +46,17 @@ export async function POST(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
   const result = safeParse(ImportRecordingSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request format' }, { status: 400 });
   }
   const { provider, recordings } = result.data;
 
   if (recordings.length === 0) {
-    return NextResponse.json({ success: false, error: "No recordings to import" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'No recordings to import' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
     if (!integration) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: `${provider === "zoom" ? "Zoom" : "Google Meet"} integration not found`,
-          entity: "Integration",
+          message: `${provider === 'zoom' ? 'Zoom' : 'Google Meet'} integration not found`,
+          entity: 'Integration',
         }),
       );
     }
@@ -82,12 +82,12 @@ export async function POST(request: NextRequest) {
       if (!integration.refreshToken) {
         return yield* Effect.fail(
           new UnauthorizedError({
-            message: "Access token expired. Please reconnect your account.",
+            message: 'Access token expired. Please reconnect your account.',
           }),
         );
       }
 
-      if (provider === "zoom") {
+      if (provider === 'zoom') {
         const newTokens = yield* zoom.refreshAccessToken(integration.refreshToken);
         accessToken = newTokens.access_token;
 
@@ -149,19 +149,19 @@ export async function POST(request: NextRequest) {
         accessToken,
       }).catch((err) => {
         // Log but don't fail - workflow will retry on its own
-        logger.error("[Meeting Import Workflow Error]", err instanceof Error ? err : new Error(String(err)));
+        logger.error('[Meeting Import Workflow Error]', err instanceof Error ? err : new Error(String(err)));
       });
 
       importResults.push({
         externalId: recording.externalId,
         importId: importedMeeting.id,
-        status: "pending",
+        status: 'pending',
       });
     }
 
     return {
-      imported: importResults.filter((r) => r.status !== "failed").length,
-      failed: importResults.filter((r) => r.status === "failed").length,
+      imported: importResults.filter((r) => r.status !== 'failed').length,
+      failed: importResults.filter((r) => r.status === 'failed').length,
       results: importResults,
     };
   });
@@ -180,8 +180,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
         }
       }
-      logger.error("[Import Error]", cause instanceof Error ? cause : new Error(String(cause)));
-      return NextResponse.json({ success: false, error: "Failed to import recordings" }, { status: 500 });
+      logger.error('[Import Error]', cause instanceof Error ? cause : new Error(String(cause)));
+      return NextResponse.json({ success: false, error: 'Failed to import recordings' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const integrationId = searchParams.get("integrationId");
+  const integrationId = searchParams.get('integrationId');
 
   // Verify authentication
   const session = await auth.api.getSession({
@@ -203,11 +203,11 @@ export async function GET(request: NextRequest) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   if (!integrationId) {
-    return NextResponse.json({ success: false, error: "integrationId is required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'integrationId is required' }, { status: 400 });
   }
 
   const effect = Effect.gen(function* () {
@@ -243,7 +243,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: 403 });
         }
       }
-      return NextResponse.json({ success: false, error: "Failed to fetch imports" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to fetch imports' }, { status: 500 });
     },
     onSuccess: (data) => {
       return NextResponse.json({ success: true, data });

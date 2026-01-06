@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Clock, Download, ExternalLink, Loader2, MoreVertical, Play, Scissors, Trash2 } from "lucide-react";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { Clock, Download, ExternalLink, Loader2, MoreVertical, Play, Scissors, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,19 +12,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
-import type { ClipStatus, MomentType } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import type { ClipStatus, MomentType } from '@/lib/db/schema';
+import { cn } from '@/lib/utils';
 
 interface Clip {
   id: string;
@@ -33,7 +33,7 @@ interface Clip {
   description: string | null;
   startTime: number;
   endTime: number;
-  clipType: "auto" | "manual";
+  clipType: 'auto' | 'manual';
   momentType: MomentType | null;
   status: ClipStatus;
   thumbnailUrl: string | null;
@@ -52,16 +52,16 @@ interface ClipsListProps {
 }
 
 const statusConfig: Record<ClipStatus, { label: string; color: string }> = {
-  pending: { label: "Pending", color: "bg-yellow-500/10 text-yellow-500" },
-  processing: { label: "Processing", color: "bg-blue-500/10 text-blue-500" },
-  ready: { label: "Ready", color: "bg-green-500/10 text-green-500" },
-  failed: { label: "Failed", color: "bg-red-500/10 text-red-500" },
+  pending: { label: 'Pending', color: 'bg-yellow-500/10 text-yellow-500' },
+  processing: { label: 'Processing', color: 'bg-blue-500/10 text-blue-500' },
+  ready: { label: 'Ready', color: 'bg-green-500/10 text-green-500' },
+  failed: { label: 'Failed', color: 'bg-red-500/10 text-red-500' },
 };
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function formatDuration(startTime: number, endTime: number): string {
@@ -87,12 +87,12 @@ export function ClipsList({ videoId, onSeek }: ClipsListProps) {
       setIsLoading(true);
       const response = await fetch(`/api/videos/${videoId}/clips`);
       if (!response.ok) {
-        throw new Error("Failed to fetch clips");
+        throw new Error('Failed to fetch clips');
       }
       const data = await response.json();
       setClips(data.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clips");
+      setError(err instanceof Error ? err.message : 'Failed to load clips');
     } finally {
       setIsLoading(false);
     }
@@ -108,24 +108,24 @@ export function ClipsList({ videoId, onSeek }: ClipsListProps) {
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/clips/${deleteClipId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to delete clip");
+        throw new Error(error.error || 'Failed to delete clip');
       }
 
       setClips((prev) => prev.filter((c) => c.id !== deleteClipId));
       toast({
-        title: "Clip deleted",
-        description: "The clip has been deleted successfully.",
+        title: 'Clip deleted',
+        description: 'The clip has been deleted successfully.',
       });
     } catch (err) {
       toast({
-        title: "Failed to delete clip",
-        description: err instanceof Error ? err.message : "An error occurred",
-        variant: "destructive",
+        title: 'Failed to delete clip',
+        description: err instanceof Error ? err.message : 'An error occurred',
+        variant: 'destructive',
       });
     } finally {
       setIsDeleting(false);
@@ -214,7 +214,7 @@ export function ClipsList({ videoId, onSeek }: ClipsListProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {clip.status === "ready" && clip.storageKey && (
+                      {clip.status === 'ready' && clip.storageKey && (
                         <>
                           <DropdownMenuItem>
                             <ExternalLink className="h-4 w-4 mr-2" />
@@ -238,7 +238,7 @@ export function ClipsList({ videoId, onSeek }: ClipsListProps) {
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <Badge className={cn("text-xs", status.color)}>{status.label}</Badge>
+                <Badge className={cn('text-xs', status.color)}>{status.label}</Badge>
                 {clip.description && (
                   <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{clip.description}</p>
                 )}
@@ -269,7 +269,7 @@ export function ClipsList({ videoId, onSeek }: ClipsListProps) {
                   Deleting...
                 </>
               ) : (
-                "Delete"
+                'Delete'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

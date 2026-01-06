@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { connection, type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { createFullLayer } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { KnowledgeGraphRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateQueryParams } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { connection, type NextRequest, NextResponse } from 'next/server';
+import { mapErrorToApiResponse } from '@/lib/api-errors';
+import { createFullLayer } from '@/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
+import { KnowledgeGraphRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
 
     // Parse artifact reference
     // Format: type:subtype:id or type:id
-    const artifactParts = params.artifact.split(":");
-    const entityType = artifactParts.length >= 2 ? artifactParts.slice(0, -1).join(":") : artifactParts[0];
+    const artifactParts = params.artifact.split(':');
+    const entityType = artifactParts.length >= 2 ? artifactParts.slice(0, -1).join(':') : artifactParts[0];
     const entityId = artifactParts[artifactParts.length - 1];
 
     // Fetch decisions related to this artifact
@@ -61,15 +61,15 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) =>
       NextResponse.json(data, {
         headers: {
-          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
         },
       }),
   });

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from 'date-fns';
 import {
   AlertTriangle,
   CheckCircle,
@@ -13,10 +13,10 @@ import {
   Video,
   X,
   XCircle,
-} from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
+} from 'lucide-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +26,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+} from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,12 +38,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import type { ReportCategory, ReportResolution, ReportResourceType, ReportStatus } from "@/lib/db/schema";
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import type { ReportCategory, ReportResolution, ReportResourceType, ReportStatus } from '@/lib/db/schema';
 
 interface Reporter {
   id: string;
@@ -79,18 +79,18 @@ interface ReportsResponse {
 }
 
 const statusColors: Record<ReportStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  reviewing: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  resolved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  dismissed: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  reviewing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  resolved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  dismissed: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
 };
 
 const categoryLabels: Record<ReportCategory, string> = {
-  inappropriate: "Inappropriate",
-  spam: "Spam",
-  copyright: "Copyright",
-  harassment: "Harassment",
-  other: "Other",
+  inappropriate: 'Inappropriate',
+  spam: 'Spam',
+  copyright: 'Copyright',
+  harassment: 'Harassment',
+  other: 'Other',
 };
 
 const resourceTypeIcons: Record<ReportResourceType, React.ReactNode> = {
@@ -111,19 +111,19 @@ function ModerationDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showActionDialog, setShowActionDialog] = useState(false);
-  const [actionType, setActionType] = useState<"dismiss" | "remove" | "warn" | "suspend" | null>(null);
-  const [resolutionNotes, setResolutionNotes] = useState("");
+  const [actionType, setActionType] = useState<'dismiss' | 'remove' | 'warn' | 'suspend' | null>(null);
+  const [resolutionNotes, setResolutionNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState<ReportStatus | "all">(
-    (searchParams.get("status") as ReportStatus) || "pending",
+  const [statusFilter, setStatusFilter] = useState<ReportStatus | 'all'>(
+    (searchParams.get('status') as ReportStatus) || 'pending',
   );
-  const [categoryFilter, setCategoryFilter] = useState<ReportCategory | "all">(
-    (searchParams.get("category") as ReportCategory) || "all",
+  const [categoryFilter, setCategoryFilter] = useState<ReportCategory | 'all'>(
+    (searchParams.get('category') as ReportCategory) || 'all',
   );
-  const [resourceTypeFilter, setResourceTypeFilter] = useState<ReportResourceType | "all">(
-    (searchParams.get("resourceType") as ReportResourceType) || "all",
+  const [resourceTypeFilter, setResourceTypeFilter] = useState<ReportResourceType | 'all'>(
+    (searchParams.get('resourceType') as ReportResourceType) || 'all',
   );
 
   // Fetch reports
@@ -131,37 +131,37 @@ function ModerationDashboard() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (statusFilter !== "all") params.set("status", statusFilter);
-      if (categoryFilter !== "all") params.set("category", categoryFilter);
-      if (resourceTypeFilter !== "all") params.set("resourceType", resourceTypeFilter);
-      params.set("page", pagination.page.toString());
-      params.set("limit", "20");
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (categoryFilter !== 'all') params.set('category', categoryFilter);
+      if (resourceTypeFilter !== 'all') params.set('resourceType', resourceTypeFilter);
+      params.set('page', pagination.page.toString());
+      params.set('limit', '20');
 
       const response = await fetch(`/api/reports?${params.toString()}`);
 
       if (response.status === 403) {
         toast({
-          title: "Access Denied",
+          title: 'Access Denied',
           description: "You don't have permission to access the moderation dashboard.",
-          variant: "destructive",
+          variant: 'destructive',
         });
         router.push(`/${organization}`);
         return;
       }
 
       if (!response.ok) {
-        throw new Error("Failed to fetch reports");
+        throw new Error('Failed to fetch reports');
       }
 
       const data: ReportsResponse = await response.json();
       setReports(data.reports);
       setPagination(data.pagination);
     } catch (error) {
-      console.error("Fetch reports error:", error);
+      console.error('Fetch reports error:', error);
       toast({
-        title: "Error",
-        description: "Failed to load reports. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load reports. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -173,10 +173,10 @@ function ModerationDashboard() {
   }, [fetchReports]);
 
   // Handle action
-  const handleAction = useCallback((report: Report, action: "dismiss" | "remove" | "warn" | "suspend") => {
+  const handleAction = useCallback((report: Report, action: 'dismiss' | 'remove' | 'warn' | 'suspend') => {
     setSelectedReport(report);
     setActionType(action);
-    setResolutionNotes("");
+    setResolutionNotes('');
     setShowActionDialog(true);
   }, []);
 
@@ -190,27 +190,27 @@ function ModerationDashboard() {
       let resolution: ReportResolution;
 
       switch (actionType) {
-        case "dismiss":
-          status = "dismissed";
-          resolution = "no_action";
+        case 'dismiss':
+          status = 'dismissed';
+          resolution = 'no_action';
           break;
-        case "remove":
-          status = "resolved";
-          resolution = "content_removed";
+        case 'remove':
+          status = 'resolved';
+          resolution = 'content_removed';
           break;
-        case "warn":
-          status = "resolved";
-          resolution = "user_warned";
+        case 'warn':
+          status = 'resolved';
+          resolution = 'user_warned';
           break;
-        case "suspend":
-          status = "resolved";
-          resolution = "user_suspended";
+        case 'suspend':
+          status = 'resolved';
+          resolution = 'user_suspended';
           break;
       }
 
-      const response = await fetch("/api/reports", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/reports', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reportId: selectedReport.id,
           status,
@@ -220,22 +220,22 @@ function ModerationDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update report");
+        throw new Error('Failed to update report');
       }
 
       toast({
-        title: "Report updated",
-        description: `Report has been ${actionType === "dismiss" ? "dismissed" : "resolved"}.`,
+        title: 'Report updated',
+        description: `Report has been ${actionType === 'dismiss' ? 'dismissed' : 'resolved'}.`,
       });
 
       // Refresh reports
       fetchReports();
     } catch (error) {
-      console.error("Action error:", error);
+      console.error('Action error:', error);
       toast({
-        title: "Error",
-        description: "Failed to update report. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update report. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -247,16 +247,16 @@ function ModerationDashboard() {
 
   const getActionDescription = () => {
     switch (actionType) {
-      case "dismiss":
-        return "Dismiss this report without taking action. The content will remain visible.";
-      case "remove":
-        return "Remove the reported content. The user will be notified.";
-      case "warn":
-        return "Send a warning to the user about their content. The content will be removed.";
-      case "suspend":
+      case 'dismiss':
+        return 'Dismiss this report without taking action. The content will remain visible.';
+      case 'remove':
+        return 'Remove the reported content. The user will be notified.';
+      case 'warn':
+        return 'Send a warning to the user about their content. The content will be removed.';
+      case 'suspend':
         return "Suspend the user's account and remove the content.";
       default:
-        return "";
+        return '';
     }
   };
 
@@ -300,7 +300,7 @@ function ModerationDashboard() {
           <div className="flex flex-wrap gap-4">
             <div className="w-40">
               <Label className="text-xs mb-1.5 block">Status</Label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ReportStatus | "all")}>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as ReportStatus | 'all')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -316,7 +316,7 @@ function ModerationDashboard() {
 
             <div className="w-40">
               <Label className="text-xs mb-1.5 block">Category</Label>
-              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as ReportCategory | "all")}>
+              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as ReportCategory | 'all')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -335,7 +335,7 @@ function ModerationDashboard() {
               <Label className="text-xs mb-1.5 block">Content Type</Label>
               <Select
                 value={resourceTypeFilter}
-                onValueChange={(v) => setResourceTypeFilter(v as ReportResourceType | "all")}
+                onValueChange={(v) => setResourceTypeFilter(v as ReportResourceType | 'all')}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -357,7 +357,7 @@ function ModerationDashboard() {
         <CardHeader>
           <CardTitle>Reports</CardTitle>
           <CardDescription>
-            {pagination.total} report{pagination.total !== 1 ? "s" : ""} found
+            {pagination.total} report{pagination.total !== 1 ? 's' : ''} found
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -392,7 +392,7 @@ function ModerationDashboard() {
                         <div className="flex items-center gap-2 mb-2">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={report.reporter.image || undefined} />
-                            <AvatarFallback className="text-xs">{report.reporter.name?.[0] || "U"}</AvatarFallback>
+                            <AvatarFallback className="text-xs">{report.reporter.name?.[0] || 'U'}</AvatarFallback>
                           </Avatar>
                           <span className="text-sm text-muted-foreground">
                             Reported by <strong>{report.reporter.name || report.reporter.email}</strong>
@@ -412,7 +412,7 @@ function ModerationDashboard() {
                     </div>
 
                     {/* Actions */}
-                    {report.status === "pending" || report.status === "reviewing" ? (
+                    {report.status === 'pending' || report.status === 'reviewing' ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -422,20 +422,20 @@ function ModerationDashboard() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Moderation Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleAction(report, "dismiss")}>
+                          <DropdownMenuItem onClick={() => handleAction(report, 'dismiss')}>
                             <X className="h-4 w-4 mr-2" />
                             Dismiss Report
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAction(report, "remove")}>
+                          <DropdownMenuItem onClick={() => handleAction(report, 'remove')}>
                             <XCircle className="h-4 w-4 mr-2" />
                             Remove Content
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAction(report, "warn")}>
+                          <DropdownMenuItem onClick={() => handleAction(report, 'warn')}>
                             <AlertTriangle className="h-4 w-4 mr-2" />
                             Warn User
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleAction(report, "suspend")}
+                            onClick={() => handleAction(report, 'suspend')}
                             className="text-destructive focus:text-destructive"
                           >
                             <Shield className="h-4 w-4 mr-2" />
@@ -447,7 +447,7 @@ function ModerationDashboard() {
                       <div className="text-sm text-muted-foreground">
                         {report.resolution && (
                           <Badge variant="outline" className="capitalize">
-                            {report.resolution.replace("_", " ")}
+                            {report.resolution.replace('_', ' ')}
                           </Badge>
                         )}
                       </div>
@@ -490,13 +490,13 @@ function ModerationDashboard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {actionType === "dismiss"
-                ? "Dismiss Report"
-                : actionType === "remove"
-                  ? "Remove Content"
-                  : actionType === "warn"
-                    ? "Warn User"
-                    : "Suspend User"}
+              {actionType === 'dismiss'
+                ? 'Dismiss Report'
+                : actionType === 'remove'
+                  ? 'Remove Content'
+                  : actionType === 'warn'
+                    ? 'Warn User'
+                    : 'Suspend User'}
             </AlertDialogTitle>
             <AlertDialogDescription>{getActionDescription()}</AlertDialogDescription>
           </AlertDialogHeader>
@@ -520,7 +520,7 @@ function ModerationDashboard() {
               onClick={submitAction}
               disabled={isSubmitting}
               className={
-                actionType === "suspend" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""
+                actionType === 'suspend' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''
               }
             >
               {isSubmitting ? (
@@ -529,7 +529,7 @@ function ModerationDashboard() {
                   Processing...
                 </>
               ) : (
-                "Confirm"
+                'Confirm'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

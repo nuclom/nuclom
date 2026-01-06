@@ -1,7 +1,7 @@
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { env } from "@/lib/env/server";
-import * as schema from "./schema";
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { env } from '@/lib/env/server';
+import * as schema from './schema';
 
 // =============================================================================
 // Database Connection Configuration
@@ -93,4 +93,4 @@ export function getDbStats() {
 // =============================================================================
 
 // Re-export schema for convenience
-export * from "./schema";
+export * from './schema';

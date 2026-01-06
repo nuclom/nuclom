@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videoShareLinks, videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
-import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videoShareLinks, videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import type { ApiResponse } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Hash Password Helper
@@ -16,10 +16,10 @@ import { validateRequestBody } from "@/lib/validation";
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest("SHA-256", data);
+  const hash = await crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 // =============================================================================
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch share links",
-          operation: "getShareLinks",
+          message: 'Failed to fetch share links',
+          operation: 'getShareLinks',
           cause: error,
         }),
     });
@@ -78,9 +78,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // =============================================================================
 
 const CreateShareLinkBodySchema = Schema.Struct({
-  accessLevel: Schema.optional(Schema.Literal("view", "comment", "download")),
+  accessLevel: Schema.optional(Schema.Literal('view', 'comment', 'download')),
   password: Schema.optional(Schema.String),
-  expiresIn: Schema.optional(Schema.Literal("never", "1d", "7d", "30d")),
+  expiresIn: Schema.optional(Schema.Literal('never', '1d', '7d', '30d')),
   maxViews: Schema.optional(Schema.Number),
 });
 
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       try: () => db.query.videos.findFirst({ where: eq(videos.id, id) }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -109,36 +109,36 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id,
         }),
       );
     }
 
     // Validate access level
-    const validAccessLevels = ["view", "comment", "download"] as const;
-    const accessLevel = body.accessLevel || "view";
+    const validAccessLevels = ['view', 'comment', 'download'] as const;
+    const accessLevel = body.accessLevel || 'view';
     if (!validAccessLevels.includes(accessLevel)) {
       return yield* Effect.fail(
         new ValidationError({
-          message: `Invalid access level. Valid levels: ${validAccessLevels.join(", ")}`,
+          message: `Invalid access level. Valid levels: ${validAccessLevels.join(', ')}`,
         }),
       );
     }
 
     // Calculate expiration date
     let expiresAt: Date | null = null;
-    if (body.expiresIn && body.expiresIn !== "never") {
+    if (body.expiresIn && body.expiresIn !== 'never') {
       const now = new Date();
       switch (body.expiresIn) {
-        case "1d":
+        case '1d':
           expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
           break;
-        case "7d":
+        case '7d':
           expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
           break;
-        case "30d":
+        case '30d':
           expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           break;
       }
@@ -151,8 +151,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         try: () => hashPassword(body.password as string),
         catch: () =>
           new DatabaseError({
-            message: "Failed to hash password",
-            operation: "hashPassword",
+            message: 'Failed to hash password',
+            operation: 'hashPassword',
           }),
       });
     }
@@ -173,8 +173,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           .returning(),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to create share link",
-          operation: "createShareLink",
+          message: 'Failed to create share link',
+          operation: 'createShareLink',
           cause: error,
         }),
     });
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
-  if (exit._tag === "Success") {
+  if (exit._tag === 'Success') {
     return NextResponse.json(exit.value, { status: 201 });
   }
 

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Analytics } from "@vercel/analytics/next";
-import { useCookieConsent } from "./cookie-consent";
+import { Analytics } from '@vercel/analytics/next';
+import { useCookieConsent } from './cookie-consent';
 
 /**
  * Wrapper for Vercel Analytics that respects cookie consent preferences.

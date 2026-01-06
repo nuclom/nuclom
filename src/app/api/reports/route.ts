@@ -1,113 +1,151 @@
-import { and, count, desc, eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import type { ReportCategory, ReportResourceType, ReportStatus } from "@/lib/db/schema";
-import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+/**
+ * Reports API Route
+ *
+ * Handles content reporting functionality using Effect-TS for type-safe error handling.
+ *
+ * - GET /api/reports - List reports (admin only)
+ * - POST /api/reports - Create a new report
+ * - PATCH /api/reports - Update a report (admin only)
+ */
 
-// Validate query parameters against enum values
-function isValidReportStatus(value: string | null): value is ReportStatus {
+import { and, count, desc, eq } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import type { ReportCategory, ReportResourceType, ReportStatus } from '@/lib/db/schema';
+import { reportCategoryEnum, reportResourceTypeEnum, reportStatusEnum, reports, users } from '@/lib/db/schema';
+import { DuplicateError, ForbiddenError, NotFoundError, ValidationError } from '@/lib/effect/errors';
+import { Auth } from '@/lib/effect/services/auth';
+import { Database } from '@/lib/effect/services/database';
+import { createBodyValidator, createQueryValidator } from '@/lib/validation';
+
+// =============================================================================
+// Validation Schemas
+// =============================================================================
+
+/** Query parameters for listing reports */
+const ListReportsQuerySchema = Schema.Struct({
+  status: Schema.optional(Schema.String),
+  category: Schema.optional(Schema.String),
+  resourceType: Schema.optional(Schema.String),
+  page: Schema.optional(Schema.String),
+  limit: Schema.optional(Schema.String),
+});
+
+/** Request body for creating a report */
+const CreateReportSchema = Schema.Struct({
+  resourceType: Schema.Literal('video', 'comment', 'user'),
+  resourceId: Schema.String,
+  category: Schema.Literal('inappropriate', 'spam', 'copyright', 'harassment', 'other'),
+  description: Schema.optional(Schema.String),
+});
+
+/** Request body for updating a report (admin only) */
+const UpdateReportSchema = Schema.Struct({
+  reportId: Schema.String,
+  status: Schema.optional(Schema.Literal('pending', 'reviewing', 'resolved', 'dismissed')),
+  resolution: Schema.optional(Schema.Literal('content_removed', 'user_warned', 'user_suspended', 'no_action')),
+  resolutionNotes: Schema.optional(Schema.String),
+});
+
+// Type-safe validators
+const listReportsQuery = createQueryValidator(ListReportsQuerySchema);
+const createReportBody = createBodyValidator(CreateReportSchema);
+const updateReportBody = createBodyValidator(UpdateReportSchema);
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+/** Validate report status against enum values */
+function isValidReportStatus(value: string | undefined): value is ReportStatus {
   if (!value) return false;
   return (reportStatusEnum.enumValues as readonly string[]).includes(value);
 }
 
-function isValidReportCategory(value: string | null): value is ReportCategory {
+/** Validate report category against enum values */
+function isValidReportCategory(value: string | undefined): value is ReportCategory {
   if (!value) return false;
   return (reportCategoryEnum.enumValues as readonly string[]).includes(value);
 }
 
-function isValidReportResourceType(value: string | null): value is ReportResourceType {
+/** Validate report resource type against enum values */
+function isValidReportResourceType(value: string | undefined): value is ReportResourceType {
   if (!value) return false;
   return (reportResourceTypeEnum.enumValues as readonly string[]).includes(value);
 }
 
-// Effect Schema for creating a report
-const CreateReportSchema = Schema.Struct({
-  resourceType: Schema.Literal("video", "comment", "user"),
-  resourceId: Schema.String,
-  category: Schema.Literal("inappropriate", "spam", "copyright", "harassment", "other"),
-  description: Schema.optional(Schema.String),
-});
-
-// Effect Schema for updating a report (admin only)
-const UpdateReportSchema = Schema.Struct({
-  status: Schema.optional(Schema.Literal("pending", "reviewing", "resolved", "dismissed")),
-  resolution: Schema.optional(Schema.Literal("content_removed", "user_warned", "user_suspended", "no_action")),
-  resolutionNotes: Schema.optional(Schema.String),
-});
-
+// =============================================================================
 // GET /api/reports - List reports (admin only)
-export async function GET(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+// =============================================================================
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export async function GET(request: NextRequest) {
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Get database
+    const database = yield* Database;
+    const db = database.db;
 
     // Check if user is admin
-    const [userData] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id)).limit(1);
+    const [userData] = yield* Effect.tryPromise({
+      try: () => db.select({ role: users.role }).from(users).where(eq(users.id, user.id)).limit(1),
+      catch: (error) => new ValidationError({ message: `Failed to fetch user role: ${String(error)}` }),
+    });
 
-    if (userData?.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
+    if (userData?.role !== 'admin') {
+      return yield* Effect.fail(new ForbiddenError({ message: 'Admin access required' }));
     }
 
-    // Parse query params for filtering
-    const url = new URL(request.url);
-    const statusParam = url.searchParams.get("status");
-    const categoryParam = url.searchParams.get("category");
-    const resourceTypeParam = url.searchParams.get("resourceType");
-    const page = Number.parseInt(url.searchParams.get("page") || "1", 10);
-    const limit = Math.min(Number.parseInt(url.searchParams.get("limit") || "20", 10), 100);
+    // Parse and validate query params
+    const params = yield* listReportsQuery.validate(request.url);
+
+    // Parse pagination
+    const page = params.page ? parseInt(params.page, 10) : 1;
+    const limit = Math.min(params.limit ? parseInt(params.limit, 10) : 20, 100);
     const offset = (page - 1) * limit;
 
-    // Validate query params before using them
-    const status = isValidReportStatus(statusParam) ? statusParam : null;
-    const category = isValidReportCategory(categoryParam) ? categoryParam : null;
-    const resourceType = isValidReportResourceType(resourceTypeParam) ? resourceTypeParam : null;
+    // Validate enum params
+    const status = isValidReportStatus(params.status) ? params.status : undefined;
+    const category = isValidReportCategory(params.category) ? params.category : undefined;
+    const resourceType = isValidReportResourceType(params.resourceType) ? params.resourceType : undefined;
 
     // Build filter conditions
     const conditions = [];
-    if (status) {
-      conditions.push(eq(reports.status, status));
-    }
-    if (category) {
-      conditions.push(eq(reports.category, category));
-    }
-    if (resourceType) {
-      conditions.push(eq(reports.resourceType, resourceType));
-    }
+    if (status) conditions.push(eq(reports.status, status));
+    if (category) conditions.push(eq(reports.category, category));
+    if (resourceType) conditions.push(eq(reports.resourceType, resourceType));
 
-    // Fetch reports with reporter info
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    const [reportsList, totalCount] = await Promise.all([
-      db
-        .select({
-          report: reports,
-          reporter: {
-            id: users.id,
-            name: users.name,
-            email: users.email,
-            image: users.image,
-          },
-        })
-        .from(reports)
-        .leftJoin(users, eq(reports.reporterId, users.id))
-        .where(whereClause)
-        .orderBy(desc(reports.createdAt))
-        .limit(limit)
-        .offset(offset),
-      db.select({ count: count() }).from(reports).where(whereClause),
-    ]);
+    // Fetch reports with reporter info
+    const [reportsList, totalCount] = yield* Effect.tryPromise({
+      try: () =>
+        Promise.all([
+          db
+            .select({
+              report: reports,
+              reporter: {
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                image: users.image,
+              },
+            })
+            .from(reports)
+            .leftJoin(users, eq(reports.reporterId, users.id))
+            .where(whereClause)
+            .orderBy(desc(reports.createdAt))
+            .limit(limit)
+            .offset(offset),
+          db.select({ count: count() }).from(reports).where(whereClause),
+        ]),
+      catch: (error) => new ValidationError({ message: `Failed to fetch reports: ${String(error)}` }),
+    });
 
-    return NextResponse.json({
+    return {
       reports: reportsList.map((r) => ({
         ...r.report,
         reporter: r.reporter,
@@ -118,144 +156,150 @@ export async function GET(request: NextRequest) {
         total: totalCount[0]?.count ?? 0,
         totalPages: Math.ceil((totalCount[0]?.count ?? 0) / limit),
       },
-    });
-  } catch (error) {
-    logger.error("Get reports error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
-  }
+    };
+  });
+
+  const runnable = Effect.provide(effect, createFullLayer());
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }
 
+// =============================================================================
 // POST /api/reports - Create a new report
+// =============================================================================
+
 export async function POST(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Get database
+    const database = yield* Database;
+    const db = database.db;
 
-    const body = await request.json();
-    const result = safeParse(CreateReportSchema, body);
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
-        { status: 400 },
-      );
-    }
-    const { resourceType, resourceId, category, description } = result.data;
+    // Validate request body
+    const { resourceType, resourceId, category, description } = yield* createReportBody.validate(request);
 
     // Check for duplicate reports from the same user for the same resource
-    const existingReport = await db
-      .select()
-      .from(reports)
-      .where(
-        and(
-          eq(reports.reporterId, session.user.id),
-          eq(reports.resourceType, resourceType),
-          eq(reports.resourceId, resourceId),
-          eq(reports.status, "pending"),
-        ),
-      )
-      .limit(1);
+    const existingReport = yield* Effect.tryPromise({
+      try: () =>
+        db
+          .select()
+          .from(reports)
+          .where(
+            and(
+              eq(reports.reporterId, user.id),
+              eq(reports.resourceType, resourceType),
+              eq(reports.resourceId, resourceId),
+              eq(reports.status, 'pending'),
+            ),
+          )
+          .limit(1),
+      catch: (error) => new ValidationError({ message: `Failed to check existing reports: ${String(error)}` }),
+    });
 
     if (existingReport.length > 0) {
-      return NextResponse.json({ error: "You have already reported this content" }, { status: 409 });
+      return yield* Effect.fail(
+        new DuplicateError({
+          message: 'You have already reported this content',
+          entity: 'report',
+          field: 'resourceId',
+        }),
+      );
     }
 
     // Create the report
-    const [newReport] = await db
-      .insert(reports)
-      .values({
-        reporterId: session.user.id,
-        resourceType,
-        resourceId,
-        category,
-        description,
-        status: "pending",
-      })
-      .returning();
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Thank you for your report. Our team will review it shortly.",
-        reportId: newReport.id,
-      },
-      { status: 201 },
-    );
-  } catch (error) {
-    logger.error("Create report error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to create report" }, { status: 500 });
-  }
-}
-
-// PATCH /api/reports - Update a report (admin only)
-export async function PATCH(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
+    const [newReport] = yield* Effect.tryPromise({
+      try: () =>
+        db
+          .insert(reports)
+          .values({
+            reporterId: user.id,
+            resourceType,
+            resourceId,
+            category,
+            description,
+            status: 'pending',
+          })
+          .returning(),
+      catch: (error) => new ValidationError({ message: `Failed to create report: ${String(error)}` }),
     });
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    return {
+      success: true,
+      message: 'Thank you for your report. Our team will review it shortly.',
+      reportId: newReport.id,
+    };
+  });
+
+  const runnable = Effect.provide(effect, createFullLayer());
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExitWithStatus(exit, 201);
+}
+
+// =============================================================================
+// PATCH /api/reports - Update a report (admin only)
+// =============================================================================
+
+export async function PATCH(request: NextRequest) {
+  const effect = Effect.gen(function* () {
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    // Get database
+    const database = yield* Database;
+    const db = database.db;
 
     // Check if user is admin
-    const [userData] = await db.select({ role: users.role }).from(users).where(eq(users.id, session.user.id)).limit(1);
+    const [userData] = yield* Effect.tryPromise({
+      try: () => db.select({ role: users.role }).from(users).where(eq(users.id, user.id)).limit(1),
+      catch: (error) => new ValidationError({ message: `Failed to fetch user role: ${String(error)}` }),
+    });
 
-    if (userData?.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 });
+    if (userData?.role !== 'admin') {
+      return yield* Effect.fail(new ForbiddenError({ message: 'Admin access required' }));
     }
 
-    const body = await request.json();
-    const { reportId, ...updateData } = body;
-
-    if (!reportId) {
-      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
-    }
-
-    const result = safeParse(UpdateReportSchema, updateData);
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
-        { status: 400 },
-      );
-    }
-    const { status, resolution, resolutionNotes } = result.data;
+    // Validate request body
+    const { reportId, status, resolution, resolutionNotes } = yield* updateReportBody.validate(request);
 
     // Build update object
     const updateObj: Record<string, unknown> = {};
-    if (status) {
-      updateObj.status = status;
-    }
-    if (resolution) {
-      updateObj.resolution = resolution;
-    }
-    if (resolutionNotes !== undefined) {
-      updateObj.resolutionNotes = resolutionNotes;
-    }
+    if (status) updateObj.status = status;
+    if (resolution) updateObj.resolution = resolution;
+    if (resolutionNotes !== undefined) updateObj.resolutionNotes = resolutionNotes;
 
     // If status is resolved or dismissed, add resolution info
-    if (status === "resolved" || status === "dismissed") {
-      updateObj.resolvedById = session.user.id;
+    if (status === 'resolved' || status === 'dismissed') {
+      updateObj.resolvedById = user.id;
       updateObj.resolvedAt = new Date();
     }
 
     // Update the report
-    const [updatedReport] = await db.update(reports).set(updateObj).where(eq(reports.id, reportId)).returning();
+    const [updatedReport] = yield* Effect.tryPromise({
+      try: () => db.update(reports).set(updateObj).where(eq(reports.id, reportId)).returning(),
+      catch: (error) => new ValidationError({ message: `Failed to update report: ${String(error)}` }),
+    });
 
     if (!updatedReport) {
-      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+      return yield* Effect.fail(
+        new NotFoundError({
+          message: 'Report not found',
+          entity: 'report',
+          id: reportId,
+        }),
+      );
     }
 
-    return NextResponse.json({
+    return {
       success: true,
       report: updatedReport,
-    });
-  } catch (error) {
-    logger.error("Update report error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to update report" }, { status: 500 });
-  }
+    };
+  });
+
+  const runnable = Effect.provide(effect, createFullLayer());
+  const exit = await Effect.runPromiseExit(runnable);
+  return handleEffectExit(exit);
 }

@@ -5,8 +5,8 @@
  * Uses sonner for toast display with consistent styling.
  */
 
-import { toast } from "sonner";
-import { type ErrorCode, getErrorMessage } from "@/lib/api-errors";
+import { toast } from 'sonner';
+import { type ErrorCode, getErrorMessage } from '@/lib/api-errors';
 
 // =============================================================================
 // Success Notifications
@@ -45,30 +45,30 @@ export const successMessages = {
   created: (entity: string) => `${entity} created successfully`,
   updated: (entity: string) => `${entity} updated successfully`,
   deleted: (entity: string) => `${entity} deleted successfully`,
-  saved: (entity?: string) => (entity ? `${entity} saved successfully` : "Changes saved"),
+  saved: (entity?: string) => (entity ? `${entity} saved successfully` : 'Changes saved'),
 
   // Auth
-  loggedIn: "Welcome back!",
-  loggedOut: "You have been logged out",
-  passwordChanged: "Password changed successfully",
-  passwordReset: "Password reset email sent",
+  loggedIn: 'Welcome back!',
+  loggedOut: 'You have been logged out',
+  passwordChanged: 'Password changed successfully',
+  passwordReset: 'Password reset email sent',
 
   // Video
-  videoUploaded: "Video uploaded successfully",
-  videoProcessing: "Video is processing...",
+  videoUploaded: 'Video uploaded successfully',
+  videoProcessing: 'Video is processing...',
 
   // Organization
-  memberInvited: "Invitation sent successfully",
-  memberRemoved: "Member removed from organization",
-  roleUpdated: "Member role updated",
+  memberInvited: 'Invitation sent successfully',
+  memberRemoved: 'Member removed from organization',
+  roleUpdated: 'Member role updated',
 
   // Settings
-  settingsSaved: "Settings saved successfully",
-  profileUpdated: "Profile updated successfully",
+  settingsSaved: 'Settings saved successfully',
+  profileUpdated: 'Profile updated successfully',
 
   // Generic
-  copied: "Copied to clipboard",
-  linkCopied: "Link copied to clipboard",
+  copied: 'Copied to clipboard',
+  linkCopied: 'Link copied to clipboard',
 } as const;
 
 // =============================================================================
@@ -190,11 +190,11 @@ export function showConfirmation(message: string, description: string, options: 
     description,
     duration: options.duration ?? 10000,
     action: {
-      label: options.confirmLabel ?? "Confirm",
+      label: options.confirmLabel ?? 'Confirm',
       onClick: options.onConfirm,
     },
     cancel: {
-      label: options.cancelLabel ?? "Cancel",
+      label: options.cancelLabel ?? 'Cancel',
       onClick: options.onCancel ?? (() => {}),
     },
   });
@@ -244,7 +244,7 @@ export async function copyToClipboard(text: string, successMessage?: string): Pr
     showSuccess(successMessage ?? successMessages.copied);
     return true;
   } catch {
-    showError("Failed to copy to clipboard");
+    showError('Failed to copy to clipboard');
     return false;
   }
 }

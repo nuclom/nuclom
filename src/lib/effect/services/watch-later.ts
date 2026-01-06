@@ -7,12 +7,12 @@
  * - Notes and annotations
  */
 
-import { and, desc, eq, isNull } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { users, videos, type WatchLater, watchLater } from "@/lib/db/schema";
-import type { VideoWithAuthor } from "@/lib/types";
-import { DatabaseError, NotFoundError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, isNull } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { users, videos, type WatchLater, watchLater } from '@/lib/db/schema';
+import type { VideoWithAuthor } from '@/lib/types';
+import { DatabaseError, NotFoundError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -45,7 +45,7 @@ export interface WatchLaterServiceInterface {
   readonly getWatchLaterList: (
     userId: string,
     organizationId: string,
-    sortBy?: "addedAt" | "priority",
+    sortBy?: 'addedAt' | 'priority',
   ) => Effect.Effect<WatchLaterItem[], DatabaseError>;
 
   /**
@@ -95,7 +95,7 @@ export interface WatchLaterServiceInterface {
 // Watch Later Service Tag
 // =============================================================================
 
-export class WatchLaterService extends Context.Tag("WatchLaterService")<
+export class WatchLaterService extends Context.Tag('WatchLaterService')<
   WatchLaterService,
   WatchLaterServiceInterface
 >() {}
@@ -110,11 +110,11 @@ const makeWatchLaterService = Effect.gen(function* () {
   const getWatchLaterList = (
     userId: string,
     organizationId: string,
-    sortBy: "addedAt" | "priority" = "addedAt",
+    sortBy: 'addedAt' | 'priority' = 'addedAt',
   ): Effect.Effect<WatchLaterItem[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        const orderByClause = sortBy === "priority" ? desc(watchLater.priority) : desc(watchLater.addedAt);
+        const orderByClause = sortBy === 'priority' ? desc(watchLater.priority) : desc(watchLater.addedAt);
 
         const items = await db
           .select({
@@ -183,8 +183,8 @@ const makeWatchLaterService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get watch later list",
-          operation: "getWatchLaterList",
+          message: 'Failed to get watch later list',
+          operation: 'getWatchLaterList',
           cause: error,
         }),
     });
@@ -215,8 +215,8 @@ const makeWatchLaterService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to add to watch later",
-          operation: "addToWatchLater",
+          message: 'Failed to add to watch later',
+          operation: 'addToWatchLater',
           cause: error,
         }),
     });
@@ -231,8 +231,8 @@ const makeWatchLaterService = Effect.gen(function* () {
 
         if (result.length === 0) {
           throw new NotFoundError({
-            message: "Video not found in watch later list",
-            entity: "WatchLater",
+            message: 'Video not found in watch later list',
+            entity: 'WatchLater',
           });
         }
       },
@@ -241,8 +241,8 @@ const makeWatchLaterService = Effect.gen(function* () {
           return error;
         }
         return new DatabaseError({
-          message: "Failed to remove from watch later",
-          operation: "removeFromWatchLater",
+          message: 'Failed to remove from watch later',
+          operation: 'removeFromWatchLater',
           cause: error,
         });
       },
@@ -266,8 +266,8 @@ const makeWatchLaterService = Effect.gen(function* () {
 
         if (result.length === 0) {
           throw new NotFoundError({
-            message: "Video not found in watch later list",
-            entity: "WatchLater",
+            message: 'Video not found in watch later list',
+            entity: 'WatchLater',
           });
         }
 
@@ -278,8 +278,8 @@ const makeWatchLaterService = Effect.gen(function* () {
           return error;
         }
         return new DatabaseError({
-          message: "Failed to update watch later item",
-          operation: "updateWatchLaterItem",
+          message: 'Failed to update watch later item',
+          operation: 'updateWatchLaterItem',
           cause: error,
         });
       },
@@ -298,8 +298,8 @@ const makeWatchLaterService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check watch later status",
-          operation: "isInWatchLater",
+          message: 'Failed to check watch later status',
+          operation: 'isInWatchLater',
           cause: error,
         }),
     });
@@ -323,8 +323,8 @@ const makeWatchLaterService = Effect.gen(function* () {
 
         if (result.length === 0) {
           throw new NotFoundError({
-            message: "Video not found in watch later list",
-            entity: "WatchLater",
+            message: 'Video not found in watch later list',
+            entity: 'WatchLater',
           });
         }
       },
@@ -333,8 +333,8 @@ const makeWatchLaterService = Effect.gen(function* () {
           return error;
         }
         return new DatabaseError({
-          message: "Failed to move to top",
-          operation: "moveToTop",
+          message: 'Failed to move to top',
+          operation: 'moveToTop',
           cause: error,
         });
       },
@@ -349,8 +349,8 @@ const makeWatchLaterService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get watch later count",
-          operation: "getWatchLaterCount",
+          message: 'Failed to get watch later count',
+          operation: 'getWatchLaterCount',
           cause: error,
         }),
     });
@@ -367,8 +367,8 @@ const makeWatchLaterService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to clear watch later",
-          operation: "clearWatchLater",
+          message: 'Failed to clear watch later',
+          operation: 'clearWatchLater',
           cause: error,
         }),
     });
@@ -398,7 +398,7 @@ export const WatchLaterServiceLive = Layer.effect(WatchLaterService, makeWatchLa
 export const getWatchLaterList = (
   userId: string,
   organizationId: string,
-  sortBy?: "addedAt" | "priority",
+  sortBy?: 'addedAt' | 'priority',
 ): Effect.Effect<WatchLaterItem[], DatabaseError, WatchLaterService> =>
   Effect.gen(function* () {
     const service = yield* WatchLaterService;

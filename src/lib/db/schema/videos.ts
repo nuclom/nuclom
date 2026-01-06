@@ -10,11 +10,11 @@
  * - videoCodeSnippets: Code snippets in videos
  */
 
-import { relations, sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
-import { organizations, users } from "./auth";
-import { tsvector } from "./custom-types";
-import { processingStatusEnum } from "./enums";
+import { relations, sql } from 'drizzle-orm';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { organizations, users } from './auth';
+import { tsvector } from './custom-types';
+import { processingStatusEnum } from './enums';
 
 // =============================================================================
 // JSONB Types
@@ -30,7 +30,7 @@ export type TranscriptSegment = {
 export type ActionItem = {
   readonly text: string;
   readonly timestamp?: number; // seconds in video
-  readonly priority?: "high" | "medium" | "low";
+  readonly priority?: 'high' | 'medium' | 'low';
 };
 
 // =============================================================================
@@ -38,21 +38,21 @@ export type ActionItem = {
 // =============================================================================
 
 export const channels = pgTable(
-  "channels",
+  'channels',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    name: text("name").notNull(),
-    description: text("description"),
-    organizationId: text("organization_id")
+    name: text('name').notNull(),
+    description: text('description'),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    memberCount: integer("member_count").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    memberCount: integer('member_count').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [index("channels_organization_id_idx").on(table.organizationId)],
+  (table) => [index('channels_organization_id_idx').on(table.organizationId)],
 );
 
 // =============================================================================
@@ -60,25 +60,25 @@ export const channels = pgTable(
 // =============================================================================
 
 export const collections = pgTable(
-  "collections",
+  'collections',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    name: text("name").notNull(),
-    description: text("description"),
-    thumbnailUrl: text("thumbnail_url"),
-    organizationId: text("organization_id")
+    name: text('name').notNull(),
+    description: text('description'),
+    thumbnailUrl: text('thumbnail_url'),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    isPublic: boolean("is_public").default(false).notNull(),
-    createdById: text("created_by_id").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    isPublic: boolean('is_public').default(false).notNull(),
+    createdById: text('created_by_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("collections_organization_id_idx").on(table.organizationId),
-    index("collections_created_by_id_idx").on(table.createdById),
+    index('collections_organization_id_idx').on(table.organizationId),
+    index('collections_created_by_id_idx').on(table.createdById),
   ],
 );
 
@@ -87,49 +87,49 @@ export const collections = pgTable(
 // =============================================================================
 
 export const videos = pgTable(
-  "videos",
+  'videos',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    title: text("title").notNull(),
-    description: text("description"),
-    duration: text("duration").notNull(),
-    thumbnailUrl: text("thumbnail_url"),
-    videoUrl: text("video_url"),
-    authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
-    organizationId: text("organization_id")
+    title: text('title').notNull(),
+    description: text('description'),
+    duration: text('duration').notNull(),
+    thumbnailUrl: text('thumbnail_url'),
+    videoUrl: text('video_url'),
+    authorId: text('author_id').references(() => users.id, { onDelete: 'set null' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    channelId: text("channel_id").references(() => channels.id, { onDelete: "set null" }),
-    collectionId: text("collection_id").references(() => collections.id, { onDelete: "set null" }),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    channelId: text('channel_id').references(() => channels.id, { onDelete: 'set null' }),
+    collectionId: text('collection_id').references(() => collections.id, { onDelete: 'set null' }),
     // Transcription fields
-    transcript: text("transcript"),
-    transcriptSegments: jsonb("transcript_segments").$type<TranscriptSegment[]>(),
+    transcript: text('transcript'),
+    transcriptSegments: jsonb('transcript_segments').$type<TranscriptSegment[]>(),
     // AI Analysis fields
-    processingStatus: processingStatusEnum("processing_status").default("pending").notNull(),
-    processingError: text("processing_error"),
-    aiSummary: text("ai_summary"),
-    aiTags: jsonb("ai_tags").$type<string[]>(),
-    aiActionItems: jsonb("ai_action_items").$type<ActionItem[]>(),
+    processingStatus: processingStatusEnum('processing_status').default('pending').notNull(),
+    processingError: text('processing_error'),
+    aiSummary: text('ai_summary'),
+    aiTags: jsonb('ai_tags').$type<string[]>(),
+    aiActionItems: jsonb('ai_action_items').$type<ActionItem[]>(),
     // Full-text search vector (generated column)
-    searchVector: tsvector("search_vector").generatedAlwaysAs(
+    searchVector: tsvector('search_vector').generatedAlwaysAs(
       sql.raw(
         "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(transcript, ''))",
       ),
     ),
     // Soft-delete fields
-    deletedAt: timestamp("deleted_at"),
-    retentionUntil: timestamp("retention_until"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    deletedAt: timestamp('deleted_at'),
+    retentionUntil: timestamp('retention_until'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({
-    organizationCreatedIdx: index("videos_organization_created_idx").on(table.organizationId, table.createdAt),
-    authorIdx: index("videos_author_id_idx").on(table.authorId),
-    channelIdx: index("videos_channel_id_idx").on(table.channelId),
-    collectionIdx: index("videos_collection_id_idx").on(table.collectionId),
-    processingStatusIdx: index("videos_processing_status_idx").on(table.processingStatus),
+    organizationCreatedIdx: index('videos_organization_created_idx').on(table.organizationId, table.createdAt),
+    authorIdx: index('videos_author_id_idx').on(table.authorId),
+    channelIdx: index('videos_channel_id_idx').on(table.channelId),
+    collectionIdx: index('videos_collection_id_idx').on(table.collectionId),
+    processingStatusIdx: index('videos_processing_status_idx').on(table.processingStatus),
   }),
 );
 
@@ -138,24 +138,24 @@ export const videos = pgTable(
 // =============================================================================
 
 export const seriesVideos = pgTable(
-  "series_videos",
+  'series_videos',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    seriesId: text("series_id")
+    seriesId: text('series_id')
       .notNull()
-      .references(() => collections.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
+      .references(() => collections.id, { onDelete: 'cascade' }),
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    position: integer("position").notNull().default(0),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.seriesId, table.videoId),
-    index("series_videos_series_id_idx").on(table.seriesId),
-    index("series_videos_video_id_idx").on(table.videoId),
+    index('series_videos_series_id_idx').on(table.seriesId),
+    index('series_videos_video_id_idx').on(table.videoId),
   ],
 );
 
@@ -164,26 +164,26 @@ export const seriesVideos = pgTable(
 // =============================================================================
 
 export const seriesProgress = pgTable(
-  "series_progress",
+  'series_progress',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    seriesId: text("series_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    seriesId: text('series_id')
       .notNull()
-      .references(() => collections.id, { onDelete: "cascade" }),
-    lastVideoId: text("last_video_id").references(() => videos.id, { onDelete: "set null" }),
-    lastPosition: integer("last_position").default(0).notNull(),
-    completedVideoIds: jsonb("completed_video_ids").$type<string[]>().default([]).notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => collections.id, { onDelete: 'cascade' }),
+    lastVideoId: text('last_video_id').references(() => videos.id, { onDelete: 'set null' }),
+    lastPosition: integer('last_position').default(0).notNull(),
+    completedVideoIds: jsonb('completed_video_ids').$type<string[]>().default([]).notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.userId, table.seriesId),
-    index("series_progress_user_id_idx").on(table.userId),
-    index("series_progress_series_id_idx").on(table.seriesId),
+    index('series_progress_user_id_idx').on(table.userId),
+    index('series_progress_series_id_idx').on(table.seriesId),
   ],
 );
 
@@ -192,25 +192,25 @@ export const seriesProgress = pgTable(
 // =============================================================================
 
 export const videoProgresses = pgTable(
-  "video_progresses",
+  'video_progresses',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    currentTime: text("current_time").notNull(),
-    completed: boolean("completed").default(false).notNull(),
-    lastWatchedAt: timestamp("last_watched_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    currentTime: text('current_time').notNull(),
+    completed: boolean('completed').default(false).notNull(),
+    lastWatchedAt: timestamp('last_watched_at').defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.userId, table.videoId),
-    index("video_progresses_user_id_idx").on(table.userId),
-    index("video_progresses_video_id_idx").on(table.videoId),
+    index('video_progresses_user_id_idx').on(table.userId),
+    index('video_progresses_video_id_idx').on(table.videoId),
   ],
 );
 
@@ -219,21 +219,21 @@ export const videoProgresses = pgTable(
 // =============================================================================
 
 export const videoChapters = pgTable(
-  "video_chapters",
+  'video_chapters',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
-    summary: text("summary"),
-    startTime: integer("start_time").notNull(), // seconds
-    endTime: integer("end_time"), // seconds
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    summary: text('summary'),
+    startTime: integer('start_time').notNull(), // seconds
+    endTime: integer('end_time'), // seconds
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("video_chapters_video_id_idx").on(table.videoId)],
+  (table) => [index('video_chapters_video_id_idx').on(table.videoId)],
 );
 
 // =============================================================================
@@ -241,22 +241,22 @@ export const videoChapters = pgTable(
 // =============================================================================
 
 export const videoCodeSnippets = pgTable(
-  "video_code_snippets",
+  'video_code_snippets',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    language: text("language"),
-    code: text("code").notNull(),
-    title: text("title"),
-    description: text("description"),
-    timestamp: integer("timestamp"), // seconds in video
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    language: text('language'),
+    code: text('code').notNull(),
+    title: text('title'),
+    description: text('description'),
+    timestamp: integer('timestamp'), // seconds in video
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("video_code_snippets_video_id_idx").on(table.videoId)],
+  (table) => [index('video_code_snippets_video_id_idx').on(table.videoId)],
 );
 
 // =============================================================================
@@ -264,24 +264,24 @@ export const videoCodeSnippets = pgTable(
 // =============================================================================
 
 export const watchLater = pgTable(
-  "watch_later",
+  'watch_later',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    videoId: text("video_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    addedAt: timestamp("added_at").defaultNow().notNull(),
-    priority: integer("priority").default(0).notNull(),
-    notes: text("notes"),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    addedAt: timestamp('added_at').defaultNow().notNull(),
+    priority: integer('priority').default(0).notNull(),
+    notes: text('notes'),
   },
   (table) => ({
     uniqueUserVideo: unique().on(table.userId, table.videoId),
-    userIdx: index("watch_later_user_idx").on(table.userId, table.addedAt),
+    userIdx: index('watch_later_user_idx').on(table.userId, table.addedAt),
   }),
 );
 
@@ -290,27 +290,27 @@ export const watchLater = pgTable(
 // =============================================================================
 
 export const userPresence = pgTable(
-  "user_presence",
+  'user_presence',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    videoId: text("video_id").references(() => videos.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    videoId: text('video_id').references(() => videos.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    status: text("status").default("online").notNull(), // online, away, busy
-    currentTime: integer("current_time"), // video timestamp in seconds
-    lastSeen: timestamp("last_seen").defaultNow().notNull(),
-    metadata: jsonb("metadata").$type<{ cursorPosition?: number; isTyping?: boolean }>(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    status: text('status').default('online').notNull(), // online, away, busy
+    currentTime: integer('current_time'), // video timestamp in seconds
+    lastSeen: timestamp('last_seen').defaultNow().notNull(),
+    metadata: jsonb('metadata').$type<{ cursorPosition?: number; isTyping?: boolean }>(),
   },
   (table) => ({
-    userIdx: index("user_presence_user_idx").on(table.userId),
-    videoIdx: index("user_presence_video_idx").on(table.videoId),
-    lastSeenIdx: index("user_presence_last_seen_idx").on(table.lastSeen),
+    userIdx: index('user_presence_user_idx').on(table.userId),
+    videoIdx: index('user_presence_video_idx').on(table.videoId),
+    lastSeenIdx: index('user_presence_last_seen_idx').on(table.lastSeen),
   }),
 );
 
@@ -343,13 +343,13 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 // Relations (forward declarations for imports from other files)
 // =============================================================================
 
-import { aiActionItems } from "./ai-insights";
+import { aiActionItems } from './ai-insights';
 // Import these lazily to avoid circular dependencies
-import { comments } from "./comments";
-import { codeLinks } from "./integrations";
-import { decisions } from "./knowledge";
-import { transcriptChunks } from "./search";
-import { speakerSegments, videoSpeakers } from "./speakers";
+import { comments } from './comments';
+import { codeLinks } from './integrations';
+import { decisions } from './knowledge';
+import { transcriptChunks } from './search';
+import { speakerSegments, videoSpeakers } from './speakers';
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
   author: one(users, {

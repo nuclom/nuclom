@@ -1,10 +1,10 @@
-import { Effect } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
+import { Effect } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
 
 // =============================================================================
 // GET /api/billing - Get complete billing info for organization
@@ -19,13 +19,13 @@ export async function GET(request: NextRequest) {
 
     // Get organization from query params
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get("organizationId");
+    const organizationId = searchParams.get('organizationId');
 
     if (!organizationId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "organizationId",
-          message: "Organization ID is required",
+          field: 'organizationId',
+          message: 'Organization ID is required',
         }),
       );
     }

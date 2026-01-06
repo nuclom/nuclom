@@ -12,11 +12,11 @@
  * - incomplete_expired: No access (trial expired without payment)
  */
 
-import { Effect, Option } from "effect";
-import type { PlanFeatures, PlanLimits } from "@/lib/db/schema";
-import { type DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from "../errors";
-import { Billing, type LimitResource } from "./billing";
-import { BillingRepository } from "./billing-repository";
+import { Effect, Option } from 'effect';
+import type { PlanFeatures, PlanLimits } from '@/lib/db/schema';
+import { type DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from '../errors';
+import { Billing, type LimitResource } from './billing';
+import { BillingRepository } from './billing-repository';
 
 // =============================================================================
 // Types
@@ -40,10 +40,10 @@ export interface SubscriptionAccessResult {
 }
 
 // Valid subscription statuses for different access levels
-const FULL_ACCESS_STATUSES = ["active", "trialing"];
-const LIMITED_ACCESS_STATUSES = ["past_due"]; // Can still use, but with warnings
-const READ_ONLY_STATUSES = ["unpaid"]; // Can view but not create/modify
-const _NO_ACCESS_STATUSES = ["canceled", "incomplete_expired", "incomplete"];
+const FULL_ACCESS_STATUSES = ['active', 'trialing'];
+const LIMITED_ACCESS_STATUSES = ['past_due']; // Can still use, but with warnings
+const READ_ONLY_STATUSES = ['unpaid']; // Can view but not create/modify
+const _NO_ACCESS_STATUSES = ['canceled', 'incomplete_expired', 'incomplete'];
 
 // =============================================================================
 // Middleware Functions
@@ -65,18 +65,18 @@ export const checkSubscriptionAccess = (
         hasAccess: false,
         isReadOnly: false,
         isGracePeriod: false,
-        status: "none",
-        message: "No active subscription. Please subscribe to access this feature.",
+        status: 'none',
+        message: 'No active subscription. Please subscribe to access this feature.',
       };
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status ?? "incomplete";
+    const status = subscription.status ?? 'incomplete';
 
     // Full access
     if (FULL_ACCESS_STATUSES.includes(status)) {
       // Check if trial is about to expire
-      if (status === "trialing" && subscription.trialEnd) {
+      if (status === 'trialing' && subscription.trialEnd) {
         const daysRemaining = Math.ceil(
           (new Date(subscription.trialEnd).getTime() - Date.now()) / (24 * 60 * 60 * 1000),
         );
@@ -87,7 +87,7 @@ export const checkSubscriptionAccess = (
           daysRemaining,
           status,
           message:
-            daysRemaining <= 3 ? `Trial ends in ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}` : undefined,
+            daysRemaining <= 3 ? `Trial ends in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}` : undefined,
         };
       }
       return {
@@ -105,7 +105,7 @@ export const checkSubscriptionAccess = (
         isReadOnly: false,
         isGracePeriod: true,
         status,
-        message: "Payment overdue. Please update your payment method to avoid service interruption.",
+        message: 'Payment overdue. Please update your payment method to avoid service interruption.',
       };
     }
 
@@ -116,7 +116,7 @@ export const checkSubscriptionAccess = (
         isReadOnly: true,
         isGracePeriod: true,
         status,
-        message: "Account suspended. Update payment to restore full access.",
+        message: 'Account suspended. Update payment to restore full access.',
       };
     }
 
@@ -135,14 +135,14 @@ export const checkSubscriptionAccess = (
  */
 function getNoAccessMessage(status: string): string {
   switch (status) {
-    case "canceled":
-      return "Subscription has been canceled. Please subscribe again to access this feature.";
-    case "incomplete_expired":
-      return "Trial has expired. Please add a payment method to continue.";
-    case "incomplete":
-      return "Subscription setup incomplete. Please complete the checkout process.";
+    case 'canceled':
+      return 'Subscription has been canceled. Please subscribe again to access this feature.';
+    case 'incomplete_expired':
+      return 'Trial has expired. Please add a payment method to continue.';
+    case 'incomplete':
+      return 'Subscription setup incomplete. Please complete the checkout process.';
     default:
-      return "Subscription is inactive. Please update your billing information.";
+      return 'Subscription is inactive. Please update your billing information.';
   }
 }
 
@@ -158,14 +158,14 @@ export const requireActiveSubscription = (organizationId: string) =>
     if (Option.isNone(subscriptionOption)) {
       return yield* Effect.fail(
         new NoSubscriptionError({
-          message: "This organization requires an active subscription",
+          message: 'This organization requires an active subscription',
           organizationId,
         }),
       );
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status ?? "incomplete";
+    const status = subscription.status ?? 'incomplete';
 
     // Allow full access statuses
     if (FULL_ACCESS_STATUSES.includes(status)) {
@@ -198,14 +198,14 @@ export const requireWriteAccess = (organizationId: string) =>
     if (Option.isNone(subscriptionOption)) {
       return yield* Effect.fail(
         new NoSubscriptionError({
-          message: "This organization requires an active subscription",
+          message: 'This organization requires an active subscription',
           organizationId,
         }),
       );
     }
 
     const subscription = subscriptionOption.value;
-    const status = subscription.status ?? "incomplete";
+    const status = subscription.status ?? 'incomplete';
 
     // Only allow full access statuses for writes
     if (FULL_ACCESS_STATUSES.includes(status)) {
@@ -221,8 +221,8 @@ export const requireWriteAccess = (organizationId: string) =>
     if (READ_ONLY_STATUSES.includes(status)) {
       return yield* Effect.fail(
         new ForbiddenError({
-          message: "Account is in read-only mode due to payment issues. Please update your payment method.",
-          resource: "subscription",
+          message: 'Account is in read-only mode due to payment issues. Please update your payment method.',
+          resource: 'subscription',
         }),
       );
     }
@@ -264,22 +264,22 @@ export const checkResourceLimit = (
     let currentUsage: number;
 
     switch (resource) {
-      case "members": {
+      case 'members': {
         currentUsage = yield* billingRepo.getMemberCount(organizationId);
         break;
       }
-      case "videos": {
+      case 'videos': {
         currentUsage = yield* billingRepo.getVideoCount(organizationId);
         break;
       }
-      case "storage":
-      case "bandwidth":
-      case "ai_requests": {
+      case 'storage':
+      case 'bandwidth':
+      case 'ai_requests': {
         const usage = yield* billingRepo.getCurrentUsage(organizationId);
         currentUsage =
-          resource === "storage"
+          resource === 'storage'
             ? usage.storageUsed
-            : resource === "bandwidth"
+            : resource === 'bandwidth'
               ? usage.bandwidthUsed
               : usage.aiRequests;
         break;
@@ -313,7 +313,7 @@ export const enforceResourceLimit = (
     const result = yield* checkResourceLimit(organizationId, resource, additionalAmount);
 
     if (!result.allowed) {
-      const resourceLabel = resource.replace("_", " ");
+      const resourceLabel = resource.replace('_', ' ');
       return yield* Effect.fail(
         new PlanLimitExceededError({
           message: `You have reached your ${resourceLabel} limit. Please upgrade your plan to continue.`,
@@ -350,7 +350,7 @@ export const requireFeature = (
     const hasAccess = yield* checkFeatureAccess(organizationId, feature);
 
     if (!hasAccess) {
-      const label = featureLabel || feature.replace(/([A-Z])/g, " $1").trim();
+      const label = featureLabel || feature.replace(/([A-Z])/g, ' $1').trim();
       return yield* Effect.fail(
         new ForbiddenError({
           message: `${label} is not available on your current plan. Please upgrade to access this feature.`,
@@ -394,11 +394,11 @@ export const getPlanFeatures = (
 export const trackStorageUsage = (organizationId: string, fileSize: number) =>
   Effect.gen(function* () {
     // First check if we have capacity
-    yield* enforceResourceLimit(organizationId, "storage", fileSize);
+    yield* enforceResourceLimit(organizationId, 'storage', fileSize);
 
     // Then increment the usage
     const billingRepo = yield* BillingRepository;
-    yield* billingRepo.incrementUsage(organizationId, "storageUsed", fileSize);
+    yield* billingRepo.incrementUsage(organizationId, 'storageUsed', fileSize);
   });
 
 /**
@@ -407,16 +407,16 @@ export const trackStorageUsage = (organizationId: string, fileSize: number) =>
 export const trackVideoUpload = (organizationId: string, fileSize: number) =>
   Effect.gen(function* () {
     // Check storage limit
-    yield* enforceResourceLimit(organizationId, "storage", fileSize);
+    yield* enforceResourceLimit(organizationId, 'storage', fileSize);
 
     // Check video count limit
-    yield* enforceResourceLimit(organizationId, "videos", 1);
+    yield* enforceResourceLimit(organizationId, 'videos', 1);
 
     // Increment both storage and video count
     const billingRepo = yield* BillingRepository;
     yield* Effect.all([
-      billingRepo.incrementUsage(organizationId, "storageUsed", fileSize),
-      billingRepo.incrementUsage(organizationId, "videosUploaded", 1),
+      billingRepo.incrementUsage(organizationId, 'storageUsed', fileSize),
+      billingRepo.incrementUsage(organizationId, 'videosUploaded', 1),
     ]);
   });
 
@@ -432,15 +432,15 @@ export const trackBandwidthUsage = (organizationId: string, bytes: number) =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
 
-    const result = yield* checkResourceLimit(organizationId, "bandwidth", bytes);
+    const result = yield* checkResourceLimit(organizationId, 'bandwidth', bytes);
 
     // Hard limit at 2x allocation (200%)
     if (result.limit !== -1 && result.percentage >= 200) {
       return yield* Effect.fail(
         new PlanLimitExceededError({
           message:
-            "You have exceeded your bandwidth limit (2x allocation). Please upgrade your plan or wait for the next billing cycle.",
-          resource: "bandwidth",
+            'You have exceeded your bandwidth limit (2x allocation). Please upgrade your plan or wait for the next billing cycle.',
+          resource: 'bandwidth',
           currentUsage: result.currentUsage,
           limit: result.limit,
         }),
@@ -454,7 +454,7 @@ export const trackBandwidthUsage = (organizationId: string, bytes: number) =>
       );
     }
 
-    yield* billingRepo.incrementUsage(organizationId, "bandwidthUsed", bytes);
+    yield* billingRepo.incrementUsage(organizationId, 'bandwidthUsed', bytes);
   });
 
 /**
@@ -463,11 +463,11 @@ export const trackBandwidthUsage = (organizationId: string, bytes: number) =>
 export const trackAIRequest = (organizationId: string) =>
   Effect.gen(function* () {
     // Check if AI insights is enabled
-    yield* requireFeature(organizationId, "aiInsights", "AI Insights");
+    yield* requireFeature(organizationId, 'aiInsights', 'AI Insights');
 
     // Increment AI request count
     const billingRepo = yield* BillingRepository;
-    yield* billingRepo.incrementUsage(organizationId, "aiRequests", 1);
+    yield* billingRepo.incrementUsage(organizationId, 'aiRequests', 1);
   });
 
 /**
@@ -476,7 +476,7 @@ export const trackAIRequest = (organizationId: string) =>
 export const releaseStorageUsage = (organizationId: string, fileSize: number) =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
-    yield* billingRepo.decrementUsage(organizationId, "storageUsed", fileSize);
+    yield* billingRepo.decrementUsage(organizationId, 'storageUsed', fileSize);
   });
 
 /**
@@ -485,7 +485,7 @@ export const releaseStorageUsage = (organizationId: string, fileSize: number) =>
 export const releaseVideoCount = (organizationId: string) =>
   Effect.gen(function* () {
     const billingRepo = yield* BillingRepository;
-    yield* billingRepo.decrementUsage(organizationId, "videosUploaded", 1);
+    yield* billingRepo.decrementUsage(organizationId, 'videosUploaded', 1);
   });
 
 // =============================================================================

@@ -9,14 +9,14 @@
  * HTML entities that need to be escaped to prevent XSS attacks.
  */
 const HTML_ENTITIES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#x27;",
-  "/": "&#x2F;",
-  "`": "&#x60;",
-  "=": "&#x3D;",
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#x27;',
+  '/': '&#x2F;',
+  '`': '&#x60;',
+  '=': '&#x3D;',
 };
 
 /**
@@ -54,8 +54,8 @@ const SCRIPT_PATTERNS = [
  * // Returns: '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
  */
 export function escapeHtml(str: string): string {
-  if (!str || typeof str !== "string") {
-    return "";
+  if (!str || typeof str !== 'string') {
+    return '';
   }
   return str.replace(HTML_ENTITY_REGEX, (char) => HTML_ENTITIES[char] || char);
 }
@@ -69,10 +69,10 @@ export function escapeHtml(str: string): string {
  * // Returns: 'Hello World'
  */
 export function stripHtml(str: string): string {
-  if (!str || typeof str !== "string") {
-    return "";
+  if (!str || typeof str !== 'string') {
+    return '';
   }
-  return str.replace(HTML_TAG_REGEX, "");
+  return str.replace(HTML_TAG_REGEX, '');
 }
 
 /**
@@ -80,13 +80,13 @@ export function stripHtml(str: string): string {
  * This includes script tags, event handlers, and javascript: URLs.
  */
 export function removeScriptContent(str: string): string {
-  if (!str || typeof str !== "string") {
-    return "";
+  if (!str || typeof str !== 'string') {
+    return '';
   }
 
   let result = str;
   for (const pattern of SCRIPT_PATTERNS) {
-    result = result.replace(pattern, "");
+    result = result.replace(pattern, '');
   }
   return result;
 }
@@ -100,7 +100,7 @@ export function removeScriptContent(str: string): string {
  * sanitizeUrl('https://example.com') // Returns: 'https://example.com'
  */
 export function sanitizeUrl(url: string | null | undefined): string | null {
-  if (!url || typeof url !== "string") {
+  if (!url || typeof url !== 'string') {
     return null;
   }
 
@@ -123,9 +123,9 @@ export function sanitizeUrl(url: string | null | undefined): string | null {
   }
 
   // Ensure it's a valid URL for external links
-  if (trimmed.startsWith("//") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+  if (trimmed.startsWith('//') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     try {
-      new URL(trimmed.startsWith("//") ? `https:${trimmed}` : trimmed);
+      new URL(trimmed.startsWith('//') ? `https:${trimmed}` : trimmed);
       return trimmed;
     } catch {
       return null;
@@ -133,7 +133,7 @@ export function sanitizeUrl(url: string | null | undefined): string | null {
   }
 
   // Allow relative URLs
-  if (trimmed.startsWith("/") || trimmed.startsWith("#") || trimmed.startsWith("?")) {
+  if (trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('?')) {
     return trimmed;
   }
 
@@ -151,13 +151,13 @@ export function sanitizeUrl(url: string | null | undefined): string | null {
  * Escapes HTML and removes control characters.
  */
 export function sanitizeText(text: string | null | undefined): string {
-  if (!text || typeof text !== "string") {
-    return "";
+  if (!text || typeof text !== 'string') {
+    return '';
   }
 
   // Remove null bytes and other control characters (except newlines and tabs)
   // biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally matching control chars for sanitization
-  const cleaned = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+  const cleaned = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 
   // Escape HTML entities
   return escapeHtml(cleaned);
@@ -168,13 +168,13 @@ export function sanitizeText(text: string | null | undefined): string {
  * Strips HTML, removes newlines, and trims.
  */
 export function sanitizeTitle(title: string | null | undefined): string {
-  if (!title || typeof title !== "string") {
-    return "";
+  if (!title || typeof title !== 'string') {
+    return '';
   }
 
   return stripHtml(title)
-    .replace(/[\r\n]/g, " ") // Replace newlines with spaces
-    .replace(/\s+/g, " ") // Collapse multiple spaces
+    .replace(/[\r\n]/g, ' ') // Replace newlines with spaces
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
     .trim();
 }
 
@@ -183,14 +183,14 @@ export function sanitizeTitle(title: string | null | undefined): string {
  * Strips HTML but preserves newlines.
  */
 export function sanitizeDescription(description: string | null | undefined): string {
-  if (!description || typeof description !== "string") {
-    return "";
+  if (!description || typeof description !== 'string') {
+    return '';
   }
 
   return stripHtml(description)
-    .replace(/\r\n/g, "\n") // Normalize line endings
-    .replace(/\r/g, "\n")
-    .replace(/\n{3,}/g, "\n\n") // Max 2 consecutive newlines
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .replace(/\r/g, '\n')
+    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
     .trim();
 }
 
@@ -199,16 +199,16 @@ export function sanitizeDescription(description: string | null | undefined): str
  * Only allows lowercase letters, numbers, and hyphens.
  */
 export function sanitizeSlug(slug: string | null | undefined): string {
-  if (!slug || typeof slug !== "string") {
-    return "";
+  if (!slug || typeof slug !== 'string') {
+    return '';
   }
 
   return slug
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9-]/g, "-") // Replace invalid chars with hyphens
-    .replace(/-+/g, "-") // Collapse multiple hyphens
-    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+    .replace(/[^a-z0-9-]/g, '-') // Replace invalid chars with hyphens
+    .replace(/-+/g, '-') // Collapse multiple hyphens
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }
 
 /**
@@ -216,8 +216,8 @@ export function sanitizeSlug(slug: string | null | undefined): string {
  * Basic validation and normalization.
  */
 export function sanitizeEmail(email: string | null | undefined): string {
-  if (!email || typeof email !== "string") {
-    return "";
+  if (!email || typeof email !== 'string') {
+    return '';
   }
 
   return email.toLowerCase().trim();
@@ -228,8 +228,8 @@ export function sanitizeEmail(email: string | null | undefined): string {
  * Allows limited formatting but strips dangerous content.
  */
 export function sanitizeComment(content: string | null | undefined): string {
-  if (!content || typeof content !== "string") {
-    return "";
+  if (!content || typeof content !== 'string') {
+    return '';
   }
 
   // Remove script content first
@@ -240,9 +240,9 @@ export function sanitizeComment(content: string | null | undefined): string {
 
   // Normalize whitespace
   sanitized = sanitized
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 
   return sanitized;
@@ -253,8 +253,8 @@ export function sanitizeComment(content: string | null | undefined): string {
  * Escapes HTML but preserves code structure.
  */
 export function sanitizeCode(code: string | null | undefined): string {
-  if (!code || typeof code !== "string") {
-    return "";
+  if (!code || typeof code !== 'string') {
+    return '';
   }
 
   // Escape HTML entities to prevent XSS when rendering
@@ -270,7 +270,7 @@ export function sanitizeMetadata(metadata: unknown): unknown {
     return metadata;
   }
 
-  if (typeof metadata === "string") {
+  if (typeof metadata === 'string') {
     return sanitizeText(metadata);
   }
 
@@ -278,7 +278,7 @@ export function sanitizeMetadata(metadata: unknown): unknown {
     return metadata.map(sanitizeMetadata);
   }
 
-  if (typeof metadata === "object") {
+  if (typeof metadata === 'object') {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(metadata)) {
       result[sanitizeText(key)] = sanitizeMetadata(value);

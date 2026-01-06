@@ -8,12 +8,12 @@
  * - Reduced boilerplate in route handlers
  */
 
-import { Cause, Exit, Layer } from "effect";
-import { NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { auth } from "@/lib/auth";
-import { AppLive } from "@/lib/effect";
-import { Auth, makeAuthLayer } from "@/lib/effect/services/auth";
+import { Cause, Exit, Layer } from 'effect';
+import { NextResponse } from 'next/server';
+import { mapErrorToApiResponse } from '@/lib/api-errors';
+import { auth } from '@/lib/auth';
+import { AppLive } from '@/lib/effect';
+import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // Types
@@ -65,10 +65,10 @@ export function handleEffectExit<T>(exit: Exit.Exit<T, unknown>, options?: ApiHa
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const headers: Record<string, string> = {};
@@ -82,7 +82,7 @@ export function handleEffectExit<T>(exit: Exit.Exit<T, unknown>, options?: ApiHa
           parts.push(`stale-while-revalidate=${options.cache.staleWhileRevalidate}`);
         }
         if (parts.length > 0) {
-          headers["Cache-Control"] = parts.join(", ");
+          headers['Cache-Control'] = parts.join(', ');
         }
       }
 
@@ -100,10 +100,10 @@ export function handleEffectExitWithStatus<T>(exit: Exit.Exit<T, unknown>, succe
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => NextResponse.json(data, { status: successStatus }),
   });
@@ -136,9 +136,9 @@ export function handleEffectExitWithOptions<T>(
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
       const response =
-        error._tag === "Some"
+        error._tag === 'Some'
           ? mapErrorToApiResponse(error.value)
-          : mapErrorToApiResponse(new Error("Internal server error"));
+          : mapErrorToApiResponse(new Error('Internal server error'));
 
       // Add custom error headers if provided
       if (errorHeaders) {

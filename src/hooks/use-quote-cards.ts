@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Quote Cards Hook
@@ -6,9 +6,9 @@
  * React hook for managing quote cards with CRUD operations and optimistic updates.
  */
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 // =============================================================================
 // Types
@@ -87,18 +87,18 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch quote cards");
+        throw new Error(errorData.error || 'Failed to fetch quote cards');
       }
 
       const result = await response.json();
       setCards(result.data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch quote cards";
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quote cards';
       setError(errorMessage);
       toast({
-        title: "Error",
+        title: 'Error',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -110,14 +110,14 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
     async (data: CreateQuoteCardInput) => {
       try {
         const response = await fetch(`/api/videos/${videoId}/quote-cards`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to create quote card");
+          throw new Error(errorData.error || 'Failed to create quote card');
         }
 
         const result = await response.json();
@@ -128,17 +128,17 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
         }
 
         toast({
-          title: "Quote card created",
-          description: "Your quote card has been created successfully.",
+          title: 'Quote card created',
+          description: 'Your quote card has been created successfully.',
         });
 
         router.refresh();
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to create quote card";
+        const errorMessage = err instanceof Error ? err.message : 'Failed to create quote card';
         toast({
-          title: "Error",
+          title: 'Error',
           description: errorMessage,
-          variant: "destructive",
+          variant: 'destructive',
         });
         throw err;
       }
@@ -151,14 +151,14 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
     async (id: string, data: UpdateQuoteCardInput) => {
       try {
         const response = await fetch(`/api/quote-cards/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to update quote card");
+          throw new Error(errorData.error || 'Failed to update quote card');
         }
 
         const result = await response.json();
@@ -169,17 +169,17 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
         }
 
         toast({
-          title: "Quote card updated",
-          description: "Your quote card has been updated successfully.",
+          title: 'Quote card updated',
+          description: 'Your quote card has been updated successfully.',
         });
 
         router.refresh();
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to update quote card";
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update quote card';
         toast({
-          title: "Error",
+          title: 'Error',
           description: errorMessage,
-          variant: "destructive",
+          variant: 'destructive',
         });
         throw err;
       }
@@ -192,29 +192,29 @@ export function useQuoteCards({ videoId, initialCards = [] }: UseQuoteCardsOptio
     async (id: string) => {
       try {
         const response = await fetch(`/api/quote-cards/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to delete quote card");
+          throw new Error(errorData.error || 'Failed to delete quote card');
         }
 
         // Optimistic update
         setCards((prev) => prev.filter((card) => card.id !== id));
 
         toast({
-          title: "Quote card deleted",
-          description: "Your quote card has been deleted successfully.",
+          title: 'Quote card deleted',
+          description: 'Your quote card has been deleted successfully.',
         });
 
         router.refresh();
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to delete quote card";
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete quote card';
         toast({
-          title: "Error",
+          title: 'Error',
           description: errorMessage,
-          variant: "destructive",
+          variant: 'destructive',
         });
         throw err;
       }

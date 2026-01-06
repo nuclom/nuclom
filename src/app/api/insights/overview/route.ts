@@ -1,11 +1,11 @@
-import { and, avg, count, eq, gte, sql, sum } from "drizzle-orm";
-import { Effect, Schema } from "effect";
-import { connection, type NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { aiActionItems, decisions, videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, UnauthorizedError } from "@/lib/effect";
-import { Database } from "@/lib/effect/services/database";
-import { validateQueryParams } from "@/lib/validation";
+import { and, avg, count, eq, gte, sql, sum } from 'drizzle-orm';
+import { Effect, Schema } from 'effect';
+import { connection, type NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { aiActionItems, decisions, videos, videoViews } from '@/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@/lib/effect';
+import { Database } from '@/lib/effect/services/database';
+import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema
@@ -13,7 +13,7 @@ import { validateQueryParams } from "@/lib/validation";
 
 const querySchema = Schema.Struct({
   organizationId: Schema.String,
-  period: Schema.optionalWith(Schema.Literal("7d", "30d", "90d", "all"), { default: () => "30d" as const }),
+  period: Schema.optionalWith(Schema.Literal('7d', '30d', '90d', 'all'), { default: () => '30d' as const }),
 });
 
 // =============================================================================
@@ -44,15 +44,15 @@ export async function GET(request: NextRequest) {
         }),
       catch: () =>
         new DatabaseError({
-          message: "Failed to verify membership",
-          operation: "checkMembership",
+          message: 'Failed to verify membership',
+          operation: 'checkMembership',
         }),
     });
 
     if (!isMember) {
       return yield* Effect.fail(
         new UnauthorizedError({
-          message: "You are not a member of this organization",
+          message: 'You are not a member of this organization',
         }),
       );
     }
@@ -61,13 +61,13 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     let startDate: Date;
     switch (period) {
-      case "7d":
+      case '7d':
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(videos.organizationId, organizationId),
-              eq(videos.processingStatus, "completed"),
+              eq(videos.processingStatus, 'completed'),
               gte(videos.createdAt, startDate),
             ),
           ),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch analyzed videos count",
-          operation: "getAnalyzedVideosCount",
+          message: 'Failed to fetch analyzed videos count',
+          operation: 'getAnalyzedVideosCount',
         }),
     });
     const totalVideosAnalyzed = videosAnalyzedResult[0]?.count || 0;
@@ -104,8 +104,8 @@ export async function GET(request: NextRequest) {
           .where(and(eq(videoViews.organizationId, organizationId), gte(videoViews.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch watch time",
-          operation: "getWatchTime",
+          message: 'Failed to fetch watch time',
+          operation: 'getWatchTime',
         }),
     });
     const totalHoursAnalyzed = Math.round((Number(watchTimeResult[0]?.total) || 0) / 3600);
@@ -119,8 +119,8 @@ export async function GET(request: NextRequest) {
           .where(and(eq(decisions.organizationId, organizationId), gte(decisions.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch decisions count",
-          operation: "getDecisionsCount",
+          message: 'Failed to fetch decisions count',
+          operation: 'getDecisionsCount',
         }),
     });
     const totalDecisions = decisionsResult[0]?.count || 0;
@@ -139,8 +139,8 @@ export async function GET(request: NextRequest) {
           .where(and(eq(aiActionItems.organizationId, organizationId), gte(aiActionItems.createdAt, startDate))),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch action items stats",
-          operation: "getActionItemsStats",
+          message: 'Failed to fetch action items stats',
+          operation: 'getActionItemsStats',
         }),
     });
     const actionItemsStats = actionItemsResult[0] || { total: 0, pending: 0, inProgress: 0, completed: 0 };
@@ -160,8 +160,8 @@ export async function GET(request: NextRequest) {
           ),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch avg confidence",
-          operation: "getAvgConfidence",
+          message: 'Failed to fetch avg confidence',
+          operation: 'getAvgConfidence',
         }),
     });
     const avgConfidence = Math.round(Number(avgConfidenceResult[0]?.avg) || 0);
@@ -171,13 +171,13 @@ export async function GET(request: NextRequest) {
     const previousPeriodEndDate: Date = startDate;
 
     switch (period) {
-      case "7d":
+      case '7d':
         previousPeriodStartDate = new Date(startDate.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case "30d":
+      case '30d':
         previousPeriodStartDate = new Date(startDate.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case "90d":
+      case '90d':
         previousPeriodStartDate = new Date(startDate.getTime() - 90 * 24 * 60 * 60 * 1000);
         break;
       default:
@@ -193,15 +193,15 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(videos.organizationId, organizationId),
-              eq(videos.processingStatus, "completed"),
+              eq(videos.processingStatus, 'completed'),
               gte(videos.createdAt, previousPeriodStartDate),
               sql`${videos.createdAt} < ${previousPeriodEndDate}`,
             ),
           ),
       catch: () =>
         new DatabaseError({
-          message: "Failed to fetch previous period videos",
-          operation: "getPrevVideosCount",
+          message: 'Failed to fetch previous period videos',
+          operation: 'getPrevVideosCount',
         }),
     });
     const prevVideosCount = prevVideosResult[0]?.count || 0;

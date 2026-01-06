@@ -1,15 +1,15 @@
-import { ArrowLeft, Play } from "lucide-react";
-import Link from "next/link";
-import { CopyrightYear } from "@/components/copyright-year";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Play } from 'lucide-react';
+import Link from 'next/link';
+import { CopyrightYear } from '@/components/copyright-year';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: "Privacy Policy | Nuclom",
-  description: "Learn how Nuclom collects, uses, and protects your personal data.",
+  title: 'Privacy Policy | Nuclom',
+  description: 'Learn how Nuclom collects, uses, and protects your personal data.',
 };
 
-const PRIVACY_VERSION = "2025-01-01";
+const PRIVACY_VERSION = '2025-01-01';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
                       <strong>Video Analytics:</strong> Watch time, playback position, video engagement metrics
                     </li>
                     <li>
-                      <strong>Cookies and Similar Technologies:</strong> See our{" "}
+                      <strong>Cookies and Similar Technologies:</strong> See our{' '}
                       <Link href="/cookies" className="text-primary hover:underline">
                         Cookie Policy
                       </Link>
@@ -273,10 +273,10 @@ export default function PrivacyPolicyPage() {
                   </p>
 
                   <p className="text-muted-foreground leading-relaxed mt-6">
-                    To exercise any of these rights, go to{" "}
+                    To exercise any of these rights, go to{' '}
                     <Link href="/settings/profile" className="text-primary hover:underline">
                       Settings &gt; Privacy & Data
-                    </Link>{" "}
+                    </Link>{' '}
                     or contact us at privacy@nuclom.com.
                   </p>
                 </section>
@@ -339,7 +339,7 @@ export default function PrivacyPolicyPage() {
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>Email: privacy@nuclom.com</li>
                     <li>
-                      Support:{" "}
+                      Support:{' '}
                       <Link href="/support" className="text-primary hover:underline">
                         nuclom.com/support
                       </Link>

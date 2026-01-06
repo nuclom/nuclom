@@ -7,11 +7,11 @@
  * - Manage user status (online, away, busy)
  */
 
-import { and, desc, eq, gt, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
-import { userPresence, users } from "@/lib/db/schema";
-import { DatabaseError } from "../errors";
-import { Database } from "./database";
+import { and, desc, eq, gt, sql } from 'drizzle-orm';
+import { Context, Effect, Layer } from 'effect';
+import { userPresence, users } from '@/lib/db/schema';
+import { DatabaseError } from '../errors';
+import { Database } from './database';
 
 // =============================================================================
 // Types
@@ -19,7 +19,7 @@ import { Database } from "./database";
 
 export interface PresenceUpdate {
   readonly videoId?: string;
-  readonly status?: "online" | "away" | "busy";
+  readonly status?: 'online' | 'away' | 'busy';
   readonly currentTime?: number;
   readonly metadata?: {
     cursorPosition?: number;
@@ -83,7 +83,7 @@ export interface PresenceServiceInterface {
 // Presence Service Tag
 // =============================================================================
 
-export class Presence extends Context.Tag("Presence")<Presence, PresenceServiceInterface>() {}
+export class Presence extends Context.Tag('Presence')<Presence, PresenceServiceInterface>() {}
 
 // =============================================================================
 // Presence Service Implementation
@@ -116,7 +116,7 @@ const makePresenceService = Effect.gen(function* () {
             .update(userPresence)
             .set({
               videoId: update.videoId ?? null,
-              status: update.status ?? "online",
+              status: update.status ?? 'online',
               currentTime: update.currentTime ?? null,
               metadata: update.metadata ?? null,
               lastSeen: now,
@@ -128,7 +128,7 @@ const makePresenceService = Effect.gen(function* () {
             userId,
             organizationId,
             videoId: update.videoId ?? null,
-            status: update.status ?? "online",
+            status: update.status ?? 'online',
             currentTime: update.currentTime ?? null,
             metadata: update.metadata ?? null,
             lastSeen: now,
@@ -137,8 +137,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update presence",
-          operation: "updatePresence",
+          message: 'Failed to update presence',
+          operation: 'updatePresence',
           cause: error,
         }),
     });
@@ -177,8 +177,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get video presence",
-          operation: "getVideoPresence",
+          message: 'Failed to get video presence',
+          operation: 'getVideoPresence',
           cause: error,
         }),
     });
@@ -217,8 +217,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get organization presence",
-          operation: "getOrganizationPresence",
+          message: 'Failed to get organization presence',
+          operation: 'getOrganizationPresence',
           cause: error,
         }),
     });
@@ -237,8 +237,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to cleanup stale presence",
-          operation: "cleanupStalePresence",
+          message: 'Failed to cleanup stale presence',
+          operation: 'cleanupStalePresence',
           cause: error,
         }),
     });
@@ -250,8 +250,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to set user offline",
-          operation: "setOffline",
+          message: 'Failed to set user offline',
+          operation: 'setOffline',
           cause: error,
         }),
     });
@@ -295,8 +295,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to get typing users",
-          operation: "getTypingUsers",
+          message: 'Failed to get typing users',
+          operation: 'getTypingUsers',
           cause: error,
         }),
     });
@@ -308,8 +308,8 @@ const makePresenceService = Effect.gen(function* () {
       },
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update heartbeat",
-          operation: "heartbeat",
+          message: 'Failed to update heartbeat',
+          operation: 'heartbeat',
           cause: error,
         }),
     });

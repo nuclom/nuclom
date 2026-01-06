@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
-import { Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { type ConsentAction, consentAuditLog, userExtensions, users } from "@/lib/db/schema";
-import { logger } from "@/lib/logger";
-import { safeParse } from "@/lib/validation";
+import { eq } from 'drizzle-orm';
+import { Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { type ConsentAction, consentAuditLog, userExtensions, users } from '@/lib/db/schema';
+import { logger } from '@/lib/logger';
+import { safeParse } from '@/lib/validation';
 
 // Schema for PATCH request - update user settings
 const UpdateUserSchema = Schema.Struct({
@@ -15,7 +15,7 @@ const UpdateUserSchema = Schema.Struct({
 
 // Schema for POST request - user actions
 const UserActionSchema = Schema.Struct({
-  action: Schema.Literal("cancel_deletion"),
+  action: Schema.Literal('cancel_deletion'),
 });
 
 // Grace period for account deletion in days
@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const [userData] = await db
@@ -56,13 +56,13 @@ export async function GET(_request: NextRequest) {
       .limit(1);
 
     if (!userData) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json(userData);
   } catch (error) {
-    logger.error("Get user error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to get user data" }, { status: 500 });
+    logger.error('Get user error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to get user data' }, { status: 500 });
   }
 }
 
@@ -74,14 +74,14 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const rawBody = await request.json();
     const result = safeParse(UpdateUserSchema, rawBody);
     if (!result.success) {
       return NextResponse.json(
-        { error: "Invalid request", details: result.error.issues.map((i) => i.message) },
+        { error: 'Invalid request', details: result.error.issues.map((i) => i.message) },
         { status: 400 },
       );
     }
@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest) {
     const userId = session.user.id;
 
     // Handle marketing consent update
-    if (typeof body.marketingConsent === "boolean") {
+    if (typeof body.marketingConsent === 'boolean') {
       const previousUser = await db
         .select({ marketingConsent: userExtensions.marketingConsent })
         .from(userExtensions)
@@ -118,21 +118,21 @@ export async function PATCH(request: NextRequest) {
       // Log the consent change
       await db.insert(consentAuditLog).values({
         userId,
-        action: (body.marketingConsent ? "granted" : "withdrawn") as ConsentAction,
+        action: (body.marketingConsent ? 'granted' : 'withdrawn') as ConsentAction,
         details: {
-          consentType: "marketing",
+          consentType: 'marketing',
           previousValue,
           newValue: body.marketingConsent,
         },
-        ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
-        userAgent: request.headers.get("user-agent"),
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+        userAgent: request.headers.get('user-agent'),
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Update user error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    logger.error('Update user error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
 
@@ -144,7 +144,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -161,7 +161,7 @@ export async function DELETE(request: NextRequest) {
 
     if (userData?.deletionRequestedAt) {
       return NextResponse.json({
-        message: "Account deletion already requested",
+        message: 'Account deletion already requested',
         deletionRequestedAt: userData.deletionRequestedAt,
         deletionScheduledFor: userData.deletionScheduledFor,
       });
@@ -191,12 +191,12 @@ export async function DELETE(request: NextRequest) {
     // Log the deletion request
     await db.insert(consentAuditLog).values({
       userId,
-      action: "withdrawn" as ConsentAction,
+      action: 'withdrawn' as ConsentAction,
       details: {
-        consentType: "account",
+        consentType: 'account',
       },
-      ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
-      userAgent: request.headers.get("user-agent"),
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+      userAgent: request.headers.get('user-agent'),
     });
 
     return NextResponse.json({
@@ -207,8 +207,8 @@ export async function DELETE(request: NextRequest) {
       gracePeriodDays: DELETION_GRACE_PERIOD_DAYS,
     });
   } catch (error) {
-    logger.error("Delete user error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to request account deletion" }, { status: 500 });
+    logger.error('Delete user error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to request account deletion' }, { status: 500 });
   }
 }
 
@@ -220,19 +220,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const rawBody = await request.json();
     const result = safeParse(UserActionSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
     const body = result.data;
     const userId = session.user.id;
 
     // Handle cancel deletion request
-    if (body.action === "cancel_deletion") {
+    if (body.action === 'cancel_deletion') {
       const [userData] = await db
         .select({
           deletionRequestedAt: userExtensions.deletionRequestedAt,
@@ -243,13 +243,13 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (!userData?.deletionRequestedAt) {
-        return NextResponse.json({ error: "No deletion request found" }, { status: 400 });
+        return NextResponse.json({ error: 'No deletion request found' }, { status: 400 });
       }
 
       // Check if still within grace period
       if (userData.deletionScheduledFor && userData.deletionScheduledFor < new Date()) {
         return NextResponse.json(
-          { error: "Grace period has expired. Account deletion cannot be cancelled." },
+          { error: 'Grace period has expired. Account deletion cannot be cancelled.' },
           { status: 400 },
         );
       }
@@ -267,23 +267,23 @@ export async function POST(request: NextRequest) {
       // Log the cancellation
       await db.insert(consentAuditLog).values({
         userId,
-        action: "updated" as ConsentAction,
+        action: 'updated' as ConsentAction,
         details: {
-          consentType: "account",
+          consentType: 'account',
         },
-        ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
-        userAgent: request.headers.get("user-agent"),
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+        userAgent: request.headers.get('user-agent'),
       });
 
       return NextResponse.json({
         success: true,
-        message: "Account deletion cancelled successfully.",
+        message: 'Account deletion cancelled successfully.',
       });
     }
 
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    logger.error("Post user error", error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: "Failed to process request" }, { status: 500 });
+    logger.error('Post user error', error instanceof Error ? error : new Error(String(error)));
+    return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
   }
 }

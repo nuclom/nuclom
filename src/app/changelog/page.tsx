@@ -1,27 +1,27 @@
-import { ArrowRight, Bug, Sparkles, Zap } from "lucide-react";
-import Link from "next/link";
-import { MarketingFooter } from "@/components/marketing-footer";
-import { MarketingHeader } from "@/components/marketing-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { type ChangelogEntry, changelog } from "@/lib/changelog";
+import { ArrowRight, Bug, Sparkles, Zap } from 'lucide-react';
+import Link from 'next/link';
+import { MarketingFooter } from '@/components/marketing-footer';
+import { MarketingHeader } from '@/components/marketing-header';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { type ChangelogEntry, changelog } from '@/lib/changelog';
 
-function ChangeIcon({ type }: { type: "feature" | "improvement" | "fix" }) {
+function ChangeIcon({ type }: { type: 'feature' | 'improvement' | 'fix' }) {
   switch (type) {
-    case "feature":
+    case 'feature':
       return <Sparkles className="w-4 h-4 text-purple-500" />;
-    case "improvement":
+    case 'improvement':
       return <Zap className="w-4 h-4 text-blue-500" />;
-    case "fix":
+    case 'fix':
       return <Bug className="w-4 h-4 text-green-500" />;
   }
 }
 
-function ChangeBadge({ type }: { type: "feature" | "improvement" | "fix" }) {
+function ChangeBadge({ type }: { type: 'feature' | 'improvement' | 'fix' }) {
   const styles = {
-    feature: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-    improvement: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-    fix: "bg-green-500/10 text-green-600 border-green-500/20",
+    feature: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    improvement: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    fix: 'bg-green-500/10 text-green-600 border-green-500/20',
   };
 
   return (

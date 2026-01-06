@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { formatDistanceToNow } from "date-fns";
-import { Bell, Check, CheckCheck, CreditCard, MessageSquare, Trash2, UserPlus, Video, XCircle } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from 'date-fns';
+import { Bell, Check, CheckCheck, CreditCard, MessageSquare, Trash2, UserPlus, Video, XCircle } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +13,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { logger } from "@/lib/client-logger";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { logger } from '@/lib/client-logger';
+import { cn } from '@/lib/utils';
 
 interface NotificationActor {
   id: string;
@@ -42,23 +42,23 @@ interface NotificationBellProps {
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case "comment_reply":
-    case "comment_mention":
-    case "new_comment_on_video":
+    case 'comment_reply':
+    case 'comment_mention':
+    case 'new_comment_on_video':
       return <MessageSquare className="h-4 w-4" />;
-    case "video_shared":
-    case "video_processing_complete":
+    case 'video_shared':
+    case 'video_processing_complete':
       return <Video className="h-4 w-4" />;
-    case "video_processing_failed":
+    case 'video_processing_failed':
       return <XCircle className="h-4 w-4 text-destructive" />;
-    case "invitation_received":
+    case 'invitation_received':
       return <UserPlus className="h-4 w-4" />;
-    case "trial_ending":
-    case "subscription_created":
-    case "subscription_updated":
-    case "subscription_canceled":
-    case "payment_failed":
-    case "payment_succeeded":
+    case 'trial_ending':
+    case 'subscription_created':
+    case 'subscription_updated':
+    case 'subscription_canceled':
+    case 'payment_failed':
+    case 'payment_succeeded':
       return <CreditCard className="h-4 w-4" />;
     default:
       return <Bell className="h-4 w-4" />;
@@ -69,13 +69,13 @@ const getNotificationLink = (notification: Notification, organization: string): 
   if (!notification.resourceType || !notification.resourceId) return null;
 
   switch (notification.resourceType) {
-    case "video":
+    case 'video':
       return `/${organization}/videos/${notification.resourceId}`;
-    case "comment":
+    case 'comment':
       return `/${organization}/videos/${notification.resourceId}`;
-    case "organization":
+    case 'organization':
       return `/${organization}`;
-    case "subscription":
+    case 'subscription':
       return `/${organization}/settings/billing`;
     default:
       return null;
@@ -90,7 +90,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch("/api/notifications?limit=20");
+      const response = await fetch('/api/notifications?limit=20');
       if (response.ok) {
         const result = await response.json();
         // API returns { success, data: { data: [...], unreadCount } }
@@ -98,7 +98,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         setUnreadCount(result.data?.unreadCount || 0);
       }
     } catch (error) {
-      logger.error("Failed to fetch notifications", error);
+      logger.error('Failed to fetch notifications', error);
     } finally {
       setLoading(false);
     }
@@ -121,35 +121,35 @@ export function NotificationBell({ organization }: NotificationBellProps) {
   const markAsRead = async (id: string) => {
     try {
       const response = await fetch(`/api/notifications/${id}`, {
-        method: "PATCH",
+        method: 'PATCH',
       });
       if (response.ok) {
         setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
         setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
-      logger.error("Failed to mark notification as read", error);
+      logger.error('Failed to mark notification as read', error);
     }
   };
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch("/api/notifications", {
-        method: "POST",
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
       });
       if (response.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
         setUnreadCount(0);
       }
     } catch (error) {
-      logger.error("Failed to mark all notifications as read", error);
+      logger.error('Failed to mark all notifications as read', error);
     }
   };
 
   const deleteNotification = async (id: string) => {
     try {
       const response = await fetch(`/api/notifications/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
       if (response.ok) {
         const notification = notifications.find((n) => n.id === id);
@@ -159,7 +159,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
         }
       }
     } catch (error) {
-      logger.error("Failed to delete notification", error);
+      logger.error('Failed to delete notification', error);
     }
   };
 
@@ -177,7 +177,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
           <span className="sr-only">Notifications</span>
@@ -225,12 +225,12 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                     role="button"
                     tabIndex={0}
                     className={cn(
-                      "flex gap-3 p-3 hover:bg-accent cursor-pointer transition-colors",
-                      !notification.read && "bg-accent/50",
+                      'flex gap-3 p-3 hover:bg-accent cursor-pointer transition-colors',
+                      !notification.read && 'bg-accent/50',
                     )}
                     onClick={() => handleNotificationClick(notification)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (e.key === 'Enter' || e.key === ' ') {
                         handleNotificationClick(notification);
                       }
                     }}
@@ -238,7 +238,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                     {notification.actor ? (
                       <Avatar className="h-10 w-10 flex-shrink-0">
                         <AvatarImage src={notification.actor.image || undefined} />
-                        <AvatarFallback>{notification.actor.name?.slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                        <AvatarFallback>{notification.actor.name?.slice(0, 2).toUpperCase() || '?'}</AvatarFallback>
                       </Avatar>
                     ) : (
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -247,7 +247,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={cn("text-sm leading-tight", !notification.read && "font-medium")}>
+                        <p className={cn('text-sm leading-tight', !notification.read && 'font-medium')}>
                           {notification.title}
                         </p>
                         {!notification.read && <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />}

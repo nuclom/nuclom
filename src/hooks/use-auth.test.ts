@@ -1,29 +1,29 @@
-import { renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { useAuth, useRequireAuth } from "./use-auth";
+import { renderHook } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { useAuth, useRequireAuth } from './use-auth';
 
 // Mock the auth client
-vi.mock("@/lib/auth-client", () => ({
+vi.mock('@/lib/auth-client', () => ({
   authClient: {
     useSession: vi.fn(),
   },
 }));
 
 // Import the mocked module
-import { authClient } from "@/lib/auth-client";
+import { authClient } from '@/lib/auth-client';
 
-describe("useAuth", () => {
-  it("should return session data when logged in", () => {
+describe('useAuth', () => {
+  it('should return session data when logged in', () => {
     const mockUser = {
-      id: "user-123",
-      email: "test@example.com",
-      name: "Test User",
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
     };
 
     vi.mocked(authClient.useSession).mockReturnValue({
       data: {
         user: mockUser,
-        session: { id: "session-123" },
+        session: { id: 'session-123' },
       },
       isPending: false,
       error: null,
@@ -36,7 +36,7 @@ describe("useAuth", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("should return null user when not logged in", () => {
+  it('should return null user when not logged in', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: null,
       isPending: false,
@@ -50,7 +50,7 @@ describe("useAuth", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("should return loading state when session is pending", () => {
+  it('should return loading state when session is pending', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: null,
       isPending: true,
@@ -63,7 +63,7 @@ describe("useAuth", () => {
     expect(result.current.user).toBeNull();
   });
 
-  it("should handle session with null user", () => {
+  it('should handle session with null user', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: {
         user: null,
@@ -78,18 +78,18 @@ describe("useAuth", () => {
   });
 });
 
-describe("useRequireAuth", () => {
-  it("should return user when authenticated", () => {
+describe('useRequireAuth', () => {
+  it('should return user when authenticated', () => {
     const mockUser = {
-      id: "user-123",
-      email: "test@example.com",
-      name: "Test User",
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
     };
 
     vi.mocked(authClient.useSession).mockReturnValue({
       data: {
         user: mockUser,
-        session: { id: "session-123" },
+        session: { id: 'session-123' },
       },
       isPending: false,
       error: null,
@@ -101,7 +101,7 @@ describe("useRequireAuth", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("should return loading state when pending", () => {
+  it('should return loading state when pending', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: null,
       isPending: true,
@@ -114,7 +114,7 @@ describe("useRequireAuth", () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it("should throw error when not authenticated and not loading", () => {
+  it('should throw error when not authenticated and not loading', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: null,
       isPending: false,
@@ -123,10 +123,10 @@ describe("useRequireAuth", () => {
 
     expect(() => {
       renderHook(() => useRequireAuth());
-    }).toThrow("User must be authenticated to access this resource");
+    }).toThrow('User must be authenticated to access this resource');
   });
 
-  it("should throw error when session exists but user is null", () => {
+  it('should throw error when session exists but user is null', () => {
     vi.mocked(authClient.useSession).mockReturnValue({
       data: {
         user: null,
@@ -137,6 +137,6 @@ describe("useRequireAuth", () => {
 
     expect(() => {
       renderHook(() => useRequireAuth());
-    }).toThrow("User must be authenticated to access this resource");
+    }).toThrow('User must be authenticated to access this resource');
   });
 });

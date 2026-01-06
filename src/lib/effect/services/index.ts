@@ -10,7 +10,7 @@ export type {
   ActivityFeedRepositoryService,
   ActivityWithActor,
   CreateActivityInput,
-} from "./activity-feed-repository";
+} from './activity-feed-repository';
 export {
   ActivityFeedRepository,
   ActivityFeedRepositoryLive,
@@ -23,9 +23,9 @@ export {
   logVideoProcessed,
   logVideoShared,
   logVideoUploaded,
-} from "./activity-feed-repository";
+} from './activity-feed-repository';
 
-export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from "./ai";
+export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from './ai';
 // AI Service
 export {
   AI,
@@ -37,7 +37,7 @@ export {
   generateChapters,
   generateVideoSummary,
   generateVideoTags,
-} from "./ai";
+} from './ai';
 // AI Structured Service (with Zod schemas)
 export type {
   ActionItemsResult,
@@ -46,7 +46,7 @@ export type {
   CodeSnippetsResult,
   VideoSummary as StructuredVideoSummary,
   VideoTagsResult,
-} from "./ai-structured";
+} from './ai-structured';
 export {
   ActionItemsSchema,
   AIStructured,
@@ -60,8 +60,8 @@ export {
   generateStructuredVideoTags,
   VideoSummarySchema,
   VideoTagsSchema,
-} from "./ai-structured";
-export type { AuthServiceInterface, UserSession } from "./auth";
+} from './ai-structured';
+export type { AuthServiceInterface, UserSession } from './auth';
 // Auth Service
 export {
   Auth,
@@ -72,8 +72,8 @@ export {
   requireAdmin,
   requireAuth,
   requireRole,
-} from "./auth";
-export type { BillingServiceInterface, CreateCheckoutParams, LimitResource } from "./billing";
+} from './auth';
+export type { BillingServiceInterface, CreateCheckoutParams, LimitResource } from './billing';
 export {
   Billing,
   BillingLive,
@@ -85,9 +85,9 @@ export {
   enforceLimit,
   getFeatureAccess,
   resumeSubscription,
-} from "./billing";
+} from './billing';
 // Billing Middleware
-export type { LimitCheckResult } from "./billing-middleware";
+export type { LimitCheckResult } from './billing-middleware';
 export {
   checkFeatureAccess,
   checkResourceLimit,
@@ -102,14 +102,14 @@ export {
   trackBandwidthUsage,
   trackStorageUsage,
   trackVideoUpload,
-} from "./billing-middleware";
+} from './billing-middleware';
 // Billing Services
 export type {
   BillingRepositoryService,
   OrganizationBillingInfo,
   SubscriptionWithPlan,
   UsageSummary,
-} from "./billing-repository";
+} from './billing-repository';
 export {
   BillingRepository,
   BillingRepositoryLive,
@@ -125,9 +125,9 @@ export {
   getUsageSummary,
   getVideoCount,
   incrementUsage,
-} from "./billing-repository";
+} from './billing-repository';
 // Channel Repository
-export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from "./channel-repository";
+export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from './channel-repository';
 export {
   ChannelRepository,
   ChannelRepositoryLive,
@@ -136,7 +136,7 @@ export {
   getChannel,
   getChannels,
   updateChannel,
-} from "./channel-repository";
+} from './channel-repository';
 // Clip Repository
 export type {
   ClipRepositoryService,
@@ -151,7 +151,7 @@ export type {
   UpdateQuoteCardInput,
   VideoClipWithCreator,
   VideoMomentWithVideo,
-} from "./clip-repository";
+} from './clip-repository';
 export {
   ClipRepository,
   ClipRepositoryLive,
@@ -176,7 +176,7 @@ export {
   updateClip,
   updateHighlightReel,
   updateQuoteCard,
-} from "./clip-repository";
+} from './clip-repository';
 // Code Links Repository
 export type {
   CodeLinksByArtifact,
@@ -184,7 +184,7 @@ export type {
   CodeLinkWithVideo,
   CreateCodeLinkInput,
   UpdateCodeLinkInput,
-} from "./code-links-repository";
+} from './code-links-repository';
 export {
   CodeLinksRepository,
   CodeLinksRepositoryLive,
@@ -192,33 +192,33 @@ export {
   deleteCodeLink,
   getCodeLinksByArtifact,
   getCodeLinksForVideo,
-} from "./code-links-repository";
+} from './code-links-repository';
 // Code Reference Detector
 export type {
   CodeReferenceDetectorConfig,
   CodeReferenceDetectorInterface,
   DetectionResult,
-} from "./code-reference-detector";
+} from './code-reference-detector';
 export {
   CodeReferenceDetector,
   CodeReferenceDetectorLive,
   detectCodeRefsInText,
   detectCodeRefsInTranscript,
-} from "./code-reference-detector";
+} from './code-reference-detector';
 // Comment Reactions Service
 export type {
   CommentReactionsServiceInterface,
   CommentWithReactions,
   ReactionCount,
   ReactionUser,
-} from "./comment-reactions";
+} from './comment-reactions';
 export {
   CommentReactionsService,
   CommentReactionsServiceLive,
   getReactionCounts,
   getReactionsForComments,
   toggleReaction,
-} from "./comment-reactions";
+} from './comment-reactions';
 export type {
   CommentEvent,
   CommentRepositoryService,
@@ -226,7 +226,7 @@ export type {
   CommentWithReplies,
   CreateCommentInput,
   UpdateCommentInput,
-} from "./comment-repository";
+} from './comment-repository';
 // Comment Repository
 export {
   CommentRepository,
@@ -237,8 +237,8 @@ export {
   getComments,
   getCommentsByTimestamp,
   updateComment,
-} from "./comment-repository";
-export type { DatabaseService, DrizzleDB } from "./database";
+} from './comment-repository';
+export type { DatabaseService, DrizzleDB } from './database';
 // Database Service
 export {
   Database,
@@ -249,7 +249,7 @@ export {
   insertUnique,
   query,
   transaction,
-} from "./database";
+} from './database';
 // Decision Extraction Service
 export type {
   DecisionExtractionResult,
@@ -259,7 +259,7 @@ export type {
   ExternalReference,
   ExtractedDecision,
   Participant,
-} from "./decision-extraction";
+} from './decision-extraction';
 export {
   DecisionExtraction,
   DecisionExtractionLive,
@@ -271,7 +271,7 @@ export {
   extractDecisionsFromSegments,
   extractDecisionsFromTranscript,
   ParticipantSchema,
-} from "./decision-extraction";
+} from './decision-extraction';
 // Email Notifications Service
 export type {
   CommentNotificationData,
@@ -281,7 +281,7 @@ export type {
   SubscriptionNotificationData,
   TrialEndingNotificationData,
   VideoProcessingNotificationData,
-} from "./email-notifications";
+} from './email-notifications';
 export {
   EmailNotifications,
   EmailNotificationsLive,
@@ -290,14 +290,14 @@ export {
   sendSubscriptionNotification,
   sendTrialEndingNotification,
   sendVideoProcessingNotification,
-} from "./email-notifications";
+} from './email-notifications';
 // Embedding Service
 export type {
   ChunkConfig,
   ChunkEmbedding,
   EmbeddingServiceInterface,
   TextChunk,
-} from "./embedding";
+} from './embedding';
 export {
   chunkTranscript,
   Embedding,
@@ -305,7 +305,7 @@ export {
   generateEmbedding,
   generateEmbeddings,
   processTranscript,
-} from "./embedding";
+} from './embedding';
 // GitHub Service
 export type {
   GitHubCommit,
@@ -318,7 +318,7 @@ export type {
   GitHubServiceInterface,
   GitHubTokenResponse,
   GitHubUserInfo,
-} from "./github";
+} from './github';
 export {
   exchangeGitHubCodeForToken,
   GitHub,
@@ -331,7 +331,7 @@ export {
   getGitHubUserInfo,
   listGitHubRepositories,
   refreshGitHubAccessToken,
-} from "./github";
+} from './github';
 // Google Meet Service
 export type {
   GoogleConfig,
@@ -340,7 +340,7 @@ export type {
   GoogleMeetServiceInterface,
   GoogleTokenResponse,
   GoogleUserInfo,
-} from "./google-meet";
+} from './google-meet';
 export {
   downloadGoogleFile,
   exchangeGoogleCodeForToken,
@@ -350,7 +350,7 @@ export {
   getGoogleUserInfo,
   listGoogleMeetRecordings,
   refreshGoogleAccessToken,
-} from "./google-meet";
+} from './google-meet';
 // Integration Repository
 export type {
   CreateImportedMeetingInput,
@@ -360,7 +360,7 @@ export type {
   IntegrationWithUser,
   UpdateImportedMeetingInput,
   UpdateIntegrationInput,
-} from "./integration-repository";
+} from './integration-repository';
 export {
   createImportedMeeting,
   createIntegration,
@@ -374,7 +374,7 @@ export {
   IntegrationRepositoryLive,
   updateImportedMeeting,
   updateIntegration,
-} from "./integration-repository";
+} from './integration-repository';
 // Knowledge Graph Repository
 export type {
   DecisionQueryOptions,
@@ -383,11 +383,11 @@ export type {
   GraphQueryOptions,
   KnowledgeGraphRepositoryInterface,
   KnowledgeNodeWithEdges,
-} from "./knowledge-graph-repository";
+} from './knowledge-graph-repository';
 export {
   KnowledgeGraphRepository,
   KnowledgeGraphRepositoryLive,
-} from "./knowledge-graph-repository";
+} from './knowledge-graph-repository';
 // Microsoft Teams Service
 export type {
   MicrosoftTeamsConfig,
@@ -400,7 +400,7 @@ export type {
   TeamsMessageResponse,
   TeamsTeam,
   TeamsTeamsResponse,
-} from "./microsoft-teams";
+} from './microsoft-teams';
 export {
   exchangeMicrosoftTeamsCodeForToken,
   getMicrosoftTeamsAuthorizationUrl,
@@ -412,13 +412,13 @@ export {
   refreshMicrosoftTeamsToken,
   sendMicrosoftTeamsMessage,
   sendMicrosoftTeamsVideoNotification,
-} from "./microsoft-teams";
+} from './microsoft-teams';
 export type {
   CreateNotificationInput,
   NotificationRepositoryService,
   NotificationType,
   NotificationWithActor,
-} from "./notification-repository";
+} from './notification-repository';
 // Notification Repository
 export {
   createNotification,
@@ -431,12 +431,12 @@ export {
   NotificationRepositoryLive,
   notifyCommentReply,
   notifyNewCommentOnVideo,
-} from "./notification-repository";
+} from './notification-repository';
 export type {
   CreateOrganizationInput,
   OrganizationRepositoryService,
   OrganizationWithRole,
-} from "./organization-repository";
+} from './organization-repository';
 // Organization Repository
 export {
   createOrganization,
@@ -448,7 +448,7 @@ export {
   isMember,
   OrganizationRepository,
   OrganizationRepositoryLive,
-} from "./organization-repository";
+} from './organization-repository';
 // Performance Monitoring Service
 export type {
   MetricsSummary,
@@ -457,33 +457,33 @@ export type {
   PerformanceMonitoringServiceInterface,
   PerformanceReport,
   RecordMetricInput,
-} from "./performance-monitoring";
+} from './performance-monitoring';
 export {
   getPerformanceReport,
   PerformanceMonitoring,
   PerformanceMonitoringLive,
   recordMetric,
-} from "./performance-monitoring";
+} from './performance-monitoring';
 // Presence Service
 export type {
   PresenceServiceInterface,
   PresenceUpdate,
   UserPresenceInfo,
-} from "./presence";
+} from './presence';
 export {
   getOrganizationPresence,
   getVideoPresence,
   Presence,
   PresenceLive,
   updatePresence,
-} from "./presence";
+} from './presence';
 // Recommendations Service
 export type {
   ContinueWatchingItem,
   RecommendationOptions,
   RecommendationsServiceInterface,
   TrendingVideo,
-} from "./recommendations";
+} from './recommendations';
 export {
   getContinueWatching,
   getRecommendations,
@@ -491,14 +491,14 @@ export {
   getTrending,
   Recommendations,
   RecommendationsLive,
-} from "./recommendations";
+} from './recommendations';
 // Replicate API Service
 export type {
   ReplicateService,
   ThumbnailResult,
   TranscriptionResult as ReplicateTranscriptionResult,
   VideoMetadata as ReplicateVideoMetadata,
-} from "./replicate";
+} from './replicate';
 export {
   extractMetadata,
   generateThumbnail,
@@ -506,7 +506,24 @@ export {
   ReplicateAPI,
   ReplicateLive,
   transcribe,
-} from "./replicate";
+} from './replicate';
+// Request Context Service
+export type {
+  CreateRequestContextInput,
+  RequestContext,
+  RequestContextService,
+} from './request-context';
+export {
+  addCorrelationHeader,
+  enrichContextWithUser,
+  extractRequestContext,
+  getCorrelationId,
+  getRequestContext,
+  makeRequestContextLayer,
+  makeRequestContextService,
+  RequestContextTag,
+  toLogContext,
+} from './request-context';
 // Search Repository
 export type {
   CreateSavedSearchInput,
@@ -514,7 +531,7 @@ export type {
   SearchParams,
   SearchRepositoryService,
   UpdateSavedSearchInput,
-} from "./search-repository";
+} from './search-repository';
 export {
   clearSearchHistory,
   createSavedSearch,
@@ -528,7 +545,7 @@ export {
   saveSearchHistory,
   search,
   updateSavedSearch,
-} from "./search-repository";
+} from './search-repository';
 // Semantic Search Repository
 export type {
   SemanticSearchParams,
@@ -537,7 +554,7 @@ export type {
   SemanticSearchResultWithVideo,
   SimilarVideoResult,
   SimilarVideosParams,
-} from "./semantic-search-repository";
+} from './semantic-search-repository';
 export {
   findSimilarVideos,
   SemanticSearchRepository,
@@ -545,8 +562,8 @@ export {
   saveTranscriptChunks,
   semanticSearch,
   semanticSearchWithVideos,
-} from "./semantic-search-repository";
-export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from "./series-repository";
+} from './semantic-search-repository';
+export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from './series-repository';
 // Series Repository
 export {
   addVideoToSeries,
@@ -564,7 +581,7 @@ export {
   SeriesRepositoryLive,
   updateSeries,
   updateSeriesProgress,
-} from "./series-repository";
+} from './series-repository';
 // Slack Service
 export type {
   SlackChannel,
@@ -575,7 +592,7 @@ export type {
   SlackServiceInterface,
   SlackTokenResponse,
   SlackUserInfo,
-} from "./slack";
+} from './slack';
 export {
   exchangeSlackCodeForToken,
   getSlackAuthorizationUrl,
@@ -586,13 +603,13 @@ export {
   sendSlackMessage,
   sendSlackVideoNotification,
   verifySlackSignature,
-} from "./slack";
+} from './slack';
 // Slack Monitoring Service
 export type {
   MonitoringEvent,
   MonitoringEventType,
   SlackMonitoringServiceInterface,
-} from "./slack-monitoring";
+} from './slack-monitoring';
 export {
   notifySlackMonitoring,
   SlackMonitoring,
@@ -602,7 +619,7 @@ export {
   sendSlackErrorEvent,
   sendSlackMonitoringEvent,
   sendSlackVideoEvent,
-} from "./slack-monitoring";
+} from './slack-monitoring';
 // Speaker Diarization Service
 export type {
   DiarizationOptions,
@@ -610,7 +627,7 @@ export type {
   DiarizedSegment,
   SpeakerDiarizationServiceInterface,
   SpeakerSummary,
-} from "./speaker-diarization";
+} from './speaker-diarization';
 export {
   calculateBalanceScore,
   DiarizationError,
@@ -619,7 +636,7 @@ export {
   isDiarizationAvailable,
   SpeakerDiarization,
   SpeakerDiarizationLive,
-} from "./speaker-diarization";
+} from './speaker-diarization';
 // Speaker Repository Service
 export type {
   CreateSpeakerProfileInput,
@@ -631,7 +648,7 @@ export type {
   TalkTimeDistribution,
   UpdateSpeakerProfileInput,
   VideoSpeakerWithProfile,
-} from "./speaker-repository";
+} from './speaker-repository';
 export {
   createSpeakerProfile,
   getSpeakerProfile,
@@ -642,8 +659,8 @@ export {
   SpeakerRepository,
   SpeakerRepositoryError,
   SpeakerRepositoryLive,
-} from "./speaker-repository";
-export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from "./storage";
+} from './speaker-repository';
+export type { StorageConfig, StorageService, UploadOptions, UploadProgress, UploadResult } from './storage';
 // Storage Service
 export {
   deleteFile,
@@ -654,10 +671,10 @@ export {
   StorageLive,
   uploadFile,
   uploadLargeFile,
-} from "./storage";
-export type { StripeService } from "./stripe";
-export { getStripe, StripeServiceLive, StripeServiceTag } from "./stripe";
-export type { TranscriptionResult, TranscriptionServiceInterface } from "./transcription";
+} from './storage';
+export type { StripeService } from './stripe';
+export { getStripe, StripeServiceLive, StripeServiceTag } from './stripe';
+export type { TranscriptionResult, TranscriptionServiceInterface } from './transcription';
 // Transcription Service
 export {
   AudioExtractionError,
@@ -667,7 +684,7 @@ export {
   TranscriptionLive,
   transcribeAudio,
   transcribeFromUrl,
-} from "./transcription";
+} from './transcription';
 // Translation Service
 export type {
   LanguageInfo,
@@ -676,7 +693,7 @@ export type {
   TranslationOptions,
   TranslationResult,
   TranslationServiceInterface,
-} from "./translation";
+} from './translation';
 export {
   getSupportedLanguages,
   isTranslationAvailable,
@@ -688,8 +705,8 @@ export {
   translateText,
   translateTranscript,
   UnsupportedLanguageError,
-} from "./translation";
-export type { AIProcessingResult, VideoAIProcessorServiceInterface } from "./video-ai-processor";
+} from './translation';
+export type { AIProcessingResult, VideoAIProcessorServiceInterface } from './video-ai-processor';
 // Video AI Processor Service
 export {
   getVideoProcessingStatus,
@@ -699,13 +716,13 @@ export {
   VideoAIProcessingError,
   VideoAIProcessor,
   VideoAIProcessorLive,
-} from "./video-ai-processor";
+} from './video-ai-processor';
 export type {
   ProcessingProgress,
   ProcessingResult,
   VideoInfo,
   VideoProcessorService,
-} from "./video-processor";
+} from './video-processor';
 // Video Processor Service
 export {
   getMaxFileSize,
@@ -715,12 +732,12 @@ export {
   VideoProcessor,
   VideoProcessorLive,
   validateVideo,
-} from "./video-processor";
+} from './video-processor';
 export type {
   SaveProgressInput,
   VideoProgressData,
   VideoProgressRepositoryService,
-} from "./video-progress-repository";
+} from './video-progress-repository';
 // Video Progress Repository
 export {
   deleteVideoProgress,
@@ -731,8 +748,8 @@ export {
   saveVideoProgress,
   VideoProgressRepository,
   VideoProgressRepositoryLive,
-} from "./video-progress-repository";
-export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from "./video-repository";
+} from './video-progress-repository';
+export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from './video-repository';
 // Video Repository
 export {
   createVideo,
@@ -745,14 +762,14 @@ export {
   updateVideo,
   VideoRepository,
   VideoRepositoryLive,
-} from "./video-repository";
+} from './video-repository';
 // Watch Later Service
 export type {
   AddToWatchLaterInput,
   UpdateWatchLaterInput,
   WatchLaterItem,
   WatchLaterServiceInterface,
-} from "./watch-later";
+} from './watch-later';
 export {
   addToWatchLater,
   getWatchLaterList,
@@ -760,7 +777,7 @@ export {
   removeFromWatchLater,
   WatchLaterService,
   WatchLaterServiceLive,
-} from "./watch-later";
+} from './watch-later';
 // Zapier Webhooks Service
 export type {
   CreateWebhookInput,
@@ -769,7 +786,7 @@ export type {
   WebhookPayload,
   WebhookWithStats,
   ZapierWebhooksServiceInterface,
-} from "./zapier-webhooks";
+} from './zapier-webhooks';
 export {
   createZapierWebhook,
   deleteZapierWebhook,
@@ -780,7 +797,7 @@ export {
   updateZapierWebhook,
   ZapierWebhooksService,
   ZapierWebhooksServiceLive,
-} from "./zapier-webhooks";
+} from './zapier-webhooks';
 // Zoom Service
 export type {
   ZoomConfig,
@@ -790,7 +807,7 @@ export type {
   ZoomServiceInterface,
   ZoomTokenResponse,
   ZoomUserInfo,
-} from "./zoom";
+} from './zoom';
 export {
   exchangeZoomCodeForToken,
   getZoomAuthorizationUrl,
@@ -800,4 +817,4 @@ export {
   refreshZoomAccessToken,
   Zoom,
   ZoomLive,
-} from "./zoom";
+} from './zoom';

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -13,12 +13,12 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
-import { logger } from "@/lib/client-logger";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
+import { logger } from '@/lib/client-logger';
+import { cn } from '@/lib/utils';
 
 type Organization = {
   id: string;
@@ -45,11 +45,11 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       const current = data?.find((org) => org.slug === currentOrganization);
       setActiveOrg(current || null);
     } catch (error) {
-      logger.error("Failed to load organizations", error);
+      logger.error('Failed to load organizations', error);
       toast({
-        title: "Error",
-        description: "Failed to load organizations",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load organizations',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -62,13 +62,13 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
 
   const handleCreateOrganization = async () => {
     try {
-      const name = prompt("Enter organization name:");
+      const name = prompt('Enter organization name:');
       if (!name) return;
 
       const slug = name
         .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "");
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
 
       const { data } = await authClient.organization.create({
         name,
@@ -81,16 +81,16 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
         router.push(`/${data.slug}`);
         setOpen(false);
         toast({
-          title: "Success",
-          description: "Organization created successfully",
+          title: 'Success',
+          description: 'Organization created successfully',
         });
       }
     } catch (error) {
-      logger.error("Failed to create organization", error);
+      logger.error('Failed to create organization', error);
       toast({
-        title: "Error",
-        description: "Failed to create organization",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create organization',
+        variant: 'destructive',
       });
     }
   };
@@ -104,11 +104,11 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       setOpen(false);
       setActiveOrg(organization);
     } catch (error) {
-      logger.error("Failed to switch organization", error);
+      logger.error('Failed to switch organization', error);
       toast({
-        title: "Error",
-        description: "Failed to switch organization",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to switch organization',
+        variant: 'destructive',
       });
     }
   };
@@ -140,10 +140,10 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={activeOrg?.logo || "/placeholder.svg"} alt={activeOrg?.name} />
-              <AvatarFallback>{activeOrg?.name?.charAt(0) || "?"}</AvatarFallback>
+              <AvatarImage src={activeOrg?.logo || '/placeholder.svg'} alt={activeOrg?.name} />
+              <AvatarFallback>{activeOrg?.name?.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
-            <span className="font-semibold truncate">{activeOrg?.name || "Select Organization"}</span>
+            <span className="font-semibold truncate">{activeOrg?.name || 'Select Organization'}</span>
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -161,12 +161,12 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
                   className="text-sm"
                 >
                   <Avatar className="mr-2 h-5 w-5">
-                    <AvatarImage src={organization.logo || "/placeholder.svg"} alt={organization.name} />
+                    <AvatarImage src={organization.logo || '/placeholder.svg'} alt={organization.name} />
                     <AvatarFallback>{organization.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   {organization.name}
                   <Check
-                    className={cn("ml-auto h-4 w-4", activeOrg?.id === organization.id ? "opacity-100" : "opacity-0")}
+                    className={cn('ml-auto h-4 w-4', activeOrg?.id === organization.id ? 'opacity-100' : 'opacity-0')}
                   />
                 </CommandItem>
               ))}

@@ -1,7 +1,7 @@
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { Auth, createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { SeriesRepository } from "@/lib/effect";
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { SeriesRepository } from '@/lib/effect';
 
 // =============================================================================
 // DELETE /api/series/[id]/videos/[videoId] - Remove video from series

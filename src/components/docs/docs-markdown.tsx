@@ -1,7 +1,7 @@
-import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
-import remarkGfm from "remark-gfm";
+import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGfm from 'remark-gfm';
 
 interface DocsMarkdownProps {
   content: string;
@@ -54,8 +54,8 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
 
         // Links
         a: ({ href, children, ...props }) => {
-          const isExternal = href?.startsWith("http");
-          const isAnchor = href?.startsWith("#");
+          const isExternal = href?.startsWith('http');
+          const isAnchor = href?.startsWith('#');
 
           if (isExternal) {
             return (
@@ -84,9 +84,9 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
           }
 
           // Handle relative markdown links - convert .md links to proper routes
-          let processedHref = href || "";
-          if (processedHref.endsWith(".md")) {
-            processedHref = processedHref.replace(/\.md$/, "");
+          let processedHref = href || '';
+          if (processedHref.endsWith('.md')) {
+            processedHref = processedHref.replace(/\.md$/, '');
           }
 
           return (
@@ -193,7 +193,7 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
         // Images - using native img for markdown content where src is dynamic
         img: ({ src, alt, ...props }) => (
           // biome-ignore lint/performance/noImgElement: dynamic src from markdown
-          <img src={src} alt={alt || ""} className="rounded-lg border my-4" {...props} />
+          <img src={src} alt={alt || ''} className="rounded-lg border my-4" {...props} />
         ),
 
         // Strong/Bold

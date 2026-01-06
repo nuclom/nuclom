@@ -7,8 +7,8 @@
  * - Real-time features (future)
  */
 
-import { Redis } from "@upstash/redis";
-import { env } from "@/lib/env/server";
+import { Redis } from '@upstash/redis';
+import { env } from '@/lib/env/server';
 
 // =============================================================================
 // Redis Client

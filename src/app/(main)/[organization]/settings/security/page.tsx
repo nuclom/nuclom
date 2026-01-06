@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   AlertTriangle,
@@ -13,15 +13,15 @@ import {
   Smartphone,
   Trash2,
   Users,
-} from "lucide-react";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import QRCode from "react-qr-code";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+} from 'lucide-react';
+import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
+import QRCode from 'react-qr-code';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { authClient, multiSession } from "@/lib/auth-client";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { authClient, multiSession } from '@/lib/auth-client';
 
 type Session = {
   id: string;
@@ -83,27 +83,27 @@ function SecurityContent() {
 
   // Passkey state
   const [addingPasskey, setAddingPasskey] = useState(false);
-  const [passkeyName, setPasskeyName] = useState("");
+  const [passkeyName, setPasskeyName] = useState('');
   const [passkeyDialogOpen, setPasskeyDialogOpen] = useState(false);
 
   // 2FA setup state
   const [setup2FAOpen, setSetup2FAOpen] = useState(false);
   const [totpUri, setTotpUri] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
-  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyCode, setVerifyCode] = useState('');
   const [verifying, setVerifying] = useState(false);
-  const [setupStep, setSetupStep] = useState<"qr" | "verify" | "backup">("qr");
+  const [setupStep, setSetupStep] = useState<'qr' | 'verify' | 'backup'>('qr');
 
   // Password change state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Disable 2FA state
   const [disable2FAOpen, setDisable2FAOpen] = useState(false);
-  const [disable2FAPassword, setDisable2FAPassword] = useState("");
+  const [disable2FAPassword, setDisable2FAPassword] = useState('');
   const [disabling2FA, setDisabling2FA] = useState(false);
 
   const loadSecurityData = useCallback(async () => {
@@ -147,11 +147,11 @@ function SecurityContent() {
         // Multi-session might not be available
       }
     } catch (error) {
-      console.error("Error loading security data:", error);
+      console.error('Error loading security data:', error);
       toast({
-        title: "Error",
-        description: "Failed to load security settings",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load security settings',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -166,16 +166,16 @@ function SecurityContent() {
     try {
       await authClient.revokeSession({ token: sessionToken });
       toast({
-        title: "Session revoked",
-        description: "The session has been logged out",
+        title: 'Session revoked',
+        description: 'The session has been logged out',
       });
       await loadSecurityData();
     } catch (error) {
-      console.error("Error revoking session:", error);
+      console.error('Error revoking session:', error);
       toast({
-        title: "Error",
-        description: "Failed to revoke session",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to revoke session',
+        variant: 'destructive',
       });
     }
   };
@@ -184,16 +184,16 @@ function SecurityContent() {
     try {
       await authClient.revokeOtherSessions();
       toast({
-        title: "Sessions revoked",
-        description: "All other sessions have been logged out",
+        title: 'Sessions revoked',
+        description: 'All other sessions have been logged out',
       });
       await loadSecurityData();
     } catch (error) {
-      console.error("Error revoking sessions:", error);
+      console.error('Error revoking sessions:', error);
       toast({
-        title: "Error",
-        description: "Failed to revoke sessions",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to revoke sessions',
+        variant: 'destructive',
       });
     }
   };
@@ -203,17 +203,17 @@ function SecurityContent() {
       setSwitchingSession(sessionToken);
       await multiSession.setActive({ sessionToken });
       toast({
-        title: "Switched account",
-        description: "You are now using a different account",
+        title: 'Switched account',
+        description: 'You are now using a different account',
       });
       // Reload the page to reflect the new session
       window.location.reload();
     } catch (error) {
-      console.error("Error switching session:", error);
+      console.error('Error switching session:', error);
       toast({
-        title: "Error",
-        description: "Failed to switch account",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to switch account',
+        variant: 'destructive',
       });
     } finally {
       setSwitchingSession(null);
@@ -224,16 +224,16 @@ function SecurityContent() {
     try {
       await multiSession.revoke({ sessionToken });
       toast({
-        title: "Session revoked",
-        description: "The account session has been removed from this device",
+        title: 'Session revoked',
+        description: 'The account session has been removed from this device',
       });
       await loadSecurityData();
     } catch (error) {
-      console.error("Error revoking device session:", error);
+      console.error('Error revoking device session:', error);
       toast({
-        title: "Error",
-        description: "Failed to revoke session",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to revoke session',
+        variant: 'destructive',
       });
     }
   };
@@ -241,20 +241,20 @@ function SecurityContent() {
   const handleStart2FASetup = async () => {
     try {
       const { data } = await authClient.twoFactor.enable({
-        password: currentPassword || "placeholder", // Will be validated server-side
+        password: currentPassword || 'placeholder', // Will be validated server-side
       });
       if (data) {
         setTotpUri((data as { totpURI?: string }).totpURI || null);
         setBackupCodes((data as { backupCodes?: string[] }).backupCodes || []);
         setSetup2FAOpen(true);
-        setSetupStep("qr");
+        setSetupStep('qr');
       }
     } catch (error) {
-      console.error("Error starting 2FA setup:", error);
+      console.error('Error starting 2FA setup:', error);
       toast({
-        title: "Error",
-        description: "Failed to start 2FA setup. Please enter your password.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to start 2FA setup. Please enter your password.',
+        variant: 'destructive',
       });
     }
   };
@@ -267,24 +267,24 @@ function SecurityContent() {
       });
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Invalid verification code",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Invalid verification code',
+          variant: 'destructive',
         });
         return;
       }
-      setSetupStep("backup");
+      setSetupStep('backup');
       setIs2FAEnabled(true);
       toast({
-        title: "2FA Enabled",
-        description: "Two-factor authentication has been enabled",
+        title: '2FA Enabled',
+        description: 'Two-factor authentication has been enabled',
       });
     } catch (error) {
-      console.error("Error verifying 2FA:", error);
+      console.error('Error verifying 2FA:', error);
       toast({
-        title: "Error",
-        description: "Failed to verify code",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to verify code',
+        variant: 'destructive',
       });
     } finally {
       setVerifying(false);
@@ -299,25 +299,25 @@ function SecurityContent() {
       });
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Invalid password",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Invalid password',
+          variant: 'destructive',
         });
         return;
       }
       setIs2FAEnabled(false);
       setDisable2FAOpen(false);
-      setDisable2FAPassword("");
+      setDisable2FAPassword('');
       toast({
-        title: "2FA Disabled",
-        description: "Two-factor authentication has been disabled",
+        title: '2FA Disabled',
+        description: 'Two-factor authentication has been disabled',
       });
     } catch (error) {
-      console.error("Error disabling 2FA:", error);
+      console.error('Error disabling 2FA:', error);
       toast({
-        title: "Error",
-        description: "Failed to disable 2FA",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to disable 2FA',
+        variant: 'destructive',
       });
     } finally {
       setDisabling2FA(false);
@@ -328,9 +328,9 @@ function SecurityContent() {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Passwords do not match',
+        variant: 'destructive',
       });
       return;
     }
@@ -343,26 +343,26 @@ function SecurityContent() {
       });
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to change password",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to change password',
+          variant: 'destructive',
         });
         return;
       }
       toast({
-        title: "Password changed",
-        description: "Your password has been updated and other sessions have been logged out",
+        title: 'Password changed',
+        description: 'Your password has been updated and other sessions have been logged out',
       });
       setPasswordDialogOpen(false);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      console.error("Error changing password:", error);
+      console.error('Error changing password:', error);
       toast({
-        title: "Error",
-        description: "Failed to change password",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to change password',
+        variant: 'destructive',
       });
     } finally {
       setChangingPassword(false);
@@ -377,25 +377,25 @@ function SecurityContent() {
       });
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to add passkey",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to add passkey',
+          variant: 'destructive',
         });
         return;
       }
       toast({
-        title: "Passkey added",
-        description: "Your passkey has been registered",
+        title: 'Passkey added',
+        description: 'Your passkey has been registered',
       });
       setPasskeyDialogOpen(false);
-      setPasskeyName("");
+      setPasskeyName('');
       await loadSecurityData();
     } catch (error) {
-      console.error("Error adding passkey:", error);
+      console.error('Error adding passkey:', error);
       toast({
-        title: "Error",
-        description: "Failed to add passkey. Make sure your browser supports WebAuthn.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add passkey. Make sure your browser supports WebAuthn.',
+        variant: 'destructive',
       });
     } finally {
       setAddingPasskey(false);
@@ -409,23 +409,23 @@ function SecurityContent() {
       });
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to delete passkey",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to delete passkey',
+          variant: 'destructive',
         });
         return;
       }
       toast({
-        title: "Passkey deleted",
-        description: "Your passkey has been removed",
+        title: 'Passkey deleted',
+        description: 'Your passkey has been removed',
       });
       await loadSecurityData();
     } catch (error) {
-      console.error("Error deleting passkey:", error);
+      console.error('Error deleting passkey:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete passkey",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete passkey',
+        variant: 'destructive',
       });
     }
   };
@@ -433,20 +433,20 @@ function SecurityContent() {
   const getDeviceIcon = (userAgent?: string | null) => {
     if (!userAgent) return Laptop;
     const ua = userAgent.toLowerCase();
-    if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) {
+    if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
       return Smartphone;
     }
     return Laptop;
   };
 
   const formatUserAgent = (userAgent?: string | null) => {
-    if (!userAgent) return "Unknown device";
+    if (!userAgent) return 'Unknown device';
     // Simple parsing - could be enhanced with a library
-    if (userAgent.includes("Chrome")) return "Chrome Browser";
-    if (userAgent.includes("Firefox")) return "Firefox Browser";
-    if (userAgent.includes("Safari")) return "Safari Browser";
-    if (userAgent.includes("Edge")) return "Edge Browser";
-    return "Web Browser";
+    if (userAgent.includes('Chrome')) return 'Chrome Browser';
+    if (userAgent.includes('Firefox')) return 'Firefox Browser';
+    if (userAgent.includes('Safari')) return 'Safari Browser';
+    if (userAgent.includes('Edge')) return 'Edge Browser';
+    return 'Web Browser';
   };
 
   if (loading) {
@@ -501,7 +501,7 @@ function SecurityContent() {
               <p className="text-sm font-medium">Authenticator App</p>
               <p className="text-sm text-muted-foreground">Use an authenticator app to generate one-time codes</p>
             </div>
-            <Badge variant={is2FAEnabled ? "default" : "outline"}>{is2FAEnabled ? "Enabled" : "Disabled"}</Badge>
+            <Badge variant={is2FAEnabled ? 'default' : 'outline'}>{is2FAEnabled ? 'Enabled' : 'Disabled'}</Badge>
           </div>
         </CardContent>
         <CardFooter className="bg-muted/50 border-t px-6 py-4">
@@ -536,10 +536,10 @@ function SecurityContent() {
                   <div className="flex items-center gap-3">
                     <KeyRound className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{passkey.name || "Passkey"}</p>
+                      <p className="text-sm font-medium">{passkey.name || 'Passkey'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {passkey.deviceType || "Security Key"} &bull; Added{" "}
-                        {passkey.createdAt ? new Date(passkey.createdAt).toLocaleDateString() : "recently"}
+                        {passkey.deviceType || 'Security Key'} &bull; Added{' '}
+                        {passkey.createdAt ? new Date(passkey.createdAt).toLocaleDateString() : 'recently'}
                       </p>
                     </div>
                   </div>
@@ -593,7 +593,7 @@ function SecurityContent() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {session.ipAddress || "Unknown IP"} &bull; Active{" "}
+                      {session.ipAddress || 'Unknown IP'} &bull; Active{' '}
                       {new Date(session.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -635,20 +635,20 @@ function SecurityContent() {
                         />
                       ) : (
                         <span className="text-sm font-medium">
-                          {deviceSession.user?.name?.[0]?.toUpperCase() ?? "?"}
+                          {deviceSession.user?.name?.[0]?.toUpperCase() ?? '?'}
                         </span>
                       )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{deviceSession.user?.name ?? "Unknown User"}</p>
+                        <p className="text-sm font-medium">{deviceSession.user?.name ?? 'Unknown User'}</p>
                         {isCurrent && (
                           <Badge variant="secondary" className="text-xs">
                             Active
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{deviceSession.user?.email ?? "No email"}</p>
+                      <p className="text-xs text-muted-foreground">{deviceSession.user?.email ?? 'No email'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -662,7 +662,7 @@ function SecurityContent() {
                         {switchingSession === deviceSession.session.token ? (
                           <RefreshCw className="h-4 w-4 animate-spin" />
                         ) : (
-                          "Switch"
+                          'Switch'
                         )}
                       </Button>
                     )}
@@ -727,7 +727,7 @@ function SecurityContent() {
                 Cancel
               </Button>
               <Button type="submit" disabled={changingPassword}>
-                {changingPassword ? "Changing..." : "Change Password"}
+                {changingPassword ? 'Changing...' : 'Change Password'}
               </Button>
             </DialogFooter>
           </form>
@@ -739,13 +739,13 @@ function SecurityContent() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {setupStep === "qr" && "Set up Two-Factor Authentication"}
-              {setupStep === "verify" && "Verify Setup"}
-              {setupStep === "backup" && "Save Backup Codes"}
+              {setupStep === 'qr' && 'Set up Two-Factor Authentication'}
+              {setupStep === 'verify' && 'Verify Setup'}
+              {setupStep === 'backup' && 'Save Backup Codes'}
             </DialogTitle>
           </DialogHeader>
 
-          {setupStep === "qr" && (
+          {setupStep === 'qr' && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
@@ -756,12 +756,12 @@ function SecurityContent() {
                 </div>
               )}
               <DialogFooter>
-                <Button onClick={() => setSetupStep("verify")}>Continue</Button>
+                <Button onClick={() => setSetupStep('verify')}>Continue</Button>
               </DialogFooter>
             </div>
           )}
 
-          {setupStep === "verify" && (
+          {setupStep === 'verify' && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Enter the 6-digit code from your authenticator app</p>
               <div className="space-y-2">
@@ -776,17 +776,17 @@ function SecurityContent() {
                 />
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setSetupStep("qr")}>
+                <Button variant="outline" onClick={() => setSetupStep('qr')}>
                   Back
                 </Button>
                 <Button onClick={handleVerify2FA} disabled={verifying || verifyCode.length !== 6}>
-                  {verifying ? "Verifying..." : "Verify"}
+                  {verifying ? 'Verifying...' : 'Verify'}
                 </Button>
               </DialogFooter>
             </div>
           )}
 
-          {setupStep === "backup" && (
+          {setupStep === 'backup' && (
             <div className="space-y-4">
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
@@ -806,8 +806,8 @@ function SecurityContent() {
                 <Button
                   onClick={() => {
                     setSetup2FAOpen(false);
-                    setSetupStep("qr");
-                    setVerifyCode("");
+                    setSetupStep('qr');
+                    setVerifyCode('');
                   }}
                 >
                   Done
@@ -841,7 +841,7 @@ function SecurityContent() {
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDisable2FA} disabled={disabling2FA || !disable2FAPassword}>
-                {disabling2FA ? "Disabling..." : "Disable 2FA"}
+                {disabling2FA ? 'Disabling...' : 'Disable 2FA'}
               </Button>
             </DialogFooter>
           </div>
@@ -872,7 +872,7 @@ function SecurityContent() {
                 Cancel
               </Button>
               <Button onClick={handleAddPasskey} disabled={addingPasskey}>
-                {addingPasskey ? "Registering..." : "Register Passkey"}
+                {addingPasskey ? 'Registering...' : 'Register Passkey'}
               </Button>
             </DialogFooter>
           </div>

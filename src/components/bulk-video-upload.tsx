@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileVideo, Loader2, Trash2, Upload } from "lucide-react";
-import { type ChangeEvent, useCallback, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { formatFileSize } from "@/lib/format-utils";
-import { cn } from "@/lib/utils";
+import { AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileVideo, Loader2, Trash2, Upload } from 'lucide-react';
+import { type ChangeEvent, useCallback, useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { formatFileSize } from '@/lib/format-utils';
+import { cn } from '@/lib/utils';
 
 interface BulkVideoUploadProps {
   organizationId: string;
@@ -27,7 +27,7 @@ interface FileUpload {
   id: string;
   file: File;
   title: string;
-  status: "pending" | "preparing" | "uploading" | "confirming" | "completed" | "failed" | "paused";
+  status: 'pending' | 'preparing' | 'uploading' | 'confirming' | 'completed' | 'failed' | 'paused';
   progress: number;
   error?: string;
   uploadUrl?: string;
@@ -38,16 +38,16 @@ interface FileUpload {
 
 // Supported video MIME types
 const SUPPORTED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/x-msvideo",
-  "video/x-matroska",
-  "video/webm",
-  "video/x-flv",
-  "video/x-ms-wmv",
-  "video/3gpp",
-  "video/mpeg",
-  "video/ogg",
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-matroska',
+  'video/webm',
+  'video/x-flv',
+  'video/x-ms-wmv',
+  'video/3gpp',
+  'video/mpeg',
+  'video/ogg',
 ];
 
 // Max file size: 5GB
@@ -73,10 +73,10 @@ export function BulkVideoUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [showCompleted, setShowCompleted] = useState(true);
 
-  const pendingUploads = uploads.filter((u) => u.status === "pending");
-  const activeUploads = uploads.filter((u) => ["preparing", "uploading", "confirming"].includes(u.status));
-  const completedUploads = uploads.filter((u) => u.status === "completed");
-  const failedUploads = uploads.filter((u) => u.status === "failed");
+  const pendingUploads = uploads.filter((u) => u.status === 'pending');
+  const activeUploads = uploads.filter((u) => ['preparing', 'uploading', 'confirming'].includes(u.status));
+  const completedUploads = uploads.filter((u) => u.status === 'completed');
+  const failedUploads = uploads.filter((u) => u.status === 'failed');
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
@@ -87,9 +87,9 @@ export function BulkVideoUpload({
       // Check total count
       if (uploads.length + fileArray.length > MAX_FILES) {
         toast({
-          title: "Too many files",
+          title: 'Too many files',
           description: `Maximum ${MAX_FILES} files can be uploaded at once. You have ${uploads.length} files already.`,
-          variant: "destructive",
+          variant: 'destructive',
         });
         return;
       }
@@ -116,17 +116,17 @@ export function BulkVideoUpload({
         validFiles.push({
           id: crypto.randomUUID(),
           file,
-          title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-          status: "pending",
+          title: file.name.replace(/\.[^/.]+$/, ''), // Remove extension
+          status: 'pending',
           progress: 0,
         });
       }
 
       if (errors.length > 0) {
         toast({
-          title: "Some files were skipped",
-          description: errors.slice(0, 3).join(", ") + (errors.length > 3 ? ` and ${errors.length - 3} more` : ""),
-          variant: "destructive",
+          title: 'Some files were skipped',
+          description: errors.slice(0, 3).join(', ') + (errors.length > 3 ? ` and ${errors.length - 3} more` : ''),
+          variant: 'destructive',
         });
       }
 
@@ -142,15 +142,15 @@ export function BulkVideoUpload({
       addFiles(e.target.files);
     }
     // Reset input so same file can be selected again
-    e.target.value = "";
+    e.target.value = '';
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
@@ -188,13 +188,13 @@ export function BulkVideoUpload({
     try {
       // Update status to preparing
       setUploads((prev) =>
-        prev.map((u) => (u.id === upload.id ? { ...u, status: "preparing" as const, abortController } : u)),
+        prev.map((u) => (u.id === upload.id ? { ...u, status: 'preparing' as const, abortController } : u)),
       );
 
       // Step 1: Get presigned URL
-      const presignedResponse = await fetch("/api/videos/upload/presigned", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const presignedResponse = await fetch('/api/videos/upload/presigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: upload.file.name,
           contentType: upload.file.type,
@@ -207,7 +207,7 @@ export function BulkVideoUpload({
       const presignedData = await presignedResponse.json();
 
       if (!presignedData.success) {
-        throw new Error(presignedData.error || "Failed to get upload URL");
+        throw new Error(presignedData.error || 'Failed to get upload URL');
       }
 
       const { uploadUrl, fileKey, uploadId } = presignedData.data;
@@ -215,7 +215,7 @@ export function BulkVideoUpload({
       // Update status to uploading
       setUploads((prev) =>
         prev.map((u) =>
-          u.id === upload.id ? { ...u, status: "uploading" as const, uploadUrl, fileKey, progress: 0 } : u,
+          u.id === upload.id ? { ...u, status: 'uploading' as const, uploadUrl, fileKey, progress: 0 } : u,
         ),
       );
 
@@ -223,14 +223,14 @@ export function BulkVideoUpload({
       const xhr = new XMLHttpRequest();
 
       await new Promise<void>((resolve, reject) => {
-        xhr.upload.addEventListener("progress", (e) => {
+        xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
             const progress = Math.round((e.loaded / e.total) * 100);
             setUploads((prev) => prev.map((u) => (u.id === upload.id ? { ...u, progress } : u)));
           }
         });
 
-        xhr.addEventListener("load", () => {
+        xhr.addEventListener('load', () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
@@ -238,26 +238,26 @@ export function BulkVideoUpload({
           }
         });
 
-        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
-        xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+        xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+        xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
 
         // Handle abort signal
-        abortController.signal.addEventListener("abort", () => xhr.abort());
+        abortController.signal.addEventListener('abort', () => xhr.abort());
 
-        xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", upload.file.type);
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', upload.file.type);
         xhr.send(upload.file);
       });
 
       // Update status to confirming
       setUploads((prev) =>
-        prev.map((u) => (u.id === upload.id ? { ...u, status: "confirming" as const, progress: 100 } : u)),
+        prev.map((u) => (u.id === upload.id ? { ...u, status: 'confirming' as const, progress: 100 } : u)),
       );
 
       // Step 3: Confirm upload and create video record
-      const confirmResponse = await fetch("/api/videos/upload/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const confirmResponse = await fetch('/api/videos/upload/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           uploadId,
           fileKey,
@@ -275,19 +275,19 @@ export function BulkVideoUpload({
       const confirmData = await confirmResponse.json();
 
       if (!confirmData.success) {
-        throw new Error(confirmData.error || "Failed to confirm upload");
+        throw new Error(confirmData.error || 'Failed to confirm upload');
       }
 
       // Update status to completed
       setUploads((prev) =>
         prev.map((u) =>
-          u.id === upload.id ? { ...u, status: "completed" as const, videoId: confirmData.data.videoId } : u,
+          u.id === upload.id ? { ...u, status: 'completed' as const, videoId: confirmData.data.videoId } : u,
         ),
       );
     } catch (error) {
-      if ((error as Error).name === "AbortError" || (error as Error).message === "Upload aborted") {
+      if ((error as Error).name === 'AbortError' || (error as Error).message === 'Upload aborted') {
         setUploads((prev) =>
-          prev.map((u) => (u.id === upload.id ? { ...u, status: "pending" as const, progress: 0 } : u)),
+          prev.map((u) => (u.id === upload.id ? { ...u, status: 'pending' as const, progress: 0 } : u)),
         );
       } else {
         setUploads((prev) =>
@@ -295,8 +295,8 @@ export function BulkVideoUpload({
             u.id === upload.id
               ? {
                   ...u,
-                  status: "failed" as const,
-                  error: error instanceof Error ? error.message : "Upload failed",
+                  status: 'failed' as const,
+                  error: error instanceof Error ? error.message : 'Upload failed',
                 }
               : u,
           ),
@@ -326,7 +326,7 @@ export function BulkVideoUpload({
 
     // Get final results
     const completed = uploads.filter(
-      (u): u is FileUpload & { videoId: string } => u.status === "completed" && u.videoId !== undefined,
+      (u): u is FileUpload & { videoId: string } => u.status === 'completed' && u.videoId !== undefined,
     );
     if (completed.length > 0 && onUploadComplete) {
       onUploadComplete(completed.map((u) => ({ videoId: u.videoId, title: u.title })));
@@ -337,7 +337,7 @@ export function BulkVideoUpload({
     // Reset failed uploads to pending
     setUploads((prev) =>
       prev.map((u) =>
-        u.status === "failed" ? { ...u, status: "pending" as const, error: undefined, progress: 0 } : u,
+        u.status === 'failed' ? { ...u, status: 'pending' as const, error: undefined, progress: 0 } : u,
       ),
     );
 
@@ -346,42 +346,42 @@ export function BulkVideoUpload({
   };
 
   const clearCompleted = () => {
-    setUploads((prev) => prev.filter((u) => u.status !== "completed"));
+    setUploads((prev) => prev.filter((u) => u.status !== 'completed'));
   };
 
-  const getStatusBadge = (status: FileUpload["status"]) => {
+  const getStatusBadge = (status: FileUpload['status']) => {
     switch (status) {
-      case "pending":
+      case 'pending':
         return <Badge variant="secondary">Pending</Badge>;
-      case "preparing":
+      case 'preparing':
         return (
           <Badge variant="secondary" className="gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
             Preparing
           </Badge>
         );
-      case "uploading":
+      case 'uploading':
         return (
           <Badge variant="default" className="gap-1 bg-blue-500">
             <Loader2 className="h-3 w-3 animate-spin" />
             Uploading
           </Badge>
         );
-      case "confirming":
+      case 'confirming':
         return (
           <Badge variant="default" className="gap-1 bg-purple-500">
             <Loader2 className="h-3 w-3 animate-spin" />
             Processing
           </Badge>
         );
-      case "completed":
+      case 'completed':
         return (
           <Badge variant="default" className="gap-1 bg-green-500">
             <CheckCircle className="h-3 w-3" />
             Complete
           </Badge>
         );
-      case "failed":
+      case 'failed':
         return (
           <Badge variant="destructive" className="gap-1">
             <AlertCircle className="h-3 w-3" />
@@ -394,7 +394,7 @@ export function BulkVideoUpload({
   };
 
   const totalSize = uploads.reduce((sum, u) => sum + u.file.size, 0);
-  const uploadedSize = uploads.filter((u) => u.status === "completed").reduce((sum, u) => sum + u.file.size, 0);
+  const uploadedSize = uploads.filter((u) => u.status === 'completed').reduce((sum, u) => sum + u.file.size, 0);
 
   return (
     <Card className="w-full max-w-3xl mx-auto">
@@ -413,9 +413,9 @@ export function BulkVideoUpload({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
         <div
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-            dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
-            isUploading && "opacity-50 pointer-events-none",
+            'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
+            dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
+            isUploading && 'opacity-50 pointer-events-none',
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -454,7 +454,7 @@ export function BulkVideoUpload({
             {/* Summary */}
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
-                {uploads.length} file{uploads.length !== 1 ? "s" : ""} · {formatFileSize(totalSize)}
+                {uploads.length} file{uploads.length !== 1 ? 's' : ''} · {formatFileSize(totalSize)}
               </span>
               <div className="flex items-center gap-4">
                 {completedUploads.length > 0 && (
@@ -481,15 +481,15 @@ export function BulkVideoUpload({
                   <div
                     key={upload.id}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border",
-                      upload.status === "failed" && "border-destructive/50 bg-destructive/5",
-                      upload.status === "completed" && "border-green-500/50 bg-green-500/5",
+                      'flex items-center gap-3 p-3 rounded-lg border',
+                      upload.status === 'failed' && 'border-destructive/50 bg-destructive/5',
+                      upload.status === 'completed' && 'border-green-500/50 bg-green-500/5',
                     )}
                   >
                     <FileVideo className="h-8 w-8 text-muted-foreground shrink-0" />
 
                     <div className="flex-1 min-w-0 space-y-1">
-                      {upload.status === "pending" ? (
+                      {upload.status === 'pending' ? (
                         <Input
                           value={upload.title}
                           onChange={(e) => updateTitle(upload.id, e.target.value)}
@@ -502,7 +502,7 @@ export function BulkVideoUpload({
 
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>{formatFileSize(upload.file.size)}</span>
-                        {upload.status === "uploading" && (
+                        {upload.status === 'uploading' && (
                           <>
                             <span>·</span>
                             <span>{upload.progress}%</span>
@@ -516,13 +516,13 @@ export function BulkVideoUpload({
                         )}
                       </div>
 
-                      {upload.status === "uploading" && <Progress value={upload.progress} className="h-1" />}
+                      {upload.status === 'uploading' && <Progress value={upload.progress} className="h-1" />}
                     </div>
 
                     <div className="flex items-center gap-2">
                       {getStatusBadge(upload.status)}
 
-                      {(upload.status === "pending" || upload.status === "failed") && (
+                      {(upload.status === 'pending' || upload.status === 'failed') && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUpload(upload.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -562,7 +562,7 @@ export function BulkVideoUpload({
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
               <span>
-                {failedUploads.length} upload{failedUploads.length !== 1 ? "s" : ""} failed
+                {failedUploads.length} upload{failedUploads.length !== 1 ? 's' : ''} failed
               </span>
               <Button variant="outline" size="sm" onClick={retryFailed}>
                 Retry Failed
@@ -576,7 +576,7 @@ export function BulkVideoUpload({
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              All {completedUploads.length} video{completedUploads.length !== 1 ? "s" : ""} uploaded successfully!
+              All {completedUploads.length} video{completedUploads.length !== 1 ? 's' : ''} uploaded successfully!
             </AlertDescription>
           </Alert>
         )}
@@ -593,7 +593,7 @@ export function BulkVideoUpload({
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload {pendingUploads.length} Video{pendingUploads.length !== 1 ? "s" : ""}
+                  Upload {pendingUploads.length} Video{pendingUploads.length !== 1 ? 's' : ''}
                 </>
               )}
             </Button>
@@ -607,7 +607,7 @@ export function BulkVideoUpload({
 
           {onCancel && (
             <Button variant="outline" onClick={onCancel} disabled={isUploading}>
-              {uploads.length === 0 ? "Cancel" : "Close"}
+              {uploads.length === 0 ? 'Cancel' : 'Close'}
             </Button>
           )}
         </div>

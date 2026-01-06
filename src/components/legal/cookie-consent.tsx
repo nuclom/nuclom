@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Cookie, Settings, X } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Cookie, Settings, X } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -11,12 +11,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
-const COOKIE_CONSENT_KEY = "nuclom_cookie_consent";
-const COOKIE_CONSENT_VERSION = "2025-01-01";
+const COOKIE_CONSENT_KEY = 'nuclom_cookie_consent';
+const COOKIE_CONSENT_VERSION = '2025-01-01';
 
 export interface CookiePreferences {
   version: string;
@@ -26,7 +26,7 @@ export interface CookiePreferences {
 }
 
 function getStoredPreferences(): CookiePreferences | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === 'undefined') return null;
   try {
     const stored = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!stored) return null;
@@ -40,7 +40,7 @@ function getStoredPreferences(): CookiePreferences | null {
 }
 
 function savePreferences(preferences: CookiePreferences): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(preferences));
 }
 
@@ -143,7 +143,7 @@ export function CookieConsentBanner() {
                     <h3 className="text-lg font-semibold">Cookie Preferences</h3>
                     <p className="mt-1 text-sm text-muted-foreground">
                       We use cookies to enhance your experience. Essential cookies are required for the site to
-                      function. Analytics cookies help us understand how you use our service. Learn more in our{" "}
+                      function. Analytics cookies help us understand how you use our service. Learn more in our{' '}
                       <Link href="/cookies" className="text-primary hover:underline">
                         Cookie Policy
                       </Link>

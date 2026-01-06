@@ -1,11 +1,11 @@
-import { Effect } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { VideoRepository } from "@/lib/effect";
-import { env } from "@/lib/env/server";
-import type { ApiResponse } from "@/lib/types";
+import { Effect } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { VideoRepository } from '@/lib/effect';
+import { env } from '@/lib/env/server';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // POST /api/videos/cleanup - Cleanup expired soft-deleted videos
@@ -21,7 +21,7 @@ import type { ApiResponse } from "@/lib/types";
  */
 export async function POST(request: NextRequest) {
   // Check for cron secret (for automated cleanup)
-  const cronSecret = request.headers.get("x-cron-secret");
+  const cronSecret = request.headers.get('x-cron-secret');
   const expectedCronSecret = env.CRON_SECRET;
 
   if (cronSecret && expectedCronSecret && cronSecret === expectedCronSecret) {
@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== "admin") {
-      return NextResponse.json({ success: false, error: "Forbidden: Admin access required" }, { status: 403 });
+    if (session.user.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
     }
   }
 

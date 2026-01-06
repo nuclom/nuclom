@@ -1,10 +1,10 @@
-import { Effect, Layer, Option } from "effect";
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { ActivityFeedRepository, ActivityFeedRepositoryLive } from "@/lib/effect/services/activity-feed-repository";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
-import { logger } from "@/lib/logger";
+import { Effect, Layer, Option } from 'effect';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { ActivityFeedRepository, ActivityFeedRepositoryLive } from '@/lib/effect/services/activity-feed-repository';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';
+import { logger } from '@/lib/logger';
 
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -12,7 +12,7 @@ const StatsLayer = Layer.mergeAll(ActivityFeedRepoWithDeps, OrgRepoWithDeps, Dat
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const days = Number.parseInt(searchParams.get("days") ?? "30", 10);
+  const days = Number.parseInt(searchParams.get('days') ?? '30', 10);
 
   // Verify the user is authenticated
   const session = await auth.api.getSession({
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   });
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     const result = await Effect.runPromise(Effect.provide(effect, StatsLayer));
     return NextResponse.json(result);
   } catch (err) {
-    logger.error("[Activity Stats Error]", err instanceof Error ? err : new Error(String(err)));
-    return NextResponse.json({ error: "Failed to fetch activity stats" }, { status: 500 });
+    logger.error('[Activity Stats Error]', err instanceof Error ? err : new Error(String(err)));
+    return NextResponse.json({ error: 'Failed to fetch activity stats' }, { status: 500 });
   }
 }

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { Check, ChevronDown, ChevronRight, Edit2, Loader2, Plus, Trash2, UserSquare2 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Check, ChevronDown, ChevronRight, Edit2, Loader2, Plus, Trash2, UserSquare2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -16,11 +16,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 type Permission = {
   resource: string;
@@ -44,39 +44,39 @@ type Role = {
 };
 
 const RESOURCES = [
-  { name: "video", label: "Videos", description: "Video content management" },
-  { name: "channel", label: "Channels", description: "Channel organization" },
-  { name: "collection", label: "Collections", description: "Collection management" },
-  { name: "comment", label: "Comments", description: "Comments and reactions" },
-  { name: "member", label: "Members", description: "Team member management" },
-  { name: "settings", label: "Settings", description: "Organization settings" },
-  { name: "billing", label: "Billing", description: "Billing and subscription" },
-  { name: "analytics", label: "Analytics", description: "Analytics and reports" },
-  { name: "integration", label: "Integrations", description: "Third-party integrations" },
-  { name: "audit_log", label: "Audit Logs", description: "Security audit logs" },
+  { name: 'video', label: 'Videos', description: 'Video content management' },
+  { name: 'channel', label: 'Channels', description: 'Channel organization' },
+  { name: 'collection', label: 'Collections', description: 'Collection management' },
+  { name: 'comment', label: 'Comments', description: 'Comments and reactions' },
+  { name: 'member', label: 'Members', description: 'Team member management' },
+  { name: 'settings', label: 'Settings', description: 'Organization settings' },
+  { name: 'billing', label: 'Billing', description: 'Billing and subscription' },
+  { name: 'analytics', label: 'Analytics', description: 'Analytics and reports' },
+  { name: 'integration', label: 'Integrations', description: 'Third-party integrations' },
+  { name: 'audit_log', label: 'Audit Logs', description: 'Security audit logs' },
 ];
 
 const ACTIONS = [
-  { name: "create", label: "Create" },
-  { name: "read", label: "Read" },
-  { name: "update", label: "Update" },
-  { name: "delete", label: "Delete" },
-  { name: "share", label: "Share" },
-  { name: "download", label: "Download" },
-  { name: "comment", label: "Comment" },
-  { name: "manage", label: "Manage" },
-  { name: "invite", label: "Invite" },
-  { name: "admin", label: "Admin" },
+  { name: 'create', label: 'Create' },
+  { name: 'read', label: 'Read' },
+  { name: 'update', label: 'Update' },
+  { name: 'delete', label: 'Delete' },
+  { name: 'share', label: 'Share' },
+  { name: 'download', label: 'Download' },
+  { name: 'comment', label: 'Comment' },
+  { name: 'manage', label: 'Manage' },
+  { name: 'invite', label: 'Invite' },
+  { name: 'admin', label: 'Admin' },
 ];
 
 const ROLE_COLORS = [
-  { name: "Red", value: "#dc2626" },
-  { name: "Orange", value: "#f59e0b" },
-  { name: "Green", value: "#22c55e" },
-  { name: "Blue", value: "#3b82f6" },
-  { name: "Purple", value: "#a855f7" },
-  { name: "Pink", value: "#ec4899" },
-  { name: "Gray", value: "#6b7280" },
+  { name: 'Red', value: '#dc2626' },
+  { name: 'Orange', value: '#f59e0b' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Gray', value: '#6b7280' },
 ];
 
 function RolesContent() {
@@ -92,9 +92,9 @@ function RolesContent() {
   const [expandedResources, setExpandedResources] = useState<string[]>([]);
 
   // Form state
-  const [roleName, setRoleName] = useState("");
-  const [roleDescription, setRoleDescription] = useState("");
-  const [roleColor, setRoleColor] = useState("#3b82f6");
+  const [roleName, setRoleName] = useState('');
+  const [roleDescription, setRoleDescription] = useState('');
+  const [roleColor, setRoleColor] = useState('#3b82f6');
   const [roleIsDefault, setRoleIsDefault] = useState(false);
   const [rolePermissions, setRolePermissions] = useState<Permission[]>([]);
 
@@ -108,11 +108,11 @@ function RolesContent() {
         setRoles(data.data);
       }
     } catch (error) {
-      console.error("Error loading roles:", error);
+      console.error('Error loading roles:', error);
       toast({
-        title: "Error",
-        description: "Failed to load roles",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load roles',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -127,8 +127,8 @@ function RolesContent() {
     if (role) {
       setSelectedRole(role);
       setRoleName(role.name);
-      setRoleDescription(role.description || "");
-      setRoleColor(role.color || "#3b82f6");
+      setRoleDescription(role.description || '');
+      setRoleColor(role.color || '#3b82f6');
       setRoleIsDefault(role.isDefault);
       setRolePermissions(
         role.permissions.map((p) => ({
@@ -139,9 +139,9 @@ function RolesContent() {
       );
     } else {
       setSelectedRole(null);
-      setRoleName("");
-      setRoleDescription("");
-      setRoleColor("#3b82f6");
+      setRoleName('');
+      setRoleDescription('');
+      setRoleColor('#3b82f6');
       setRoleIsDefault(false);
       setRolePermissions([]);
     }
@@ -157,8 +157,8 @@ function RolesContent() {
         : `/api/organizations/${organizationId}/roles`;
 
       const response = await fetch(url, {
-        method: selectedRole ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
+        method: selectedRole ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: roleName,
           description: roleDescription,
@@ -172,8 +172,8 @@ function RolesContent() {
 
       if (data.success) {
         toast({
-          title: selectedRole ? "Role updated" : "Role created",
-          description: `${roleName} has been ${selectedRole ? "updated" : "created"} successfully.`,
+          title: selectedRole ? 'Role updated' : 'Role created',
+          description: `${roleName} has been ${selectedRole ? 'updated' : 'created'} successfully.`,
         });
         setEditDialogOpen(false);
         await loadRoles();
@@ -181,11 +181,11 @@ function RolesContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error("Error saving role:", error);
+      console.error('Error saving role:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save role",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save role',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
@@ -197,14 +197,14 @@ function RolesContent() {
 
     try {
       const response = await fetch(`/api/organizations/${organizationId}/roles/${selectedRole.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       const data = await response.json();
 
       if (data.success) {
         toast({
-          title: "Role deleted",
+          title: 'Role deleted',
           description: `${selectedRole.name} has been deleted.`,
         });
         setDeleteDialogOpen(false);
@@ -213,11 +213,11 @@ function RolesContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error("Error deleting role:", error);
+      console.error('Error deleting role:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete role",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete role',
+        variant: 'destructive',
       });
     }
   };
@@ -309,7 +309,7 @@ function RolesContent() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color || "#6b7280" }} />
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color || '#6b7280' }} />
                   <CardTitle className="text-lg">{role.name}</CardTitle>
                   {role.isDefault && <Badge variant="secondary">Default</Badge>}
                   {role.isSystemRole && <Badge variant="outline">System</Badge>}
@@ -340,7 +340,7 @@ function RolesContent() {
                   if (permCount === 0) return null;
                   return (
                     <Badge key={resource.name} variant="outline" className="text-xs">
-                      {resource.label}: {permCount} action{permCount !== 1 ? "s" : ""}
+                      {resource.label}: {permCount} action{permCount !== 1 ? 's' : ''}
                     </Badge>
                   );
                 })}
@@ -354,11 +354,11 @@ function RolesContent() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedRole ? "Edit Role" : "Create Role"}</DialogTitle>
+            <DialogTitle>{selectedRole ? 'Edit Role' : 'Create Role'}</DialogTitle>
             <DialogDescription>
               {selectedRole
-                ? "Modify the role settings and permissions"
-                : "Create a new custom role with specific permissions"}
+                ? 'Modify the role settings and permissions'
+                : 'Create a new custom role with specific permissions'}
             </DialogDescription>
           </DialogHeader>
 
@@ -382,7 +382,7 @@ function RolesContent() {
                       key={color.value}
                       type="button"
                       className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        roleColor === color.value ? "border-foreground scale-110" : "border-transparent"
+                        roleColor === color.value ? 'border-foreground scale-110' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: color.value }}
                       onClick={() => setRoleColor(color.value)}
@@ -460,8 +460,8 @@ function RolesContent() {
                             }}
                           >
                             {getResourcePermissionCount(resource.name) === ACTIONS.length
-                              ? "Deselect All"
-                              : "Select All"}
+                              ? 'Deselect All'
+                              : 'Select All'}
                           </Button>
                         </div>
                         <div className="grid grid-cols-5 gap-2">
@@ -473,8 +473,8 @@ function RolesContent() {
                                 htmlFor={permId}
                                 className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
                                   hasPermission(resource.name, action.name)
-                                    ? "bg-primary/10 border-primary"
-                                    : "bg-background hover:bg-muted/50"
+                                    ? 'bg-primary/10 border-primary'
+                                    : 'bg-background hover:bg-muted/50'
                                 }`}
                               >
                                 <Checkbox
@@ -501,7 +501,7 @@ function RolesContent() {
             </Button>
             <Button onClick={handleSaveRole} disabled={saving || !roleName.trim()}>
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-              {selectedRole ? "Update Role" : "Create Role"}
+              {selectedRole ? 'Update Role' : 'Create Role'}
             </Button>
           </DialogFooter>
         </DialogContent>

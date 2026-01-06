@@ -6,23 +6,23 @@
  * For new implementations, use the authClient.subscription.upgrade() method.
  */
 
-import { Effect, Option, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { MissingFieldError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { BillingRepository } from "@/lib/effect/services/billing-repository";
-import { Database } from "@/lib/effect/services/database";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { StripeServiceTag } from "@/lib/effect/services/stripe";
-import { env } from "@/lib/env/server";
-import { rateLimitBillingAsync } from "@/lib/rate-limit";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { MissingFieldError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { BillingRepository } from '@/lib/effect/services/billing-repository';
+import { Database } from '@/lib/effect/services/database';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { StripeServiceTag } from '@/lib/effect/services/stripe';
+import { getAppUrl } from '@/lib/env/server';
+import { rateLimitBillingAsync } from '@/lib/rate-limit';
+import { validateRequestBody } from '@/lib/validation';
 
 const CheckoutRequestSchema = Schema.Struct({
   organizationId: Schema.String,
   planId: Schema.String,
-  billingPeriod: Schema.Literal("monthly", "yearly"),
+  billingPeriod: Schema.Literal('monthly', 'yearly'),
   trialDays: Schema.optional(Schema.Number),
 });
 
@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
     const orgRepo = yield* OrganizationRepository;
     const roleOption = yield* orgRepo.getUserRole(user.id, organizationId);
 
-    if (Option.isNone(roleOption) || roleOption.value !== "owner") {
+    if (Option.isNone(roleOption) || roleOption.value !== 'owner') {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "role",
-          message: "Only organization owners can manage subscriptions",
+          field: 'role',
+          message: 'Only organization owners can manage subscriptions',
         }),
       );
     }
@@ -66,26 +66,26 @@ export async function POST(request: NextRequest) {
     const { db } = yield* Database;
     const dbUser = yield* Effect.tryPromise({
       try: () => db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, user.id) }),
-      catch: () => new MissingFieldError({ field: "user", message: "Failed to fetch user" }),
+      catch: () => new MissingFieldError({ field: 'user', message: 'Failed to fetch user' }),
     });
 
     // Get plan to find Stripe price ID
     const billingRepo = yield* BillingRepository;
     const plan = yield* billingRepo.getPlan(planId);
 
-    const stripePriceId = billingPeriod === "yearly" ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
+    const stripePriceId = billingPeriod === 'yearly' ? plan.stripePriceIdYearly : plan.stripePriceIdMonthly;
 
     if (!stripePriceId) {
       return yield* Effect.fail(
         new MissingFieldError({
-          field: "stripePriceId",
-          message: "Plan does not have a Stripe price configured for this billing period",
+          field: 'stripePriceId',
+          message: 'Plan does not have a Stripe price configured for this billing period',
         }),
       );
     }
 
     // Build URLs
-    const baseUrl = request.headers.get("origin") || env.APP_URL;
+    const baseUrl = request.headers.get('origin') || getAppUrl();
     const successUrl = `${baseUrl}/${org.slug}/settings/billing?success=true`;
     const cancelUrl = `${baseUrl}/${org.slug}/settings/billing?canceled=true`;
 

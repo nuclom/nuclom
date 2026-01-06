@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Code Links Hook
@@ -6,9 +6,9 @@
  * React hook for managing GitHub code links for videos.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import type { CodeLinkType } from "@/lib/db/schema";
+import { useCallback, useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import type { CodeLinkType } from '@/lib/db/schema';
 
 // =============================================================================
 // Types
@@ -90,7 +90,7 @@ export function useCodeLinks(videoId: string) {
       setState({
         codeLinks: [],
         loading: false,
-        error: error instanceof Error ? error.message : "Failed to fetch code links",
+        error: error instanceof Error ? error.message : 'Failed to fetch code links',
       });
     }
   }, [videoId]);
@@ -103,21 +103,21 @@ export function useCodeLinks(videoId: string) {
     async (input: CreateCodeLinkInput) => {
       try {
         const response = await fetch(`/api/videos/${videoId}/code-links`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(input),
         });
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to add code link");
+          throw new Error(error.error || 'Failed to add code link');
         }
 
         const result = await response.json();
 
         toast({
-          title: "Code link added",
-          description: "GitHub link has been added to this video.",
+          title: 'Code link added',
+          description: 'GitHub link has been added to this video.',
         });
 
         // Refresh the list
@@ -126,9 +126,9 @@ export function useCodeLinks(videoId: string) {
         return result.data;
       } catch (error) {
         toast({
-          title: "Failed to add code link",
-          description: error instanceof Error ? error.message : "An error occurred",
-          variant: "destructive",
+          title: 'Failed to add code link',
+          description: error instanceof Error ? error.message : 'An error occurred',
+          variant: 'destructive',
         });
         throw error;
       }
@@ -140,26 +140,26 @@ export function useCodeLinks(videoId: string) {
     async (linkId: string) => {
       try {
         const response = await fetch(`/api/videos/${videoId}/code-links?linkId=${linkId}`, {
-          method: "DELETE",
+          method: 'DELETE',
         });
 
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error.error || "Failed to delete code link");
+          throw new Error(error.error || 'Failed to delete code link');
         }
 
         toast({
-          title: "Code link removed",
-          description: "GitHub link has been removed from this video.",
+          title: 'Code link removed',
+          description: 'GitHub link has been removed from this video.',
         });
 
         // Refresh the list
         await fetchCodeLinks();
       } catch (error) {
         toast({
-          title: "Failed to remove code link",
-          description: error instanceof Error ? error.message : "An error occurred",
-          variant: "destructive",
+          title: 'Failed to remove code link',
+          description: error instanceof Error ? error.message : 'An error occurred',
+          variant: 'destructive',
         });
         throw error;
       }

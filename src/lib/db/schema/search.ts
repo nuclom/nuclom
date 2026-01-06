@@ -7,17 +7,17 @@
  * - transcriptChunks: Chunked transcripts for semantic search
  */
 
-import { relations } from "drizzle-orm";
-import { index, integer, jsonb, pgTable, text, timestamp, unique, vector } from "drizzle-orm/pg-core";
-import { organizations, users } from "./auth";
-import { videos } from "./videos";
+import { relations } from 'drizzle-orm';
+import { index, integer, jsonb, pgTable, text, timestamp, unique, vector } from 'drizzle-orm/pg-core';
+import { organizations, users } from './auth';
+import { videos } from './videos';
 
 // =============================================================================
 // JSONB Types
 // =============================================================================
 
 export type SearchFilters = {
-  readonly types?: ReadonlyArray<"video" | "series" | "channel">;
+  readonly types?: ReadonlyArray<'video' | 'series' | 'channel'>;
   readonly authorId?: string;
   readonly channelId?: string;
   readonly collectionId?: string;
@@ -27,8 +27,8 @@ export type SearchFilters = {
   readonly hasAiSummary?: boolean;
   readonly processingStatus?: string;
   readonly tags?: ReadonlyArray<string>;
-  readonly sortBy?: "relevance" | "date" | "title";
-  readonly sortOrder?: "asc" | "desc";
+  readonly sortBy?: 'relevance' | 'date' | 'title';
+  readonly sortOrder?: 'asc' | 'desc';
 };
 
 // =============================================================================
@@ -36,23 +36,23 @@ export type SearchFilters = {
 // =============================================================================
 
 export const searchHistory = pgTable(
-  "search_history",
+  'search_history',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    query: text("query").notNull(),
-    filters: jsonb("filters").$type<SearchFilters>(),
-    resultsCount: integer("results_count").default(0).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    query: text('query').notNull(),
+    filters: jsonb('filters').$type<SearchFilters>(),
+    resultsCount: integer('results_count').default(0).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index("search_history_user_org_idx").on(table.userId, table.organizationId, table.createdAt)],
+  (table) => [index('search_history_user_org_idx').on(table.userId, table.organizationId, table.createdAt)],
 );
 
 // =============================================================================
@@ -60,26 +60,26 @@ export const searchHistory = pgTable(
 // =============================================================================
 
 export const savedSearches = pgTable(
-  "saved_searches",
+  'saved_searches',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text("user_id")
+    userId: text('user_id')
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => users.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    query: text("query").notNull(),
-    filters: jsonb("filters").$type<SearchFilters>(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    query: text('query').notNull(),
+    filters: jsonb('filters').$type<SearchFilters>(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index("saved_searches_user_org_idx").on(table.userId, table.organizationId),
-    unique("saved_searches_user_name_unique").on(table.userId, table.organizationId, table.name),
+    index('saved_searches_user_org_idx').on(table.userId, table.organizationId),
+    unique('saved_searches_user_name_unique').on(table.userId, table.organizationId, table.name),
   ],
 );
 
@@ -88,31 +88,31 @@ export const savedSearches = pgTable(
 // =============================================================================
 
 export const transcriptChunks = pgTable(
-  "transcript_chunks",
+  'transcript_chunks',
   {
-    id: text("id")
+    id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    videoId: text("video_id")
+    videoId: text('video_id')
       .notNull()
-      .references(() => videos.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id")
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    organizationId: text('organization_id')
       .notNull()
-      .references(() => organizations.id, { onDelete: "cascade" }),
-    chunkIndex: integer("chunk_index").notNull(),
-    text: text("text").notNull(),
-    tokenCount: integer("token_count"),
-    timestampStart: integer("timestamp_start"), // seconds into video
-    timestampEnd: integer("timestamp_end"), // seconds into video
-    speakers: jsonb("speakers").$type<string[]>(), // speaker names if available
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    chunkIndex: integer('chunk_index').notNull(),
+    text: text('text').notNull(),
+    tokenCount: integer('token_count'),
+    timestampStart: integer('timestamp_start'), // seconds into video
+    timestampEnd: integer('timestamp_end'), // seconds into video
+    speakers: jsonb('speakers').$type<string[]>(), // speaker names if available
     // Embedding stored in pgvector format for similarity search
-    embedding: vector("embedding", { dimensions: 1536 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    index("transcript_chunks_video_idx").on(table.videoId),
-    index("transcript_chunks_org_idx").on(table.organizationId),
-    unique("transcript_chunks_unique_index").on(table.videoId, table.chunkIndex),
+    index('transcript_chunks_video_idx').on(table.videoId),
+    index('transcript_chunks_org_idx').on(table.organizationId),
+    unique('transcript_chunks_unique_index').on(table.videoId, table.chunkIndex),
   ],
 );
 

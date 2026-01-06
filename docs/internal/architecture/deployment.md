@@ -386,9 +386,6 @@ async function checkAuthHealth() {
 
 ```bash
 # .env.production
-# Application
-NODE_ENV=production
-NEXT_PUBLIC_APP_URL=https://nuclom.com
 
 # Database
 DATABASE_URL=postgresql://user:pass@host:5432/nuclom_production
@@ -396,7 +393,6 @@ DATABASE_MAX_CONNECTIONS=50
 
 # Authentication
 BETTER_AUTH_SECRET=your-production-secret
-BETTER_AUTH_URL=https://nuclom.com
 
 # OAuth
 GITHUB_CLIENT_ID=your-github-client-id
@@ -410,8 +406,8 @@ CLOUDFLARE_R2_ACCESS_KEY=your-access-key
 CLOUDFLARE_R2_SECRET_KEY=your-secret-key
 CLOUDFLARE_R2_BUCKET=nuclom-production
 
-# AI Integration
-OPENAI_API_KEY=your-openai-api-key
+# AI Integration (Replicate for transcription)
+REPLICATE_API_TOKEN=your-replicate-token
 
 # Monitoring
 SENTRY_DSN=your-sentry-dsn
@@ -530,7 +526,6 @@ export const r2Client = new S3Client({
 });
 
 export const R2_BUCKET = process.env.CLOUDFLARE_R2_BUCKET!;
-export const R2_PUBLIC_URL = process.env.CLOUDFLARE_R2_PUBLIC_URL!;
 ```
 
 ### File Upload Pipeline

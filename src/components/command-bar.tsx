@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from "lucide-react";
-import { useRouter } from "next/navigation";
-import * as React from "react";
-import { Button } from "@/components/ui/button";
+import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   CommandDialog,
   CommandEmpty,
@@ -12,10 +12,10 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
-import { logger } from "@/lib/client-logger";
-import type { VideoWithAuthor } from "@/lib/types";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/command';
+import { logger } from '@/lib/client-logger';
+import type { VideoWithAuthor } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface CommandBarProps {
   organization: string;
@@ -24,21 +24,21 @@ interface CommandBarProps {
 
 export function CommandBar({ organization, organizationId }: CommandBarProps) {
   const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState<VideoWithAuthor[]>([]);
   const [isSearching, setIsSearching] = React.useState(false);
   const router = useRouter();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setOpen((open) => !open);
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
   }, []);
 
   // Search for videos when query changes
@@ -59,7 +59,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
           setSearchResults(data);
         }
       } catch (error) {
-        logger.error("Search failed", error);
+        logger.error('Search failed', error);
       } finally {
         setIsSearching(false);
       }
@@ -71,7 +71,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
 
   const runCommand = React.useCallback((command: () => unknown) => {
     setOpen(false);
-    setQuery("");
+    setQuery('');
     setSearchResults([]);
     command();
   }, []);
@@ -87,8 +87,8 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
       <Button
         variant="outline"
         className={cn(
-          "relative h-9 w-full justify-start rounded-md text-sm text-muted-foreground",
-          "w-9 sm:w-auto sm:pr-12 md:w-40 lg:w-64",
+          'relative h-9 w-full justify-start rounded-md text-sm text-muted-foreground',
+          'w-9 sm:w-auto sm:pr-12 md:w-40 lg:w-64',
         )}
         onClick={() => setOpen(true)}
       >
@@ -105,7 +105,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
           value={query}
           onValueChange={setQuery}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && query.trim()) {
+            if (e.key === 'Enter' && query.trim()) {
               e.preventDefault();
               handleSearchSubmit();
             }
@@ -126,7 +126,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
                 </Button>
               </div>
             ) : (
-              "Type to search or select a command..."
+              'Type to search or select a command...'
             )}
           </CommandEmpty>
 

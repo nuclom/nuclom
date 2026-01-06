@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { mapErrorToApiResponse } from "@/lib/api-errors";
-import { createFullLayer, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { CachePresets, getCacheControlHeader } from "@/lib/api-utils";
-import { KnowledgeGraphRepository } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { validateQueryParams, validateRequestBody } from "@/lib/validation";
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { mapErrorToApiResponse } from '@/lib/api-errors';
+import { createFullLayer, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
+import { KnowledgeGraphRepository } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { validateQueryParams, validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Query/Body Schemas
@@ -14,8 +14,8 @@ import { validateQueryParams, validateRequestBody } from "@/lib/validation";
 const getDecisionsQuerySchema = Schema.Struct({
   organizationId: Schema.String,
   videoId: Schema.optional(Schema.String),
-  status: Schema.optional(Schema.Literal("proposed", "decided", "revisited", "superseded")),
-  decisionType: Schema.optional(Schema.Literal("technical", "process", "product", "team", "other")),
+  status: Schema.optional(Schema.Literal('proposed', 'decided', 'revisited', 'superseded')),
+  decisionType: Schema.optional(Schema.Literal('technical', 'process', 'product', 'team', 'other')),
   topic: Schema.optional(Schema.String),
   personId: Schema.optional(Schema.String),
   search: Schema.optional(Schema.String),
@@ -35,11 +35,11 @@ const createDecisionSchema = Schema.Struct({
   reasoning: Schema.optional(Schema.String.pipe(Schema.maxLength(1000))),
   timestampStart: Schema.optional(Schema.Number),
   timestampEnd: Schema.optional(Schema.Number),
-  decisionType: Schema.optionalWith(Schema.Literal("technical", "process", "product", "team", "other"), {
-    default: () => "other" as const,
+  decisionType: Schema.optionalWith(Schema.Literal('technical', 'process', 'product', 'team', 'other'), {
+    default: () => 'other' as const,
   }),
-  status: Schema.optionalWith(Schema.Literal("proposed", "decided", "revisited", "superseded"), {
-    default: () => "decided" as const,
+  status: Schema.optionalWith(Schema.Literal('proposed', 'decided', 'revisited', 'superseded'), {
+    default: () => 'decided' as const,
   }),
   confidence: Schema.optional(Schema.Number.pipe(Schema.between(0, 100))),
   tags: Schema.optionalWith(Schema.Array(Schema.String), { default: () => [] }),
@@ -88,15 +88,15 @@ export async function GET(request: NextRequest) {
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) =>
       NextResponse.json(data, {
         headers: {
-          "Cache-Control": getCacheControlHeader(CachePresets.shortWithSwr()),
+          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
         },
       }),
   });

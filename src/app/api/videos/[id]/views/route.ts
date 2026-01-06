@@ -1,13 +1,13 @@
-import { and, eq } from "drizzle-orm";
-import { Cause, Effect, Exit, Option, Schema } from "effect";
-import { type NextRequest, NextResponse } from "next/server";
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videos, videoViews } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, ValidationError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import type { ApiResponse } from "@/lib/types";
-import { validateRequestBody } from "@/lib/validation";
+import { and, eq } from 'drizzle-orm';
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videos, videoViews } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import type { ApiResponse } from '@/lib/types';
+import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // POST /api/videos/[id]/views - Track view start
@@ -15,7 +15,7 @@ import { validateRequestBody } from "@/lib/validation";
 
 const TrackViewBodySchema = Schema.Struct({
   sessionId: Schema.String,
-  source: Schema.optional(Schema.Literal("direct", "share_link", "embed")),
+  source: Schema.optional(Schema.Literal('direct', 'share_link', 'embed')),
 });
 type TrackViewBody = Schema.Schema.Type<typeof TrackViewBodySchema>;
 
@@ -28,10 +28,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const body = yield* validateRequestBody(TrackViewBodySchema, request);
 
     // Validate sessionId
-    if (!body.sessionId || typeof body.sessionId !== "string") {
+    if (!body.sessionId || typeof body.sessionId !== 'string') {
       return yield* Effect.fail(
         new ValidationError({
-          message: "sessionId is required",
+          message: 'sessionId is required',
         }),
       );
     }
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getVideo",
+          message: 'Failed to fetch video',
+          operation: 'getVideo',
           cause: error,
         }),
     });
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!video) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id: videoId,
         }),
       );
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to check existing view",
-          operation: "checkView",
+          message: 'Failed to check existing view',
+          operation: 'checkView',
           cause: error,
         }),
     });
@@ -85,8 +85,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Determine source from referrer if not provided
-    const referrer = request.headers.get("referer") || null;
-    const source: TrackViewBody["source"] = body.source ?? (referrer?.includes("share") ? "share_link" : "direct");
+    const referrer = request.headers.get('referer') || null;
+    const source: TrackViewBody['source'] = body.source ?? (referrer?.includes('share') ? 'share_link' : 'direct');
 
     // Create new view
     const result = yield* Effect.tryPromise({
@@ -100,13 +100,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             organizationId: video.organizationId,
             source,
             referrer,
-            userAgent: request.headers.get("user-agent"),
+            userAgent: request.headers.get('user-agent'),
           })
           .returning(),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to track view",
-          operation: "createView",
+          message: 'Failed to track view',
+          operation: 'createView',
           cause: error,
         }),
     });
@@ -120,10 +120,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -154,26 +154,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = yield* validateRequestBody(UpdateViewBodySchema, request);
 
     // Validate fields
-    if (!body.sessionId || typeof body.sessionId !== "string") {
+    if (!body.sessionId || typeof body.sessionId !== 'string') {
       return yield* Effect.fail(
         new ValidationError({
-          message: "sessionId is required",
+          message: 'sessionId is required',
         }),
       );
     }
 
-    if (typeof body.watchDuration !== "number" || body.watchDuration < 0) {
+    if (typeof body.watchDuration !== 'number' || body.watchDuration < 0) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "watchDuration must be a non-negative number",
+          message: 'watchDuration must be a non-negative number',
         }),
       );
     }
 
-    if (typeof body.completionPercent !== "number" || body.completionPercent < 0 || body.completionPercent > 100) {
+    if (typeof body.completionPercent !== 'number' || body.completionPercent < 0 || body.completionPercent > 100) {
       return yield* Effect.fail(
         new ValidationError({
-          message: "completionPercent must be between 0 and 100",
+          message: 'completionPercent must be between 0 and 100',
         }),
       );
     }
@@ -192,8 +192,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           .returning(),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to update view",
-          operation: "updateView",
+          message: 'Failed to update view',
+          operation: 'updateView',
           cause: error,
         }),
     });
@@ -201,8 +201,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (result.length === 0) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "View not found for this session",
-          entity: "VideoView",
+          message: 'View not found for this session',
+          entity: 'VideoView',
           id: `${videoId}:${body.sessionId}`,
         }),
       );
@@ -236,8 +236,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch views",
-          operation: "getViews",
+          message: 'Failed to fetch views',
+          operation: 'getViews',
           cause: error,
         }),
     });

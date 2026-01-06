@@ -1,8 +1,8 @@
-"use server";
+'use server';
 
-import { cookies } from "next/headers";
-import { env } from "@/lib/env/server";
-import type { Locale } from "./config";
+import { cookies } from 'next/headers';
+import { env } from '@/lib/env/server';
+import type { Locale } from './config';
 
 /**
  * Set the user's preferred locale via a cookie.
@@ -12,11 +12,11 @@ export async function setLocale(locale: Locale): Promise<void> {
   const cookieStore = await cookies();
 
   cookieStore.set({
-    name: "locale",
+    name: 'locale',
     value: locale,
-    path: "/",
+    path: '/',
     maxAge: 31536000, // 1 year
-    sameSite: "strict",
-    secure: env.NODE_ENV === "production",
+    sameSite: 'strict',
+    secure: env.NODE_ENV === 'production',
   });
 }

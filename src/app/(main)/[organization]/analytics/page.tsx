@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { BarChart3, Loader2 } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import useSWR from "swr";
-import { AnalyticsOverview } from "@/components/analytics/analytics-overview";
-import { TopVideosTable } from "@/components/analytics/top-videos-table";
-import { ViewsChart } from "@/components/analytics/views-chart";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart3, Loader2 } from 'lucide-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import useSWR from 'swr';
+import { AnalyticsOverview } from '@/components/analytics/analytics-overview';
+import { TopVideosTable } from '@/components/analytics/top-videos-table';
+import { ViewsChart } from '@/components/analytics/views-chart';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AnalyticsData {
   overview: {
@@ -74,7 +74,7 @@ function AnalyticsContent() {
   const router = useRouter();
   const organizationSlug = params.organization as string;
 
-  const period = searchParams.get("period") || "30d";
+  const period = searchParams.get('period') || '30d';
 
   // First fetch organization by slug
   const { data: orgData, isLoading: isOrgLoading } = useSWR<{ success: boolean; data: OrganizationData }>(

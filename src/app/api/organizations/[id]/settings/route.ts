@@ -1,11 +1,11 @@
-import { Cause, Effect, Exit, Option, Schema } from "effect";
-import { headers } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
-import { createPublicLayer, mapErrorToApiResponse } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import type { ApiResponse } from "@/lib/types";
-import { safeParse } from "@/lib/validation";
+import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import type { ApiResponse } from '@/lib/types';
+import { safeParse } from '@/lib/validation';
 
 const UpdateOrganizationSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
@@ -24,7 +24,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const effect = Effect.gen(function* () {
@@ -34,7 +34,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     // Check if user is a member
     const isMemberResult = yield* orgRepo.isMember(session.user.id, resolvedParams.id);
     if (!isMemberResult) {
-      return yield* Effect.fail({ _tag: "ForbiddenError", message: "Access denied" });
+      return yield* Effect.fail({ _tag: 'ForbiddenError', message: 'Access denied' });
     }
 
     const organization = yield* orgRepo.getOrganization(resolvedParams.id);
@@ -47,10 +47,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {
@@ -72,13 +72,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   });
 
   if (!session) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const rawBody = await request.json();
   const result = safeParse(UpdateOrganizationSchema, rawBody);
   if (!result.success) {
-    return NextResponse.json({ success: false, error: "Invalid request format" }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Invalid request format' }, { status: 400 });
   }
   const { name, slug, logo, metadata } = result.data;
 
@@ -88,18 +88,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Check if user is an owner
     const userRole = yield* orgRepo.getUserRole(session.user.id, resolvedParams.id);
-    if (Option.isNone(userRole) || userRole.value !== "owner") {
+    if (Option.isNone(userRole) || userRole.value !== 'owner') {
       return yield* Effect.fail({
-        _tag: "ForbiddenError",
-        message: "Only organization owners can update settings",
+        _tag: 'ForbiddenError',
+        message: 'Only organization owners can update settings',
       });
     }
 
     // Validate slug format if provided
     if (slug && !/^[a-z0-9-]+$/.test(slug)) {
       return yield* Effect.fail({
-        _tag: "ValidationError",
-        message: "Slug can only contain lowercase letters, numbers, and hyphens",
+        _tag: 'ValidationError',
+        message: 'Slug can only contain lowercase letters, numbers, and hyphens',
       });
     }
 
@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const updatedOrg = yield* orgRepo.updateOrganization(resolvedParams.id, updateData);
 
-    return { message: "Organization settings updated successfully", organization: updatedOrg };
+    return { message: 'Organization settings updated successfully', organization: updatedOrg };
   });
 
   const runnable = Effect.provide(effect, createPublicLayer());
@@ -120,10 +120,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   return Exit.match(exit, {
     onFailure: (cause) => {
       const error = Cause.failureOption(cause);
-      if (error._tag === "Some") {
+      if (error._tag === 'Some') {
         return mapErrorToApiResponse(error.value);
       }
-      return mapErrorToApiResponse(new Error("Internal server error"));
+      return mapErrorToApiResponse(new Error('Internal server error'));
     },
     onSuccess: (data) => {
       const response: ApiResponse = {

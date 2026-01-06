@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Check, Search } from "lucide-react";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Check, Search } from 'lucide-react';
+import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Video } from "@/lib/db/schema";
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from "@/lib/image-utils";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Video } from '@/lib/db/schema';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
 
 interface VideoPickerProps {
   open: boolean;
@@ -29,7 +29,7 @@ interface VideoPickerProps {
 export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVideosAdded }: VideoPickerProps) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,12 +40,12 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
     try {
       const response = await fetch(`/api/series/${seriesId}/videos?organizationId=${organizationId}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch videos");
+        throw new Error('Failed to fetch videos');
       }
       const data = await response.json();
       setVideos(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +55,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
     if (open) {
       fetchVideos();
       setSelectedIds(new Set());
-      setSearchQuery("");
+      setSearchQuery('');
     }
   }, [open, fetchVideos]);
 
@@ -89,21 +89,21 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
       // Add videos one by one
       for (const videoId of selectedIds) {
         const response = await fetch(`/api/series/${seriesId}/videos`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ videoId }),
         });
 
         if (!response.ok) {
           const data = await response.json();
-          throw new Error(data.error || "Failed to add video");
+          throw new Error(data.error || 'Failed to add video');
         }
       }
 
       onOpenChange(false);
       onVideosAdded?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -136,13 +136,13 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
             </div>
           ) : filteredVideos.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {videos.length === 0 ? "No videos available to add" : "No videos match your search"}
+              {videos.length === 0 ? 'No videos available to add' : 'No videos match your search'}
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="sm" onClick={handleSelectAll}>
-                  {selectedIds.size === filteredVideos.length ? "Deselect All" : "Select All"}
+                  {selectedIds.size === filteredVideos.length ? 'Deselect All' : 'Select All'}
                 </Button>
                 <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
               </div>
@@ -157,7 +157,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
                       onClick={() => handleToggle(video.id)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
+                        if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           handleToggle(video.id);
                         }
@@ -170,7 +170,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
                       />
                       <div className="relative h-12 w-20 flex-shrink-0 rounded overflow-hidden">
                         <Image
-                          src={video.thumbnailUrl || "/placeholder.svg"}
+                          src={video.thumbnailUrl || '/placeholder.svg'}
                           alt={video.title}
                           fill
                           sizes={IMAGE_SIZES.thumbnail}
@@ -204,7 +204,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || selectedIds.size === 0}>
-            {isSubmitting ? "Adding..." : `Add ${selectedIds.size} Video${selectedIds.size !== 1 ? "s" : ""}`}
+            {isSubmitting ? 'Adding...' : `Add ${selectedIds.size} Video${selectedIds.size !== 1 ? 's' : ''}`}
           </Button>
         </DialogFooter>
       </DialogContent>

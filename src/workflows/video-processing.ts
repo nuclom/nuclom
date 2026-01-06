@@ -17,13 +17,13 @@
  * - No lost processing on deploy
  */
 
-import { FatalError, sleep } from "workflow";
-import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from "@/lib/db/schema";
-import { notifySlackMonitoring } from "@/lib/effect/services/slack-monitoring";
-import { env } from "@/lib/env/server";
-import { createWorkflowLogger } from "./workflow-logger";
+import { FatalError, sleep } from 'workflow';
+import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from '@/lib/db/schema';
+import { notifySlackMonitoring } from '@/lib/effect/services/slack-monitoring';
+import { env, getAppUrl } from '@/lib/env/server';
+import { createWorkflowLogger } from './workflow-logger';
 
-const log = createWorkflowLogger("video-processing");
+const log = createWorkflowLogger('video-processing');
 
 // =============================================================================
 // Types
@@ -99,14 +99,14 @@ interface DetectedMoment {
   startTime: number;
   endTime: number;
   momentType:
-    | "decision"
-    | "action_item"
-    | "question"
-    | "answer"
-    | "emphasis"
-    | "demonstration"
-    | "conclusion"
-    | "highlight";
+    | 'decision'
+    | 'action_item'
+    | 'question'
+    | 'answer'
+    | 'emphasis'
+    | 'demonstration'
+    | 'conclusion'
+    | 'highlight';
   confidence: number;
   transcriptExcerpt: string;
 }
@@ -124,7 +124,7 @@ interface ExtractedDecisionResult {
     tags: string[];
     participants: Array<{
       name: string;
-      role: "decider" | "participant" | "mentioned";
+      role: 'decider' | 'participant' | 'mentioned';
       attributedText?: string;
     }>;
     externalRefs?: Array<{
@@ -142,9 +142,9 @@ interface ExtractedDecisionResult {
 // =============================================================================
 
 async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { videos } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { videos } = await import('@/lib/db/schema');
 
   await db
     .update(videos)
@@ -159,24 +159,24 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
-    throw new FatalError("Replicate API token not configured. Please set REPLICATE_API_TOKEN.");
+    throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
   }
 
   // Use Replicate's Whisper model for transcription
   // This keeps all AI services routed through managed gateways/services
-  const { default: Replicate } = await import("replicate");
+  const { default: Replicate } = await import('replicate');
   const replicate = new Replicate({ auth: replicateToken });
 
-  const WHISPER_MODEL = "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334";
+  const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334';
 
   const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
     input: {
       audio: videoUrl,
-      model: "large-v3",
+      model: 'large-v3',
       translate: false,
       temperature: 0,
-      transcription: "plain text",
-      suppress_tokens: "-1",
+      transcription: 'plain text',
+      suppress_tokens: '-1',
       logprob_threshold: -1,
       no_speech_threshold: 0.6,
       condition_on_previous_text: true,
@@ -198,7 +198,7 @@ async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
   const duration = segments.length > 0 ? Math.max(...segments.map((s) => s.endTime)) : 0;
 
   return {
-    transcript: output.transcription || "",
+    transcript: output.transcription || '',
     segments,
     duration,
     language: output.detected_language,
@@ -210,103 +210,103 @@ async function analyzeWithAI(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<AIAnalysisResult> {
-  const { gateway } = await import("@ai-sdk/gateway");
-  const { generateText, generateObject, jsonSchema } = await import("ai");
+  const { gateway } = await import('@ai-sdk/gateway');
+  const { generateText, generateObject, jsonSchema } = await import('ai');
 
   // Use Vercel AI Gateway for all AI operations
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   // Define schemas for structured outputs
   const tagsSchema = jsonSchema<{ tags: string[] }>({
-    type: "object",
+    type: 'object',
     properties: {
       tags: {
-        type: "array",
-        items: { type: "string" },
-        description: "5-10 relevant tags for the video",
+        type: 'array',
+        items: { type: 'string' },
+        description: '5-10 relevant tags for the video',
       },
     },
-    required: ["tags"],
+    required: ['tags'],
   });
 
   const actionItemsSchema = jsonSchema<{
-    items: Array<{ text: string; timestamp?: number; priority?: "high" | "medium" | "low" }>;
+    items: Array<{ text: string; timestamp?: number; priority?: 'high' | 'medium' | 'low' }>;
   }>({
-    type: "object",
+    type: 'object',
     properties: {
       items: {
-        type: "array",
+        type: 'array',
         items: {
-          type: "object",
+          type: 'object',
           properties: {
-            text: { type: "string", description: "The action item description" },
-            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
-            priority: { type: "string", enum: ["high", "medium", "low"], description: "Priority level" },
+            text: { type: 'string', description: 'The action item description' },
+            timestamp: { type: 'number', description: 'Approximate timestamp in seconds' },
+            priority: { type: 'string', enum: ['high', 'medium', 'low'], description: 'Priority level' },
           },
-          required: ["text"],
+          required: ['text'],
         },
-        description: "List of action items extracted from the transcript",
+        description: 'List of action items extracted from the transcript',
       },
     },
-    required: ["items"],
+    required: ['items'],
   });
 
   const chaptersSchema = jsonSchema<{
     chapters: Array<{ title: string; summary: string; startTime: number; endTime?: number }>;
   }>({
-    type: "object",
+    type: 'object',
     properties: {
       chapters: {
-        type: "array",
+        type: 'array',
         items: {
-          type: "object",
+          type: 'object',
           properties: {
-            title: { type: "string", description: "Chapter title" },
-            summary: { type: "string", description: "Brief chapter summary" },
-            startTime: { type: "number", description: "Start time in seconds" },
-            endTime: { type: "number", description: "End time in seconds" },
+            title: { type: 'string', description: 'Chapter title' },
+            summary: { type: 'string', description: 'Brief chapter summary' },
+            startTime: { type: 'number', description: 'Start time in seconds' },
+            endTime: { type: 'number', description: 'End time in seconds' },
           },
-          required: ["title", "summary", "startTime"],
+          required: ['title', 'summary', 'startTime'],
         },
-        description: "Video chapters based on topic changes",
+        description: 'Video chapters based on topic changes',
       },
     },
-    required: ["chapters"],
+    required: ['chapters'],
   });
 
   const codeSnippetsSchema = jsonSchema<{
     snippets: Array<{ language: string; code: string; title?: string; description?: string; timestamp?: number }>;
   }>({
-    type: "object",
+    type: 'object',
     properties: {
       snippets: {
-        type: "array",
+        type: 'array',
         items: {
-          type: "object",
+          type: 'object',
           properties: {
-            language: { type: "string", description: "Programming language" },
-            code: { type: "string", description: "The code snippet" },
-            title: { type: "string", description: "Brief title" },
-            description: { type: "string", description: "What the code does" },
-            timestamp: { type: "number", description: "Approximate timestamp in seconds" },
+            language: { type: 'string', description: 'Programming language' },
+            code: { type: 'string', description: 'The code snippet' },
+            title: { type: 'string', description: 'Brief title' },
+            description: { type: 'string', description: 'What the code does' },
+            timestamp: { type: 'number', description: 'Approximate timestamp in seconds' },
           },
-          required: ["language", "code"],
+          required: ['language', 'code'],
         },
-        description: "Code snippets detected in the transcript",
+        description: 'Code snippets detected in the transcript',
       },
     },
-    required: ["snippets"],
+    required: ['snippets'],
   });
 
   // Generate summary using Vercel AI SDK
   const summaryResult = await generateText({
     model,
     system:
-      "You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.",
+      'You are a helpful assistant that summarizes video transcripts. Provide a concise summary in 2-3 paragraphs.',
     prompt: `Please summarize this video transcript:\n\n${transcript.slice(0, 10000)}`,
   });
 
-  const summary = summaryResult.text || "Summary generation failed";
+  const summary = summaryResult.text || 'Summary generation failed';
 
   // Generate tags using structured output
   let tags: string[] = [];
@@ -314,8 +314,8 @@ async function analyzeWithAI(
     const tagsResult = await generateObject({
       model,
       schema: tagsSchema,
-      system: "Generate 5-10 relevant tags for this video based on its title and content.",
-      prompt: `Title: ${videoTitle || "Untitled"}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
+      system: 'Generate 5-10 relevant tags for this video based on its title and content.',
+      prompt: `Title: ${videoTitle || 'Untitled'}\n\nTranscript excerpt: ${transcript.slice(0, 2000)}`,
     });
     tags = Array.isArray(tagsResult.object?.tags) ? tagsResult.object.tags : [];
   } catch {
@@ -340,7 +340,7 @@ async function analyzeWithAI(
   }
 
   // Generate chapters using structured output
-  let chapters: AIAnalysisResult["chapters"] = [];
+  let chapters: AIAnalysisResult['chapters'] = [];
   try {
     const chaptersResult = await generateObject({
       model,
@@ -353,7 +353,7 @@ async function analyzeWithAI(
       prompt: `Transcript with timestamps:\n${segments
         .slice(0, 100)
         .map((s) => `[${s.startTime}s] ${s.text}`)
-        .join("\n")}`,
+        .join('\n')}`,
     });
     chapters = Array.isArray(chaptersResult.object?.chapters) ? chaptersResult.object.chapters : [];
   } catch {
@@ -361,7 +361,7 @@ async function analyzeWithAI(
   }
 
   // Detect code snippets using structured output
-  let codeSnippets: AIAnalysisResult["codeSnippets"] = [];
+  let codeSnippets: AIAnalysisResult['codeSnippets'] = [];
   try {
     const codeResult = await generateObject({
       model,
@@ -389,9 +389,9 @@ async function analyzeWithAI(
 }
 
 async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { videos } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { videos } = await import('@/lib/db/schema');
 
   await db
     .update(videos)
@@ -408,11 +408,11 @@ async function detectKeyMoments(
   segments: TranscriptSegment[],
   videoTitle?: string,
 ): Promise<DetectedMoment[]> {
-  const { gateway } = await import("@ai-sdk/gateway");
-  const { generateObject, jsonSchema } = await import("ai");
+  const { gateway } = await import('@ai-sdk/gateway');
+  const { generateObject, jsonSchema } = await import('ai');
 
   // Use Vercel AI Gateway
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   // Schema for moment detection
   const momentsSchema = jsonSchema<{
@@ -422,58 +422,58 @@ async function detectKeyMoments(
       startTime: number;
       endTime: number;
       momentType:
-        | "decision"
-        | "action_item"
-        | "question"
-        | "answer"
-        | "emphasis"
-        | "demonstration"
-        | "conclusion"
-        | "highlight";
+        | 'decision'
+        | 'action_item'
+        | 'question'
+        | 'answer'
+        | 'emphasis'
+        | 'demonstration'
+        | 'conclusion'
+        | 'highlight';
       confidence: number;
       transcriptExcerpt: string;
     }>;
   }>({
-    type: "object",
+    type: 'object',
     properties: {
       moments: {
-        type: "array",
+        type: 'array',
         items: {
-          type: "object",
+          type: 'object',
           properties: {
-            title: { type: "string", description: "A concise title for the moment (max 100 chars)" },
-            description: { type: "string", description: "Brief description of what happens in this moment" },
-            startTime: { type: "number", description: "Start time in seconds" },
-            endTime: { type: "number", description: "End time in seconds" },
+            title: { type: 'string', description: 'A concise title for the moment (max 100 chars)' },
+            description: { type: 'string', description: 'Brief description of what happens in this moment' },
+            startTime: { type: 'number', description: 'Start time in seconds' },
+            endTime: { type: 'number', description: 'End time in seconds' },
             momentType: {
-              type: "string",
+              type: 'string',
               enum: [
-                "decision",
-                "action_item",
-                "question",
-                "answer",
-                "emphasis",
-                "demonstration",
-                "conclusion",
-                "highlight",
+                'decision',
+                'action_item',
+                'question',
+                'answer',
+                'emphasis',
+                'demonstration',
+                'conclusion',
+                'highlight',
               ],
-              description: "Type of moment detected",
+              description: 'Type of moment detected',
             },
-            confidence: { type: "number", description: "Confidence score 0-100" },
-            transcriptExcerpt: { type: "string", description: "The relevant transcript excerpt for this moment" },
+            confidence: { type: 'number', description: 'Confidence score 0-100' },
+            transcriptExcerpt: { type: 'string', description: 'The relevant transcript excerpt for this moment' },
           },
-          required: ["title", "startTime", "endTime", "momentType", "confidence", "transcriptExcerpt"],
+          required: ['title', 'startTime', 'endTime', 'momentType', 'confidence', 'transcriptExcerpt'],
         },
-        description: "Key moments detected in the video",
+        description: 'Key moments detected in the video',
       },
     },
-    required: ["moments"],
+    required: ['moments'],
   });
 
   // Prepare transcript with timestamps
   const timestampedTranscript = segments
     .map((s) => `[${Math.floor(s.startTime)}s-${Math.floor(s.endTime)}s] ${s.text}`)
-    .join("\n");
+    .join('\n');
 
   try {
     const result = await generateObject({
@@ -496,7 +496,7 @@ For each moment:
 2. Assign a confidence score (0-100) based on how clearly the moment fits its category
 3. Extract the relevant transcript excerpt
 4. Create a concise, descriptive title`,
-      prompt: `Video Title: ${videoTitle || "Untitled"}
+      prompt: `Video Title: ${videoTitle || 'Untitled'}
 
 Transcript with timestamps:
 ${timestampedTranscript.slice(0, 15000)}
@@ -514,15 +514,15 @@ Return only moments with confidence >= 60.`,
 
     return Array.isArray(result.object?.moments) ? result.object.moments : [];
   } catch (error) {
-    log.error({ error }, "Failed to detect key moments");
+    log.error({ error }, 'Failed to detect key moments');
     return [];
   }
 }
 
 async function saveKeyMoments(videoId: string, organizationId: string, moments: DetectedMoment[]): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { videoMoments } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { videoMoments } = await import('@/lib/db/schema');
 
   if (moments.length === 0) return;
 
@@ -552,20 +552,20 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
 async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null> {
   const apiKey = env.ASSEMBLYAI_API_KEY;
   if (!apiKey) {
-    log.info({}, "AssemblyAI not configured, skipping speaker diarization");
+    log.info({}, 'AssemblyAI not configured, skipping speaker diarization');
     return null;
   }
 
-  const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
+  const ASSEMBLYAI_API_URL = 'https://api.assemblyai.com/v2';
   const MAX_POLLING_ATTEMPTS = 200; // ~10 minutes with 3-second intervals
 
   try {
     // Submit transcription request with speaker labels
     const submitResponse = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Authorization: apiKey,
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         audio_url: videoUrl,
@@ -593,7 +593,7 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
       }
 
       const result = (await statusResponse.json()) as {
-        status: "queued" | "processing" | "completed" | "error";
+        status: 'queued' | 'processing' | 'completed' | 'error';
         text?: string;
         utterances?: Array<{
           speaker: string;
@@ -607,7 +607,7 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
         error?: string;
       };
 
-      if (result.status === "completed") {
+      if (result.status === 'completed') {
         const utterances = result.utterances || [];
         const durationMs = (result.audio_duration || 0) * 1000;
 
@@ -643,7 +643,7 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
           .sort((a, b) => b.totalSpeakingTime - a.totalSpeakingTime);
 
         return {
-          transcript: result.text || "",
+          transcript: result.text || '',
           segments,
           speakers,
           duration: durationMs,
@@ -652,17 +652,17 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
         };
       }
 
-      if (result.status === "error") {
-        throw new Error(result.error || "Diarization failed");
+      if (result.status === 'error') {
+        throw new Error(result.error || 'Diarization failed');
       }
 
       // Wait before next poll using workflow-native sleep (durable, no resource consumption)
-      await sleep("3 seconds");
+      await sleep('3 seconds');
     }
 
-    throw new Error("Diarization timed out");
+    throw new Error('Diarization timed out');
   } catch (error) {
-    log.error({ error }, "Speaker diarization failed, continuing without speaker data");
+    log.error({ error }, 'Speaker diarization failed, continuing without speaker data');
     return null;
   }
 }
@@ -671,8 +671,8 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
  * Save speaker diarization results to the database
  */
 async function saveSpeakerData(videoId: string, organizationId: string, diarization: DiarizationResult): Promise<void> {
-  const { db } = await import("@/lib/db");
-  const { speakerProfiles, videoSpeakers, speakerSegments } = await import("@/lib/db/schema");
+  const { db } = await import('@/lib/db');
+  const { speakerProfiles, videoSpeakers, speakerSegments } = await import('@/lib/db/schema');
 
   // Create video speakers and map speaker labels to IDs
   const speakerMap = new Map<string, string>();
@@ -724,14 +724,14 @@ async function saveSpeakerData(videoId: string, organizationId: string, diarizat
 
   log.info(
     { videoId, speakerCount: diarization.speakerCount, segmentCount: diarization.segments.length },
-    "Saved speaker diarization data",
+    'Saved speaker diarization data',
   );
 }
 
 async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Promise<void> {
-  const { eq } = await import("drizzle-orm");
-  const { db } = await import("@/lib/db");
-  const { videos, videoChapters, videoCodeSnippets } = await import("@/lib/db/schema");
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { videos, videoChapters, videoCodeSnippets } = await import('@/lib/db/schema');
 
   // Update video record
   await db
@@ -775,80 +775,80 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
 }
 
 async function extractDecisions(segments: TranscriptSegment[], videoTitle?: string): Promise<ExtractedDecisionResult> {
-  const { gateway } = await import("@ai-sdk/gateway");
-  const { generateObject, jsonSchema } = await import("ai");
+  const { gateway } = await import('@ai-sdk/gateway');
+  const { generateObject, jsonSchema } = await import('ai');
 
   // Use Vercel AI Gateway
-  const model = gateway("xai/grok-3");
+  const model = gateway('xai/grok-3');
 
   const decisionSchema = jsonSchema<ExtractedDecisionResult>({
-    type: "object",
+    type: 'object',
     properties: {
       decisions: {
-        type: "array",
+        type: 'array',
         items: {
-          type: "object",
+          type: 'object',
           properties: {
-            summary: { type: "string", description: "Clear summary of what was decided" },
-            context: { type: "string", description: "Discussion context that led to the decision" },
-            reasoning: { type: "string", description: "Why this decision was made" },
-            timestampStart: { type: "number", description: "Start time in seconds" },
-            timestampEnd: { type: "number", description: "End time in seconds" },
+            summary: { type: 'string', description: 'Clear summary of what was decided' },
+            context: { type: 'string', description: 'Discussion context that led to the decision' },
+            reasoning: { type: 'string', description: 'Why this decision was made' },
+            timestampStart: { type: 'number', description: 'Start time in seconds' },
+            timestampEnd: { type: 'number', description: 'End time in seconds' },
             decisionType: {
-              type: "string",
-              enum: ["technical", "process", "product", "team", "other"],
-              description: "Type of decision",
+              type: 'string',
+              enum: ['technical', 'process', 'product', 'team', 'other'],
+              description: 'Type of decision',
             },
             status: {
-              type: "string",
-              enum: ["proposed", "decided", "revisited", "superseded"],
-              description: "Decision status",
+              type: 'string',
+              enum: ['proposed', 'decided', 'revisited', 'superseded'],
+              description: 'Decision status',
             },
-            confidence: { type: "number", description: "AI confidence 0-100" },
-            tags: { type: "array", items: { type: "string" }, description: "Topic tags" },
+            confidence: { type: 'number', description: 'AI confidence 0-100' },
+            tags: { type: 'array', items: { type: 'string' }, description: 'Topic tags' },
             participants: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  name: { type: "string", description: "Participant name" },
+                  name: { type: 'string', description: 'Participant name' },
                   role: {
-                    type: "string",
-                    enum: ["decider", "participant", "mentioned"],
-                    description: "Role in decision",
+                    type: 'string',
+                    enum: ['decider', 'participant', 'mentioned'],
+                    description: 'Role in decision',
                   },
-                  attributedText: { type: "string", description: "What they said" },
+                  attributedText: { type: 'string', description: 'What they said' },
                 },
-                required: ["name", "role"],
+                required: ['name', 'role'],
               },
-              description: "Decision participants",
+              description: 'Decision participants',
             },
             externalRefs: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  type: { type: "string", description: "Reference type (github:pr, linear:issue, etc.)" },
-                  id: { type: "string", description: "Reference identifier" },
-                  url: { type: "string", description: "URL if available" },
+                  type: { type: 'string', description: 'Reference type (github:pr, linear:issue, etc.)' },
+                  id: { type: 'string', description: 'Reference identifier' },
+                  url: { type: 'string', description: 'URL if available' },
                 },
-                required: ["type", "id"],
+                required: ['type', 'id'],
               },
-              description: "External references mentioned",
+              description: 'External references mentioned',
             },
           },
-          required: ["summary", "timestampStart", "decisionType", "status", "confidence", "tags", "participants"],
+          required: ['summary', 'timestampStart', 'decisionType', 'status', 'confidence', 'tags', 'participants'],
         },
-        description: "Extracted decisions",
+        description: 'Extracted decisions',
       },
-      totalDecisions: { type: "number", description: "Total decisions found" },
+      totalDecisions: { type: 'number', description: 'Total decisions found' },
       primaryTopics: {
-        type: "array",
-        items: { type: "string" },
-        description: "Main topics discussed",
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Main topics discussed',
       },
     },
-    required: ["decisions", "totalDecisions", "primaryTopics"],
+    required: ['decisions', 'totalDecisions', 'primaryTopics'],
   });
 
   // Format transcript with timestamps
@@ -857,12 +857,12 @@ async function extractDecisions(segments: TranscriptSegment[], videoTitle?: stri
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
     if (hrs > 0) {
-      return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join("\n");
+  const formattedTranscript = segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n');
 
   try {
     const result = await generateObject({
@@ -891,7 +891,7 @@ For each decision:
 - Identify all participants and their roles
 - Assign a confidence score (0-100)
 
-${videoTitle ? `Video Title: "${videoTitle}"` : ""}
+${videoTitle ? `Video Title: "${videoTitle}"` : ''}
 
 Transcript:
 ${formattedTranscript}`,
@@ -899,7 +899,7 @@ ${formattedTranscript}`,
 
     return result.object as ExtractedDecisionResult;
   } catch (error) {
-    log.error({ error }, "Failed to extract decisions");
+    log.error({ error }, 'Failed to extract decisions');
     return {
       decisions: [],
       totalDecisions: 0,
@@ -917,8 +917,8 @@ async function saveDecisions(
     return;
   }
 
-  const { db } = await import("@/lib/db");
-  const { decisions, decisionParticipants, decisionLinks } = await import("@/lib/db/schema");
+  const { db } = await import('@/lib/db');
+  const { decisions, decisionParticipants, decisionLinks } = await import('@/lib/db/schema');
 
   try {
     for (const extracted of extractedDecisions.decisions) {
@@ -949,7 +949,7 @@ async function saveDecisions(
       // Add participants
       if (extracted.participants.length > 0) {
         const participantData = extracted.participants.map(
-          (p: { name: string; role: "decider" | "participant" | "mentioned"; attributedText?: string }) => ({
+          (p: { name: string; role: 'decider' | 'participant' | 'mentioned'; attributedText?: string }) => ({
             decisionId: decision.id,
             userId: null,
             speakerName: p.name,
@@ -964,10 +964,10 @@ async function saveDecisions(
       if (extracted.externalRefs && extracted.externalRefs.length > 0) {
         const linkData = extracted.externalRefs.map((ref) => ({
           decisionId: decision.id,
-          entityType: ref.type.split(":")[0] ?? ref.type,
+          entityType: ref.type.split(':')[0] ?? ref.type,
           entityId: ref.id,
           entityRef: ref.id,
-          linkType: "references",
+          linkType: 'references',
           url: ref.url,
         }));
         await db.insert(decisionLinks).values(linkData);
@@ -976,22 +976,22 @@ async function saveDecisions(
 
     log.info(
       { videoId, decisionCount: extractedDecisions.decisions.filter((d) => d.confidence >= 50).length },
-      "Saved extracted decisions",
+      'Saved extracted decisions',
     );
   } catch (error) {
-    log.error({ error, videoId }, "Failed to save decisions");
+    log.error({ error, videoId }, 'Failed to save decisions');
   }
 }
 
 async function sendCompletionNotification(
   videoId: string,
-  status: "completed" | "failed",
+  status: 'completed' | 'failed',
   errorMessage?: string,
 ): Promise<void> {
   try {
-    const { db } = await import("@/lib/db");
-    const { notifications } = await import("@/lib/db/schema");
-    const { resend } = await import("@/lib/email");
+    const { db } = await import('@/lib/db');
+    const { notifications } = await import('@/lib/db/schema');
+    const { resend } = await import('@/lib/email');
 
     const video = await db.query.videos.findFirst({
       where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
@@ -1006,51 +1006,51 @@ async function sendCompletionNotification(
 
     if (!user?.email) return;
 
-    const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppUrl();
 
     // Create in-app notification
     await db.insert(notifications).values({
       userId: user.id,
-      type: status === "completed" ? "video_processing_complete" : "video_processing_failed",
-      title: status === "completed" ? "Video processing complete" : "Video processing failed",
+      type: status === 'completed' ? 'video_processing_complete' : 'video_processing_failed',
+      title: status === 'completed' ? 'Video processing complete' : 'Video processing failed',
       body:
-        status === "completed"
+        status === 'completed'
           ? `"${video.title}" has finished processing and is now ready to view with AI insights.`
-          : `"${video.title}" failed to process. ${errorMessage || "Please try again."}`,
-      resourceType: "video",
+          : `"${video.title}" failed to process. ${errorMessage || 'Please try again.'}`,
+      resourceType: 'video',
       resourceId: videoId,
     });
 
     // Send email notification
-    const fromEmail = env.RESEND_FROM_EMAIL ?? "notifications@nuclom.com";
+    const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
     await resend.emails.send({
       from: fromEmail,
       to: user.email,
       subject:
-        status === "completed" ? `Your video "${video.title}" is ready!` : `Video processing failed: "${video.title}"`,
+        status === 'completed' ? `Your video "${video.title}" is ready!` : `Video processing failed: "${video.title}"`,
       html: `
-        <h2>${status === "completed" ? "Video Processing Complete" : "Video Processing Failed"}</h2>
-        <p>Hi ${user.name || "there"},</p>
+        <h2>${status === 'completed' ? 'Video Processing Complete' : 'Video Processing Failed'}</h2>
+        <p>Hi ${user.name || 'there'},</p>
         <p>${
-          status === "completed"
+          status === 'completed'
             ? `Your video "${video.title}" has finished processing and is now ready with AI-generated summaries, transcriptions, and more.`
-            : `Your video "${video.title}" failed to process. ${errorMessage || "Please try again."}`
+            : `Your video "${video.title}" failed to process. ${errorMessage || 'Please try again.'}`
         }</p>
         <p><a href="${baseUrl}/videos/${videoId}">View Video</a></p>
       `,
     });
 
     // Send Slack monitoring notification
-    await notifySlackMonitoring(status === "completed" ? "video_processed" : "video_processing_failed", {
+    await notifySlackMonitoring(status === 'completed' ? 'video_processed' : 'video_processing_failed', {
       videoId,
       videoTitle: video.title,
       organizationId: video.organizationId,
       userId: user.id,
       userName: user.name || undefined,
-      errorMessage: status === "failed" ? errorMessage : undefined,
+      errorMessage: status === 'failed' ? errorMessage : undefined,
     });
   } catch (error) {
-    log.error({ videoId, status, error }, "Failed to send notification");
+    log.error({ videoId, status, error }, 'Failed to send notification');
   }
 }
 
@@ -1081,73 +1081,73 @@ async function sendCompletionNotification(
  * from the last successful step.
  */
 export async function processVideoWorkflow(input: VideoProcessingInput): Promise<VideoProcessingResult> {
-  "use workflow";
+  'use workflow';
 
   const { videoId, videoUrl, videoTitle, organizationId, skipDiarization } = input;
 
   try {
     // Step 1: Update status to transcribing
-    await updateProcessingStatus(videoId, "transcribing");
-    ("use step");
+    await updateProcessingStatus(videoId, 'transcribing');
+    ('use step');
 
     // Step 2: Transcribe the video
     const transcription = await transcribeVideo(videoUrl);
-    ("use step");
+    ('use step');
 
     // Step 3: Save transcript
     await saveTranscript(videoId, transcription.transcript, transcription.segments);
-    ("use step");
+    ('use step');
 
     // Step 4: Speaker diarization (if enabled and configured)
     let diarization: DiarizationResult | null = null;
     if (!skipDiarization && organizationId) {
       // Update status to diarizing
-      await updateProcessingStatus(videoId, "diarizing");
-      ("use step");
+      await updateProcessingStatus(videoId, 'diarizing');
+      ('use step');
 
       // Run speaker diarization
       diarization = await diarizeVideo(videoUrl);
-      ("use step");
+      ('use step');
 
       // Save speaker data if diarization succeeded
       if (diarization) {
         await saveSpeakerData(videoId, organizationId, diarization);
-        ("use step");
+        ('use step');
       }
     }
 
     // Step 5: Update status to analyzing
-    await updateProcessingStatus(videoId, "analyzing");
-    ("use step");
+    await updateProcessingStatus(videoId, 'analyzing');
+    ('use step');
 
     // Step 6: Run AI analysis
     const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
-    ("use step");
+    ('use step');
 
     // Step 7: Save AI analysis results
     await saveAIAnalysis(videoId, analysis);
-    ("use step");
+    ('use step');
 
     // Step 8: Detect key moments for clip extraction
     const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
-    ("use step");
+    ('use step');
 
     // Step 9: Save key moments
     if (organizationId && moments.length > 0) {
       await saveKeyMoments(videoId, organizationId, moments);
     }
-    ("use step");
+    ('use step');
 
     // Step 10: Extract decisions for knowledge graph
     const extractedDecisions = await extractDecisions(transcription.segments, videoTitle);
-    ("use step");
+    ('use step');
 
     // Step 11: Save extracted decisions to database
     if (organizationId) {
       await saveDecisions(videoId, organizationId, extractedDecisions);
     } else {
       // Fallback: get organization ID from video if not provided in input
-      const { db } = await import("@/lib/db");
+      const { db } = await import('@/lib/db');
       const video = await db.query.videos.findFirst({
         where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
         columns: { organizationId: true },
@@ -1156,14 +1156,14 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
         await saveDecisions(videoId, video.organizationId, extractedDecisions);
       }
     }
-    ("use step");
+    ('use step');
 
     // Step 12: Update status to completed
-    await updateProcessingStatus(videoId, "completed");
-    ("use step");
+    await updateProcessingStatus(videoId, 'completed');
+    ('use step');
 
     // Step 13: Send completion notification
-    await sendCompletionNotification(videoId, "completed");
+    await sendCompletionNotification(videoId, 'completed');
 
     return {
       videoId,
@@ -1173,8 +1173,8 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     // Handle errors - update status and notify
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    await updateProcessingStatus(videoId, "failed", errorMessage);
-    await sendCompletionNotification(videoId, "failed", errorMessage);
+    await updateProcessingStatus(videoId, 'failed', errorMessage);
+    await sendCompletionNotification(videoId, 'failed', errorMessage);
 
     // Re-throw FatalErrors to stop retrying
     if (error instanceof FatalError) {

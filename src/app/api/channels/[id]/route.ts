@@ -1,11 +1,11 @@
-import { Effect, Option, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit } from "@/lib/api-handler";
-import { ForbiddenError } from "@/lib/effect";
-import { Auth } from "@/lib/effect/services/auth";
-import { ChannelRepository } from "@/lib/effect/services/channel-repository";
-import { OrganizationRepository } from "@/lib/effect/services/organization-repository";
-import { validateRequestBody } from "@/lib/validation";
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { ForbiddenError } from '@/lib/effect';
+import { Auth } from '@/lib/effect/services/auth';
+import { ChannelRepository } from '@/lib/effect/services/channel-repository';
+import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
+import { validateRequestBody } from '@/lib/validation';
 
 const UpdateChannelSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (!isMemberResult) {
       return yield* Effect.fail(
         new ForbiddenError({
-          message: "Access denied",
-          resource: "Channel",
+          message: 'Access denied',
+          resource: 'Channel',
         }),
       );
     }
@@ -71,8 +71,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!isMemberResult) {
       return yield* Effect.fail(
         new ForbiddenError({
-          message: "Access denied",
-          resource: "Channel",
+          message: 'Access denied',
+          resource: 'Channel',
         }),
       );
     }
@@ -109,17 +109,17 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     // Verify user is an owner of this channel's organization
     const userRole = yield* orgRepo.getUserRole(user.id, channel.organizationId);
-    if (Option.isNone(userRole) || userRole.value !== "owner") {
+    if (Option.isNone(userRole) || userRole.value !== 'owner') {
       return yield* Effect.fail(
         new ForbiddenError({
-          message: "Only organization owners can delete channels",
-          resource: "Channel",
+          message: 'Only organization owners can delete channels',
+          resource: 'Channel',
         }),
       );
     }
 
     yield* channelRepo.deleteChannel(resolvedParams.id);
-    return { message: "Channel deleted successfully" };
+    return { message: 'Channel deleted successfully' };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

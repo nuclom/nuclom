@@ -6,15 +6,15 @@
  * GET /api/videos/[id]/subtitles - List available subtitle languages
  */
 
-import { eq } from "drizzle-orm";
-import { Effect } from "effect";
-import type { NextRequest } from "next/server";
-import { createPublicLayer, handleEffectExit } from "@/lib/api-handler";
-import { db } from "@/lib/db";
-import { videos } from "@/lib/db/schema";
-import { DatabaseError, NotFoundError, Translation } from "@/lib/effect";
-import { SUPPORTED_LANGUAGES } from "@/lib/effect/services/translation";
-import type { ApiResponse } from "@/lib/types";
+import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import { db } from '@/lib/db';
+import { videos } from '@/lib/db/schema';
+import { DatabaseError, NotFoundError, Translation } from '@/lib/effect';
+import { SUPPORTED_LANGUAGES } from '@/lib/effect/services/translation';
+import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // Types
@@ -57,8 +57,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         }),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch video",
-          operation: "getSubtitleLanguages",
+          message: 'Failed to fetch video',
+          operation: 'getSubtitleLanguages',
           cause: error,
         }),
     });
@@ -66,8 +66,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (!videoData) {
       return yield* Effect.fail(
         new NotFoundError({
-          message: "Video not found",
-          entity: "Video",
+          message: 'Video not found',
+          entity: 'Video',
           id,
         }),
       );
@@ -85,8 +85,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       code,
       name: info.name,
       nativeName: info.nativeName,
-      isOriginal: code === "en",
-      available: hasTranscript && (code === "en" || translationAvailable),
+      isOriginal: code === 'en',
+      available: hasTranscript && (code === 'en' || translationAvailable),
       url: `${baseUrl}/${code}.vtt`,
     }));
 

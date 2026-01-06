@@ -1,11 +1,11 @@
-import { sql } from "drizzle-orm";
-import { Effect, Exit } from "effect";
-import { connection } from "next/server";
-import { createPublicLayer } from "@/lib/api-handler";
-import { type HealthCheckService, type HealthCheckStatus, healthChecks } from "@/lib/db/schema";
-import { DatabaseError } from "@/lib/effect";
-import { Database, type DrizzleDB } from "@/lib/effect/services/database";
-import { logger } from "@/lib/logger";
+import { sql } from 'drizzle-orm';
+import { Effect, Exit } from 'effect';
+import { connection } from 'next/server';
+import { createPublicLayer } from '@/lib/api-handler';
+import { type HealthCheckService, type HealthCheckStatus, healthChecks } from '@/lib/db/schema';
+import { DatabaseError } from '@/lib/effect';
+import { Database, type DrizzleDB } from '@/lib/effect/services/database';
+import { logger } from '@/lib/logger';
 
 export interface ServiceStatus {
   service: HealthCheckService;
@@ -16,12 +16,12 @@ export interface ServiceStatus {
 }
 
 export interface StatusResponse {
-  status: "operational" | "degraded" | "outage";
+  status: 'operational' | 'degraded' | 'outage';
   services: ServiceStatus[];
   lastUpdated: string;
   history: {
     date: string;
-    status: "operational" | "degraded" | "outage";
+    status: 'operational' | 'degraded' | 'outage';
   }[];
 }
 
@@ -43,7 +43,7 @@ function getLatestStatus(
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch latest status for ${service}`,
-          operation: "getLatestStatus",
+          operation: 'getLatestStatus',
           cause: error,
         }),
     });
@@ -64,12 +64,12 @@ function getLatestStatus(
       catch: (error) =>
         new DatabaseError({
           message: `Failed to fetch 24h checks for ${service}`,
-          operation: "getChecksLast24h",
+          operation: 'getChecksLast24h',
           cause: error,
         }),
     });
 
-    const healthyChecks = checksLast24h.filter((c) => c.status === "healthy" || c.status === "not_configured");
+    const healthyChecks = checksLast24h.filter((c) => c.status === 'healthy' || c.status === 'not_configured');
     const uptimePercent =
       checksLast24h.length > 0 ? Math.round((healthyChecks.length / checksLast24h.length) * 100) : 100;
 
@@ -83,7 +83,7 @@ function getLatestStatus(
   });
 }
 
-function getStatusHistory(db: DrizzleDB): Effect.Effect<StatusResponse["history"], DatabaseError> {
+function getStatusHistory(db: DrizzleDB): Effect.Effect<StatusResponse['history'], DatabaseError> {
   return Effect.gen(function* () {
     // Get daily status for the last 90 days
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
@@ -104,8 +104,8 @@ function getStatusHistory(db: DrizzleDB): Effect.Effect<StatusResponse["history"
         `),
       catch: (error) =>
         new DatabaseError({
-          message: "Failed to fetch status history",
-          operation: "getStatusHistory",
+          message: 'Failed to fetch status history',
+          operation: 'getStatusHistory',
           cause: error,
         }),
     });
@@ -120,13 +120,13 @@ function getStatusHistory(db: DrizzleDB): Effect.Effect<StatusResponse["history"
     return rows.map((row) => {
       const healthyRatio = row.total_checks > 0 ? row.healthy_checks / row.total_checks : 1;
 
-      let status: "operational" | "degraded" | "outage";
+      let status: 'operational' | 'degraded' | 'outage';
       if (healthyRatio >= 0.99) {
-        status = "operational";
+        status = 'operational';
       } else if (healthyRatio >= 0.9) {
-        status = "degraded";
+        status = 'degraded';
       } else {
-        status = "outage";
+        status = 'outage';
       }
 
       return { date: row.date, status };
@@ -148,10 +148,10 @@ export async function GET() {
     // Get current status for each service in parallel
     const [dbStatus, storageStatus, aiStatus, overallStatus] = yield* Effect.all(
       [
-        getLatestStatus(db, "database"),
-        getLatestStatus(db, "storage"),
-        getLatestStatus(db, "ai"),
-        getLatestStatus(db, "overall"),
+        getLatestStatus(db, 'database'),
+        getLatestStatus(db, 'storage'),
+        getLatestStatus(db, 'ai'),
+        getLatestStatus(db, 'overall'),
       ],
       { concurrency: 4 },
     );
@@ -162,47 +162,47 @@ export async function GET() {
     if (services.length === 0) {
       const now = new Date().toISOString();
       return {
-        status: "operational" as const,
+        status: 'operational' as const,
         services: [
           {
-            service: "database" as const,
-            status: "healthy" as const,
+            service: 'database' as const,
+            status: 'healthy' as const,
             latencyMs: 0,
             lastChecked: now,
             uptimePercent: 100,
           },
           {
-            service: "storage" as const,
-            status: "healthy" as const,
+            service: 'storage' as const,
+            status: 'healthy' as const,
             latencyMs: 0,
             lastChecked: now,
             uptimePercent: 100,
           },
-          { service: "ai" as const, status: "healthy" as const, latencyMs: 0, lastChecked: now, uptimePercent: 100 },
+          { service: 'ai' as const, status: 'healthy' as const, latencyMs: 0, lastChecked: now, uptimePercent: 100 },
         ],
         lastUpdated: now,
-        history: [] as StatusResponse["history"],
+        history: [] as StatusResponse['history'],
       };
     }
 
     // Determine overall status
-    const hasUnhealthy = services.some((s) => s.status === "unhealthy");
-    const hasDegraded = services.some((s) => s.status === "degraded");
+    const hasUnhealthy = services.some((s) => s.status === 'unhealthy');
+    const hasDegraded = services.some((s) => s.status === 'degraded');
 
-    let status: StatusResponse["status"];
+    let status: StatusResponse['status'];
     if (hasUnhealthy) {
-      status = "outage";
+      status = 'outage';
     } else if (hasDegraded) {
-      status = "degraded";
+      status = 'degraded';
     } else {
-      status = "operational";
+      status = 'operational';
     }
 
     // Get historical data
     const history = yield* getStatusHistory(db);
 
     const durationMs = Math.round(performance.now() - startTime);
-    logger.debug("Status API request completed", { durationMs, status });
+    logger.debug('Status API request completed', { durationMs, status });
 
     return {
       status,
@@ -218,26 +218,26 @@ export async function GET() {
   // Custom exit handling for cache headers
   return Exit.match(exit, {
     onFailure: (cause) => {
-      logger.error("Status API error", new Error(String(cause)));
+      logger.error('Status API error', new Error(String(cause)));
 
       return Response.json(
         {
-          status: "outage",
+          status: 'outage',
           services: [],
           lastUpdated: new Date().toISOString(),
           history: [],
-          error: "Failed to fetch status",
+          error: 'Failed to fetch status',
         },
         {
           status: 503,
-          headers: { "Cache-Control": "no-store" },
+          headers: { 'Cache-Control': 'no-store' },
         },
       );
     },
     onSuccess: (data) => {
       return Response.json(data, {
         status: 200,
-        headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" },
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
       });
     },
   });

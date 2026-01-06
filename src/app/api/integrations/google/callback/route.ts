@@ -1,16 +1,16 @@
-import { Effect } from "effect";
-import { GoogleMeet } from "@/lib/effect/services/google-meet";
+import { Effect } from 'effect';
+import { GoogleMeet } from '@/lib/effect/services/google-meet';
 import {
   errorRedirect,
   GoogleIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from "@/lib/integrations";
-import { logger } from "@/lib/logger";
+} from '@/lib/integrations';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
-  const validation = await validateOAuthCallback(request, "google");
+  const validation = await validateOAuthCallback(request, 'google');
   if (!validation.success) {
     return validation.redirect;
   }
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     yield* saveIntegration({
       userId,
       organizationId,
-      provider: "google_meet",
+      provider: 'google_meet',
       tokens: {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -48,9 +48,9 @@ export async function GET(request: Request) {
 
   try {
     await Effect.runPromise(Effect.provide(effect, GoogleIntegrationLayer));
-    return successRedirect(organizationId, "google");
+    return successRedirect(organizationId, 'google');
   } catch (err) {
-    logger.error("[Google Callback Error]", err instanceof Error ? err : new Error(String(err)));
-    return errorRedirect(organizationId, "google");
+    logger.error('[Google Callback Error]', err instanceof Error ? err : new Error(String(err)));
+    return errorRedirect(organizationId, 'google');
   }
 }

@@ -1,24 +1,20 @@
 // biome-ignore-all lint/correctness/noProcessGlobal: "This is a env file"
 
-import { Schema } from "effect";
-import { ClientEnv } from "@/lib/env/client";
+import { Schema } from 'effect';
+import { ClientEnv } from '@/lib/env/client';
 
-const NodeEnv = Schema.Literal("development", "test", "production");
+const NodeEnv = Schema.Literal('development', 'test', 'production');
 
 export const ServerEnv = Schema.Struct({
   ...ClientEnv.fields,
-  APP_URL: Schema.optionalWith(Schema.String.pipe(Schema.filter((s) => URL.canParse(s))), {
-    default: () => "http://localhost:3000",
-  }),
   // Auth secret - required for production security
   BETTER_AUTH_SECRET: Schema.String.pipe(
     Schema.filter((s) => s.length >= 32, {
-      message: () => "BETTER_AUTH_SECRET must be at least 32 characters for security",
+      message: () => 'BETTER_AUTH_SECRET must be at least 32 characters for security',
     }),
   ),
   DATABASE_URL: Schema.String,
   DATABASE_REPLICA_URL: Schema.optional(Schema.String),
-  OPENAI_API_KEY: Schema.optional(Schema.String),
   REPLICATE_API_TOKEN: Schema.optional(Schema.String),
   VERCEL_OIDC_TOKEN: Schema.optional(Schema.String),
   RESEND_API_KEY: Schema.String,
@@ -33,8 +29,7 @@ export const ServerEnv = Schema.Struct({
   R2_ACCESS_KEY_ID: Schema.String,
   R2_SECRET_ACCESS_KEY: Schema.String,
   R2_BUCKET_NAME: Schema.String,
-  R2_PUBLIC_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
-  NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => "development" as const }),
+  NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => 'development' as const }),
   STRIPE_SECRET_KEY: Schema.String,
   STRIPE_WEBHOOK_SECRET: Schema.String,
   STRIPE_PRICE_ID_SCALE_MONTHLY: Schema.optional(Schema.String),
@@ -53,7 +48,7 @@ export const ServerEnv = Schema.Struct({
   // Cron job authentication
   CRON_SECRET: Schema.optional(Schema.String),
   // Logging configuration
-  LOG_LEVEL: Schema.optional(Schema.Literal("debug", "info", "warn", "error")),
+  LOG_LEVEL: Schema.optional(Schema.Literal('debug', 'info', 'warn', 'error')),
   // Slack monitoring webhooks (different channels for different event types)
   SLACK_MONITORING_WEBHOOK_URL: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
   SLACK_MONITORING_WEBHOOK_ACCOUNTS: Schema.optional(Schema.String.pipe(Schema.filter((s) => URL.canParse(s)))),
@@ -63,17 +58,39 @@ export const ServerEnv = Schema.Struct({
   // Signup control (for staging deployments)
   DISABLE_SIGNUPS: Schema.optionalWith(
     Schema.transform(Schema.String, Schema.Boolean, {
-      decode: (s) => s === "true" || s === "1",
-      encode: (b) => (b ? "true" : "false"),
+      decode: (s) => s === 'true' || s === '1',
+      encode: (b) => (b ? 'true' : 'false'),
     }),
     { default: () => false },
   ),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
   VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
+  VERCEL_ENV: Schema.optional(Schema.Literal('production', 'preview', 'development')),
   VERCEL_GIT_COMMIT_SHA: Schema.optional(Schema.String),
 });
 
 export type ServerEnvType = typeof ServerEnv.Type;
 
 export const env = Schema.decodeUnknownSync(ServerEnv)(process.env);
+
+/**
+ * Get the application URL, computed from Vercel environment variables.
+ * - In production: Uses VERCEL_PROJECT_PRODUCTION_URL
+ * - In preview/staging: Uses VERCEL_URL
+ * - In local development: Falls back to http://localhost:3000
+ */
+export function getAppUrl(): string {
+  // Production environment - use the production URL
+  if (env.VERCEL_ENV === 'production' && env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  // Preview/staging environment - use the deployment URL
+  if (env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`;
+  }
+
+  // Local development fallback
+  return 'http://localhost:3000';
+}

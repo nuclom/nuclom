@@ -1,12 +1,12 @@
-import { Effect, Layer, Option, Schema } from "effect";
-import type { NextRequest } from "next/server";
-import { handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { auth } from "@/lib/auth";
-import { UnauthorizedError, ValidationError } from "@/lib/effect/errors";
-import { DatabaseLive } from "@/lib/effect/services/database";
-import { OrganizationRepository, OrganizationRepositoryLive } from "@/lib/effect/services/organization-repository";
-import { ZapierWebhooksService, ZapierWebhooksServiceLive } from "@/lib/effect/services/zapier-webhooks";
-import { safeParse } from "@/lib/validation";
+import { Effect, Layer, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { auth } from '@/lib/auth';
+import { UnauthorizedError, ValidationError } from '@/lib/effect/errors';
+import { DatabaseLive } from '@/lib/effect/services/database';
+import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';
+import { ZapierWebhooksService, ZapierWebhooksServiceLive } from '@/lib/effect/services/zapier-webhooks';
+import { safeParse } from '@/lib/validation';
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -16,13 +16,13 @@ const CreateWebhookSchema = Schema.Struct({
   targetUrl: Schema.String,
   events: Schema.Array(
     Schema.Literal(
-      "video.uploaded",
-      "video.processed",
-      "video.shared",
-      "comment.created",
-      "comment.replied",
-      "member.joined",
-      "member.left",
+      'video.uploaded',
+      'video.processed',
+      'video.shared',
+      'comment.created',
+      'comment.replied',
+      'member.joined',
+      'member.left',
     ),
   ),
 });
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   try {
     rawBody = await request.json();
   } catch {
-    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: "Invalid JSON body" }))).then(
+    return Effect.runPromiseExit(Effect.fail(new ValidationError({ message: 'Invalid JSON body' }))).then(
       handleEffectExit,
     );
   }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
   const result = safeParse(CreateWebhookSchema, rawBody);
   if (!result.success) {
     return Effect.runPromiseExit(
-      Effect.fail(new ValidationError({ message: "Missing required fields: targetUrl, events" })),
+      Effect.fail(new ValidationError({ message: 'Missing required fields: targetUrl, events' })),
     ).then(handleEffectExit);
   }
   const body = result.data;
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     const activeOrgOption = yield* orgRepo.getActiveOrganization(session.user.id);
 
     if (Option.isNone(activeOrgOption)) {
-      return yield* Effect.fail(new ValidationError({ message: "No active organization" }));
+      return yield* Effect.fail(new ValidationError({ message: 'No active organization' }));
     }
 
     const activeOrg = activeOrgOption.value;

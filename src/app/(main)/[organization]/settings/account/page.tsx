@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { AlertTriangle, Download, Loader2, Mail, Trash2, UserX } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { RequireAuth } from "@/components/auth/auth-guard";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Download, Loader2, Mail, Trash2, UserX } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { RequireAuth } from '@/components/auth/auth-guard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
-import { authClient } from "@/lib/auth-client";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { authClient } from '@/lib/auth-client';
 
 function AccountContent() {
   const { user } = useAuth();
@@ -28,8 +28,8 @@ function AccountContent() {
 
   // Email change state
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [_emailPassword, setEmailPassword] = useState("");
+  const [newEmail, setNewEmail] = useState('');
+  const [_emailPassword, setEmailPassword] = useState('');
   const [changingEmail, setChangingEmail] = useState(false);
 
   // Export data state
@@ -37,8 +37,8 @@ function AccountContent() {
 
   // Delete account state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
 
   const handleChangeEmail = async (e: React.FormEvent) => {
@@ -46,9 +46,9 @@ function AccountContent() {
 
     if (!newEmail.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a new email address",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter a new email address',
+        variant: 'destructive',
       });
       return;
     }
@@ -61,26 +61,26 @@ function AccountContent() {
 
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to change email",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to change email',
+          variant: 'destructive',
         });
         return;
       }
 
       toast({
-        title: "Verification email sent",
-        description: "Please check your new email address to verify the change",
+        title: 'Verification email sent',
+        description: 'Please check your new email address to verify the change',
       });
       setEmailDialogOpen(false);
-      setNewEmail("");
-      setEmailPassword("");
+      setNewEmail('');
+      setEmailPassword('');
     } catch (error) {
-      console.error("Error changing email:", error);
+      console.error('Error changing email:', error);
       toast({
-        title: "Error",
-        description: "Failed to change email address",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to change email address',
+        variant: 'destructive',
       });
     } finally {
       setChangingEmail(false);
@@ -92,35 +92,35 @@ function AccountContent() {
       setExporting(true);
 
       // Request data export from API
-      const response = await fetch("/api/user/export", {
-        method: "POST",
+      const response = await fetch('/api/user/export', {
+        method: 'POST',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to export data");
+        throw new Error('Failed to export data');
       }
 
       // Download the exported data
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `nuclom-data-export-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `nuclom-data-export-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       toast({
-        title: "Data exported",
-        description: "Your data has been downloaded",
+        title: 'Data exported',
+        description: 'Your data has been downloaded',
       });
     } catch (error) {
-      console.error("Error exporting data:", error);
+      console.error('Error exporting data:', error);
       toast({
-        title: "Error",
-        description: "Failed to export your data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to export your data',
+        variant: 'destructive',
       });
     } finally {
       setExporting(false);
@@ -130,11 +130,11 @@ function AccountContent() {
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (deleteConfirmation !== "delete my account") {
+    if (deleteConfirmation !== 'delete my account') {
       toast({
-        title: "Error",
+        title: 'Error',
         description: "Please type 'delete my account' to confirm",
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
@@ -148,26 +148,26 @@ function AccountContent() {
 
       if (error) {
         toast({
-          title: "Error",
-          description: error.message || "Failed to delete account",
-          variant: "destructive",
+          title: 'Error',
+          description: error.message || 'Failed to delete account',
+          variant: 'destructive',
         });
         return;
       }
 
       toast({
-        title: "Account deleted",
-        description: "Your account has been permanently deleted",
+        title: 'Account deleted',
+        description: 'Your account has been permanently deleted',
       });
 
       // Redirect to home page
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Error deleting account:", error);
+      console.error('Error deleting account:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete account",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete account',
+        variant: 'destructive',
       });
     } finally {
       setDeleting(false);
@@ -189,7 +189,7 @@ function AccountContent() {
           <div className="space-y-2">
             <Label>Current email</Label>
             <div className="flex items-center gap-2">
-              <Input value={user?.email || ""} disabled className="bg-muted" />
+              <Input value={user?.email || ''} disabled className="bg-muted" />
               {user?.emailVerified && <span className="text-sm text-green-600 whitespace-nowrap">Verified</span>}
             </div>
           </div>
@@ -272,7 +272,7 @@ function AccountContent() {
           <form onSubmit={handleChangeEmail} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentEmail">Current Email</Label>
-              <Input id="currentEmail" value={user?.email || ""} disabled className="bg-muted" />
+              <Input id="currentEmail" value={user?.email || ''} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="newEmail">New Email Address</Label>
@@ -291,14 +291,14 @@ function AccountContent() {
                 variant="outline"
                 onClick={() => {
                   setEmailDialogOpen(false);
-                  setNewEmail("");
-                  setEmailPassword("");
+                  setNewEmail('');
+                  setEmailPassword('');
                 }}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={changingEmail}>
-                {changingEmail ? "Sending..." : "Send Verification Email"}
+                {changingEmail ? 'Sending...' : 'Send Verification Email'}
               </Button>
             </DialogFooter>
           </form>
@@ -359,8 +359,8 @@ function AccountContent() {
                 variant="outline"
                 onClick={() => {
                   setDeleteDialogOpen(false);
-                  setDeleteConfirmation("");
-                  setDeletePassword("");
+                  setDeleteConfirmation('');
+                  setDeletePassword('');
                 }}
               >
                 Cancel
@@ -368,9 +368,9 @@ function AccountContent() {
               <Button
                 type="submit"
                 variant="destructive"
-                disabled={deleting || deleteConfirmation !== "delete my account"}
+                disabled={deleting || deleteConfirmation !== 'delete my account'}
               >
-                {deleting ? "Deleting..." : "Permanently Delete Account"}
+                {deleting ? 'Deleting...' : 'Permanently Delete Account'}
               </Button>
             </DialogFooter>
           </form>

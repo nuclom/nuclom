@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Effect-based React Hooks
@@ -7,10 +7,10 @@
  * with built-in error handling and loading states.
  */
 
-import { type Effect, Either } from "effect";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { runClientEffect } from "@/lib/effect/client";
-import { HttpError, ParseError } from "@/lib/effect/errors";
+import { type Effect, Either } from 'effect';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { runClientEffect } from '@/lib/effect/client';
+import { HttpError, ParseError } from '@/lib/effect/errors';
 
 // =============================================================================
 // Types
@@ -273,8 +273,8 @@ export function useEffectMutation<T, E, TVariables>(
 export function useErrorMessage(error: unknown): string | null {
   if (!error) return null;
 
-  if (typeof error === "object" && error !== null && "_tag" in error) {
-    if ("message" in error && typeof error.message === "string") {
+  if (typeof error === 'object' && error !== null && '_tag' in error) {
+    if ('message' in error && typeof error.message === 'string') {
       return error.message;
     }
   }
@@ -283,7 +283,7 @@ export function useErrorMessage(error: unknown): string | null {
     return error.message;
   }
 
-  return "An unknown error occurred";
+  return 'An unknown error occurred';
 }
 
 /**
