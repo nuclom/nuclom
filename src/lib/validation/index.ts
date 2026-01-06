@@ -227,9 +227,9 @@ export function createBodyValidator<A, I>(schema: Schema.Schema<A, I>) {
  * // Both are fully typed
  * ```
  */
-export function combineValidators<A, B>(
-  queryValidator: ReturnType<typeof createQueryValidator<A, any>>,
-  bodyValidator: ReturnType<typeof createBodyValidator<B, any>>,
+export function combineValidators<A, B, I1, I2>(
+  queryValidator: ReturnType<typeof createQueryValidator<A, I1>>,
+  bodyValidator: ReturnType<typeof createBodyValidator<B, I2>>,
 ) {
   return {
     /** Validate both query params and body */
