@@ -1222,6 +1222,20 @@
         }
       }
     },
+    "/cron": {
+      "get": {
+        "tags": [
+          "Cron"
+        ],
+        "summary": "List cron",
+        "operationId": "listCron",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/embed/{id}": {
       "get": {
         "tags": [

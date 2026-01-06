@@ -35,6 +35,8 @@ export interface CleanupResult {
 // =============================================================================
 
 async function cleanupExpiredVideos(): Promise<number> {
+  'use step';
+
   const now = new Date();
 
   // Find videos where retentionUntil has passed
@@ -117,10 +119,8 @@ export async function scheduledCleanupWorkflow(): Promise<never> {
     try {
       const deletedCount = await cleanupExpiredVideos();
       log.info({ deletedCount: deletedCount, timestamp: new Date().toISOString() }, 'Deleted expired videos');
-      ('use step');
     } catch (error) {
       log.error({ error }, 'Error during cleanup');
-      ('use step');
     }
 
     // Sleep for 24 hours

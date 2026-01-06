@@ -64,6 +64,8 @@ async function updateReelStatus(
   storageKey?: string,
   duration?: number,
 ): Promise<void> {
+  'use step';
+
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { highlightReels } = await import('@/lib/db/schema');
@@ -81,6 +83,8 @@ async function updateReelStatus(
 }
 
 async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
+  'use step';
+
   const { db } = await import('@/lib/db');
   const { videoClips, videos } = await import('@/lib/db/schema');
   const { inArray, eq } = await import('drizzle-orm');
@@ -141,6 +145,8 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
  * Falls back to a simple concatenation if advanced editing is not available
  */
 async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<RenderedVideo> {
+  'use step';
+
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -210,6 +216,8 @@ async function downloadAndUploadVideo(
   organizationId: string,
   reelId: string,
 ): Promise<{ storageKey: string; publicUrl: string }> {
+  'use step';
+
   // Download the rendered video from the temporary URL
   const response = await fetch(videoUrl);
   if (!response.ok) {
@@ -293,7 +301,6 @@ export async function renderHighlightReelWorkflow(input: HighlightReelRenderInpu
     const reel = await db.query.highlightReels.findFirst({
       where: eq(highlightReels.id, reelId),
     });
-    ('use step');
 
     if (!reel) {
       throw new FatalError('Highlight reel not found');
@@ -305,12 +312,10 @@ export async function renderHighlightReelWorkflow(input: HighlightReelRenderInpu
 
     // Step 2: Update status to "rendering"
     await updateReelStatus(reelId, 'rendering');
-    ('use step');
 
     // Step 3: Get all clip segments
     log.info({ reelId, clipCount: reel.clipIds.length }, 'Fetching clip segments');
     const segments = await getClipSegments(reel.clipIds);
-    ('use step');
 
     if (segments.length === 0) {
       throw new FatalError('No valid clip segments found');
@@ -321,18 +326,15 @@ export async function renderHighlightReelWorkflow(input: HighlightReelRenderInpu
     // Step 4: Render the highlight reel
     log.info({ reelId }, 'Starting highlight reel rendering');
     const renderedVideo = await renderHighlightReel(segments);
-    ('use step');
 
     log.info({ reelId, videoUrl: renderedVideo.url }, 'Highlight reel rendered successfully');
 
     // Step 5: Download and upload to R2 storage
     log.info({ reelId }, 'Uploading rendered video to R2 storage');
     const { storageKey } = await downloadAndUploadVideo(renderedVideo.url, organizationId, reelId);
-    ('use step');
 
     // Step 6: Update highlight reel with final data
     await updateReelStatus(reelId, 'ready', undefined, storageKey, renderedVideo.duration);
-    ('use step');
 
     log.info({ reelId, storageKey, duration: renderedVideo.duration }, 'Highlight reel rendering completed');
 

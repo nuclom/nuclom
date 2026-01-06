@@ -47,6 +47,8 @@ export interface TrialReminderResult {
 // =============================================================================
 
 async function sendTrialReminder(subscriptionId: string, daysRemaining: number): Promise<void> {
+  'use step';
+
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
     where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
@@ -188,7 +190,6 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
 
     // Sleep until reminder time
     await sleep(sleepDuration);
-    ('use step');
 
     // Verify subscription still exists and is still on trial
     const subscription = await db.query.subscriptions.findFirst({
@@ -212,7 +213,6 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     try {
       await sendTrialReminder(subscriptionId, daysBeforeEnd);
       remindersSent++;
-      ('use step');
     } catch (error) {
       log.error({ subscriptionId, daysBeforeEnd, error }, 'Failed to send reminder');
       // Continue to next reminder even if this one fails
