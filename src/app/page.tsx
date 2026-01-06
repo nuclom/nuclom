@@ -1,13 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { LandingPage } from '@/components/marketing/landing-page';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { organizations } from '@/lib/db/schema';
 import { getActiveOrganization } from '@/lib/organization';
 
-export default async function Home() {
+async function HomeLoader() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -34,4 +35,12 @@ export default async function Home() {
   }
 
   redirect(`/${organization.slug}`);
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LandingPage />}>
+      <HomeLoader />
+    </Suspense>
+  );
 }
