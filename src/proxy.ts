@@ -167,7 +167,7 @@ function isApiRoute(pathname: string): boolean {
 }
 
 function isPublicApiRoute(pathname: string): boolean {
-  const publicPatterns = ['/api/health', '/api/share/'];
+  const publicPatterns = ['/api/health', '/api/share/', '/api/beta-access'];
   return publicPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
