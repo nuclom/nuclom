@@ -115,14 +115,10 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
 
   if (loading) {
     return (
-      <Button
-        variant="outline"
-        className="w-full justify-between bg-gray-800 border-gray-700 hover:bg-gray-700"
-        disabled
-      >
+      <Button variant="outline" className="h-9 w-full justify-between" disabled>
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-gray-600 animate-pulse" />
-          <span className="font-semibold">Loading...</span>
+          <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
+          <span className="font-medium">Loading...</span>
         </div>
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
@@ -132,39 +128,34 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between bg-gray-800 border-gray-700 hover:bg-gray-700"
-        >
+        <Button variant="outline" role="combobox" aria-expanded={open} className="h-9 w-full justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage src={activeOrg?.logo || '/placeholder.svg'} alt={activeOrg?.name} />
-              <AvatarFallback>{activeOrg?.name?.charAt(0) || '?'}</AvatarFallback>
+              <AvatarFallback className="text-xs">{activeOrg?.name?.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
-            <span className="font-semibold truncate">{activeOrg?.name || 'Select Organization'}</span>
+            <span className="font-medium truncate">{activeOrg?.name || 'Select Organization'}</span>
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="end">
+      <PopoverContent className="w-64 p-0" align="start">
         <Command>
           <CommandList>
-            <CommandInput placeholder="Search organization..." />
+            <CommandInput placeholder="Search organization..." className="h-10" />
             <CommandEmpty>No organization found.</CommandEmpty>
             <CommandGroup heading="Organizations">
               {organizations.map((organization) => (
                 <CommandItem
                   key={organization.id}
                   onSelect={() => handleSelectOrganization(organization)}
-                  className="text-sm"
+                  className="py-2.5 px-3"
                 >
-                  <Avatar className="mr-2 h-5 w-5">
+                  <Avatar className="mr-2.5 h-6 w-6">
                     <AvatarImage src={organization.logo || '/placeholder.svg'} alt={organization.name} />
-                    <AvatarFallback>{organization.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{organization.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  {organization.name}
+                  <span className="font-medium">{organization.name}</span>
                   <Check
                     className={cn('ml-auto h-4 w-4', activeOrg?.id === organization.id ? 'opacity-100' : 'opacity-0')}
                   />
@@ -175,9 +166,9 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
           <CommandSeparator />
           <CommandList>
             <CommandGroup>
-              <CommandItem onSelect={handleCreateOrganization}>
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Create Organization
+              <CommandItem onSelect={handleCreateOrganization} className="py-2.5 px-3">
+                <PlusCircle className="mr-2.5 h-5 w-5" />
+                <span className="font-medium">Create Organization</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>

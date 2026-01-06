@@ -30,11 +30,11 @@ async function LayoutContent({ children, params }: LayoutProps) {
   });
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-screen overflow-hidden">
       <TopNav organization={organization} organizationId={org?.id}>
         <MobileSidebar organization={organization} />
       </TopNav>
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Desktop sidebar - hidden on mobile */}
         <div className="hidden md:block">
           <SidebarNav organization={organization} />

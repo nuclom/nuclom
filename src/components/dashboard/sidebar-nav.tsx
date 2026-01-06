@@ -97,7 +97,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
   return (
     <aside className="w-64 border-r bg-card/50 flex flex-col h-[calc(100vh-4rem)]">
       <div className="p-4">
-        <Button asChild className="w-full justify-start gap-2" size="lg">
+        <Button asChild className="w-full gap-2" size="lg">
           <Link href={`/${organization}/upload`}>
             <Upload className="h-4 w-4" />
             Upload Video

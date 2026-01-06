@@ -50,7 +50,7 @@ export function VerifyEmailForm() {
   };
 
   const handleGoToDashboard = () => {
-    router.push('/onboarding');
+    router.push('/');
   };
 
   if (status === 'loading') {

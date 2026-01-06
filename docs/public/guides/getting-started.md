@@ -121,7 +121,7 @@ While uploading, fill in:
 | **Search bar** | Find videos, channels, and series |
 | **New button** | Create new content |
 | **Notifications** | Activity updates |
-| **Profile menu** | Settings and account options |
+| **Profile menu** | Settings |
 
 ### Sidebar Navigation
 

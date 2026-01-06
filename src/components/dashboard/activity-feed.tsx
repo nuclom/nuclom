@@ -61,34 +61,6 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
     return date.toLocaleDateString();
   };
 
-  // Demo activities if none provided
-  const displayActivities: ActivityItem[] =
-    activities.length > 0
-      ? activities
-      : [
-          {
-            id: '1',
-            type: 'upload',
-            user: { name: 'Alex Chen' },
-            target: 'Q4 Product Demo',
-            timestamp: new Date(Date.now() - 3600000),
-          },
-          {
-            id: '2',
-            type: 'comment',
-            user: { name: 'Sarah Miller' },
-            target: 'Engineering Standup',
-            timestamp: new Date(Date.now() - 7200000),
-          },
-          {
-            id: '3',
-            type: 'view',
-            user: { name: 'James Wilson' },
-            target: 'Onboarding Guide',
-            timestamp: new Date(Date.now() - 18000000),
-          },
-        ];
-
   return (
     <Card className={cn('', className)}>
       <CardHeader className="pb-3">
@@ -98,11 +70,17 @@ export function ActivityFeed({ activities = [], className }: ActivityFeedProps) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {displayActivities.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+        {activities.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="rounded-full bg-muted p-3 mb-3">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium">No recent activity</p>
+            <p className="text-xs text-muted-foreground mt-1">Activity from your team will appear here</p>
+          </div>
         ) : (
           <div className="space-y-4">
-            {displayActivities.map((activity) => {
+            {activities.map((activity) => {
               const Icon = activityIcons[activity.type];
               return (
                 <div key={activity.id} className="flex items-start gap-3">
