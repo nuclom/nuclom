@@ -135,7 +135,7 @@ async function DashboardLoader({ params }: { params: Promise<{ organization: str
   });
 
   if (!session) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Get organization by slug using cached Effect query

@@ -98,7 +98,7 @@ async function MyVideosLoader({ params }: { params: Promise<{ organization: stri
   });
 
   if (!session) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Get organization by slug using cached Effect query

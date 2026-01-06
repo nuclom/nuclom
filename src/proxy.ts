@@ -192,10 +192,9 @@ function isPublicPageRoute(pathname: string): boolean {
   const publicPatterns = [
     '/',
     '/auth',
-    '/sign-in',
     '/sign-up',
-    '/login', // Legacy route alias
-    '/register', // Legacy route alias
+    '/login',
+    '/register',
     '/reset-password',
     '/verify-email',
     '/accept-invitation',
@@ -257,7 +256,7 @@ export async function proxy(request: NextRequest) {
 
   if (needsAuth) {
     // Fast check: if no session cookie exists, reject immediately without DB lookup
-    const sessionCookie = getSessionCookie(request);
+    const sessionCookie = getSessionCookie(request, { cookiePrefix: 'nuclom' });
     if (!sessionCookie) {
       // For API routes, return 401 Unauthorized
       if (isApiRoute(pathname)) {
@@ -287,7 +286,7 @@ export async function proxy(request: NextRequest) {
       }
 
       // For page routes, redirect to sign-in
-      const signInUrl = new URL('/auth/sign-in', request.url);
+      const signInUrl = new URL('/login', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(
@@ -336,7 +335,7 @@ export async function proxy(request: NextRequest) {
       }
 
       // For page routes, redirect to sign-in
-      const signInUrl = new URL('/auth/sign-in', request.url);
+      const signInUrl = new URL('/login', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(

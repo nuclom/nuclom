@@ -34,7 +34,7 @@ async function UploadContent({ params }: { params: Promise<{ organization: strin
   });
 
   if (!session) {
-    redirect('/auth/sign-in');
+    redirect('/login');
   }
 
   // Get organization by slug
