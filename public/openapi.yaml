@@ -831,6 +831,15 @@ paths:
           description: Unauthorized
         404:
           description: Not found
+  /cron:
+    get:
+      tags:
+        - Cron
+      summary: List cron
+      operationId: listCron
+      responses:
+        200:
+          description: Success
   /embed/{id}:
     get:
       tags:

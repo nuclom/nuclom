@@ -47,6 +47,8 @@ export interface ServiceCheckResult {
 // =============================================================================
 
 async function checkDatabase(): Promise<ServiceCheckResult> {
+  'use step';
+
   const startTime = performance.now();
 
   try {
@@ -71,6 +73,8 @@ async function checkDatabase(): Promise<ServiceCheckResult> {
 }
 
 async function checkStorage(): Promise<ServiceCheckResult> {
+  'use step';
+
   const startTime = performance.now();
 
   try {
@@ -122,6 +126,8 @@ async function checkStorage(): Promise<ServiceCheckResult> {
 }
 
 async function checkAI(): Promise<ServiceCheckResult> {
+  'use step';
+
   const startTime = performance.now();
 
   try {
@@ -163,6 +169,8 @@ async function checkAI(): Promise<ServiceCheckResult> {
 }
 
 async function saveHealthCheckResults(results: ServiceCheckResult[]): Promise<void> {
+  'use step';
+
   const { db } = await import('@/lib/db');
   const { healthChecks } = await import('@/lib/db/schema');
 
@@ -181,6 +189,8 @@ async function saveHealthCheckResults(results: ServiceCheckResult[]): Promise<vo
 }
 
 async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Promise<void> {
+  'use step';
+
   if (failedServices.length === 0) return;
 
   try {
@@ -272,7 +282,6 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
   while (maxChecks === 0 || checksPerformed < maxChecks) {
     // Step 1: Check all services in parallel
     const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
-    ('use step');
 
     // Step 2: Calculate overall status
     const results = [dbResult, storageResult, aiResult];
@@ -302,13 +311,11 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
 
     // Step 3: Save results to database
     await saveHealthCheckResults([...results, overallResult]);
-    ('use step');
 
     // Step 4: Notify admins on failures
     const failedServices = results.filter((r) => r.status === 'unhealthy');
     if (failedServices.length > 0) {
       await notifyAdminsOnFailure(failedServices);
-      ('use step');
     }
 
     checksPerformed++;
@@ -317,7 +324,6 @@ export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<
     // Step 5: Sleep until next check
     if (maxChecks === 0 || checksPerformed < maxChecks) {
       await sleep(intervalMs);
-      ('use step');
     }
   }
 
@@ -334,7 +340,6 @@ export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
   'use workflow';
 
   const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
-  ('use step');
 
   const results = [dbResult, storageResult, aiResult];
   const activeResults = results.filter((r) => r.status !== 'not_configured');
@@ -359,12 +364,10 @@ export async function runSingleHealthCheck(): Promise<ServiceCheckResult[]> {
   const allResults = [...results, overallResult];
 
   await saveHealthCheckResults(allResults);
-  ('use step');
 
   const failedServices = results.filter((r) => r.status === 'unhealthy');
   if (failedServices.length > 0) {
     await notifyAdminsOnFailure(failedServices);
-    ('use step');
   }
 
   return allResults;

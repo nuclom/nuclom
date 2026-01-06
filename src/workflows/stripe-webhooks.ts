@@ -42,6 +42,8 @@ export interface StripeWebhookResult {
 // =============================================================================
 
 async function getOrganizationOwners(organizationId: string) {
+  'use step';
+
   return db
     .select({
       userId: members.userId,
@@ -66,6 +68,8 @@ async function sendSubscriptionEmail(
     buttonUrl: string;
   },
 ): Promise<void> {
+  'use step';
+
   const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   await resend.emails.send({
@@ -125,11 +129,7 @@ export async function handleSubscriptionCreatedWorkflow(
   const { subscription, organizationId } = data;
 
   try {
-    // Step 1: Notifications are handled here - DB update is done by the billing service
-    // The billing.handleSubscriptionCreated already updates the database
-    ('use step');
-
-    // Step 2: Get organization details
+    // Step 1: Get organization details
     const org = await db.query.organizations.findFirst({
       where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
     });
@@ -137,9 +137,8 @@ export async function handleSubscriptionCreatedWorkflow(
     if (!org) {
       throw new FatalError(`Organization ${organizationId} not found`);
     }
-    ('use step');
 
-    // Step 3: Get organization owners and send notifications
+    // Step 2: Get organization owners and send notifications
     const owners = await getOrganizationOwners(organizationId);
     const baseUrl = getAppUrl();
 
@@ -166,7 +165,6 @@ export async function handleSubscriptionCreatedWorkflow(
         buttonUrl: `${baseUrl}/${org.slug}`,
       });
     }
-    ('use step');
 
     // Step 4: If this is a trial, start the reminder workflow
     if (subscription.trial_end) {
@@ -204,8 +202,6 @@ export async function handleSubscriptionUpdatedWorkflow(
   try {
     // DB update is handled by billing.handleSubscriptionUpdated
     // This workflow exists for observability and potential future notification needs
-    ('use step');
-
     return { success: true, eventId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -233,7 +229,6 @@ export async function handleSubscriptionDeletedWorkflow(
         canceledAt: new Date(),
       })
       .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
-    ('use step');
 
     // Step 2: Get subscription and organization details
     const dbSubscription = await db.query.subscriptions.findFirst({
@@ -252,7 +247,6 @@ export async function handleSubscriptionDeletedWorkflow(
     if (!org) {
       return { success: true, eventId };
     }
-    ('use step');
 
     // Step 3: Notify organization owners
     const owners = await getOrganizationOwners(organizationId);
@@ -302,8 +296,6 @@ export async function handleInvoicePaidWorkflow(
   try {
     // DB update is handled by billing.handleInvoicePaid
     // This workflow exists for observability
-    ('use step');
-
     return { success: true, eventId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -348,7 +340,6 @@ export async function handleInvoiceFailedWorkflow(
     if (!org) {
       return { success: true, eventId };
     }
-    ('use step');
 
     // Step 2: Notify organization owners
     const owners = await getOrganizationOwners(invoiceOrgId);
