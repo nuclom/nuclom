@@ -24,7 +24,7 @@ interface MarketingHeaderProps {
 }
 
 export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -84,9 +84,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
-          {isLoading ? (
-            <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
-          ) : user ? (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-transparent hover:ring-primary/20 transition-all">
@@ -180,9 +178,7 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
             </Link>
           </nav>
           <div className="border-t px-4 py-4">
-            {isLoading ? (
-              <div className="w-full h-10 rounded bg-muted animate-pulse" />
-            ) : user ? (
+            {user ? (
               <div className="space-y-3">
                 <div className="flex items-center space-x-3 py-2">
                   <Avatar className="h-10 w-10">
