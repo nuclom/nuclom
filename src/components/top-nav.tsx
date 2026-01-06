@@ -1,6 +1,6 @@
 'use client';
 
-import { Film, HelpCircle, LogOut, Plus, Settings, User, Users } from 'lucide-react';
+import { Building, Film, HelpCircle, LogOut, Plus, Settings, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -118,21 +118,30 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
                 <DropdownMenuItem asChild>
                   <Link href={`/${organization}/settings/profile`} className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                    <span>Your Profile</span>
                     <DropdownMenuShortcut>P</DropdownMenuShortcut>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/${organization}/settings`} className="cursor-pointer">
+                  <Link href={`/${organization}/settings/account`} className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                    <DropdownMenuShortcut>S</DropdownMenuShortcut>
+                    <span>Account Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link href={`/${organization}/settings/organization`} className="cursor-pointer">
+                    <Building className="mr-2 h-4 w-4" />
+                    <span>Organization Settings</span>
+                    <DropdownMenuShortcut>O</DropdownMenuShortcut>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`/${organization}/settings/members`} className="cursor-pointer">
                     <Users className="mr-2 h-4 w-4" />
-                    <span>Team</span>
+                    <span>Team Members</span>
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
