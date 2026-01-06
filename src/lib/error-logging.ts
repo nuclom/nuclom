@@ -11,11 +11,11 @@
  * - Global error handlers for unhandled exceptions
  */
 
+import { env } from './env/client';
+
 // =============================================================================
 // Types
 // =============================================================================
-
-import { env } from '@/lib/env/server';
 
 export interface ErrorContext {
   /** Unique request ID for tracing */
