@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Menu, Play, Settings, User, X } from 'lucide-react';
+import { Home, LogOut, Menu, Play, Settings, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -49,9 +49,6 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
       .slice(0, 2);
   };
 
-  // Redirect to onboarding which will handle organization selection
-  const dashboardUrl = '/onboarding';
-
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -85,42 +82,41 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-transparent hover:ring-primary/20 transition-all">
-                  <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href={dashboardUrl}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`${dashboardUrl}/settings/profile`}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Button variant="outline" asChild>
+                <Link href={"/"}>Dashboard</Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-transparent hover:ring-primary/20 transition-all">
+                    <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href={"/settings"}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Button variant="ghost" asChild>
@@ -192,9 +188,6 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
                     <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
-                <Button asChild className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                  <Link href={dashboardUrl}>Go to Dashboard</Link>
-                </Button>
                 <Button variant="outline" className="w-full" onClick={handleLogout}>
                   Log out
                 </Button>

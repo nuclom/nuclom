@@ -1,6 +1,6 @@
 'use client';
 
-import { Film, HelpCircle, LogOut, Plus, Settings, User, Users } from 'lucide-react';
+import { Film, HelpCircle, Home, LogOut, Plus, Settings, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -55,9 +55,9 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center px-4 md:px-6">
+      <div className="grid grid-cols-[1fr_auto_1fr] h-16 items-center gap-4 px-4 md:px-6">
         {/* Left section - Mobile menu, Logo and Organization */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-4">
           {/* Mobile sidebar trigger */}
           {children}
 
@@ -78,12 +78,12 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
         </div>
 
         {/* Center section - Search */}
-        <div className="flex-1 flex justify-center max-w-xl mx-2 sm:mx-4">
+        <div className="w-full max-w-md lg:max-w-xl">
           <CommandBar organization={organization} organizationId={organizationId} />
         </div>
 
         {/* Right section - Actions */}
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center justify-end gap-2">
           <Button size="sm" className="hidden sm:inline-flex gap-2 bg-primary hover:bg-primary/90" asChild>
             <Link href={`/${organization}/upload`}>
               <Plus className="h-4 w-4" />
@@ -116,27 +116,20 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link href={`/${organization}/settings/profile`} className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                    <DropdownMenuShortcut>P</DropdownMenuShortcut>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href={`/${organization}/settings`} className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                     <DropdownMenuShortcut>S</DropdownMenuShortcut>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`/${organization}/settings/members`} className="cursor-pointer">
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Team</span>
-                  </Link>
-                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/home" className="cursor-pointer">
+                  <Home className="mr-2 h-4 w-4" />
+                  <span>Home Page</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/support" className="cursor-pointer">
                   <HelpCircle className="mr-2 h-4 w-4" />
