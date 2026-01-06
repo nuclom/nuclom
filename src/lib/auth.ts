@@ -64,6 +64,8 @@ function buildTrustedOrigins(): string[] {
 
 const trustedOrigins = buildTrustedOrigins();
 
+const isSecureContext = getAppUrl().startsWith('https://');
+
 export const auth = betterAuth({
   baseURL: getAppUrl(),
   trustedOrigins,
@@ -186,10 +188,10 @@ export const auth = betterAuth({
   // Secure cookie settings
   advanced: {
     cookiePrefix: 'nuclom',
-    useSecureCookies: env.NODE_ENV === 'production',
+    useSecureCookies: isSecureContext,
     defaultCookieAttributes: {
       httpOnly: true,
-      secure: env.NODE_ENV === 'production',
+      secure: isSecureContext,
       sameSite: 'lax' as const,
       path: '/',
     },
@@ -554,7 +556,7 @@ export const auth = betterAuth({
     jwt(),
     // OAuth 2.1 Provider plugin - allows Nuclom to act as an OAuth provider
     oauthProvider({
-      loginPage: '/auth/sign-in',
+      loginPage: '/login',
       consentPage: '/auth/consent',
       // Token expiration settings
       accessTokenExpiresIn: 3600, // 1 hour
