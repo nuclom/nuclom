@@ -5,7 +5,7 @@ Use docs/ folder for documentation, make sure you look there for any guidance an
 ## Commands
 
 - `pnpm tsc` - TypeScript type checking
-- `pnpm dev` - Start development server
+- `pnpm dev` - Start development server (uses Vercel CLI)
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
 - `pnpm lint` - Run biome checker
