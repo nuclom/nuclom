@@ -1,5 +1,6 @@
 import { Effect, Layer, Option } from 'effect';
 import type { NextRequest } from 'next/server';
+import { connection } from 'next/server';
 import { handleEffectExit } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
 import type { ActivityType } from '@/lib/db/schema';
@@ -15,6 +16,8 @@ const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLi
 const ActivityLayer = Layer.mergeAll(AppLive, ActivityFeedRepoWithDeps, OrgRepoWithDeps);
 
 export async function GET(request: NextRequest) {
+  await connection();
+
   const effect = Effect.gen(function* () {
     // Authenticate using Auth service
     const authService = yield* Auth;

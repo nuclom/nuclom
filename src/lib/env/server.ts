@@ -1,9 +1,8 @@
 // biome-ignore-all lint/correctness/noProcessGlobal: "This is a env file"
+import 'server-only';
 
 import { Schema } from 'effect';
 import { ClientEnv } from '@/lib/env/client';
-
-const NodeEnv = Schema.Literal('development', 'test', 'production');
 
 export const ServerEnv = Schema.Struct({
   ...ClientEnv.fields,
@@ -29,7 +28,6 @@ export const ServerEnv = Schema.Struct({
   R2_ACCESS_KEY_ID: Schema.String,
   R2_SECRET_ACCESS_KEY: Schema.String,
   R2_BUCKET_NAME: Schema.String,
-  NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => 'development' as const }),
   STRIPE_SECRET_KEY: Schema.String,
   STRIPE_WEBHOOK_SECRET: Schema.String,
   STRIPE_PRICE_ID_SCALE_MONTHLY: Schema.optional(Schema.String),
