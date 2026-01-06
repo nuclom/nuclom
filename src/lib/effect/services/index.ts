@@ -507,6 +507,23 @@ export {
   ReplicateLive,
   transcribe,
 } from "./replicate";
+// Request Context Service
+export type {
+  CreateRequestContextInput,
+  RequestContext,
+  RequestContextService,
+} from "./request-context";
+export {
+  addCorrelationHeader,
+  enrichContextWithUser,
+  extractRequestContext,
+  getCorrelationId,
+  getRequestContext,
+  makeRequestContextLayer,
+  makeRequestContextService,
+  RequestContextTag,
+  toLogContext,
+} from "./request-context";
 // Search Repository
 export type {
   CreateSavedSearchInput,

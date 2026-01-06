@@ -347,3 +347,122 @@ export type BillingError =
   | PlanNotFoundError
   | NoSubscriptionError
   | UsageTrackingError;
+
+// =============================================================================
+// Complete Application Error Union (for exhaustive type checking)
+// =============================================================================
+
+/**
+ * Union of all application errors for exhaustive error handling.
+ * Use this type to ensure all error cases are handled.
+ *
+ * @example
+ * ```typescript
+ * // Exhaustive pattern matching
+ * const handleError = (error: AppErrorUnion): Response => {
+ *   switch (error._tag) {
+ *     case "UnauthorizedError": return Response.json({}, { status: 401 });
+ *     case "NotFoundError": return Response.json({}, { status: 404 });
+ *     // ... TypeScript will error if any case is missing
+ *   }
+ * }
+ * ```
+ */
+export type AppErrorUnion =
+  // Base errors
+  | AppError
+  | ConfigurationError
+  // Auth errors
+  | UnauthorizedError
+  | ForbiddenError
+  | SessionError
+  // Validation errors
+  | ValidationError
+  | MissingFieldError
+  // Database errors
+  | DatabaseError
+  | NotFoundError
+  | DuplicateError
+  | TransactionError
+  // Storage errors
+  | StorageNotConfiguredError
+  | UploadError
+  | DeleteError
+  | PresignedUrlError
+  // Video errors
+  | UnsupportedFormatError
+  | FileSizeExceededError
+  | VideoProcessingError
+  // AI errors
+  | AIServiceError
+  // HTTP errors
+  | HttpError
+  | ParseError
+  // Billing errors
+  | StripeNotConfiguredError
+  | StripeApiError
+  | WebhookSignatureError
+  | SubscriptionError
+  | PlanLimitExceededError
+  | PaymentFailedError
+  | PlanNotFoundError
+  | NoSubscriptionError
+  | UsageTrackingError;
+
+/**
+ * All possible error tags for discriminated union matching.
+ * This type extracts the _tag literal from each error type.
+ */
+export type AppErrorTag = AppErrorUnion["_tag"];
+
+/**
+ * Type-safe error tag mapping helper.
+ * Use this to create exhaustive error handlers.
+ */
+export type ErrorTagMapping<T> = {
+  [K in AppErrorTag]: T;
+};
+
+/**
+ * Extract specific error type by tag.
+ * Useful for type-safe error handling in catchTag.
+ *
+ * @example
+ * ```typescript
+ * type NotFound = ExtractErrorByTag<"NotFoundError">;
+ * // NotFound is now NotFoundError type
+ * ```
+ */
+export type ExtractErrorByTag<Tag extends AppErrorTag> = Extract<AppErrorUnion, { _tag: Tag }>;
+
+/**
+ * Type guard to check if an unknown value is an AppErrorUnion.
+ */
+export function isAppError(value: unknown): value is AppErrorUnion {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "_tag" in value &&
+    typeof (value as { _tag: unknown })._tag === "string" &&
+    "message" in value &&
+    typeof (value as { message: unknown }).message === "string"
+  );
+}
+
+/**
+ * Assert exhaustive handling of all error tags.
+ * Use this in default case of switch statements to ensure all cases are covered.
+ *
+ * @example
+ * ```typescript
+ * switch (error._tag) {
+ *   case "UnauthorizedError": // ...
+ *   case "NotFoundError": // ...
+ *   default:
+ *     assertExhaustive(error); // TypeScript error if cases are missing
+ * }
+ * ```
+ */
+export function assertExhaustive(value: never): never {
+  throw new Error(`Unhandled error type: ${(value as { _tag: string })._tag}`);
+}
