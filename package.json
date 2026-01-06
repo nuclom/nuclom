@@ -6,7 +6,7 @@
   "license": "Elastic-2.0",
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "vercel dev",
     "tsc": "next typegen && tsgo --noEmit",
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check . --write --error-on-warnings",
@@ -143,6 +143,7 @@
     "tailwindcss": "4.1.18",
     "ts-morph": "^27.0.2",
     "typescript": "^5.9.3",
+    "vercel": "^50.1.4",
     "vitest": "^4.0.16"
   },
   "pnpm": {
