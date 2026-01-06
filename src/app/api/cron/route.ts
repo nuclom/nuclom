@@ -5,14 +5,10 @@
  * The Workflow DevKit handles durability - workflows will resume from where they
  * left off if interrupted.
  *
- * Configure in vercel.json:
- * ```json
- * {
- *   "crons": [
- *     { "path": "/api/cron", "schedule": "0 0 * * *" }
- *   ]
- * }
- * ```
+ * Cron schedules are configured in vercel.ts at the project root.
+ *
+ * Security: Set CRON_SECRET environment variable in Vercel.
+ * Vercel automatically sends it as Authorization header.
  *
  * Workflows:
  * - subscriptionEnforcementWorkflow: Daily billing policy enforcement
