@@ -4,6 +4,10 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
+// Mock server-only package to prevent errors when importing server modules in tests
+// This package throws when imported outside of a Server Component context
+vi.mock('server-only', () => ({}));
+
 // Polyfill Web Streams API for Node.js environment
 if (typeof globalThis.TransformStream === 'undefined') {
   // @ts-expect-error - Polyfill for Node.js
