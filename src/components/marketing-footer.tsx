@@ -1,6 +1,6 @@
-import { Play } from 'lucide-react';
 import Link from 'next/link';
 import { CopyrightYear } from '@/components/copyright-year';
+import { NuclomLogo } from '@/components/nuclom-logo';
 
 export function MarketingFooter() {
   return (
@@ -9,11 +9,8 @@ export function MarketingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg">
-                <Play className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">Nuclom</span>
+            <Link href="/" className="flex items-center mb-4">
+              <NuclomLogo size="sm" showText />
             </Link>
             <p className="text-sm text-muted-foreground">The modern video collaboration platform for teams.</p>
           </div>

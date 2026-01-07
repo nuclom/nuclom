@@ -1,8 +1,9 @@
 'use client';
 
-import { Film, HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
+import { HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { NuclomLogo } from '@/components/nuclom-logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,13 +62,8 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
           {/* Mobile sidebar trigger */}
           {children}
 
-          <Link href={`/${organization}`} className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
-              <Film className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg font-bold hidden sm:inline-block bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-              Nuclom
-            </span>
+          <Link href={`/${organization}`} className="flex items-center group">
+            <NuclomLogo size="sm" showText />
           </Link>
 
           <div className="hidden md:block h-6 w-px bg-border" />
