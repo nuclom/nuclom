@@ -73,6 +73,10 @@ export const auth = betterAuth({
     provider: 'pg',
     usePlural: true,
   }),
+  // Redirect auth errors to custom styled error page
+  onAPIError: {
+    errorURL: '/auth-error',
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
