@@ -1,11 +1,14 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 import type React from 'react';
 import { UserSettingsSidebar } from '@/components/user-settings-sidebar';
 import { UserSettingsTopNav } from '@/components/user-settings-top-nav';
 import { auth } from '@/lib/auth';
 
 export default async function UserSettingsLayout({ children }: { children: React.ReactNode }) {
+  await connection();
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
