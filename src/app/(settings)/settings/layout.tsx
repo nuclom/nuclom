@@ -2,11 +2,21 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import type React from 'react';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { UserSettingsSidebar } from '@/components/user-settings-sidebar';
 import { UserSettingsTopNav } from '@/components/user-settings-top-nav';
 import { auth } from '@/lib/auth';
 
-export default async function UserSettingsLayout({ children }: { children: React.ReactNode }) {
+function NavSkeleton() {
+  return (
+    <div className="h-14 border-b bg-background flex items-center px-4">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  );
+}
+
+async function LayoutContent({ children }: { children: React.ReactNode }) {
   await connection();
 
   const session = await auth.api.getSession({
@@ -29,5 +39,13 @@ export default async function UserSettingsLayout({ children }: { children: React
         </main>
       </div>
     </div>
+  );
+}
+
+export default function UserSettingsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<NavSkeleton />}>
+      <LayoutContent>{children}</LayoutContent>
+    </Suspense>
   );
 }
