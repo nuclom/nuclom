@@ -63,6 +63,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       await authClient.signIn.social({
         provider,
         callbackURL: finalRedirectTo,
+        errorCallbackURL: '/auth-error',
       });
     } catch (err) {
       setError(`Failed to sign in with ${provider === 'github' ? 'GitHub' : 'Google'}`);

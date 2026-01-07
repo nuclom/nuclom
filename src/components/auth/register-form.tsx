@@ -47,6 +47,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       await authClient.signIn.social({
         provider,
         callbackURL: finalRedirectTo,
+        errorCallbackURL: '/auth-error',
       });
     } catch (err) {
       setError(`Failed to sign up with ${provider === 'github' ? 'GitHub' : 'Google'}`);
