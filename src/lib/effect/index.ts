@@ -51,6 +51,7 @@ export {
   createVideo as serverCreateVideo,
   deleteVideo as serverDeleteVideo,
   getChannel as getCachedChannel,
+  getChannels as getCachedChannels,
   getChannelVideosWithAuthor as getCachedChannelVideos,
   getOrganizationBySlug as getCachedOrganizationBySlug,
   getOrganizations as getCachedOrganizations,

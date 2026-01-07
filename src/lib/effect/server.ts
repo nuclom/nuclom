@@ -423,6 +423,17 @@ export const getChannel = cache(async (channelId: string) => {
 });
 
 /**
+ * Get channels for an organization (cached per request)
+ */
+export const getChannels = cache(async (organizationId: string, page: number = 1, limit: number = 20) => {
+  const effect = Effect.gen(function* () {
+    const repo = yield* ChannelRepository;
+    return yield* repo.getChannels(organizationId, page, limit);
+  });
+  return runServerEffect(effect);
+});
+
+/**
  * Get videos shared by others in the organization (not authored by the user) (cached per request)
  */
 export const getVideosSharedByOthers = cache(

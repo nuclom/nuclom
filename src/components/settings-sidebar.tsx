@@ -1,21 +1,6 @@
 'use client';
 
-import {
-  Bell,
-  Building,
-  ClipboardList,
-  CreditCard,
-  Globe,
-  Key,
-  Link2,
-  Lock,
-  Plug,
-  Shield,
-  User,
-  UserCog,
-  UserSquare2,
-  Users,
-} from 'lucide-react';
+import { Building, ClipboardList, CreditCard, Globe, Key, Lock, Plug, UserSquare2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -37,36 +22,6 @@ export function SettingsSidebar({ organization }: { organization: string }) {
   const pathname = usePathname();
 
   const navSections: NavSection[] = [
-    {
-      title: 'Personal',
-      items: [
-        {
-          href: `/${organization}/settings/profile`,
-          label: 'Your Profile',
-          icon: User,
-        },
-        {
-          href: `/${organization}/settings/account`,
-          label: 'Account',
-          icon: UserCog,
-        },
-        {
-          href: `/${organization}/settings/linked-accounts`,
-          label: 'Linked Accounts',
-          icon: Link2,
-        },
-        {
-          href: `/${organization}/settings/security`,
-          label: 'Security',
-          icon: Shield,
-        },
-        {
-          href: `/${organization}/settings/notifications`,
-          label: 'Notifications',
-          icon: Bell,
-        },
-      ],
-    },
     {
       title: 'Organization',
       items: [
@@ -133,7 +88,7 @@ export function SettingsSidebar({ organization }: { organization: string }) {
 
   return (
     <aside className="w-full md:w-56 flex-shrink-0">
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
+      <h2 className="text-2xl font-bold mb-6">Organization Settings</h2>
       <nav className="space-y-6">
         {navSections.map((section) => (
           <div key={section.title}>

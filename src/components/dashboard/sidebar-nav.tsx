@@ -12,7 +12,6 @@ import {
   Share2,
   Trash2,
   Upload,
-  User,
   Video,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -165,39 +164,18 @@ export function SidebarNav({ organization }: SidebarNavProps) {
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t space-y-1">
-        <Link
-          href={`/${organization}/settings/profile`}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
-            isActive(`/${organization}/settings/profile`) ||
-              isActive(`/${organization}/settings/account`) ||
-              isActive(`/${organization}/settings/security`) ||
-              isActive(`/${organization}/settings/notifications`) ||
-              isActive(`/${organization}/settings/linked-accounts`)
-              ? 'bg-accent text-accent-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          <User className="h-4 w-4" />
-          Account Settings
-        </Link>
+      <div className="p-4 border-t">
         <Link
           href={`/${organization}/settings/organization`}
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
-            isActive(`/${organization}/settings/organization`) ||
-              isActive(`/${organization}/settings/members`) ||
-              isActive(`/${organization}/settings/roles`) ||
-              isActive(`/${organization}/settings/billing`) ||
-              isActive(`/${organization}/settings/integrations`) ||
-              isActive(`/${organization}/settings/api-keys`)
+            pathname.startsWith(`/${organization}/settings`)
               ? 'bg-accent text-accent-foreground'
               : 'text-muted-foreground hover:text-foreground',
           )}
         >
           <Building className="h-4 w-4" />
-          Organization
+          Organization Settings
         </Link>
       </div>
     </aside>
