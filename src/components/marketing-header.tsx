@@ -1,11 +1,13 @@
 'use client';
 
-import { LogOut, Menu, Play, Settings, X } from 'lucide-react';
+import { LogOut, Menu, Palette, Settings, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { NuclomLogo } from '@/components/nuclom-logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,13 +54,22 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
-            <Play className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">Nuclom</h1>
-        </Link>
+        {/* Logo with context menu for brand guidelines */}
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <Link href="/" className="flex items-center">
+              <NuclomLogo size="md" showText />
+            </Link>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem asChild>
+              <Link href="/brand" className="flex items-center">
+                <Palette className="mr-2 h-4 w-4" />
+                Brand Guidelines
+              </Link>
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">

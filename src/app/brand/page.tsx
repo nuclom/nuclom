@@ -1,11 +1,13 @@
-import { Check, Download, Play, X } from 'lucide-react';
+import { ArrowRight, Check, X } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
+import { NuclomLogo } from '@/components/nuclom-logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { brand } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Brand Guidelines',
@@ -16,47 +18,47 @@ export const metadata: Metadata = {
 const brandColors = {
   primary: {
     name: 'Primary Violet',
-    lightHex: '#6633ff',
+    lightHex: brand.colors.primary.light,
     lightHsl: 'hsl(250, 100%, 60%)',
-    darkHex: '#7c66ff',
+    darkHex: brand.colors.primary.dark,
     darkHsl: 'hsl(250, 100%, 67%)',
     description: 'Main brand color used for primary actions, links, and accents',
   },
   gradientStart: {
     name: 'Gradient Start',
-    hex: '#7c3aed',
+    hex: brand.colors.gradientStart,
     hsl: 'hsl(262, 83%, 58%)',
     description: 'Starting color for the brand gradient',
   },
   gradientEnd: {
     name: 'Gradient End',
-    hex: '#9333ea',
+    hex: brand.colors.gradientEnd,
     hsl: 'hsl(271, 81%, 56%)',
     description: 'Ending color for the brand gradient',
   },
   background: {
     name: 'Background',
-    lightHex: '#ffffff',
+    lightHex: brand.colors.background.light,
     lightHsl: 'hsl(0, 0%, 100%)',
-    darkHex: '#0d0f17',
+    darkHex: brand.colors.background.dark,
     darkHsl: 'hsl(222, 47%, 6%)',
     description: 'Main background color',
   },
   foreground: {
     name: 'Foreground',
-    lightHex: '#0f172a',
+    lightHex: brand.colors.foreground.light,
     lightHsl: 'hsl(222, 47%, 11%)',
-    darkHex: '#f8fafc',
+    darkHex: brand.colors.foreground.dark,
     darkHsl: 'hsl(210, 40%, 98%)',
     description: 'Primary text color',
   },
 };
 
 const semanticColors = [
-  { name: 'Success', hex: '#22c55e', hsl: 'hsl(142, 71%, 45%)', usage: 'Success states, confirmations' },
-  { name: 'Warning', hex: '#f59e0b', hsl: 'hsl(38, 92%, 50%)', usage: 'Warnings, caution states' },
-  { name: 'Destructive', hex: '#ef4444', hsl: 'hsl(0, 84%, 60%)', usage: 'Errors, destructive actions' },
-  { name: 'Muted', hex: '#64748b', hsl: 'hsl(220, 8%, 46%)', usage: 'Secondary text, subtle elements' },
+  { name: 'Success', hex: brand.colors.success, hsl: 'hsl(142, 71%, 45%)', usage: 'Success states, confirmations' },
+  { name: 'Warning', hex: brand.colors.warning, hsl: 'hsl(38, 92%, 50%)', usage: 'Warnings, caution states' },
+  { name: 'Destructive', hex: brand.colors.destructive, hsl: 'hsl(0, 84%, 60%)', usage: 'Errors, destructive actions' },
+  { name: 'Muted', hex: brand.colors.muted, hsl: 'hsl(220, 8%, 46%)', usage: 'Secondary text, subtle elements' },
 ];
 
 function ColorSwatch({
@@ -74,7 +76,12 @@ function ColorSwatch({
 }) {
   return (
     <div className="space-y-2">
-      <div className={`h-24 rounded-xl shadow-md ${className}`} style={{ backgroundColor: hex }} />
+      <div
+        className={`h-24 rounded-xl shadow-md ${className}`}
+        style={{ backgroundColor: hex }}
+        role="img"
+        aria-label={`${name} color swatch: ${hex}`}
+      />
       <div>
         <p className="font-medium">{name}</p>
         <p className="text-sm text-muted-foreground font-mono">{hex}</p>
@@ -130,12 +137,7 @@ export default function BrandPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-white rounded-xl p-12 flex items-center justify-center border">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#7c3aed] to-[#9333ea] rounded-xl flex items-center justify-center shadow-lg">
-                      <Play className="w-7 h-7 text-white fill-white" />
-                    </div>
-                    <span className="text-3xl font-bold text-gray-900">Nuclom</span>
-                  </div>
+                  <NuclomLogo size="lg" showText />
                 </div>
               </CardContent>
             </Card>
@@ -147,13 +149,8 @@ export default function BrandPage() {
                 <CardDescription>For use on dark backgrounds</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-[#0d0f17] rounded-xl p-12 flex items-center justify-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#7c3aed] to-[#9333ea] rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
-                      <Play className="w-7 h-7 text-white fill-white" />
-                    </div>
-                    <span className="text-3xl font-bold text-white">Nuclom</span>
-                  </div>
+                <div className={`${brand.tailwind.darkBackground} rounded-xl p-12 flex items-center justify-center`}>
+                  <NuclomLogo size="lg" showText />
                 </div>
               </CardContent>
             </Card>
@@ -168,9 +165,7 @@ export default function BrandPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#7c3aed] to-[#9333ea] rounded-xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white fill-white" />
-                  </div>
+                  <NuclomLogo size="lg" />
                 </div>
               </CardContent>
             </Card>
@@ -182,9 +177,7 @@ export default function BrandPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#7c3aed] to-[#9333ea] rounded-2xl flex items-center justify-center">
-                    <Play className="w-8 h-8 text-white fill-white" />
-                  </div>
+                  <NuclomLogo size="xl" />
                 </div>
               </CardContent>
             </Card>
@@ -196,26 +189,21 @@ export default function BrandPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#7c3aed] to-[#9333ea] rounded-full flex items-center justify-center">
-                    <Play className="w-7 h-7 text-white fill-white" />
-                  </div>
+                  <NuclomLogo size="lg" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Monochrome</CardTitle>
-                <CardDescription>Single color usage</CardDescription>
+                <CardTitle className="text-lg">Multiple Sizes</CardTitle>
+                <CardDescription>Responsive scaling</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="bg-muted rounded-lg p-6 flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white fill-white" />
-                  </div>
-                  <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-background fill-background" />
-                  </div>
+                  <NuclomLogo size="sm" />
+                  <NuclomLogo size="md" />
+                  <NuclomLogo size="lg" />
                 </div>
               </CardContent>
             </Card>
@@ -253,11 +241,11 @@ export default function BrandPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 mt-1 text-green-500 flex-shrink-0" />
-                    Use the play button icon consistently across all touchpoints
+                    Use the play button with circular progress ring consistently
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 mt-1 text-green-500 flex-shrink-0" />
-                    Use rounded corners (border-radius) on icon containers
+                    Use rounded corners (22% radius) on icon containers
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 mt-1 text-green-500 flex-shrink-0" />
@@ -322,7 +310,9 @@ export default function BrandPage() {
             <CardContent>
               <div
                 className="h-32 rounded-xl shadow-lg mb-4"
-                style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)' }}
+                style={{ background: brand.colors.gradient }}
+                role="img"
+                aria-label={`Brand gradient: ${brand.colors.gradientStart} to ${brand.colors.gradientEnd}`}
               />
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -675,7 +665,7 @@ export default function BrandPage() {
         </div>
       </section>
 
-      {/* Download Section */}
+      {/* Contact Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Need Brand Assets?</h2>
@@ -685,7 +675,7 @@ export default function BrandPage() {
           <Button size="lg" asChild>
             <Link href="/contact">
               Contact Us
-              <Download className="ml-2 w-5 h-5" />
+              <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
           </Button>
         </div>
