@@ -107,7 +107,7 @@ describe('Videos API Route', () => {
     it('should return 400 when organizationId is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/videos', {
+      const request = new NextRequest('http://localhost:5001/api/videos', {
         method: 'GET',
       });
 
@@ -122,7 +122,7 @@ describe('Videos API Route', () => {
       setupTestLayer({ authenticated: false });
 
       const request = new NextRequest(
-        'http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
+        'http://localhost:5001/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
         {
           method: 'GET',
         },
@@ -140,7 +140,7 @@ describe('Videos API Route', () => {
       const { mockVideoRepo } = setupTestLayer();
 
       const request = new NextRequest(
-        'http://localhost:3000/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
+        'http://localhost:5001/api/videos?organizationId=550e8400-e29b-41d4-a716-446655440000',
         {
           method: 'GET',
         },
@@ -160,7 +160,7 @@ describe('Videos API Route', () => {
     it('should return 400 when title is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/videos', {
+      const request = new NextRequest('http://localhost:5001/api/videos', {
         method: 'POST',
         body: JSON.stringify({
           duration: '10:30',
@@ -178,7 +178,7 @@ describe('Videos API Route', () => {
     it('should return 400 when duration is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/videos', {
+      const request = new NextRequest('http://localhost:5001/api/videos', {
         method: 'POST',
         body: JSON.stringify({
           title: 'Test Video',
@@ -196,7 +196,7 @@ describe('Videos API Route', () => {
     it('should return 401 when user is not authenticated', async () => {
       setupTestLayer({ authenticated: false });
 
-      const request = new NextRequest('http://localhost:3000/api/videos', {
+      const request = new NextRequest('http://localhost:5001/api/videos', {
         method: 'POST',
         body: JSON.stringify({
           title: 'Test Video',
@@ -216,7 +216,7 @@ describe('Videos API Route', () => {
     it('should create video and return 201 on success', async () => {
       const { mockVideoRepo } = setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/videos', {
+      const request = new NextRequest('http://localhost:5001/api/videos', {
         method: 'POST',
         body: JSON.stringify({
           title: 'Test Video',

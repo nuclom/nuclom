@@ -797,7 +797,7 @@ import { NextRequest } from "next/server";
 describe("/api/videos", () => {
   it("returns videos for organization", async () => {
     const request = new NextRequest(
-      "http://localhost:3000/api/videos?organizationId=1"
+      "http://localhost:5001/api/videos?organizationId=1"
     );
 
     const response = await GET(request);

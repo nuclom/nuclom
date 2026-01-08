@@ -96,7 +96,7 @@ For comprehensive setup instructions and configuration details, see:
 
 | Environment | URL | Purpose | Database |
 |-------------|-----|---------|----------|
-| Development | `localhost:3000` | Local development | Local PostgreSQL |
+| Development | `localhost:5001` | Local development | Local PostgreSQL |
 | Staging | `staging.nuclom.com` | Pre-release testing, QA | Isolated staging DB |
 | Production | `nuclom.com` | Live user traffic | Production DB + replicas |
 

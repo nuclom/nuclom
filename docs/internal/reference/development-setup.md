@@ -39,7 +39,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you're ready to go.
+Open [http://localhost:5001](http://localhost:5001) — you're ready to go.
 
 ---
 
@@ -96,7 +96,7 @@ See [Database Setup](database-setup.md) for detailed instructions.
 pnpm dev
 ```
 
-The app runs at [http://localhost:3000](http://localhost:3000).
+The app runs at [http://localhost:5001](http://localhost:5001).
 
 ---
 

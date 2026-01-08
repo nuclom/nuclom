@@ -28,12 +28,12 @@ export const env = Schema.decodeUnknownSync(ClientEnv)({
  * Works in both client and server components.
  * - In production: Uses NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
  * - In preview/staging: Uses NEXT_PUBLIC_VERCEL_URL
- * - In local development: Falls back to http://localhost:3000
+ * - In local development: Falls back to http://localhost:5001
  */
 export function getAppUrl(): string {
   // Local development should always use localhost
   if (env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
+    return 'http://localhost:5001';
   }
 
   // Production environment - use the production URL
@@ -47,5 +47,5 @@ export function getAppUrl(): string {
   }
 
   // Local development fallback
-  return 'http://localhost:3000';
+  return 'http://localhost:5001';
 }
