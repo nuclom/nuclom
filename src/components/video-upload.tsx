@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Upload, Video, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,8 @@ interface VideoUploadProps {
   authorId: string;
   channelId?: string;
   seriesId?: string;
+  /** When provided, redirects to `${redirectPath}/${videoId}` after successful upload */
+  redirectPath?: string;
   onUploadComplete?: (result: { videoId: string; videoUrl: string; thumbnailUrl: string; duration: string }) => void;
   onCancel?: () => void;
 }
@@ -33,9 +36,11 @@ export function VideoUpload({
   authorId,
   channelId,
   seriesId,
+  redirectPath,
   onUploadComplete,
   onCancel,
 }: VideoUploadProps) {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -128,51 +133,126 @@ export function VideoUpload({
       return;
     }
 
-    const formData = new FormData();
-    formData.append('video', file);
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('organizationId', organizationId);
-    formData.append('authorId', authorId);
-    if (channelId) formData.append('channelId', channelId);
-    if (seriesId) formData.append('seriesId', seriesId);
-
     setUploadState({
       status: 'uploading',
-      progress: 10,
-      message: 'Starting upload...',
+      progress: 5,
+      message: 'Preparing upload...',
     });
 
     try {
-      const response = await fetch('/api/videos/upload', {
+      // Step 1: Get presigned URL for direct upload to R2
+      const presignedResponse = await fetch('/api/videos/upload/presigned', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type || 'video/mp4',
+          fileSize: file.size,
+          organizationId,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+      if (!presignedResponse.ok) {
+        const errorData = await presignedResponse.json();
+        throw new Error(errorData.error?.message || errorData.error || 'Failed to prepare upload');
       }
 
-      // Simulate processing progress
+      const presignedResult = await presignedResponse.json();
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error || 'Failed to get upload URL');
+      }
+
+      const { uploadId, uploadUrl, fileKey } = presignedResult.data;
+
       setUploadState({
-        status: 'processing',
-        progress: 75,
-        message: 'Processing video...',
+        status: 'uploading',
+        progress: 10,
+        message: 'Uploading to storage...',
       });
 
-      const result = await response.json();
+      // Step 2: Upload directly to R2 using presigned URL with progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-      if (result.success) {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            // Map upload progress to 10-80% range
+            const percentComplete = Math.round((event.loaded / event.total) * 70) + 10;
+            setUploadState({
+              status: 'uploading',
+              progress: percentComplete,
+              message: `Uploading... ${Math.round((event.loaded / event.total) * 100)}%`,
+            });
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Upload failed - network error'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload was cancelled'));
+        });
+
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+        xhr.send(file);
+      });
+
+      setUploadState({
+        status: 'processing',
+        progress: 85,
+        message: 'Finalizing upload...',
+      });
+
+      // Step 3: Confirm upload and create video record
+      const confirmResponse = await fetch('/api/videos/upload/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uploadId,
+          fileKey,
+          filename: file.name,
+          fileSize: file.size,
+          title,
+          description: description || undefined,
+          organizationId,
+          authorId,
+          channelId: channelId || undefined,
+          collectionId: seriesId || undefined,
+          skipAIProcessing: false,
+        }),
+      });
+
+      if (!confirmResponse.ok) {
+        const errorData = await confirmResponse.json();
+        throw new Error(errorData.error?.message || errorData.error || 'Failed to confirm upload');
+      }
+
+      const confirmResult = await confirmResponse.json();
+
+      if (confirmResult.success) {
         setUploadState({
           status: 'success',
           progress: 100,
           message: 'Upload complete!',
         });
 
-        onUploadComplete?.(result.data);
+        onUploadComplete?.(confirmResult.data);
+
+        if (redirectPath) {
+          router.push(`${redirectPath}/${confirmResult.data.videoId}`);
+        }
       } else {
-        throw new Error(result.error || 'Upload failed');
+        throw new Error(confirmResult.error || 'Upload confirmation failed');
       }
     } catch (error) {
       logger.error('Video upload failed', error);
