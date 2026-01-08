@@ -779,7 +779,7 @@ passkey({
   rpName: "Nuclom",
   origin: env.NODE_ENV === "production"
     ? "https://nuclom.com"
-    : "http://localhost:3000",
+    : "http://localhost:5001",
 }),
 ```
 
@@ -1104,14 +1104,14 @@ import { NextRequest } from "next/server";
 
 describe("/api/auth", () => {
   it("should return 401 for unauthenticated session request", async () => {
-    const request = new NextRequest("http://localhost:3000/api/auth/session");
+    const request = new NextRequest("http://localhost:5001/api/auth/session");
     const response = await GET(request);
 
     expect(response.status).toBe(401);
   });
 
   it("should handle sign in requests", async () => {
-    const request = new NextRequest("http://localhost:3000/api/auth/sign-in", {
+    const request = new NextRequest("http://localhost:5001/api/auth/sign-in", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

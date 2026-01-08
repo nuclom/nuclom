@@ -144,7 +144,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 1. Go to GitHub Settings → Developer settings → OAuth Apps
 2. Create a new OAuth App
-3. Set Authorization callback URL to `http://localhost:3000/api/auth/callback/github`
+3. Set Authorization callback URL to `http://localhost:5001/api/auth/callback/github`
 4. Copy Client ID and Client Secret
 
 ```env
@@ -158,7 +158,7 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 2. Create a new project or select existing
 3. Enable Google+ API
 4. Go to Credentials → Create Credentials → OAuth client ID
-5. Set authorized redirect URIs to `http://localhost:3000/api/auth/callback/google`
+5. Set authorized redirect URIs to `http://localhost:5001/api/auth/callback/google`
 6. Copy Client ID and Client Secret
 
 ```env
@@ -313,7 +313,7 @@ pool.query('SELECT NOW()', (err, res) => {
 
 ```bash
 # Test authentication endpoints
-curl http://localhost:3000/api/auth/session
+curl http://localhost:5001/api/auth/session
 ```
 
 ## Troubleshooting
@@ -340,7 +340,7 @@ psql $DATABASE_URL
 echo $BETTER_AUTH_SECRET
 
 # Verify OAuth redirect URLs
-curl -I http://localhost:3000/api/auth/callback/github
+curl -I http://localhost:5001/api/auth/callback/github
 ```
 
 #### Missing Environment Variables

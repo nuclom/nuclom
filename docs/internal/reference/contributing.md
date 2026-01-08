@@ -394,7 +394,7 @@ import { NextRequest } from "next/server";
 
 describe("/api/videos", () => {
   it("creates video successfully", async () => {
-    const request = new NextRequest("http://localhost:3000/api/videos", {
+    const request = new NextRequest("http://localhost:5001/api/videos", {
       method: "POST",
       body: JSON.stringify({
         title: "Test Video",

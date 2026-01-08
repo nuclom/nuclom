@@ -124,7 +124,7 @@ describe('Organizations API Route', () => {
     it('should return 401 when user is not authenticated', async () => {
       setupTestLayer({ authenticated: false });
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'GET',
       });
 
@@ -139,7 +139,7 @@ describe('Organizations API Route', () => {
     it('should return user organizations on success', async () => {
       const { mockOrgRepo } = setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'GET',
       });
 
@@ -159,7 +159,7 @@ describe('Organizations API Route', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'GET',
       });
 
@@ -175,7 +175,7 @@ describe('Organizations API Route', () => {
     it('should return 400 when name is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           slug: 'test-org',
@@ -192,7 +192,7 @@ describe('Organizations API Route', () => {
     it('should return 400 when slug is missing', async () => {
       setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Organization',
@@ -209,7 +209,7 @@ describe('Organizations API Route', () => {
     it('should return 401 when user is not authenticated', async () => {
       setupTestLayer({ authenticated: false });
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Organization',
@@ -239,7 +239,7 @@ describe('Organizations API Route', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Organization',
@@ -258,7 +258,7 @@ describe('Organizations API Route', () => {
     it('should create organization and return 201 on success', async () => {
       const { mockOrgRepo, mockSlack } = setupTestLayer();
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Organization',
@@ -285,7 +285,7 @@ describe('Organizations API Route', () => {
         },
       });
 
-      const request = new NextRequest('http://localhost:3000/api/organizations', {
+      const request = new NextRequest('http://localhost:5001/api/organizations', {
         method: 'POST',
         body: JSON.stringify({
           name: 'Test Organization',

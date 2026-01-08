@@ -76,12 +76,12 @@ export const env = Schema.decodeUnknownSync(ServerEnv)(process.env);
  * Get the application URL, computed from Vercel environment variables.
  * - In production: Uses VERCEL_PROJECT_PRODUCTION_URL
  * - In preview/staging: Uses VERCEL_URL
- * - In local development: Falls back to http://localhost:3000
+ * - In local development: Falls back to http://localhost:5001
  */
 export function getAppUrl(): string {
   // Local development should always use localhost
   if (env.NODE_ENV === 'development') {
-    return 'http://localhost:3000';
+    return 'http://localhost:5001';
   }
 
   // Production environment - use the production URL
@@ -95,5 +95,5 @@ export function getAppUrl(): string {
   }
 
   // Local development fallback
-  return 'http://localhost:3000';
+  return 'http://localhost:5001';
 }

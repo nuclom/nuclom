@@ -380,7 +380,6 @@ const apiInfo: ApiInfo = {
 
 const apiServers: ApiServer[] = [
   { url: 'https://nuclom.com/api', description: 'Production server' },
-  { url: 'http://localhost:3000/api', description: 'Local development server' },
 ];
 
 const apiTags: ApiTag[] = [

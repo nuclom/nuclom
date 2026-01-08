@@ -14,7 +14,7 @@ cd nuclom
 pnpm install
 cp .env.example .env.local  # Configure your environment
 pnpm db:migrate
-pnpm dev                    # → http://localhost:3000
+pnpm dev                    # → http://localhost:5001
 ```
 
 **Detailed setup:** [Development Setup](reference/development-setup.md)

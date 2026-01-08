@@ -383,7 +383,7 @@ describe("/api/videos", () => {
       } as any);
 
       const request = new NextRequest(
-        "http://localhost:3000/api/videos?organizationId=organization-1"
+        "http://localhost:5001/api/videos?organizationId=organization-1"
       );
 
       const response = await GET(request);
@@ -395,7 +395,7 @@ describe("/api/videos", () => {
     });
 
     it("returns 400 for missing organizationId", async () => {
-      const request = new NextRequest("http://localhost:3000/api/videos");
+      const request = new NextRequest("http://localhost:5001/api/videos");
 
       const response = await GET(request);
       const data = await response.json();
@@ -420,7 +420,7 @@ describe("/api/videos", () => {
         }),
       } as any);
 
-      const request = new NextRequest("http://localhost:3000/api/videos", {
+      const request = new NextRequest("http://localhost:5001/api/videos", {
         method: "POST",
         body: JSON.stringify({
           title: "New Video",
@@ -438,7 +438,7 @@ describe("/api/videos", () => {
     });
 
     it("returns 400 for invalid data", async () => {
-      const request = new NextRequest("http://localhost:3000/api/videos", {
+      const request = new NextRequest("http://localhost:5001/api/videos", {
         method: "POST",
         body: JSON.stringify({
           title: "", // Invalid: empty title
@@ -560,7 +560,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5001",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "on-first-retry",
@@ -580,7 +580,7 @@ export default defineConfig({
   ],
   webServer: process.env.CI ? undefined : {
     command: "pnpm dev",
-    url: "http://localhost:3000",
+    url: "http://localhost:5001",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
@@ -1016,7 +1016,7 @@ export const options = {
 
 ```bash
 # tests/load/config.js
-export const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+export const BASE_URL = __ENV.BASE_URL || 'http://localhost:5001';
 export const API_KEY = __ENV.API_KEY;
 ```
 

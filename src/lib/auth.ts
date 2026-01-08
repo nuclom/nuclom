@@ -55,7 +55,7 @@ function buildTrustedOrigins(): string[] {
 
   // Add localhost only in development
   if (env.NODE_ENV === 'development') {
-    origins.push('http://localhost:3000');
+    origins.push('http://localhost:5001');
     origins.push('http://127.0.0.1:3000');
   }
 
@@ -587,7 +587,7 @@ export const auth = betterAuth({
     passkey({
       rpID: env.NODE_ENV === 'production' ? 'nuclom.com' : 'localhost',
       rpName: 'Nuclom',
-      origin: env.NODE_ENV === 'production' ? 'https://nuclom.com' : 'http://localhost:3000',
+      origin: env.NODE_ENV === 'production' ? 'https://nuclom.com' : 'http://localhost:5001',
     }),
     sso({
       // Automatically add users to organizations when they sign in via SSO

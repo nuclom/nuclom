@@ -13,9 +13,6 @@ servers:
   - 
     url: "https://nuclom.com/api"
     description: Production server
-  - 
-    url: "http://localhost:3000/api"
-    description: Local development server
 tags:
   - 
     name: Videos
@@ -162,6 +159,17 @@ paths:
           description: Success
         404:
           description: Not found
+  /beta-access:
+    post:
+      tags:
+        - Beta-access
+      summary: Create beta-access
+      operationId: createBeta-access
+      responses:
+        201:
+          description: Created successfully
+        400:
+          description: Invalid request
   /billing:
     get:
       tags:
