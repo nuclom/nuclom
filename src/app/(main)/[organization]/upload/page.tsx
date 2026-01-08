@@ -66,7 +66,7 @@ async function UploadContent({ params }: { params: Promise<{ organization: strin
         </div>
 
         {/* Upload Component */}
-        <VideoUpload organizationId={organizationId} authorId={authorId} />
+        <VideoUpload organizationId={organizationId} authorId={authorId} redirectPath={`/${organizationSlug}/videos`} />
       </div>
     </div>
   );

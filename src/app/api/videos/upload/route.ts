@@ -1,4 +1,4 @@
-import { Effect, Option } from 'effect';
+import { Cause, Effect, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
 import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@/lib/effect';
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
     // Parse form data
     const formData = yield* Effect.tryPromise({
       try: () => request.formData(),
-      catch: () =>
+      catch: (error) =>
         new ValidationError({
-          message: 'Invalid form data',
+          message: `Failed to parse form data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         }),
     });
 
@@ -132,7 +132,11 @@ export async function POST(request: NextRequest) {
   const exit = await Effect.runPromiseExit(runnable);
 
   if (exit._tag === 'Failure') {
-    return mapErrorToApiResponse(exit.cause);
+    const error = Cause.failureOption(exit.cause);
+    if (error._tag === 'Some') {
+      return mapErrorToApiResponse(error.value);
+    }
+    return mapErrorToApiResponse(new Error('Internal server error'));
   }
 
   if (exit._tag === 'Success') {
