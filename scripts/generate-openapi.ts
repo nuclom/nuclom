@@ -378,9 +378,7 @@ const apiInfo: ApiInfo = {
   },
 };
 
-const apiServers: ApiServer[] = [
-  { url: 'https://nuclom.com/api', description: 'Production server' },
-];
+const apiServers: ApiServer[] = [{ url: 'https://nuclom.com/api', description: 'Production server' }];
 
 const apiTags: ApiTag[] = [
   { name: 'Videos', description: 'Video management endpoints' },

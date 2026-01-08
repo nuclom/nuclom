@@ -7,10 +7,9 @@ import { Button } from '@/components/ui/button';
 interface DashboardHeroProps {
   organization: string;
   userName?: string;
-  hasVideos?: boolean;
 }
 
-export function DashboardHero({ organization, userName, hasVideos }: DashboardHeroProps) {
+export function DashboardHero({ organization, userName }: DashboardHeroProps) {
   const greeting = getGreeting();
 
   return (
@@ -36,9 +35,7 @@ export function DashboardHero({ organization, userName, hasVideos }: DashboardHe
           {userName ? `, ${userName.split(' ')[0]}` : ''}!
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-lg">
-          {hasVideos
-            ? 'Pick up where you left off or explore new videos from your team.'
-            : 'Get started by uploading your first video or recording a quick update.'}
+          Get started by uploading your first video or recording a quick update.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">

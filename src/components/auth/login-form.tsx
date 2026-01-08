@@ -191,6 +191,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isAnyLoading}
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -212,6 +213,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isAnyLoading}
+                autoComplete="current-password"
               />
               <Button
                 type="button"
