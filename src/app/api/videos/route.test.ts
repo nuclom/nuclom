@@ -8,15 +8,22 @@ import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/servi
 import { createMockSession, createMockVideo } from '@/test/mocks';
 
 // Mock the api-handler module to provide test layers
+const mockCreateFullLayer = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/api-handler', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-handler')>();
+  const { Effect } = await import('effect');
   return {
     ...actual,
-    createFullLayer: vi.fn(),
+    createFullLayer: mockCreateFullLayer,
+    // runApiEffect needs to use our mock createFullLayer
+    runApiEffect: async <T, E>(effect: Effect.Effect<T, E, unknown>) => {
+      const layer = mockCreateFullLayer();
+      const runnable = Effect.provide(effect, layer) as Effect.Effect<T, E, never>;
+      return Effect.runPromiseExit(runnable);
+    },
   };
 });
 
-import { createFullLayer } from '@/lib/api-handler';
 import { GET, POST } from './route';
 
 describe('Videos API Route', () => {
@@ -117,7 +124,7 @@ describe('Videos API Route', () => {
     const StorageLayer = Layer.succeed(Storage, mockStorage);
     const testLayer = Layer.mergeAll(AuthLayer, VideoRepoLayer, StorageLayer);
 
-    vi.mocked(createFullLayer).mockReturnValue(testLayer as never);
+    mockCreateFullLayer.mockReturnValue(testLayer as never);
 
     return { mockAuth, mockVideoRepo, mockStorage };
   };

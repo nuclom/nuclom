@@ -28,11 +28,16 @@ export async function GET(request: Request) {
   // Verify the request is from Vercel Cron or has valid authorization
   const headersList = await headers();
   const authHeader = headersList.get('authorization');
+  const cronHeader = headersList.get('x-cron-secret');
   const cronSecret = env.CRON_SECRET;
 
   // In production, verify the cron secret
   if (env.NODE_ENV === 'production' && cronSecret) {
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    const hasBearer = authHeader === `Bearer ${cronSecret}`;
+    const hasRaw = authHeader === cronSecret;
+    const hasCronHeader = cronHeader === cronSecret;
+
+    if (!hasBearer && !hasRaw && !hasCronHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
