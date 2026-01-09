@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMiniPlayer } from '@/hooks/use-mini-player';
 import { MiniPlayer } from './mini-player';
@@ -13,29 +13,32 @@ interface MiniPlayerProviderProps {
 // Regex to match video page routes: /[organization]/videos/[id]
 const VIDEO_PAGE_PATTERN = /^\/[^/]+\/videos\/[^/]+$/;
 
-export function MiniPlayerProvider({ children }: MiniPlayerProviderProps) {
+// Separate component for navigation detection that uses usePathname
+// Wrapped in Suspense to handle dynamic data during prerendering
+function MiniPlayerNavigationDetector() {
   const pathname = usePathname();
-  const previousPathRef = useRef(pathname);
+  const previousPathRef = useRef<string | null>(null);
   const { state, activateMiniPlayer, deactivateMiniPlayer, shouldShowForVideo } = useMiniPlayer();
-  const [mounted, setMounted] = useState(false);
 
-  // Handle client-side mounting for portal
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const previousPath = previousPathRef.current;
 
-  // Detect navigation away from video page
-  useEffect(() => {
-    const wasOnVideoPage = previousPathRef.current ? VIDEO_PAGE_PATTERN.test(previousPathRef.current) : false;
+    // Skip on first render, just store the initial path
+    if (previousPath === null) {
+      previousPathRef.current = pathname;
+      return;
+    }
+
+    // Skip if path hasn't changed
+    if (previousPath === pathname) return;
+
+    const wasOnVideoPage = VIDEO_PAGE_PATTERN.test(previousPath);
     const isOnVideoPage = pathname ? VIDEO_PAGE_PATTERN.test(pathname) : false;
-
-    // Extract video ID from paths
-    const previousVideoId = previousPathRef.current?.split('/')[3] || null;
+    const previousVideoId = previousPath.split('/')[3] || null;
     const currentVideoId = pathname?.split('/')[3] || null;
 
     // If navigating away from a video page (or to a different video)
     if (wasOnVideoPage && (!isOnVideoPage || previousVideoId !== currentVideoId)) {
-      // Attempt to activate mini-player
       activateMiniPlayer();
     }
 
@@ -47,8 +50,22 @@ export function MiniPlayerProvider({ children }: MiniPlayerProviderProps) {
     previousPathRef.current = pathname;
   }, [pathname, activateMiniPlayer, deactivateMiniPlayer, state.isActive, shouldShowForVideo]);
 
+  return null;
+}
+
+export function MiniPlayerProvider({ children }: MiniPlayerProviderProps) {
+  const { state } = useMiniPlayer();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <>
+      <Suspense fallback={null}>
+        <MiniPlayerNavigationDetector />
+      </Suspense>
       {children}
       {mounted && state.isActive && createPortal(<MiniPlayer />, document.body)}
     </>

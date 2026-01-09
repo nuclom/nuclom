@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { UnauthorizedError } from '@/lib/effect/errors';
 import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
+import { Storage, type StorageService } from '@/lib/effect/services/storage';
 import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/services/video-repository';
 import { createMockSession, createMockVideo } from '@/test/mocks';
 
@@ -79,19 +80,46 @@ describe('Videos API Route', () => {
     };
   };
 
+  // Helper to create a mock storage service
+  const createMockStorageService = (): StorageService => {
+    return {
+      uploadFile: vi
+        .fn()
+        .mockImplementation(() => Effect.succeed({ key: 'test-key', url: 'https://example.com/test' })),
+      uploadLargeFile: vi
+        .fn()
+        .mockImplementation(() => Effect.succeed({ key: 'test-key', url: 'https://example.com/test' })),
+      deleteFile: vi.fn().mockImplementation(() => Effect.void),
+      generatePresignedUploadUrl: vi
+        .fn()
+        .mockImplementation(() => Effect.succeed('https://example.com/presigned-upload')),
+      generatePresignedDownloadUrl: vi
+        .fn()
+        .mockImplementation(() => Effect.succeed('https://example.com/presigned-download')),
+      extractKeyFromUrl: vi.fn().mockImplementation((url: string) => {
+        const parts = url.split('.r2.cloudflarestorage.com/');
+        return parts.length === 2 ? parts[1] : null;
+      }),
+      generateFileKey: vi.fn().mockImplementation(() => 'org/videos/123-test.mp4'),
+      isConfigured: true,
+    };
+  };
+
   // Setup test layer for each test
   const setupTestLayer = (options: { authenticated?: boolean; videoRepo?: Partial<VideoRepositoryService> } = {}) => {
     const { authenticated = true, videoRepo = {} } = options;
     const mockAuth = createMockAuthService(authenticated);
     const mockVideoRepo = { ...createMockVideoRepository(), ...videoRepo };
+    const mockStorage = createMockStorageService();
 
     const AuthLayer = Layer.succeed(Auth, mockAuth);
     const VideoRepoLayer = Layer.succeed(VideoRepository, mockVideoRepo as VideoRepositoryService);
-    const testLayer = Layer.mergeAll(AuthLayer, VideoRepoLayer);
+    const StorageLayer = Layer.succeed(Storage, mockStorage);
+    const testLayer = Layer.mergeAll(AuthLayer, VideoRepoLayer, StorageLayer);
 
     vi.mocked(createFullLayer).mockReturnValue(testLayer as never);
 
-    return { mockAuth, mockVideoRepo };
+    return { mockAuth, mockVideoRepo, mockStorage };
   };
 
   beforeEach(() => {
