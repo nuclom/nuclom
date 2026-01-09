@@ -171,6 +171,10 @@ function isPublicApiRoute(pathname: string): boolean {
   return publicPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
+function isCronRoute(pathname: string): boolean {
+  return pathname === '/api/cron';
+}
+
 function isBetterAuthRoute(pathname: string): boolean {
   // Better-auth handles its own routes - don't interfere with auth flow
   return pathname.startsWith('/api/auth/');
@@ -181,6 +185,7 @@ function isProtectedApiRoute(pathname: string): boolean {
   // Exclude: public routes, auth routes (handled by better-auth), webhooks
   if (!isApiRoute(pathname)) return false;
   if (isPublicApiRoute(pathname)) return false;
+  if (isCronRoute(pathname)) return false;
   if (isBetterAuthRoute(pathname)) return false;
   if (pathname.startsWith('/api/webhooks/')) return false;
 

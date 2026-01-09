@@ -201,8 +201,23 @@ function extractErrorDetails(error: AppErrorUnion): Record<string, unknown> | un
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+/**
+ * Type guard to check if a value is a non-null object/record
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Type guard to check if a value is a tagged error with _tag and message
+ */
+export function isTaggedError(error: unknown): error is { _tag: string; message: string; status?: number } {
+  return (
+    isRecord(error) &&
+    typeof error._tag === 'string' &&
+    typeof error.message === 'string' &&
+    (error.status === undefined || typeof error.status === 'number')
+  );
 }
 
 /**

@@ -1,7 +1,6 @@
-import { Cause, Effect, Exit, Option, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { mapErrorToApiResponse } from '@/lib/api-errors';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
 import { ValidationError } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { ChannelRepository } from '@/lib/effect/services/channel-repository';
@@ -45,10 +44,7 @@ export async function GET(request: NextRequest) {
     return yield* channelRepo.getChannels(activeOrg.value.id, page, limit);
   });
 
-  const FullLayer = createFullLayer();
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -84,18 +80,6 @@ export async function POST(request: NextRequest) {
     return newChannel;
   });
 
-  const FullLayer = createFullLayer();
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => NextResponse.json(data, { status: 201 }),
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithStatus(exit, 201);
 }

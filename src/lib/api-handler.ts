@@ -8,7 +8,7 @@
  * - Reduced boilerplate in route handlers
  */
 
-import { Cause, Exit, Layer } from 'effect';
+import { Cause, Effect, Exit, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 import { mapErrorToApiResponse } from '@/lib/api-errors';
 import { auth } from '@/lib/auth';
@@ -48,6 +48,49 @@ export function createFullLayer() {
  */
 export function createPublicLayer() {
   return AppLive;
+}
+
+// =============================================================================
+// Route Parameter Helpers
+// =============================================================================
+
+/**
+ * Resolve Next.js dynamic route params from a Promise.
+ * Eliminates boilerplate of `yield* Effect.promise(() => params)`.
+ *
+ * @example
+ * const { id } = yield* resolveParams(params);
+ */
+export const resolveParams = <T extends Record<string, string>>(params: Promise<T>): Effect.Effect<T, never, never> =>
+  Effect.promise(() => params);
+
+// =============================================================================
+// Effect Runners
+// =============================================================================
+
+/**
+ * Run an effect with the full application layer (with authentication).
+ * Eliminates boilerplate of Effect.provide + Effect.runPromiseExit.
+ *
+ * @example
+ * const exit = await runApiEffect(effect);
+ * return handleEffectExit(exit);
+ */
+export async function runApiEffect<T, E>(effect: Effect.Effect<T, E, unknown>): Promise<Exit.Exit<T, E | Error>> {
+  const runnable = Effect.provide(effect, createFullLayer()) as Effect.Effect<T, E | Error, never>;
+  return Effect.runPromiseExit(runnable);
+}
+
+/**
+ * Run an effect with the public layer (no authentication).
+ *
+ * @example
+ * const exit = await runPublicApiEffect(effect);
+ * return handleEffectExit(exit);
+ */
+export async function runPublicApiEffect<T, E>(effect: Effect.Effect<T, E, unknown>): Promise<Exit.Exit<T, E | Error>> {
+  const runnable = Effect.provide(effect, createPublicLayer()) as Effect.Effect<T, E | Error, never>;
+  return Effect.runPromiseExit(runnable);
 }
 
 // =============================================================================

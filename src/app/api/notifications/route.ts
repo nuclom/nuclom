@@ -1,9 +1,8 @@
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, runApiEffect } from '@/lib/api-handler';
 import { NotificationRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/notifications - Get user's notifications
@@ -25,24 +24,8 @@ export async function GET(request: NextRequest) {
     return yield* notificationRepo.getNotifications(user.id, page, limit);
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -62,22 +45,6 @@ export async function POST(request: NextRequest) {
     return { markedAsRead: count };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

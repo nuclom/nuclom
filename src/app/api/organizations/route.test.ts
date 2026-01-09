@@ -11,15 +11,21 @@ import { SlackMonitoring, type SlackMonitoringServiceInterface } from '@/lib/eff
 import { createMockOrganization, createMockSession } from '@/test/mocks';
 
 // Mock the api-handler module to provide test layers
+const mockCreateFullLayer = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/api-handler', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-handler')>();
+  const { Effect } = await import('effect');
   return {
     ...actual,
-    createFullLayer: vi.fn(),
+    createFullLayer: mockCreateFullLayer,
+    runApiEffect: async <T, E>(effect: Effect.Effect<T, E, unknown>) => {
+      const layer = mockCreateFullLayer();
+      const runnable = Effect.provide(effect, layer) as Effect.Effect<T, E, never>;
+      return Effect.runPromiseExit(runnable);
+    },
   };
 });
 
-import { createFullLayer } from '@/lib/api-handler';
 import { GET, POST } from './route';
 
 describe('Organizations API Route', () => {
@@ -107,7 +113,7 @@ describe('Organizations API Route', () => {
     const SlackLayer = Layer.succeed(SlackMonitoring, mockSlack as SlackMonitoringServiceInterface);
     const testLayer = Layer.mergeAll(AuthLayer, OrgRepoLayer, SlackLayer);
 
-    vi.mocked(createFullLayer).mockReturnValue(testLayer as never);
+    mockCreateFullLayer.mockReturnValue(testLayer as never);
 
     return { mockAuth, mockOrgRepo, mockSlack };
   };

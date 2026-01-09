@@ -1,6 +1,6 @@
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { handleEffectExit, resolveParams, runApiEffect } from '@/lib/api-handler';
 import { ForbiddenError } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { ChannelRepository } from '@/lib/effect/services/channel-repository';
@@ -18,15 +18,14 @@ const UpdateChannelSchema = Schema.Struct({
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    // Authenticate user
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    const resolvedParams = yield* Effect.promise(() => params);
+    const { id } = yield* resolveParams(params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
 
-    const channel = yield* channelRepo.getChannel(resolvedParams.id);
+    const channel = yield* channelRepo.getChannel(id);
 
     // Verify user has access to this channel's organization
     const isMemberResult = yield* orgRepo.isMember(user.id, channel.organizationId);
@@ -42,8 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return channel;
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -53,18 +51,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    // Authenticate user
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
     const { name, description } = yield* validateRequestBody(UpdateChannelSchema, request);
 
-    const resolvedParams = yield* Effect.promise(() => params);
+    const { id } = yield* resolveParams(params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
 
     // Get channel to verify access
-    const channel = yield* channelRepo.getChannel(resolvedParams.id);
+    const channel = yield* channelRepo.getChannel(id);
 
     // Verify user has access to this channel's organization
     const isMemberResult = yield* orgRepo.isMember(user.id, channel.organizationId);
@@ -81,12 +78,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim() ?? null;
 
-    const updatedChannel = yield* channelRepo.updateChannel(resolvedParams.id, updateData);
+    const updatedChannel = yield* channelRepo.updateChannel(id, updateData);
     return updatedChannel;
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -96,16 +92,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    // Authenticate user
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    const resolvedParams = yield* Effect.promise(() => params);
+    const { id } = yield* resolveParams(params);
     const channelRepo = yield* ChannelRepository;
     const orgRepo = yield* OrganizationRepository;
 
     // Get channel to verify access
-    const channel = yield* channelRepo.getChannel(resolvedParams.id);
+    const channel = yield* channelRepo.getChannel(id);
 
     // Verify user is an owner of this channel's organization
     const userRole = yield* orgRepo.getUserRole(user.id, channel.organizationId);
@@ -118,11 +113,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       );
     }
 
-    yield* channelRepo.deleteChannel(resolvedParams.id);
+    yield* channelRepo.deleteChannel(id);
     return { message: 'Channel deleted successfully' };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }

@@ -1,7 +1,6 @@
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { mapErrorToApiResponse } from '@/lib/api-errors';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
 import { OrganizationRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
@@ -26,10 +25,7 @@ export async function GET(request: NextRequest) {
     return yield* orgRepo.getUserOrganizations(user.id);
   });
 
-  const FullLayer = createFullLayer();
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit, {
     cache: { maxAge: 60, staleWhileRevalidate: 120 },
   });
@@ -69,18 +65,6 @@ export async function POST(request: NextRequest) {
     return org;
   });
 
-  const FullLayer = createFullLayer();
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => NextResponse.json(data, { status: 201 }),
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithStatus(exit, 201);
 }

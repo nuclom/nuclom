@@ -11,6 +11,7 @@ import type { Effect } from 'effect';
 import { Either } from 'effect';
 import { useEffect, useState } from 'react';
 import { ApiError } from '@/lib/api';
+import { isTaggedError } from '@/lib/api-errors';
 import { organizationApiEffect, runClientEffect, videoApiEffect } from '@/lib/effect/client';
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
@@ -22,19 +23,6 @@ interface UseApiState<T> {
   data: T | null;
   loading: boolean;
   error: string | null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isTaggedError(error: unknown): error is { _tag: string; message: string; status?: number } {
-  return (
-    isRecord(error) &&
-    typeof error._tag === 'string' &&
-    typeof error.message === 'string' &&
-    (error.status === undefined || typeof error.status === 'number')
-  );
 }
 
 function getErrorMessage(error: unknown): string {
