@@ -9,7 +9,7 @@
  * - Videos: processingStatusEnum
  * - Comments: reactionTypeEnum
  * - Notifications: notificationTypeEnum
- * - Integrations: integrationProviderEnum, importStatusEnum, codeLinkTypeEnum
+ * - Integrations: integrationProviderEnum, importStatusEnum
  * - Billing: subscriptionStatusEnum, invoiceStatusEnum
  * - Knowledge Graph: decisionStatusEnum, participantRoleEnum, knowledgeNodeTypeEnum, decisionTypeEnum
  * - AI Insights: topicTrendEnum, actionItemStatusEnum, actionItemPriorityEnum
@@ -93,12 +93,6 @@ export const integrationProviderEnum = pgEnum('IntegrationProvider', [
 ]);
 
 export const importStatusEnum = pgEnum('ImportStatus', ['pending', 'downloading', 'processing', 'completed', 'failed']);
-
-// =============================================================================
-// GitHub Context Enums
-// =============================================================================
-
-export const codeLinkTypeEnum = pgEnum('CodeLinkType', ['pr', 'issue', 'commit', 'file', 'directory']);
 
 // =============================================================================
 // Billing Enums

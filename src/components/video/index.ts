@@ -4,9 +4,7 @@
  * Export all video-related components from this file.
  */
 
-export { AddCodeLinkDialog } from './add-code-link-dialog';
-export { CodeLinks } from './code-links';
-export { CodeLinksSection } from './code-links-section';
+export { ChapteredTranscript, type ChapteredTranscriptProps } from './chaptered-transcript';
 export { CreateQuoteCardDialog } from './create-quote-card-dialog';
 export { QuoteCards } from './quote-cards';
 export {

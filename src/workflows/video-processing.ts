@@ -85,13 +85,6 @@ interface AIAnalysisResult {
     startTime: number;
     endTime?: number;
   }>;
-  codeSnippets: Array<{
-    language: string;
-    code: string;
-    title?: string;
-    description?: string;
-    timestamp?: number;
-  }>;
 }
 
 interface DetectedMoment {
@@ -395,30 +388,6 @@ async function analyzeWithAI(
     required: ['chapters'],
   });
 
-  const codeSnippetsSchema = jsonSchema<{
-    snippets: Array<{ language: string; code: string; title?: string; description?: string; timestamp?: number }>;
-  }>({
-    type: 'object',
-    properties: {
-      snippets: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            language: { type: 'string', description: 'Programming language' },
-            code: { type: 'string', description: 'The code snippet' },
-            title: { type: 'string', description: 'Brief title' },
-            description: { type: 'string', description: 'What the code does' },
-            timestamp: { type: 'number', description: 'Approximate timestamp in seconds' },
-          },
-          required: ['language', 'code'],
-        },
-        description: 'Code snippets detected in the transcript',
-      },
-    },
-    required: ['snippets'],
-  });
-
   // Generate summary using Vercel AI SDK
   const summaryResult = await generateText({
     model,
@@ -481,31 +450,11 @@ async function analyzeWithAI(
     chapters = [];
   }
 
-  // Detect code snippets using structured output
-  let codeSnippets: AIAnalysisResult['codeSnippets'] = [];
-  try {
-    const codeResult = await generateObject({
-      model,
-      schema: codeSnippetsSchema,
-      system: `Detect any code snippets, commands, or technical code mentioned in this transcript. For each snippet include:
-- language: programming language
-- code: the code snippet
-- title: brief title
-- description: what the code does
-- timestamp: approximate timestamp in seconds`,
-      prompt: transcript.slice(0, 8000),
-    });
-    codeSnippets = Array.isArray(codeResult.object?.snippets) ? codeResult.object.snippets : [];
-  } catch {
-    codeSnippets = [];
-  }
-
   return {
     summary,
     tags,
     actionItems,
     chapters,
-    codeSnippets,
   };
 }
 
@@ -864,7 +813,7 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
 
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
-  const { videos, videoChapters, videoCodeSnippets } = await import('@/lib/db/schema');
+  const { videos, videoChapters } = await import('@/lib/db/schema');
 
   // Update video record
   await db
@@ -887,21 +836,6 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
         summary: chapter.summary,
         startTime: Math.floor(chapter.startTime),
         endTime: chapter.endTime ? Math.floor(chapter.endTime) : null,
-      })),
-    );
-  }
-
-  // Save code snippets
-  if (analysis.codeSnippets.length > 0) {
-    await db.delete(videoCodeSnippets).where(eq(videoCodeSnippets.videoId, videoId));
-    await db.insert(videoCodeSnippets).values(
-      analysis.codeSnippets.map((snippet) => ({
-        videoId,
-        language: snippet.language,
-        code: snippet.code,
-        title: snippet.title,
-        description: snippet.description,
-        timestamp: snippet.timestamp ? Math.floor(snippet.timestamp) : null,
       })),
     );
   }

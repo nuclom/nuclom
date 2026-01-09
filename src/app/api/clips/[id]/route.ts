@@ -4,7 +4,7 @@ import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-
 import { ClipRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateRequestBody } from '@/lib/validation';
-import { updateClipSchema } from '@/lib/validation/schemas';
+import { UpdateClipSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/clips/[id] - Get a single clip
@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id: clipId } = yield* Effect.promise(() => params);
 
     // Validate request body
-    const validatedData = yield* validateRequestBody(updateClipSchema, request);
+    const validatedData = yield* validateRequestBody(UpdateClipSchema, request);
 
     // Update clip
     const clipRepo = yield* ClipRepository;

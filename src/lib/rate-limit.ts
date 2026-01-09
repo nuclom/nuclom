@@ -98,12 +98,19 @@ export const BILLING_RATE_LIMIT: RateLimitConfig = {
 // Upstash Ratelimit Instances
 // =============================================================================
 
-// Cache rate limiter instances
-let apiRateLimiter: Ratelimit | null = null;
-let authRateLimiter: Ratelimit | null = null;
-let sensitiveRateLimiter: Ratelimit | null = null;
-let uploadRateLimiter: Ratelimit | null = null;
-let billingRateLimiter: Ratelimit | null = null;
+// Cache rate limiter instances by type
+const rateLimiterCache = new Map<string, Ratelimit | null>();
+
+// Rate limiter configurations by type
+const RATE_LIMITER_CONFIGS = {
+  api: API_RATE_LIMIT,
+  auth: AUTH_RATE_LIMIT,
+  sensitive: SENSITIVE_RATE_LIMIT,
+  upload: UPLOAD_RATE_LIMIT,
+  billing: BILLING_RATE_LIMIT,
+} as const;
+
+type RateLimiterType = keyof typeof RATE_LIMITER_CONFIGS;
 
 /**
  * Convert config to Upstash sliding window duration
@@ -120,71 +127,38 @@ function configToUpstashDuration(config: RateLimitConfig): `${number} s` | `${nu
 }
 
 /**
- * Get or create a rate limiter for the given config
+ * Get or create a rate limiter (lazily initialized)
  */
-function getRateLimiter(config: RateLimitConfig, prefix: string): Ratelimit | null {
+function getLimiter(type: RateLimiterType): Ratelimit | null {
+  const cached = rateLimiterCache.get(type);
+  if (cached !== undefined) {
+    return cached;
+  }
+
   const redis = createRedisClient();
   if (!redis) {
+    rateLimiterCache.set(type, null);
     return null;
   }
 
-  return new Ratelimit({
+  const config = RATE_LIMITER_CONFIGS[type];
+  const limiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(config.maxRequests, configToUpstashDuration(config)),
-    prefix: `ratelimit:${prefix}`,
+    prefix: `ratelimit:${type}`,
     analytics: true,
   });
+
+  rateLimiterCache.set(type, limiter);
+  return limiter;
 }
 
-/**
- * Get the API rate limiter (lazily initialized)
- */
-function getApiRateLimiter(): Ratelimit | null {
-  if (apiRateLimiter === null) {
-    apiRateLimiter = getRateLimiter(API_RATE_LIMIT, 'api');
-  }
-  return apiRateLimiter;
-}
-
-/**
- * Get the auth rate limiter (lazily initialized)
- */
-function getAuthRateLimiter(): Ratelimit | null {
-  if (authRateLimiter === null) {
-    authRateLimiter = getRateLimiter(AUTH_RATE_LIMIT, 'auth');
-  }
-  return authRateLimiter;
-}
-
-/**
- * Get the sensitive rate limiter (lazily initialized)
- */
-function getSensitiveRateLimiter(): Ratelimit | null {
-  if (sensitiveRateLimiter === null) {
-    sensitiveRateLimiter = getRateLimiter(SENSITIVE_RATE_LIMIT, 'sensitive');
-  }
-  return sensitiveRateLimiter;
-}
-
-/**
- * Get the upload rate limiter (lazily initialized)
- */
-function getUploadRateLimiter(): Ratelimit | null {
-  if (uploadRateLimiter === null) {
-    uploadRateLimiter = getRateLimiter(UPLOAD_RATE_LIMIT, 'upload');
-  }
-  return uploadRateLimiter;
-}
-
-/**
- * Get the billing rate limiter (lazily initialized)
- */
-function getBillingRateLimiter(): Ratelimit | null {
-  if (billingRateLimiter === null) {
-    billingRateLimiter = getRateLimiter(BILLING_RATE_LIMIT, 'billing');
-  }
-  return billingRateLimiter;
-}
+// Convenience getters for specific rate limiters
+const getApiRateLimiter = () => getLimiter('api');
+const getAuthRateLimiter = () => getLimiter('auth');
+const getSensitiveRateLimiter = () => getLimiter('sensitive');
+const getUploadRateLimiter = () => getLimiter('upload');
+const getBillingRateLimiter = () => getLimiter('billing');
 
 // =============================================================================
 // Rate Limit Functions

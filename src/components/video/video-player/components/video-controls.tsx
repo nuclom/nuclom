@@ -6,6 +6,8 @@ import {
   Keyboard,
   Maximize,
   Minimize,
+  Minimize2,
+  MonitorPlay,
   Pause,
   PictureInPicture2,
   Play,
@@ -42,6 +44,7 @@ interface VideoControlsProps {
   isPiP: boolean;
   pipSupported: boolean;
   isLooping: boolean;
+  isTheaterMode: boolean;
   chapters: VideoChapter[];
   currentChapter: VideoChapter | null;
   captionsEnabled: boolean;
@@ -57,6 +60,7 @@ interface VideoControlsProps {
   onToggleFullscreen: () => void;
   onTogglePiP: () => void;
   onToggleLoop: () => void;
+  onToggleTheaterMode: () => void;
   onSelectCaptionTrack: (trackCode: string | null) => void;
   onShowKeyboardHelp: () => void;
 }
@@ -72,6 +76,7 @@ export function VideoControls({
   isPiP,
   pipSupported,
   isLooping,
+  isTheaterMode,
   chapters,
   currentChapter,
   captionsEnabled,
@@ -87,6 +92,7 @@ export function VideoControls({
   onToggleFullscreen,
   onTogglePiP,
   onToggleLoop,
+  onToggleTheaterMode,
   onSelectCaptionTrack,
   onShowKeyboardHelp,
 }: VideoControlsProps) {
@@ -279,6 +285,18 @@ export function VideoControls({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+
+        {/* Theater Mode */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleTheaterMode}
+          className={cn('text-white hover:bg-white/20', isTheaterMode && 'bg-white/20')}
+          aria-label={isTheaterMode ? 'Exit theater mode' : 'Enter theater mode'}
+          title="Theater mode (T)"
+        >
+          {isTheaterMode ? <Minimize2 className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
+        </Button>
 
         {/* Picture-in-Picture */}
         {pipSupported && (

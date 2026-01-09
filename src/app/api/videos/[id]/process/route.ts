@@ -82,7 +82,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         tags: result.tags,
         actionItems: result.actionItems,
         chapters: result.chapters.length,
-        codeSnippets: result.codeSnippets.length,
       };
     }
 
@@ -96,7 +95,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       tags: result.tags,
       actionItems: result.actionItems,
       chapters: result.chapters.length,
-      codeSnippets: result.codeSnippets.length,
     };
   });
 

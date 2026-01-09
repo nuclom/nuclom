@@ -18,11 +18,10 @@ import {
   type TranscriptSegment,
   users,
   videoChapters,
-  videoCodeSnippets,
   videos,
 } from '@/lib/db/schema';
 import { getAppUrl } from '@/lib/env/server';
-import { type ActionItemResult, AI, type ChapterResult, type CodeSnippetResult } from './ai';
+import { type ActionItemResult, AI, type ChapterResult } from './ai';
 import { Database } from './database';
 import { EmailNotifications } from './email-notifications';
 import { Transcription } from './transcription';
@@ -50,7 +49,6 @@ export interface AIProcessingResult {
   readonly tags: ReadonlyArray<string>;
   readonly actionItems: ReadonlyArray<ActionItem>;
   readonly chapters: ReadonlyArray<ChapterResult>;
-  readonly codeSnippets: ReadonlyArray<CodeSnippetResult>;
 }
 
 export interface ProcessingStatusUpdate {
@@ -254,38 +252,6 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
         }),
     });
 
-  const saveCodeSnippets = (
-    videoId: string,
-    snippets: ReadonlyArray<CodeSnippetResult>,
-  ): Effect.Effect<void, VideoAIProcessingError> =>
-    Effect.tryPromise({
-      try: async () => {
-        // Delete existing code snippets
-        await db.delete(videoCodeSnippets).where(eq(videoCodeSnippets.videoId, videoId));
-
-        // Insert new code snippets
-        if (snippets.length > 0) {
-          await db.insert(videoCodeSnippets).values(
-            snippets.map((snippet) => ({
-              videoId,
-              language: snippet.language,
-              code: snippet.code,
-              title: snippet.title,
-              description: snippet.description,
-              timestamp: snippet.timestamp ? Math.floor(snippet.timestamp) : null,
-            })),
-          );
-        }
-      },
-      catch: (e) =>
-        new VideoAIProcessingError({
-          message: 'Failed to save code snippets',
-          stage: 'analyzing',
-          videoId,
-          cause: e,
-        }),
-    });
-
   const sendVideoProcessingNotification = (
     videoId: string,
     status: 'completed' | 'failed',
@@ -380,7 +346,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
       yield* updateProcessingStatus(videoId, 'analyzing');
 
       // Run AI analysis in parallel
-      const [summaryResult, tagsResult, actionItemsResult, chaptersResult, codeSnippetsResult] = yield* Effect.all(
+      const [summaryResult, tagsResult, actionItemsResult, chaptersResult] = yield* Effect.all(
         [
           pipe(
             ai.generateVideoSummary(transcript),
@@ -401,10 +367,6 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
             ai.generateChapters(segments, videoTitle),
             Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<ChapterResult>)),
           ),
-          pipe(
-            ai.detectCodeSnippets(transcript, segments),
-            Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<CodeSnippetResult>)),
-          ),
         ],
         { concurrency: 'unbounded' },
       );
@@ -418,11 +380,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
 
       // Save all results to database
       yield* Effect.all(
-        [
-          saveAIAnalysis(videoId, summaryResult, tagsResult, actionItems),
-          saveChapters(videoId, chaptersResult),
-          saveCodeSnippets(videoId, codeSnippetsResult),
-        ],
+        [saveAIAnalysis(videoId, summaryResult, tagsResult, actionItems), saveChapters(videoId, chaptersResult)],
         { concurrency: 'unbounded' },
       );
 
@@ -442,7 +400,6 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
         tags: tagsResult,
         actionItems,
         chapters: chaptersResult,
-        codeSnippets: codeSnippetsResult,
       };
     }).pipe(
       Effect.catchAll((error) =>

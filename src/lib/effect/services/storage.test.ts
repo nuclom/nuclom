@@ -51,7 +51,18 @@ describe('Storage Service', () => {
           : Effect.fail(new PresignedUrlError({ message: 'Storage not configured' })),
       ),
 
-    getPublicUrl: vi.fn().mockImplementation((key) => `https://storage.example.com/${key}`),
+    generatePresignedDownloadUrl: vi
+      .fn()
+      .mockImplementation((key, expiresIn) =>
+        isConfigured
+          ? Effect.succeed(`https://storage.example.com/download/${key}?expires=${expiresIn ?? 3600}`)
+          : Effect.fail(new PresignedUrlError({ message: 'Storage not configured' })),
+      ),
+
+    extractKeyFromUrl: vi.fn().mockImplementation((url) => {
+      const parts = url.split('.r2.cloudflarestorage.com/');
+      return parts.length === 2 ? parts[1] : null;
+    }),
 
     generateFileKey: vi.fn().mockImplementation((organizationId, filename, type = 'video') => {
       const timestamp = Date.now();
@@ -209,19 +220,50 @@ describe('Storage Service', () => {
       });
     });
 
-    describe('getPublicUrl', () => {
-      it('should return the public URL for a file', async () => {
+    describe('generatePresignedDownloadUrl', () => {
+      it('should generate a presigned download URL', async () => {
         const mockService = createMockStorageService();
         const testLayer = createTestLayer(mockService);
 
         const program = Effect.gen(function* () {
           const storage = yield* Storage;
-          return storage.getPublicUrl('test/file.mp4');
+          return yield* storage.generatePresignedDownloadUrl('test/file.mp4', 3600);
         });
 
         const result = await Effect.runPromise(Effect.provide(program, testLayer));
 
         expect(result).toContain('test/file.mp4');
+        expect(result).toContain('download');
+      });
+    });
+
+    describe('extractKeyFromUrl', () => {
+      it('should extract the key from a valid R2 URL', async () => {
+        const mockService = createMockStorageService();
+        const testLayer = createTestLayer(mockService);
+
+        const program = Effect.gen(function* () {
+          const storage = yield* Storage;
+          return storage.extractKeyFromUrl('https://bucket.account.r2.cloudflarestorage.com/org-123/videos/file.mp4');
+        });
+
+        const result = await Effect.runPromise(Effect.provide(program, testLayer));
+
+        expect(result).toBe('org-123/videos/file.mp4');
+      });
+
+      it('should return null for invalid URLs', async () => {
+        const mockService = createMockStorageService();
+        const testLayer = createTestLayer(mockService);
+
+        const program = Effect.gen(function* () {
+          const storage = yield* Storage;
+          return storage.extractKeyFromUrl('https://example.com/file.mp4');
+        });
+
+        const result = await Effect.runPromise(Effect.provide(program, testLayer));
+
+        expect(result).toBeNull();
       });
     });
 

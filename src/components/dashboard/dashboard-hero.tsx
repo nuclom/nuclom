@@ -39,13 +39,13 @@ export function DashboardHero({ organization, userName }: DashboardHeroProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button asChild size="default" className="sm:size-lg w-full sm:w-auto">
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <Link href={`/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Video
             </Link>
           </Button>
-          <Button variant="outline" size="default" className="sm:size-lg w-full sm:w-auto" asChild>
+          <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
             <Link href={`/${organization}/record`}>
               <div className="mr-2 h-4 w-4 rounded-full bg-red-500 animate-pulse" />
               Record

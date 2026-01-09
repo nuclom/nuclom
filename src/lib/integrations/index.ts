@@ -6,7 +6,6 @@
 
 // Layer builders
 export {
-  GitHubIntegrationLayer,
   GoogleIntegrationLayer,
   getIntegrationLayer,
   type IntegrationProvider,

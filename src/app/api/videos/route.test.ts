@@ -72,7 +72,6 @@ describe('Videos API Route', () => {
       deleteVideo: vi.fn().mockImplementation(() => Effect.void),
       cleanupExpiredVideos: vi.fn().mockImplementation(() => Effect.succeed(0)),
       getVideoChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
-      getVideoCodeSnippets: vi.fn().mockImplementation(() => Effect.succeed([])),
       searchVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
       getVideosByAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
       getChannelVideosWithAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),

@@ -16,6 +16,7 @@ interface UseKeyboardShortcutsOptions {
   togglePictureInPicture: () => void;
   toggleLoop: () => void;
   toggleCaptions: () => void;
+  toggleTheaterMode: () => void;
   setShowKeyboardHelp: (show: boolean | ((prev: boolean) => boolean)) => void;
 }
 
@@ -33,6 +34,7 @@ export function useKeyboardShortcuts({
   togglePictureInPicture,
   toggleLoop,
   toggleCaptions,
+  toggleTheaterMode,
   setShowKeyboardHelp,
 }: UseKeyboardShortcutsOptions) {
   useEffect(() => {
@@ -90,6 +92,10 @@ export function useKeyboardShortcuts({
           e.preventDefault();
           toggleLoop();
           break;
+        case 't':
+          e.preventDefault();
+          toggleTheaterMode();
+          break;
         case '?':
           e.preventDefault();
           setShowKeyboardHelp((prev: boolean) => !prev);
@@ -131,6 +137,7 @@ export function useKeyboardShortcuts({
     togglePictureInPicture,
     toggleLoop,
     toggleCaptions,
+    toggleTheaterMode,
     setShowKeyboardHelp,
     seek,
     volume,

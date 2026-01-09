@@ -1,23 +1,47 @@
-import { Cause, Effect, Exit } from 'effect';
+import { Cause, type Context, Effect, Exit } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import { mapErrorToApiResponse } from '@/lib/api-errors';
 import { createFullLayer, handleEffectExitWithStatus } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { VideoRepository } from '@/lib/effect';
+import { Storage, VideoRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import {
-  createVideoSchema,
-  getVideosSchema,
+  CreateVideoSchema,
+  GetVideosSchema,
   sanitizeDescription,
   sanitizeTitle,
   validateQueryParams,
   validateRequestBody,
 } from '@/lib/validation';
 
-// =============================================================================
-// GET /api/videos - Fetch paginated videos for an organization
-// =============================================================================
+/**
+ * Generate presigned thumbnail URL from stored URL/key
+ */
+function generatePresignedThumbnailUrl(
+  storage: Context.Tag.Service<typeof Storage>,
+  thumbnailUrl: string | null,
+): Effect.Effect<string | null, never, never> {
+  if (!thumbnailUrl) return Effect.succeed(null);
 
+  return Effect.gen(function* () {
+    // Extract key from full URL if needed, otherwise use as-is
+    const thumbnailKey = thumbnailUrl.includes('.r2.cloudflarestorage.com/')
+      ? storage.extractKeyFromUrl(thumbnailUrl)
+      : thumbnailUrl;
+
+    if (!thumbnailKey) return null;
+
+    return yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
+  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+}
+
+/**
+ * @summary List videos
+ * @description Get a paginated list of videos for an organization
+ * @response 200 PaginatedVideos - List of videos with pagination
+ * @response 400 - Invalid request parameters
+ * @response 401 - Unauthorized
+ */
 export async function GET(request: NextRequest) {
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -25,11 +49,31 @@ export async function GET(request: NextRequest) {
     yield* authService.getSession(request.headers);
 
     // Validate query params with Zod schema
-    const { organizationId, page, limit } = yield* validateQueryParams(getVideosSchema, request.url);
+    const { organizationId, page, limit } = yield* validateQueryParams(GetVideosSchema, request.url);
 
     // Fetch videos using repository
     const videoRepo = yield* VideoRepository;
-    return yield* videoRepo.getVideos(organizationId, page, limit);
+    const videosData = yield* videoRepo.getVideos(organizationId, page, limit);
+
+    // Generate presigned thumbnail URLs for all videos
+    const storage = yield* Storage;
+    const videosWithPresignedUrls = yield* Effect.all(
+      videosData.data.map((video) =>
+        Effect.gen(function* () {
+          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, video.thumbnailUrl);
+          return {
+            ...video,
+            thumbnailUrl: presignedThumbnailUrl,
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
+    return {
+      data: videosWithPresignedUrls,
+      pagination: videosData.pagination,
+    };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());
@@ -53,10 +97,13 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// =============================================================================
-// POST /api/videos - Create a new video
-// =============================================================================
-
+/**
+ * @summary Create video
+ * @description Create a new video entry with metadata
+ * @response 201 Video - Video created successfully
+ * @response 400 - Invalid request body
+ * @response 401 - Unauthorized
+ */
 export async function POST(request: NextRequest) {
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -64,7 +111,7 @@ export async function POST(request: NextRequest) {
     const { user } = yield* authService.getSession(request.headers);
 
     // Validate request body with Zod schema
-    const validatedData = yield* validateRequestBody(createVideoSchema, request);
+    const validatedData = yield* validateRequestBody(CreateVideoSchema, request);
 
     // Sanitize user-provided content to prevent XSS
     const sanitizedTitle = sanitizeTitle(validatedData.title);

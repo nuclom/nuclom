@@ -4,7 +4,7 @@ import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-
 import { ClipRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateRequestBody } from '@/lib/validation';
-import { updateHighlightReelSchema } from '@/lib/validation/schemas';
+import { UpdateHighlightReelSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/highlight-reels/[id] - Get a single highlight reel
@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id: reelId } = yield* Effect.promise(() => params);
 
     // Validate request body
-    const validatedData = yield* validateRequestBody(updateHighlightReelSchema, request);
+    const validatedData = yield* validateRequestBody(UpdateHighlightReelSchema, request);
 
     // Update highlight reel
     const clipRepo = yield* ClipRepository;

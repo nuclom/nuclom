@@ -7,7 +7,6 @@
  * - collections: Video collections/series
  * - videoProgresses: User watch progress
  * - videoChapters: Video chapter markers
- * - videoCodeSnippets: Code snippets in videos
  */
 
 import { relations, sql } from 'drizzle-orm';
@@ -237,29 +236,6 @@ export const videoChapters = pgTable(
 );
 
 // =============================================================================
-// Video Code Snippets
-// =============================================================================
-
-export const videoCodeSnippets = pgTable(
-  'video_code_snippets',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    videoId: text('video_id')
-      .notNull()
-      .references(() => videos.id, { onDelete: 'cascade' }),
-    language: text('language'),
-    code: text('code').notNull(),
-    title: text('title'),
-    description: text('description'),
-    timestamp: integer('timestamp'), // seconds in video
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-  },
-  (table) => [index('video_code_snippets_video_id_idx').on(table.videoId)],
-);
-
-// =============================================================================
 // Watch Later
 // =============================================================================
 
@@ -332,8 +308,6 @@ export type VideoProgress = typeof videoProgresses.$inferSelect;
 export type NewVideoProgress = typeof videoProgresses.$inferInsert;
 export type VideoChapter = typeof videoChapters.$inferSelect;
 export type NewVideoChapter = typeof videoChapters.$inferInsert;
-export type VideoCodeSnippet = typeof videoCodeSnippets.$inferSelect;
-export type NewVideoCodeSnippet = typeof videoCodeSnippets.$inferInsert;
 export type WatchLater = typeof watchLater.$inferSelect;
 export type NewWatchLater = typeof watchLater.$inferInsert;
 export type UserPresence = typeof userPresence.$inferSelect;
@@ -346,7 +320,6 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 import { aiActionItems } from './ai-insights';
 // Import these lazily to avoid circular dependencies
 import { comments } from './comments';
-import { codeLinks } from './integrations';
 import { decisions } from './knowledge';
 import { transcriptChunks } from './search';
 import { speakerSegments, videoSpeakers } from './speakers';
@@ -371,8 +344,6 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   comments: many(comments),
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
-  codeSnippets: many(videoCodeSnippets),
-  codeLinks: many(codeLinks),
   decisions: many(decisions),
   speakers: many(videoSpeakers),
   speakerSegments: many(speakerSegments),
@@ -383,13 +354,6 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
   video: one(videos, {
     fields: [videoChapters.videoId],
-    references: [videos.id],
-  }),
-}));
-
-export const videoCodeSnippetsRelations = relations(videoCodeSnippets, ({ one }) => ({
-  video: one(videos, {
-    fields: [videoCodeSnippets.videoId],
     references: [videos.id],
   }),
 }));

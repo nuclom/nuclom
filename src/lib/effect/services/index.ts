@@ -25,13 +25,12 @@ export {
   logVideoUploaded,
 } from './activity-feed-repository';
 
-export type { ActionItemResult, AIServiceInterface, ChapterResult, CodeSnippetResult, VideoSummary } from './ai';
+export type { ActionItemResult, AIServiceInterface, ChapterResult, VideoSummary } from './ai';
 // AI Service
 export {
   AI,
   AILive,
   createSummaryStream,
-  detectCodeSnippets,
   extractActionItems,
   extractActionItemsWithTimestamps,
   generateChapters,
@@ -43,7 +42,6 @@ export type {
   ActionItemsResult,
   AIStructuredServiceInterface,
   ChaptersResult,
-  CodeSnippetsResult,
   VideoSummary as StructuredVideoSummary,
   VideoTagsResult,
 } from './ai-structured';
@@ -52,8 +50,6 @@ export {
   AIStructured,
   AIStructuredLive,
   ChaptersSchema,
-  CodeSnippetsSchema,
-  detectStructuredCodeSnippets,
   extractStructuredActionItems,
   generateStructuredChapters,
   generateStructuredVideoSummary,
@@ -177,34 +173,6 @@ export {
   updateHighlightReel,
   updateQuoteCard,
 } from './clip-repository';
-// Code Links Repository
-export type {
-  CodeLinksByArtifact,
-  CodeLinksRepositoryService,
-  CodeLinkWithVideo,
-  CreateCodeLinkInput,
-  UpdateCodeLinkInput,
-} from './code-links-repository';
-export {
-  CodeLinksRepository,
-  CodeLinksRepositoryLive,
-  createCodeLink,
-  deleteCodeLink,
-  getCodeLinksByArtifact,
-  getCodeLinksForVideo,
-} from './code-links-repository';
-// Code Reference Detector
-export type {
-  CodeReferenceDetectorConfig,
-  CodeReferenceDetectorInterface,
-  DetectionResult,
-} from './code-reference-detector';
-export {
-  CodeReferenceDetector,
-  CodeReferenceDetectorLive,
-  detectCodeRefsInText,
-  detectCodeRefsInTranscript,
-} from './code-reference-detector';
 // Comment Reactions Service
 export type {
   CommentReactionsServiceInterface,
@@ -306,32 +274,6 @@ export {
   generateEmbeddings,
   processTranscript,
 } from './embedding';
-// GitHub Service
-export type {
-  GitHubCommit,
-  GitHubConfig,
-  GitHubFile,
-  GitHubIssue,
-  GitHubPullRequest,
-  GitHubRepositoriesResponse,
-  GitHubRepository,
-  GitHubServiceInterface,
-  GitHubTokenResponse,
-  GitHubUserInfo,
-} from './github';
-export {
-  exchangeGitHubCodeForToken,
-  GitHub,
-  GitHubLive,
-  getGitHubAuthorizationUrl,
-  getGitHubCommit,
-  getGitHubIssue,
-  getGitHubPullRequest,
-  getGitHubRepository,
-  getGitHubUserInfo,
-  listGitHubRepositories,
-  refreshGitHubAccessToken,
-} from './github';
 // Google Meet Service
 export type {
   GoogleConfig,
@@ -664,9 +606,10 @@ export type { StorageConfig, StorageService, UploadOptions, UploadProgress, Uplo
 // Storage Service
 export {
   deleteFile,
+  extractKeyFromUrl,
   generateFileKey,
+  generatePresignedDownloadUrl,
   generatePresignedUploadUrl,
-  getPublicUrl,
   Storage,
   StorageLive,
   uploadFile,
@@ -754,10 +697,8 @@ export type { CreateVideoInput, UpdateVideoInput, VideoRepositoryService } from 
 export {
   createVideo,
   deleteVideo,
-  deleteVideoRecord,
   getVideo,
   getVideoChapters,
-  getVideoCodeSnippets,
   getVideos,
   updateVideo,
   VideoRepository,

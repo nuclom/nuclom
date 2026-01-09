@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
 import { logger } from '@/lib/client-logger';
-import { resetPasswordSchema, safeParse } from '@/lib/validation';
+import { ResetPasswordSchema, safeParse } from '@/lib/validation';
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -57,7 +57,7 @@ export function ResetPasswordForm() {
     setError(null);
 
     // Validate using schema
-    const result = safeParse(resetPasswordSchema, { password, confirmPassword, token });
+    const result = safeParse(ResetPasswordSchema, { password, confirmPassword, token });
     if (!result.success) {
       const firstError = result.error.issues[0];
       setError(firstError?.message || 'Please check your input');

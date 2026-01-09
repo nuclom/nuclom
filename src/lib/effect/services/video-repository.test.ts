@@ -97,9 +97,6 @@ describe('VideoRepository Types', () => {
         getVideoChapters: () => {
           throw new Error('Mock');
         },
-        getVideoCodeSnippets: () => {
-          throw new Error('Mock');
-        },
         searchVideos: () => {
           throw new Error('Mock');
         },
@@ -124,7 +121,6 @@ describe('VideoRepository Types', () => {
       expect(mockService.deleteVideo).toBeDefined();
       expect(mockService.cleanupExpiredVideos).toBeDefined();
       expect(mockService.getVideoChapters).toBeDefined();
-      expect(mockService.getVideoCodeSnippets).toBeDefined();
       expect(mockService.searchVideos).toBeDefined();
     });
   });

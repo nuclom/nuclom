@@ -5,7 +5,13 @@
  * All operations return Effect types with proper error handling.
  */
 
-import { DeleteObjectCommand, PutObjectCommand, type PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  type PutObjectCommandInput,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Config, Context, Effect, Layer, Option, pipe } from 'effect';
@@ -77,9 +83,15 @@ export interface StorageService {
   ) => Effect.Effect<string, PresignedUrlError>;
 
   /**
-   * Get the public URL for a file
+   * Generate a presigned URL for downloading/streaming a file
    */
-  readonly getPublicUrl: (key: string) => string;
+  readonly generatePresignedDownloadUrl: (key: string, expiresIn?: number) => Effect.Effect<string, PresignedUrlError>;
+
+  /**
+   * Extract the R2 key from a stored URL
+   * Returns null if the URL format is invalid
+   */
+  readonly extractKeyFromUrl: (url: string) => string | null;
 
   /**
    * Generate a unique file key
@@ -152,11 +164,16 @@ const makeStorageService = Effect.gen(function* () {
     return Effect.succeed({ client: r2Client, bucket: bucketName, account: accountId });
   };
 
-  const getPublicUrl = (key: string): string => {
-    if (!isConfigured || !bucketName || !accountId) {
-      throw new Error('R2 storage not configured');
+  /**
+   * Extract the R2 key from a stored URL
+   * URL format: https://{bucket}.{accountId}.r2.cloudflarestorage.com/{key}
+   */
+  const extractKeyFromUrl = (url: string): string | null => {
+    const parts = url.split('.r2.cloudflarestorage.com/');
+    if (parts.length !== 2) {
+      return null;
     }
-    return `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`;
+    return parts[1];
   };
 
   const generateFileKey = (
@@ -340,12 +357,43 @@ const makeStorageService = Effect.gen(function* () {
       ),
     );
 
+  const generatePresignedDownloadUrl = (
+    key: string,
+    expiresIn = 3600, // 1 hour default
+  ): Effect.Effect<string, PresignedUrlError> =>
+    pipe(
+      ensureConfigured(),
+      Effect.mapError(
+        (e) =>
+          new PresignedUrlError({
+            message: e.message,
+          }),
+      ),
+      Effect.flatMap(({ client, bucket }) =>
+        Effect.tryPromise({
+          try: async () => {
+            const command = new GetObjectCommand({
+              Bucket: bucket,
+              Key: key,
+            });
+            return await getSignedUrl(client, command, { expiresIn });
+          },
+          catch: (error) =>
+            new PresignedUrlError({
+              message: `Failed to generate presigned download URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              cause: error,
+            }),
+        }),
+      ),
+    );
+
   return {
     uploadFile,
     uploadLargeFile,
     deleteFile,
     generatePresignedUploadUrl,
-    getPublicUrl,
+    generatePresignedDownloadUrl,
+    extractKeyFromUrl,
     generateFileKey,
     isConfigured,
   } satisfies StorageService;
@@ -411,12 +459,24 @@ export const generatePresignedUploadUrl = (
   });
 
 /**
- * Get public URL for a file
+ * Generate a presigned download URL for streaming/viewing files
  */
-export const getPublicUrl = (key: string): Effect.Effect<string, never, Storage> =>
+export const generatePresignedDownloadUrl = (
+  key: string,
+  expiresIn?: number,
+): Effect.Effect<string, PresignedUrlError, Storage> =>
   Effect.gen(function* () {
     const storage = yield* Storage;
-    return storage.getPublicUrl(key);
+    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
+  });
+
+/**
+ * Extract R2 key from a stored URL
+ */
+export const extractKeyFromUrl = (url: string): Effect.Effect<string | null, never, Storage> =>
+  Effect.gen(function* () {
+    const storage = yield* Storage;
+    return storage.extractKeyFromUrl(url);
   });
 
 /**

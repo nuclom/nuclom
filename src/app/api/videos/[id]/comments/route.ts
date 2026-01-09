@@ -1,13 +1,12 @@
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
 import { CommentRepository, NotificationRepository, VideoRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { Database } from '@/lib/effect/services/database';
 import { EmailNotifications } from '@/lib/effect/services/email-notifications';
 import { getAppUrl } from '@/lib/env/server';
-import type { ApiResponse } from '@/lib/types';
-import { createCommentSchema, sanitizeComment, validateRequestBody } from '@/lib/validation';
+import { CreateCommentSchema, sanitizeComment, validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/comments - List all comments for a video
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { id: videoId } = yield* Effect.promise(() => params);
 
     // Validate request body with Zod schema
-    const validatedData = yield* validateRequestBody(createCommentSchema, request);
+    const validatedData = yield* validateRequestBody(CreateCommentSchema, request);
 
     // Sanitize comment content to prevent XSS
     const sanitizedContent = sanitizeComment(validatedData.content);
@@ -147,26 +146,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    return newComment;
+    return { success: true, data: newComment };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response, { status: 201 });
-    },
-  });
+  return handleEffectExitWithStatus(exit, 201);
 }

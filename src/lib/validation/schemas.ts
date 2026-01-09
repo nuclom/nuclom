@@ -264,36 +264,6 @@ export const CreateChapterSchema = BaseChapterSchema.pipe(
 );
 
 // =============================================================================
-// Video Code Snippet Schemas
-// =============================================================================
-
-export const CreateCodeSnippetSchema = Schema.Struct({
-  code: Schema.String.pipe(
-    Schema.minLength(1, { message: () => 'Code is required' }),
-    Schema.maxLength(10000, { message: () => 'Code must be 10000 characters or less' }),
-  ),
-  language: Schema.optionalWith(
-    Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(50, { message: () => 'Language must be 50 characters or less' })),
-    ),
-    { nullable: true },
-  ),
-  title: Schema.optionalWith(
-    Schema.NullOr(Schema.Trim.pipe(Schema.maxLength(100, { message: () => 'Title must be 100 characters or less' }))),
-    { nullable: true },
-  ),
-  description: Schema.optionalWith(
-    Schema.NullOr(
-      Schema.Trim.pipe(Schema.maxLength(500, { message: () => 'Description must be 500 characters or less' })),
-    ),
-    { nullable: true },
-  ),
-  timestamp: Schema.optionalWith(Schema.NullOr(Schema.Number.pipe(Schema.int(), Schema.nonNegative())), {
-    nullable: true,
-  }),
-});
-
-// =============================================================================
 // Series Schemas
 // =============================================================================
 
@@ -654,7 +624,6 @@ export type VideoUploadInput = typeof VideoUploadSchema.Type;
 export type GetVideosInput = typeof GetVideosSchema.Type;
 
 export type CreateChapterInput = typeof CreateChapterSchema.Type;
-export type CreateCodeSnippetInput = typeof CreateCodeSnippetSchema.Type;
 
 export type CreateSeriesInput = typeof CreateSeriesSchema.Type;
 export type UpdateSeriesInput = typeof UpdateSeriesSchema.Type;
@@ -676,77 +645,3 @@ export type UpdateNotificationInput = typeof UpdateNotificationSchema.Type;
 export type CreateCheckoutInput = typeof CreateCheckoutSchema.Type;
 export type ImportMeetingInput = typeof ImportMeetingSchema.Type;
 export type AnalyzeVideoInput = typeof AnalyzeVideoSchema.Type;
-
-// =============================================================================
-// Legacy aliases for backwards compatibility (lowercase names)
-// =============================================================================
-
-// Common field validators
-export const emailSchema = EmailSchema;
-export const passwordSchema = PasswordSchema;
-export const nameSchema = NameSchema;
-export const slugSchema = SlugSchema;
-export const urlSchema = UrlOptionalSchema;
-export const descriptionSchema = DescriptionOptionalSchema;
-
-// Common schemas
-export const uuidSchema = UuidSchema;
-export const paginationSchema = PaginationSchema;
-export const timestampSchema = TimestampFormatSchema;
-
-// Authentication schemas
-export const loginSchema = LoginSchema;
-export const registerSchema = RegisterSchema;
-export const forgotPasswordSchema = ForgotPasswordSchema;
-export const resetPasswordSchema = ResetPasswordSchema;
-export const changePasswordSchema = ChangePasswordSchema;
-
-// Profile schemas
-export const updateProfileSchema = UpdateProfileSchema;
-
-// Search & contact schemas
-export const searchSchema = SearchSchema;
-export const contactSchema = ContactSchema;
-export const inviteMemberSchema = InviteMemberSchema;
-
-// Video schemas
-export const createVideoSchema = CreateVideoSchema;
-export const updateVideoSchema = UpdateVideoSchema;
-export const videoUploadSchema = VideoUploadSchema;
-export const getVideosSchema = GetVideosSchema;
-export const createChapterSchema = CreateChapterSchema;
-export const createCodeSnippetSchema = CreateCodeSnippetSchema;
-
-// Series schemas
-export const createSeriesSchema = CreateSeriesSchema;
-export const updateSeriesSchema = UpdateSeriesSchema;
-export const getSeriesSchema = GetSeriesSchema;
-export const addVideoToSeriesSchema = AddVideoToSeriesSchema;
-export const reorderSeriesVideosSchema = ReorderSeriesVideosSchema;
-
-// Comment schemas
-export const createCommentSchema = CreateCommentSchema;
-export const updateCommentSchema = UpdateCommentSchema;
-
-// Organization schemas
-export const createOrganizationSchema = CreateOrganizationSchema;
-export const updateOrganizationSchema = UpdateOrganizationSchema;
-export const createInvitationSchema = CreateInvitationSchema;
-
-// Progress schemas
-export const updateProgressSchema = UpdateProgressSchema;
-export const updateSeriesProgressSchema = UpdateSeriesProgressSchema;
-export const updateNotificationSchema = UpdateNotificationSchema;
-
-// Billing schemas
-export const createCheckoutSchema = CreateCheckoutSchema;
-export const importMeetingSchema = ImportMeetingSchema;
-export const analyzeVideoSchema = AnalyzeVideoSchema;
-
-// Clip schemas
-export const createClipSchema = CreateClipSchema;
-export const updateClipSchema = UpdateClipSchema;
-export const createHighlightReelSchema = CreateHighlightReelSchema;
-export const updateHighlightReelSchema = UpdateHighlightReelSchema;
-export const createQuoteCardSchema = CreateQuoteCardSchema;
-export const updateQuoteCardSchema = UpdateQuoteCardSchema;

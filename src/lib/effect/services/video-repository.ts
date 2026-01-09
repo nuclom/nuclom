@@ -16,7 +16,6 @@ import {
   type TranscriptSegment,
   users,
   videoChapters,
-  videoCodeSnippets,
   videos,
 } from '@/lib/db/schema';
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
@@ -145,13 +144,6 @@ export interface VideoRepositoryService {
    * Get video chapters
    */
   readonly getVideoChapters: (videoId: string) => Effect.Effect<(typeof videoChapters.$inferSelect)[], DatabaseError>;
-
-  /**
-   * Get video code snippets
-   */
-  readonly getVideoCodeSnippets: (
-    videoId: string,
-  ) => Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError>;
 
   /**
    * Search videos with full-text search and filters
@@ -886,25 +878,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const getVideoCodeSnippets = (
-    videoId: string,
-  ): Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        return await db
-          .select()
-          .from(videoCodeSnippets)
-          .where(eq(videoCodeSnippets.videoId, videoId))
-          .orderBy(asc(videoCodeSnippets.timestamp));
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video code snippets',
-          operation: 'getVideoCodeSnippets',
-          cause: error,
-        }),
-    });
-
   const getVideosByAuthor = (
     authorId: string,
     organizationId: string,
@@ -1160,7 +1133,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
     deleteVideo,
     cleanupExpiredVideos,
     getVideoChapters,
-    getVideoCodeSnippets,
     searchVideos,
     getVideosByAuthor,
     getChannelVideosWithAuthor,
@@ -1246,9 +1218,6 @@ export const deleteVideo = (
     return yield* repo.deleteVideo(id);
   });
 
-// For backwards compatibility - renamed export
-export const deleteVideoRecord = deleteVideo;
-
 export const cleanupExpiredVideos = (): Effect.Effect<number, DatabaseError | DeleteError, VideoRepository> =>
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
@@ -1261,14 +1230,6 @@ export const getVideoChapters = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideoChapters(videoId);
-  });
-
-export const getVideoCodeSnippets = (
-  videoId: string,
-): Effect.Effect<(typeof videoCodeSnippets.$inferSelect)[], DatabaseError, VideoRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* VideoRepository;
-    return yield* repo.getVideoCodeSnippets(videoId);
   });
 
 export const searchVideos = (

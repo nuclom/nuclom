@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronRight, Play, Settings, Upload, Users, X } from 'lucide-react';
+import { Check, ChevronRight, Settings, Upload, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -64,14 +64,6 @@ export function GettingStartedChecklist({
       icon: Settings,
       href: `/${organization}/settings/integrations`,
       completed: hasIntegrations,
-    },
-    {
-      id: 'tour',
-      title: 'Take a quick tour',
-      description: 'Learn the basics in 2 minutes',
-      icon: Play,
-      href: `/${organization}?tour=true`,
-      completed: false,
     },
   ];
 

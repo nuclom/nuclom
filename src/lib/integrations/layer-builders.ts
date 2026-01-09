@@ -8,7 +8,6 @@
 import { Layer } from 'effect';
 import { DatabaseLive } from '@/lib/effect/services/database';
 // Import integration service layers
-import { GitHubLive } from '@/lib/effect/services/github';
 import { GoogleMeetLive } from '@/lib/effect/services/google-meet';
 import { IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 import { MicrosoftTeamsLive } from '@/lib/effect/services/microsoft-teams';
@@ -48,23 +47,17 @@ export const ZoomIntegrationLayer = Layer.mergeAll(ZoomLive, IntegrationReposito
  */
 export const TeamsIntegrationLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
 
-/**
- * Layer for GitHub OAuth callbacks and API calls
- */
-export const GitHubIntegrationLayer = Layer.mergeAll(GitHubLive, IntegrationRepositoryWithDeps, DatabaseLive);
-
 // =============================================================================
 // Layer Lookup by Provider
 // =============================================================================
 
-export type IntegrationProvider = 'google' | 'slack' | 'zoom' | 'teams' | 'github';
+export type IntegrationProvider = 'google' | 'slack' | 'zoom' | 'teams';
 
 const providerLayers = {
   google: GoogleIntegrationLayer,
   slack: SlackIntegrationLayer,
   zoom: ZoomIntegrationLayer,
   teams: TeamsIntegrationLayer,
-  github: GitHubIntegrationLayer,
 } as const;
 
 /**
@@ -82,4 +75,3 @@ export type GoogleIntegrationLayer = typeof GoogleIntegrationLayer;
 export type SlackIntegrationLayer = typeof SlackIntegrationLayer;
 export type ZoomIntegrationLayer = typeof ZoomIntegrationLayer;
 export type TeamsIntegrationLayer = typeof TeamsIntegrationLayer;
-export type GitHubIntegrationLayer = typeof GitHubIntegrationLayer;
