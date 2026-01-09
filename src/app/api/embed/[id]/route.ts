@@ -1,7 +1,10 @@
 import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
+import { createPublicLayer } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { organizations, videoShareLinks, videos } from '@/lib/db/schema';
+import { Storage } from '@/lib/effect';
 import { logger } from '@/lib/logger';
 
 // =============================================================================
@@ -75,14 +78,61 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       .from(organizations)
       .where(eq(organizations.id, video.organizationId));
 
+    // Capture video URL (we've already validated it's not null above)
+    // TypeScript doesn't narrow after the early return, so we assert
+    const videoUrlValue = video.videoUrl as string;
+
+    // Generate presigned URLs for video and thumbnail
+    const presignedUrlEffect = Effect.gen(function* () {
+      const storage = yield* Storage;
+
+      // Extract file key from stored URL (supports both legacy URL and new key format)
+      let videoKey: string;
+      if (videoUrlValue.includes('.r2.cloudflarestorage.com/')) {
+        const extractedKey = storage.extractKeyFromUrl(videoUrlValue);
+        if (!extractedKey) {
+          return { videoUrl: null, thumbnailUrl: null };
+        }
+        videoKey = extractedKey;
+      } else {
+        videoKey = videoUrlValue;
+      }
+
+      const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+
+      let presignedThumbnailUrl: string | null = null;
+      if (video.thumbnailUrl) {
+        let thumbnailKey: string;
+        if (video.thumbnailUrl.includes('.r2.cloudflarestorage.com/')) {
+          const extractedKey = storage.extractKeyFromUrl(video.thumbnailUrl);
+          if (extractedKey) {
+            thumbnailKey = extractedKey;
+            presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
+          }
+        } else {
+          thumbnailKey = video.thumbnailUrl;
+          presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
+        }
+      }
+
+      return { videoUrl: presignedVideoUrl, thumbnailUrl: presignedThumbnailUrl };
+    });
+
+    const runnable = Effect.provide(presignedUrlEffect, createPublicLayer());
+    const presignedUrls = await Effect.runPromise(runnable);
+
+    if (!presignedUrls.videoUrl) {
+      return NextResponse.json({ success: false, error: 'Failed to generate video URL' }, { status: 500 });
+    }
+
     // Return embed data with CORS headers for iframe embedding
     const response = NextResponse.json({
       success: true,
       data: {
         id: video.id,
         title: video.title,
-        videoUrl: video.videoUrl,
-        thumbnailUrl: video.thumbnailUrl,
+        videoUrl: presignedUrls.videoUrl,
+        thumbnailUrl: presignedUrls.thumbnailUrl,
         duration: video.duration,
         organization: {
           name: org?.name || 'Unknown',

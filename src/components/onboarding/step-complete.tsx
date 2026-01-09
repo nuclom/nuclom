@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, PartyPopper, Play, Upload, Users } from 'lucide-react';
+import { CheckCircle2, PartyPopper, Upload, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,12 +24,6 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
       title: 'Invite your team',
       description: 'Collaborate with teammates on videos',
       href: `/${organizationSlug}/settings/members`,
-    },
-    {
-      icon: Play,
-      title: 'Take a quick tour',
-      description: 'Learn the basics in 2 minutes',
-      href: `/${organizationSlug}?tour=true`,
     },
   ];
 

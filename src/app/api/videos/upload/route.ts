@@ -8,9 +8,9 @@ import type { ApiResponse } from '@/lib/types';
 import {
   sanitizeDescription,
   sanitizeTitle,
+  VideoUploadSchema,
   validateFormData,
   validateVideoFile,
-  videoUploadSchema,
 } from '@/lib/validation';
 import { processVideoWorkflow } from '@/workflows/video-processing';
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Validate form fields with Zod schema
-    const validatedData = yield* validateFormData(videoUploadSchema, formData);
+    const validatedData = yield* validateFormData(VideoUploadSchema, formData);
 
     // Get the video file
     const file = formData.get('video') as File | null;

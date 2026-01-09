@@ -39,7 +39,7 @@ async function HomeLoader() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<LandingPage />}>
+    <Suspense fallback={null}>
       <HomeLoader />
     </Suspense>
   );

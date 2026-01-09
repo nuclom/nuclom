@@ -20,7 +20,6 @@ import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
 import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
-import { type CodeLinksRepository, CodeLinksRepositoryLive } from './services/code-links-repository';
 import { type CommentRepository, CommentRepositoryLive } from './services/comment-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
@@ -143,7 +142,6 @@ const BillingRepositoryWithDeps = withDep(BillingRepositoryLive, DatabaseLive);
 const SearchRepositoryWithDeps = withDep(SearchRepositoryLive, DatabaseLive);
 const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
 const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
-const CodeLinksRepositoryWithDeps = withDep(CodeLinksRepositoryLive, DatabaseLive);
 const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
 
@@ -177,7 +175,6 @@ const AppServicesLive = Layer.mergeAll(
   SeriesRepositoryWithDeps,
   ChannelRepositoryWithDeps,
   ClipRepositoryWithDeps,
-  CodeLinksRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
 );
 
@@ -209,7 +206,6 @@ export type AppServices =
   | SeriesRepository
   | ChannelRepository
   | ClipRepository
-  | CodeLinksRepository
   | KnowledgeGraphRepository
   | StripeServiceTag
   | Translation

@@ -30,9 +30,6 @@ export function useIsMobile(breakpoint = 768): boolean {
   return isMobile;
 }
 
-// Alias for backward compatibility
-export const useMobile = useIsMobile;
-
 /**
  * Touch device detection hook
  * Detects if the current device has touch support

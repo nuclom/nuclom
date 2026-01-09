@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videoShareLinks } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
+import { DatabaseError, NotFoundError, Storage, ValidationError } from '@/lib/effect';
 import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
@@ -85,7 +85,42 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Return data with password as boolean (don't expose hash)
+    // Generate presigned URLs for video and thumbnail
+    const storage = yield* Storage;
+    let presignedVideoUrl: string | null = null;
+    let presignedThumbnailUrl: string | null = null;
+
+    if (shareLink.video.videoUrl) {
+      const videoUrl = shareLink.video.videoUrl;
+      let videoKey: string;
+      if (videoUrl.includes('.r2.cloudflarestorage.com/')) {
+        const extractedKey = storage.extractKeyFromUrl(videoUrl);
+        if (extractedKey) {
+          videoKey = extractedKey;
+          presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+        }
+      } else {
+        videoKey = videoUrl;
+        presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(videoKey, 3600);
+      }
+    }
+
+    if (shareLink.video.thumbnailUrl) {
+      const thumbnailUrl = shareLink.video.thumbnailUrl;
+      let thumbnailKey: string;
+      if (thumbnailUrl.includes('.r2.cloudflarestorage.com/')) {
+        const extractedKey = storage.extractKeyFromUrl(thumbnailUrl);
+        if (extractedKey) {
+          thumbnailKey = extractedKey;
+          presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
+        }
+      } else {
+        thumbnailKey = thumbnailUrl;
+        presignedThumbnailUrl = yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
+      }
+    }
+
+    // Return data with password as boolean (don't expose hash) and presigned URLs
     return {
       id: shareLink.id,
       videoId: shareLink.videoId,
@@ -95,7 +130,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       expiresAt: shareLink.expiresAt,
       maxViews: shareLink.maxViews,
       viewCount: shareLink.viewCount,
-      video: shareLink.video,
+      video: {
+        ...shareLink.video,
+        videoUrl: presignedVideoUrl,
+        thumbnailUrl: presignedThumbnailUrl,
+      },
     };
   });
 

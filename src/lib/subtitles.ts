@@ -52,15 +52,15 @@ export const TranslatedSegment = Schema.Struct({
 export type TranslatedSegmentType = Schema.Schema.Type<typeof TranslatedSegment>;
 
 // =============================================================================
-// WebVTT Time Formatting
+// Time Formatting
 // =============================================================================
 
 /**
- * Format time in seconds to WebVTT timestamp format (HH:MM:SS.mmm)
+ * Format time in seconds to subtitle timestamp format
  */
-export function formatVTTTime(seconds: number): string {
+function formatSubtitleTime(seconds: number, separator: '.' | ','): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00:00:00.000';
+    return `00:00:00${separator}000`;
   }
 
   const hours = Math.floor(seconds / 3600);
@@ -73,7 +73,14 @@ export function formatVTTTime(seconds: number): string {
   const ss = secs.toString().padStart(2, '0');
   const ms = milliseconds.toString().padStart(3, '0');
 
-  return `${hh}:${mm}:${ss}.${ms}`;
+  return `${hh}:${mm}:${ss}${separator}${ms}`;
+}
+
+/**
+ * Format time in seconds to WebVTT timestamp format (HH:MM:SS.mmm)
+ */
+export function formatVTTTime(seconds: number): string {
+  return formatSubtitleTime(seconds, '.');
 }
 
 /**
@@ -208,21 +215,7 @@ function escapeVTTText(text: string): string {
  * Format time in seconds to SRT timestamp format (HH:MM:SS,mmm)
  */
 export function formatSRTTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00:00:00,000';
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-  const milliseconds = Math.floor((seconds % 1) * 1000);
-
-  const hh = hours.toString().padStart(2, '0');
-  const mm = minutes.toString().padStart(2, '0');
-  const ss = secs.toString().padStart(2, '0');
-  const ms = milliseconds.toString().padStart(3, '0');
-
-  return `${hh}:${mm}:${ss},${ms}`;
+  return formatSubtitleTime(seconds, ',');
 }
 
 /**

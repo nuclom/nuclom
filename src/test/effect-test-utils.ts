@@ -168,7 +168,6 @@ export interface MockVideoRepositoryService {
   deleteVideo: ReturnType<typeof vi.fn>;
   cleanupExpiredVideos: ReturnType<typeof vi.fn>;
   getVideoChapters: ReturnType<typeof vi.fn>;
-  getVideoCodeSnippets: ReturnType<typeof vi.fn>;
   searchVideos: ReturnType<typeof vi.fn>;
   getVideosByAuthor: ReturnType<typeof vi.fn>;
   getChannelVideosWithAuthor: ReturnType<typeof vi.fn>;
@@ -195,7 +194,6 @@ export function createMockVideoRepositoryService(): MockVideoRepositoryService {
     deleteVideo: vi.fn().mockImplementation(() => Effect.void),
     cleanupExpiredVideos: vi.fn().mockImplementation(() => Effect.succeed(0)),
     getVideoChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
-    getVideoCodeSnippets: vi.fn().mockImplementation(() => Effect.succeed([])),
     searchVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
     getVideosByAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
     getChannelVideosWithAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
@@ -366,7 +364,6 @@ export interface MockAIService {
   generateVideoTags: ReturnType<typeof vi.fn>;
   extractActionItems: ReturnType<typeof vi.fn>;
   extractActionItemsWithTimestamps: ReturnType<typeof vi.fn>;
-  detectCodeSnippets: ReturnType<typeof vi.fn>;
   generateChapters: ReturnType<typeof vi.fn>;
   createSummaryStream: ReturnType<typeof vi.fn>;
   analyzeTranscriptForInsights: ReturnType<typeof vi.fn>;
@@ -380,7 +377,6 @@ export function createMockAIService(): MockAIService {
     extractActionItemsWithTimestamps: vi
       .fn()
       .mockImplementation(() => Effect.succeed([{ text: 'Action item 1', timestamp: 60, priority: 'high' as const }])),
-    detectCodeSnippets: vi.fn().mockImplementation(() => Effect.succeed([])),
     generateChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
     createSummaryStream: vi.fn(),
     analyzeTranscriptForInsights: vi

@@ -25,6 +25,8 @@ export interface VideoPlayerWithProgressProps {
   url: string;
   /** Video title */
   title: string;
+  /** Organization slug for mini-player navigation */
+  organizationSlug?: string;
   /** Optional thumbnail URL */
   thumbnailUrl?: string;
   /** Video duration in format "HH:MM:SS" or "MM:SS" */
@@ -35,6 +37,8 @@ export interface VideoPlayerWithProgressProps {
   onEnded?: () => void;
   /** Optional callback when time updates (for syncing with transcript) */
   onTimeUpdate?: (currentTime: number) => void;
+  /** Callback to register the seek function for external control */
+  registerSeek?: (seekFn: (time: number) => void) => void;
   /** Optional className */
   className?: string;
 }
@@ -66,11 +70,13 @@ export function VideoPlayerWithProgress({
   videoId,
   url,
   title,
+  organizationSlug,
   thumbnailUrl,
   duration,
   chapters,
   onEnded,
   onTimeUpdate,
+  registerSeek,
   className,
 }: VideoPlayerWithProgressProps) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
@@ -140,6 +146,7 @@ export function VideoPlayerWithProgress({
         url={url}
         title={title}
         videoId={videoId}
+        organizationSlug={organizationSlug}
         thumbnailUrl={thumbnailUrl}
         initialProgress={initialProgressFraction}
         chapters={chapters}
@@ -147,6 +154,7 @@ export function VideoPlayerWithProgress({
         onEnded={handleEnded}
         onError={handleError}
         onTimeUpdate={onTimeUpdate}
+        registerSeek={registerSeek}
       />
 
       {/* Resume message */}

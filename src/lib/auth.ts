@@ -79,7 +79,8 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    // Skip email verification in development for easier testing
+    requireEmailVerification: env.NODE_ENV !== 'development',
     disableSignUp: env.DISABLE_SIGNUPS,
     async sendVerificationEmail({
       user,

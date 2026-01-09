@@ -1,11 +1,14 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useThumbnailPreview } from '../hooks/use-thumbnail-preview';
 import type { VideoChapter } from '../types';
 import { formatTime } from '../utils';
 
 interface VideoProgressBarProps {
   progressBarRef: React.RefObject<HTMLDivElement | null>;
+  videoUrl: string;
   duration: number;
   currentTime: number;
   buffered: number;
@@ -16,6 +19,7 @@ interface VideoProgressBarProps {
 
 export function VideoProgressBar({
   progressBarRef,
+  videoUrl,
   duration,
   currentTime,
   buffered,
@@ -25,8 +29,39 @@ export function VideoProgressBar({
 }: VideoProgressBarProps) {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { getThumbnail, isLoading: isThumbnailLoading } = useThumbnailPreview({
+    videoUrl,
+    duration,
+    enabled: true,
+  });
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Debounced thumbnail fetch
+  useEffect(() => {
+    if (hoverTime === null) {
+      setThumbnailUrl(null);
+      return;
+    }
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      const thumb = await getThumbnail(hoverTime);
+      setThumbnailUrl(thumb);
+    }, 150);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [hoverTime, getThumbnail]);
 
   const handleProgressHover = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -122,16 +157,32 @@ export function VideoProgressBar({
         );
       })}
 
-      {/* Hover Time Preview */}
+      {/* Hover Time Preview with Thumbnail */}
       {hoverTime !== null && (
         <div
-          className="absolute -top-10 px-2 py-1 bg-black/90 text-white text-xs rounded pointer-events-none whitespace-nowrap transform -translate-x-1/2"
+          className="absolute -top-28 px-1.5 py-1.5 bg-black/95 text-white text-xs rounded-lg pointer-events-none transform -translate-x-1/2 shadow-xl"
           style={{ left: hoverPosition }}
         >
-          {formatTime(hoverTime)}
-          {chapters.length > 0 && (
-            <span className="block text-white/60 text-[10px]">{getHoveredChapter()?.title || ''}</span>
-          )}
+          {/* Thumbnail */}
+          <div className="w-40 h-[90px] rounded overflow-hidden mb-1.5 bg-gray-800 flex items-center justify-center">
+            {thumbnailUrl ? (
+              // biome-ignore lint/performance/noImgElement: Using data URL from canvas, Next.js Image doesn't support data URLs
+              <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+            ) : isThumbnailLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-white/50" />
+            ) : (
+              <div className="w-full h-full bg-gray-800" />
+            )}
+          </div>
+          {/* Time and Chapter */}
+          <div className="text-center">
+            <span className="font-mono">{formatTime(hoverTime)}</span>
+            {chapters.length > 0 && getHoveredChapter()?.title && (
+              <span className="block text-white/60 text-[10px] truncate max-w-[156px]">
+                {getHoveredChapter()?.title}
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

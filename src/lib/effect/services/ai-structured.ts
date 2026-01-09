@@ -71,52 +71,6 @@ export const ChaptersSchema = Schema.Struct({
   totalDuration: Schema.Number.annotations({ description: 'Total video duration in seconds' }),
 });
 
-const ProgrammingLanguage = Schema.Literal(
-  'javascript',
-  'typescript',
-  'python',
-  'rust',
-  'go',
-  'java',
-  'csharp',
-  'cpp',
-  'ruby',
-  'php',
-  'swift',
-  'kotlin',
-  'shell',
-  'sql',
-  'html',
-  'css',
-  'json',
-  'yaml',
-  'markdown',
-  'other',
-);
-
-export const CodeSnippetSchema = Schema.Struct({
-  language: ProgrammingLanguage.annotations({ description: 'Programming language' }),
-  code: Schema.String.annotations({ description: 'The code snippet' }),
-  title: Schema.optional(Schema.String.pipe(Schema.maxLength(100))).annotations({
-    description: 'Title describing what the code does',
-  }),
-  description: Schema.optional(Schema.String.pipe(Schema.maxLength(500))).annotations({
-    description: 'Explanation of the code',
-  }),
-  timestamp: Schema.optional(Schema.Number).annotations({
-    description: 'Timestamp in seconds where this code was mentioned',
-  }),
-  context: Schema.optional(Schema.String).annotations({ description: 'Context or use case for this code' }),
-});
-
-export const CodeSnippetsSchema = Schema.Struct({
-  snippets: Schema.Array(CodeSnippetSchema).annotations({ description: 'Code snippets detected in the transcript' }),
-  primaryLanguage: Schema.optional(Schema.String).annotations({
-    description: 'The primary programming language discussed',
-  }),
-  hasCommands: Schema.Boolean.annotations({ description: 'Whether any terminal/CLI commands were detected' }),
-});
-
 const VideoCategory = Schema.Literal(
   'tutorial',
   'demo',
@@ -150,8 +104,6 @@ export type ActionItemResult = typeof ActionItemSchema.Type;
 export type ActionItemsResult = typeof ActionItemsSchema.Type;
 export type ChapterResult = typeof ChapterSchema.Type;
 export type ChaptersResult = typeof ChaptersSchema.Type;
-export type CodeSnippetResult = typeof CodeSnippetSchema.Type;
-export type CodeSnippetsResult = typeof CodeSnippetsSchema.Type;
 export type VideoTagsResult = typeof VideoTagsSchema.Type;
 
 // =============================================================================
@@ -161,7 +113,6 @@ export type VideoTagsResult = typeof VideoTagsSchema.Type;
 const videoSummaryJsonSchema = jsonSchema(JSONSchema.make(VideoSummarySchema));
 const actionItemsJsonSchema = jsonSchema(JSONSchema.make(ActionItemsSchema));
 const chaptersJsonSchema = jsonSchema(JSONSchema.make(ChaptersSchema));
-const codeSnippetsJsonSchema = jsonSchema(JSONSchema.make(CodeSnippetsSchema));
 const videoTagsJsonSchema = jsonSchema(JSONSchema.make(VideoTagsSchema));
 
 // =============================================================================
@@ -189,14 +140,6 @@ export interface AIStructuredServiceInterface {
   readonly extractActionItems: (
     segments: ReadonlyArray<TranscriptSegment>,
   ) => Effect.Effect<ActionItemsResult, AIServiceError>;
-
-  /**
-   * Detect and extract code snippets with language detection
-   */
-  readonly detectCodeSnippets: (
-    transcript: string,
-    segments?: ReadonlyArray<TranscriptSegment>,
-  ) => Effect.Effect<CodeSnippetsResult, AIServiceError>;
 
   /**
    * Generate structured chapters with summaries
@@ -359,56 +302,6 @@ For each action item:
       ),
     );
 
-  const detectCodeSnippets = (
-    transcript: string,
-    segments?: ReadonlyArray<TranscriptSegment>,
-  ): Effect.Effect<CodeSnippetsResult, AIServiceError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const formattedTranscript = segments
-          ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n')
-          : transcript;
-
-        const result = await generateObject({
-          model,
-          schema: codeSnippetsJsonSchema,
-          prompt: `Detect and extract any code snippets, commands, or technical code mentioned in this transcript.
-
-Transcript:
-${formattedTranscript.slice(0, 10000)}
-
-Look for:
-1. Function definitions and class declarations
-2. Variable assignments and API calls
-3. Package manager commands (npm, pip, cargo, etc.)
-4. Shell/CLI commands
-5. Configuration snippets
-6. Code that was dictated or explained
-
-For each snippet:
-- Reconstruct the actual code from spoken words
-- Identify the programming language
-- Provide a title and description
-- Include the timestamp if available`,
-        });
-        return Schema.decodeUnknownSync(CodeSnippetsSchema)(result.object);
-      },
-      catch: (error) =>
-        new AIServiceError({
-          message: 'Failed to detect code snippets',
-          operation: 'detectCodeSnippets',
-          cause: error,
-        }),
-    }).pipe(
-      Effect.retry(retryPolicy),
-      Effect.catchAll(() =>
-        Effect.succeed({
-          snippets: [],
-          hasCommands: false,
-        }),
-      ),
-    );
-
   const generateChapters = (
     segments: ReadonlyArray<TranscriptSegment>,
     videoTitle?: string,
@@ -534,7 +427,6 @@ Format:
     generateVideoSummary,
     generateVideoTags,
     extractActionItems,
-    detectCodeSnippets,
     generateChapters,
     createSummaryStream,
     generateSimpleSummary,
@@ -575,15 +467,6 @@ export const extractStructuredActionItems = (
   Effect.gen(function* () {
     const ai = yield* AIStructured;
     return yield* ai.extractActionItems(segments);
-  });
-
-export const detectStructuredCodeSnippets = (
-  transcript: string,
-  segments?: ReadonlyArray<TranscriptSegment>,
-): Effect.Effect<CodeSnippetsResult, AIServiceError, AIStructured> =>
-  Effect.gen(function* () {
-    const ai = yield* AIStructured;
-    return yield* ai.detectCodeSnippets(transcript, segments);
   });
 
 export const generateStructuredChapters = (

@@ -4,7 +4,7 @@ import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-
 import { ClipRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateRequestBody } from '@/lib/validation';
-import { updateQuoteCardSchema } from '@/lib/validation/schemas';
+import { UpdateQuoteCardSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/quote-cards/[id] - Get a single quote card
@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id: cardId } = yield* Effect.promise(() => params);
 
     // Validate request body
-    const validatedData = yield* validateRequestBody(updateQuoteCardSchema, request);
+    const validatedData = yield* validateRequestBody(UpdateQuoteCardSchema, request);
 
     // Update quote card
     const clipRepo = yield* ClipRepository;

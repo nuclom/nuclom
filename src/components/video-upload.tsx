@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle, Upload, Video, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,6 +50,19 @@ export function VideoUpload({
     message: '',
   });
   const [dragActive, setDragActive] = useState(false);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  const handleCancelUpload = useCallback(() => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+      xhrRef.current = null;
+    }
+    setUploadState({
+      status: 'idle',
+      progress: 0,
+      message: '',
+    });
+  }, []);
 
   const handleFileSelect = useCallback(
     (selectedFile: File) => {
@@ -67,14 +80,14 @@ export function VideoUpload({
         return;
       }
 
-      // Validate file size (500MB)
-      const maxSize = 500 * 1024 * 1024;
+      // Validate file size (5GB - matches backend limit)
+      const maxSize = 5 * 1024 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
         setUploadState({
           status: 'error',
           progress: 0,
           message: '',
-          error: 'File size too large. Maximum file size is 500MB.',
+          error: 'File size too large. Maximum file size is 5GB.',
         });
         return;
       }
@@ -173,6 +186,7 @@ export function VideoUpload({
       // Step 2: Upload directly to R2 using presigned URL with progress tracking
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
 
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
@@ -187,6 +201,7 @@ export function VideoUpload({
         });
 
         xhr.addEventListener('load', () => {
+          xhrRef.current = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
@@ -195,10 +210,12 @@ export function VideoUpload({
         });
 
         xhr.addEventListener('error', () => {
+          xhrRef.current = null;
           reject(new Error('Upload failed - network error'));
         });
 
         xhr.addEventListener('abort', () => {
+          xhrRef.current = null;
           reject(new Error('Upload was cancelled'));
         });
 
@@ -288,17 +305,25 @@ export function VideoUpload({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* File Upload Area */}
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Click handler delegates to file input which handles keyboard */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Click handler delegates to file input which handles keyboard */}
         <div
           className={cn(
-            'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
-            dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
-            uploadState.status === 'uploading' || uploadState.status === 'processing' ? 'opacity-50' : '',
+            'border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer',
+            dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50',
+            uploadState.status === 'uploading' || uploadState.status === 'processing'
+              ? 'opacity-50 cursor-not-allowed'
+              : '',
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
+          onClick={() => {
+            if (uploadState.status !== 'uploading' && uploadState.status !== 'processing' && !file) {
+              document.getElementById('video-upload')?.click();
+            }
+          }}
         >
           {file ? (
             <div className="space-y-2">
@@ -340,7 +365,7 @@ export function VideoUpload({
                 Select Video File
               </Button>
               <p className="text-xs text-muted-foreground">
-                Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV (max 500MB)
+                Supported formats: MP4, MOV, AVI, MKV, WebM, FLV, WMV (max 5GB)
               </p>
             </div>
           )}
@@ -378,6 +403,17 @@ export function VideoUpload({
             <div className="space-y-2">
               <Progress value={uploadState.progress} className="w-full" />
               <p className="text-sm text-muted-foreground text-center">{getProgressMessage()}</p>
+              {uploadState.status === 'uploading' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelUpload}
+                  className="mx-auto block"
+                >
+                  Cancel Upload
+                </Button>
+              )}
             </div>
           )}
 

@@ -3,7 +3,7 @@
   "info": {
     "title": "Nuclom API",
     "version": "1.0.0",
-    "description": "Nuclom is a video collaboration platform that helps teams organize, share, and collaborate on video content. This API provides programmatic access to videos, organizations, series, comments, and more.",
+    "description": "Nuclom is a video collaboration platform that helps teams organize, share, and collaborate on video content.",
     "contact": {
       "name": "Nuclom Support",
       "url": "https://nuclom.com/support"
@@ -58,7 +58,7 @@
     },
     {
       "name": "Integrations",
-      "description": "Third-party integrations (Google Meet, Zoom)"
+      "description": "Third-party integrations"
     },
     {
       "name": "Health",
@@ -69,12 +69,12 @@
       "description": "User management"
     },
     {
-      "name": "OAuth",
-      "description": "OAuth application management"
-    },
-    {
       "name": "Sharing",
       "description": "Content sharing"
+    },
+    {
+      "name": "Clips",
+      "description": "Video clips and highlights"
     }
   ],
   "paths": {
@@ -119,64 +119,11 @@
         "tags": [
           "AI"
         ],
-        "summary": "Analyze video",
+        "summary": "Create analyze",
         "operationId": "createAiAnalyze",
-        "description": "Trigger AI analysis of a video (transcript, summary, action items, tags)",
         "responses": {
-          "200": {
-            "description": "Analysis result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "videoId",
-                    "processingTime"
-                  ],
-                  "properties": {
-                    "videoId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "transcript": {
-                      "type": "string"
-                    },
-                    "summary": {
-                      "type": "string"
-                    },
-                    "actionItems": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "tags": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "processingTime": {
-                      "type": "number"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
+          "201": {
+            "description": "Created successfully"
           }
         }
       }
@@ -186,7 +133,7 @@
         "tags": [
           "Analytics"
         ],
-        "summary": "List speakers",
+        "summary": "Get organization-wide speaker statistics",
         "operationId": "listAnalyticSpeaker",
         "responses": {
           "200": {
@@ -200,7 +147,7 @@
         "tags": [
           "Analytics"
         ],
-        "summary": "Get speaker",
+        "summary": "Get individual speaker analytics",
         "operationId": "getAnalyticSpeaker",
         "parameters": [
           {
@@ -253,7 +200,7 @@
         "tags": [
           "Billing"
         ],
-        "summary": "List billing",
+        "summary": "Get complete billing info for organization",
         "operationId": "listBilling",
         "security": [
           {
@@ -270,58 +217,12 @@
         }
       }
     },
-    "/billing/checkout": {
-      "post": {
-        "tags": [
-          "Billing"
-        ],
-        "summary": "Create checkout",
-        "operationId": "createBillingCheckout",
-        "description": "Create a Stripe checkout session for subscription",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Checkout session created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "sessionId",
-                    "url"
-                  ],
-                  "properties": {
-                    "sessionId": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
     "/billing/invoices": {
       "get": {
         "tags": [
           "Billing"
         ],
-        "summary": "List invoices",
+        "summary": "Get invoices for organization",
         "operationId": "listBillingInvoic",
         "security": [
           {
@@ -343,9 +244,8 @@
         "tags": [
           "Billing"
         ],
-        "summary": "List plans",
+        "summary": "Get all available plans",
         "operationId": "listBillingPlan",
-        "description": "Get available billing plans",
         "security": [
           {
             "bearerAuth": []
@@ -353,79 +253,10 @@
         ],
         "responses": {
           "200": {
-            "description": "List of billing plans",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "name",
-                      "description",
-                      "price",
-                      "features",
-                      "limits"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "price": {
-                        "type": "object",
-                        "required": [
-                          "monthly",
-                          "yearly"
-                        ],
-                        "properties": {
-                          "monthly": {
-                            "type": "number"
-                          },
-                          "yearly": {
-                            "type": "number"
-                          }
-                        },
-                        "additionalProperties": false
-                      },
-                      "features": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "limits": {
-                        "type": "object",
-                        "required": [
-                          "videos",
-                          "storage",
-                          "members"
-                        ],
-                        "properties": {
-                          "videos": {
-                            "type": "number"
-                          },
-                          "storage": {
-                            "type": "number"
-                          },
-                          "members": {
-                            "type": "number"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -435,9 +266,8 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Create billing portal",
+        "summary": "Create Stripe billing portal session",
         "operationId": "createBillingPortal",
-        "description": "Create a Stripe customer portal session",
         "security": [
           {
             "bearerAuth": []
@@ -461,7 +291,7 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Delete subscription",
+        "summary": "Cancel subscription",
         "operationId": "deleteBillingSubscription",
         "security": [
           {
@@ -484,9 +314,8 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Get subscription",
+        "summary": "Get current subscription",
         "operationId": "listBillingSubscription",
-        "description": "Get the current organization's subscription",
         "security": [
           {
             "bearerAuth": []
@@ -494,49 +323,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Subscription details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "planId",
-                    "status",
-                    "currentPeriodStart",
-                    "currentPeriodEnd",
-                    "cancelAtPeriodEnd"
-                  ],
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "planId": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "currentPeriodStart": {
-                      "type": "string"
-                    },
-                    "currentPeriodEnd": {
-                      "type": "string"
-                    },
-                    "cancelAtPeriodEnd": {
-                      "type": "boolean"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
-          },
-          "404": {
-            "description": "No subscription found"
           }
         }
       },
@@ -544,7 +334,7 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Patch subscription",
+        "summary": "Resume canceled subscription",
         "operationId": "patchBillingSubscription",
         "security": [
           {
@@ -569,9 +359,8 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Get usage",
+        "summary": "Get usage summary",
         "operationId": "listBillingUsage",
-        "description": "Get current billing usage for the organization",
         "security": [
           {
             "bearerAuth": []
@@ -579,70 +368,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Billing usage",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "videos",
-                    "storage",
-                    "members"
-                  ],
-                  "properties": {
-                    "videos": {
-                      "type": "object",
-                      "required": [
-                        "used",
-                        "limit"
-                      ],
-                      "properties": {
-                        "used": {
-                          "type": "number"
-                        },
-                        "limit": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "storage": {
-                      "type": "object",
-                      "required": [
-                        "used",
-                        "limit"
-                      ],
-                      "properties": {
-                        "used": {
-                          "type": "number"
-                        },
-                        "limit": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "members": {
-                      "type": "object",
-                      "required": [
-                        "used",
-                        "limit"
-                      ],
-                      "properties": {
-                        "used": {
-                          "type": "number"
-                        },
-                        "limit": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
@@ -653,7 +379,7 @@
         "tags": [
           "Billing"
         ],
-        "summary": "Create usage",
+        "summary": "Get usage history",
         "operationId": "createBillingUsage",
         "security": [
           {
@@ -678,9 +404,8 @@
         "tags": [
           "Channels"
         ],
-        "summary": "List channels",
+        "summary": "Get channels for the active organization",
         "operationId": "listChannel",
-        "description": "Get channels for an organization",
         "security": [
           {
             "bearerAuth": []
@@ -699,9 +424,8 @@
         "tags": [
           "Channels"
         ],
-        "summary": "Create channel",
+        "summary": "Create a new channel",
         "operationId": "createChannel",
-        "description": "Create a new channel",
         "security": [
           {
             "bearerAuth": []
@@ -767,9 +491,8 @@
         "tags": [
           "Channels"
         ],
-        "summary": "Get channel",
+        "summary": "Get channel details",
         "operationId": "getChannel",
-        "description": "Get channel details",
         "security": [
           {
             "bearerAuth": []
@@ -810,7 +533,7 @@
         "tags": [
           "Channels"
         ],
-        "summary": "Patch channel",
+        "summary": "Update channel",
         "operationId": "patchChannel",
         "security": [
           {
@@ -857,7 +580,7 @@
         "tags": [
           "Clips"
         ],
-        "summary": "Delete clip",
+        "summary": "Delete a clip",
         "operationId": "deleteClip",
         "security": [
           {
@@ -899,7 +622,7 @@
         "tags": [
           "Clips"
         ],
-        "summary": "Get clip",
+        "summary": "Get a single clip",
         "operationId": "getClip",
         "parameters": [
           {
@@ -933,7 +656,7 @@
         "tags": [
           "Clips"
         ],
-        "summary": "Patch clip",
+        "summary": "Update a clip",
         "operationId": "patchClip",
         "security": [
           {
@@ -959,6 +682,57 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a clip data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string at most 1000 character(s) long",
+                            "title": "maxLength(1000)",
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "startTime": {
+                    "type": "number",
+                    "description": "a non-negative number",
+                    "title": "greaterThanOrEqualTo(0)",
+                    "minimum": 0
+                  },
+                  "endTime": {
+                    "type": "number",
+                    "description": "a positive number",
+                    "title": "greaterThan(0)",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -975,26 +749,12 @@
         }
       }
     },
-    "/code-context": {
-      "get": {
-        "tags": [
-          "Code-context"
-        ],
-        "summary": "List code-context",
-        "operationId": "listCode-context",
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/comments/{id}": {
       "delete": {
         "tags": [
           "Comments"
         ],
-        "summary": "Delete comment",
+        "summary": "Delete a comment",
         "operationId": "deleteComment",
         "security": [
           {
@@ -1036,7 +796,7 @@
         "tags": [
           "Comments"
         ],
-        "summary": "Get comment",
+        "summary": "Get a single comment",
         "operationId": "getComment",
         "parameters": [
           {
@@ -1070,7 +830,7 @@
         "tags": [
           "Comments"
         ],
-        "summary": "Patch comment",
+        "summary": "Update a comment",
         "operationId": "patchComment",
         "security": [
           {
@@ -1117,7 +877,7 @@
         "tags": [
           "Comments"
         ],
-        "summary": "Delete reaction",
+        "summary": "Remove user's reaction",
         "operationId": "deleteCommentReaction",
         "security": [
           {
@@ -1159,7 +919,7 @@
         "tags": [
           "Comments"
         ],
-        "summary": "Get reaction",
+        "summary": "Get reactions for a comment",
         "operationId": "getCommentReaction",
         "parameters": [
           {
@@ -1254,7 +1014,7 @@
         "tags": [
           "Embed"
         ],
-        "summary": "Get embed",
+        "summary": "Get embed video data",
         "operationId": "getEmbed",
         "parameters": [
           {
@@ -1290,7 +1050,7 @@
         "tags": [
           "Embed"
         ],
-        "summary": "Create view",
+        "summary": "Track embed video view",
         "operationId": "createEmbedView",
         "parameters": [
           {
@@ -1326,32 +1086,12 @@
         "tags": [
           "Health"
         ],
-        "summary": "Health check",
+        "summary": "List health",
         "operationId": "listHealth",
-        "description": "Check if the API is running and healthy",
+        "description": "GET /api/health - Health check endpoint\n\nReturns the health status of all services using Effect-TS pattern\nfor consistent error handling and observability.",
         "responses": {
           "200": {
-            "description": "API is healthy",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "status",
-                    "timestamp"
-                  ],
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "timestamp": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       }
@@ -1401,9 +1141,9 @@
     "/highlight-reels": {
       "get": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "List highlight-reels",
+        "summary": "List all highlight reels for an organization",
         "operationId": "listHighlight-reel",
         "security": [
           {
@@ -1424,15 +1164,65 @@
       },
       "post": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "Create highlight-reel",
+        "summary": "Create a new highlight reel",
         "operationId": "createHighlight-reel",
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Create a new highlight reel data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$defs": {
+                  "UUID": {
+                    "type": "string",
+                    "description": "a Universally Unique Identifier",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "title"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "description": "a string at most 1000 character(s) long",
+                        "title": "maxLength(1000)",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "maxLength(1000)",
+                    "description": "a string at most 1000 character(s) long"
+                  },
+                  "clipIds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/UUID"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Created successfully"
@@ -1449,9 +1239,9 @@
     "/highlight-reels/{id}": {
       "delete": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "Delete highlight-reel",
+        "summary": "Delete a highlight reel",
         "operationId": "deleteHighlight-reel",
         "security": [
           {
@@ -1491,9 +1281,9 @@
       },
       "get": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "Get highlight-reel",
+        "summary": "Get a single highlight reel",
         "operationId": "getHighlight-reel",
         "parameters": [
           {
@@ -1525,9 +1315,9 @@
       },
       "patch": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "Patch highlight-reel",
+        "summary": "Update a highlight reel",
         "operationId": "patchHighlight-reel",
         "security": [
           {
@@ -1553,6 +1343,59 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a highlight reel data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$defs": {
+                  "UUID": {
+                    "type": "string",
+                    "description": "a Universally Unique Identifier",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string at most 1000 character(s) long",
+                            "title": "maxLength(1000)",
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "clipIds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/UUID"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -1572,9 +1415,9 @@
     "/highlight-reels/{id}/render": {
       "post": {
         "tags": [
-          "Highlight-reels"
+          "Clips"
         ],
-        "summary": "Create render",
+        "summary": "Start rendering a highlight reel",
         "operationId": "createHighlight-reelRender",
         "security": [
           {
@@ -1618,7 +1461,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "List action-items",
+        "summary": "Get organization-wide action items",
         "operationId": "listInsightAction-item",
         "security": [
           {
@@ -1641,7 +1484,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "Create action-item",
+        "summary": "Create a new action item",
         "operationId": "createInsightAction-item",
         "security": [
           {
@@ -1666,7 +1509,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "Delete action-item",
+        "summary": "Delete an action item",
         "operationId": "deleteInsightAction-item",
         "security": [
           {
@@ -1708,7 +1551,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "Get action-item",
+        "summary": "Get a single action item",
         "operationId": "getInsightAction-item",
         "security": [
           {
@@ -1750,7 +1593,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "Patch action-item",
+        "summary": "Update an action item",
         "operationId": "patchInsightAction-item",
         "security": [
           {
@@ -1797,7 +1640,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "List effectiveness",
+        "summary": "Get meeting effectiveness metrics",
         "operationId": "listInsightEffectiveness",
         "security": [
           {
@@ -1839,7 +1682,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "List keywords",
+        "summary": "Get keyword frequency for word cloud",
         "operationId": "listInsightKeyword",
         "security": [
           {
@@ -1864,7 +1707,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "List overview",
+        "summary": "Get organization AI insights overview",
         "operationId": "listInsightOverview",
         "security": [
           {
@@ -1939,7 +1782,7 @@
         "tags": [
           "Insights"
         ],
-        "summary": "List topics",
+        "summary": "Get organization topic trends",
         "operationId": "listInsightTopic",
         "security": [
           {
@@ -1964,7 +1807,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "Delete integration",
+        "summary": "Disconnect an integration",
         "operationId": "deleteIntegration",
         "responses": {
           "200": {
@@ -1976,7 +1819,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List integrations",
+        "summary": "List integrations for the current user",
         "operationId": "listIntegration",
         "responses": {
           "200": {
@@ -1990,7 +1833,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "Get setting",
+        "summary": "Get integration settings",
         "operationId": "getIntegrationSetting",
         "parameters": [
           {
@@ -2024,7 +1867,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "Patch setting",
+        "summary": "Update integration settings",
         "operationId": "patchIntegrationSetting",
         "parameters": [
           {
@@ -2055,34 +1898,6 @@
         }
       }
     },
-    "/integrations/github/authorize": {
-      "get": {
-        "tags": [
-          "Integrations"
-        ],
-        "summary": "List authorize",
-        "operationId": "listIntegrationGithubAuthorize",
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/integrations/github/callback": {
-      "get": {
-        "tags": [
-          "Integrations"
-        ],
-        "summary": "List callback",
-        "operationId": "listIntegrationGithubCallback",
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/integrations/google/authorize": {
       "get": {
         "tags": [
@@ -2102,7 +1917,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List calendar",
+        "summary": "List Google Calendar events with Meet links",
         "operationId": "listIntegrationGoogleCalendar",
         "responses": {
           "200": {
@@ -2116,7 +1931,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List drive",
+        "summary": "List videos and folders from Google Drive",
         "operationId": "listIntegrationGoogleDrive",
         "responses": {
           "200": {
@@ -2128,7 +1943,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "Create drive",
+        "summary": "Import videos from Google Drive",
         "operationId": "createIntegrationGoogleDrive",
         "responses": {
           "201": {
@@ -2142,48 +1957,25 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List recordings",
+        "summary": "List Google Meet recordings",
         "operationId": "listIntegrationGoogleRecording",
         "responses": {
           "200": {
-            "description": "List of recordings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "title",
-                      "startTime",
-                      "duration"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "startTime": {
-                        "type": "string"
-                      },
-                      "duration": {
-                        "type": "number"
-                      },
-                      "downloadUrl": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/integrations/google/webhook": {
+      "post": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "Handle Google Drive/Calendar webhooks",
+        "operationId": "createIntegrationGoogleWebhook",
+        "responses": {
+          "201": {
+            "description": "Created successfully"
           }
         }
       }
@@ -2193,7 +1985,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List import",
+        "summary": "Get import status",
         "operationId": "listIntegrationImport",
         "responses": {
           "200": {
@@ -2205,7 +1997,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "Create import",
+        "summary": "Import recordings from a provider",
         "operationId": "createIntegrationImport",
         "responses": {
           "201": {
@@ -2331,7 +2123,7 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List meetings",
+        "summary": "List Zoom scheduled/past meetings",
         "operationId": "listIntegrationZoomMeeting",
         "responses": {
           "200": {
@@ -2345,48 +2137,25 @@
         "tags": [
           "Integrations"
         ],
-        "summary": "List recordings",
+        "summary": "List Zoom recordings",
         "operationId": "listIntegrationZoomRecording",
         "responses": {
           "200": {
-            "description": "List of recordings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "title",
-                      "startTime",
-                      "duration"
-                    ],
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "startTime": {
-                        "type": "string"
-                      },
-                      "duration": {
-                        "type": "number"
-                      },
-                      "downloadUrl": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/integrations/zoom/webhook": {
+      "post": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "Handle Zoom webhooks",
+        "operationId": "createIntegrationZoomWebhook",
+        "responses": {
+          "201": {
+            "description": "Created successfully"
           }
         }
       }
@@ -2396,7 +2165,7 @@
         "tags": [
           "Invitations"
         ],
-        "summary": "Get invitation",
+        "summary": "Get invitation details",
         "operationId": "getInvitation",
         "parameters": [
           {
@@ -2432,7 +2201,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "List context",
+        "summary": "Get decision context for an artifact",
         "operationId": "listKnowledgeContext",
         "security": [
           {
@@ -2457,7 +2226,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "List decisions",
+        "summary": "List decisions for an organization",
         "operationId": "listKnowledgeDecision",
         "security": [
           {
@@ -2480,7 +2249,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "Create decision",
+        "summary": "Create a new decision",
         "operationId": "createKnowledgeDecision",
         "security": [
           {
@@ -2505,7 +2274,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "Delete decision",
+        "summary": "Delete a decision",
         "operationId": "deleteKnowledgeDecision",
         "security": [
           {
@@ -2547,7 +2316,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "Get decision",
+        "summary": "Get a specific decision",
         "operationId": "getKnowledgeDecision",
         "security": [
           {
@@ -2589,7 +2358,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "Update decision",
+        "summary": "Update a decision",
         "operationId": "updateKnowledgeDecision",
         "security": [
           {
@@ -2636,7 +2405,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "List graph",
+        "summary": "Get knowledge graph visualization data",
         "operationId": "listKnowledgeGraph",
         "security": [
           {
@@ -2661,7 +2430,7 @@
         "tags": [
           "Knowledge"
         ],
-        "summary": "List timeline",
+        "summary": "Get decision timeline",
         "operationId": "listKnowledgeTimeline",
         "security": [
           {
@@ -2686,9 +2455,8 @@
         "tags": [
           "Notifications"
         ],
-        "summary": "List notifications",
+        "summary": "Get user's notifications",
         "operationId": "listNotification",
-        "description": "Get paginated notifications for the current user",
         "security": [
           {
             "bearerAuth": []
@@ -2696,100 +2464,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of notifications",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "data",
-                    "pagination",
-                    "unreadCount"
-                  ],
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": [
-                          "id",
-                          "type",
-                          "title",
-                          "message",
-                          "read",
-                          "userId",
-                          "createdAt"
-                        ],
-                        "properties": {
-                          "id": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "type": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "read": {
-                            "type": "boolean"
-                          },
-                          "userId": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "data": {
-                            "$id": "/schemas/unknown",
-                            "title": "unknown"
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    },
-                    "pagination": {
-                      "type": "object",
-                      "required": [
-                        "page",
-                        "limit",
-                        "total",
-                        "totalPages"
-                      ],
-                      "properties": {
-                        "page": {
-                          "type": "number"
-                        },
-                        "limit": {
-                          "type": "number"
-                        },
-                        "total": {
-                          "type": "number"
-                        },
-                        "totalPages": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "unreadCount": {
-                      "type": "number"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
@@ -2800,7 +2475,7 @@
         "tags": [
           "Notifications"
         ],
-        "summary": "Create notification",
+        "summary": "Mark all as read",
         "operationId": "createNotification",
         "security": [
           {
@@ -2822,7 +2497,7 @@
         "tags": [
           "Notifications"
         ],
-        "summary": "Delete notification",
+        "summary": "Delete a notification",
         "operationId": "deleteNotification",
         "security": [
           {
@@ -2864,7 +2539,7 @@
         "tags": [
           "Notifications"
         ],
-        "summary": "Patch notification",
+        "summary": "Mark notification as read",
         "operationId": "patchNotification",
         "security": [
           {
@@ -2908,9 +2583,8 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "List organizations",
+        "summary": "Get user's organizations",
         "operationId": "listOrganization",
-        "description": "Get organizations the current user is a member of",
         "security": [
           {
             "bearerAuth": []
@@ -2918,72 +2592,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of organizations",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "name",
-                      "slug",
-                      "description",
-                      "logo",
-                      "createdAt",
-                      "updatedAt"
-                    ],
-                    "properties": {
-                      "id": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "slug": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "logo": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "updatedAt": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
@@ -2996,7 +2605,6 @@
         ],
         "summary": "Create organization",
         "operationId": "createOrganization",
-        "description": "Create a new organization",
         "security": [
           {
             "bearerAuth": []
@@ -3068,72 +2676,10 @@
         },
         "responses": {
           "201": {
-            "description": "Organization created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "name",
-                    "slug",
-                    "description",
-                    "logo",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "properties": {
-                    "id": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "slug": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "logo": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Created successfully"
           },
           "400": {
-            "description": "Invalid request body"
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
@@ -3146,7 +2692,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get analytic",
+        "summary": "Get organization analytics",
         "operationId": "getOrganizationAnalytic",
         "security": [
           {
@@ -3190,7 +2736,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get audit-log",
+        "summary": "Query audit logs",
         "operationId": "getOrganizationAudit-log",
         "parameters": [
           {
@@ -3224,7 +2770,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Create audit-log",
+        "summary": "Request audit log export",
         "operationId": "createOrganizationAudit-log",
         "parameters": [
           {
@@ -3260,7 +2806,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get export",
+        "summary": "Get export status",
         "operationId": "getOrganizationAudit-logExport",
         "parameters": [
           {
@@ -3313,7 +2859,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get stat",
+        "summary": "Get audit log statistics",
         "operationId": "getOrganizationAudit-logStat",
         "parameters": [
           {
@@ -3349,7 +2895,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Delete member",
+        "summary": "Remove a member",
         "operationId": "deleteOrganizationMember",
         "parameters": [
           {
@@ -3383,9 +2929,8 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "List members",
+        "summary": "Get organization members",
         "operationId": "getOrganizationMember",
-        "description": "Get members of an organization",
         "parameters": [
           {
             "name": "id",
@@ -3407,91 +2952,10 @@
         ],
         "responses": {
           "200": {
-            "description": "List of members",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "organizationId",
-                      "userId",
-                      "role",
-                      "createdAt"
-                    ],
-                    "properties": {
-                      "id": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "organizationId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "userId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "role": {
-                        "type": "string",
-                        "enum": [
-                          "owner",
-                          "member"
-                        ]
-                      },
-                      "user": {
-                        "type": "object",
-                        "required": [
-                          "id",
-                          "name",
-                          "email",
-                          "image"
-                        ],
-                        "properties": {
-                          "id": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "email": {
-                            "type": "string"
-                          },
-                          "image": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          }
-                        },
-                        "additionalProperties": false
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Success"
           },
           "404": {
-            "description": "Organization not found"
+            "description": "Not found"
           }
         }
       },
@@ -3499,7 +2963,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Patch member",
+        "summary": "Update member role",
         "operationId": "patchOrganizationMember",
         "parameters": [
           {
@@ -3535,7 +2999,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Delete permission",
+        "summary": "Demote to member role",
         "operationId": "deleteOrganizationMemberPermission",
         "parameters": [
           {
@@ -3586,7 +3050,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get permission",
+        "summary": "Get user permissions",
         "operationId": "getOrganizationMemberPermission",
         "parameters": [
           {
@@ -3637,7 +3101,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Create permission",
+        "summary": "Update member role",
         "operationId": "createOrganizationMemberPermission",
         "parameters": [
           {
@@ -3690,7 +3154,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get rol",
+        "summary": "Get all roles",
         "operationId": "getOrganizationRol",
         "parameters": [
           {
@@ -3724,7 +3188,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Create rol",
+        "summary": "Create a custom role",
         "operationId": "createOrganizationRol",
         "parameters": [
           {
@@ -3760,7 +3224,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Delete rol",
+        "summary": "Delete role",
         "operationId": "deleteOrganizationRol",
         "parameters": [
           {
@@ -3811,7 +3275,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get rol",
+        "summary": "Get role details",
         "operationId": "getOrganizationRol",
         "parameters": [
           {
@@ -3862,7 +3326,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Patch rol",
+        "summary": "Update role",
         "operationId": "patchOrganizationRol",
         "parameters": [
           {
@@ -3915,7 +3379,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get setting",
+        "summary": "Get organization settings",
         "operationId": "getOrganizationSetting",
         "parameters": [
           {
@@ -3949,7 +3413,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Patch setting",
+        "summary": "Update organization settings",
         "operationId": "patchOrganizationSetting",
         "parameters": [
           {
@@ -3985,7 +3449,7 @@
         "tags": [
           "Organizations"
         ],
-        "summary": "Get slug",
+        "summary": "Get organization by slug",
         "operationId": "getOrganizationSlug",
         "parameters": [
           {
@@ -4019,9 +3483,9 @@
     "/quote-cards/{id}": {
       "delete": {
         "tags": [
-          "Quote-cards"
+          "Clips"
         ],
-        "summary": "Delete quote-card",
+        "summary": "Delete a quote card",
         "operationId": "deleteQuote-card",
         "security": [
           {
@@ -4061,9 +3525,9 @@
       },
       "get": {
         "tags": [
-          "Quote-cards"
+          "Clips"
         ],
-        "summary": "Get quote-card",
+        "summary": "Get a single quote card",
         "operationId": "getQuote-card",
         "parameters": [
           {
@@ -4095,9 +3559,9 @@
       },
       "patch": {
         "tags": [
-          "Quote-cards"
+          "Clips"
         ],
-        "summary": "Patch quote-card",
+        "summary": "Update a quote card",
         "operationId": "patchQuote-card",
         "security": [
           {
@@ -4123,6 +3587,45 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Update a quote card data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                  "quoteText": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "speaker": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "description": "a string at most 100 character(s) long",
+                            "title": "maxLength(100)",
+                            "maxLength": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success"
@@ -4144,7 +3647,7 @@
         "tags": [
           "Reports"
         ],
-        "summary": "List reports",
+        "summary": "List reports (admin only)",
         "operationId": "listReport",
         "security": [
           {
@@ -4164,7 +3667,7 @@
         "tags": [
           "Reports"
         ],
-        "summary": "Patch report",
+        "summary": "Update a report (admin only)",
         "operationId": "patchReport",
         "security": [
           {
@@ -4184,7 +3687,7 @@
         "tags": [
           "Reports"
         ],
-        "summary": "Create report",
+        "summary": "Create a new report",
         "operationId": "createReport",
         "security": [
           {
@@ -4201,67 +3704,13 @@
         }
       }
     },
-    "/repos/{owner}/{repo}/context": {
-      "get": {
-        "tags": [
-          "Repos"
-        ],
-        "summary": "Get context",
-        "operationId": "getRepoContext",
-        "parameters": [
-          {
-            "name": "owner",
-            "in": "path",
-            "description": "Owner ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          },
-          {
-            "name": "repo",
-            "in": "path",
-            "description": "Repo ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
     "/search": {
       "get": {
         "tags": [
           "Search"
         ],
-        "summary": "Search",
+        "summary": "Search videos with full-text search",
         "operationId": "listSearch",
-        "description": "Search across videos, series, and other content",
         "security": [
           {
             "bearerAuth": []
@@ -4269,120 +3718,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Search results",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "results",
-                    "pagination",
-                    "query"
-                  ],
-                  "properties": {
-                    "results": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": [
-                          "type",
-                          "id",
-                          "title",
-                          "description",
-                          "thumbnailUrl",
-                          "score"
-                        ],
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "video",
-                              "series",
-                              "channel"
-                            ]
-                          },
-                          "id": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "thumbnailUrl": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "score": {
-                            "type": "number"
-                          },
-                          "highlights": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    },
-                    "pagination": {
-                      "type": "object",
-                      "required": [
-                        "page",
-                        "limit",
-                        "total",
-                        "totalPages"
-                      ],
-                      "properties": {
-                        "page": {
-                          "type": "number"
-                        },
-                        "limit": {
-                          "type": "number"
-                        },
-                        "total": {
-                          "type": "number"
-                        },
-                        "totalPages": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "query": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid query"
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
@@ -4395,7 +3731,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Delete history",
+        "summary": "Clear search history",
         "operationId": "deleteSearchHistory",
         "security": [
           {
@@ -4415,7 +3751,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List history",
+        "summary": "Get recent search history",
         "operationId": "listSearchHistory",
         "security": [
           {
@@ -4437,7 +3773,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List hybrid",
+        "summary": "Hybrid search via query params",
         "operationId": "listSearchHybrid",
         "security": [
           {
@@ -4457,7 +3793,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Create hybrid",
+        "summary": "Hybrid search combining keyword and semantic",
         "operationId": "createSearchHybrid",
         "security": [
           {
@@ -4482,7 +3818,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List quick",
+        "summary": "Quick search for command bar",
         "operationId": "listSearchQuick",
         "security": [
           {
@@ -4504,7 +3840,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List saved",
+        "summary": "Get saved searches",
         "operationId": "listSearchSaved",
         "security": [
           {
@@ -4524,7 +3860,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Create saved",
+        "summary": "Create a saved search",
         "operationId": "createSearchSaved",
         "security": [
           {
@@ -4549,7 +3885,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Delete saved",
+        "summary": "Delete a saved search",
         "operationId": "deleteSearchSaved",
         "security": [
           {
@@ -4591,7 +3927,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Patch saved",
+        "summary": "Update a saved search",
         "operationId": "patchSearchSaved",
         "security": [
           {
@@ -4638,7 +3974,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List semantic",
+        "summary": "Simple semantic search via query params",
         "operationId": "listSearchSemantic",
         "security": [
           {
@@ -4658,7 +3994,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "Create semantic",
+        "summary": "Semantic search using embeddings",
         "operationId": "createSearchSemantic",
         "security": [
           {
@@ -4683,7 +4019,7 @@
         "tags": [
           "Search"
         ],
-        "summary": "List suggestions",
+        "summary": "Get search suggestions",
         "operationId": "listSearchSuggestion",
         "security": [
           {
@@ -4715,7 +4051,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of series",
+            "description": "List of series with pagination",
             "content": {
               "application/json": {
                 "schema": {
@@ -4824,8 +4160,11 @@
               }
             }
           },
+          "400": {
+            "description": "- Invalid request parameters"
+          },
           "401": {
-            "description": "Unauthorized"
+            "description": "- Unauthorized"
           }
         }
       },
@@ -4843,7 +4182,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Create sery data",
+          "description": "Create series data",
           "content": {
             "application/json": {
               "schema": {
@@ -4914,7 +4253,7 @@
         },
         "responses": {
           "201": {
-            "description": "Series created",
+            "description": "Series created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -4987,10 +4326,10 @@
             }
           },
           "400": {
-            "description": "Invalid request body"
+            "description": "- Invalid request body"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "- Unauthorized"
           }
         }
       }
@@ -5000,9 +4339,8 @@
         "tags": [
           "Series"
         ],
-        "summary": "Delete series",
+        "summary": "Delete a series",
         "operationId": "deleteSery",
-        "description": "Delete a series (videos are not deleted)",
         "security": [
           {
             "bearerAuth": []
@@ -5029,32 +4367,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Series deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
-            "description": "Series not found"
+            "description": "Not found"
           }
         }
       },
@@ -5062,9 +4381,8 @@
         "tags": [
           "Series"
         ],
-        "summary": "Get series",
+        "summary": "Get series with videos",
         "operationId": "getSery",
-        "description": "Get a series with its videos",
         "security": [
           {
             "bearerAuth": []
@@ -5091,231 +4409,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Series with videos",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "name",
-                    "description",
-                    "thumbnailUrl",
-                    "organizationId",
-                    "isPublic",
-                    "videoCount",
-                    "createdAt",
-                    "updatedAt",
-                    "videos"
-                  ],
-                  "properties": {
-                    "id": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "thumbnailUrl": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "organizationId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "isPublic": {
-                      "type": "boolean"
-                    },
-                    "videoCount": {
-                      "type": "number"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
-                    },
-                    "videos": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": [
-                          "id",
-                          "title",
-                          "description",
-                          "duration",
-                          "thumbnailUrl",
-                          "videoUrl",
-                          "authorId",
-                          "organizationId",
-                          "channelId",
-                          "collectionId",
-                          "transcript",
-                          "aiSummary",
-                          "viewCount",
-                          "isPublic",
-                          "isDeleted",
-                          "deletedAt",
-                          "retentionUntil",
-                          "createdAt",
-                          "updatedAt"
-                        ],
-                        "properties": {
-                          "id": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "duration": {
-                            "type": "string"
-                          },
-                          "thumbnailUrl": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "videoUrl": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "authorId": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "organizationId": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "channelId": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/$defs/UUID"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "collectionId": {
-                            "anyOf": [
-                              {
-                                "$ref": "#/$defs/UUID"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "transcript": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "aiSummary": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "viewCount": {
-                            "type": "number"
-                          },
-                          "isPublic": {
-                            "type": "boolean"
-                          },
-                          "isDeleted": {
-                            "type": "boolean"
-                          },
-                          "deletedAt": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "retentionUntil": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "404": {
-            "description": "Series not found"
+            "description": "Not found"
           }
         }
       },
@@ -5323,7 +4423,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Patch sery",
+        "summary": "Update a series",
         "operationId": "patchSery",
         "security": [
           {
@@ -5351,7 +4451,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Patch sery data",
+          "description": "Update a series data",
           "content": {
             "application/json": {
               "schema": {
@@ -5427,7 +4527,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Get progress",
+        "summary": "Get user's progress for a series",
         "operationId": "getSeryProgress",
         "security": [
           {
@@ -5469,7 +4569,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Create progress",
+        "summary": "Update user's progress",
         "operationId": "createSeryProgress",
         "security": [
           {
@@ -5513,7 +4613,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Get video",
+        "summary": "Get available videos (not in series)",
         "operationId": "getSeryVideo",
         "security": [
           {
@@ -5555,7 +4655,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Patch video",
+        "summary": "Reorder videos in series",
         "operationId": "patchSeryVideo",
         "security": [
           {
@@ -5600,7 +4700,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Create video",
+        "summary": "Add video to series",
         "operationId": "createSeryVideo",
         "security": [
           {
@@ -5647,7 +4747,7 @@
         "tags": [
           "Series"
         ],
-        "summary": "Delete video",
+        "summary": "Remove video from series",
         "operationId": "deleteSeryVideo",
         "security": [
           {
@@ -5708,7 +4808,7 @@
         "tags": [
           "Sharing"
         ],
-        "summary": "Get share",
+        "summary": "Get share link data for public access",
         "operationId": "getShare",
         "parameters": [
           {
@@ -5742,7 +4842,7 @@
         "tags": [
           "Sharing"
         ],
-        "summary": "Create share",
+        "summary": "Track view on share link (called when accessing)",
         "operationId": "createShare",
         "parameters": [
           {
@@ -5817,7 +4917,7 @@
         "tags": [
           "Status"
         ],
-        "summary": "List status",
+        "summary": "Public status page endpoint",
         "operationId": "listStatu",
         "responses": {
           "200": {
@@ -5831,7 +4931,7 @@
         "tags": [
           "User"
         ],
-        "summary": "Create export",
+        "summary": "Export all user data (GDPR compliance)",
         "operationId": "createUserExport",
         "responses": {
           "201": {
@@ -5845,7 +4945,7 @@
         "tags": [
           "User"
         ],
-        "summary": "List preferences",
+        "summary": "Get user notification preferences",
         "operationId": "listUserPreferenc",
         "responses": {
           "200": {
@@ -5857,7 +4957,7 @@
         "tags": [
           "User"
         ],
-        "summary": "Update preferenc",
+        "summary": "Update user notification preferences",
         "operationId": "updateUserPreferenc",
         "responses": {
           "200": {
@@ -5871,7 +4971,7 @@
         "tags": [
           "User"
         ],
-        "summary": "Delete session",
+        "summary": "Revoke all other sessions",
         "operationId": "deleteUserSession",
         "security": [
           {
@@ -5891,7 +4991,7 @@
         "tags": [
           "User"
         ],
-        "summary": "List sessions",
+        "summary": "List active sessions",
         "operationId": "listUserSession",
         "security": [
           {
@@ -5913,7 +5013,7 @@
         "tags": [
           "User"
         ],
-        "summary": "Delete session",
+        "summary": "Revoke a specific session",
         "operationId": "deleteUserSession",
         "security": [
           {
@@ -5957,7 +5057,7 @@
         "tags": [
           "Users"
         ],
-        "summary": "Delete me",
+        "summary": "Request account deletion (soft delete with grace period)",
         "operationId": "deleteUserMe",
         "responses": {
           "200": {
@@ -5969,7 +5069,7 @@
         "tags": [
           "Users"
         ],
-        "summary": "List me",
+        "summary": "Get current user data",
         "operationId": "listUserMe",
         "responses": {
           "200": {
@@ -5981,7 +5081,7 @@
         "tags": [
           "Users"
         ],
-        "summary": "Patch me",
+        "summary": "Update user settings (marketing consent, etc.)",
         "operationId": "patchUserMe",
         "responses": {
           "200": {
@@ -5993,7 +5093,7 @@
         "tags": [
           "Users"
         ],
-        "summary": "Create me",
+        "summary": "Cancel account deletion",
         "operationId": "createUserMe",
         "responses": {
           "201": {
@@ -6043,7 +5143,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of videos",
+            "description": "List of videos with pagination",
             "content": {
               "application/json": {
                 "schema": {
@@ -6242,10 +5342,10 @@
             }
           },
           "400": {
-            "description": "Invalid request parameters"
+            "description": "- Invalid request parameters"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "- Unauthorized"
           }
         }
       },
@@ -6255,7 +5355,7 @@
         ],
         "summary": "Create video",
         "operationId": "createVideo",
-        "description": "Create a new video entry",
+        "description": "Create a new video entry with metadata",
         "security": [
           {
             "bearerAuth": []
@@ -6423,7 +5523,7 @@
         },
         "responses": {
           "201": {
-            "description": "Video created",
+            "description": "Video created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -6585,10 +5685,10 @@
             }
           },
           "400": {
-            "description": "Invalid request body"
+            "description": "- Invalid request body"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "- Unauthorized"
           }
         }
       }
@@ -6600,7 +5700,7 @@
         ],
         "summary": "Delete video",
         "operationId": "deleteVideo",
-        "description": "Delete a video. By default performs soft-delete with 30-day retention. Use permanent=true for immediate deletion.",
+        "description": "DELETE /api/videos/[id]\n\nBy default, performs a soft delete with a 30-day retention period.\nQuery parameters:\n- permanent=true: Permanently delete the video and clean up R2 storage\n- retentionDays=N: Override the default retention period (only for soft delete)",
         "parameters": [
           {
             "name": "id",
@@ -6622,48 +5722,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Video deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success",
-                    "data"
-                  ],
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "object",
-                      "required": [
-                        "message"
-                      ],
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        },
-                        "deletedAt": {
-                          "type": "string"
-                        },
-                        "retentionUntil": {
-                          "type": "string"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Success"
           },
           "404": {
-            "description": "Video not found"
+            "description": "Not found"
           }
         }
       },
@@ -6671,9 +5733,8 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get video",
+        "summary": "Get video details",
         "operationId": "getVideo",
-        "description": "Get detailed information about a specific video including comments",
         "parameters": [
           {
             "name": "id",
@@ -6695,210 +5756,10 @@
         ],
         "responses": {
           "200": {
-            "description": "Video details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "title",
-                    "description",
-                    "duration",
-                    "thumbnailUrl",
-                    "videoUrl",
-                    "authorId",
-                    "organizationId",
-                    "channelId",
-                    "collectionId",
-                    "transcript",
-                    "aiSummary",
-                    "viewCount",
-                    "isPublic",
-                    "isDeleted",
-                    "deletedAt",
-                    "retentionUntil",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "properties": {
-                    "id": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "duration": {
-                      "type": "string"
-                    },
-                    "thumbnailUrl": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "videoUrl": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "authorId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "organizationId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "channelId": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "collectionId": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "transcript": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "aiSummary": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "viewCount": {
-                      "type": "number"
-                    },
-                    "isPublic": {
-                      "type": "boolean"
-                    },
-                    "isDeleted": {
-                      "type": "boolean"
-                    },
-                    "deletedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "retentionUntil": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
-                    },
-                    "author": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "name",
-                        "image"
-                      ],
-                      "properties": {
-                        "id": {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "image": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "comments": {
-                      "type": "array",
-                      "items": {
-                        "$id": "/schemas/unknown",
-                        "title": "unknown"
-                      }
-                    },
-                    "chapters": {
-                      "type": "array",
-                      "items": {
-                        "$id": "/schemas/unknown",
-                        "title": "unknown"
-                      }
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "404": {
-            "description": "Video not found"
+            "description": "Not found"
           }
         }
       },
@@ -6908,7 +5769,6 @@
         ],
         "summary": "Update video",
         "operationId": "updateVideo",
-        "description": "Update video metadata",
         "parameters": [
           {
             "name": "id",
@@ -6930,175 +5790,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Video updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "title",
-                    "description",
-                    "duration",
-                    "thumbnailUrl",
-                    "videoUrl",
-                    "authorId",
-                    "organizationId",
-                    "channelId",
-                    "collectionId",
-                    "transcript",
-                    "aiSummary",
-                    "viewCount",
-                    "isPublic",
-                    "isDeleted",
-                    "deletedAt",
-                    "retentionUntil",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "properties": {
-                    "id": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "duration": {
-                      "type": "string"
-                    },
-                    "thumbnailUrl": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "videoUrl": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "authorId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "organizationId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "channelId": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "collectionId": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "transcript": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "aiSummary": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "viewCount": {
-                      "type": "number"
-                    },
-                    "isPublic": {
-                      "type": "boolean"
-                    },
-                    "isDeleted": {
-                      "type": "boolean"
-                    },
-                    "deletedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "retentionUntil": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Success"
           },
           "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
+            "description": "Invalid request"
           },
           "404": {
-            "description": "Video not found"
+            "description": "Not found"
           }
         }
       }
@@ -7108,7 +5806,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get talk-time",
+        "summary": "Get talk time distribution",
         "operationId": "getVideoAnalyticTalk-time",
         "parameters": [
           {
@@ -7144,9 +5842,8 @@
         "tags": [
           "Videos"
         ],
-        "summary": "List video chapters",
+        "summary": "Get video chapters",
         "operationId": "getVideoChapter",
-        "description": "Get chapters/markers for a video",
         "parameters": [
           {
             "name": "id",
@@ -7168,75 +5865,10 @@
         ],
         "responses": {
           "200": {
-            "description": "List of chapters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "title",
-                      "summary",
-                      "startTime",
-                      "endTime",
-                      "videoId",
-                      "createdAt"
-                    ],
-                    "properties": {
-                      "id": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "summary": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "startTime": {
-                        "type": "number"
-                      },
-                      "endTime": {
-                        "anyOf": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "videoId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
+            "description": "Success"
           },
           "404": {
-            "description": "Video not found"
+            "description": "Not found"
           }
         }
       }
@@ -7246,7 +5878,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get clip",
+        "summary": "List all clips for a video",
         "operationId": "getVideoClip",
         "parameters": [
           {
@@ -7283,440 +5915,8 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create clip",
+        "summary": "Create a new clip from a video",
         "operationId": "createVideoClip",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created successfully"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/videos/{id}/code-links": {
-      "delete": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Delete code-link",
-        "operationId": "deleteVideoCode-link",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Get code-link",
-        "operationId": "getVideoCode-link",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Create code-link",
-        "operationId": "createVideoCode-link",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/videos/{id}/code-snippets": {
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Get code-snippet",
-        "operationId": "getVideoCode-snippet",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of code snippets",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "code",
-                      "language",
-                      "title",
-                      "description",
-                      "timestamp",
-                      "videoId",
-                      "createdAt"
-                    ],
-                    "properties": {
-                      "id": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "code": {
-                        "type": "string"
-                      },
-                      "language": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "title": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "description": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "timestamp": {
-                        "anyOf": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "videoId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Video not found"
-          }
-        }
-      }
-    },
-    "/videos/{id}/comments": {
-      "get": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "List video comments",
-        "operationId": "getVideoComment",
-        "description": "Get all comments for a video",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of comments",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "content",
-                      "timestamp",
-                      "videoId",
-                      "authorId",
-                      "parentId",
-                      "createdAt",
-                      "updatedAt"
-                    ],
-                    "properties": {
-                      "id": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "content": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "videoId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "authorId": {
-                        "$ref": "#/$defs/UUID"
-                      },
-                      "parentId": {
-                        "anyOf": [
-                          {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "author": {
-                        "type": "object",
-                        "required": [
-                          "id",
-                          "name",
-                          "image"
-                        ],
-                        "properties": {
-                          "id": {
-                            "$ref": "#/$defs/UUID"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "image": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          }
-                        },
-                        "additionalProperties": false
-                      },
-                      "replies": {
-                        "type": "array",
-                        "items": {
-                          "$id": "/schemas/unknown",
-                          "title": "unknown"
-                        }
-                      },
-                      "reactions": {
-                        "type": "array",
-                        "items": {
-                          "$id": "/schemas/unknown",
-                          "title": "unknown"
-                        }
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "updatedAt": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Video not found"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Add comment",
-        "operationId": "createVideoComment",
-        "description": "Add a comment to a video",
         "security": [
           {
             "bearerAuth": []
@@ -7743,7 +5943,191 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Create comment data",
+          "description": "Create a new clip from a video data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$defs": {
+                  "UUID": {
+                    "type": "string",
+                    "description": "a Universally Unique Identifier",
+                    "format": "uuid",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "title",
+                  "startTime",
+                  "endTime"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "description": "a string at most 1000 character(s) long",
+                        "title": "maxLength(1000)",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "maxLength(1000)",
+                    "description": "a string at most 1000 character(s) long"
+                  },
+                  "startTime": {
+                    "type": "number",
+                    "description": "a non-negative number",
+                    "title": "greaterThanOrEqualTo(0)",
+                    "minimum": 0
+                  },
+                  "endTime": {
+                    "type": "number",
+                    "description": "a positive number",
+                    "title": "greaterThan(0)",
+                    "exclusiveMinimum": 0
+                  },
+                  "momentId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/UUID"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "momentType": {
+                    "type": "string",
+                    "enum": [
+                      "decision",
+                      "action_item",
+                      "question",
+                      "answer",
+                      "emphasis",
+                      "demonstration",
+                      "conclusion",
+                      "highlight"
+                    ]
+                  },
+                  "transcriptExcerpt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "description": "a string at most 5000 character(s) long",
+                        "title": "maxLength(5000)",
+                        "maxLength": 5000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "maxLength(5000)",
+                    "description": "a string at most 5000 character(s) long"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/videos/{id}/comments": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "List all comments for a video",
+        "operationId": "getVideoComment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Create a new comment",
+        "operationId": "createVideoComment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Create a new comment data",
           "content": {
             "application/json": {
               "schema": {
@@ -7808,123 +6192,16 @@
         },
         "responses": {
           "201": {
-            "description": "Comment created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$defs": {
-                    "UUID": {
-                      "type": "string",
-                      "description": "a Universally Unique Identifier",
-                      "format": "uuid",
-                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                    }
-                  },
-                  "type": "object",
-                  "required": [
-                    "id",
-                    "content",
-                    "timestamp",
-                    "videoId",
-                    "authorId",
-                    "parentId",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "properties": {
-                    "id": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "content": {
-                      "type": "string"
-                    },
-                    "timestamp": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "videoId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "authorId": {
-                      "$ref": "#/$defs/UUID"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "author": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "name",
-                        "image"
-                      ],
-                      "properties": {
-                        "id": {
-                          "$ref": "#/$defs/UUID"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "image": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "replies": {
-                      "type": "array",
-                      "items": {
-                        "$id": "/schemas/unknown",
-                        "title": "unknown"
-                      }
-                    },
-                    "reactions": {
-                      "type": "array",
-                      "items": {
-                        "$id": "/schemas/unknown",
-                        "title": "unknown"
-                      }
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "Created successfully"
           },
           "400": {
-            "description": "Invalid request body"
+            "description": "Invalid request"
           },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
-            "description": "Video not found"
+            "description": "Not found"
           }
         }
       }
@@ -7934,7 +6211,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get decision",
+        "summary": "Get decisions extracted from this video",
         "operationId": "getVideoDecision",
         "security": [
           {
@@ -7973,56 +6250,12 @@
         }
       }
     },
-    "/videos/{id}/detect-code-refs": {
-      "post": {
-        "tags": [
-          "Videos"
-        ],
-        "summary": "Create detect-code-ref",
-        "operationId": "createVideoDetect-code-ref",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Id ID",
-            "required": true,
-            "schema": {
-              "$defs": {
-                "UUID": {
-                  "type": "string",
-                  "description": "a Universally Unique Identifier",
-                  "format": "uuid",
-                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                }
-              },
-              "$ref": "#/$defs/UUID"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
     "/videos/{id}/embeddings": {
       "delete": {
         "tags": [
           "Videos"
         ],
-        "summary": "Delete embedding",
+        "summary": "Delete embeddings for a video",
         "operationId": "deleteVideoEmbedding",
         "security": [
           {
@@ -8064,7 +6297,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get embedding",
+        "summary": "Get embedding status for a video",
         "operationId": "getVideoEmbedding",
         "security": [
           {
@@ -8106,7 +6339,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create embedding",
+        "summary": "Generate embeddings for a video",
         "operationId": "createVideoEmbedding",
         "security": [
           {
@@ -8150,7 +6383,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get moment",
+        "summary": "Get auto-detected moments for a video",
         "operationId": "getVideoMoment",
         "parameters": [
           {
@@ -8188,6 +6421,7 @@
         ],
         "summary": "Create move",
         "operationId": "createVideoMove",
+        "description": "POST /api/videos/[id]/move\n\nBody:\n- channelId?: string | null - The channel to move the video to (null to unassign)\n- collectionId?: string | null - The collection to move the video to (null to unassign)",
         "parameters": [
           {
             "name": "id",
@@ -8222,7 +6456,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get presence",
+        "summary": "Get all users currently watching a video",
         "operationId": "getVideoPresence",
         "parameters": [
           {
@@ -8300,7 +6534,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get process",
+        "summary": "Get processing status",
         "operationId": "getVideoProcess",
         "parameters": [
           {
@@ -8334,7 +6568,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create process",
+        "summary": "Trigger AI processing",
         "operationId": "createVideoProcess",
         "security": [
           {
@@ -8378,7 +6612,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Delete progress",
+        "summary": "Delete video progress for current user",
         "operationId": "deleteVideoProgress",
         "security": [
           {
@@ -8420,7 +6654,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get progress",
+        "summary": "Get video progress for current user",
         "operationId": "getVideoProgress",
         "security": [
           {
@@ -8509,7 +6743,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get quote-card",
+        "summary": "List all quote cards for a video",
         "operationId": "getVideoQuote-card",
         "parameters": [
           {
@@ -8546,7 +6780,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create quote-card",
+        "summary": "Create a new quote card",
         "operationId": "createVideoQuote-card",
         "security": [
           {
@@ -8572,6 +6806,60 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "description": "Create a new quote card data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "quoteText"
+                ],
+                "properties": {
+                  "quoteText": {
+                    "type": "string",
+                    "description": "a string that will be trimmed"
+                  },
+                  "speaker": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "description": "a string at most 100 character(s) long",
+                        "title": "maxLength(100)",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "maxLength(100)",
+                    "description": "a string at most 100 character(s) long"
+                  },
+                  "timestampSeconds": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "description": "a non-negative number",
+                        "title": "greaterThanOrEqualTo(0)",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "greaterThanOrEqualTo(0)",
+                    "description": "a non-negative number"
+                  },
+                  "templateId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Created successfully"
@@ -8593,9 +6881,8 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Restore video",
+        "summary": "Restore a soft-deleted video",
         "operationId": "createVideoRestore",
-        "description": "Restore a soft-deleted video from trash",
         "parameters": [
           {
             "name": "id",
@@ -8630,7 +6917,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get share",
+        "summary": "List share links for video",
         "operationId": "getVideoShare",
         "security": [
           {
@@ -8719,7 +7006,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Delete share",
+        "summary": "Revoke share link",
         "operationId": "deleteVideoShare",
         "security": [
           {
@@ -8780,7 +7067,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get similar",
+        "summary": "Find similar videos",
         "operationId": "getVideoSimilar",
         "security": [
           {
@@ -8824,7 +7111,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get speaker",
+        "summary": "Get speakers in a video with talk time stats",
         "operationId": "getVideoSpeaker",
         "parameters": [
           {
@@ -8897,7 +7184,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Delete speaker",
+        "summary": "Unlink speaker from user",
         "operationId": "deleteVideoSpeaker",
         "parameters": [
           {
@@ -8948,7 +7235,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get speaker",
+        "summary": "Get speaker details and segments",
         "operationId": "getVideoSpeaker",
         "parameters": [
           {
@@ -8996,12 +7283,48 @@
         }
       }
     },
+    "/videos/{id}/stream": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get presigned URL for video streaming",
+        "operationId": "getVideoStream",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/videos/{id}/subtitles": {
       "get": {
         "tags": [
           "Videos"
         ],
-        "summary": "Get subtitl",
+        "summary": "List Available Languages",
         "operationId": "getVideoSubtitl",
         "parameters": [
           {
@@ -9037,7 +7360,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get subtitl",
+        "summary": "Serve Subtitle File",
         "operationId": "getVideoSubtitl",
         "parameters": [
           {
@@ -9090,7 +7413,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get transcript",
+        "summary": "Get Transcript",
         "operationId": "getVideoTranscript",
         "parameters": [
           {
@@ -9124,7 +7447,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Update transcript",
+        "summary": "Update Transcript",
         "operationId": "updateVideoTranscript",
         "parameters": [
           {
@@ -9160,7 +7483,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get view",
+        "summary": "Get view count for a video",
         "operationId": "getVideoView",
         "parameters": [
           {
@@ -9280,6 +7603,7 @@
         ],
         "summary": "Create cleanup",
         "operationId": "createVideoCleanup",
+        "description": "POST /api/videos/cleanup\n\nPermanently deletes all videos past their retention period.\nThis endpoint should be called by a cron job or admin user.\n\nRequires admin role or a valid cron secret.",
         "responses": {
           "201": {
             "description": "Created successfully"
@@ -9292,7 +7616,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "List deleted",
+        "summary": "Get soft-deleted videos for the organization",
         "operationId": "listVideoDeleted",
         "responses": {
           "200": {
@@ -9306,9 +7630,9 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Search videos",
+        "summary": "List search",
         "operationId": "listVideoSearch",
-        "description": "Full-text search across video titles, descriptions, and transcripts",
+        "description": "GET /api/videos/search\n\nSearch videos with full-text search and filters.\n\nQuery parameters:\n- q: Search query (required)\n- channelId: Filter by channel\n- authorId: Filter by author\n- dateFrom: Filter by start date (ISO 8601)\n- dateTo: Filter by end date (ISO 8601)\n- page: Page number (default: 1)\n- limit: Results per page (default: 20)",
         "responses": {
           "200": {
             "description": "Success"
@@ -9321,9 +7645,8 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Upload video",
+        "summary": "Upload a video file",
         "operationId": "createVideoUpload",
-        "description": "Upload a video file with metadata",
         "responses": {
           "201": {
             "description": "Created successfully"
@@ -9336,7 +7659,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create confirm",
+        "summary": "Confirm upload and create video record",
         "operationId": "createVideoUploadConfirm",
         "responses": {
           "201": {
@@ -9350,7 +7673,7 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Create presigned",
+        "summary": "Generate presigned upload URL(s)",
         "operationId": "createVideoUploadPresigned",
         "responses": {
           "201": {
@@ -9564,7 +7887,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "List workflow-templates",
+        "summary": "List available templates",
         "operationId": "listWorkflow-templat",
         "responses": {
           "200": {
@@ -9576,7 +7899,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "Create workflow-templat",
+        "summary": "Create a custom template",
         "operationId": "createWorkflow-templat",
         "responses": {
           "201": {
@@ -9590,7 +7913,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "Delete workflow-templat",
+        "summary": "Delete a template",
         "operationId": "deleteWorkflow-templat",
         "parameters": [
           {
@@ -9624,7 +7947,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "Get workflow-templat",
+        "summary": "Get a specific template",
         "operationId": "getWorkflow-templat",
         "parameters": [
           {
@@ -9658,7 +7981,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "Patch workflow-templat",
+        "summary": "Update a template",
         "operationId": "patchWorkflow-templat",
         "parameters": [
           {
@@ -9692,7 +8015,7 @@
         "tags": [
           "Workflow-templates"
         ],
-        "summary": "Create workflow-templat",
+        "summary": "Apply template (increment usage)",
         "operationId": "createWorkflow-templat",
         "parameters": [
           {

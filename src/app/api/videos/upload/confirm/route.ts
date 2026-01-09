@@ -113,24 +113,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSingleConfirmation(body: ConfirmUploadRequest) {
-  const {
-    uploadId,
-    fileKey,
-    filename,
-    fileSize: _fileSize, // Used for tracking, not directly in this function
-    title,
-    description,
-    organizationId,
-    authorId,
-    channelId,
-    collectionId,
-    skipAIProcessing,
-  } = body;
-
-  // Validate required fields
-  if (!uploadId || !fileKey || !filename || !title || !organizationId || !authorId) {
-    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
-  }
+  const { fileKey, title, description, organizationId, authorId, channelId, collectionId, skipAIProcessing } = body;
 
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
@@ -145,19 +128,20 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       );
     }
 
-    // Get the public URL for the uploaded file
-    const videoUrl = storage.getPublicUrl(fileKey);
+    // Generate presigned URL for immediate playback response
+    const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(fileKey, 3600);
 
     // Sanitize user input
     const sanitizedTitle = sanitizeTitle(title);
     const sanitizedDescription = description ? sanitizeDescription(description) : undefined;
 
-    // Create video record in database
+    // Store the file key as the videoUrl (used for generating presigned URLs later)
+    // We store the key directly since it's more flexible than the internal R2 URL
     const video = yield* videoRepo.createVideo({
       title: sanitizedTitle,
       description: sanitizedDescription,
       duration: PLACEHOLDER_DURATION,
-      videoUrl,
+      videoUrl: fileKey, // Store the key, not the URL
       thumbnailUrl: undefined, // Will be generated during processing
       authorId,
       organizationId,
@@ -168,11 +152,12 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
 
     return {
       videoId: video.id,
-      videoUrl,
+      videoUrl: presignedVideoUrl, // Return presigned URL for immediate use
       thumbnailUrl: '',
       processingStatus: video.processingStatus,
       skipAIProcessing: skipAIProcessing ?? false,
       videoTitle: sanitizedTitle,
+      fileKey, // Include for workflow processing
     };
   });
 
@@ -213,21 +198,6 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
 async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
   const { uploads, organizationId, authorId, channelId, collectionId, skipAIProcessing } = body;
 
-  // Validate required fields
-  if (!uploads || uploads.length === 0 || !organizationId || !authorId) {
-    return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
-  }
-
-  // Validate each upload
-  for (const upload of uploads) {
-    if (!upload.uploadId || !upload.fileKey || !upload.filename || !upload.title) {
-      return NextResponse.json(
-        { success: false, error: 'Each upload must have uploadId, fileKey, filename, and title' },
-        { status: 400 },
-      );
-    }
-  }
-
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
     const videoRepo = yield* VideoRepository;
@@ -247,15 +217,17 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
 
     for (const upload of uploads) {
       try {
-        const videoUrl = storage.getPublicUrl(upload.fileKey);
+        // Generate presigned URL for response
+        const presignedVideoUrl = yield* storage.generatePresignedDownloadUrl(upload.fileKey, 3600);
         const sanitizedTitle = sanitizeTitle(upload.title);
         const sanitizedDescription = upload.description ? sanitizeDescription(upload.description) : undefined;
 
+        // Store the file key, not the URL
         const video = yield* videoRepo.createVideo({
           title: sanitizedTitle,
           description: sanitizedDescription,
           duration: PLACEHOLDER_DURATION,
-          videoUrl,
+          videoUrl: upload.fileKey, // Store the key for later presigned URL generation
           thumbnailUrl: undefined,
           authorId,
           organizationId,
@@ -267,7 +239,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         results.push({
           uploadId: upload.uploadId,
           videoId: video.id,
-          videoUrl,
+          videoUrl: presignedVideoUrl, // Return presigned URL for immediate use
           processingStatus: video.processingStatus,
         });
 
@@ -275,7 +247,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         if (!skipAIProcessing) {
           processVideoWorkflow({
             videoId: video.id,
-            videoUrl,
+            videoUrl: upload.fileKey, // Pass the file key to workflow
             videoTitle: sanitizedTitle,
             organizationId,
           }).catch((err) => {

@@ -1,6 +1,6 @@
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, handleEffectExitWithOptions, handleEffectExitWithStatus } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from '@/lib/api-utils';
 import { MissingFieldError, SeriesRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
@@ -14,10 +14,13 @@ const CreateSeriesSchema = Schema.Struct({
   isPublic: Schema.optional(Schema.Boolean),
 });
 
-// =============================================================================
-// GET /api/series - Fetch paginated series for an organization
-// =============================================================================
-
+/**
+ * @summary List series
+ * @description Get a paginated list of video series for an organization
+ * @response 200 PaginatedSeries - List of series with pagination
+ * @response 400 - Invalid request parameters
+ * @response 401 - Unauthorized
+ */
 export async function GET(request: NextRequest) {
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -45,27 +48,18 @@ export async function GET(request: NextRequest) {
 
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) =>
-      NextResponse.json(data, {
-        headers: {
-          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
-        },
-      }),
+  return handleEffectExitWithOptions(exit, {
+    successHeaders: { 'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()) },
   });
 }
 
-// =============================================================================
-// POST /api/series - Create a new series
-// =============================================================================
-
+/**
+ * @summary Create series
+ * @description Create a new video series/playlist
+ * @response 201 Series - Series created successfully
+ * @response 400 - Invalid request body
+ * @response 401 - Unauthorized
+ */
 export async function POST(request: NextRequest) {
   const effect = Effect.gen(function* () {
     // Authenticate
@@ -92,14 +86,5 @@ export async function POST(request: NextRequest) {
 
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => NextResponse.json(data, { status: 201 }),
-  });
+  return handleEffectExitWithStatus(exit, 201);
 }

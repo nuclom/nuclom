@@ -192,25 +192,35 @@ function isPublicPageRoute(pathname: string): boolean {
   const publicPatterns = [
     '/',
     '/auth',
+    '/auth-error',
     '/sign-up',
     '/login',
     '/register',
+    '/forgot-password',
     '/reset-password',
     '/verify-email',
+    '/verification-pending',
     '/accept-invitation',
     '/share',
+    '/embed',
     '/pricing',
     '/about',
     '/terms',
     '/privacy',
     '/cookies',
+    '/content-policy',
     '/features',
     '/changelog',
+    '/brand',
+    '/status',
     '/blog',
     '/contact',
     '/help',
     '/docs',
     '/support',
+    '/home',
+    '/opengraph-image',
+    '/twitter-image',
   ];
   return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
 }
@@ -229,10 +239,6 @@ const requestLogger = createLogger('http');
 
 function generateRequestId(): string {
   return crypto.randomUUID();
-}
-
-function getClientIp(request: NextRequest): string | undefined {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || undefined;
 }
 
 // =============================================================================
@@ -361,22 +367,7 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Log incoming request
-  const clientIp = getClientIp(request);
-  const userAgent = request.headers.get('user-agent') || undefined;
-
-  requestLogger.info(
-    {
-      requestId,
-      method,
-      path: pathname,
-      ip: clientIp,
-      userAgent,
-    },
-    `→ ${method} ${pathname}`,
-  );
-
-  // Skip public endpoints (no rate limiting needed, but still log)
+  // Skip public endpoints (no rate limiting needed)
   if (isPublicApiRoute(pathname)) {
     const response = NextResponse.next();
     response.headers.set('x-request-id', requestId);
@@ -483,6 +474,6 @@ export const config = {
      * - Public assets (images, fonts, etc.)
      * - public folder assets
      */
-    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot)).*)',
+    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
   ],
 };

@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
 import { CookieConsentBanner, CookieSettingsButton } from '@/components/legal/cookie-consent';
+import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { getAppUrl } from '@/lib/env/client';
@@ -92,10 +93,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <div className="min-h-screen bg-background text-foreground">{children}</div>
-          <Toaster />
-          <CookieConsentBanner />
-          <CookieSettingsButton />
+          <MiniPlayerProvider>
+            <div className="min-h-screen bg-background text-foreground">{children}</div>
+            <Toaster />
+            <CookieConsentBanner />
+            <CookieSettingsButton />
+          </MiniPlayerProvider>
         </ThemeProvider>
         <Analytics />
       </body>

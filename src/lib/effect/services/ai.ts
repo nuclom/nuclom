@@ -28,14 +28,6 @@ export interface ChapterResult {
   readonly endTime?: number;
 }
 
-export interface CodeSnippetResult {
-  readonly language: string | null;
-  readonly code: string;
-  readonly title?: string;
-  readonly description?: string;
-  readonly timestamp?: number;
-}
-
 export interface ActionItemResult {
   readonly text: string;
   readonly timestamp?: number;
@@ -67,14 +59,6 @@ export interface AIServiceInterface {
   readonly extractActionItemsWithTimestamps: (
     segments: ReadonlyArray<TranscriptSegment>,
   ) => Effect.Effect<ReadonlyArray<ActionItemResult>, AIServiceError>;
-
-  /**
-   * Detect and extract code snippets from transcript
-   */
-  readonly detectCodeSnippets: (
-    transcript: string,
-    segments?: ReadonlyArray<TranscriptSegment>,
-  ) => Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError>;
 
   /**
    * Generate chapters/key moments from transcript segments
@@ -273,72 +257,6 @@ If no action items are found, return an empty array: []`,
       Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<ActionItemResult>)),
     );
 
-  const detectCodeSnippets = (
-    transcript: string,
-    segments?: ReadonlyArray<TranscriptSegment>,
-  ): Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError> =>
-    pipe(
-      Effect.tryPromise({
-        try: async () => {
-          const formattedTranscript = segments
-            ? segments.map((seg) => `[${formatTime(seg.startTime)}] ${seg.text}`).join('\n')
-            : transcript;
-
-          const { text } = await generateText({
-            model,
-            prompt: `Analyze this transcript and detect any code snippets, commands, or technical code that was mentioned or dictated.
-
-Transcript:
-${formattedTranscript}
-
-For each code snippet found:
-1. Reconstruct the actual code from what was spoken
-2. Identify the programming language
-3. Provide a brief title and description
-4. Include the timestamp if available
-
-Return as JSON array:
-[
-  {
-    "language": "javascript",
-    "code": "function example() { return true; }",
-    "title": "Example function",
-    "description": "A simple example function",
-    "timestamp": 120
-  }
-]
-
-Common patterns to look for:
-- "npm install", "pip install", "cargo add" (package manager commands)
-- Function definitions, class declarations
-- Variable assignments
-- API calls, imports
-- Configuration snippets
-- Shell commands
-
-If no code snippets are detected, return an empty array: []`,
-          });
-
-          try {
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-              return JSON.parse(jsonMatch[0]) as CodeSnippetResult[];
-            }
-            return [];
-          } catch {
-            return [];
-          }
-        },
-        catch: (error) =>
-          new AIServiceError({
-            message: 'Failed to detect code snippets',
-            operation: 'detectCodeSnippets',
-            cause: error,
-          }),
-      }),
-      Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<CodeSnippetResult>)),
-    );
-
   const generateChapters = (
     segments: ReadonlyArray<TranscriptSegment>,
     videoTitle?: string,
@@ -412,7 +330,6 @@ Ensure chapters cover the entire video duration without gaps.`,
     generateVideoTags,
     extractActionItems,
     extractActionItemsWithTimestamps,
-    detectCodeSnippets,
     generateChapters,
     createSummaryStream,
   } satisfies AIServiceInterface;
@@ -490,18 +407,6 @@ export const extractActionItemsWithTimestamps = (
   Effect.gen(function* () {
     const ai = yield* AI;
     return yield* ai.extractActionItemsWithTimestamps(segments);
-  });
-
-/**
- * Detect code snippets from transcript
- */
-export const detectCodeSnippets = (
-  transcript: string,
-  segments?: ReadonlyArray<TranscriptSegment>,
-): Effect.Effect<ReadonlyArray<CodeSnippetResult>, AIServiceError, AI> =>
-  Effect.gen(function* () {
-    const ai = yield* AI;
-    return yield* ai.detectCodeSnippets(transcript, segments);
   });
 
 /**

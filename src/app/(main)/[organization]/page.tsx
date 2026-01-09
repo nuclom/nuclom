@@ -84,7 +84,7 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         {/* Main Section - Centered */}
         <div className="space-y-10">
-          <DashboardHero organization={organizationSlug} userName={userName} hasVideos={hasVideos} />
+          {!hasVideos && <DashboardHero organization={organizationSlug} userName={userName} />}
 
           {hasVideos ? (
             <>

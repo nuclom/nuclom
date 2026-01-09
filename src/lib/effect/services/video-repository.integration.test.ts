@@ -350,37 +350,4 @@ describe('VideoRepository Integration Tests', () => {
       expect(Exit.isFailure(exit)).toBe(true);
     });
   });
-
-  describe('getVideoCodeSnippets', () => {
-    it('should return code snippets for a video', async () => {
-      const snippets = [
-        { id: 'snippet-1', videoId: 'video-123', language: 'javascript', code: "console.log('hello')" },
-      ];
-
-      mockDb.db.orderBy.mockResolvedValueOnce(snippets);
-
-      const program = Effect.gen(function* () {
-        const repo = yield* VideoRepository;
-        return yield* repo.getVideoCodeSnippets('video-123');
-      });
-
-      const result = await Effect.runPromise(Effect.provide(program, testLayer));
-
-      expect(result).toHaveLength(1);
-      expect(result[0].language).toBe('javascript');
-    });
-
-    it('should handle database errors', async () => {
-      mockDb.db.orderBy.mockRejectedValueOnce(new Error('Query failed'));
-
-      const program = Effect.gen(function* () {
-        const repo = yield* VideoRepository;
-        return yield* repo.getVideoCodeSnippets('video-123');
-      });
-
-      const exit = await Effect.runPromiseExit(Effect.provide(program, testLayer));
-
-      expect(Exit.isFailure(exit)).toBe(true);
-    });
-  });
 });

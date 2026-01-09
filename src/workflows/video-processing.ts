@@ -3,12 +3,13 @@
  *
  * Handles the complete video processing pipeline with durable execution:
  * 1. Transcription (audio to text)
- * 2. Speaker Diarization (who spoke when)
- * 3. AI Analysis (summary, tags, action items)
- * 4. Code snippet detection
- * 5. Chapter generation
- * 6. Decision extraction (knowledge graph)
- * 7. Database storage of results
+ * 2. Thumbnail generation
+ * 3. Speaker Diarization (who spoke when)
+ * 4. AI Analysis (summary, tags, action items)
+ * 5. Code snippet detection
+ * 6. Chapter generation
+ * 7. Decision extraction (knowledge graph)
+ * 8. Database storage of results
  *
  * Benefits over fire-and-forget:
  * - Automatic retries on transient failures
@@ -84,13 +85,6 @@ interface AIAnalysisResult {
     startTime: number;
     endTime?: number;
   }>;
-  codeSnippets: Array<{
-    language: string;
-    code: string;
-    title?: string;
-    description?: string;
-    timestamp?: number;
-  }>;
 }
 
 interface DetectedMoment {
@@ -140,6 +134,120 @@ interface ExtractedDecisionResult {
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+async function generateAndUploadThumbnail(
+  videoId: string,
+  videoUrl: string,
+  organizationId: string,
+  timestamp = 1,
+): Promise<string | null> {
+  'use step';
+
+  const replicateToken = env.REPLICATE_API_TOKEN;
+  const accountId = env.R2_ACCOUNT_ID;
+  const accessKeyId = env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
+  const bucketName = env.R2_BUCKET_NAME;
+
+  if (!replicateToken) {
+    log.info({}, 'Replicate not configured, skipping thumbnail generation');
+    return null;
+  }
+
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+    log.info({}, 'R2 storage not configured, skipping thumbnail generation');
+    return null;
+  }
+
+  try {
+    const { default: Replicate } = await import('replicate');
+    const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+
+    const replicate = new Replicate({ auth: replicateToken });
+
+    // Use video-to-gif model to extract a frame at the specified timestamp
+    const VIDEO_TO_GIF_MODEL = 'fofr/video-to-gif:79bdd53be0a7a5f7c2f4813aba9c2a33e29e5dcf82d01f988d4e5c1c2a17c10e';
+
+    const output = await replicate.run(VIDEO_TO_GIF_MODEL as `${string}/${string}`, {
+      input: {
+        video: videoUrl,
+        start_time: Math.max(0, timestamp),
+        duration: 0.1, // Very short to get essentially a single frame
+        fps: 1,
+        width: 1280,
+      },
+    });
+
+    // The output is typically a URL to the generated content
+    const generatedUrl =
+      typeof output === 'string' ? output : Array.isArray(output) && output.length > 0 ? String(output[0]) : null;
+
+    if (!generatedUrl) {
+      log.warn({ videoId }, 'No thumbnail URL returned from Replicate');
+      return null;
+    }
+
+    // Download the generated thumbnail
+    const response = await fetch(generatedUrl);
+    if (!response.ok) {
+      log.warn({ videoId, status: response.status }, 'Failed to download generated thumbnail');
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Determine content type and extension
+    const contentType = response.headers.get('content-type') || 'image/gif';
+    const extension = contentType.includes('gif') ? 'gif' : contentType.includes('png') ? 'png' : 'jpg';
+
+    // Upload to R2 storage
+    const thumbnailKey = `${organizationId}/thumbnails/${Date.now()}-${videoId}.${extension}`;
+
+    const client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
+
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: thumbnailKey,
+        Body: buffer,
+        ContentType: contentType,
+      }),
+    );
+
+    const thumbnailUrl = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${thumbnailKey}`;
+
+    log.info({ videoId, thumbnailUrl }, 'Thumbnail generated and uploaded successfully');
+
+    return thumbnailUrl;
+  } catch (error) {
+    log.error({ error, videoId }, 'Failed to generate thumbnail, continuing without it');
+    return null;
+  }
+}
+
+async function saveThumbnailUrl(videoId: string, thumbnailUrl: string): Promise<void> {
+  'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { videos } = await import('@/lib/db/schema');
+
+  await db
+    .update(videos)
+    .set({
+      thumbnailUrl,
+      updatedAt: new Date(),
+    })
+    .where(eq(videos.id, videoId));
+}
 
 async function updateProcessingStatus(videoId: string, status: ProcessingStatus, error?: string): Promise<void> {
   'use step';
@@ -280,30 +388,6 @@ async function analyzeWithAI(
     required: ['chapters'],
   });
 
-  const codeSnippetsSchema = jsonSchema<{
-    snippets: Array<{ language: string; code: string; title?: string; description?: string; timestamp?: number }>;
-  }>({
-    type: 'object',
-    properties: {
-      snippets: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            language: { type: 'string', description: 'Programming language' },
-            code: { type: 'string', description: 'The code snippet' },
-            title: { type: 'string', description: 'Brief title' },
-            description: { type: 'string', description: 'What the code does' },
-            timestamp: { type: 'number', description: 'Approximate timestamp in seconds' },
-          },
-          required: ['language', 'code'],
-        },
-        description: 'Code snippets detected in the transcript',
-      },
-    },
-    required: ['snippets'],
-  });
-
   // Generate summary using Vercel AI SDK
   const summaryResult = await generateText({
     model,
@@ -366,31 +450,11 @@ async function analyzeWithAI(
     chapters = [];
   }
 
-  // Detect code snippets using structured output
-  let codeSnippets: AIAnalysisResult['codeSnippets'] = [];
-  try {
-    const codeResult = await generateObject({
-      model,
-      schema: codeSnippetsSchema,
-      system: `Detect any code snippets, commands, or technical code mentioned in this transcript. For each snippet include:
-- language: programming language
-- code: the code snippet
-- title: brief title
-- description: what the code does
-- timestamp: approximate timestamp in seconds`,
-      prompt: transcript.slice(0, 8000),
-    });
-    codeSnippets = Array.isArray(codeResult.object?.snippets) ? codeResult.object.snippets : [];
-  } catch {
-    codeSnippets = [];
-  }
-
   return {
     summary,
     tags,
     actionItems,
     chapters,
-    codeSnippets,
   };
 }
 
@@ -749,7 +813,7 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
 
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
-  const { videos, videoChapters, videoCodeSnippets } = await import('@/lib/db/schema');
+  const { videos, videoChapters } = await import('@/lib/db/schema');
 
   // Update video record
   await db
@@ -772,21 +836,6 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
         summary: chapter.summary,
         startTime: Math.floor(chapter.startTime),
         endTime: chapter.endTime ? Math.floor(chapter.endTime) : null,
-      })),
-    );
-  }
-
-  // Save code snippets
-  if (analysis.codeSnippets.length > 0) {
-    await db.delete(videoCodeSnippets).where(eq(videoCodeSnippets.videoId, videoId));
-    await db.insert(videoCodeSnippets).values(
-      analysis.codeSnippets.map((snippet) => ({
-        videoId,
-        language: snippet.language,
-        code: snippet.code,
-        title: snippet.title,
-        description: snippet.description,
-        timestamp: snippet.timestamp ? Math.floor(snippet.timestamp) : null,
       })),
     );
   }
@@ -1089,17 +1138,18 @@ async function sendCompletionNotification(
  * 1. Updates status to transcribing
  * 2. Transcribes the video using OpenAI Whisper
  * 3. Saves the transcript to the database
- * 4. Updates status to diarizing (if enabled)
- * 5. Runs speaker diarization (if configured)
- * 6. Saves speaker data to the database
- * 7. Updates status to analyzing
- * 8. Runs AI analysis (summary, tags, action items, chapters, code snippets)
- * 9. Saves all AI results to the database
- * 10. Detects and saves key moments for clip extraction
- * 11. Extracts decisions for knowledge graph
- * 12. Saves extracted decisions to database
- * 13. Updates status to completed
- * 14. Sends completion notification
+ * 4. Generates and uploads thumbnail to storage
+ * 5. Updates status to diarizing (if enabled)
+ * 6. Runs speaker diarization (if configured)
+ * 7. Saves speaker data to the database
+ * 8. Updates status to analyzing
+ * 9. Runs AI analysis (summary, tags, action items, chapters, code snippets)
+ * 10. Saves all AI results to the database
+ * 11. Detects and saves key moments for clip extraction
+ * 12. Extracts decisions for knowledge graph
+ * 13. Saves extracted decisions to database
+ * 14. Updates status to completed
+ * 15. Sends completion notification
  *
  * Each step is checkpointed, so if the server restarts, processing resumes
  * from the last successful step.
@@ -1118,6 +1168,16 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
 
     // Step 3: Save transcript
     await saveTranscript(videoId, transcription.transcript, transcription.segments);
+
+    // Step 3.5: Generate and save thumbnail
+    // Use timestamp at ~10% of video duration, minimum 1 second
+    if (organizationId) {
+      const thumbnailTimestamp = Math.max(1, Math.floor(transcription.duration * 0.1));
+      const thumbnailUrl = await generateAndUploadThumbnail(videoId, videoUrl, organizationId, thumbnailTimestamp);
+      if (thumbnailUrl) {
+        await saveThumbnailUrl(videoId, thumbnailUrl);
+      }
+    }
 
     // Step 4: Speaker diarization (if enabled and configured)
     let diarization: DiarizationResult | null = null;

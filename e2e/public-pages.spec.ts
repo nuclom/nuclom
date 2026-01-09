@@ -6,9 +6,8 @@ test.describe('Public Pages', () => {
       await page.goto('/privacy');
       await page.waitForLoadState('domcontentloaded');
 
-      // Should have privacy-related content
-      const title = page.getByRole('heading', { level: 1 });
-      await expect(title).toBeVisible({ timeout: 10000 });
+      // Should have privacy policy heading
+      await expect(page.getByText('Privacy Policy').first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -18,8 +17,7 @@ test.describe('Public Pages', () => {
       await page.waitForLoadState('domcontentloaded');
 
       // Should have terms-related content
-      const title = page.getByRole('heading', { level: 1 });
-      await expect(title).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Terms of Service').first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -28,9 +26,8 @@ test.describe('Public Pages', () => {
       await page.goto('/support');
       await page.waitForLoadState('domcontentloaded');
 
-      // Should load without errors
-      const title = page.getByRole('heading', { level: 1 });
-      await expect(title).toBeVisible({ timeout: 10000 });
+      // Should load without errors - check for any text content
+      await expect(page.getByText(/support|help|contact/i).first()).toBeVisible({ timeout: 10000 });
     });
   });
 

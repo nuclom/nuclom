@@ -312,12 +312,12 @@ export default function PricingPage() {
                       <span className="text-lg font-normal text-muted-foreground">/user/mo</span>
                     </div>
                     {isYearly && (
-                      <p className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         ${plan.yearlyTotal}/user billed annually
                         <Badge variant="outline" className="ml-2 text-xs">
                           Save {plan.savings}
                         </Badge>
-                      </p>
+                      </div>
                     )}
                     {!isYearly && <p className="text-sm text-muted-foreground">Billed monthly, cancel anytime</p>}
                   </div>

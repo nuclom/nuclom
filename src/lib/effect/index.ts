@@ -192,9 +192,6 @@ export {
   // ClipRepository
   ClipRepository,
   ClipRepositoryLive,
-  // CodeLinksRepository
-  CodeLinksRepository,
-  CodeLinksRepositoryLive,
   // CommentRepository
   CommentRepository,
   CommentRepositoryLive,
@@ -228,17 +225,18 @@ export {
   deleteSavedSearch,
   deleteSeries,
   deleteVideoProgress,
-  deleteVideoRecord,
   downloadGoogleFile,
   exchangeGoogleCodeForToken,
   exchangeZoomCodeForToken,
   extractActionItems,
+  extractKeyFromUrl,
   extractMetadata,
   findOneOrFail,
   // Google Meet
   GoogleMeet,
   GoogleMeetLive,
   generateFileKey,
+  generatePresignedDownloadUrl,
   generatePresignedUploadUrl,
   generateThumbnail,
   generateThumbnails,
@@ -267,7 +265,6 @@ export {
   getNotifications,
   getOrganization,
   getOrganizationBySlug,
-  getPublicUrl,
   getQuoteCard,
   getQuoteCards,
   getRecentSearches,

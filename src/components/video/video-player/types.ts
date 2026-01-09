@@ -25,6 +25,8 @@ export interface VideoPlayerProps {
   url: string;
   title: string;
   videoId?: string;
+  /** Organization slug for mini-player navigation */
+  organizationSlug?: string;
   thumbnailUrl?: string;
   initialProgress?: number;
   chapters?: VideoChapter[];
@@ -33,6 +35,8 @@ export interface VideoPlayerProps {
   onEnded?: () => void;
   onError?: (error: string) => void;
   onTimeUpdate?: (currentTime: number) => void;
+  /** Callback to register the seek function for external control */
+  registerSeek?: (seekFn: (time: number) => void) => void;
   className?: string;
 }
 
@@ -68,6 +72,7 @@ export const KEYBOARD_SHORTCUTS = [
   { key: '↑ / ↓', action: 'Volume up / down' },
   { key: 'M', action: 'Mute / Unmute' },
   { key: 'F', action: 'Fullscreen' },
+  { key: 'T', action: 'Theater mode' },
   { key: 'P', action: 'Picture-in-Picture' },
   { key: 'C', action: 'Toggle captions' },
   { key: 'R', action: 'Toggle loop' },

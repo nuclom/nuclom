@@ -174,6 +174,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
               onChange={(e) => setName(e.target.value)}
               required
               disabled={isAnyLoading}
+              autoComplete="name"
             />
           </div>
           <div className="space-y-2">
@@ -186,6 +187,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isAnyLoading}
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -201,6 +203,7 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
                 onBlur={() => setPasswordFocused(false)}
                 required
                 disabled={isAnyLoading}
+                autoComplete="new-password"
               />
               <Button
                 type="button"

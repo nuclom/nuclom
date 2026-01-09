@@ -76,7 +76,6 @@ import type {
   auditLogSeverityEnum,
   clipStatusEnum,
   clipTypeEnum,
-  codeLinkTypeEnum,
   consentActionEnum,
   decisionStatusEnum,
   decisionTypeEnum,
@@ -124,9 +123,6 @@ export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
 // Integration enums
 export type IntegrationProvider = (typeof integrationProviderEnum.enumValues)[number];
 export type ImportStatus = (typeof importStatusEnum.enumValues)[number];
-
-// Code link enums
-export type CodeLinkType = (typeof codeLinkTypeEnum.enumValues)[number];
 
 // Billing enums
 export type SubscriptionStatus = (typeof subscriptionStatusEnum.enumValues)[number];

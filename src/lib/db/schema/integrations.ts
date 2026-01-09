@@ -4,14 +4,12 @@
  * External integration tables including:
  * - integrations: OAuth connections to external services
  * - importedMeetings: Imported meeting recordings
- * - githubConnections: GitHub repository connections
- * - codeLinks: Links between videos and code artifacts
  */
 
 import { relations } from 'drizzle-orm';
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { organizations, users } from './auth';
-import { codeLinkTypeEnum, importStatusEnum, integrationProviderEnum } from './enums';
+import { importStatusEnum, integrationProviderEnum } from './enums';
 import { videos } from './videos';
 
 // =============================================================================
@@ -44,38 +42,17 @@ export type MicrosoftTeamsIntegrationMetadata = {
   readonly displayName?: string;
 };
 
-export type GitHubIntegrationMetadata = {
-  readonly login?: string;
-  readonly email?: string;
-  readonly avatarUrl?: string;
-  readonly repositories?: Array<{
-    readonly id: number;
-    readonly fullName: string;
-    readonly private: boolean;
-  }>;
-  readonly installationId?: string;
-};
-
 export type IntegrationMetadata =
   | ZoomIntegrationMetadata
   | GoogleIntegrationMetadata
   | SlackIntegrationMetadata
-  | MicrosoftTeamsIntegrationMetadata
-  | GitHubIntegrationMetadata;
+  | MicrosoftTeamsIntegrationMetadata;
 
 export type MeetingParticipant = {
   readonly name: string;
   readonly email?: string;
   readonly joinTime?: string;
   readonly leaveTime?: string;
-};
-
-export type DetectedCodeRef = {
-  readonly type: 'pr' | 'issue' | 'commit' | 'file' | 'module';
-  readonly reference: string;
-  readonly timestamp: number;
-  readonly confidence: number;
-  readonly suggestedRepo?: string;
 };
 
 // =============================================================================
@@ -145,76 +122,6 @@ export const importedMeetings = pgTable(
 );
 
 // =============================================================================
-// GitHub Connections
-// =============================================================================
-
-export const githubConnections = pgTable(
-  'github_connections',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    organizationId: text('organization_id')
-      .notNull()
-      .references(() => organizations.id, { onDelete: 'cascade' }),
-    integrationId: text('integration_id')
-      .notNull()
-      .references(() => integrations.id, { onDelete: 'cascade' }),
-    installationId: text('installation_id'), // GitHub App installation ID
-    repositories:
-      jsonb('repositories').$type<
-        Array<{
-          id: number;
-          fullName: string;
-          private: boolean;
-          defaultBranch: string;
-        }>
-      >(),
-    connectedAt: timestamp('connected_at').defaultNow().notNull(),
-    lastSync: timestamp('last_sync'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  },
-  (table) => ({
-    orgIdx: index('github_connections_org_idx').on(table.organizationId),
-    integrationIdx: index('github_connections_integration_idx').on(table.integrationId),
-  }),
-);
-
-// =============================================================================
-// Code Links
-// =============================================================================
-
-export const codeLinks = pgTable(
-  'code_links',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    videoId: text('video_id')
-      .notNull()
-      .references(() => videos.id, { onDelete: 'cascade' }),
-    linkType: codeLinkTypeEnum('link_type').notNull(),
-    githubRepo: text('github_repo').notNull(), // owner/repo format
-    githubRef: text('github_ref').notNull(), // PR number, commit SHA, or file path
-    githubUrl: text('github_url'),
-    context: text('context'), // why this was linked
-    autoDetected: boolean('auto_detected').default(false).notNull(),
-    timestampStart: integer('timestamp_start'), // video timestamp in seconds
-    timestampEnd: integer('timestamp_end'), // optional end timestamp
-    createdById: text('created_by_id').references(() => users.id, { onDelete: 'set null' }),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  },
-  (table) => ({
-    videoIdx: index('code_links_video_idx').on(table.videoId),
-    repoIdx: index('code_links_repo_idx').on(table.githubRepo),
-    refIdx: index('code_links_ref_idx').on(table.githubRepo, table.linkType, table.githubRef),
-    typeIdx: index('code_links_type_idx').on(table.linkType),
-  }),
-);
-
-// =============================================================================
 // Type Exports
 // =============================================================================
 
@@ -222,10 +129,6 @@ export type Integration = typeof integrations.$inferSelect;
 export type NewIntegration = typeof integrations.$inferInsert;
 export type ImportedMeeting = typeof importedMeetings.$inferSelect;
 export type NewImportedMeeting = typeof importedMeetings.$inferInsert;
-export type GitHubConnection = typeof githubConnections.$inferSelect;
-export type NewGitHubConnection = typeof githubConnections.$inferInsert;
-export type CodeLink = typeof codeLinks.$inferSelect;
-export type NewCodeLink = typeof codeLinks.$inferInsert;
 
 // =============================================================================
 // Relations
@@ -251,27 +154,5 @@ export const importedMeetingRelations = relations(importedMeetings, ({ one }) =>
   video: one(videos, {
     fields: [importedMeetings.videoId],
     references: [videos.id],
-  }),
-}));
-
-export const githubConnectionRelations = relations(githubConnections, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [githubConnections.organizationId],
-    references: [organizations.id],
-  }),
-  integration: one(integrations, {
-    fields: [githubConnections.integrationId],
-    references: [integrations.id],
-  }),
-}));
-
-export const codeLinkRelations = relations(codeLinks, ({ one }) => ({
-  video: one(videos, {
-    fields: [codeLinks.videoId],
-    references: [videos.id],
-  }),
-  createdBy: one(users, {
-    fields: [codeLinks.createdById],
-    references: [users.id],
   }),
 }));

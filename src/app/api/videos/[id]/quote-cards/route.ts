@@ -1,10 +1,10 @@
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { createFullLayer, createPublicLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
 import { ClipRepository, VideoRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateQueryParams, validateRequestBody } from '@/lib/validation';
-import { createQuoteCardSchema, PaginationSchema } from '@/lib/validation/schemas';
+import { CreateQuoteCardSchema, PaginationSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/videos/[id]/quote-cards - List all quote cards for a video
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const video = yield* videoRepo.getVideo(videoId);
 
     // Validate request body
-    const validatedData = yield* validateRequestBody(createQuoteCardSchema, request);
+    const validatedData = yield* validateRequestBody(CreateQuoteCardSchema, request);
 
     // Create quote card
     const clipRepo = yield* ClipRepository;
@@ -64,20 +64,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       createdBy: user.id,
     });
 
-    return newCard;
+    return { success: true, data: newCard };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    },
-    onSuccess: (data) => NextResponse.json({ success: true, data }, { status: 201 }),
-  });
+  return handleEffectExitWithStatus(exit, 201);
 }

@@ -234,46 +234,6 @@ This is a test summary.
     });
   });
 
-  describe('detectCodeSnippets', () => {
-    it('should detect code snippets from transcript', async () => {
-      const mockResponse = JSON.stringify([
-        {
-          language: 'javascript',
-          code: "console.log('hello')",
-          title: 'Console log example',
-          description: 'Basic logging',
-          timestamp: 60,
-        },
-      ]);
-
-      vi.mocked(generateText).mockResolvedValueOnce(createMockAIResponse(mockResponse));
-
-      const program = Effect.gen(function* () {
-        const ai = yield* AI;
-        return yield* ai.detectCodeSnippets('Let me show you console dot log hello');
-      });
-
-      const result = await Effect.runPromise(Effect.provide(program, AILive));
-
-      expect(result).toHaveLength(1);
-      expect(result[0].language).toBe('javascript');
-      expect(result[0].code).toContain('console.log');
-    });
-
-    it('should return empty array when no code snippets found', async () => {
-      vi.mocked(generateText).mockResolvedValueOnce(createMockAIResponse('[]'));
-
-      const program = Effect.gen(function* () {
-        const ai = yield* AI;
-        return yield* ai.detectCodeSnippets('Just a regular conversation');
-      });
-
-      const result = await Effect.runPromise(Effect.provide(program, AILive));
-
-      expect(result).toEqual([]);
-    });
-  });
-
   describe('generateChapters', () => {
     it('should generate chapters from transcript segments', async () => {
       const mockResponse = JSON.stringify([
