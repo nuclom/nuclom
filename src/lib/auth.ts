@@ -34,8 +34,14 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
 // =============================================================================
 
 /**
- * Build trusted origins from environment with strict validation
+ * Build trusted origins with strict validation
  * Only explicitly allowed origins are trusted for cross-origin requests
+ *
+ * Trusted domains:
+ * - Production: nuclom.com
+ * - Staging: staging.nuclom.com
+ * - Deploy Previews: *.vercel.app (via VERCEL_URL)
+ * - Local: localhost:5001
  */
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
@@ -43,20 +49,23 @@ function buildTrustedOrigins(): string[] {
   // Always trust the computed app URL
   origins.push(getAppUrl());
 
-  // Add Vercel preview URL in non-production environments
-  if (env.VERCEL_URL && env.VERCEL_ENV !== 'production') {
+  // Production and staging domains
+  origins.push('https://nuclom.com');
+  origins.push('https://staging.nuclom.com');
+
+  // Vercel deployment URL (for deploy previews: *.vercel.app)
+  if (env.VERCEL_URL) {
     origins.push(`https://${env.VERCEL_URL}`);
   }
 
-  // Add production Vercel URL if set
+  // Production Vercel URL if set
   if (env.VERCEL_PROJECT_PRODUCTION_URL) {
     origins.push(`https://${env.VERCEL_PROJECT_PRODUCTION_URL}`);
   }
 
-  // Add localhost only in development
+  // Localhost for development
   if (env.NODE_ENV === 'development') {
     origins.push('http://localhost:5001');
-    origins.push('http://127.0.0.1:3000');
   }
 
   return [...new Set(origins.filter(Boolean))];
