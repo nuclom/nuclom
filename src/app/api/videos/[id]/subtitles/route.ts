@@ -1,9 +1,9 @@
 /**
  * Subtitle Languages API Endpoint
  *
- * Lists available subtitle languages for a video.
+ * Returns available subtitle information for a video (English only).
  *
- * GET /api/videos/[id]/subtitles - List available subtitle languages
+ * GET /api/videos/[id]/subtitles - Get subtitle availability
  */
 
 import { eq } from 'drizzle-orm';
@@ -12,8 +12,7 @@ import type { NextRequest } from 'next/server';
 import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, Translation } from '@/lib/effect';
-import { SUPPORTED_LANGUAGES } from '@/lib/effect/services/translation';
+import { DatabaseError, NotFoundError } from '@/lib/effect';
 import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
@@ -37,7 +36,7 @@ interface SubtitleLanguagesResponse {
 }
 
 // =============================================================================
-// GET /api/videos/[id]/subtitles - List Available Languages
+// GET /api/videos/[id]/subtitles - Get Subtitle Availability
 // =============================================================================
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -75,27 +74,18 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const hasTranscript = !!videoData.transcriptSegments && videoData.transcriptSegments.length > 0;
 
-    // Check if translation service is available
-    const translationService = yield* Translation;
-    const translationAvailable = translationService.isAvailable();
-
-    // Build language list
+    // Build language list (English only)
     const baseUrl = `/api/videos/${id}/subtitles`;
-    const languages: SubtitleLanguage[] = Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => ({
-      code,
-      name: info.name,
-      nativeName: info.nativeName,
-      isOriginal: code === 'en',
-      available: hasTranscript && (code === 'en' || translationAvailable),
-      url: `${baseUrl}/${code}.vtt`,
-    }));
-
-    // Sort: English first, then alphabetically
-    languages.sort((a, b) => {
-      if (a.isOriginal) return -1;
-      if (b.isOriginal) return 1;
-      return a.name.localeCompare(b.name);
-    });
+    const languages: SubtitleLanguage[] = [
+      {
+        code: 'en',
+        name: 'English',
+        nativeName: 'English',
+        isOriginal: true,
+        available: hasTranscript,
+        url: `${baseUrl}/en.vtt`,
+      },
+    ];
 
     const data: SubtitleLanguagesResponse = {
       videoId: id,

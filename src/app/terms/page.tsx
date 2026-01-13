@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: 'Terms of Service | Nuclom',
+  title: 'Terms of Service',
   description: 'Read the Terms of Service for Nuclom video collaboration platform.',
 };
 

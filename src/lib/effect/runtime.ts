@@ -36,7 +36,6 @@ import { type SeriesRepository, SeriesRepositoryLive } from './services/series-r
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
 import { type Storage, StorageLive } from './services/storage';
 import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
-import { type Translation, TranslationLive } from './services/translation';
 import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
@@ -119,7 +118,6 @@ const BaseServicesLive = Layer.mergeAll(
   EmbeddingLive,
   ReplicateLive,
   StripeServiceLive,
-  TranslationLive,
   EmailNotificationsLive,
   SlackMonitoringLive,
 );
@@ -208,7 +206,6 @@ export type AppServices =
   | ClipRepository
   | KnowledgeGraphRepository
   | StripeServiceTag
-  | Translation
   | SlackMonitoring;
 
 // =============================================================================
@@ -288,13 +285,6 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case 'WebhookSignatureError':
         return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
 
-      case 'TranslationNotConfiguredError':
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 503 });
-
-      case 'SubtitleError':
-      case 'UnsupportedLanguageError':
-        return NextResponse.json({ success: false, error: taggedError.message }, { status: 400 });
-
       case 'DatabaseError':
       case 'TransactionError':
       case 'UploadError':
@@ -305,7 +295,6 @@ export const mapErrorToResponse = (error: unknown): NextResponse => {
       case 'VideoAIProcessingError':
       case 'StripeApiError':
       case 'UsageTrackingError':
-      case 'TranslationApiError':
         log.error({ tag: taggedError._tag, message: taggedError.message }, 'Service error');
         return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
 

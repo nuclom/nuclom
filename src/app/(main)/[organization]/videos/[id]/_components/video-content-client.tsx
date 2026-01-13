@@ -17,6 +17,7 @@ import {
   ListTodo,
   Loader2,
   Play,
+  RefreshCw,
   Share2,
   Sparkles,
   Tag,
@@ -24,7 +25,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useCallback, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { CommentList } from '@/components/comments';
 import { VideoDecisionsSidebar } from '@/components/knowledge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,6 +35,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapteredTranscript, QuoteCards, VideoActions, VideoPlayerWithProgress } from '@/components/video';
+import { useToast } from '@/hooks/use-toast';
 import type { ActionItem, VideoChapter } from '@/lib/db/schema';
 import type { CommentWithReplies } from '@/lib/effect/services/comment-repository';
 import { formatTime } from '@/lib/format-utils';
@@ -60,9 +63,14 @@ export interface VideoContentClientProps {
 interface ProcessingStatusProps {
   status: string;
   error?: string | null;
+  createdAt: Date;
+  onRetry: () => void;
+  isRetrying: boolean;
 }
 
-function ProcessingStatus({ status, error }: ProcessingStatusProps) {
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+
+function ProcessingStatus({ status, error, createdAt, onRetry, isRetrying }: ProcessingStatusProps) {
   const statusConfig = {
     pending: { icon: Clock, color: 'text-muted-foreground', label: 'Pending', bg: 'bg-muted' },
     transcribing: { icon: Loader2, color: 'text-blue-500', label: 'Transcribing', bg: 'bg-blue-500/10' },
@@ -74,13 +82,24 @@ function ProcessingStatus({ status, error }: ProcessingStatusProps) {
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
   const Icon = config.icon;
 
+  // Show retry button if video is not completed and was created more than 10 minutes ago
+  const isStuck = status !== 'completed' && Date.now() - new Date(createdAt).getTime() > TEN_MINUTES_MS;
+
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bg}`}>
-      <Icon
-        className={`h-4 w-4 ${config.color} ${status === 'transcribing' || status === 'analyzing' ? 'animate-spin' : ''}`}
-      />
-      <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
-      {error && <span className="text-xs text-red-500 ml-2">({error})</span>}
+    <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.bg}`}>
+        <Icon
+          className={`h-4 w-4 ${config.color} ${status === 'transcribing' || status === 'analyzing' ? 'animate-spin' : ''}`}
+        />
+        <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
+        {error && <span className="text-xs text-red-500 ml-2">({error})</span>}
+      </div>
+      {isStuck && (
+        <Button variant="outline" size="sm" onClick={onRetry} disabled={isRetrying} className="h-7 text-xs">
+          {isRetrying ? <Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1.5" />}
+          Retry Processing
+        </Button>
+      )}
     </div>
   );
 }
@@ -172,9 +191,28 @@ function parseDuration(duration: string): number {
 // =============================================================================
 
 export function VideoContentClient({ video, chapters, organizationSlug, currentUser }: VideoContentClientProps) {
+  // Parse ?t= query parameter for initial seek time
+  const searchParams = useSearchParams();
+  const initialTimeFromUrl = searchParams.get('t');
+  const initialSeekTime = initialTimeFromUrl ? Number.parseInt(initialTimeFromUrl, 10) : 0;
+
   // Playback state
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTime, setCurrentTime] = useState(initialSeekTime);
   const seekFnRef = useRef<((time: number) => void) | null>(null);
+  const [isRetrying, startRetryTransition] = useTransition();
+  const hasSeenInitialTime = useRef(false);
+
+  // Seek to initial time from URL when seek function is registered
+  useEffect(() => {
+    if (initialSeekTime > 0 && seekFnRef.current && !hasSeenInitialTime.current) {
+      // Small delay to ensure video is ready
+      const timer = setTimeout(() => {
+        seekFnRef.current?.(initialSeekTime);
+        hasSeenInitialTime.current = true;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [initialSeekTime]);
 
   // Handle time updates from video player
   const handleTimeUpdate = useCallback((time: number) => {
@@ -182,14 +220,62 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   }, []);
 
   // Register seek function from video player
-  const handleRegisterSeek = useCallback((seekFn: (time: number) => void) => {
-    seekFnRef.current = seekFn;
-  }, []);
+  const handleRegisterSeek = useCallback(
+    (seekFn: (time: number) => void) => {
+      seekFnRef.current = seekFn;
+      // Seek to initial time from URL immediately after registration
+      if (initialSeekTime > 0 && !hasSeenInitialTime.current) {
+        setTimeout(() => {
+          seekFn(initialSeekTime);
+          hasSeenInitialTime.current = true;
+        }, 100);
+      }
+    },
+    [initialSeekTime],
+  );
 
   // Handle seek requests from transcript
   const handleSeek = useCallback((time: number) => {
     seekFnRef.current?.(time);
   }, []);
+
+  // Handle retry processing
+  const handleRetryProcessing = useCallback(() => {
+    startRetryTransition(async () => {
+      try {
+        const response = await fetch(`/api/videos/${video.id}/process`, {
+          method: 'POST',
+        });
+        if (response.ok) {
+          // Refresh the page to show updated status
+          window.location.reload();
+        }
+      } catch {
+        // Silently fail - user can try again
+      }
+    });
+  }, [video.id]);
+
+  // Toast hook for notifications
+  const { toast } = useToast();
+
+  // Handle share button click
+  const handleShare = useCallback(async () => {
+    const shareUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: 'Link copied',
+        description: 'Video link has been copied to clipboard',
+      });
+    } catch {
+      toast({
+        title: 'Failed to copy',
+        description: 'Could not copy link to clipboard',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
 
   // Video metadata
   const canDelete = currentUser?.id === video.authorId;
@@ -253,7 +339,13 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
       {/* Video Header */}
       <header>
         <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-          <ProcessingStatus status={video.processingStatus} error={video.processingError} />
+          <ProcessingStatus
+            status={video.processingStatus}
+            error={video.processingError}
+            createdAt={video.createdAt}
+            onRetry={handleRetryProcessing}
+            isRetrying={isRetrying}
+          />
           {tags.length > 0 && (
             <div className="flex items-center gap-1">
               <Tag className="h-3 w-3 text-muted-foreground" />
@@ -295,7 +387,7 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
             <Button variant="ghost" size="icon" className="text-muted-foreground h-9 w-9">
               <Bookmark className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-muted-foreground h-9">
+            <Button variant="ghost" size="sm" className="text-muted-foreground h-9" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" /> Share
             </Button>
             <VideoActions

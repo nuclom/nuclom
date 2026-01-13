@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
@@ -7,11 +8,95 @@ import { VideoSection } from '@/components/dashboard/video-section';
 import { GettingStartedChecklist } from '@/components/getting-started-checklist';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
-import { getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
+import { getCachedChannels, getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Your video collaboration dashboard',
+};
 
 // =============================================================================
-// Loading Skeleton Component
+// Loading Skeleton Components
 // =============================================================================
+
+function VideoCardSkeleton() {
+  return (
+    <div className="space-y-3">
+      {/* Video thumbnail */}
+      <div className="relative aspect-video bg-muted animate-pulse rounded-xl" />
+      {/* Content with avatar */}
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div className="h-9 w-9 rounded-full bg-muted animate-pulse shrink-0" />
+        <div className="flex-1 space-y-2">
+          {/* Title */}
+          <div className="h-4 bg-muted animate-pulse rounded w-full" />
+          <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
+          {/* Author */}
+          <div className="h-3 bg-muted animate-pulse rounded w-1/3" />
+          {/* Date */}
+          <div className="h-3 bg-muted animate-pulse rounded w-1/4" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VideoSectionSkeleton({ cardCount = 4 }: { cardCount?: number }) {
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-6">
+        <div className="space-y-2">
+          {/* Section title */}
+          <div className="h-6 w-40 bg-muted animate-pulse rounded" />
+          {/* Section description */}
+          <div className="h-4 w-56 bg-muted animate-pulse rounded" />
+        </div>
+        {/* View all button */}
+        <div className="h-9 w-20 bg-muted animate-pulse rounded" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
+        {Array.from({ length: cardCount }).map((_, i) => (
+          <VideoCardSkeleton key={i} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Getting Started Checklist skeleton */}
+      <div className="rounded-xl border bg-card p-4 space-y-4">
+        <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="h-5 w-5 rounded-full bg-muted animate-pulse" />
+              <div className="h-4 flex-1 bg-muted animate-pulse rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Activity Feed skeleton */}
+      <div className="rounded-xl border bg-card p-4 space-y-4">
+        <div className="h-5 w-28 bg-muted animate-pulse rounded" />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-full bg-muted animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-muted animate-pulse rounded w-full" />
+                <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function DashboardSkeleton() {
   return (
@@ -20,37 +105,23 @@ function DashboardSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         {/* Main Section */}
         <div className="space-y-10">
-          {/* Hero skeleton */}
-          <div className="h-48 rounded-2xl bg-muted animate-pulse" />
-
-          {/* Video section skeletons */}
-          {Array.from({ length: 3 }).map((_, sectionIndex) => (
-            <div key={`section-${sectionIndex}`}>
-              <div className="h-6 w-48 bg-muted animate-pulse rounded mb-6" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={`skeleton-${sectionIndex}-${i}`} className="space-y-3">
-                    <div className="aspect-video bg-muted animate-pulse rounded-lg" />
-                    <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                    <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          {/* Continue Watching section */}
+          <VideoSectionSkeleton cardCount={4} />
+          {/* New This Week section */}
+          <VideoSectionSkeleton cardCount={4} />
+          {/* From Your Channels section */}
+          <VideoSectionSkeleton cardCount={4} />
         </div>
 
-        {/* Sidebar skeleton - Right side */}
-        <div className="space-y-4 hidden lg:block">
-          <div className="h-64 rounded-xl bg-muted animate-pulse" />
-          <div className="h-48 rounded-xl bg-muted animate-pulse" />
+        {/* Sidebar - Right side (desktop) */}
+        <div className="hidden lg:block">
+          <SidebarSkeleton />
         </div>
       </div>
 
-      {/* Mobile sidebar skeleton */}
-      <div className="space-y-4 lg:hidden">
-        <div className="h-64 rounded-xl bg-muted animate-pulse" />
-        <div className="h-48 rounded-xl bg-muted animate-pulse" />
+      {/* Mobile sidebar */}
+      <div className="lg:hidden">
+        <SidebarSkeleton />
       </div>
     </div>
   );
@@ -67,16 +138,21 @@ interface DashboardContentProps {
 }
 
 async function DashboardContent({ organizationId, organizationSlug, userName }: DashboardContentProps) {
-  // Fetch videos using cached Effect query
-  const result = await getCachedVideos(organizationId);
-  const videos = result.data;
+  // Fetch videos and channels using cached Effect queries
+  const [videosResult, channelsResult] = await Promise.all([
+    getCachedVideos(organizationId),
+    getCachedChannels(organizationId),
+  ]);
+  const videos = videosResult.data;
+  const channels = channelsResult.data;
 
   const hasVideos = videos.length > 0;
+  const hasChannelsWithVideos = channels.some((channel) => channel.videoCount > 0);
 
   // Split videos into sections
   const continueWatching = videos.slice(0, 4);
   const newThisWeek = videos.slice(0, 8);
-  const fromChannels = videos.slice(0, 6);
+  const fromChannels = hasChannelsWithVideos ? videos.slice(0, 6) : [];
 
   return (
     <div className="space-y-8">

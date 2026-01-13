@@ -39,8 +39,6 @@ export const ServerEnv = Schema.Struct({
   UPSTASH_REDIS_REST_TOKEN: Schema.optional(Schema.String),
   // Zoom webhook
   ZOOM_WEBHOOK_SECRET: Schema.optional(Schema.String),
-  // DeepL translation API
-  DEEPL_API_KEY: Schema.optional(Schema.String),
   // AssemblyAI for speaker diarization
   ASSEMBLYAI_API_KEY: Schema.optional(Schema.String),
   // Cron job authentication

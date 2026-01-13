@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMiniPlayer } from '@/hooks/use-mini-player';
 import { useTouch } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -53,6 +53,8 @@ export function VideoPlayer({
   const progressBarRef = useRef<HTMLDivElement>(null);
   const progressCallbackRef = useRef(onProgress);
   const lastProgressSaveRef = useRef<number>(0);
+  const rafRef = useRef<number | null>(null);
+  const lastTimeUpdateRef = useRef<number>(0);
 
   // State
   const [videoState, setVideoState] = useState<VideoState>('idle');
@@ -159,9 +161,14 @@ export function VideoPlayer({
     unregisterVideo,
   ]);
 
-  // Update registered video state on time/volume changes
+  // Update registered video state on time/volume changes (throttled to 1 update per second)
   useEffect(() => {
     if (playing && videoId && organizationSlug) {
+      const now = Date.now();
+      // Only update if at least 1 second has passed since last update
+      if (now - lastTimeUpdateRef.current < 1000) return;
+      lastTimeUpdateRef.current = now;
+
       updateRegisteredVideo({
         currentTime,
         volume,
@@ -170,6 +177,15 @@ export function VideoPlayer({
       });
     }
   }, [currentTime, volume, muted, playing, videoId, organizationSlug, updateRegisteredVideo]);
+
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const isTouchDevice = useTouch();
   const { feedback: touchFeedback } = useTouchGestures({
@@ -260,14 +276,27 @@ export function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    setCurrentTime(video.currentTime);
-    onTimeUpdate?.(video.currentTime);
-    reportProgress();
+    // Throttle UI updates to ~60fps using requestAnimationFrame
+    if (rafRef.current !== null) return;
 
-    if (video.buffered.length > 0) {
-      const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-      setBuffered((bufferedEnd / video.duration) * 100);
-    }
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const currentVideo = videoRef.current;
+      if (!currentVideo) return;
+
+      // Use startTransition for non-urgent UI updates
+      startTransition(() => {
+        setCurrentTime(currentVideo.currentTime);
+
+        if (currentVideo.buffered.length > 0) {
+          const bufferedEnd = currentVideo.buffered.end(currentVideo.buffered.length - 1);
+          setBuffered((bufferedEnd / currentVideo.duration) * 100);
+        }
+      });
+
+      onTimeUpdate?.(currentVideo.currentTime);
+      reportProgress();
+    });
   }, [reportProgress, onTimeUpdate]);
 
   const handlePlay = useCallback(() => {

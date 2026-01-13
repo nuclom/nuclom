@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: 'Privacy Policy | Nuclom',
+  title: 'Privacy Policy',
   description: 'Learn how Nuclom collects, uses, and protects your personal data.',
 };
 

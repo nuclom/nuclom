@@ -130,21 +130,21 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
     const filename = `${externalId}.mp4`;
     const key = storage.generateFileKey(organizationId, filename, 'video');
 
-    const uploadResult = yield* storage.uploadLargeFile(fileBuffer, key, { contentType });
+    const uploadResult = yield* storage.uploadFile(fileBuffer, key, { contentType });
 
     // Step 4: Update status to processing
     yield* integrationRepo.updateImportedMeeting(importedMeetingId, {
       importStatus: 'processing',
     });
 
-    // Step 5: Create video record
+    // Step 5: Create video record (store the key, not a URL)
     const estimatedDuration = Math.round(fileBuffer.length / 100000);
 
     const video = yield* videoRepo.createVideo({
       title: meetingTitle || 'Meeting Recording',
       description: `Imported from ${provider === 'zoom' ? 'Zoom' : 'Google Meet'}`,
       duration: formatDuration(estimatedDuration),
-      videoUrl: uploadResult.url,
+      videoUrl: uploadResult.key,
       authorId: userId,
       organizationId,
       processingStatus: 'pending',
@@ -157,8 +157,11 @@ const importMeetingEffect = (input: ImportMeetingInput) =>
       importedAt: new Date(),
     });
 
-    // Step 7: Trigger AI processing in the background (fire and forget)
-    const aiEffect = aiProcessor.processVideo(video.id, uploadResult.url, meetingTitle);
+    // Step 7: Generate presigned URL for AI processing
+    const presignedUrl = yield* storage.generatePresignedDownloadUrl(uploadResult.key);
+
+    // Step 8: Trigger AI processing in the background (fire and forget)
+    const aiEffect = aiProcessor.processVideo(video.id, presignedUrl, meetingTitle);
     Effect.runPromise(aiEffect).catch((err) => {
       logger.error('Import meeting AI processing failed', err instanceof Error ? err : new Error(String(err)), {
         videoId: video.id,

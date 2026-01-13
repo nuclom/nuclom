@@ -2475,46 +2475,6 @@ paths:
           description: Unauthorized
         404:
           description: Not found
-  /reports:
-    get:
-      tags:
-        - Reports
-      summary: List reports (admin only)
-      operationId: listReport
-      security:
-        - 
-          bearerAuth:[]
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-    patch:
-      tags:
-        - Reports
-      summary: Update a report (admin only)
-      operationId: patchReport
-      security:
-        - 
-          bearerAuth:[]
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-    post:
-      tags:
-        - Reports
-      summary: Create a new report
-      operationId: createReport
-      security:
-        - 
-          bearerAuth:[]
-      responses:
-        201:
-          description: Created successfully
-        401:
-          description: Unauthorized
   /search:
     get:
       tags:
@@ -4976,7 +4936,7 @@ paths:
     get:
       tags:
         - Videos
-      summary: List Available Languages
+      summary: Get Subtitle Availability
       operationId: getVideoSubtitl
       parameters:
         - 
@@ -4997,30 +4957,17 @@ paths:
           description: Success
         404:
           description: Not found
-  /videos/{id}/subtitles/{lang}:
+  /videos/{id}/subtitles/en:
     get:
       tags:
         - Videos
-      summary: Serve Subtitle File
-      operationId: getVideoSubtitl
+      summary: Get English Subtitles
+      operationId: getVideoSubtitlEn
       parameters:
         - 
           name: id
           in: path
           description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-        - 
-          name: lang
-          in: path
-          description: Lang ID
           required: true
           schema:
             "$defs":

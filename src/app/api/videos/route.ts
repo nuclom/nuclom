@@ -1,8 +1,15 @@
-import { type Context, Effect } from 'effect';
+import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExitWithOptions, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
+import {
+  generatePresignedThumbnailUrl,
+  generatePresignedVideoUrl,
+  handleEffectExitWithOptions,
+  handleEffectExitWithStatus,
+  runApiEffect,
+  Storage,
+} from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { Storage, VideoRepository } from '@/lib/effect';
+import { VideoRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import {
   CreateVideoSchema,
@@ -12,27 +19,6 @@ import {
   validateQueryParams,
   validateRequestBody,
 } from '@/lib/validation';
-
-/**
- * Generate presigned thumbnail URL from stored URL/key
- */
-function generatePresignedThumbnailUrl(
-  storage: Context.Tag.Service<typeof Storage>,
-  thumbnailUrl: string | null,
-): Effect.Effect<string | null, never, never> {
-  if (!thumbnailUrl) return Effect.succeed(null);
-
-  return Effect.gen(function* () {
-    // Extract key from full URL if needed, otherwise use as-is
-    const thumbnailKey = thumbnailUrl.includes('.r2.cloudflarestorage.com/')
-      ? storage.extractKeyFromUrl(thumbnailUrl)
-      : thumbnailUrl;
-
-    if (!thumbnailKey) return null;
-
-    return yield* storage.generatePresignedDownloadUrl(thumbnailKey, 3600);
-  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
-}
 
 /**
  * @summary List videos
@@ -54,15 +40,19 @@ export async function GET(request: NextRequest) {
     const videoRepo = yield* VideoRepository;
     const videosData = yield* videoRepo.getVideos(organizationId, page, limit);
 
-    // Generate presigned thumbnail URLs for all videos
+    // Generate presigned URLs for thumbnails and videos
     const storage = yield* Storage;
     const videosWithPresignedUrls = yield* Effect.all(
       videosData.data.map((video) =>
         Effect.gen(function* () {
-          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, video.thumbnailUrl);
+          const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
+            generatePresignedThumbnailUrl(storage, video.thumbnailUrl),
+            generatePresignedVideoUrl(storage, video.videoUrl),
+          ]);
           return {
             ...video,
             thumbnailUrl: presignedThumbnailUrl,
+            videoUrl: presignedVideoUrl,
           };
         }),
       ),

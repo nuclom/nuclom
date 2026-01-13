@@ -90,12 +90,7 @@ describe('Videos API Route', () => {
   // Helper to create a mock storage service
   const createMockStorageService = (): StorageService => {
     return {
-      uploadFile: vi
-        .fn()
-        .mockImplementation(() => Effect.succeed({ key: 'test-key', url: 'https://example.com/test' })),
-      uploadLargeFile: vi
-        .fn()
-        .mockImplementation(() => Effect.succeed({ key: 'test-key', url: 'https://example.com/test' })),
+      uploadFile: vi.fn().mockImplementation(() => Effect.succeed({ key: 'test-key', etag: 'mock-etag' })),
       deleteFile: vi.fn().mockImplementation(() => Effect.void),
       generatePresignedUploadUrl: vi
         .fn()

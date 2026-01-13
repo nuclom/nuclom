@@ -13,12 +13,7 @@
  * - Payment overdue: 30 days suspended, after 30 more days deleted
  */
 
-import { and, eq, isNotNull, isNull, lt, or, sql } from 'drizzle-orm';
 import { sleep } from 'workflow';
-import { db } from '@/lib/db';
-import { members, notifications, organizations, paymentMethods, subscriptions, users, videos } from '@/lib/db/schema';
-import { resend } from '@/lib/email';
-import { env, getAppUrl } from '@/lib/env/server';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('subscription-enforcement');
@@ -42,6 +37,10 @@ export interface EnforcementResult {
 async function getOrganizationOwners(organizationId: string) {
   'use step';
 
+  const { and, eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { members, users } = await import('@/lib/db/schema');
+
   return db
     .select({
       userId: members.userId,
@@ -61,6 +60,11 @@ async function sendEnforcementNotification(
   daysRemaining?: number,
 ): Promise<number> {
   'use step';
+
+  const { db } = await import('@/lib/db');
+  const { notifications } = await import('@/lib/db/schema');
+  const { resend } = await import('@/lib/email');
+  const { env, getAppUrl } = await import('@/lib/env/server');
 
   let notificationsSent = 0;
   const owners = await getOrganizationOwners(organizationId);
@@ -182,6 +186,10 @@ async function sendEnforcementNotification(
 async function hasPaymentMethod(organizationId: string): Promise<boolean> {
   'use step';
 
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { paymentMethods } = await import('@/lib/db/schema');
+
   const methods = await db.query.paymentMethods.findMany({
     where: eq(paymentMethods.organizationId, organizationId),
     limit: 1,
@@ -207,6 +215,10 @@ function parseMetadata(metadata: unknown): Record<string, unknown> {
 async function getOrganizationEnforcementState(organizationId: string): Promise<Record<string, unknown>> {
   'use step';
 
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations } = await import('@/lib/db/schema');
+
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
     columns: { metadata: true },
@@ -220,6 +232,10 @@ async function updateOrganizationEnforcementState(
   state: Record<string, unknown>,
 ): Promise<void> {
   'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations } = await import('@/lib/db/schema');
 
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
@@ -249,6 +265,10 @@ async function updateOrganizationEnforcementState(
  */
 async function handleExpiredTrials(): Promise<{ handled: number; notifications: number; errors: string[] }> {
   'use step';
+
+  const { and, eq, isNotNull, lt } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations, subscriptions } = await import('@/lib/db/schema');
 
   const now = new Date();
   let handled = 0;
@@ -320,6 +340,10 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
 async function handlePaymentIssues(): Promise<{ suspended: number; notifications: number; errors: string[] }> {
   'use step';
 
+  const { eq, or } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations, subscriptions } = await import('@/lib/db/schema');
+
   const now = new Date();
   let suspended = 0;
   let notificationsSent = 0;
@@ -382,6 +406,10 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
  */
 async function handleDataDeletion(): Promise<{ scheduled: number; notifications: number; errors: string[] }> {
   'use step';
+
+  const { and, eq, isNull, or } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations, subscriptions, videos } = await import('@/lib/db/schema');
 
   const now = new Date();
   let scheduled = 0;
@@ -458,6 +486,10 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
  */
 async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors: string[] }> {
   'use step';
+
+  const { and, eq, isNotNull, lt, sql } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { organizations, subscriptions } = await import('@/lib/db/schema');
 
   const now = new Date();
   let notificationsSent = 0;

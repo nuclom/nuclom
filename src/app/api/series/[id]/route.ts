@@ -1,6 +1,12 @@
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
+import {
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  generatePresignedVideoUrl,
+  handleEffectExit,
+  Storage,
+} from '@/lib/api-handler';
 import { SeriesRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateRequestBody } from '@/lib/validation';
@@ -26,7 +32,40 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Fetch series with videos using repository
     const seriesRepo = yield* SeriesRepository;
-    return yield* seriesRepo.getSeriesWithVideos(id);
+    const seriesData = yield* seriesRepo.getSeriesWithVideos(id);
+
+    // Generate presigned URLs for series thumbnail and video thumbnails
+    const storage = yield* Storage;
+
+    // Sign series thumbnail
+    const presignedSeriesThumbnail = yield* generatePresignedThumbnailUrl(storage, seriesData.thumbnailUrl);
+
+    // Sign video thumbnails and video URLs (videos are wrapped in SeriesVideoWithDetails)
+    const videosWithPresignedUrls = yield* Effect.all(
+      seriesData.videos.map((seriesVideo) =>
+        Effect.gen(function* () {
+          const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
+            generatePresignedThumbnailUrl(storage, seriesVideo.video.thumbnailUrl),
+            generatePresignedVideoUrl(storage, seriesVideo.video.videoUrl),
+          ]);
+          return {
+            ...seriesVideo,
+            video: {
+              ...seriesVideo.video,
+              thumbnailUrl: presignedThumbnailUrl,
+              videoUrl: presignedVideoUrl,
+            },
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
+    return {
+      ...seriesData,
+      thumbnailUrl: presignedSeriesThumbnail,
+      videos: videosWithPresignedUrls,
+    };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());
@@ -52,12 +91,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Update series using repository
     const seriesRepo = yield* SeriesRepository;
-    return yield* seriesRepo.updateSeries(id, {
+    const updatedSeries = yield* seriesRepo.updateSeries(id, {
       name,
       description,
       thumbnailUrl,
       isPublic,
     });
+
+    // Generate presigned URL for the thumbnail
+    const storage = yield* Storage;
+    const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, updatedSeries.thumbnailUrl);
+
+    return {
+      ...updatedSeries,
+      thumbnailUrl: presignedThumbnailUrl,
+    };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

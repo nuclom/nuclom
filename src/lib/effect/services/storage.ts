@@ -30,7 +30,6 @@ export interface StorageConfig {
 
 export interface UploadResult {
   readonly key: string;
-  readonly url: string;
   readonly etag?: string;
 }
 
@@ -50,18 +49,10 @@ export interface UploadProgress {
 
 export interface StorageService {
   /**
-   * Upload a file to storage
+   * Upload a file to storage with optional progress tracking.
+   * Works for both small and large files using multipart upload.
    */
   readonly uploadFile: (
-    buffer: Buffer,
-    key: string,
-    options?: UploadOptions,
-  ) => Effect.Effect<UploadResult, UploadError>;
-
-  /**
-   * Upload a large file with progress tracking
-   */
-  readonly uploadLargeFile: (
     buffer: Buffer,
     key: string,
     options?: UploadOptions,
@@ -190,55 +181,6 @@ const makeStorageService = Effect.gen(function* () {
     buffer: Buffer,
     key: string,
     options: UploadOptions = {},
-  ): Effect.Effect<UploadResult, UploadError> =>
-    pipe(
-      ensureConfigured(),
-      Effect.mapError(
-        (e) =>
-          new UploadError({
-            message: e.message,
-            filename: key,
-          }),
-      ),
-      Effect.flatMap(({ client, bucket, account }) =>
-        Effect.tryPromise({
-          try: async () => {
-            const uploadParams: PutObjectCommandInput = {
-              Bucket: bucket,
-              Key: key,
-              Body: buffer,
-              ContentType: options.contentType || 'application/octet-stream',
-              Metadata: options.metadata,
-            };
-
-            const upload = new Upload({
-              client,
-              params: uploadParams,
-            });
-
-            const result = await upload.done();
-            const url = `https://${bucket}.${account}.r2.cloudflarestorage.com/${key}`;
-
-            return {
-              key,
-              url,
-              etag: result.ETag,
-            };
-          },
-          catch: (error) =>
-            new UploadError({
-              message: `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              filename: key,
-              cause: error,
-            }),
-        }),
-      ),
-    );
-
-  const uploadLargeFile = (
-    buffer: Buffer,
-    key: string,
-    options: UploadOptions = {},
     onProgress?: (progress: UploadProgress) => void,
   ): Effect.Effect<UploadResult, UploadError> =>
     pipe(
@@ -250,7 +192,7 @@ const makeStorageService = Effect.gen(function* () {
             filename: key,
           }),
       ),
-      Effect.flatMap(({ client, bucket, account }) =>
+      Effect.flatMap(({ client, bucket }) =>
         Effect.tryPromise({
           try: async () => {
             const uploadParams: PutObjectCommandInput = {
@@ -278,11 +220,9 @@ const makeStorageService = Effect.gen(function* () {
             }
 
             const result = await upload.done();
-            const url = `https://${bucket}.${account}.r2.cloudflarestorage.com/${key}`;
 
             return {
               key,
-              url,
               etag: result.ETag,
             };
           },
@@ -389,7 +329,6 @@ const makeStorageService = Effect.gen(function* () {
 
   return {
     uploadFile,
-    uploadLargeFile,
     deleteFile,
     generatePresignedUploadUrl,
     generatePresignedDownloadUrl,
@@ -410,22 +349,10 @@ export const StorageLive = Layer.effect(Storage, makeStorageService);
 // =============================================================================
 
 /**
- * Upload a file using the Storage service
+ * Upload a file using the Storage service with optional progress tracking.
+ * Works for both small and large files using multipart upload.
  */
 export const uploadFile = (
-  buffer: Buffer,
-  key: string,
-  options?: UploadOptions,
-): Effect.Effect<UploadResult, UploadError, Storage> =>
-  Effect.gen(function* () {
-    const storage = yield* Storage;
-    return yield* storage.uploadFile(buffer, key, options);
-  });
-
-/**
- * Upload a large file with progress tracking
- */
-export const uploadLargeFile = (
   buffer: Buffer,
   key: string,
   options?: UploadOptions,
@@ -433,7 +360,7 @@ export const uploadLargeFile = (
 ): Effect.Effect<UploadResult, UploadError, Storage> =>
   Effect.gen(function* () {
     const storage = yield* Storage;
-    return yield* storage.uploadLargeFile(buffer, key, options, onProgress);
+    return yield* storage.uploadFile(buffer, key, options, onProgress);
   });
 
 /**

@@ -17,12 +17,7 @@
  * - Resource-efficient sleep
  */
 
-import { eq } from 'drizzle-orm';
 import { FatalError, sleep } from 'workflow';
-import { db } from '@/lib/db';
-import { members, notifications, users } from '@/lib/db/schema';
-import { resend } from '@/lib/email';
-import { env, getAppUrl } from '@/lib/env/server';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('trial-reminders');
@@ -48,6 +43,12 @@ export interface TrialReminderResult {
 
 async function sendTrialReminder(subscriptionId: string, daysRemaining: number): Promise<void> {
   'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { members, notifications, users } = await import('@/lib/db/schema');
+  const { resend } = await import('@/lib/email');
+  const { env, getAppUrl } = await import('@/lib/env/server');
 
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
@@ -192,6 +193,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     await sleep(sleepDuration);
 
     // Verify subscription still exists and is still on trial
+    const { db } = await import('@/lib/db');
     const subscription = await db.query.subscriptions.findFirst({
       where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
     });

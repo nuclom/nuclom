@@ -226,13 +226,20 @@ function ChapterGroupItem({
   return (
     <div className="mb-2">
       {/* Chapter Header */}
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         className={cn(
-          'w-full flex items-center gap-2 p-2.5 rounded-lg transition-colors text-left',
+          'w-full flex items-center gap-2 p-2.5 rounded-lg transition-colors text-left cursor-pointer',
           isCurrentChapter ? 'bg-primary/15 text-primary' : 'bg-muted/50 hover:bg-muted text-foreground',
         )}
         onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
       >
         {isExpanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
         <div className="flex-1 min-w-0">
@@ -255,7 +262,7 @@ function ChapterGroupItem({
         >
           Jump
         </button>
-      </button>
+      </div>
 
       {/* Chapter Segments */}
       {isExpanded && group.segments.length > 0 && (

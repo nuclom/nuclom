@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VideoCard } from '@/components/video-card';
+import { VideoPreviewCard } from '@/components/video-preview-card';
 import { auth } from '@/lib/auth';
 import { getCachedChannel, getCachedChannelVideos, getCachedOrganizationBySlug } from '@/lib/effect';
 
@@ -90,7 +90,7 @@ async function ChannelContent({ channelId, organizationSlug }: ChannelContentPro
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
           {videos.map((video) => (
-            <VideoCard key={video.id} video={video} organization={organizationSlug} />
+            <VideoPreviewCard key={video.id} video={video} organization={organizationSlug} />
           ))}
         </div>
       )}

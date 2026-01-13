@@ -20,8 +20,6 @@
 
 import { FatalError, sleep } from 'workflow';
 import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from '@/lib/db/schema';
-import { notifySlackMonitoring } from '@/lib/effect/services/slack-monitoring';
-import { env, getAppUrl } from '@/lib/env/server';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('video-processing');
@@ -143,6 +141,7 @@ async function generateAndUploadThumbnail(
 ): Promise<string | null> {
   'use step';
 
+  const { env } = await import('@/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -269,6 +268,7 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
 async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
   'use step';
 
+  const { env } = await import('@/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -279,7 +279,7 @@ async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
   const { default: Replicate } = await import('replicate');
   const replicate = new Replicate({ auth: replicateToken });
 
-  const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334';
+  const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e';
 
   const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
     input: {
@@ -628,6 +628,7 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
 async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null> {
   'use step';
 
+  const { env } = await import('@/lib/env/server');
   const apiKey = env.ASSEMBLYAI_API_KEY;
   if (!apiKey) {
     log.info({}, 'AssemblyAI not configured, skipping speaker diarization');
@@ -1065,6 +1066,8 @@ async function sendCompletionNotification(
     const { db } = await import('@/lib/db');
     const { notifications } = await import('@/lib/db/schema');
     const { resend } = await import('@/lib/email');
+    const { env, getAppUrl } = await import('@/lib/env/server');
+    const { notifySlackMonitoring } = await import('@/lib/effect/services/slack-monitoring');
 
     const video = await db.query.videos.findFirst({
       where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
@@ -1132,6 +1135,106 @@ async function sendCompletionNotification(
 // =============================================================================
 
 /**
+ * Handle workflow failure by updating status and sending notification.
+ * This is a separate step so the static analyzer can trace it.
+ */
+async function handleWorkflowFailure(videoId: string, errorMessage: string): Promise<VideoProcessingResult> {
+  'use step';
+
+  try {
+    const { eq } = await import('drizzle-orm');
+    const { db } = await import('@/lib/db');
+    const { videos, notifications } = await import('@/lib/db/schema');
+    const { resend } = await import('@/lib/email');
+    const { env, getAppUrl } = await import('@/lib/env/server');
+    const { notifySlackMonitoring } = await import('@/lib/effect/services/slack-monitoring');
+
+    // Update video status to failed
+    await db
+      .update(videos)
+      .set({
+        processingStatus: 'failed',
+        processingError: errorMessage,
+        updatedAt: new Date(),
+      })
+      .where(eq(videos.id, videoId));
+
+    // Get video and user info for notification
+    const video = await db.query.videos.findFirst({
+      where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
+    });
+
+    if (video?.authorId) {
+      const authorId = video.authorId;
+      const user = await db.query.users.findFirst({
+        where: (u, { eq: eqOp }) => eqOp(u.id, authorId),
+      });
+
+      if (user?.email) {
+        const baseUrl = getAppUrl();
+
+        // Create in-app notification
+        await db.insert(notifications).values({
+          userId: user.id,
+          type: 'video_processing_failed',
+          title: 'Video processing failed',
+          body: `"${video.title}" failed to process. ${errorMessage}`,
+          resourceType: 'video',
+          resourceId: videoId,
+        });
+
+        // Send email notification
+        const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
+        await resend.emails.send({
+          from: fromEmail,
+          to: user.email,
+          subject: `Video processing failed: "${video.title}"`,
+          html: `
+            <h2>Video Processing Failed</h2>
+            <p>Hi ${user.name || 'there'},</p>
+            <p>Your video "${video.title}" failed to process. ${errorMessage}</p>
+            <p><a href="${baseUrl}/videos/${videoId}">View Video</a></p>
+          `,
+        });
+
+        // Send Slack monitoring notification
+        await notifySlackMonitoring('video_processing_failed', {
+          videoId,
+          videoTitle: video.title,
+          organizationId: video.organizationId,
+          userId: user.id,
+          userName: user.name || undefined,
+          errorMessage,
+        });
+      }
+    }
+  } catch (notifyError) {
+    log.error({ videoId, notifyError }, 'Failed to send failure notification');
+  }
+
+  return {
+    videoId,
+    success: false,
+    error: errorMessage,
+  };
+}
+
+/**
+ * Get organization ID from video if not provided in input.
+ * This is a separate step for traceability.
+ */
+async function getVideoOrganizationId(videoId: string): Promise<string | null> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const video = await db.query.videos.findFirst({
+    where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
+    columns: { organizationId: true },
+  });
+  return video?.organizationId ?? null;
+}
+
+/**
  * Process a video with full AI analysis pipeline using durable workflow execution.
  *
  * This workflow:
@@ -1153,108 +1256,124 @@ async function sendCompletionNotification(
  *
  * Each step is checkpointed, so if the server restarts, processing resumes
  * from the last successful step.
+ *
+ * Note: Step calls are at top level (not inside try/catch) so the workflow
+ * static analyzer can trace them for the debug UI.
  */
 export async function processVideoWorkflow(input: VideoProcessingInput): Promise<VideoProcessingResult> {
   'use workflow';
 
   const { videoId, videoUrl, videoTitle, organizationId, skipDiarization } = input;
 
-  try {
-    // Step 1: Update status to transcribing
-    await updateProcessingStatus(videoId, 'transcribing');
-
-    // Step 2: Transcribe the video
-    const transcription = await transcribeVideo(videoUrl);
-
-    // Step 3: Save transcript
-    await saveTranscript(videoId, transcription.transcript, transcription.segments);
-
-    // Step 3.5: Generate and save thumbnail
-    // Use timestamp at ~10% of video duration, minimum 1 second
-    if (organizationId) {
-      const thumbnailTimestamp = Math.max(1, Math.floor(transcription.duration * 0.1));
-      const thumbnailUrl = await generateAndUploadThumbnail(videoId, videoUrl, organizationId, thumbnailTimestamp);
-      if (thumbnailUrl) {
-        await saveThumbnailUrl(videoId, thumbnailUrl);
-      }
-    }
-
-    // Step 4: Speaker diarization (if enabled and configured)
-    let diarization: DiarizationResult | null = null;
-    if (!skipDiarization && organizationId) {
-      // Update status to diarizing
-      await updateProcessingStatus(videoId, 'diarizing');
-
-      // Run speaker diarization
-      diarization = await diarizeVideo(videoUrl);
-
-      // Save speaker data if diarization succeeded
-      if (diarization) {
-        await saveSpeakerData(videoId, organizationId, diarization);
-      }
-    }
-
-    // Step 5: Update status to analyzing
-    await updateProcessingStatus(videoId, 'analyzing');
-
-    // Step 6: Run AI analysis
-    const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
-
-    // Step 7: Save AI analysis results
-    await saveAIAnalysis(videoId, analysis);
-
-    // Step 8: Detect key moments for clip extraction
-    const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
-
-    // Step 9: Save key moments
-    if (organizationId && moments.length > 0) {
-      await saveKeyMoments(videoId, organizationId, moments);
-    }
-
-    // Step 10: Extract decisions for knowledge graph
-    const extractedDecisions = await extractDecisions(transcription.segments, videoTitle);
-
-    // Step 11: Save extracted decisions to database
-    if (organizationId) {
-      await saveDecisions(videoId, organizationId, extractedDecisions);
-    } else {
-      // Fallback: get organization ID from video if not provided in input
-      const { db } = await import('@/lib/db');
-      const video = await db.query.videos.findFirst({
-        where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
-        columns: { organizationId: true },
-      });
-      if (video) {
-        await saveDecisions(videoId, video.organizationId, extractedDecisions);
-      }
-    }
-
-    // Step 12: Update status to completed
-    await updateProcessingStatus(videoId, 'completed');
-
-    // Step 13: Send completion notification
-    await sendCompletionNotification(videoId, 'completed');
-
-    return {
-      videoId,
-      success: true,
-    };
-  } catch (error) {
-    // Handle errors - update status and notify
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    await updateProcessingStatus(videoId, 'failed', errorMessage);
-    await sendCompletionNotification(videoId, 'failed', errorMessage);
-
-    // Re-throw FatalErrors to stop retrying
-    if (error instanceof FatalError) {
-      throw error;
-    }
-
-    return {
-      videoId,
-      success: false,
-      error: errorMessage,
-    };
+  // Step 1: Update status to transcribing
+  const statusResult = await updateProcessingStatus(videoId, 'transcribing').catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
+  if (statusResult && 'error' in statusResult) {
+    return handleWorkflowFailure(videoId, statusResult.error);
   }
+
+  // Step 2: Transcribe the video
+  let transcription: TranscriptionResult;
+  const transcribeResult = await transcribeVideo(videoUrl).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+    isFatal: error instanceof FatalError,
+  }));
+  if ('error' in transcribeResult) {
+    if (transcribeResult.isFatal) {
+      await handleWorkflowFailure(videoId, transcribeResult.error);
+      throw new FatalError(transcribeResult.error);
+    }
+    return handleWorkflowFailure(videoId, transcribeResult.error);
+  }
+  transcription = transcribeResult;
+
+  // Step 3: Save transcript
+  const saveTranscriptResult = await saveTranscript(videoId, transcription.transcript, transcription.segments).catch(
+    (error) => ({
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+  if (saveTranscriptResult && 'error' in saveTranscriptResult) {
+    return handleWorkflowFailure(videoId, saveTranscriptResult.error);
+  }
+
+  // Step 3.5: Generate and save thumbnail
+  if (organizationId) {
+    const thumbnailTimestamp = Math.max(1, Math.floor(transcription.duration * 0.1));
+    const thumbnailUrl = await generateAndUploadThumbnail(videoId, videoUrl, organizationId, thumbnailTimestamp);
+    if (thumbnailUrl) {
+      await saveThumbnailUrl(videoId, thumbnailUrl);
+    }
+  }
+
+  // Step 4: Speaker diarization (if enabled and configured)
+  let diarization: DiarizationResult | null = null;
+  if (!skipDiarization && organizationId) {
+    // Update status to diarizing
+    await updateProcessingStatus(videoId, 'diarizing');
+
+    // Run speaker diarization
+    diarization = await diarizeVideo(videoUrl);
+
+    // Save speaker data if diarization succeeded
+    if (diarization) {
+      await saveSpeakerData(videoId, organizationId, diarization);
+    }
+  }
+
+  // Step 5: Update status to analyzing
+  const analyzeStatusResult = await updateProcessingStatus(videoId, 'analyzing').catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
+  if (analyzeStatusResult && 'error' in analyzeStatusResult) {
+    return handleWorkflowFailure(videoId, analyzeStatusResult.error);
+  }
+
+  // Step 6: Run AI analysis
+  const analysisResult = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle).catch(
+    (error) => ({
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+  if ('error' in analysisResult) {
+    return handleWorkflowFailure(videoId, analysisResult.error);
+  }
+  const analysis: AIAnalysisResult = analysisResult;
+
+  // Step 7: Save AI analysis results
+  const saveAnalysisResult = await saveAIAnalysis(videoId, analysis).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
+  if (saveAnalysisResult && 'error' in saveAnalysisResult) {
+    return handleWorkflowFailure(videoId, saveAnalysisResult.error);
+  }
+
+  // Step 8: Detect key moments for clip extraction
+  const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
+
+  // Step 9: Save key moments
+  if (organizationId && moments.length > 0) {
+    await saveKeyMoments(videoId, organizationId, moments);
+  }
+
+  // Step 10: Extract decisions for knowledge graph
+  const extractedDecisions = await extractDecisions(transcription.segments, videoTitle);
+
+  // Step 11: Save extracted decisions to database
+  const effectiveOrgId = organizationId || (await getVideoOrganizationId(videoId));
+  if (effectiveOrgId) {
+    await saveDecisions(videoId, effectiveOrgId, extractedDecisions);
+  }
+
+  // Step 12: Update status to completed
+  await updateProcessingStatus(videoId, 'completed');
+
+  // Step 13: Send completion notification
+  await sendCompletionNotification(videoId, 'completed');
+
+  return {
+    videoId,
+    success: true,
+  };
 }

@@ -1,6 +1,13 @@
 import { Effect, Option } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
+import {
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  generatePresignedVideoUrl,
+  handleEffectExit,
+  handleEffectExitWithStatus,
+  Storage,
+} from '@/lib/api-handler';
 import { ClipRepository, OrganizationRepository, ValidationError } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateQueryParams, validateRequestBody } from '@/lib/validation';
@@ -33,9 +40,28 @@ export async function GET(request: NextRequest) {
     const clipRepo = yield* ClipRepository;
     const result = yield* clipRepo.getHighlightReels(organization.id, queryParams.page, queryParams.limit);
 
+    // Generate presigned URLs for highlight reel thumbnails and storage
+    const storage = yield* Storage;
+    const reelsWithPresignedUrls = yield* Effect.all(
+      result.data.map((reel) =>
+        Effect.gen(function* () {
+          const [presignedThumbnailUrl, presignedStorageUrl] = yield* Effect.all([
+            generatePresignedThumbnailUrl(storage, reel.thumbnailUrl),
+            generatePresignedVideoUrl(storage, reel.storageKey),
+          ]);
+          return {
+            ...reel,
+            thumbnailUrl: presignedThumbnailUrl,
+            storageKey: presignedStorageUrl,
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
     return {
       success: true,
-      data: result.data,
+      data: reelsWithPresignedUrls,
       pagination: result.pagination,
     };
   });
@@ -78,7 +104,21 @@ export async function POST(request: NextRequest) {
       createdBy: user.id,
     });
 
-    return { success: true, data: newReel };
+    // Generate presigned URLs for highlight reel thumbnail and storage
+    const storage = yield* Storage;
+    const [presignedThumbnailUrl, presignedStorageUrl] = yield* Effect.all([
+      generatePresignedThumbnailUrl(storage, newReel.thumbnailUrl),
+      generatePresignedVideoUrl(storage, newReel.storageKey),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        ...newReel,
+        thumbnailUrl: presignedThumbnailUrl,
+        storageKey: presignedStorageUrl,
+      },
+    };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

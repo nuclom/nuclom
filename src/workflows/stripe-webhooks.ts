@@ -12,13 +12,8 @@
  * - Resume on server restart
  */
 
-import { eq } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { FatalError } from 'workflow';
-import { db } from '@/lib/db';
-import { members, notifications, subscriptions, users } from '@/lib/db/schema';
-import { resend } from '@/lib/email';
-import { env, getAppUrl } from '@/lib/env/server';
 import { trialReminderWorkflow } from './trial-reminders';
 
 // =============================================================================
@@ -43,6 +38,10 @@ export interface StripeWebhookResult {
 
 async function getOrganizationOwners(organizationId: string) {
   'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { members, users } = await import('@/lib/db/schema');
 
   return db
     .select({
@@ -70,6 +69,8 @@ async function sendSubscriptionEmail(
 ): Promise<void> {
   'use step';
 
+  const { resend } = await import('@/lib/email');
+  const { env } = await import('@/lib/env/server');
   const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   await resend.emails.send({
@@ -117,6 +118,98 @@ async function sendSubscriptionEmail(
 }
 
 // =============================================================================
+// Additional Helper Steps
+// =============================================================================
+
+/**
+ * Get organization details step.
+ */
+async function getOrganizationDetails(organizationId: string) {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+
+  return db.query.organizations.findFirst({
+    where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
+  });
+}
+
+/**
+ * Create in-app notification step.
+ */
+async function createInAppNotification(
+  userId: string,
+  type:
+    | 'comment_reply'
+    | 'comment_mention'
+    | 'new_comment_on_video'
+    | 'video_shared'
+    | 'video_processing_complete'
+    | 'video_processing_failed'
+    | 'invitation_received'
+    | 'trial_ending'
+    | 'subscription_created'
+    | 'subscription_updated'
+    | 'subscription_canceled'
+    | 'payment_failed'
+    | 'payment_succeeded',
+  title: string,
+  body: string,
+  resourceType: string,
+  resourceId: string,
+): Promise<void> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const { notifications } = await import('@/lib/db/schema');
+
+  await db.insert(notifications).values({
+    userId,
+    type,
+    title,
+    body,
+    resourceType,
+    resourceId,
+  });
+}
+
+/**
+ * Get subscription by Stripe ID step.
+ */
+async function getSubscriptionByStripeId(stripeSubscriptionId: string) {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+
+  return db.query.subscriptions.findFirst({
+    where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, stripeSubscriptionId),
+  });
+}
+
+/**
+ * Update subscription status step.
+ */
+async function updateSubscriptionStatus(
+  stripeSubscriptionId: string,
+  status: string,
+  canceledAt?: Date,
+): Promise<void> {
+  'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { subscriptions } = await import('@/lib/db/schema');
+
+  await db
+    .update(subscriptions)
+    .set({
+      status,
+      canceledAt: canceledAt || undefined,
+    })
+    .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId));
+}
+
+// =============================================================================
 // Subscription Created Workflow
 // =============================================================================
 
@@ -128,64 +221,58 @@ export async function handleSubscriptionCreatedWorkflow(
   const { eventId, data } = input;
   const { subscription, organizationId } = data;
 
-  try {
-    // Step 1: Get organization details
-    const org = await db.query.organizations.findFirst({
-      where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
-    });
+  // Step 1: Get organization details
+  const org = await getOrganizationDetails(organizationId);
 
-    if (!org) {
-      throw new FatalError(`Organization ${organizationId} not found`);
-    }
-
-    // Step 2: Get organization owners and send notifications
-    const owners = await getOrganizationOwners(organizationId);
-    const baseUrl = getAppUrl();
-
-    for (const owner of owners) {
-      if (!owner.email) continue;
-
-      // Create in-app notification
-      await db.insert(notifications).values({
-        userId: owner.userId,
-        type: 'subscription_created',
-        title: 'Welcome to Nuclom Pro!',
-        body: `Your subscription for ${org.name} is now active. Enjoy all premium features!`,
-        resourceType: 'subscription',
-        resourceId: subscription.id,
-      });
-
-      // Send email
-      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Welcome to Nuclom Pro!', {
-        title: 'Welcome to Nuclom Pro!',
-        message: `Your subscription for ${org.name} is now active.`,
-        highlight: "<p style='margin: 0;'>Thank you for subscribing! You now have access to all premium features.</p>",
-        highlightClass: 'success',
-        buttonText: 'Get Started',
-        buttonUrl: `${baseUrl}/${org.slug}`,
-      });
-    }
-
-    // Step 4: If this is a trial, start the reminder workflow
-    if (subscription.trial_end) {
-      const dbSubscription = await db.query.subscriptions.findFirst({
-        where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
-      });
-
-      if (dbSubscription) {
-        await trialReminderWorkflow({
-          subscriptionId: dbSubscription.id,
-          trialEndsAt: new Date(subscription.trial_end * 1000),
-        });
-      }
-    }
-
-    return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error instanceof FatalError) throw error;
-    return { success: false, eventId, error: errorMessage };
+  if (!org) {
+    throw new FatalError(`Organization ${organizationId} not found`);
   }
+
+  // Step 2: Get organization owners
+  const owners = await getOrganizationOwners(organizationId);
+
+  // Get base URL for links
+  const { getAppUrl } = await import('@/lib/env/server');
+  const baseUrl = getAppUrl();
+
+  // Step 3: Send notifications to each owner
+  for (const owner of owners) {
+    if (!owner.email) continue;
+
+    // Create in-app notification
+    await createInAppNotification(
+      owner.userId,
+      'subscription_created',
+      'Welcome to Nuclom Pro!',
+      `Your subscription for ${org.name} is now active. Enjoy all premium features!`,
+      'subscription',
+      subscription.id,
+    );
+
+    // Send email
+    await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Welcome to Nuclom Pro!', {
+      title: 'Welcome to Nuclom Pro!',
+      message: `Your subscription for ${org.name} is now active.`,
+      highlight: "<p style='margin: 0;'>Thank you for subscribing! You now have access to all premium features.</p>",
+      highlightClass: 'success',
+      buttonText: 'Get Started',
+      buttonUrl: `${baseUrl}/${org.slug}`,
+    });
+  }
+
+  // Step 4: If this is a trial, start the reminder workflow
+  if (subscription.trial_end) {
+    const dbSubscription = await getSubscriptionByStripeId(subscription.id);
+
+    if (dbSubscription) {
+      await trialReminderWorkflow({
+        subscriptionId: dbSubscription.id,
+        trialEndsAt: new Date(subscription.trial_end * 1000),
+      });
+    }
+  }
+
+  return { success: true, eventId };
 }
 
 // =============================================================================
@@ -199,14 +286,9 @@ export async function handleSubscriptionUpdatedWorkflow(
 
   const { eventId } = input;
 
-  try {
-    // DB update is handled by billing.handleSubscriptionUpdated
-    // This workflow exists for observability and potential future notification needs
-    return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, eventId, error: errorMessage };
-  }
+  // DB update is handled by billing.handleSubscriptionUpdated
+  // This workflow exists for observability and potential future notification needs
+  return { success: true, eventId };
 }
 
 // =============================================================================
@@ -220,66 +302,54 @@ export async function handleSubscriptionDeletedWorkflow(
 
   const { eventId, data: subscription } = input;
 
-  try {
-    // Step 1: Update subscription status to canceled
-    await db
-      .update(subscriptions)
-      .set({
-        status: 'canceled',
-        canceledAt: new Date(),
-      })
-      .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
+  // Step 1: Update subscription status to canceled
+  await updateSubscriptionStatus(subscription.id, 'canceled', new Date());
 
-    // Step 2: Get subscription and organization details
-    const dbSubscription = await db.query.subscriptions.findFirst({
-      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
-    });
+  // Step 2: Get subscription details
+  const dbSubscription = await getSubscriptionByStripeId(subscription.id);
 
-    if (!dbSubscription || !dbSubscription.referenceId) {
-      return { success: true, eventId };
-    }
-
-    const organizationId = dbSubscription.referenceId;
-    const org = await db.query.organizations.findFirst({
-      where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
-    });
-
-    if (!org) {
-      return { success: true, eventId };
-    }
-
-    // Step 3: Notify organization owners
-    const owners = await getOrganizationOwners(organizationId);
-    const baseUrl = getAppUrl();
-
-    for (const owner of owners) {
-      if (!owner.email) continue;
-
-      await db.insert(notifications).values({
-        userId: owner.userId,
-        type: 'subscription_canceled',
-        title: 'Subscription Canceled',
-        body: `Your subscription for ${org.name} has been canceled.`,
-        resourceType: 'subscription',
-        resourceId: subscription.id,
-      });
-
-      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Subscription Canceled', {
-        title: 'Subscription Canceled',
-        message: `Your subscription for ${org.name} has been canceled.`,
-        highlight:
-          "<p style='margin: 0;'>Your subscription will remain active until the end of your current billing period.</p>",
-        highlightClass: 'warning',
-        buttonText: 'Reactivate Subscription',
-        buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
-      });
-    }
-
+  if (!dbSubscription || !dbSubscription.referenceId) {
     return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, eventId, error: errorMessage };
   }
+
+  // Step 3: Get organization details
+  const organizationId = dbSubscription.referenceId;
+  const org = await getOrganizationDetails(organizationId);
+
+  if (!org) {
+    return { success: true, eventId };
+  }
+
+  // Step 4: Notify organization owners
+  const owners = await getOrganizationOwners(organizationId);
+
+  const { getAppUrl } = await import('@/lib/env/server');
+  const baseUrl = getAppUrl();
+
+  for (const owner of owners) {
+    if (!owner.email) continue;
+
+    await createInAppNotification(
+      owner.userId,
+      'subscription_canceled',
+      'Subscription Canceled',
+      `Your subscription for ${org.name} has been canceled.`,
+      'subscription',
+      subscription.id,
+    );
+
+    await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Subscription Canceled', {
+      title: 'Subscription Canceled',
+      message: `Your subscription for ${org.name} has been canceled.`,
+      highlight:
+        "<p style='margin: 0;'>Your subscription will remain active until the end of your current billing period.</p>",
+      highlightClass: 'warning',
+      buttonText: 'Reactivate Subscription',
+      buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
+    });
+  }
+
+  return { success: true, eventId };
 }
 
 // =============================================================================
@@ -293,14 +363,9 @@ export async function handleInvoicePaidWorkflow(
 
   const { eventId } = input;
 
-  try {
-    // DB update is handled by billing.handleInvoicePaid
-    // This workflow exists for observability
-    return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, eventId, error: errorMessage };
-  }
+  // DB update is handled by billing.handleInvoicePaid
+  // This workflow exists for observability
+  return { success: true, eventId };
 }
 
 // =============================================================================
@@ -314,65 +379,59 @@ export async function handleInvoiceFailedWorkflow(
 
   const { eventId, data: invoice } = input;
 
-  try {
-    // DB update is handled by billing.handleInvoiceFailed
-    // Get the subscription ID from the invoice metadata if available
-    const subscriptionId = invoice.stripeSubscriptionId;
+  // DB update is handled by billing.handleInvoiceFailed
+  // Get the subscription ID from the invoice metadata if available
+  const subscriptionId = invoice.stripeSubscriptionId;
 
-    if (!subscriptionId) {
-      return { success: true, eventId };
-    }
-
-    // Step 1: Get subscription and organization for notifications
-    const dbSubscription = await db.query.subscriptions.findFirst({
-      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscriptionId),
-    });
-
-    if (!dbSubscription || !dbSubscription.referenceId) {
-      return { success: true, eventId };
-    }
-
-    const invoiceOrgId = dbSubscription.referenceId;
-    const org = await db.query.organizations.findFirst({
-      where: (o, { eq: eqOp }) => eqOp(o.id, invoiceOrgId),
-    });
-
-    if (!org) {
-      return { success: true, eventId };
-    }
-
-    // Step 2: Notify organization owners
-    const owners = await getOrganizationOwners(invoiceOrgId);
-    const baseUrl = getAppUrl();
-
-    for (const owner of owners) {
-      if (!owner.email) continue;
-
-      await db.insert(notifications).values({
-        userId: owner.userId,
-        type: 'payment_failed',
-        title: 'Payment Failed',
-        body: `We couldn't process your payment for ${org.name}. Please update your payment method.`,
-        resourceType: 'subscription',
-        resourceId: subscriptionId,
-      });
-
-      await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Action Required: Payment Failed', {
-        title: 'Payment Failed',
-        message: `We couldn't process your payment for ${org.name}.`,
-        highlight:
-          "<p style='margin: 0;'><strong>Action Required</strong></p><p style='margin: 8px 0 0 0;'>Please update your payment method to avoid service interruption.</p>",
-        highlightClass: 'error',
-        buttonText: 'Update Payment Method',
-        buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
-      });
-    }
-
+  if (!subscriptionId) {
     return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, eventId, error: errorMessage };
   }
+
+  // Step 1: Get subscription details
+  const dbSubscription = await getSubscriptionByStripeId(subscriptionId);
+
+  if (!dbSubscription || !dbSubscription.referenceId) {
+    return { success: true, eventId };
+  }
+
+  // Step 2: Get organization details
+  const invoiceOrgId = dbSubscription.referenceId;
+  const org = await getOrganizationDetails(invoiceOrgId);
+
+  if (!org) {
+    return { success: true, eventId };
+  }
+
+  // Step 3: Notify organization owners
+  const owners = await getOrganizationOwners(invoiceOrgId);
+
+  const { getAppUrl } = await import('@/lib/env/server');
+  const baseUrl = getAppUrl();
+
+  for (const owner of owners) {
+    if (!owner.email) continue;
+
+    await createInAppNotification(
+      owner.userId,
+      'payment_failed',
+      'Payment Failed',
+      `We couldn't process your payment for ${org.name}. Please update your payment method.`,
+      'subscription',
+      subscriptionId,
+    );
+
+    await sendSubscriptionEmail(owner.email, owner.name || 'there', 'Action Required: Payment Failed', {
+      title: 'Payment Failed',
+      message: `We couldn't process your payment for ${org.name}.`,
+      highlight:
+        "<p style='margin: 0;'><strong>Action Required</strong></p><p style='margin: 8px 0 0 0;'>Please update your payment method to avoid service interruption.</p>",
+      highlightClass: 'error',
+      buttonText: 'Update Payment Method',
+      buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
+    });
+  }
+
+  return { success: true, eventId };
 }
 
 // =============================================================================
@@ -386,55 +445,51 @@ export async function handleTrialEndingWorkflow(
 
   const { eventId, data: subscription } = input;
 
-  try {
-    // The trial reminder workflow handles this, but we can trigger immediate notification
-    const dbSubscription = await db.query.subscriptions.findFirst({
-      where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, subscription.id),
-    });
+  // Step 1: Get subscription details
+  const dbSubscription = await getSubscriptionByStripeId(subscription.id);
 
-    if (!dbSubscription || !dbSubscription.referenceId) {
-      return { success: true, eventId };
-    }
-
-    const trialOrgId = dbSubscription.referenceId;
-    const org = await db.query.organizations.findFirst({
-      where: (o, { eq: eqOp }) => eqOp(o.id, trialOrgId),
-    });
-
-    if (!org) {
-      return { success: true, eventId };
-    }
-
-    const owners = await getOrganizationOwners(trialOrgId);
-    const baseUrl = getAppUrl();
-    const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
-    const daysLeft = Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-
-    for (const owner of owners) {
-      if (!owner.email) continue;
-
-      await db.insert(notifications).values({
-        userId: owner.userId,
-        type: 'trial_ending',
-        title: 'Your trial is ending soon',
-        body: `Your trial for ${org.name} ends in ${daysLeft} days. Upgrade now to keep access to all features.`,
-        resourceType: 'subscription',
-        resourceId: subscription.id,
-      });
-
-      await sendSubscriptionEmail(owner.email, owner.name || 'there', `Your Nuclom trial ends in ${daysLeft} days`, {
-        title: 'Your trial is ending soon',
-        message: `Your trial for ${org.name} is ending soon!`,
-        highlight: `<p style='margin: 0;'><strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining</strong></p><p style='margin: 8px 0 0 0;'>Your trial will end on ${trialEndsAt.toLocaleDateString()}.</p>`,
-        highlightClass: 'warning',
-        buttonText: 'Upgrade Now',
-        buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
-      });
-    }
-
+  if (!dbSubscription || !dbSubscription.referenceId) {
     return { success: true, eventId };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, eventId, error: errorMessage };
   }
+
+  // Step 2: Get organization details
+  const trialOrgId = dbSubscription.referenceId;
+  const org = await getOrganizationDetails(trialOrgId);
+
+  if (!org) {
+    return { success: true, eventId };
+  }
+
+  // Step 3: Get organization owners
+  const owners = await getOrganizationOwners(trialOrgId);
+
+  const { getAppUrl } = await import('@/lib/env/server');
+  const baseUrl = getAppUrl();
+  const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
+  const daysLeft = Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+  // Step 4: Send notifications to each owner
+  for (const owner of owners) {
+    if (!owner.email) continue;
+
+    await createInAppNotification(
+      owner.userId,
+      'trial_ending',
+      'Your trial is ending soon',
+      `Your trial for ${org.name} ends in ${daysLeft} days. Upgrade now to keep access to all features.`,
+      'subscription',
+      subscription.id,
+    );
+
+    await sendSubscriptionEmail(owner.email, owner.name || 'there', `Your Nuclom trial ends in ${daysLeft} days`, {
+      title: 'Your trial is ending soon',
+      message: `Your trial for ${org.name} is ending soon!`,
+      highlight: `<p style='margin: 0;'><strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining</strong></p><p style='margin: 8px 0 0 0;'>Your trial will end on ${trialEndsAt.toLocaleDateString()}.</p>`,
+      highlightClass: 'warning',
+      buttonText: 'Upgrade Now',
+      buttonUrl: `${baseUrl}/${org.slug}/settings/billing`,
+    });
+  }
+
+  return { success: true, eventId };
 }

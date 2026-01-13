@@ -187,6 +187,33 @@ export class VideoProcessingError extends Data.TaggedError('VideoProcessingError
   readonly cause?: unknown;
 }> {}
 
+/**
+ * Error when AI video processing fails
+ */
+export class VideoAIProcessingError extends Data.TaggedError('VideoAIProcessingError')<{
+  readonly message: string;
+  readonly stage?: 'pending' | 'transcribing' | 'diarizing' | 'analyzing' | 'completed' | 'failed';
+  readonly videoId?: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when transcription fails
+ */
+export class TranscriptionError extends Data.TaggedError('TranscriptionError')<{
+  readonly message: string;
+  readonly operation?: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when audio extraction fails
+ */
+export class AudioExtractionError extends Data.TaggedError('AudioExtractionError')<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
 // =============================================================================
 // AI Service Errors
 // =============================================================================
@@ -238,7 +265,13 @@ export type DbError = DatabaseError | NotFoundError | DuplicateError | Transacti
 /**
  * All possible video processing errors
  */
-export type VideoError = UnsupportedFormatError | FileSizeExceededError | VideoProcessingError;
+export type VideoError =
+  | UnsupportedFormatError
+  | FileSizeExceededError
+  | VideoProcessingError
+  | VideoAIProcessingError
+  | TranscriptionError
+  | AudioExtractionError;
 
 /**
  * All possible authentication errors
@@ -393,6 +426,9 @@ export type AppErrorUnion =
   | UnsupportedFormatError
   | FileSizeExceededError
   | VideoProcessingError
+  | VideoAIProcessingError
+  | TranscriptionError
+  | AudioExtractionError
   // AI errors
   | AIServiceError
   // HTTP errors

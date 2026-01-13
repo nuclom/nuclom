@@ -247,7 +247,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         if (!skipAIProcessing) {
           processVideoWorkflow({
             videoId: video.id,
-            videoUrl: upload.fileKey, // Pass the file key to workflow
+            videoUrl: presignedVideoUrl, // Pass presigned URL, not file key
             videoTitle: sanitizedTitle,
             organizationId,
           }).catch((err) => {

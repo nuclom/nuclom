@@ -1,6 +1,13 @@
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
+import {
+  createFullLayer,
+  createPublicLayer,
+  generatePresignedThumbnailUrl,
+  generatePresignedVideoUrl,
+  handleEffectExit,
+  Storage,
+} from '@/lib/api-handler';
 import { ClipRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { validateRequestBody } from '@/lib/validation';
@@ -17,9 +24,20 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const clipRepo = yield* ClipRepository;
     const clip = yield* clipRepo.getClip(clipId);
 
+    // Generate presigned URLs for clip thumbnail and storage
+    const storage = yield* Storage;
+    const [presignedThumbnailUrl, presignedStorageUrl] = yield* Effect.all([
+      generatePresignedThumbnailUrl(storage, clip.thumbnailUrl),
+      generatePresignedVideoUrl(storage, clip.storageKey),
+    ]);
+
     return {
       success: true,
-      data: clip,
+      data: {
+        ...clip,
+        thumbnailUrl: presignedThumbnailUrl,
+        storageKey: presignedStorageUrl,
+      },
     };
   });
 
@@ -52,9 +70,20 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       endTime: validatedData.endTime,
     });
 
+    // Generate presigned URLs for clip thumbnail and storage
+    const storage = yield* Storage;
+    const [presignedThumbnailUrl, presignedStorageUrl] = yield* Effect.all([
+      generatePresignedThumbnailUrl(storage, updatedClip.thumbnailUrl),
+      generatePresignedVideoUrl(storage, updatedClip.storageKey),
+    ]);
+
     return {
       success: true,
-      data: updatedClip,
+      data: {
+        ...updatedClip,
+        thumbnailUrl: presignedThumbnailUrl,
+        storageKey: presignedStorageUrl,
+      },
     };
   });
 

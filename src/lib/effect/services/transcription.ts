@@ -12,24 +12,11 @@
 import { Context, Effect, Layer } from 'effect';
 import Replicate from 'replicate';
 import type { TranscriptSegment } from '@/lib/db/schema';
-
-// =============================================================================
-// Error Types
-// =============================================================================
-
-import { Data } from 'effect';
+import { AudioExtractionError, TranscriptionError } from '@/lib/effect/errors';
 import { env } from '@/lib/env/server';
 
-export class TranscriptionError extends Data.TaggedError('TranscriptionError')<{
-  readonly message: string;
-  readonly operation?: string;
-  readonly cause?: unknown;
-}> {}
-
-export class AudioExtractionError extends Data.TaggedError('AudioExtractionError')<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
+// Re-export for convenience
+export { AudioExtractionError, TranscriptionError };
 
 // =============================================================================
 // Types
@@ -73,7 +60,7 @@ export class Transcription extends Context.Tag('Transcription')<Transcription, T
 // Replicate Model
 // =============================================================================
 
-const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef62317f8ff4334';
+const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e';
 
 // =============================================================================
 // Transcription Service Implementation
@@ -132,12 +119,14 @@ const makeTranscriptionService = Effect.gen(function* () {
             detected_language?: string;
           };
         },
-        catch: (error) =>
-          new TranscriptionError({
-            message: 'Failed to transcribe video',
+        catch: (error) => {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          return new TranscriptionError({
+            message: `Failed to transcribe video: ${errorMessage}`,
             operation: 'transcribeFromUrl',
             cause: error,
-          }),
+          });
+        },
       });
 
       // Parse segments from response

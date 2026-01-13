@@ -122,7 +122,6 @@ export type {
   IntegrationWithUser,
   KnowledgeGraphRepositoryInterface,
   KnowledgeNodeWithEdges,
-  LanguageInfo,
   // NotificationRepository
   NotificationRepositoryService,
   NotificationType,
@@ -145,13 +144,7 @@ export type {
   StorageConfig,
   // Storage
   StorageService,
-  SupportedLanguage,
   ThumbnailResult,
-  TranslatedTranscript,
-  TranslationOptions,
-  TranslationResult as TranslationResultType,
-  // Translation
-  TranslationServiceInterface,
   UpdateClipInput,
   UpdateCommentInput,
   UpdateHighlightReelInput,
@@ -276,7 +269,6 @@ export {
   getSession,
   getSessionOption,
   getSuggestions,
-  getSupportedLanguages,
   getUnreadCount,
   getUserIntegrations,
   getUserOrganizations,
@@ -296,7 +288,6 @@ export {
   insertUnique,
   isMember,
   isSupportedVideoFormat,
-  isTranslationAvailable,
   // Knowledge Graph Repository
   KnowledgeGraphRepository,
   KnowledgeGraphRepositoryLive,
@@ -338,20 +329,11 @@ export {
   // Storage
   Storage,
   StorageLive,
-  SUPPORTED_LANGUAGES,
   saveSearchHistory,
   saveVideoProgress,
   search,
-  // Translation
-  Translation,
-  TranslationApiError,
-  TranslationLive,
-  TranslationNotConfiguredError,
   transaction,
   transcribe,
-  translateText,
-  translateTranscript,
-  UnsupportedLanguageError,
   updateClip,
   updateComment,
   updateHighlightReel,
@@ -363,7 +345,6 @@ export {
   updateSeriesProgress,
   updateVideo,
   uploadFile,
-  uploadLargeFile,
   // VideoProcessor
   VideoProcessor,
   VideoProcessorLive,

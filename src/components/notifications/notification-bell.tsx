@@ -86,19 +86,24 @@ export function NotificationBell({ organization }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [open, setOpen] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
     try {
+      setError(false);
       const response = await fetch('/api/notifications?limit=20');
       if (response.ok) {
         const result = await response.json();
         // API returns { success, data: { data: [...], unreadCount } }
         setNotifications(result.data?.data || []);
         setUnreadCount(result.data?.unreadCount || 0);
+      } else {
+        setError(true);
       }
-    } catch (error) {
-      logger.error('Failed to fetch notifications', error);
+    } catch (err) {
+      logger.error('Failed to fetch notifications', err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -208,6 +213,14 @@ export function NotificationBell({ organization }: NotificationBellProps) {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <XCircle className="h-12 w-12 mx-auto mb-3 opacity-50 text-destructive" />
+              <p className="text-sm">Failed to load notifications</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={fetchNotifications}>
+                Try again
+              </Button>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">

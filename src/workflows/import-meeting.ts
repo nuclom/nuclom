@@ -20,7 +20,6 @@
 
 import { FatalError } from 'workflow';
 import type { IntegrationProvider } from '@/lib/db/schema';
-import { env } from '@/lib/env/server';
 import { processVideoWorkflow } from './video-processing';
 
 // =============================================================================
@@ -124,10 +123,11 @@ async function downloadGoogleMeetRecording(
   };
 }
 
-async function uploadToR2(buffer: Buffer, key: string, contentType: string): Promise<{ url: string }> {
+async function uploadToR2(buffer: Buffer, key: string, contentType: string): Promise<{ key: string }> {
   'use step';
 
   const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+  const { env } = await import('@/lib/env/server');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -155,9 +155,43 @@ async function uploadToR2(buffer: Buffer, key: string, contentType: string): Pro
     }),
   );
 
-  const url = `https://${bucketName}.${accountId}.r2.cloudflarestorage.com/${key}`;
+  return { key };
+}
 
-  return { url };
+/**
+ * Generate a presigned download URL for a stored file key.
+ * Used to get a temporary URL for processing workflows.
+ */
+async function generatePresignedUrl(key: string, expiresIn = 3600): Promise<string> {
+  'use step';
+
+  const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+  const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+  const { env } = await import('@/lib/env/server');
+
+  const accountId = env.R2_ACCOUNT_ID;
+  const accessKeyId = env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = env.R2_SECRET_ACCESS_KEY;
+  const bucketName = env.R2_BUCKET_NAME;
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+    throw new FatalError('R2 storage not configured');
+  }
+
+  const client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+
+  const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+  });
+
+  return getSignedUrl(client, command, { expiresIn });
 }
 
 function formatDuration(seconds: number): string {
@@ -176,6 +210,64 @@ function formatDuration(seconds: number): string {
 // =============================================================================
 
 /**
+ * Handle workflow failure by updating status.
+ * Separate step for static analyzer traceability.
+ */
+async function handleImportFailure(importedMeetingId: string, errorMessage: string): Promise<ImportMeetingResult> {
+  'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { importedMeetings } = await import('@/lib/db/schema');
+
+  await db
+    .update(importedMeetings)
+    .set({
+      importStatus: 'failed',
+      importError: errorMessage,
+    })
+    .where(eq(importedMeetings.id, importedMeetingId));
+
+  return {
+    success: false,
+    error: errorMessage,
+  };
+}
+
+/**
+ * Create video record step.
+ * Separate step for static analyzer traceability.
+ */
+async function createVideoRecord(
+  meetingTitle: string,
+  provider: IntegrationProvider,
+  videoKey: string,
+  estimatedDuration: number,
+  userId: string,
+  organizationId: string,
+): Promise<{ id: string }> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const { videos } = await import('@/lib/db/schema');
+
+  const [video] = await db
+    .insert(videos)
+    .values({
+      title: meetingTitle || 'Meeting Recording',
+      description: `Imported from ${provider === 'zoom' ? 'Zoom' : 'Google Meet'}`,
+      duration: formatDuration(estimatedDuration),
+      videoUrl: videoKey, // Store the key, presigned URLs are generated on access
+      authorId: userId,
+      organizationId,
+      processingStatus: 'pending',
+    })
+    .returning();
+
+  return video;
+}
+
+/**
  * Import a meeting recording from Zoom or Google Meet with durable execution.
  *
  * This workflow:
@@ -188,6 +280,9 @@ function formatDuration(seconds: number): string {
  *
  * Each step is checkpointed, so if the server restarts or there's a
  * transient failure, processing resumes from the last successful step.
+ *
+ * Note: Step calls are at top level (not inside try/catch) so the workflow
+ * static analyzer can trace them for the debug UI.
  */
 export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<ImportMeetingResult> {
   'use workflow';
@@ -195,81 +290,84 @@ export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<
   const { importedMeetingId, provider, externalId, downloadUrl, meetingTitle, userId, organizationId, accessToken } =
     input;
 
-  try {
-    // Step 1: Update import status to downloading
-    await updateImportStatus(importedMeetingId, 'downloading');
-
-    // Step 2: Download the recording from provider
-    let downloadResult: { buffer: Buffer; contentType: string };
-
-    if (provider === 'zoom') {
-      downloadResult = await downloadZoomRecording(downloadUrl, accessToken);
-    } else {
-      downloadResult = await downloadGoogleMeetRecording(externalId, accessToken);
-    }
-
-    // Step 3: Upload to R2 storage
-    const filename = `${externalId}.mp4`;
-    const key = `videos/${organizationId}/${filename}`;
-    const uploadResult = await uploadToR2(downloadResult.buffer, key, downloadResult.contentType);
-
-    // Step 4: Update status to processing
-    await updateImportStatus(importedMeetingId, 'processing');
-
-    // Step 5: Create video record
-    const estimatedDuration = Math.round(downloadResult.buffer.length / 100000);
-
-    const { db } = await import('@/lib/db');
-    const { videos } = await import('@/lib/db/schema');
-
-    const [video] = await db
-      .insert(videos)
-      .values({
-        title: meetingTitle || 'Meeting Recording',
-        description: `Imported from ${provider === 'zoom' ? 'Zoom' : 'Google Meet'}`,
-        duration: formatDuration(estimatedDuration),
-        videoUrl: uploadResult.url,
-        authorId: userId,
-        organizationId,
-        processingStatus: 'pending',
-      })
-      .returning();
-
-    // Step 6: Update imported meeting with video ID
-    await updateImportStatus(importedMeetingId, 'completed', {
-      videoId: video.id,
-      importedAt: new Date(),
-    });
-
-    // Step 7: Trigger video processing workflow
-    // This is a separate durable workflow that will handle transcription and AI analysis
-    await processVideoWorkflow({
-      videoId: video.id,
-      videoUrl: uploadResult.url,
-      videoTitle: meetingTitle,
-      organizationId,
-    });
-
-    return {
-      success: true,
-      videoId: video.id,
-    };
-  } catch (error) {
-    // Handle errors
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    await updateImportStatus(importedMeetingId, 'failed', {
-      importError: errorMessage,
-    });
-
-    // Re-throw FatalErrors to stop retrying
-    if (error instanceof FatalError) {
-      throw error;
-    }
-
-    return {
-      success: false,
-      error: errorMessage,
-    };
+  // Step 1: Update import status to downloading
+  const downloadingResult = await updateImportStatus(importedMeetingId, 'downloading').catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
+  if (downloadingResult && 'error' in downloadingResult) {
+    return handleImportFailure(importedMeetingId, downloadingResult.error);
   }
+
+  // Step 2: Download the recording from provider
+  let downloadResult: { buffer: Buffer; contentType: string };
+
+  if (provider === 'zoom') {
+    const zoomResult = await downloadZoomRecording(downloadUrl, accessToken).catch((error) => ({
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    if ('error' in zoomResult) {
+      return handleImportFailure(importedMeetingId, zoomResult.error);
+    }
+    downloadResult = zoomResult;
+  } else {
+    const googleResult = await downloadGoogleMeetRecording(externalId, accessToken).catch((error) => ({
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    if ('error' in googleResult) {
+      return handleImportFailure(importedMeetingId, googleResult.error);
+    }
+    downloadResult = googleResult;
+  }
+
+  // Step 3: Upload to R2 storage
+  const filename = `${externalId}.mp4`;
+  const key = `videos/${organizationId}/${filename}`;
+  const uploadResult = await uploadToR2(downloadResult.buffer, key, downloadResult.contentType).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+    isFatal: error instanceof FatalError,
+  }));
+  if ('error' in uploadResult) {
+    if (uploadResult.isFatal) {
+      await handleImportFailure(importedMeetingId, uploadResult.error);
+      throw new FatalError(uploadResult.error);
+    }
+    return handleImportFailure(importedMeetingId, uploadResult.error);
+  }
+
+  // Step 4: Update status to processing
+  await updateImportStatus(importedMeetingId, 'processing');
+
+  // Step 5: Create video record (store the key, not a URL)
+  const estimatedDuration = Math.round(downloadResult.buffer.length / 100000);
+  const video = await createVideoRecord(
+    meetingTitle,
+    provider,
+    uploadResult.key,
+    estimatedDuration,
+    userId,
+    organizationId,
+  );
+
+  // Step 6: Update imported meeting with video ID
+  await updateImportStatus(importedMeetingId, 'completed', {
+    videoId: video.id,
+    importedAt: new Date(),
+  });
+
+  // Step 7: Generate presigned URL for processing workflow
+  const presignedUrl = await generatePresignedUrl(uploadResult.key);
+
+  // Step 8: Trigger video processing workflow
+  // This is a separate durable workflow that will handle transcription and AI analysis
+  await processVideoWorkflow({
+    videoId: video.id,
+    videoUrl: presignedUrl,
+    videoTitle: meetingTitle,
+    organizationId,
+  });
+
+  return {
+    success: true,
+    videoId: video.id,
+  };
 }

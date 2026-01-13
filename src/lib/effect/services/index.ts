@@ -613,7 +613,6 @@ export {
   Storage,
   StorageLive,
   uploadFile,
-  uploadLargeFile,
 } from './storage';
 export type { StripeService } from './stripe';
 export { getStripe, StripeServiceLive, StripeServiceTag } from './stripe';
@@ -628,27 +627,6 @@ export {
   transcribeAudio,
   transcribeFromUrl,
 } from './transcription';
-// Translation Service
-export type {
-  LanguageInfo,
-  SupportedLanguage,
-  TranslatedTranscript,
-  TranslationOptions,
-  TranslationResult,
-  TranslationServiceInterface,
-} from './translation';
-export {
-  getSupportedLanguages,
-  isTranslationAvailable,
-  SUPPORTED_LANGUAGES,
-  Translation,
-  TranslationApiError,
-  TranslationLive,
-  TranslationNotConfiguredError,
-  translateText,
-  translateTranscript,
-  UnsupportedLanguageError,
-} from './translation';
 export type { AIProcessingResult, VideoAIProcessorServiceInterface } from './video-ai-processor';
 // Video AI Processor Service
 export {

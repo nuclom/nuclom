@@ -1,6 +1,12 @@
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExitWithOptions, handleEffectExitWithStatus } from '@/lib/api-handler';
+import {
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  handleEffectExitWithOptions,
+  handleEffectExitWithStatus,
+  Storage,
+} from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from '@/lib/api-utils';
 import { MissingFieldError, SeriesRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
@@ -43,7 +49,27 @@ export async function GET(request: NextRequest) {
 
     // Fetch series using repository
     const seriesRepo = yield* SeriesRepository;
-    return yield* seriesRepo.getSeries(organizationId, page, limit);
+    const seriesData = yield* seriesRepo.getSeries(organizationId, page, limit);
+
+    // Generate presigned thumbnail URLs for all series
+    const storage = yield* Storage;
+    const seriesWithPresignedUrls = yield* Effect.all(
+      seriesData.data.map((series) =>
+        Effect.gen(function* () {
+          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, series.thumbnailUrl);
+          return {
+            ...series,
+            thumbnailUrl: presignedThumbnailUrl,
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
+    return {
+      data: seriesWithPresignedUrls,
+      pagination: seriesData.pagination,
+    };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

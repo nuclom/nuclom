@@ -1,7 +1,7 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
-import { CookieConsentBanner, CookieSettingsButton } from '@/components/legal/cookie-consent';
+import { CookieConsentBanner } from '@/components/legal/cookie-consent';
 import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
@@ -13,7 +13,7 @@ const siteUrl = getAppUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Nuclom - Video Collaboration Platform',
+    default: 'Nuclom',
     template: '%s | Nuclom',
   },
   description:
@@ -97,7 +97,6 @@ export default function RootLayout({
             <div className="min-h-screen bg-background text-foreground">{children}</div>
             <Toaster />
             <CookieConsentBanner />
-            <CookieSettingsButton />
           </MiniPlayerProvider>
         </ThemeProvider>
         <Analytics />

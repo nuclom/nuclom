@@ -10,7 +10,7 @@
  */
 
 import { eq } from 'drizzle-orm';
-import { Context, Data, Effect, Layer, pipe } from 'effect';
+import { Context, Effect, Layer, pipe } from 'effect';
 import {
   type ActionItem,
   notifications,
@@ -20,22 +20,15 @@ import {
   videoChapters,
   videos,
 } from '@/lib/db/schema';
+import { VideoAIProcessingError } from '@/lib/effect/errors';
 import { getAppUrl } from '@/lib/env/server';
 import { type ActionItemResult, AI, type ChapterResult } from './ai';
 import { Database } from './database';
 import { EmailNotifications } from './email-notifications';
 import { Transcription } from './transcription';
 
-// =============================================================================
-// Error Types
-// =============================================================================
-
-export class VideoAIProcessingError extends Data.TaggedError('VideoAIProcessingError')<{
-  readonly message: string;
-  readonly stage?: ProcessingStatus;
-  readonly videoId?: string;
-  readonly cause?: unknown;
-}> {}
+// Re-export for convenience
+export { VideoAIProcessingError };
 
 // =============================================================================
 // Types

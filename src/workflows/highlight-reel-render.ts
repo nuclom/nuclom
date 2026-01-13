@@ -18,7 +18,6 @@
 
 import { FatalError } from 'workflow';
 import type { HighlightReelStatus } from '@/lib/db/schema';
-import { env } from '@/lib/env/server';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('highlight-reel-render');
@@ -147,6 +146,7 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
 async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<RenderedVideo> {
   'use step';
 
+  const { env } = await import('@/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -218,6 +218,8 @@ async function downloadAndUploadVideo(
 ): Promise<{ storageKey: string; publicUrl: string }> {
   'use step';
 
+  const { env } = await import('@/lib/env/server');
+
   // Download the rendered video from the temporary URL
   const response = await fetch(videoUrl);
   if (!response.ok) {
@@ -272,6 +274,57 @@ async function downloadAndUploadVideo(
 // =============================================================================
 
 /**
+ * Get highlight reel data step.
+ * Separate step for static analyzer traceability.
+ */
+async function getHighlightReelData(reelId: string): Promise<{ clipIds: string[] } | null> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const { highlightReels } = await import('@/lib/db/schema');
+  const { eq } = await import('drizzle-orm');
+
+  const reel = await db.query.highlightReels.findFirst({
+    where: eq(highlightReels.id, reelId),
+  });
+
+  if (!reel) {
+    return null;
+  }
+
+  return { clipIds: reel.clipIds || [] };
+}
+
+/**
+ * Handle workflow failure step.
+ * Separate step for static analyzer traceability.
+ */
+async function handleReelRenderFailure(reelId: string, errorMessage: string): Promise<HighlightReelRenderResult> {
+  'use step';
+
+  const { eq } = await import('drizzle-orm');
+  const { db } = await import('@/lib/db');
+  const { highlightReels } = await import('@/lib/db/schema');
+
+  log.error({ reelId, error: errorMessage }, 'Highlight reel rendering failed');
+
+  await db
+    .update(highlightReels)
+    .set({
+      status: 'failed',
+      processingError: errorMessage,
+      updatedAt: new Date(),
+    })
+    .where(eq(highlightReels.id, reelId));
+
+  return {
+    reelId,
+    success: false,
+    error: errorMessage,
+  };
+}
+
+/**
  * Render a highlight reel from multiple clips using durable workflow execution.
  *
  * This workflow:
@@ -286,81 +339,96 @@ async function downloadAndUploadVideo(
  *
  * Each step is checkpointed, so if the server restarts, processing resumes
  * from the last successful step.
+ *
+ * Note: Step calls are at top level (not inside try/catch) so the workflow
+ * static analyzer can trace them for the debug UI.
  */
 export async function renderHighlightReelWorkflow(input: HighlightReelRenderInput): Promise<HighlightReelRenderResult> {
   'use workflow';
 
   const { reelId, organizationId } = input;
 
-  try {
-    // Step 1: Get the highlight reel data
-    const { db } = await import('@/lib/db');
-    const { highlightReels } = await import('@/lib/db/schema');
-    const { eq } = await import('drizzle-orm');
+  // Step 1: Get the highlight reel data
+  const reel = await getHighlightReelData(reelId);
 
-    const reel = await db.query.highlightReels.findFirst({
-      where: eq(highlightReels.id, reelId),
-    });
-
-    if (!reel) {
-      throw new FatalError('Highlight reel not found');
-    }
-
-    if (!reel.clipIds || reel.clipIds.length === 0) {
-      throw new FatalError('Highlight reel has no clips');
-    }
-
-    // Step 2: Update status to "rendering"
-    await updateReelStatus(reelId, 'rendering');
-
-    // Step 3: Get all clip segments
-    log.info({ reelId, clipCount: reel.clipIds.length }, 'Fetching clip segments');
-    const segments = await getClipSegments(reel.clipIds);
-
-    if (segments.length === 0) {
-      throw new FatalError('No valid clip segments found');
-    }
-
-    log.info({ reelId, segmentCount: segments.length }, 'Retrieved clip segments');
-
-    // Step 4: Render the highlight reel
-    log.info({ reelId }, 'Starting highlight reel rendering');
-    const renderedVideo = await renderHighlightReel(segments);
-
-    log.info({ reelId, videoUrl: renderedVideo.url }, 'Highlight reel rendered successfully');
-
-    // Step 5: Download and upload to R2 storage
-    log.info({ reelId }, 'Uploading rendered video to R2 storage');
-    const { storageKey } = await downloadAndUploadVideo(renderedVideo.url, organizationId, reelId);
-
-    // Step 6: Update highlight reel with final data
-    await updateReelStatus(reelId, 'ready', undefined, storageKey, renderedVideo.duration);
-
-    log.info({ reelId, storageKey, duration: renderedVideo.duration }, 'Highlight reel rendering completed');
-
-    return {
-      reelId,
-      success: true,
-      storageKey,
-      duration: renderedVideo.duration,
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    log.error({ reelId, error }, 'Highlight reel rendering failed');
-
-    // Update status to failed
-    await updateReelStatus(reelId, 'failed', errorMessage);
-
-    // Re-throw FatalErrors to stop retrying
-    if (error instanceof FatalError) {
-      throw error;
-    }
-
-    return {
-      reelId,
-      success: false,
-      error: errorMessage,
-    };
+  if (!reel) {
+    return handleReelRenderFailure(reelId, 'Highlight reel not found');
   }
+
+  if (reel.clipIds.length === 0) {
+    return handleReelRenderFailure(reelId, 'Highlight reel has no clips');
+  }
+
+  // Step 2: Update status to "rendering"
+  const renderingResult = await updateReelStatus(reelId, 'rendering').catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
+  if (renderingResult && 'error' in renderingResult) {
+    return handleReelRenderFailure(reelId, renderingResult.error);
+  }
+
+  // Step 3: Get all clip segments
+  log.info({ reelId, clipCount: reel.clipIds.length }, 'Fetching clip segments');
+  const segmentsResult = await getClipSegments(reel.clipIds).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+    isFatal: error instanceof FatalError,
+  }));
+  if ('error' in segmentsResult) {
+    if (segmentsResult.isFatal) {
+      await handleReelRenderFailure(reelId, segmentsResult.error);
+      throw new FatalError(segmentsResult.error);
+    }
+    return handleReelRenderFailure(reelId, segmentsResult.error);
+  }
+  const segments = segmentsResult;
+
+  if (segments.length === 0) {
+    return handleReelRenderFailure(reelId, 'No valid clip segments found');
+  }
+
+  log.info({ reelId, segmentCount: segments.length }, 'Retrieved clip segments');
+
+  // Step 4: Render the highlight reel
+  log.info({ reelId }, 'Starting highlight reel rendering');
+  const renderResult = await renderHighlightReel(segments).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+    isFatal: error instanceof FatalError,
+  }));
+  if ('error' in renderResult) {
+    if (renderResult.isFatal) {
+      await handleReelRenderFailure(reelId, renderResult.error);
+      throw new FatalError(renderResult.error);
+    }
+    return handleReelRenderFailure(reelId, renderResult.error);
+  }
+  const renderedVideo = renderResult;
+
+  log.info({ reelId, videoUrl: renderedVideo.url }, 'Highlight reel rendered successfully');
+
+  // Step 5: Download and upload to R2 storage
+  log.info({ reelId }, 'Uploading rendered video to R2 storage');
+  const uploadResult = await downloadAndUploadVideo(renderedVideo.url, organizationId, reelId).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+    isFatal: error instanceof FatalError,
+  }));
+  if ('error' in uploadResult) {
+    if (uploadResult.isFatal) {
+      await handleReelRenderFailure(reelId, uploadResult.error);
+      throw new FatalError(uploadResult.error);
+    }
+    return handleReelRenderFailure(reelId, uploadResult.error);
+  }
+  const { storageKey } = uploadResult;
+
+  // Step 6: Update highlight reel with final data
+  await updateReelStatus(reelId, 'ready', undefined, storageKey, renderedVideo.duration);
+
+  log.info({ reelId, storageKey, duration: renderedVideo.duration }, 'Highlight reel rendering completed');
+
+  return {
+    reelId,
+    success: true,
+    storageKey,
+    duration: renderedVideo.duration,
+  };
 }
