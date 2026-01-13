@@ -1,4 +1,5 @@
 import { Folders, Plus, Video } from 'lucide-react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -10,6 +11,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedChannels, getCachedOrganizationBySlug } from '@/lib/effect';
+
+export const metadata: Metadata = {
+  title: 'Channels',
+  description: 'Organize your videos into channels by topic, team, or project',
+};
 
 // =============================================================================
 // Loading Skeleton Component

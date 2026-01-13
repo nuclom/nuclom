@@ -8,11 +8,11 @@
  * - Reduced boilerplate in route handlers
  */
 
-import { Cause, Effect, Exit, Layer } from 'effect';
+import { Cause, type Context, Effect, Exit, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 import { mapErrorToApiResponse } from '@/lib/api-errors';
 import { auth } from '@/lib/auth';
-import { AppLive } from '@/lib/effect';
+import { AppLive, Storage } from '@/lib/effect';
 import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
 
 // =============================================================================
@@ -200,7 +200,81 @@ export function handleEffectExitWithOptions<T>(
 }
 
 // =============================================================================
+// Presigned URL Utilities
+// =============================================================================
+
+/**
+ * Generate presigned thumbnail URL from stored key.
+ *
+ * This helper converts stored R2 keys to presigned download URLs.
+ * It also handles legacy full R2 URLs for backward compatibility with
+ * older database records that stored full URLs instead of keys.
+ *
+ * New records should always store just the key (e.g., "org-id/thumbnails/file.jpg")
+ * and NOT full URLs.
+ *
+ * @param storage - The storage service instance
+ * @param thumbnailKey - The stored thumbnail key (or legacy full URL)
+ * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
+ * @returns Effect that resolves to presigned URL or null if conversion fails
+ *
+ * @example
+ * const storage = yield* Storage;
+ * const presignedUrl = yield* generatePresignedThumbnailUrl(storage, video.thumbnailUrl);
+ */
+export function generatePresignedThumbnailUrl(
+  storage: Context.Tag.Service<typeof Storage>,
+  thumbnailKey: string | null,
+  expiresIn = 3600,
+): Effect.Effect<string | null, never, never> {
+  if (!thumbnailKey) return Effect.succeed(null);
+
+  return Effect.gen(function* () {
+    // Handle legacy full URLs for backward compatibility
+    const key = thumbnailKey.includes('.r2.cloudflarestorage.com/')
+      ? storage.extractKeyFromUrl(thumbnailKey)
+      : thumbnailKey;
+
+    if (!key) return null;
+
+    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
+  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+}
+
+/**
+ * Generate presigned video URL from stored key.
+ *
+ * This helper converts stored R2 keys to presigned download URLs.
+ * It also handles legacy full R2 URLs for backward compatibility with
+ * older database records that stored full URLs instead of keys.
+ *
+ * New records should always store just the key (e.g., "org-id/videos/file.mp4")
+ * and NOT full URLs.
+ *
+ * @param storage - The storage service instance
+ * @param videoKey - The stored video key (or legacy full URL)
+ * @param expiresIn - Optional expiration time in seconds (default: 3600 = 1 hour)
+ * @returns Effect that resolves to presigned URL or null if conversion fails
+ */
+export function generatePresignedVideoUrl(
+  storage: Context.Tag.Service<typeof Storage>,
+  videoKey: string | null,
+  expiresIn = 3600,
+): Effect.Effect<string | null, never, never> {
+  if (!videoKey) return Effect.succeed(null);
+
+  return Effect.gen(function* () {
+    // Handle legacy full URLs for backward compatibility
+    const key = videoKey.includes('.r2.cloudflarestorage.com/') ? storage.extractKeyFromUrl(videoKey) : videoKey;
+
+    if (!key) return null;
+
+    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
+  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+}
+
+// =============================================================================
 // Re-export commonly used utilities
 // =============================================================================
 
-export { Auth, mapErrorToApiResponse };
+export { Auth, mapErrorToApiResponse, Storage };

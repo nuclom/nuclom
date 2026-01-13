@@ -4,6 +4,7 @@ import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
 import { AppLive, NotFoundError } from '@/lib/effect';
 import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
+import { Storage } from '@/lib/effect/services/storage';
 import { TranscriptionLive } from '@/lib/effect/services/transcription';
 import {
   VideoAIProcessingError,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ),
     );
 
-    // Check if video has a URL
+    // Check if video has a URL/key stored
     if (!video.videoUrl) {
       return yield* Effect.fail(
         new VideoAIProcessingError({
@@ -85,8 +86,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       };
     }
 
-    // Full processing with transcription
-    const result = yield* processor.processVideo(videoId, video.videoUrl, video.title);
+    // Generate a presigned URL from the stored file key
+    // The database stores file keys, not full URLs
+    const storage = yield* Storage;
+    const presignedUrl = yield* storage.generatePresignedDownloadUrl(video.videoUrl, 3600).pipe(
+      Effect.catchAll(() =>
+        Effect.fail(
+          new VideoAIProcessingError({
+            message: 'Failed to generate video URL for processing',
+            videoId,
+          }),
+        ),
+      ),
+    );
+
+    // Full processing with transcription using the presigned URL
+    const result = yield* processor.processVideo(videoId, presignedUrl, video.title);
 
     return {
       message: 'Video processing completed',

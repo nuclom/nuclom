@@ -12,28 +12,17 @@ import { Storage, type StorageService, type UploadResult } from './storage';
 describe('Storage Service', () => {
   // Create a mock storage service for testing
   const createMockStorageService = (isConfigured = true): StorageService => ({
-    uploadFile: vi.fn().mockImplementation((_buffer, key, _options) =>
-      isConfigured
-        ? Effect.succeed({
-            key,
-            url: `https://storage.example.com/${key}`,
-            etag: 'mock-etag',
-          } as UploadResult)
-        : Effect.fail(new UploadError({ message: 'Storage not configured', filename: key })),
-    ),
-
-    uploadLargeFile: vi.fn().mockImplementation((_buffer, key, _options, onProgress) => {
+    uploadFile: vi.fn().mockImplementation((_buffer, key, _options, onProgress) => {
       if (!isConfigured) {
         return Effect.fail(new UploadError({ message: 'Storage not configured', filename: key }));
       }
-      // Simulate progress callback
+      // Simulate progress callback if provided
       if (onProgress) {
         onProgress({ loaded: 512, total: 1024 });
       }
       return Effect.succeed({
         key,
-        url: `https://storage.example.com/${key}`,
-        etag: 'large-file-etag',
+        etag: 'mock-etag',
       } as UploadResult);
     }),
 
@@ -92,7 +81,6 @@ describe('Storage Service', () => {
         const result = await Effect.runPromise(Effect.provide(program, testLayer));
 
         expect(result.key).toBe('test/file.txt');
-        expect(result.url).toContain('test/file.txt');
         expect(result.etag).toBe('mock-etag');
       });
 
@@ -115,8 +103,8 @@ describe('Storage Service', () => {
       });
     });
 
-    describe('uploadLargeFile', () => {
-      it('should upload a large file with progress tracking', async () => {
+    describe('uploadFile with progress', () => {
+      it('should upload a file with progress tracking', async () => {
         const mockService = createMockStorageService();
         const testLayer = createTestLayer(mockService);
         const progressCallback = vi.fn();
@@ -124,7 +112,7 @@ describe('Storage Service', () => {
 
         const program = Effect.gen(function* () {
           const storage = yield* Storage;
-          return yield* storage.uploadLargeFile(
+          return yield* storage.uploadFile(
             buffer,
             'test/large-file.bin',
             { contentType: 'application/octet-stream' },
@@ -135,7 +123,7 @@ describe('Storage Service', () => {
         const result = await Effect.runPromise(Effect.provide(program, testLayer));
 
         expect(result.key).toBe('test/large-file.bin');
-        expect(result.etag).toBe('large-file-etag');
+        expect(result.etag).toBe('mock-etag');
       });
     });
 

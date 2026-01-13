@@ -57,7 +57,7 @@ Annual billing: $468/user/year (vs $540 monthly)
 | Action item extraction | Yes | Yes |
 | Code snippet detection | Yes | Yes |
 | Semantic search | Yes | Yes |
-| 10 subtitle languages | Yes | Yes |
+| English captions | Yes | Yes |
 | Time-stamped comments | Yes | Yes |
 | @mentions & notifications | Yes | Yes |
 | Threaded discussions | Yes | Yes |
@@ -85,8 +85,8 @@ Annual billing: $468/user/year (vs $540 monthly)
 - Smart tagging
 - Semantic search
 
-### Subtitles & Translation
-- 10 subtitle languages included
+### Subtitles
+- English captions included
 - WebVTT and SRT export
 
 ### Collaboration
@@ -121,7 +121,6 @@ Annual billing: $468/user/year (vs $540 monthly)
 | Storage | Cloudflare R2 | $0.015/GB/month |
 | Transcription | OpenAI Whisper | $0.006/minute |
 | AI Analysis | xAI Grok 4.1 Fast | $0.20/$0.50 per M tokens |
-| Translation | DeepL | $25/million characters |
 | Email | Resend | $0.90/1000 emails |
 | Hosting | Vercel | $20/user/month base |
 | Database | Supabase/Neon | $25-69/month base |
@@ -135,12 +134,11 @@ Annual billing: $468/user/year (vs $540 monthly)
 | Storage Operations | ~100K | $0.48 |
 | Transcription (120 min) | 120 min | $0.72 |
 | AI Analysis (20 videos) | ~80K tokens | $0.05 |
-| Translation (10 videos × 5 langs) | 400K chars | $10.00 |
 | Email notifications | 25 emails | $0.02 |
 | Database share | - | $1.20 |
 | Hosting share | - | $2.00 |
 | Support overhead | - | $0.75 |
-| **Total Cost** | | **$15.52** |
+| **Total Cost** | | **$5.52** |
 
 ### Margin Analysis
 
@@ -148,23 +146,23 @@ Annual billing: $468/user/year (vs $540 monthly)
 
 | Billing | Price | Cost | Margin |
 |---------|-------|------|--------|
-| Monthly ($25) | $25.00 | $15.52 | **37.9%** |
-| Annual ($19) | $19.00 | $15.52 | **18.3%** |
+| Monthly ($25) | $25.00 | $5.52 | **77.9%** |
+| Annual ($19) | $19.00 | $5.52 | **71.0%** |
 
-**Blended margin** (assuming 60% annual / 40% monthly): **26.7%**
+**Blended margin** (assuming 60% annual / 40% monthly): **73.7%**
 
 #### Pro Plan
 
 | Billing | Price | Estimated Cost | Margin |
 |---------|-------|----------------|--------|
-| Monthly ($45) | $45.00 | $22.00 | **51.1%** |
-| Annual ($39) | $39.00 | $22.00 | **43.6%** |
+| Monthly ($45) | $45.00 | $12.00 | **73.3%** |
+| Annual ($39) | $39.00 | $12.00 | **69.2%** |
 
 *Pro costs include priority support overhead and higher storage/bandwidth allocations.*
 
-**Blended margin** (assuming 70% annual / 30% monthly): **45.8%**
+**Blended margin** (assuming 70% annual / 30% monthly): **70.4%**
 
-*Note: Scale margins are lower than typical SaaS to prioritize market share. Pro margins target ~50% for sustainable growth while remaining competitive.*
+*Note: Strong margins provide room for growth investment and competitive positioning.*
 
 ---
 
@@ -179,7 +177,7 @@ Annual billing: $468/user/year (vs $540 monthly)
 
 ### Why Nuclom at $25/mo wins:
 - Full AI features (transcription, summaries, action items, code detection)
-- 10 subtitle languages included
+- English captions included
 - Zoom & Google Meet import
 - Time-stamped collaboration
 - Simple, predictable pricing
@@ -233,8 +231,8 @@ Annual billing: $468/user/year (vs $540 monthly)
 
 ### Break-even Analysis
 - Fixed costs (infra base): ~$500/month
-- Variable cost per user: ~$15.52
-- Break-even at ~53 users (monthly) or ~83 users (annual)
+- Variable cost per user: ~$5.52
+- Break-even at ~26 users (monthly) or ~37 users (annual)
 
 ---
 

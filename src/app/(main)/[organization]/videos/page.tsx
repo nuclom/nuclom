@@ -1,14 +1,20 @@
 import { Upload, VideoOff } from 'lucide-react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VideoCard } from '@/components/video-card';
+import { VideoPreviewCard } from '@/components/video-preview-card';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
+
+export const metadata: Metadata = {
+  title: 'Videos',
+  description: 'View and manage all videos in your organization',
+};
 
 // =============================================================================
 // Loading Skeleton Component
@@ -78,7 +84,7 @@ async function VideosContent({ organizationId, organizationSlug }: VideosContent
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
       {videos.map((video) => (
-        <VideoCard key={video.id} video={video} organization={organizationSlug} />
+        <VideoPreviewCard key={video.id} video={video} organization={organizationSlug} />
       ))}
     </div>
   );

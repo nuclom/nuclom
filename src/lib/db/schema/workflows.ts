@@ -22,7 +22,6 @@ export type WorkflowTemplateConfig = {
   extractChapters?: boolean;
   extractActionItems?: boolean;
   detectCodeSnippets?: boolean;
-  subtitleLanguages?: string[];
   defaultChannel?: string;
   autoShareSettings?: {
     enabled?: boolean;

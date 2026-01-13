@@ -148,6 +148,9 @@ const errorTagMapping: Record<AppErrorTag, ErrorMapping> = {
   UnsupportedFormatError: { code: ErrorCodes.VIDEO_UNSUPPORTED_FORMAT, status: 400 },
   FileSizeExceededError: { code: ErrorCodes.VIDEO_FILE_TOO_LARGE, status: 400 },
   VideoProcessingError: { code: ErrorCodes.VIDEO_PROCESSING_FAILED, status: 500 },
+  VideoAIProcessingError: { code: ErrorCodes.VIDEO_PROCESSING_FAILED, status: 500 },
+  TranscriptionError: { code: ErrorCodes.VIDEO_PROCESSING_FAILED, status: 500 },
+  AudioExtractionError: { code: ErrorCodes.VIDEO_PROCESSING_FAILED, status: 500 },
 
   // AI errors
   AIServiceError: { code: ErrorCodes.INTERNAL_AI_SERVICE_ERROR, status: 500 },
@@ -227,6 +230,16 @@ export function isTaggedError(error: unknown): error is { _tag: string; message:
 export function mapAppErrorToResponse(error: AppErrorUnion): NextResponse<ApiErrorResponse> {
   const mapping = errorTagMapping[error._tag];
   const details = extractErrorDetails(error);
+
+  // Defensive check: if mapping is missing, treat as internal error
+  if (!mapping) {
+    logger.error(`Missing error mapping for tag: ${error._tag}`, new Error(error.message));
+    notifySlackMonitoring('api_error', {
+      errorMessage: `Missing error mapping: ${error._tag} - ${error.message}`,
+      errorCode: 'MissingErrorMapping',
+    }).catch(() => {});
+    return createErrorResponse(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred', 500);
+  }
 
   // Log non-client errors server-side and send to Slack
   if (mapping.status >= 500) {

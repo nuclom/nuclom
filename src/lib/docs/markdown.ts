@@ -15,7 +15,7 @@ function extractTitle(content: string): string {
   return match ? match[1].trim() : 'Documentation';
 }
 
-// Extract description from markdown content (first paragraph after title)
+// Extract description from markdown content (first paragraph or blockquote after title)
 function extractDescription(content: string): string | undefined {
   const lines = content.split('\n');
   let foundTitle = false;
@@ -26,11 +26,35 @@ function extractDescription(content: string): string | undefined {
       continue;
     }
     if (foundTitle && line.trim() && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('*')) {
-      return line.trim();
+      // Remove blockquote marker if present
+      const cleanLine = line.startsWith('>') ? line.slice(1).trim() : line.trim();
+      return cleanLine;
     }
   }
 
   return undefined;
+}
+
+// Strip the first h1 heading from content (since it's displayed separately by DocsTitle)
+function stripFirstHeading(content: string): string {
+  const lines = content.split('\n');
+  let foundFirstH1 = false;
+  const result: string[] = [];
+
+  for (const line of lines) {
+    if (!foundFirstH1 && line.match(/^#\s+.+$/)) {
+      foundFirstH1 = true;
+      continue; // Skip the first h1
+    }
+    result.push(line);
+  }
+
+  // Also remove leading empty lines after stripping the heading
+  while (result.length > 0 && result[0].trim() === '') {
+    result.shift();
+  }
+
+  return result.join('\n');
 }
 
 // Read markdown file and return parsed content
@@ -43,11 +67,11 @@ export async function getMarkdownContent(filePath: string): Promise<MarkdownCont
   }
 
   try {
-    const content = await readFile(fullPath, 'utf-8');
+    const rawContent = await readFile(fullPath, 'utf-8');
     return {
-      title: extractTitle(content),
-      description: extractDescription(content),
-      content,
+      title: extractTitle(rawContent),
+      description: extractDescription(rawContent),
+      content: stripFirstHeading(rawContent),
     };
   } catch (error) {
     console.error(`Error reading markdown file: ${fullPath}`, error);

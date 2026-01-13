@@ -7,7 +7,6 @@ This document describes the accessibility features implemented for video content
 Nuclom provides comprehensive accessibility support for video content including:
 
 - **WebVTT Subtitles** - Generated from transcripts for caption support
-- **Multi-language Translation** - DeepL-powered translation for international users
 - **Interactive Transcript Display** - Click-to-seek and current segment highlighting
 - **Transcript Editing** - Allow users to correct auto-generated transcripts
 
@@ -38,38 +37,13 @@ Key functions:
 - `findCurrentSegment(segments, time)` - Find segment at current playback time
 - `mergeAdjacentSegments(segments)` - Merge close segments for smoother reading
 
-### Translation Service (`src/lib/effect/services/translation.ts`)
-
-The translation service provides multi-language translation using the DeepL API.
-
-```typescript
-import { Translation, translateTranscript } from "@/lib/effect";
-
-// Translate transcript to Spanish
-const effect = Effect.gen(function* () {
-  const translated = yield* translateTranscript(segments, "es");
-  return translated.segments;
-});
-```
-
-Supported languages:
-- English (en), Spanish (es), French (fr), German (de)
-- Portuguese (pt), Italian (it), Dutch (nl), Polish (pl)
-- Russian (ru), Japanese (ja), Chinese (zh), Korean (ko)
-- And many more...
-
-Configuration:
-```env
-DEEPL_API_KEY=your-deepl-api-key
-```
-
 ## API Endpoints
 
 ### Subtitle Endpoints
 
 #### GET `/api/videos/[id]/subtitles`
 
-List available subtitle languages for a video.
+List available subtitle information for a video.
 
 **Response:**
 ```json
@@ -93,11 +67,10 @@ List available subtitle languages for a video.
 }
 ```
 
-#### GET `/api/videos/[id]/subtitles/[lang].vtt`
+#### GET `/api/videos/[id]/subtitles/en.vtt`
 
-Get WebVTT subtitle file for a specific language.
+Get WebVTT subtitle file for English captions.
 
-- `[lang]` - Language code (e.g., `en`, `es`, `fr`)
 - Append `.srt` instead of `.vtt` for SRT format
 
 **Response:** WebVTT file content
@@ -204,9 +177,8 @@ import { VideoPlayerWithProgress } from "@/components/video";
 ```
 
 Caption features:
-- Caption track selector in control bar
+- Caption toggle in control bar
 - Keyboard shortcut (C) to toggle captions
-- Multi-language support (when translation is configured)
 - Caption track synced with video playback
 
 ## Hooks
@@ -237,7 +209,7 @@ const {
 
 1. When `videoId` is provided to VideoPlayer, it fetches available tracks from `/api/videos/[id]/subtitles`
 2. Available tracks are added as `<track>` elements with `crossOrigin="anonymous"`
-3. User can select a track from the caption dropdown menu
+3. User can toggle captions on/off from the control bar
 4. Track mode is toggled between "showing" and "disabled"
 
 ### Transcript Sync
@@ -247,13 +219,6 @@ const {
 3. Active segment is highlighted with primary color border
 4. Auto-scroll brings active segment into view (with 3-second debounce)
 
-### Translation Flow
-
-1. User selects a non-English language from caption dropdown
-2. API checks if translation service is configured
-3. If configured, segments are sent to DeepL for batch translation
-4. Translated segments are cached and returned as WebVTT
-
 ## Keyboard Shortcuts
 
 | Key | Action |
@@ -261,20 +226,11 @@ const {
 | C | Toggle captions |
 | R | Toggle loop |
 
-## Environment Variables
-
-```env
-# DeepL API key for translation (optional)
-# Free tier keys end with :fx
-DEEPL_API_KEY=your-deepl-api-key
-```
-
 ## Best Practices
 
 1. **Always provide transcripts** - Use AI transcription for accessibility
 2. **Allow corrections** - Users can improve auto-generated transcripts
-3. **Support multiple languages** - Configure translation for international users
-4. **Test with screen readers** - Ensure captions work with assistive technology
+3. **Test with screen readers** - Ensure captions work with assistive technology
 
 ## Related Documentation
 

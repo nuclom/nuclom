@@ -18,12 +18,6 @@ export class SubtitleError extends Data.TaggedError('SubtitleError')<{
   readonly cause?: unknown;
 }> {}
 
-export class TranslationError extends Data.TaggedError('TranslationError')<{
-  readonly message: string;
-  readonly targetLanguage: string;
-  readonly cause?: unknown;
-}> {}
-
 // =============================================================================
 // Types & Schemas
 // =============================================================================
@@ -250,22 +244,6 @@ export interface SubtitleServiceInterface {
    * Generate SRT subtitles from transcript segments
    */
   readonly generateSRT: (segments: readonly TranscriptSegment[]) => Effect.Effect<string, SubtitleError>;
-
-  /**
-   * Translate transcript segments to another language
-   */
-  readonly translateSegments: (
-    segments: readonly TranscriptSegment[],
-    targetLanguage: string,
-  ) => Effect.Effect<TranscriptSegment[], TranslationError>;
-
-  /**
-   * Get available subtitle languages for a video
-   */
-  readonly getAvailableLanguages: (
-    videoId: string,
-    hasTranslations: boolean,
-  ) => Effect.Effect<SubtitleLanguage[], SubtitleError>;
 }
 
 // =============================================================================
@@ -330,48 +308,9 @@ const makeSubtitleService = Effect.gen(function* () {
       }
     });
 
-  const translateSegments = (
-    _segments: readonly TranscriptSegment[],
-    targetLanguage: string,
-  ): Effect.Effect<TranscriptSegment[], TranslationError> =>
-    Effect.gen(function* () {
-      // This will be implemented with DeepL integration
-      // For now, return original segments as a passthrough
-      return yield* Effect.fail(
-        new TranslationError({
-          message: 'Translation not yet implemented - use Translation service',
-          targetLanguage,
-        }),
-      );
-    });
-
-  const getAvailableLanguages = (
-    _videoId: string,
-    hasTranslations: boolean,
-  ): Effect.Effect<SubtitleLanguage[], SubtitleError> => {
-    // Base languages - original transcript is always available if segments exist
-    const languages: SubtitleLanguage[] = [{ code: 'en', name: 'English', isOriginal: true }];
-
-    // Add translated languages if available
-    if (hasTranslations) {
-      languages.push(
-        { code: 'es', name: 'Spanish', isOriginal: false },
-        { code: 'fr', name: 'French', isOriginal: false },
-        { code: 'de', name: 'German', isOriginal: false },
-        { code: 'pt', name: 'Portuguese', isOriginal: false },
-        { code: 'ja', name: 'Japanese', isOriginal: false },
-        { code: 'zh', name: 'Chinese', isOriginal: false },
-      );
-    }
-
-    return Effect.succeed(languages);
-  };
-
   return {
     generateWebVTT: generateWebVTTEffect,
     generateSRT: generateSRTEffect,
-    translateSegments,
-    getAvailableLanguages,
   } satisfies SubtitleServiceInterface;
 });
 

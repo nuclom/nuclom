@@ -1,7 +1,13 @@
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { Cause, Effect, Exit, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import {
+  Auth,
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  mapErrorToApiResponse,
+  Storage,
+} from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { aiActionItems, videos } from '@/lib/db/schema';
 import { DatabaseError, UnauthorizedError } from '@/lib/effect';
@@ -180,11 +186,30 @@ export async function GET(request: NextRequest) {
 
     const statsByStatus = Object.fromEntries(statsResult.map((s) => [s.status, Number(s.count)]));
 
+    // Generate presigned URLs for video thumbnails
+    const storage = yield* Storage;
+    const actionItemsWithPresignedUrls = yield* Effect.all(
+      actionItemsResult.map((row) =>
+        Effect.gen(function* () {
+          const presignedThumbnailUrl = row.video?.thumbnailUrl
+            ? yield* generatePresignedThumbnailUrl(storage, row.video.thumbnailUrl)
+            : null;
+          return {
+            ...row.actionItem,
+            video: row.video
+              ? {
+                  ...row.video,
+                  thumbnailUrl: presignedThumbnailUrl,
+                }
+              : null,
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
     return {
-      actionItems: actionItemsResult.map((row) => ({
-        ...row.actionItem,
-        video: row.video,
-      })),
+      actionItems: actionItemsWithPresignedUrls,
       pagination: {
         page,
         limit,

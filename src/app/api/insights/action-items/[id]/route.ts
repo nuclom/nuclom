@@ -1,7 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { Cause, Effect, Exit, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import {
+  Auth,
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  mapErrorToApiResponse,
+  Storage,
+} from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { aiActionItems } from '@/lib/db/schema';
 import { DatabaseError, NotFoundError, UnauthorizedError } from '@/lib/effect';
@@ -91,7 +97,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    return actionItem;
+    // Generate presigned URL for video thumbnail
+    const storage = yield* Storage;
+    const presignedThumbnailUrl = actionItem.video?.thumbnailUrl
+      ? yield* generatePresignedThumbnailUrl(storage, actionItem.video.thumbnailUrl)
+      : null;
+
+    return {
+      ...actionItem,
+      video: actionItem.video
+        ? {
+            ...actionItem.video,
+            thumbnailUrl: presignedThumbnailUrl,
+          }
+        : null,
+    };
   });
 
   const runnable = Effect.provide(effect, FullLayer);

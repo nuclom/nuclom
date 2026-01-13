@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata = {
-  title: 'Content Policy | Nuclom',
+  title: 'Content Policy',
   description: 'Understand what content is allowed on Nuclom and how we moderate our platform.',
 };
 

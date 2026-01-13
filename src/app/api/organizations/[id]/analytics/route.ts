@@ -1,7 +1,13 @@
 import { and, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
 import { Cause, Effect, Exit } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { Auth, createFullLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import {
+  Auth,
+  createFullLayer,
+  generatePresignedThumbnailUrl,
+  mapErrorToApiResponse,
+  Storage,
+} from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videos, videoViews } from '@/lib/db/schema';
 import { DatabaseError, UnauthorizedError } from '@/lib/effect';
@@ -168,7 +174,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }),
     });
 
-    const videoDetailsMap = new Map(videoDetails.map((v) => [v.id, v]));
+    // Generate presigned URLs for video thumbnails
+    const storage = yield* Storage;
+    const videoDetailsWithPresignedUrls = yield* Effect.all(
+      videoDetails.map((v) =>
+        Effect.gen(function* () {
+          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, v.thumbnailUrl);
+          return {
+            ...v,
+            thumbnailUrl: presignedThumbnailUrl,
+          };
+        }),
+      ),
+      { concurrency: 10 },
+    );
+
+    const videoDetailsMap = new Map(videoDetailsWithPresignedUrls.map((v) => [v.id, v]));
 
     // Get views by day
     const viewsByDay = yield* Effect.tryPromise({

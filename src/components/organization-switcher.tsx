@@ -31,6 +31,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   const [open, setOpen] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [activeOrg, setActiveOrg] = useState<Organization | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -38,23 +39,28 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
   const loadOrganizations = useCallback(async () => {
     try {
       setLoading(true);
+      setError(false);
       const { data } = await authClient.organization.list();
       setOrganizations(data || []);
 
       // Find current active organization
       const current = data?.find((org) => org.slug === currentOrganization);
       setActiveOrg(current || null);
-    } catch (error) {
-      logger.error('Failed to load organizations', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load organizations',
-        variant: 'destructive',
-      });
+    } catch (err) {
+      logger.error('Failed to load organizations', err);
+      setError(true);
+      // Only show toast on initial load failure, not on retries
+      if (!error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load organizations. Click to retry.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [currentOrganization, toast]);
+  }, [currentOrganization, toast, error]);
 
   useEffect(() => {
     loadOrganizations();
@@ -119,6 +125,24 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-full bg-muted animate-pulse" />
           <span className="font-medium">Loading...</span>
+        </div>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    );
+  }
+
+  if (error && organizations.length === 0) {
+    return (
+      <Button
+        variant="outline"
+        className="h-9 w-full justify-between text-destructive hover:text-destructive"
+        onClick={loadOrganizations}
+      >
+        <div className="flex items-center gap-2">
+          <div className="h-6 w-6 rounded-full bg-destructive/10 flex items-center justify-center">
+            <span className="text-xs">!</span>
+          </div>
+          <span className="font-medium">Retry</span>
         </div>
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>

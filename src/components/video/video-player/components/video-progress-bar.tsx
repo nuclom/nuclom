@@ -122,14 +122,14 @@ export function VideoProgressBar({
     >
       {/* Buffered Progress */}
       <div
-        className="absolute top-0 left-0 h-full bg-white/40 rounded-full transition-all"
-        style={{ width: `${buffered}%` }}
+        className="absolute top-0 left-0 h-full bg-white/40 rounded-full"
+        style={{ width: `${buffered}%`, willChange: 'width' }}
       />
 
       {/* Played Progress */}
       <div
-        className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all"
-        style={{ width: `${progress}%` }}
+        className="absolute top-0 left-0 h-full bg-primary rounded-full"
+        style={{ width: `${progress}%`, willChange: 'width' }}
       />
 
       {/* Progress Handle */}

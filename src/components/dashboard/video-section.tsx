@@ -3,7 +3,7 @@
 import { ChevronRight, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { VideoCard } from '@/components/video-card';
+import { VideoPreviewCard } from '@/components/video-preview-card';
 import type { VideoWithAuthor } from '@/lib/types';
 
 interface VideoSectionProps {
@@ -64,7 +64,7 @@ export function VideoSection({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
           {videos.map((video, index) => (
-            <VideoCard key={video.id} video={video} organization={organization} priority={index < 4} />
+            <VideoPreviewCard key={video.id} video={video} organization={organization} priority={index < 4} />
           ))}
         </div>
       )}

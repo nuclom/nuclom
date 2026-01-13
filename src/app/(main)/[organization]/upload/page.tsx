@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -10,6 +11,11 @@ import { VideoUpload } from '@/components/video-upload';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { organizations } from '@/lib/db/schema';
+
+export const metadata: Metadata = {
+  title: 'Upload Video',
+  description: 'Upload a new video to your organization',
+};
 
 function UploadSkeleton() {
   return (

@@ -1,7 +1,13 @@
 import { asc, eq, isNull } from 'drizzle-orm';
 import { Cause, Effect, Exit, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import {
+  createPublicLayer,
+  generatePresignedThumbnailUrl,
+  generatePresignedVideoUrl,
+  mapErrorToApiResponse,
+  Storage,
+} from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
 import { db } from '@/lib/db';
 import { comments, videos } from '@/lib/db/schema';
@@ -62,7 +68,18 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    return videoData;
+    // Generate presigned URLs for video and thumbnail
+    const storage = yield* Storage;
+    const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
+      generatePresignedThumbnailUrl(storage, videoData.thumbnailUrl),
+      generatePresignedVideoUrl(storage, videoData.videoUrl),
+    ]);
+
+    return {
+      ...videoData,
+      thumbnailUrl: presignedThumbnailUrl,
+      videoUrl: presignedVideoUrl,
+    };
   });
 
   const runnable = Effect.provide(effect, createPublicLayer());
@@ -205,7 +222,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         }),
     });
 
-    return videoData;
+    if (!videoData) return videoData;
+
+    // Generate presigned URLs for video and thumbnail
+    const storage = yield* Storage;
+    const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
+      generatePresignedThumbnailUrl(storage, videoData.thumbnailUrl),
+      generatePresignedVideoUrl(storage, videoData.videoUrl),
+    ]);
+
+    return {
+      ...videoData,
+      thumbnailUrl: presignedThumbnailUrl,
+      videoUrl: presignedVideoUrl,
+    };
   });
 
   const runnable = Effect.provide(effect, createPublicLayer());

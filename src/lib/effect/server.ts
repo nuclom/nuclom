@@ -5,7 +5,7 @@
  * These utilities are designed for use in Server Components and Server Actions.
  */
 
-import { Cause, Effect, Exit, Option } from 'effect';
+import { Cause, type Context, Effect, Exit, Option } from 'effect';
 import { revalidateTag } from 'next/cache';
 import { cache } from 'react';
 import type {
@@ -21,9 +21,39 @@ import { AppLive, type AppServices } from './runtime';
 import { ChannelRepository } from './services/channel-repository';
 import { OrganizationRepository } from './services/organization-repository';
 import { SeriesRepository } from './services/series-repository';
+import { Storage } from './services/storage';
 import { type VideoProgressData, VideoProgressRepository } from './services/video-progress-repository';
 import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository';
 import { VideoRepository } from './services/video-repository';
+
+// =============================================================================
+// Presigned URL Helpers
+// =============================================================================
+
+/**
+ * Generate presigned URL for a stored file key.
+ *
+ * Converts stored R2 keys to presigned download URLs.
+ * Handles legacy full R2 URLs for backward compatibility with
+ * older database records that stored full URLs instead of keys.
+ *
+ * New records should always store just the key (e.g., "org-id/videos/file.mp4")
+ * and NOT full URLs.
+ */
+function generatePresignedUrl(
+  storage: Context.Tag.Service<typeof Storage>,
+  storedKey: string | null,
+  expiresIn = 3600,
+): Effect.Effect<string | null, never, never> {
+  if (!storedKey) return Effect.succeed(null);
+
+  return Effect.gen(function* () {
+    // Handle legacy full URLs for backward compatibility
+    const key = storedKey.includes('.r2.cloudflarestorage.com/') ? storage.extractKeyFromUrl(storedKey) : storedKey;
+    if (!key) return null;
+    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
+  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
+}
 
 // =============================================================================
 // Server Effect Runner
@@ -80,12 +110,37 @@ export const runServerEffectSafe = async <A, E>(
 
 /**
  * Get videos for an organization (cached per request)
+ * Returns videos with presigned URLs for thumbnails and video files
  */
 export const getVideos = cache(
   async (organizationId: string, page: number = 1, limit: number = 20): Promise<PaginatedResponse<VideoWithAuthor>> => {
     const effect = Effect.gen(function* () {
       const repo = yield* VideoRepository;
-      return yield* repo.getVideos(organizationId, page, limit);
+      const storage = yield* Storage;
+      const videosData = yield* repo.getVideos(organizationId, page, limit);
+
+      // Generate presigned URLs for all videos
+      const videosWithPresignedUrls = yield* Effect.all(
+        videosData.data.map((video) =>
+          Effect.gen(function* () {
+            const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
+              generatePresignedUrl(storage, video.thumbnailUrl),
+              generatePresignedUrl(storage, video.videoUrl),
+            ]);
+            return {
+              ...video,
+              thumbnailUrl: presignedThumbnailUrl,
+              videoUrl: presignedVideoUrl,
+            };
+          }),
+        ),
+        { concurrency: 10 },
+      );
+
+      return {
+        data: videosWithPresignedUrls,
+        pagination: videosData.pagination,
+      };
     });
     return runServerEffect(effect);
   },

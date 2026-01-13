@@ -1,12 +1,18 @@
 import { Share2, VideoOff } from 'lucide-react';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VideoCard } from '@/components/video-card';
+import { VideoPreviewCard } from '@/components/video-preview-card';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from '@/lib/effect';
+
+export const metadata: Metadata = {
+  title: 'Shared with Me',
+  description: 'Videos shared with you by team members',
+};
 
 // =============================================================================
 // Loading Skeleton Component
@@ -68,7 +74,7 @@ async function SharedVideosContent({ userId, organizationId, organizationSlug }:
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
       {videos.map((video) => (
-        <VideoCard key={video.id} video={video} organization={organizationSlug} />
+        <VideoPreviewCard key={video.id} video={video} organization={organizationSlug} />
       ))}
     </div>
   );

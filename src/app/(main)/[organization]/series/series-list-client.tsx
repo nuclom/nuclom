@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { ListVideo, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SeriesCard, SeriesForm } from '@/components/series';
@@ -76,11 +76,18 @@ export function SeriesListClient({ organization, organizationId, initialSeries }
       </div>
 
       {series.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No series yet</p>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create your first series
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="rounded-full bg-muted p-6 mb-4">
+            <ListVideo className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">No series yet</h2>
+          <p className="text-muted-foreground max-w-sm mb-6">
+            Series help you group related videos together for sequential viewing. Create your first series to get
+            started.
+          </p>
+          <Button onClick={() => setIsFormOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Your First Series
           </Button>
         </div>
       ) : (
