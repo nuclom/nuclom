@@ -567,6 +567,7 @@ export type {
   DiarizationOptions,
   DiarizationResult,
   DiarizedSegment,
+  ExpectedSpeaker,
   SpeakerDiarizationServiceInterface,
   SpeakerSummary,
 } from './speaker-diarization';
@@ -616,7 +617,7 @@ export {
 } from './storage';
 export type { StripeService } from './stripe';
 export { getStripe, StripeServiceLive, StripeServiceTag } from './stripe';
-export type { TranscriptionResult, TranscriptionServiceInterface } from './transcription';
+export type { TranscriptionOptions, TranscriptionResult, TranscriptionServiceInterface } from './transcription';
 // Transcription Service
 export {
   AudioExtractionError,
@@ -682,6 +683,26 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from './video-repository';
+// Vocabulary Repository
+export type {
+  CreateCorrectionSuggestionInput,
+  CreateVocabularyInput,
+  UpdateVocabularyInput,
+  VocabularyCategory,
+  VocabularyRepositoryService,
+  VocabularySearchResult,
+  VocabularyWithCreator,
+} from './vocabulary-repository';
+export {
+  applyVocabularyCorrections,
+  createVocabulary,
+  findMatchingVocabulary,
+  getOrganizationVocabulary,
+  getVocabularyTermsForPrompt,
+  VocabularyRepository,
+  VocabularyRepositoryError,
+  VocabularyRepositoryLive,
+} from './vocabulary-repository';
 // Watch Later Service
 export type {
   AddToWatchLaterInput,

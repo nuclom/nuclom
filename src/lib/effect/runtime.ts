@@ -39,6 +39,7 @@ import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
 import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
+import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
 
 // =============================================================================
 // Layer Composition Utilities
@@ -142,6 +143,7 @@ const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
 const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
 const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
+const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
@@ -174,6 +176,7 @@ const AppServicesLive = Layer.mergeAll(
   ChannelRepositoryWithDeps,
   ClipRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
+  VocabularyRepositoryWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -205,6 +208,7 @@ export type AppServices =
   | ChannelRepository
   | ClipRepository
   | KnowledgeGraphRepository
+  | VocabularyRepository
   | StripeServiceTag
   | SlackMonitoring;
 

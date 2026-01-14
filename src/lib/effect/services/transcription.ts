@@ -29,12 +29,22 @@ export interface TranscriptionResult {
   readonly language?: string;
 }
 
+export interface TranscriptionOptions {
+  /** Custom vocabulary terms to bias transcription toward */
+  readonly vocabularyTerms?: string[];
+  /** Participant names to improve name recognition */
+  readonly participantNames?: string[];
+}
+
 export interface TranscriptionServiceInterface {
   /**
    * Transcribe audio from a video URL
    * Fetches the video, extracts audio, and transcribes it
    */
-  readonly transcribeFromUrl: (videoUrl: string) => Effect.Effect<TranscriptionResult, TranscriptionError>;
+  readonly transcribeFromUrl: (
+    videoUrl: string,
+    options?: TranscriptionOptions,
+  ) => Effect.Effect<TranscriptionResult, TranscriptionError>;
 
   /**
    * Transcribe audio from a buffer (already extracted audio)
@@ -87,7 +97,10 @@ const makeTranscriptionService = Effect.gen(function* () {
       }),
     );
 
-  const transcribeFromUrl = (videoUrl: string): Effect.Effect<TranscriptionResult, TranscriptionError> =>
+  const transcribeFromUrl = (
+    videoUrl: string,
+    options?: TranscriptionOptions,
+  ): Effect.Effect<TranscriptionResult, TranscriptionError> =>
     Effect.gen(function* () {
       if (!replicate) {
         return yield* Effect.fail(
@@ -97,6 +110,17 @@ const makeTranscriptionService = Effect.gen(function* () {
           }),
         );
       }
+
+      // Build initial_prompt from vocabulary terms and participant names
+      // This biases Whisper toward recognizing these terms
+      const promptTerms: string[] = [];
+      if (options?.vocabularyTerms && options.vocabularyTerms.length > 0) {
+        promptTerms.push(...options.vocabularyTerms);
+      }
+      if (options?.participantNames && options.participantNames.length > 0) {
+        promptTerms.push(...options.participantNames);
+      }
+      const initialPrompt = promptTerms.length > 0 ? promptTerms.join(', ') : undefined;
 
       const output = yield* Effect.tryPromise({
         try: async () => {
@@ -112,6 +136,8 @@ const makeTranscriptionService = Effect.gen(function* () {
               no_speech_threshold: 0.6,
               condition_on_previous_text: true,
               compression_ratio_threshold: 2.4,
+              // Vocabulary injection: initial_prompt biases the model toward these terms
+              ...(initialPrompt && { initial_prompt: initialPrompt }),
             },
           })) as {
             transcription?: string;
@@ -169,10 +195,11 @@ export const TranscriptionLive = Layer.effect(Transcription, makeTranscriptionSe
  */
 export const transcribeFromUrl = (
   videoUrl: string,
+  options?: TranscriptionOptions,
 ): Effect.Effect<TranscriptionResult, TranscriptionError, Transcription> =>
   Effect.gen(function* () {
     const service = yield* Transcription;
-    return yield* service.transcribeFromUrl(videoUrl);
+    return yield* service.transcribeFromUrl(videoUrl, options);
   });
 
 /**
