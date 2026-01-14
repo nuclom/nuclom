@@ -1309,7 +1309,11 @@ async function sendCompletionNotification(
  * Handle workflow failure by updating status and sending notification.
  * This is a separate step so the static analyzer can trace it.
  */
-async function handleWorkflowFailure(videoId: string, errorMessage: string): Promise<VideoProcessingResult> {
+async function handleWorkflowFailure(
+  videoId: string,
+  errorMessage: string,
+  stackTrace?: string,
+): Promise<VideoProcessingResult> {
   'use step';
 
   try {
@@ -1368,14 +1372,16 @@ async function handleWorkflowFailure(videoId: string, errorMessage: string): Pro
           `,
         });
 
-        // Send Slack monitoring notification
+        // Send Slack monitoring notification with stack trace
         await notifySlackMonitoring('video_processing_failed', {
           videoId,
           videoTitle: video.title,
           organizationId: video.organizationId,
           userId: user.id,
           userName: user.name || undefined,
+          userEmail: user.email,
           errorMessage,
+          stackTrace,
         });
       }
     }
@@ -1439,9 +1445,10 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   // Step 1: Update status to transcribing
   const statusResult = await updateProcessingStatus(videoId, 'transcribing').catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (statusResult && 'error' in statusResult) {
-    return handleWorkflowFailure(videoId, statusResult.error);
+    return handleWorkflowFailure(videoId, statusResult.error, statusResult.stack);
   }
 
   // Step 1.5: Fetch vocabulary terms for transcription (if organization is known)
@@ -1456,14 +1463,15 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     participantNames,
   }).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
     isFatal: error instanceof FatalError,
   }));
   if ('error' in transcribeResult) {
     if (transcribeResult.isFatal) {
-      await handleWorkflowFailure(videoId, transcribeResult.error);
+      await handleWorkflowFailure(videoId, transcribeResult.error, transcribeResult.stack);
       throw new FatalError(transcribeResult.error);
     }
-    return handleWorkflowFailure(videoId, transcribeResult.error);
+    return handleWorkflowFailure(videoId, transcribeResult.error, transcribeResult.stack);
   }
   let transcription: TranscriptionResult = transcribeResult;
 
@@ -1489,9 +1497,10 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     transcription.duration,
   ).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (saveTranscriptResult && 'error' in saveTranscriptResult) {
-    return handleWorkflowFailure(videoId, saveTranscriptResult.error);
+    return handleWorkflowFailure(videoId, saveTranscriptResult.error, saveTranscriptResult.stack);
   }
 
   // Step 3.5: Generate and save thumbnail
@@ -1520,28 +1529,31 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   // Step 5: Update status to analyzing
   const analyzeStatusResult = await updateProcessingStatus(videoId, 'analyzing').catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (analyzeStatusResult && 'error' in analyzeStatusResult) {
-    return handleWorkflowFailure(videoId, analyzeStatusResult.error);
+    return handleWorkflowFailure(videoId, analyzeStatusResult.error, analyzeStatusResult.stack);
   }
 
   // Step 6: Run AI analysis
   const analysisResult = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle).catch(
     (error) => ({
       error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     }),
   );
   if ('error' in analysisResult) {
-    return handleWorkflowFailure(videoId, analysisResult.error);
+    return handleWorkflowFailure(videoId, analysisResult.error, analysisResult.stack);
   }
   const analysis: AIAnalysisResult = analysisResult;
 
   // Step 7: Save AI analysis results
   const saveAnalysisResult = await saveAIAnalysis(videoId, analysis).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (saveAnalysisResult && 'error' in saveAnalysisResult) {
-    return handleWorkflowFailure(videoId, saveAnalysisResult.error);
+    return handleWorkflowFailure(videoId, saveAnalysisResult.error, saveAnalysisResult.stack);
   }
 
   // Step 8: Detect key moments for clip extraction
