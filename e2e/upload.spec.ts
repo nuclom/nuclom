@@ -4,11 +4,7 @@ test.describe('Video Upload Page', () => {
   test.describe('Authenticated User', () => {
     test('should display upload page with form elements', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel/upload');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel\/upload/);
 
       // Check for upload page elements
       await expect(page.getByRole('heading', { name: /upload video/i })).toBeVisible({ timeout: 15000 });
@@ -17,22 +13,14 @@ test.describe('Video Upload Page', () => {
 
     test('should have back to videos link', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel/upload');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel\/upload/);
 
       await expect(page.getByRole('link', { name: /back to videos/i })).toBeVisible();
     });
 
     test('should navigate back to organization page', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel/upload');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel\/upload/);
 
       await page.getByRole('link', { name: /back to videos/i }).click();
       await expect(page).toHaveURL(/\/vercel$/);
@@ -40,11 +28,7 @@ test.describe('Video Upload Page', () => {
 
     test('should have drag and drop upload area', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel/upload');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel\/upload/);
 
       // Look for drop zone or file input area
       const dropZone = page.locator("[data-dropzone], .dropzone, [role='button']").first();
@@ -73,11 +57,7 @@ test.describe('Video Upload Page', () => {
 test.describe('Video Upload Flow', () => {
   test('upload area should respond to hover interactions', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel/upload');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel\/upload/);
 
     // Find clickable upload area
     const uploadArea = page.getByText(/drag and drop|click to upload|select files/i).first();

@@ -4,12 +4,7 @@ test.describe('Organization Dashboard', () => {
   test.describe('Authenticated User', () => {
     test('should display organization dashboard with video sections', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel');
-
-      // If redirected to login, we're not authenticated - skip test
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel/);
 
       // Check for video sections
       await expect(page.getByText('Continue watching')).toBeVisible({ timeout: 15000 });
@@ -19,11 +14,7 @@ test.describe('Organization Dashboard', () => {
 
     test('should display upload button when no videos', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel/);
 
       // If no videos, should show upload button
       const noVideosMessage = page.getByText(/no videos found|upload your first video/i);
@@ -36,11 +27,7 @@ test.describe('Organization Dashboard', () => {
 
     test('should navigate to upload page', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel/);
 
       // Look for any upload link/button
       const uploadLink = page.getByRole('link', { name: /upload/i }).first();
@@ -65,11 +52,7 @@ test.describe('Organization Dashboard', () => {
 test.describe('Organization Navigation', () => {
   test('should have functioning navigation components', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel/);
 
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');

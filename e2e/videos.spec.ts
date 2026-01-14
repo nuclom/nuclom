@@ -4,11 +4,7 @@ test.describe('Video List', () => {
   test.describe('Authenticated User', () => {
     test('should display video cards if videos exist', async ({ authenticatedPage: page }) => {
       await page.goto('/vercel');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel/);
 
       await page.waitForLoadState('domcontentloaded');
 
@@ -30,11 +26,7 @@ test.describe('Video Detail Page', () => {
     test('should handle video page navigation', async ({ authenticatedPage: page }) => {
       // First go to org page
       await page.goto('/vercel');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await expect(page).toHaveURL(/\/vercel/);
 
       // Look for video links
       const videoLinks = page.locator("a[href*='/videos/']");
@@ -52,11 +44,7 @@ test.describe('Video Detail Page', () => {
 test.describe('Search Page', () => {
   test('should display search page', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel/search');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel\/search/);
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -72,11 +60,7 @@ test.describe('Search Page', () => {
 test.describe('My Videos Page', () => {
   test('should display my videos page', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel/my-videos');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel\/my-videos/);
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -88,11 +72,7 @@ test.describe('My Videos Page', () => {
 test.describe('Shared Videos Page', () => {
   test('should display shared videos page', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel/shared');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel\/shared/);
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -104,11 +84,7 @@ test.describe('Shared Videos Page', () => {
 test.describe('Channels Page', () => {
   test('should handle channel navigation', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel/);
 
     // Look for channel links
     const channelLinks = page.locator("a[href*='/channels/']");
@@ -124,11 +100,7 @@ test.describe('Channels Page', () => {
 test.describe('Series Page', () => {
   test('should display series page', async ({ authenticatedPage: page }) => {
     await page.goto('/vercel/series');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await expect(page).toHaveURL(/\/vercel\/series/);
 
     await page.waitForLoadState('domcontentloaded');
 

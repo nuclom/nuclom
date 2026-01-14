@@ -8,18 +8,10 @@ test.describe('Landing Page', () => {
     await page.goto('/login');
     await context.clearCookies();
     await page.goto('/');
-    // Verify we're on landing page (not redirected)
-    if (!page.url().endsWith('/') && !page.url().includes('login')) {
-      // If redirected, go directly to login page for these tests
-      test.skip(true, 'User appears to be authenticated - skipping landing page test');
-    }
+    await expect(page).toHaveURL(/\/$/);
   });
 
   test('should display the landing page with header', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // Check header elements
     await expect(page.getByText('Nuclom').first()).toBeVisible();
     // On mobile, nav links are hidden behind hamburger menu
@@ -32,22 +24,14 @@ test.describe('Landing Page', () => {
   });
 
   test('should display hero section', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     await expect(page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' })).toBeVisible();
     // Use first() as there are multiple "Start Free Trial" links on the page
     await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
   });
 
   test('should display features section', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // Scroll to features section first to ensure it's visible
-    await page.locator('#features').scrollIntoViewIfNeeded();
+    await page.locator('section#features').first().scrollIntoViewIfNeeded();
     // Use first() as text may appear multiple times on the page
     await expect(page.getByText('Smart Video Management').first()).toBeVisible();
     await expect(page.getByText('Real-Time Collaboration').first()).toBeVisible();
@@ -55,10 +39,6 @@ test.describe('Landing Page', () => {
   });
 
   test('should display trust badges', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // Use first() to get the trust badge in the hero section (not the features section)
     await expect(page.getByText('Enterprise Security').first()).toBeVisible();
     await expect(page.getByText('Lightning Fast').first()).toBeVisible();
@@ -66,10 +46,6 @@ test.describe('Landing Page', () => {
   });
 
   test('should display how it works section', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     const howItWorksSection = page
       .locator('section')
       .filter({ has: page.getByRole('heading', { name: 'Get Started in Minutes' }) })
@@ -82,20 +58,12 @@ test.describe('Landing Page', () => {
   });
 
   test('should display footer with links', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     await expect(page.getByRole('link', { name: /privacy/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /terms/i }).first()).toBeVisible();
     await expect(page.getByRole('contentinfo').getByText(/Nuclom. All rights reserved/i)).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // On mobile, nav links are hidden behind hamburger menu
     const viewport = page.viewportSize();
     if (viewport && viewport.width < 768) {
@@ -115,10 +83,6 @@ test.describe('Landing Page', () => {
   });
 
   test('should navigate to signup page via Get Started', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // Click the first "Get Started" link in the header
     await page
       .getByRole('link', { name: /get started/i })
@@ -128,10 +92,6 @@ test.describe('Landing Page', () => {
   });
 
   test('should have working navigation links', async ({ page }) => {
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
     // Skip on mobile - desktop navigation not visible
     const viewport = page.viewportSize();
     if (viewport && viewport.width < 768) {
@@ -144,7 +104,7 @@ test.describe('Landing Page', () => {
       // Wait for smooth scroll animation to complete
       await page.waitForTimeout(500);
       // Verify the features section exists and is reachable (URL has #features or section is visible)
-      await expect(page.locator('#features')).toBeVisible();
+      await expect(page.locator('section#features').first()).toBeVisible();
     }
   });
 });
@@ -159,11 +119,7 @@ test.describe('Landing Page - Mobile', () => {
     await context.clearCookies();
     await page.goto('/');
 
-    // Skip if redirected to authenticated page
-    if (page.url().includes('/qa-test-workspace') || page.url().includes('/onboarding')) {
-      test.skip(true, 'Redirected to authenticated page');
-      return;
-    }
+    await expect(page).toHaveURL(/\/$/);
 
     // Header should still be visible
     await expect(page.getByText('Nuclom').first()).toBeVisible();
