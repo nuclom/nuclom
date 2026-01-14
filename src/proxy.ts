@@ -215,7 +215,6 @@ function isPublicPageRoute(pathname: string): boolean {
     '/cookies',
     '/content-policy',
     '/features',
-    '/changelog',
     '/brand',
     '/status',
     '/blog',
