@@ -75,11 +75,24 @@ export const checkSubscriptionAccess = (
 
     // Full access
     if (FULL_ACCESS_STATUSES.includes(status)) {
-      // Check if trial is about to expire
+      // Check if trial has expired (based on date, not status)
       if (status === 'trialing' && subscription.trialEnd) {
-        const daysRemaining = Math.ceil(
-          (new Date(subscription.trialEnd).getTime() - Date.now()) / (24 * 60 * 60 * 1000),
-        );
+        const trialEndDate = new Date(subscription.trialEnd);
+        const now = Date.now();
+        const daysRemaining = Math.ceil((trialEndDate.getTime() - now) / (24 * 60 * 60 * 1000));
+
+        // If trial has expired, deny access
+        if (daysRemaining <= 0) {
+          return {
+            hasAccess: false,
+            isReadOnly: false,
+            isGracePeriod: false,
+            daysRemaining: 0,
+            status: 'incomplete_expired',
+            message: 'Your trial has expired. Please subscribe to continue using Nuclom.',
+          };
+        }
+
         return {
           hasAccess: true,
           isReadOnly: false,
@@ -147,8 +160,9 @@ function getNoAccessMessage(status: string): string {
 }
 
 /**
- * Check if organization has a valid subscription (not on free plan or has active subscription)
+ * Check if organization has a valid subscription
  * Fails if subscription is not valid for full access
+ * Note: There is no free plan - all users start with a 14-day trial
  */
 export const requireActiveSubscription = (organizationId: string) =>
   Effect.gen(function* () {
@@ -158,7 +172,7 @@ export const requireActiveSubscription = (organizationId: string) =>
     if (Option.isNone(subscriptionOption)) {
       return yield* Effect.fail(
         new NoSubscriptionError({
-          message: 'This organization requires an active subscription',
+          message: 'This organization requires an active subscription. Please subscribe to continue.',
           organizationId,
         }),
       );
@@ -166,6 +180,19 @@ export const requireActiveSubscription = (organizationId: string) =>
 
     const subscription = subscriptionOption.value;
     const status = subscription.status ?? 'incomplete';
+
+    // Check if trial has expired (based on date)
+    if (status === 'trialing' && subscription.trialEnd) {
+      const trialEndDate = new Date(subscription.trialEnd);
+      if (trialEndDate.getTime() <= Date.now()) {
+        return yield* Effect.fail(
+          new NoSubscriptionError({
+            message: 'Your trial has expired. Please subscribe to continue using Nuclom.',
+            organizationId,
+          }),
+        );
+      }
+    }
 
     // Allow full access statuses
     if (FULL_ACCESS_STATUSES.includes(status)) {
@@ -198,7 +225,7 @@ export const requireWriteAccess = (organizationId: string) =>
     if (Option.isNone(subscriptionOption)) {
       return yield* Effect.fail(
         new NoSubscriptionError({
-          message: 'This organization requires an active subscription',
+          message: 'This organization requires an active subscription. Please subscribe to continue.',
           organizationId,
         }),
       );
@@ -206,6 +233,19 @@ export const requireWriteAccess = (organizationId: string) =>
 
     const subscription = subscriptionOption.value;
     const status = subscription.status ?? 'incomplete';
+
+    // Check if trial has expired (based on date)
+    if (status === 'trialing' && subscription.trialEnd) {
+      const trialEndDate = new Date(subscription.trialEnd);
+      if (trialEndDate.getTime() <= Date.now()) {
+        return yield* Effect.fail(
+          new NoSubscriptionError({
+            message: 'Your trial has expired. Please subscribe to continue using Nuclom.',
+            organizationId,
+          }),
+        );
+      }
+    }
 
     // Only allow full access statuses for writes
     if (FULL_ACCESS_STATUSES.includes(status)) {

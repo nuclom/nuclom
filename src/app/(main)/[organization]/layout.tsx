@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type React from 'react';
 import { Suspense } from 'react';
+import { TrialBannerWrapper } from '@/components/billing/trial-banner-wrapper';
 import { MobileSidebar } from '@/components/dashboard/mobile-sidebar';
 import { SidebarNav } from '@/components/dashboard/sidebar-nav';
 import { TopNav } from '@/components/top-nav';
@@ -31,6 +32,12 @@ async function LayoutContent({ children, params }: LayoutProps) {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
+      {/* Trial banner - shows days remaining when on trial */}
+      {org?.id && (
+        <Suspense fallback={null}>
+          <TrialBannerWrapper organizationId={org.id} organizationSlug={organization} />
+        </Suspense>
+      )}
       <TopNav organization={organization} organizationId={org?.id}>
         <MobileSidebar organization={organization} />
       </TopNav>
