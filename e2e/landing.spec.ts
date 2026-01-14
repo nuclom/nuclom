@@ -36,9 +36,7 @@ test.describe('Landing Page', () => {
       test.skip(true, 'Redirected to authenticated page');
       return;
     }
-    await expect(
-      page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' })).toBeVisible();
     // Use first() as there are multiple "Start Free Trial" links on the page
     await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
   });
@@ -90,9 +88,7 @@ test.describe('Landing Page', () => {
     }
     await expect(page.getByRole('link', { name: /privacy/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /terms/i }).first()).toBeVisible();
-    await expect(
-      page.getByRole('contentinfo').getByText(/Nuclom. All rights reserved/i),
-    ).toBeVisible();
+    await expect(page.getByRole('contentinfo').getByText(/Nuclom. All rights reserved/i)).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
@@ -173,8 +169,6 @@ test.describe('Landing Page - Mobile', () => {
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
     // Hero content should be visible
-    await expect(
-      page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' })).toBeVisible();
   });
 });
