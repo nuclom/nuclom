@@ -15,10 +15,12 @@ const log = createLogger('effect-runtime');
 import { env } from '@/lib/env/server';
 // Services
 import { type AI, AILive } from './services/ai';
+import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';
 import { makeAuthLayer } from './services/auth';
 import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
 import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
+import { type ChatRepository, ChatRepositoryLive } from './services/chat-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
@@ -142,6 +144,7 @@ const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
 const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
 const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
+const ChatRepositoryWithDeps = withDep(ChatRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
@@ -154,6 +157,11 @@ const BillingWithDeps = withDeps(
   StripeServiceLive,
   DatabaseLive,
   EmailNotificationsLive,
+);
+
+// AIChatKB service depends on Embedding, SemanticSearchRepository, and KnowledgeGraphRepository
+const AIChatKBWithDeps = AIChatKBLive.pipe(
+  Layer.provide(Layer.mergeAll(EmbeddingLive, SemanticSearchRepositoryWithDeps, KnowledgeGraphRepositoryWithDeps)),
 );
 
 // Combine application services that have their dependencies resolved
@@ -174,6 +182,8 @@ const AppServicesLive = Layer.mergeAll(
   ClipRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
   VocabularyRepositoryWithDeps,
+  ChatRepositoryWithDeps,
+  AIChatKBWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -186,6 +196,7 @@ export type AppServices =
   | Database
   | Storage
   | AI
+  | AIChatKB
   | Embedding
   | ReplicateAPI
   | VideoProcessor
@@ -205,6 +216,7 @@ export type AppServices =
   | ClipRepository
   | KnowledgeGraphRepository
   | VocabularyRepository
+  | ChatRepository
   | StripeServiceTag
   | SlackMonitoring;
 

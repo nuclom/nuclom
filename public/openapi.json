@@ -575,6 +575,277 @@
         }
       }
     },
+    "/chat/conversations": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List conversations for a user",
+        "operationId": "listChatConversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Create a new conversation",
+        "operationId": "createChatConversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/chat/conversations/{id}": {
+      "delete": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Delete a conversation",
+        "operationId": "deleteChatConversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Get a conversation",
+        "operationId": "getChatConversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Update a conversation title",
+        "operationId": "patchChatConversation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/chat/conversations/{id}/messages": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "List messages in a conversation",
+        "operationId": "getChatConversationMessag",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Send a message and get AI response",
+        "operationId": "createChatConversationMessag",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
     "/clips/{id}": {
       "delete": {
         "tags": [
@@ -3191,6 +3462,144 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/organizations/{id}/vocabulary": {
+      "delete": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Delete vocabulary",
+        "operationId": "deleteOrganizationVocabulary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Get vocabulary",
+        "operationId": "getOrganizationVocabulary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Patch vocabulary",
+        "operationId": "patchOrganizationVocabulary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Organizations"
+        ],
+        "summary": "Create vocabulary",
+        "operationId": "createOrganizationVocabulary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id ID",
+            "required": true,
+            "schema": {
+              "$defs": {
+                "UUID": {
+                  "type": "string",
+                  "description": "a Universally Unique Identifier",
+                  "format": "uuid",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "$ref": "#/$defs/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created successfully"
           },
           "404": {
             "description": "Not found"

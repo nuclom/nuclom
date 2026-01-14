@@ -273,3 +273,9 @@ export const correctionSuggestionStatusEnum = pgEnum('CorrectionSuggestionStatus
   'accepted',
   'dismissed',
 ]);
+
+// =============================================================================
+// Chat Enums
+// =============================================================================
+
+export const chatMessageRoleEnum = pgEnum('ChatMessageRole', ['user', 'assistant', 'system', 'tool']);
