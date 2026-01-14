@@ -24,12 +24,6 @@ const essentialCookies = [
     provider: 'Nuclom',
   },
   {
-    name: 'nuclom_cookie_consent',
-    purpose: 'Stores your cookie preference choices',
-    duration: '1 year',
-    provider: 'Nuclom',
-  },
-  {
     name: '__cf_bm',
     purpose: 'Cloudflare bot management - protects against malicious traffic',
     duration: '30 minutes',
@@ -43,34 +37,7 @@ const essentialCookies = [
   },
 ];
 
-const analyticsCookies = [
-  {
-    name: '_ga',
-    purpose: 'Google Analytics - distinguishes unique users',
-    duration: '2 years',
-    provider: 'Google',
-  },
-  {
-    name: '_ga_*',
-    purpose: 'Google Analytics - persists session state',
-    duration: '2 years',
-    provider: 'Google',
-  },
-  {
-    name: '_gid',
-    purpose: 'Google Analytics - identifies users for 24 hours',
-    duration: '24 hours',
-    provider: 'Google',
-  },
-];
-
 const localStorageItems = [
-  {
-    name: 'nuclom_cookie_consent',
-    purpose: 'Stores your cookie preference choices',
-    duration: 'Persistent',
-    provider: 'Nuclom',
-  },
   {
     name: 'theme',
     purpose: 'Remembers your dark/light mode preference',
@@ -145,9 +112,6 @@ export default function CookiePolicyPage() {
                     <li>
                       <strong>Preferences:</strong> To remember your settings and preferences
                     </li>
-                    <li>
-                      <strong>Analytics:</strong> To understand how you use our service (optional)
-                    </li>
                   </ul>
                 </section>
 
@@ -169,37 +133,6 @@ export default function CookiePolicyPage() {
                       </TableHeader>
                       <TableBody>
                         {essentialCookies.map((cookie) => (
-                          <TableRow key={cookie.name}>
-                            <TableCell className="font-mono text-sm">{cookie.name}</TableCell>
-                            <TableCell className="text-muted-foreground">{cookie.purpose}</TableCell>
-                            <TableCell>{cookie.duration}</TableCell>
-                            <TableCell>{cookie.provider}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </section>
-
-                {/* Analytics Cookies */}
-                <section>
-                  <h2 className="text-2xl font-bold mb-4">Analytics Cookies</h2>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    These cookies help us understand how visitors interact with our website. They are optional and only
-                    set if you consent to analytics.
-                  </p>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="font-semibold">Cookie Name</TableHead>
-                          <TableHead className="font-semibold">Purpose</TableHead>
-                          <TableHead className="font-semibold">Duration</TableHead>
-                          <TableHead className="font-semibold">Provider</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {analyticsCookies.map((cookie) => (
                           <TableRow key={cookie.name}>
                             <TableCell className="font-mono text-sm">{cookie.name}</TableCell>
                             <TableCell className="text-muted-foreground">{cookie.purpose}</TableCell>
@@ -254,10 +187,6 @@ export default function CookiePolicyPage() {
                       attacks and improve load times
                     </li>
                     <li>
-                      <strong>Google Analytics:</strong> Analytics cookies that help us understand usage patterns (only
-                      if you consent)
-                    </li>
-                    <li>
                       <strong>Stripe:</strong> When you make a payment, Stripe may set cookies for fraud prevention
                     </li>
                   </ul>
@@ -267,23 +196,10 @@ export default function CookiePolicyPage() {
                 <section>
                   <h2 className="text-2xl font-bold mb-4">Managing Your Cookie Preferences</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    You can manage your cookie preferences in several ways:
+                    We only use essential cookies required for the site to function. You can manage cookies through your
+                    browser settings. Most browsers allow you to block or delete cookies.
                   </p>
-                  <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>
-                      <strong>Cookie Banner:</strong> When you first visit, you can choose to accept all cookies,
-                      essential only, or customize your preferences
-                    </li>
-                    <li>
-                      <strong>Cookie Settings Button:</strong> Click the cookie icon in the bottom-left corner to update
-                      your preferences at any time
-                    </li>
-                    <li>
-                      <strong>Browser Settings:</strong> Most browsers allow you to block or delete cookies through
-                      their settings
-                    </li>
-                  </ul>
-                  <p className="text-muted-foreground leading-relaxed mt-4">
+                  <p className="text-muted-foreground leading-relaxed">
                     Note: Blocking essential cookies will prevent the site from functioning properly.
                   </p>
                 </section>

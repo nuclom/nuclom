@@ -1,7 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
-import { CookieConsentBanner } from '@/components/legal/cookie-consent';
 import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
@@ -96,7 +95,6 @@ export default function RootLayout({
           <MiniPlayerProvider>
             <div className="min-h-screen bg-background text-foreground">{children}</div>
             <Toaster />
-            <CookieConsentBanner />
           </MiniPlayerProvider>
         </ThemeProvider>
         <Analytics />
