@@ -13,7 +13,7 @@ export default defineConfig({
 	reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
 
 	use: {
-		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:5001",
+		baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3091",
 		trace: "on-first-retry",
 		screenshot: "only-on-failure",
 		video: "on-first-retry",
@@ -42,7 +42,7 @@ export default defineConfig({
 		? undefined
 		: {
 			command: "pnpm dev",
-			url: "http://localhost:5001",
+			url: "http://localhost:3091",
 			reuseExistingServer: !process.env.CI,
 			timeout: 120 * 1000,
 		},

@@ -10,6 +10,7 @@ import {
   jwt,
   lastLoginMethod,
   multiSession,
+  oAuthProxy,
   openAPI,
   organization,
   twoFactor,
@@ -65,10 +66,19 @@ function buildTrustedOrigins(): string[] {
 
   // Localhost for development
   if (env.NODE_ENV === 'development') {
-    origins.push('http://localhost:5001');
+    origins.push('http://localhost:3091');
   }
 
   return [...new Set(origins.filter(Boolean))];
+}
+
+function getProductionURL(): string {
+  // Production and staging domains
+  if (env.VERCEL_TARGET_ENV === 'production') {
+    return 'https://nuclom.com';
+  }
+
+  return 'https://staging.nuclom.com';
 }
 
 const trustedOrigins = buildTrustedOrigins();
@@ -183,10 +193,12 @@ export const auth = betterAuth({
     github: {
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
+      redirectURI: `${getProductionURL()}/api/auth/callback/github`,
     },
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
+      redirectURI: `${getProductionURL()}/api/auth/callback/google`,
     },
   },
   session: {
@@ -597,7 +609,7 @@ export const auth = betterAuth({
     passkey({
       rpID: env.NODE_ENV === 'production' ? 'nuclom.com' : 'localhost',
       rpName: 'Nuclom',
-      origin: env.NODE_ENV === 'production' ? 'https://nuclom.com' : 'http://localhost:5001',
+      origin: env.NODE_ENV === 'production' ? 'https://nuclom.com' : 'http://localhost:3091',
     }),
     sso({
       // Automatically add users to organizations when they sign in via SSO
@@ -618,6 +630,10 @@ export const auth = betterAuth({
     // Allow users to manage multiple concurrent sessions
     multiSession({
       maximumSessions: 5,
+    }),
+    // Allow login from deploy preview and local development via OAuth proxy
+    oAuthProxy({
+      productionURL: getProductionURL(),
     }),
   ],
 });

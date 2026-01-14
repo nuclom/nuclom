@@ -120,7 +120,6 @@ export function VideoPlayerWithProgress({
     return (
       <div className={className}>
         <Skeleton className="aspect-video w-full rounded-lg" />
-        <p className="text-xs text-muted-foreground mt-2 text-center">Loading playback position...</p>
       </div>
     );
   }
@@ -156,11 +155,6 @@ export function VideoPlayerWithProgress({
         onTimeUpdate={onTimeUpdate}
         registerSeek={registerSeek}
       />
-
-      {/* Resume message */}
-      {initialProgress > 0 && !wasCompleted && (
-        <p className="text-xs text-muted-foreground mt-2 text-center">Resuming from where you left off</p>
-      )}
     </div>
   );
 }
