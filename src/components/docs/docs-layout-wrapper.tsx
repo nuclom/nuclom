@@ -3,7 +3,7 @@
 import { Menu, Moon, Sun, X } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -30,6 +30,15 @@ interface DocsLayoutWrapperProps {
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-9 w-[78px]" aria-hidden="true" />;
+  }
 
   return (
     <div className="flex items-center gap-1 rounded-lg border p-1">
@@ -112,17 +121,17 @@ export function DocsLayoutWrapper({ children, sections, showToc = true }: DocsLa
 
       {/* Main Content */}
       <div className="flex-1">
-        <div className="mx-auto flex w-full max-w-[1400px]">
+        <div className="flex w-full">
           {/* Left Sidebar */}
-          <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 border-r lg:block">
-            <ScrollArea className="h-full py-6 px-4">
-              <div className="mb-6">
+          <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 border-r lg:block">
+            <ScrollArea className="h-full py-5 px-4">
+              <div className="mb-4">
                 <DocsSearch />
               </div>
               <DocsSidebar sections={sections} />
 
               {/* Footer Links */}
-              <div className="mt-8 space-y-2 border-t pt-4">
+              <div className="mt-6 space-y-1.5 border-t pt-3">
                 <Link
                   href="/login"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

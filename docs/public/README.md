@@ -22,15 +22,10 @@ New to Nuclom? Start with our quickstart guide to get up and running in minutes.
 
 Comprehensive guides to help you get the most out of Nuclom.
 
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](/docs/guides/getting-started) | Account setup and first steps |
-| [Organization Management](/docs/guides/organization-management) | Create and manage organizations |
-| [Video Organization](/docs/guides/video-organization) | Upload and structure content |
-| [Collaboration](/docs/guides/collaboration) | Comments, sharing, and workflows |
-| [Team Management](/docs/guides/team-management) | Invite members and set permissions |
-| [Settings & Preferences](/docs/guides/settings-preferences) | Customize your experience |
-| [Troubleshooting](/docs/guides/troubleshooting) | Common issues and solutions |
+- **[Collaboration](/docs/guides/collaboration)** - Comments, sharing, and workflows
+- **[Team Management](/docs/guides/team-management)** - Invite members and set permissions
+- **[Settings & Preferences](/docs/guides/settings-preferences)** - Customize your experience
+- **[Troubleshooting](/docs/guides/troubleshooting)** - Common issues and solutions
 
 ## Feature Highlights
 
@@ -67,6 +62,6 @@ Quick links:
 
 ## Get Help
 
-1. **Self-service** → [Troubleshooting Guide](/docs/guides/troubleshooting)
-2. **In-app** → Press `?` for keyboard shortcuts
-3. **Support** → support@nuclom.com
+- **Self-service** → [Troubleshooting Guide](/docs/guides/troubleshooting)
+- **In-app** → Press `?` for keyboard shortcuts
+- **Support** → support@nuclom.com

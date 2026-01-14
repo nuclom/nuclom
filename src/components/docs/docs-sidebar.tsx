@@ -88,18 +88,20 @@ function SidebarSection({ section }: { section: NavSection }) {
   const pathname = usePathname();
 
   return (
-    <div className="mb-4">
+    <div className="space-y-1.5">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center gap-2 px-2 py-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        className="flex w-full items-center justify-start gap-2.5 px-2 py-1.5 text-left text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
-        {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-        {section.title}
+        <span className="flex h-4 w-4 items-center justify-center shrink-0">
+          {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        </span>
+        <span className="flex-1">{section.title}</span>
       </button>
 
       {isOpen && (
-        <div className="mt-1 space-y-0.5">
+        <div className="space-y-1">
           {section.items.map((item) => {
             const isActive = pathname === item.url;
             const iconKey = item.icon || item.url.split('/').pop() || 'overview';
@@ -117,7 +119,9 @@ function SidebarSection({ section }: { section: NavSection }) {
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
-                <NavItemIcon iconKey={iconKey} className={isActive ? 'text-primary' : ''} />
+                <span className="flex h-4 w-4 items-center justify-center shrink-0">
+                  <NavItemIcon iconKey={iconKey} className={isActive ? 'text-primary' : ''} />
+                </span>
                 <span className="flex-1">{item.name}</span>
                 {item.external && <ExternalLink className="h-3 w-3 opacity-50" />}
               </Link>
@@ -131,7 +135,7 @@ function SidebarSection({ section }: { section: NavSection }) {
 
 export function DocsSidebar({ sections, className }: DocsSidebarProps) {
   return (
-    <nav className={cn('space-y-2', className)}>
+    <nav className={cn('space-y-4', className)}>
       {sections.map((section) => (
         <SidebarSection key={section.title} section={section} />
       ))}

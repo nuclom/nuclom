@@ -35,26 +35,53 @@ function extractDescription(content: string): string | undefined {
   return undefined;
 }
 
-// Strip the first h1 heading from content (since it's displayed separately by DocsTitle)
-function stripFirstHeading(content: string): string {
+// Strip the first h1 heading and the first paragraph after it (used as description).
+function stripFirstHeadingAndDescription(content: string): string {
   const lines = content.split('\n');
-  let foundFirstH1 = false;
-  const result: string[] = [];
+  let headingIndex = -1;
 
-  for (const line of lines) {
-    if (!foundFirstH1 && line.match(/^#\s+.+$/)) {
-      foundFirstH1 = true;
-      continue; // Skip the first h1
+  for (let i = 0; i < lines.length; i += 1) {
+    if (lines[i].match(/^#\s+.+$/)) {
+      headingIndex = i;
+      break;
     }
-    result.push(line);
   }
 
-  // Also remove leading empty lines after stripping the heading
-  while (result.length > 0 && result[0].trim() === '') {
-    result.shift();
+  if (headingIndex === -1) {
+    return content;
   }
 
-  return result.join('\n');
+  const remaining = lines.slice(headingIndex + 1);
+
+  while (remaining.length > 0 && remaining[0].trim() === '') {
+    remaining.shift();
+  }
+
+  if (remaining.length === 0) {
+    return '';
+  }
+
+  const firstLine = remaining[0].trim();
+  const isParagraph =
+    firstLine.startsWith('>') ||
+    (!firstLine.startsWith('#') &&
+      !firstLine.startsWith('-') &&
+      !firstLine.startsWith('*') &&
+      !firstLine.startsWith('|'));
+
+  if (isParagraph) {
+    let endIndex = 0;
+    while (endIndex < remaining.length && remaining[endIndex].trim() !== '') {
+      endIndex += 1;
+    }
+    remaining.splice(0, endIndex);
+
+    while (remaining.length > 0 && remaining[0].trim() === '') {
+      remaining.shift();
+    }
+  }
+
+  return remaining.join('\n');
 }
 
 // Read markdown file and return parsed content
@@ -71,7 +98,7 @@ export async function getMarkdownContent(filePath: string): Promise<MarkdownCont
     return {
       title: extractTitle(rawContent),
       description: extractDescription(rawContent),
-      content: stripFirstHeading(rawContent),
+      content: stripFirstHeadingAndDescription(rawContent),
     };
   } catch (error) {
     console.error(`Error reading markdown file: ${fullPath}`, error);
