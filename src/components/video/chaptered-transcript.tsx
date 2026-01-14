@@ -396,10 +396,9 @@ export function ChapteredTranscript({
     return () => scrollArea.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // Handle seek with scroll reset
+  // Handle seek - don't reset scroll state here, let the jump detection handle it
   const handleSeek = useCallback(
     (time: number) => {
-      setUserHasScrolled(false);
       onSeek?.(time);
     },
     [onSeek],
