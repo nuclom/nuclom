@@ -1,8 +1,8 @@
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { RootProvider } from 'fumadocs-ui/provider/next';
 import type { Metadata } from 'next';
+import { ThemeProvider } from 'next-themes';
 import type React from 'react';
-import 'fumadocs-ui/style.css';
+import { DocsLayoutWrapper } from '@/components/docs/docs-layout-wrapper';
+import '@/app/docs/docs.css';
 
 export const metadata: Metadata = {
   title: {
@@ -12,81 +12,50 @@ export const metadata: Metadata = {
   description: 'Documentation for Nuclom video collaboration platform',
 };
 
-// Public docs tree - visible in main navigation
-const publicTree = {
-  name: 'Docs',
-  children: [
-    {
-      type: 'page' as const,
-      name: 'Introduction',
-      url: '/docs',
-    },
-    {
-      type: 'folder' as const,
-      name: 'User Guides',
-      defaultOpen: true,
-      children: [
-        { type: 'page' as const, name: 'Getting Started', url: '/docs/guides/getting-started' },
-        { type: 'page' as const, name: 'Organization Management', url: '/docs/guides/organization-management' },
-        { type: 'page' as const, name: 'Video Organization', url: '/docs/guides/video-organization' },
-        { type: 'page' as const, name: 'Collaboration', url: '/docs/guides/collaboration' },
-        { type: 'page' as const, name: 'Team Management', url: '/docs/guides/team-management' },
-        { type: 'page' as const, name: 'Settings & Preferences', url: '/docs/guides/settings-preferences' },
-        { type: 'page' as const, name: 'Troubleshooting', url: '/docs/guides/troubleshooting' },
-      ],
-    },
-    {
-      type: 'folder' as const,
-      name: 'API Reference',
-      children: [
-        { type: 'page' as const, name: 'API Overview', url: '/docs/api' },
-        { type: 'page' as const, name: 'Interactive Reference', url: '/docs/api/reference' },
-        { type: 'page' as const, name: 'Authentication', url: '/docs/api/authentication' },
-        { type: 'page' as const, name: 'Videos', url: '/docs/api/videos' },
-        { type: 'page' as const, name: 'Organizations', url: '/docs/api/organizations' },
-        { type: 'page' as const, name: 'Comments', url: '/docs/api/comments' },
-        { type: 'page' as const, name: 'Notifications', url: '/docs/api/notifications' },
-        { type: 'page' as const, name: 'AI Integration', url: '/docs/api/ai' },
-        { type: 'page' as const, name: 'Error Handling', url: '/docs/api/errors' },
-      ],
-    },
-  ],
-};
+// Navigation sections with icons
+const docsSections = [
+  {
+    title: 'Getting Started',
+    defaultOpen: true,
+    items: [
+      { name: 'Overview', url: '/docs', icon: 'overview' },
+      { name: 'Quickstart', url: '/docs/guides/getting-started', icon: 'getting-started' },
+    ],
+  },
+  {
+    title: 'User Guides',
+    defaultOpen: true,
+    items: [
+      { name: 'Organization Management', url: '/docs/guides/organization-management', icon: 'organization-management' },
+      { name: 'Video Organization', url: '/docs/guides/video-organization', icon: 'video-organization' },
+      { name: 'Collaboration', url: '/docs/guides/collaboration', icon: 'collaboration' },
+      { name: 'Team Management', url: '/docs/guides/team-management', icon: 'team-management' },
+      { name: 'Settings & Preferences', url: '/docs/guides/settings-preferences', icon: 'settings-preferences' },
+      { name: 'Workflow Templates', url: '/docs/guides/workflow-templates', icon: 'workflow-templates' },
+      { name: 'Troubleshooting', url: '/docs/guides/troubleshooting', icon: 'troubleshooting' },
+    ],
+  },
+  {
+    title: 'API Reference',
+    defaultOpen: false,
+    items: [
+      { name: 'API Overview', url: '/docs/api', icon: 'api' },
+      { name: 'Interactive Reference', url: '/docs/api/reference', icon: 'api' },
+      { name: 'Authentication', url: '/docs/api/authentication', icon: 'authentication' },
+      { name: 'Videos', url: '/docs/api/videos', icon: 'videos' },
+      { name: 'Organizations', url: '/docs/api/organizations', icon: 'organizations' },
+      { name: 'Comments', url: '/docs/api/comments', icon: 'comments' },
+      { name: 'Notifications', url: '/docs/api/notifications', icon: 'notifications' },
+      { name: 'AI Integration', url: '/docs/api/ai', icon: 'ai' },
+      { name: 'Error Handling', url: '/docs/api/errors', icon: 'errors' },
+    ],
+  },
+];
 
 export default function DocsRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RootProvider>
-      <DocsLayout
-        nav={{
-          title: 'Nuclom Docs',
-          url: '/docs',
-        }}
-        links={[
-          {
-            text: 'Home',
-            url: '/',
-          },
-          {
-            text: 'Guides',
-            url: '/docs/guides/getting-started',
-          },
-          {
-            text: 'API',
-            url: '/docs/api',
-          },
-        ]}
-        sidebar={{
-          banner: (
-            <div className="rounded-lg border bg-fd-card p-3 text-sm">
-              <p className="font-medium">Welcome to Nuclom Docs</p>
-              <p className="text-fd-muted-foreground">Learn how to use the platform effectively.</p>
-            </div>
-          ),
-        }}
-        tree={publicTree}
-      >
-        {children}
-      </DocsLayout>
-    </RootProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <DocsLayoutWrapper sections={docsSections}>{children}</DocsLayoutWrapper>
+    </ThemeProvider>
   );
 }

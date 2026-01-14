@@ -1,46 +1,36 @@
-# Nuclom User Documentation
+# Nuclom Documentation
 
-> Upload, organize, and collaborate on video content with your team.
+Nuclom is a video collaboration platform built for teams that want to organize, share, and collaborate on video content with confidence. It transforms your video workflows by giving teams instant access to AI-powered summaries, transcripts, and collaboration features.
 
----
+With Nuclom, every team can organize videos into channels and series, collaborate with time-stamped comments, and extract insights automatically. Whether you're managing product demos, training videos, or meeting recordings, Nuclom helps you get more value from your video content.
 
-## New to Nuclom?
+You can start using Nuclom for your team's video workflows right away. Upload your first video, invite your team, and experience how easy video collaboration can be.
 
-**Start here** → [Getting Started Guide](guides/getting-started.md)
+## Why Nuclom?
 
-In 10 minutes, you'll learn to:
-- Create your account
-- Set up your first organization
-- Upload and share your first video
+Learn more about Nuclom's core offering and how we're different from the rest.
 
----
+## Getting Started
+
+New to Nuclom? Start with our quickstart guide to get up and running in minutes.
+
+- **[Quickstart Guide](/docs/guides/getting-started)** - Create your account and upload your first video
+- **[Organization Management](/docs/guides/organization-management)** - Set up your workspace
+- **[Video Organization](/docs/guides/video-organization)** - Organize content with channels and series
 
 ## User Guides
 
-### Getting Started
+Comprehensive guides to help you get the most out of Nuclom.
 
-| Guide | Description | Time |
-| ----- | ----------- | ---- |
-| [Getting Started](guides/getting-started.md) | Account setup and first steps | 10 min |
-| [Organization Management](guides/organization-management.md) | Create and manage organizations | 8 min |
-| [Video Organization](guides/video-organization.md) | Upload and structure content | 10 min |
-
-### Collaboration
-
-| Guide | Description | Time |
-| ----- | ----------- | ---- |
-| [Collaboration](guides/collaboration.md) | Comments, sharing, and workflows | 12 min |
-| [Team Management](guides/team-management.md) | Invite members and set permissions | 8 min |
-
-### Customization & Help
-
-| Guide | Description | Time |
-| ----- | ----------- | ---- |
-| [Settings & Preferences](guides/settings-preferences.md) | Customize your experience | 5 min |
-| [Workflow Templates](guides/workflow-templates.md) | Pre-built templates | 8 min |
-| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions | — |
-
----
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](/docs/guides/getting-started) | Account setup and first steps |
+| [Organization Management](/docs/guides/organization-management) | Create and manage organizations |
+| [Video Organization](/docs/guides/video-organization) | Upload and structure content |
+| [Collaboration](/docs/guides/collaboration) | Comments, sharing, and workflows |
+| [Team Management](/docs/guides/team-management) | Invite members and set permissions |
+| [Settings & Preferences](/docs/guides/settings-preferences) | Customize your experience |
+| [Troubleshooting](/docs/guides/troubleshooting) | Common issues and solutions |
 
 ## Feature Highlights
 
@@ -65,33 +55,18 @@ In 10 minutes, you'll learn to:
 - **@mentions** — Notify team members directly
 - **Reactions** — Quick feedback with emoji reactions
 
-### Access Control
+## API Reference
 
-| Role | Capabilities |
-| ---- | ------------ |
-| **Owner** | Full control, billing, delete organization |
-| **Admin** | Manage members, settings, all content |
-| **Member** | Upload, comment, view authorized content |
-
----
-
-## API Documentation
-
-Building an integration? See the [API Documentation](api/README.md).
+Building an integration? See the [API Documentation](/docs/api).
 
 Quick links:
-- [Authentication](api/authentication.md) — OAuth and API keys
-- [Videos API](api/videos.md) — Upload and manage videos
-- [AI Features](api/ai.md) — Summaries and analysis
 
----
+- [Authentication](/docs/api/authentication) — OAuth and API keys
+- [Videos API](/docs/api/videos) — Upload and manage videos
+- [AI Features](/docs/api/ai) — Summaries and analysis
 
 ## Get Help
 
-1. **Self-service** → [Troubleshooting Guide](guides/troubleshooting.md)
+1. **Self-service** → [Troubleshooting Guide](/docs/guides/troubleshooting)
 2. **In-app** → Press `?` for keyboard shortcuts
 3. **Support** → support@nuclom.com
-
----
-
-**Ready?** [Create your account →](guides/getting-started.md)

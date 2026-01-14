@@ -1,0 +1,325 @@
+/* =============================================================================
+   Nuclom Documentation Styles
+   Inspired by Xata Documentation Design
+   ============================================================================= */
+
+@reference "../globals.css";
+
+/* Typography */
+.docs-content {
+  @apply text-foreground;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.docs-content > *:first-child {
+  margin-top: 0;
+}
+
+/* Headings */
+.docs-content h1 {
+  @apply text-3xl font-bold tracking-tight text-foreground mb-4;
+  line-height: 1.2;
+}
+
+.docs-content h2 {
+  @apply text-2xl font-semibold tracking-tight text-foreground mt-12 mb-4 pb-2 border-b;
+  line-height: 1.3;
+}
+
+.docs-content h3 {
+  @apply text-xl font-semibold tracking-tight text-foreground mt-8 mb-3;
+  line-height: 1.4;
+}
+
+.docs-content h4 {
+  @apply text-lg font-semibold text-foreground mt-6 mb-2;
+}
+
+.docs-content h5,
+.docs-content h6 {
+  @apply text-base font-semibold text-foreground mt-4 mb-2;
+}
+
+/* Paragraphs */
+.docs-content p {
+  @apply text-muted-foreground leading-relaxed mb-4;
+}
+
+.docs-content p:last-child {
+  @apply mb-0;
+}
+
+/* Strong and emphasis */
+.docs-content strong {
+  @apply font-semibold text-foreground;
+}
+
+.docs-content em {
+  @apply italic;
+}
+
+/* Links */
+.docs-content a {
+  @apply text-primary font-medium underline underline-offset-4 hover:text-primary/80 transition-colors;
+}
+
+/* Lists */
+.docs-content ul,
+.docs-content ol {
+  @apply my-4 pl-6 space-y-2;
+}
+
+.docs-content ul {
+  @apply list-disc;
+}
+
+.docs-content ol {
+  @apply list-decimal;
+}
+
+.docs-content li {
+  @apply text-muted-foreground leading-relaxed;
+}
+
+.docs-content li > ul,
+.docs-content li > ol {
+  @apply mt-2 mb-0;
+}
+
+/* Nested list styling */
+.docs-content ul ul {
+  @apply list-[circle];
+}
+
+.docs-content ul ul ul {
+  @apply list-[square];
+}
+
+/* Code */
+.docs-content code {
+  @apply relative rounded bg-muted px-[0.4rem] py-[0.2rem] font-mono text-sm text-foreground;
+}
+
+.docs-content pre {
+  @apply my-6 overflow-x-auto rounded-lg border bg-muted p-4;
+}
+
+.docs-content pre code {
+  @apply bg-transparent p-0 text-sm leading-relaxed;
+}
+
+/* Blockquotes */
+.docs-content blockquote {
+  @apply my-6 border-l-4 border-primary/30 pl-4 italic text-muted-foreground;
+}
+
+.docs-content blockquote p {
+  @apply mb-0;
+}
+
+/* Tables */
+.docs-content table {
+  @apply my-6 w-full text-sm;
+}
+
+.docs-content thead {
+  @apply border-b;
+}
+
+.docs-content th {
+  @apply px-4 py-3 text-left font-semibold text-foreground;
+}
+
+.docs-content td {
+  @apply border-t px-4 py-3 text-muted-foreground;
+}
+
+.docs-content tr:hover td {
+  @apply bg-muted/50;
+}
+
+/* Horizontal rules */
+.docs-content hr {
+  @apply my-8 border-t border-border;
+}
+
+/* Images */
+.docs-content img {
+  @apply my-6 rounded-lg border shadow-sm;
+}
+
+/* Definition lists (used in some docs) */
+.docs-content dl {
+  @apply my-4 space-y-4;
+}
+
+.docs-content dt {
+  @apply font-semibold text-foreground;
+}
+
+.docs-content dd {
+  @apply ml-4 text-muted-foreground;
+}
+
+/* =============================================================================
+   Page Title Styles
+   ============================================================================= */
+
+.docs-title {
+  @apply text-4xl font-bold tracking-tight text-foreground mb-2;
+  line-height: 1.1;
+}
+
+.docs-description {
+  @apply text-lg text-muted-foreground mb-8;
+  max-width: 42rem;
+}
+
+/* =============================================================================
+   Syntax Highlighting (overrides for highlight.js)
+   ============================================================================= */
+
+.docs-content pre code.hljs {
+  @apply bg-transparent p-0;
+}
+
+.hljs-comment,
+.hljs-quote {
+  @apply text-muted-foreground italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  @apply text-primary;
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-name,
+.hljs-type,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition,
+.hljs-variable,
+.hljs-template-variable {
+  @apply text-emerald-600 dark:text-emerald-400;
+}
+
+.hljs-number,
+.hljs-deletion {
+  @apply text-rose-600 dark:text-rose-400;
+}
+
+.hljs-emphasis {
+  @apply italic;
+}
+
+.hljs-strong {
+  @apply font-semibold;
+}
+
+/* =============================================================================
+   Callouts / Alerts
+   ============================================================================= */
+
+.docs-content .callout {
+  @apply my-6 rounded-lg border p-4;
+}
+
+.docs-content .callout-info {
+  @apply border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950;
+}
+
+.docs-content .callout-warning {
+  @apply border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950;
+}
+
+.docs-content .callout-error {
+  @apply border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950;
+}
+
+.docs-content .callout-tip {
+  @apply border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950;
+}
+
+/* =============================================================================
+   Feature Cards (for landing pages)
+   ============================================================================= */
+
+.feature-card-grid {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 my-8;
+}
+
+.feature-card {
+  @apply flex flex-col gap-3 rounded-xl border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-md;
+}
+
+.feature-card-icon {
+  @apply flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary;
+}
+
+.feature-card-title {
+  @apply font-semibold text-foreground;
+}
+
+.feature-card-description {
+  @apply text-sm text-muted-foreground leading-relaxed;
+}
+
+/* =============================================================================
+   Responsive adjustments
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .docs-content h1 {
+    @apply text-2xl;
+  }
+
+  .docs-content h2 {
+    @apply text-xl mt-8;
+  }
+
+  .docs-content h3 {
+    @apply text-lg mt-6;
+  }
+
+  .docs-title {
+    @apply text-3xl;
+  }
+
+  .docs-content pre {
+    @apply -mx-4 rounded-none border-x-0;
+  }
+
+  .docs-content table {
+    @apply text-xs;
+  }
+
+  .docs-content th,
+  .docs-content td {
+    @apply px-2 py-2;
+  }
+}
+
+/* =============================================================================
+   Print styles
+   ============================================================================= */
+
+@media print {
+  .docs-content {
+    @apply text-black;
+  }
+
+  .docs-content a {
+    @apply text-black no-underline;
+  }
+
+  .docs-content pre {
+    @apply border;
+  }
+}

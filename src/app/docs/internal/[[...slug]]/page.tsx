@@ -1,7 +1,8 @@
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { DocsBreadcrumb } from '@/components/docs/docs-breadcrumb';
+import { DocsCopyButton } from '@/components/docs/docs-copy-button';
 import { DocsMarkdown } from '@/components/docs/docs-markdown';
 import { getAllDocsPaths, getDocsContent } from '@/lib/docs/markdown';
 
@@ -42,15 +43,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 function DocsContentSkeleton() {
   return (
-    <DocsPage>
-      <div className="h-8 w-64 bg-muted animate-pulse rounded mb-4" />
-      <div className="h-4 w-96 bg-muted animate-pulse rounded mb-8" />
+    <div className="animate-pulse">
+      <div className="h-4 w-32 bg-muted rounded mb-4" />
+      <div className="h-10 w-80 bg-muted rounded mb-2" />
+      <div className="h-5 w-96 bg-muted rounded mb-8" />
       <div className="space-y-3">
-        <div className="h-4 w-full bg-muted animate-pulse rounded" />
-        <div className="h-4 w-full bg-muted animate-pulse rounded" />
-        <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+        <div className="h-4 w-full bg-muted rounded" />
+        <div className="h-4 w-full bg-muted rounded" />
+        <div className="h-4 w-3/4 bg-muted rounded" />
+        <div className="h-4 w-5/6 bg-muted rounded" />
       </div>
-    </DocsPage>
+    </div>
   );
 }
 
@@ -64,13 +67,24 @@ async function InternalDocsContent({ params }: { params: Promise<{ slug?: string
   }
 
   return (
-    <DocsPage>
-      <DocsTitle>{content.title}</DocsTitle>
-      {content.description && <DocsDescription>{content.description}</DocsDescription>}
-      <DocsBody>
+    <article className="max-w-3xl">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <DocsBreadcrumb />
+          <DocsCopyButton />
+        </div>
+
+        <h1 className="docs-title">{content.title}</h1>
+
+        {content.description && <p className="docs-description">{content.description}</p>}
+      </div>
+
+      {/* Content */}
+      <div className="docs-content" data-docs-content>
         <DocsMarkdown content={content.content} />
-      </DocsBody>
-    </DocsPage>
+      </div>
+    </article>
   );
 }
 
