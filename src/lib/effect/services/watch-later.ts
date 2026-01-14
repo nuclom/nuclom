@@ -131,8 +131,6 @@ const makeWatchLaterService = Effect.gen(function* () {
               videoUrl: videos.videoUrl,
               authorId: videos.authorId,
               organizationId: videos.organizationId,
-              channelId: videos.channelId,
-              collectionId: videos.collectionId,
               transcript: videos.transcript,
               transcriptSegments: videos.transcriptSegments,
               processingStatus: videos.processingStatus,

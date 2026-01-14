@@ -111,8 +111,6 @@ export async function POST(request: NextRequest) {
       videoUrl: processingResult.videoUrl,
       authorId: validatedData.authorId,
       organizationId: validatedData.organizationId,
-      channelId: validatedData.channelId || undefined,
-      collectionId: validatedData.collectionId || undefined,
       processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
 

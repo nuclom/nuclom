@@ -118,10 +118,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
     throw new Error('Video not found');
   }
 
-  return {
-    ...videoData[0],
-    comments: [],
-  };
+  return videoData[0];
 }
 
 export async function createVideo(data: {

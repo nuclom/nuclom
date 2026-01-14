@@ -121,7 +121,7 @@ export interface CollectionRepositoryService {
   /**
    * Reorder videos in a collection (for playlists)
    */
-  readonly reorderVideos: (collectionId: string, videoIds: string[]) => Effect.Effect<void, DatabaseError>;
+  readonly reorderVideos: (collectionId: string, videoIds: readonly string[]) => Effect.Effect<void, DatabaseError>;
 
   /**
    * Get videos not in a collection (for picker)
@@ -591,7 +591,7 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
       }
     });
 
-  const reorderVideos = (collectionId: string, videoIds: string[]): Effect.Effect<void, DatabaseError> =>
+  const reorderVideos = (collectionId: string, videoIds: readonly string[]): Effect.Effect<void, DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
         // Update each video's position
@@ -987,7 +987,7 @@ export const removeVideoFromCollection = (
 
 export const reorderCollectionVideos = (
   collectionId: string,
-  videoIds: string[],
+  videoIds: readonly string[],
 ): Effect.Effect<void, DatabaseError, CollectionRepository> =>
   Effect.gen(function* () {
     const repo = yield* CollectionRepository;

@@ -27,8 +27,6 @@ const ConfirmUploadRequestSchema = Schema.Struct({
   description: Schema.optional(Schema.String),
   organizationId: Schema.String,
   authorId: Schema.String,
-  channelId: Schema.optional(Schema.String),
-  collectionId: Schema.optional(Schema.String),
   skipAIProcessing: Schema.optional(Schema.Boolean),
 });
 
@@ -45,8 +43,6 @@ const BulkConfirmUploadRequestSchema = Schema.Struct({
   ),
   organizationId: Schema.String,
   authorId: Schema.String,
-  channelId: Schema.optional(Schema.String),
-  collectionId: Schema.optional(Schema.String),
   skipAIProcessing: Schema.optional(Schema.Boolean),
 });
 
@@ -113,7 +109,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSingleConfirmation(body: ConfirmUploadRequest) {
-  const { fileKey, title, description, organizationId, authorId, channelId, collectionId, skipAIProcessing } = body;
+  const { fileKey, title, description, organizationId, authorId, skipAIProcessing } = body;
 
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
@@ -145,8 +141,6 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       thumbnailUrl: undefined, // Will be generated during processing
       authorId,
       organizationId,
-      channelId: channelId || undefined,
-      collectionId: collectionId || undefined,
       processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
 
@@ -196,7 +190,7 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
 }
 
 async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
-  const { uploads, organizationId, authorId, channelId, collectionId, skipAIProcessing } = body;
+  const { uploads, organizationId, authorId, skipAIProcessing } = body;
 
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
@@ -231,8 +225,6 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
           thumbnailUrl: undefined,
           authorId,
           organizationId,
-          channelId: channelId || undefined,
-          collectionId: collectionId || undefined,
           processingStatus: skipAIProcessing ? 'completed' : 'pending',
         });
 

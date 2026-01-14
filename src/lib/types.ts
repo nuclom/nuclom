@@ -1,7 +1,6 @@
 import type {
   Collection,
   CollectionProgress,
-  CollectionType,
   CollectionVideo,
   Decision,
   DecisionLink,

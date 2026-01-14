@@ -34,8 +34,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
           with: {
             author: true,
             organization: true,
-            channel: true,
-            collection: true,
           },
         }),
       catch: (error) =>
@@ -119,8 +117,6 @@ const UpdateVideoBodySchema = Schema.Struct({
   duration: Schema.optional(Schema.String),
   thumbnailUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   videoUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
-  channelId: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
-  collectionId: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   transcript: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   transcriptSegments: Schema.optional(Schema.Union(Schema.Array(TranscriptSegmentSchema), Schema.Null)),
   processingStatus: Schema.optional(
@@ -173,8 +169,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       duration: body.duration,
       thumbnailUrl: body.thumbnailUrl,
       videoUrl: body.videoUrl,
-      channelId: body.channelId,
-      collectionId: body.collectionId,
       transcript: body.transcript,
       transcriptSegments,
       processingStatus: body.processingStatus,
@@ -198,8 +192,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           with: {
             author: true,
             organization: true,
-            channel: true,
-            collection: true,
           },
         }),
       catch: (error) =>

@@ -25,8 +25,6 @@ export interface RecommendationOptions {
   readonly limit?: number;
   /** Exclude these video IDs from recommendations */
   readonly excludeVideoIds?: ReadonlyArray<string>;
-  /** Only include videos from specific channels */
-  readonly channelIds?: ReadonlyArray<string>;
   /** Only include videos with these tags */
   readonly tags?: ReadonlyArray<string>;
 }
@@ -147,7 +145,6 @@ const makeRecommendationsService = Effect.gen(function* () {
           .select({
             videoId: videoProgresses.videoId,
             tags: videos.aiTags,
-            channelId: videos.channelId,
           })
           .from(videoProgresses)
           .innerJoin(videos, eq(videoProgresses.videoId, videos.id))
@@ -162,14 +159,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             for (const tag of item.tags) {
               tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
             }
-          }
-        }
-
-        // Get preferred channels
-        const channelCounts = new Map<string, number>();
-        for (const item of watchHistory) {
-          if (item.channelId) {
-            channelCounts.set(item.channelId, (channelCounts.get(item.channelId) || 0) + 1);
           }
         }
 
@@ -188,10 +177,6 @@ const makeRecommendationsService = Effect.gen(function* () {
           conditions.push(notInArray(videos.id, allExcludeIds));
         }
 
-        if (options.channelIds && options.channelIds.length > 0) {
-          conditions.push(inArray(videos.channelId, [...options.channelIds]));
-        }
-
         // Get recommendations with scoring
         const recommendations = await db
           .select({
@@ -203,8 +188,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -250,11 +233,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             }
           }
 
-          // Score based on preferred channels
-          if (video.channelId && channelCounts.has(video.channelId)) {
-            score += (channelCounts.get(video.channelId) || 0) * 20;
-          }
-
           // Boost newer videos
           const ageInDays = (Date.now() - video.createdAt.getTime()) / (1000 * 60 * 60 * 24);
           if (ageInDays < 7) score += 15;
@@ -293,8 +271,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -356,8 +332,6 @@ const makeRecommendationsService = Effect.gen(function* () {
               videoUrl: item.videoUrl,
               authorId: item.authorId,
               organizationId: item.organizationId,
-              channelId: item.channelId,
-              collectionId: item.collectionId,
               transcript: item.transcript,
               transcriptSegments: item.transcriptSegments,
               processingStatus: item.processingStatus,
@@ -427,8 +401,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -496,7 +468,6 @@ const makeRecommendationsService = Effect.gen(function* () {
         const sourceVideo = await db
           .select({
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
             aiTags: videos.aiTags,
           })
           .from(videos)
@@ -507,7 +478,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           return [];
         }
 
-        const { organizationId, channelId, aiTags } = sourceVideo[0];
+        const { organizationId, aiTags } = sourceVideo[0];
 
         // Find similar videos based on tags
         const conditions = [
@@ -527,8 +498,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -576,11 +545,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             }
           }
 
-          // Same channel bonus
-          if (video.channelId === channelId) {
-            score += 15;
-          }
-
           return { video, score };
         });
 
@@ -612,8 +576,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -672,32 +634,7 @@ const makeRecommendationsService = Effect.gen(function* () {
   ): Effect.Effect<VideoWithAuthor[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        // Get user's most watched channels
-        const channelWatches = await db
-          .select({
-            channelId: videos.channelId,
-            watchCount: sql<number>`count(*)::int`,
-          })
-          .from(videoProgresses)
-          .innerJoin(videos, eq(videoProgresses.videoId, videos.id))
-          .where(
-            and(
-              eq(videoProgresses.userId, userId),
-              eq(videos.organizationId, organizationId),
-              sql`${videos.channelId} IS NOT NULL`,
-            ),
-          )
-          .groupBy(videos.channelId)
-          .orderBy(desc(sql`count(*)`))
-          .limit(5);
-
-        if (channelWatches.length === 0) {
-          return [];
-        }
-
-        const favoriteChannelIds = channelWatches.filter((c) => c.channelId !== null).map((c) => c.channelId as string);
-
-        // Get unwatched videos from favorite channels
+        // Since channels have been removed, return popular unwatched videos instead
         const watchedVideoIds = await db
           .select({ videoId: videoProgresses.videoId })
           .from(videoProgresses)
@@ -708,7 +645,6 @@ const makeRecommendationsService = Effect.gen(function* () {
         const conditions = [
           eq(videos.organizationId, organizationId),
           isNull(videos.deletedAt),
-          inArray(videos.channelId, favoriteChannelIds),
           eq(videos.processingStatus, 'completed'),
         ];
 
@@ -716,7 +652,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           conditions.push(notInArray(videos.id, excludeIds));
         }
 
-        const channelVideos = await db
+        const popularVideos = await db
           .select({
             id: videos.id,
             title: videos.title,
@@ -726,8 +662,6 @@ const makeRecommendationsService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -762,7 +696,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           .orderBy(desc(videos.createdAt))
           .limit(limit);
 
-        return channelVideos as VideoWithAuthor[];
+        return popularVideos as VideoWithAuthor[];
       },
       catch: (error) =>
         new DatabaseError({

@@ -103,8 +103,6 @@ export async function POST(request: NextRequest) {
       videoUrl: validatedData.videoUrl ?? undefined,
       authorId: user.id,
       organizationId: validatedData.organizationId,
-      channelId: validatedData.channelId ?? undefined,
-      collectionId: validatedData.collectionId ?? undefined,
       transcript: validatedData.transcript ?? undefined,
       aiSummary: validatedData.aiSummary ?? undefined,
     });
