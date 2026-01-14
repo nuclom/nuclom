@@ -1,7 +1,7 @@
 /**
  * Clip Repository Service using Effect-TS
  *
- * Provides type-safe database operations for video clips, moments, highlight reels, and quote cards.
+ * Provides type-safe database operations for video clips, moments, and highlight reels.
  */
 
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
@@ -14,8 +14,6 @@ import {
   type HighlightReelStatus,
   highlightReels,
   type MomentType,
-  type QuoteCardTemplate,
-  quoteCards,
   type User,
   users,
   videoClips,
@@ -86,21 +84,6 @@ export interface HighlightReelWithCreator {
   creator?: User | null;
 }
 
-export interface QuoteCardWithCreator {
-  id: string;
-  videoId: string;
-  organizationId: string;
-  quoteText: string;
-  speaker: string | null;
-  timestampSeconds: number | null;
-  template: QuoteCardTemplate | null;
-  imageUrl: string | null;
-  storageKey: string | null;
-  createdBy: string | null;
-  createdAt: Date;
-  creator?: User | null;
-}
-
 export interface CreateMomentInput {
   readonly videoId: string;
   readonly organizationId: string;
@@ -161,24 +144,6 @@ export interface UpdateHighlightReelInput {
   readonly config?: HighlightReelConfig | null;
 }
 
-export interface CreateQuoteCardInput {
-  readonly videoId: string;
-  readonly organizationId: string;
-  readonly quoteText: string;
-  readonly speaker?: string;
-  readonly timestampSeconds?: number;
-  readonly template?: QuoteCardTemplate;
-  readonly createdBy: string;
-}
-
-export interface UpdateQuoteCardInput {
-  readonly quoteText?: string;
-  readonly speaker?: string | null;
-  readonly template?: QuoteCardTemplate | null;
-  readonly imageUrl?: string | null;
-  readonly storageKey?: string | null;
-}
-
 export interface ClipRepositoryService {
   // Moments
   readonly getMoments: (
@@ -227,20 +192,6 @@ export interface ClipRepositoryService {
     data: UpdateHighlightReelInput,
   ) => Effect.Effect<HighlightReelWithCreator, DatabaseError | NotFoundError>;
   readonly deleteHighlightReel: (id: string) => Effect.Effect<void, DatabaseError | NotFoundError>;
-
-  // Quote Cards
-  readonly getQuoteCards: (
-    videoId: string,
-    page?: number,
-    limit?: number,
-  ) => Effect.Effect<PaginatedResponse<QuoteCardWithCreator>, DatabaseError>;
-  readonly getQuoteCard: (id: string) => Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError>;
-  readonly createQuoteCard: (data: CreateQuoteCardInput) => Effect.Effect<QuoteCardWithCreator, DatabaseError>;
-  readonly updateQuoteCard: (
-    id: string,
-    data: UpdateQuoteCardInput,
-  ) => Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError>;
-  readonly deleteQuoteCard: (id: string) => Effect.Effect<void, DatabaseError | NotFoundError>;
 }
 
 // =============================================================================
@@ -987,268 +938,6 @@ const makeClipRepositoryService = Effect.gen(function* () {
       });
     });
 
-  // ==========================================================================
-  // Quote Cards
-  // ==========================================================================
-
-  const getQuoteCards = (
-    videoId: string,
-    page = 1,
-    limit = 20,
-  ): Effect.Effect<PaginatedResponse<QuoteCardWithCreator>, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const offset = (page - 1) * limit;
-
-        const cardsData = await db
-          .select({
-            id: quoteCards.id,
-            videoId: quoteCards.videoId,
-            organizationId: quoteCards.organizationId,
-            quoteText: quoteCards.quoteText,
-            speaker: quoteCards.speaker,
-            timestampSeconds: quoteCards.timestampSeconds,
-            template: quoteCards.template,
-            imageUrl: quoteCards.imageUrl,
-            storageKey: quoteCards.storageKey,
-            createdBy: quoteCards.createdBy,
-            createdAt: quoteCards.createdAt,
-            creator: {
-              id: users.id,
-              name: users.name,
-              email: users.email,
-              image: users.image,
-              emailVerified: users.emailVerified,
-              role: users.role,
-              createdAt: users.createdAt,
-              updatedAt: users.updatedAt,
-              banned: users.banned,
-              banReason: users.banReason,
-              banExpires: users.banExpires,
-              twoFactorEnabled: users.twoFactorEnabled,
-              lastLoginMethod: users.lastLoginMethod,
-            },
-          })
-          .from(quoteCards)
-          .leftJoin(users, eq(quoteCards.createdBy, users.id))
-          .where(eq(quoteCards.videoId, videoId))
-          .orderBy(asc(quoteCards.timestampSeconds))
-          .offset(offset)
-          .limit(limit);
-
-        const totalCount = await db
-          .select({ count: sql`count(*)::int` })
-          .from(quoteCards)
-          .where(eq(quoteCards.videoId, videoId));
-
-        const total = Number(totalCount[0]?.count ?? 0);
-
-        return {
-          data: cardsData as QuoteCardWithCreator[],
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-          },
-        };
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch quote cards',
-          operation: 'getQuoteCards',
-          cause: error,
-        }),
-    });
-
-  const getQuoteCard = (id: string): Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError> =>
-    Effect.gen(function* () {
-      const cardData = yield* Effect.tryPromise({
-        try: async () => {
-          return await db
-            .select({
-              id: quoteCards.id,
-              videoId: quoteCards.videoId,
-              organizationId: quoteCards.organizationId,
-              quoteText: quoteCards.quoteText,
-              speaker: quoteCards.speaker,
-              timestampSeconds: quoteCards.timestampSeconds,
-              template: quoteCards.template,
-              imageUrl: quoteCards.imageUrl,
-              storageKey: quoteCards.storageKey,
-              createdBy: quoteCards.createdBy,
-              createdAt: quoteCards.createdAt,
-              creator: {
-                id: users.id,
-                name: users.name,
-                email: users.email,
-                image: users.image,
-                emailVerified: users.emailVerified,
-                role: users.role,
-                createdAt: users.createdAt,
-                updatedAt: users.updatedAt,
-                banned: users.banned,
-                banReason: users.banReason,
-                banExpires: users.banExpires,
-                twoFactorEnabled: users.twoFactorEnabled,
-                lastLoginMethod: users.lastLoginMethod,
-              },
-            })
-            .from(quoteCards)
-            .leftJoin(users, eq(quoteCards.createdBy, users.id))
-            .where(eq(quoteCards.id, id))
-            .limit(1);
-        },
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to fetch quote card',
-            operation: 'getQuoteCard',
-            cause: error,
-          }),
-      });
-
-      if (!cardData.length) {
-        return yield* Effect.fail(
-          new NotFoundError({
-            message: 'Quote card not found',
-            entity: 'QuoteCard',
-            id,
-          }),
-        );
-      }
-
-      return cardData[0] as QuoteCardWithCreator;
-    });
-
-  const createQuoteCard = (data: CreateQuoteCardInput): Effect.Effect<QuoteCardWithCreator, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const [card] = await db.insert(quoteCards).values(data).returning();
-
-        // Fetch with creator
-        const [cardWithCreator] = await db
-          .select({
-            id: quoteCards.id,
-            videoId: quoteCards.videoId,
-            organizationId: quoteCards.organizationId,
-            quoteText: quoteCards.quoteText,
-            speaker: quoteCards.speaker,
-            timestampSeconds: quoteCards.timestampSeconds,
-            template: quoteCards.template,
-            imageUrl: quoteCards.imageUrl,
-            storageKey: quoteCards.storageKey,
-            createdBy: quoteCards.createdBy,
-            createdAt: quoteCards.createdAt,
-            creator: {
-              id: users.id,
-              name: users.name,
-              email: users.email,
-              image: users.image,
-              emailVerified: users.emailVerified,
-              role: users.role,
-              createdAt: users.createdAt,
-              updatedAt: users.updatedAt,
-              banned: users.banned,
-              banReason: users.banReason,
-              banExpires: users.banExpires,
-              twoFactorEnabled: users.twoFactorEnabled,
-              lastLoginMethod: users.lastLoginMethod,
-            },
-          })
-          .from(quoteCards)
-          .leftJoin(users, eq(quoteCards.createdBy, users.id))
-          .where(eq(quoteCards.id, card.id))
-          .limit(1);
-
-        return cardWithCreator as QuoteCardWithCreator;
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to create quote card',
-          operation: 'createQuoteCard',
-          cause: error,
-        }),
-    });
-
-  const updateQuoteCard = (
-    id: string,
-    data: UpdateQuoteCardInput,
-  ): Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError> =>
-    Effect.gen(function* () {
-      const result = yield* Effect.tryPromise({
-        try: async () => {
-          return await db.update(quoteCards).set(data).where(eq(quoteCards.id, id)).returning();
-        },
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to update quote card',
-            operation: 'updateQuoteCard',
-            cause: error,
-          }),
-      });
-
-      if (!result.length) {
-        return yield* Effect.fail(
-          new NotFoundError({
-            message: 'Quote card not found',
-            entity: 'QuoteCard',
-            id,
-          }),
-        );
-      }
-
-      return yield* getQuoteCard(id);
-    });
-
-  const deleteQuoteCard = (id: string): Effect.Effect<void, DatabaseError | NotFoundError> =>
-    Effect.gen(function* () {
-      const cardData = yield* Effect.tryPromise({
-        try: async () => {
-          return await db.select().from(quoteCards).where(eq(quoteCards.id, id)).limit(1);
-        },
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to fetch quote card for deletion',
-            operation: 'deleteQuoteCard.fetch',
-            cause: error,
-          }),
-      });
-
-      if (!cardData.length) {
-        return yield* Effect.fail(
-          new NotFoundError({
-            message: 'Quote card not found',
-            entity: 'QuoteCard',
-            id,
-          }),
-        );
-      }
-
-      const card = cardData[0];
-
-      // Delete storage files if they exist
-      if (card.storageKey) {
-        yield* storage.deleteFile(card.storageKey).pipe(
-          Effect.catchAll((error) => {
-            console.error(`Failed to delete quote card file ${card.storageKey}:`, error);
-            return Effect.void;
-          }),
-        );
-      }
-
-      yield* Effect.tryPromise({
-        try: async () => {
-          await db.delete(quoteCards).where(eq(quoteCards.id, id));
-        },
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to delete quote card',
-            operation: 'deleteQuoteCard',
-            cause: error,
-          }),
-      });
-    });
-
   return {
     // Moments
     getMoments,
@@ -1269,12 +958,6 @@ const makeClipRepositoryService = Effect.gen(function* () {
     createHighlightReel,
     updateHighlightReel,
     deleteHighlightReel,
-    // Quote Cards
-    getQuoteCards,
-    getQuoteCard,
-    createQuoteCard,
-    updateQuoteCard,
-    deleteQuoteCard,
   } satisfies ClipRepositoryService;
 });
 
@@ -1419,46 +1102,4 @@ export const deleteHighlightReel = (id: string): Effect.Effect<void, DatabaseErr
   Effect.gen(function* () {
     const repo = yield* ClipRepository;
     return yield* repo.deleteHighlightReel(id);
-  });
-
-// Quote Cards
-export const getQuoteCards = (
-  videoId: string,
-  page?: number,
-  limit?: number,
-): Effect.Effect<PaginatedResponse<QuoteCardWithCreator>, DatabaseError, ClipRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ClipRepository;
-    return yield* repo.getQuoteCards(videoId, page, limit);
-  });
-
-export const getQuoteCard = (
-  id: string,
-): Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError, ClipRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ClipRepository;
-    return yield* repo.getQuoteCard(id);
-  });
-
-export const createQuoteCard = (
-  data: CreateQuoteCardInput,
-): Effect.Effect<QuoteCardWithCreator, DatabaseError, ClipRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ClipRepository;
-    return yield* repo.createQuoteCard(data);
-  });
-
-export const updateQuoteCard = (
-  id: string,
-  data: UpdateQuoteCardInput,
-): Effect.Effect<QuoteCardWithCreator, DatabaseError | NotFoundError, ClipRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ClipRepository;
-    return yield* repo.updateQuoteCard(id, data);
-  });
-
-export const deleteQuoteCard = (id: string): Effect.Effect<void, DatabaseError | NotFoundError, ClipRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ClipRepository;
-    return yield* repo.deleteQuoteCard(id);
   });

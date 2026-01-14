@@ -89,40 +89,6 @@ export interface ActivityFeedRepositoryService {
   ) => Effect.Effect<ActivityFeed, DatabaseError>;
 
   /**
-   * Create activity for comment added
-   */
-  readonly logCommentAdded: (
-    organizationId: string,
-    actorId: string,
-    videoId: string,
-    commentId: string,
-    videoTitle: string,
-  ) => Effect.Effect<ActivityFeed, DatabaseError>;
-
-  /**
-   * Create activity for comment reply
-   */
-  readonly logCommentReply: (
-    organizationId: string,
-    actorId: string,
-    videoId: string,
-    commentId: string,
-    parentCommentId: string,
-    videoTitle: string,
-  ) => Effect.Effect<ActivityFeed, DatabaseError>;
-
-  /**
-   * Create activity for reaction added
-   */
-  readonly logReactionAdded: (
-    organizationId: string,
-    actorId: string,
-    commentId: string,
-    reactionType: string,
-    videoId: string,
-  ) => Effect.Effect<ActivityFeed, DatabaseError>;
-
-  /**
    * Create activity for member joined
    */
   readonly logMemberJoined: (
@@ -339,55 +305,6 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
       metadata: { videoTitle, sharedWith },
     });
 
-  const logCommentAdded = (
-    organizationId: string,
-    actorId: string,
-    videoId: string,
-    commentId: string,
-    videoTitle: string,
-  ): Effect.Effect<ActivityFeed, DatabaseError> =>
-    createActivity({
-      organizationId,
-      actorId,
-      activityType: 'comment_added',
-      resourceType: 'comment',
-      resourceId: commentId,
-      metadata: { videoId, videoTitle },
-    });
-
-  const logCommentReply = (
-    organizationId: string,
-    actorId: string,
-    videoId: string,
-    commentId: string,
-    parentCommentId: string,
-    videoTitle: string,
-  ): Effect.Effect<ActivityFeed, DatabaseError> =>
-    createActivity({
-      organizationId,
-      actorId,
-      activityType: 'comment_reply',
-      resourceType: 'comment',
-      resourceId: commentId,
-      metadata: { videoId, videoTitle, parentCommentId },
-    });
-
-  const logReactionAdded = (
-    organizationId: string,
-    actorId: string,
-    commentId: string,
-    reactionType: string,
-    videoId: string,
-  ): Effect.Effect<ActivityFeed, DatabaseError> =>
-    createActivity({
-      organizationId,
-      actorId,
-      activityType: 'reaction_added',
-      resourceType: 'comment',
-      resourceId: commentId,
-      metadata: { reactionType, videoId },
-    });
-
   const logMemberJoined = (
     organizationId: string,
     memberId: string,
@@ -493,9 +410,6 @@ const makeActivityFeedRepositoryService = Effect.gen(function* () {
     logVideoUploaded,
     logVideoProcessed,
     logVideoShared,
-    logCommentAdded,
-    logCommentReply,
-    logReactionAdded,
     logMemberJoined,
     logMemberLeft,
     logIntegrationConnected,
@@ -566,18 +480,6 @@ export const logVideoShared = (
   Effect.gen(function* () {
     const repo = yield* ActivityFeedRepository;
     return yield* repo.logVideoShared(organizationId, actorId, videoId, videoTitle, sharedWith);
-  });
-
-export const logCommentAdded = (
-  organizationId: string,
-  actorId: string,
-  videoId: string,
-  commentId: string,
-  videoTitle: string,
-): Effect.Effect<ActivityFeed, DatabaseError, ActivityFeedRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* ActivityFeedRepository;
-    return yield* repo.logCommentAdded(organizationId, actorId, videoId, commentId, videoTitle);
   });
 
 export const logMemberJoined = (

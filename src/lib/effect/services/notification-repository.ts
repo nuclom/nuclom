@@ -7,7 +7,7 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
 import type { Notification, User } from '@/lib/db/schema';
-import { comments, notifications, users, videos } from '@/lib/db/schema';
+import { notifications, users } from '@/lib/db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 
@@ -20,9 +20,6 @@ export type NotificationWithActor = Notification & {
 };
 
 export type NotificationType =
-  | 'comment_reply'
-  | 'comment_mention'
-  | 'new_comment_on_video'
   | 'video_shared'
   | 'video_processing_complete'
   | 'video_processing_failed'
@@ -63,25 +60,6 @@ export interface NotificationRepositoryService {
    * Create a notification
    */
   readonly createNotification: (data: CreateNotificationInput) => Effect.Effect<Notification, DatabaseError>;
-
-  /**
-   * Create notifications for comment reply (notifies parent comment author)
-   */
-  readonly notifyCommentReply: (
-    parentCommentId: string,
-    replyCommentId: string,
-    actorId: string,
-    videoId: string,
-  ) => Effect.Effect<Notification | null, DatabaseError>;
-
-  /**
-   * Create notifications for new comment on video (notifies video owner)
-   */
-  readonly notifyNewCommentOnVideo: (
-    videoId: string,
-    commentId: string,
-    actorId: string,
-  ) => Effect.Effect<Notification | null, DatabaseError>;
 
   /**
    * Mark a notification as read
@@ -184,100 +162,6 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const notifyCommentReply = (
-    parentCommentId: string,
-    _replyCommentId: string,
-    actorId: string,
-    videoId: string,
-  ): Effect.Effect<Notification | null, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        // Get parent comment author
-        const parentComment = await db.query.comments.findFirst({
-          where: eq(comments.id, parentCommentId),
-          with: {
-            author: true,
-          },
-        });
-
-        if (!parentComment || parentComment.authorId === actorId) {
-          // Don't notify if replying to own comment
-          return null;
-        }
-
-        // Get actor info
-        const actor = await db.query.users.findFirst({
-          where: eq(users.id, actorId),
-        });
-
-        const [notification] = await db
-          .insert(notifications)
-          .values({
-            userId: parentComment.authorId,
-            type: 'comment_reply',
-            title: 'New reply to your comment',
-            body: `${actor?.name || 'Someone'} replied to your comment`,
-            resourceType: 'video',
-            resourceId: videoId,
-            actorId,
-          })
-          .returning();
-
-        return notification;
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to create comment reply notification',
-          operation: 'notifyCommentReply',
-          cause: error,
-        }),
-    });
-
-  const notifyNewCommentOnVideo = (
-    videoId: string,
-    _commentId: string,
-    actorId: string,
-  ): Effect.Effect<Notification | null, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        // Get video owner
-        const video = await db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-        });
-
-        // Don't notify if video has no author (deleted user) or commenting on own video
-        if (!video || !video.authorId || video.authorId === actorId) {
-          return null;
-        }
-
-        // Get actor info
-        const actor = await db.query.users.findFirst({
-          where: eq(users.id, actorId),
-        });
-
-        const [notification] = await db
-          .insert(notifications)
-          .values({
-            userId: video.authorId,
-            type: 'new_comment_on_video',
-            title: 'New comment on your video',
-            body: `${actor?.name || 'Someone'} commented on "${video.title}"`,
-            resourceType: 'video',
-            resourceId: videoId,
-            actorId,
-          })
-          .returning();
-
-        return notification;
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to create new comment notification',
-          operation: 'notifyNewCommentOnVideo',
-          cause: error,
-        }),
-    });
-
   const markAsRead = (id: string, userId: string): Effect.Effect<Notification, DatabaseError | NotFoundError> =>
     Effect.gen(function* () {
       const result = yield* Effect.tryPromise({
@@ -359,8 +243,6 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
     getNotifications,
     getUnreadCount,
     createNotification,
-    notifyCommentReply,
-    notifyNewCommentOnVideo,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -399,27 +281,6 @@ export const createNotification = (
   Effect.gen(function* () {
     const repo = yield* NotificationRepository;
     return yield* repo.createNotification(data);
-  });
-
-export const notifyCommentReply = (
-  parentCommentId: string,
-  replyCommentId: string,
-  actorId: string,
-  videoId: string,
-): Effect.Effect<Notification | null, DatabaseError, NotificationRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* NotificationRepository;
-    return yield* repo.notifyCommentReply(parentCommentId, replyCommentId, actorId, videoId);
-  });
-
-export const notifyNewCommentOnVideo = (
-  videoId: string,
-  commentId: string,
-  actorId: string,
-): Effect.Effect<Notification | null, DatabaseError, NotificationRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* NotificationRepository;
-    return yield* repo.notifyNewCommentOnVideo(videoId, commentId, actorId);
   });
 
 export const markAsRead = (

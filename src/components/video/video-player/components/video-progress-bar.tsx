@@ -164,7 +164,7 @@ export function VideoProgressBar({
           style={{ left: hoverPosition }}
         >
           {/* Thumbnail */}
-          <div className="w-40 h-[90px] rounded overflow-hidden mb-1.5 bg-gray-800 flex items-center justify-center">
+          <div className="w-40 h-22.5 rounded overflow-hidden mb-1.5 bg-gray-800 flex items-center justify-center">
             {thumbnailUrl ? (
               // biome-ignore lint/performance/noImgElement: Using data URL from canvas, Next.js Image doesn't support data URLs
               <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -178,9 +178,7 @@ export function VideoProgressBar({
           <div className="text-center">
             <span className="font-mono">{formatTime(hoverTime)}</span>
             {chapters.length > 0 && getHoveredChapter()?.title && (
-              <span className="block text-white/60 text-[10px] truncate max-w-[156px]">
-                {getHoveredChapter()?.title}
-              </span>
+              <span className="block text-white/60 text-[10px] truncate max-w-39">{getHoveredChapter()?.title}</span>
             )}
           </div>
         </div>

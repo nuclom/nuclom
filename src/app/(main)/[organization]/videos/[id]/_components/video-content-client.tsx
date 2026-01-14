@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  Layers,
   Lightbulb,
   ListTodo,
   Loader2,
@@ -27,17 +26,15 @@ import {
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
-import { CommentList } from '@/components/comments';
+import { Streamdown } from 'streamdown';
 import { VideoDecisionsSidebar } from '@/components/knowledge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChapteredTranscript, QuoteCards, VideoActions, VideoPlayerWithProgress } from '@/components/video';
+import { ChapteredTranscript, VideoActions, VideoPlayerWithProgress } from '@/components/video';
 import { useToast } from '@/hooks/use-toast';
 import type { ActionItem, VideoChapter } from '@/lib/db/schema';
-import type { CommentWithReplies } from '@/lib/effect/services/comment-repository';
 import { formatTime } from '@/lib/format-utils';
 import type { VideoWithDetails } from '@/lib/types';
 
@@ -151,31 +148,6 @@ function ActionItemsList({ items }: ActionItemsListProps) {
 }
 
 // =============================================================================
-// Transform comments to CommentWithReplies format
-// =============================================================================
-
-function transformCommentsToThreaded(comments: VideoWithDetails['comments']): CommentWithReplies[] {
-  const commentMap = new Map<string, CommentWithReplies>();
-  const topLevelComments: CommentWithReplies[] = [];
-
-  for (const comment of comments) {
-    commentMap.set(comment.id, { ...comment, replies: [] });
-  }
-
-  for (const comment of comments) {
-    const commentObj = commentMap.get(comment.id);
-    if (!commentObj) continue;
-    if (comment.parentId && commentMap.has(comment.parentId)) {
-      commentMap.get(comment.parentId)?.replies.push(commentObj);
-    } else if (!comment.parentId) {
-      topLevelComments.push(commentObj);
-    }
-  }
-
-  return topLevelComments;
-}
-
-// =============================================================================
 // Helper: Parse duration string to seconds
 // =============================================================================
 
@@ -281,7 +253,6 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   const canDelete = currentUser?.id === video.authorId;
   const actionItems: ActionItem[] = video.aiActionItems || [];
   const tags: string[] = video.aiTags || [];
-  const threadedComments = transformCommentsToThreaded(video.comments);
   const durationSeconds = parseDuration(video.duration);
 
   // Convert chapters to component format
@@ -294,46 +265,74 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   }));
 
   return (
-    <div className="flex flex-col gap-6 lg:gap-8 max-w-6xl mx-auto">
-      {/* Video Player - Full width */}
-      <div className="w-full">
-        {video.videoUrl ? (
-          <VideoPlayerWithProgress
-            videoId={video.id}
-            url={video.videoUrl}
-            title={video.title}
-            organizationSlug={organizationSlug}
-            thumbnailUrl={video.thumbnailUrl || undefined}
-            duration={video.duration}
-            chapters={playerChapters}
-            onTimeUpdate={handleTimeUpdate}
-            registerSeek={handleRegisterSeek}
-          />
-        ) : (
-          <div className="aspect-video bg-card rounded-lg overflow-hidden border">
-            {video.thumbnailUrl ? (
-              <div className="relative w-full h-full">
-                <Image
-                  src={video.thumbnailUrl}
-                  alt={video.title}
-                  width={1280}
-                  height={720}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                  <div className="flex flex-col items-center gap-2 text-white">
-                    <Play className="h-16 w-16" />
-                    <span className="text-base">Video not available</span>
+    <div className="flex flex-col gap-6 lg:gap-8 max-w-7xl mx-auto">
+      {/* Video Player + Transcript Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Video Player */}
+        <div className="w-full lg:w-[68%] shrink-0">
+          {video.videoUrl ? (
+            <VideoPlayerWithProgress
+              videoId={video.id}
+              url={video.videoUrl}
+              title={video.title}
+              organizationSlug={organizationSlug}
+              thumbnailUrl={video.thumbnailUrl || undefined}
+              duration={video.duration}
+              chapters={playerChapters}
+              onTimeUpdate={handleTimeUpdate}
+              registerSeek={handleRegisterSeek}
+            />
+          ) : (
+            <div className="aspect-video bg-card rounded-lg overflow-hidden border">
+              {video.thumbnailUrl ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    width={1280}
+                    height={720}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <div className="flex flex-col items-center gap-2 text-white">
+                      <Play className="h-16 w-16" />
+                      <span className="text-base">Video not available</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <span className="text-muted-foreground">No video available</span>
-              </div>
-            )}
-          </div>
-        )}
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <span className="text-muted-foreground">No video available</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Transcript Sidebar */}
+        <div className="w-full lg:w-[32%] lg:max-h-[calc(56.25vw*0.68)] lg:overflow-hidden">
+          <Card className="h-full flex flex-col">
+            <CardHeader className="pb-2 shrink-0">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Transcript
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto p-0">
+              <ChapteredTranscript
+                chapters={playerChapters}
+                segments={video.transcriptSegments || []}
+                currentTime={currentTime}
+                duration={durationSeconds}
+                onSeek={handleSeek}
+                processingStatus={
+                  video.processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'
+                }
+                compact
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Video Header */}
@@ -400,130 +399,91 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
         </div>
       </header>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="insights" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="insights">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Insights
-          </TabsTrigger>
-          <TabsTrigger value="transcript">
-            <FileText className="h-4 w-4 mr-2" />
-            Transcript
-          </TabsTrigger>
-          <TabsTrigger value="more">
-            <Layers className="h-4 w-4 mr-2" />
-            More
-          </TabsTrigger>
-        </TabsList>
+      {/* Stacked Content Sections */}
+      <div className="space-y-6">
+        {/* AI Summary */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              AI Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {video.aiSummary ? (
+              <div className="ai-summary-content">
+                <Streamdown>{video.aiSummary}</Streamdown>
+              </div>
+            ) : video.processingStatus === 'analyzing' ? (
+              <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating summary...</span>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No AI summary available.</p>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Tab 1: AI Summary + Decisions */}
-        <TabsContent value="insights" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  AI Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {video.aiSummary ? (
-                  <p className="text-muted-foreground whitespace-pre-wrap">{video.aiSummary}</p>
-                ) : video.processingStatus === 'analyzing' ? (
-                  <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Generating summary...</span>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No AI summary available.</p>
-                )}
-              </CardContent>
-            </Card>
+        {/* Action Items */}
+        {actionItems.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ListTodo className="h-5 w-5" />
+                Action Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ActionItemsList items={actionItems} />
+            </CardContent>
+          </Card>
+        )}
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <ListTodo className="h-5 w-5" />
-                  Action Items
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ActionItemsList items={actionItems} />
-              </CardContent>
-            </Card>
+        {/* Decisions */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lightbulb className="h-5 w-5" />
+              Decisions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VideoDecisionsSidebar videoId={video.id} />
+          </CardContent>
+        </Card>
 
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5" />
-                    Decisions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <VideoDecisionsSidebar videoId={video.id} />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
+        {/* Description */}
+        {video.description && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Description</CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground">{video.description}</CardContent>
+          </Card>
+        )}
 
-        {/* Tab 2: Transcript with Chapters */}
-        <TabsContent value="transcript" className="mt-6">
-          <ChapteredTranscript
-            chapters={playerChapters}
-            segments={video.transcriptSegments || []}
-            currentTime={currentTime}
-            duration={durationSeconds}
-            onSeek={handleSeek}
-            processingStatus={
-              video.processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'
-            }
-          />
-        </TabsContent>
-
-        {/* Tab 3: More (Description, Tags, Comments, Quote Cards) */}
-        <TabsContent value="more" className="mt-6 space-y-6">
-          {video.description && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Description</CardTitle>
-              </CardHeader>
-              <CardContent className="text-muted-foreground">{video.description}</CardContent>
-            </Card>
-          )}
-
-          {tags.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
-                  Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag, i) => (
-                    <Badge key={i} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <QuoteCards videoId={video.id} currentUser={currentUser} />
-
-          <CommentList
-            videoId={video.id}
-            videoAuthorId={video.authorId}
-            initialComments={threadedComments}
-            currentUser={currentUser}
-          />
-        </TabsContent>
-      </Tabs>
+        {/* Tags */}
+        {tags.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Tag className="h-5 w-5" />
+                Tags
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag, i) => (
+                  <Badge key={i} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

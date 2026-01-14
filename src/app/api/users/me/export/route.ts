@@ -4,7 +4,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
-  comments,
   dataExportRequests,
   legalConsents,
   members,
@@ -104,21 +103,6 @@ export async function GET(_request: NextRequest) {
       .where(eq(videos.authorId, userId))
       .orderBy(desc(videos.createdAt));
 
-    // Fetch user's comments
-    const userComments = await db
-      .select({
-        id: comments.id,
-        content: comments.content,
-        timestamp: comments.timestamp,
-        videoId: comments.videoId,
-        parentId: comments.parentId,
-        createdAt: comments.createdAt,
-        updatedAt: comments.updatedAt,
-      })
-      .from(comments)
-      .where(eq(comments.authorId, userId))
-      .orderBy(desc(comments.createdAt));
-
     // Fetch user's video progress
     const userProgress = await db
       .select({
@@ -172,7 +156,6 @@ export async function GET(_request: NextRequest) {
         ...v,
         note: 'Video file URLs are signed and will expire. Download your videos separately if needed.',
       })),
-      comments: userComments,
       videoProgress: userProgress,
       legalConsents: userConsents,
       settings: {

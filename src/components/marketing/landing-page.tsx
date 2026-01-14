@@ -206,7 +206,7 @@ export function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Clipping & Highlights</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Create clips from key moments, compile highlight reels, and generate shareable quote cards.
+                  Create clips from key moments and compile highlight reels for easy sharing.
                 </CardDescription>
               </CardHeader>
             </Card>
