@@ -57,6 +57,17 @@ export function useVideoControls({
     }
   }, [playing, refs.video, setErrorMessage, setVideoState]);
 
+  const play = useCallback(() => {
+    const video = refs.video.current;
+    if (!video || playing) return;
+
+    video.play().catch((err) => {
+      logger.error('Failed to play video', err);
+      setErrorMessage('Failed to play video');
+      setVideoState('error');
+    });
+  }, [playing, refs.video, setErrorMessage, setVideoState]);
+
   const seek = useCallback(
     (time: number) => {
       const video = refs.video.current;
@@ -168,6 +179,7 @@ export function useVideoControls({
 
   return {
     togglePlay,
+    play,
     seek,
     seekForward,
     seekBackward,

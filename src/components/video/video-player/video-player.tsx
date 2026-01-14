@@ -18,7 +18,6 @@ import {
 import { VideoProgressBar } from './components/video-progress-bar';
 import { useCaptions } from './hooks/use-captions';
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts';
-import { useTheaterMode } from './hooks/use-theater-mode';
 import { useTouchGestures } from './hooks/use-touch-gestures';
 import { useVideoControls } from './hooks/use-video-controls';
 import { useViewTracking } from './hooks/use-view-tracking';
@@ -45,6 +44,8 @@ export function VideoPlayer({
   onError,
   onTimeUpdate,
   registerSeek,
+  registerPlay,
+  onRefreshUrl,
   className,
 }: VideoPlayerProps) {
   // Refs
@@ -71,6 +72,15 @@ export function VideoPlayer({
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [pipSupported, setPipSupported] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [currentUrl, setCurrentUrl] = useState(url);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPlaybackTimeRef = useRef<number>(0);
+
+  // Update currentUrl if prop changes
+  useEffect(() => {
+    setCurrentUrl(url);
+  }, [url]);
 
   // Keep callback ref up to date
   progressCallbackRef.current = onProgress;
@@ -107,8 +117,6 @@ export function VideoPlayer({
     videoId,
     playing,
   });
-
-  const { isTheaterMode, toggleTheaterMode, exitTheaterMode } = useTheaterMode();
 
   // Mini-player registration
   const { registerVideo, updateRegisteredVideo, unregisterVideo, shouldShowForVideo, deactivateMiniPlayer } =
@@ -194,7 +202,6 @@ export function VideoPlayer({
     togglePictureInPicture: controls.togglePictureInPicture,
     toggleLoop: controls.toggleLoop,
     toggleCaptions: captions.toggleCaptions,
-    toggleTheaterMode,
     setShowKeyboardHelp,
   });
 
@@ -202,6 +209,11 @@ export function VideoPlayer({
   useEffect(() => {
     registerSeek?.(controls.seek);
   }, [registerSeek, controls.seek]);
+
+  // Register play function for external control
+  useEffect(() => {
+    registerPlay?.(controls.play);
+  }, [registerPlay, controls.play]);
 
   // Find current chapter
   const currentChapter = useMemo((): VideoChapter | null => {
@@ -264,6 +276,11 @@ export function VideoPlayer({
     onTimeUpdate?.(video.currentTime);
     reportProgress();
 
+    // Track last successful playback position for recovery
+    if (video.currentTime > 0) {
+      lastPlaybackTimeRef.current = video.currentTime;
+    }
+
     if (video.buffered.length > 0) {
       const bufferedEnd = video.buffered.end(video.buffered.length - 1);
       setBuffered((bufferedEnd / video.duration) * 100);
@@ -307,13 +324,68 @@ export function VideoPlayer({
     }
   }, [onEnded]);
 
+  const MAX_AUTO_RETRIES = 3;
+
+  const handleRetry = useCallback(async () => {
+    const video = videoRef.current;
+    const resumeTime = lastPlaybackTimeRef.current;
+
+    setVideoState('loading');
+    setErrorMessage(null);
+
+    // Try to refresh the URL if a refresh function is provided
+    if (onRefreshUrl) {
+      try {
+        const newUrl = await onRefreshUrl();
+        if (newUrl) {
+          setCurrentUrl(newUrl);
+        }
+      } catch {
+        // Continue with existing URL if refresh fails
+      }
+    }
+
+    if (video) {
+      video.load();
+      // Resume from last position after reload
+      const handleCanPlayOnce = () => {
+        if (resumeTime > 0) {
+          video.currentTime = resumeTime;
+        }
+        video.play().catch(() => {
+          // Autoplay may be blocked, user will need to click play
+        });
+        video.removeEventListener('canplay', handleCanPlayOnce);
+      };
+      video.addEventListener('canplay', handleCanPlayOnce);
+    }
+  }, [onRefreshUrl]);
+
   const handleError = useCallback(() => {
     const video = videoRef.current;
     const errorMsg = video?.error?.message || 'Failed to load video';
-    setErrorMessage(errorMsg);
-    setVideoState('error');
-    onError?.(errorMsg);
-  }, [onError]);
+
+    // Clear any existing retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+
+    // Auto-retry with exponential backoff for recoverable errors
+    if (retryCount < MAX_AUTO_RETRIES) {
+      const delay = Math.min(1000 * 2 ** retryCount, 8000); // 1s, 2s, 4s, max 8s
+      setVideoState('loading');
+      setRetryCount((prev) => prev + 1);
+
+      retryTimeoutRef.current = setTimeout(() => {
+        handleRetry();
+      }, delay);
+    } else {
+      // Max retries reached, show error to user
+      setErrorMessage(errorMsg);
+      setVideoState('error');
+      onError?.(errorMsg);
+    }
+  }, [retryCount, handleRetry, onError]);
 
   const handleWaiting = useCallback(() => {
     setVideoState('loading');
@@ -323,13 +395,14 @@ export function VideoPlayer({
     if (videoState === 'loading') {
       setVideoState(playing ? 'playing' : 'ready');
     }
+    // Reset retry count on successful playback
+    setRetryCount(0);
   }, [videoState, playing]);
 
-  const handleRetry = useCallback(() => {
-    setVideoState('idle');
-    setErrorMessage(null);
-    videoRef.current?.load();
-  }, []);
+  const handleManualRetry = useCallback(() => {
+    setRetryCount(0);
+    handleRetry();
+  }, [handleRetry]);
 
   const seekToChapter = useCallback(
     (chapter: VideoChapter) => {
@@ -400,149 +473,129 @@ export function VideoPlayer({
     };
   }, []);
 
+  // Cleanup retry timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const showPlayButton = (videoState === 'ready' || videoState === 'paused' || videoState === 'idle') && !playing;
 
   return (
-    <>
-      {/* Theater Mode Backdrop */}
-      {isTheaterMode && (
-        <div
-          className="fixed inset-0 z-30 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={exitTheaterMode}
-          onKeyDown={(e) => e.key === 'Escape' && exitTheaterMode()}
-          role="button"
-          tabIndex={0}
-          aria-label="Exit theater mode"
-        />
-      )}
-
-      <div
-        ref={containerRef}
-        className={cn(
-          'relative aspect-video bg-black rounded-lg overflow-hidden group',
-          isTheaterMode && [
-            'fixed z-40',
-            'w-[90vw] max-h-[90vh]',
-            'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
-            'rounded-lg shadow-2xl',
-          ],
-          className,
-        )}
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
-        tabIndex={0}
-        role="application"
-        aria-label={`Video player: ${title}`}
+    <div
+      ref={containerRef}
+      className={cn('relative aspect-video bg-black rounded-lg overflow-hidden group', className)}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
+      tabIndex={0}
+      role="application"
+      aria-label={`Video player: ${title}`}
+    >
+      {/* Video Element */}
+      {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
+      <video
+        ref={videoRef}
+        src={currentUrl}
+        poster={thumbnailUrl}
+        className="w-full h-full object-contain"
+        preload="metadata"
+        playsInline
+        crossOrigin="anonymous"
+        onClick={controls.handleVideoClick}
+        onLoadStart={handleLoadStart}
+        onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onEnded={handleEnded}
+        onError={handleError}
+        onWaiting={handleWaiting}
+        onCanPlay={handleCanPlay}
       >
-        {/* Video Element */}
-        {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
-        <video
-          ref={videoRef}
-          src={url}
-          poster={thumbnailUrl}
-          className="w-full h-full object-contain"
-          preload="metadata"
-          playsInline
-          crossOrigin="anonymous"
-          onClick={controls.handleVideoClick}
-          onLoadStart={handleLoadStart}
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          onEnded={handleEnded}
-          onError={handleError}
-          onWaiting={handleWaiting}
-          onCanPlay={handleCanPlay}
-        >
-          {captions.availableCaptionTracks.map((track) => (
-            <track
-              key={track.code}
-              kind="captions"
-              src={track.src}
-              srcLang={track.code}
-              label={track.label}
-              default={track.default && captions.captionsEnabled}
-            />
-          ))}
-        </video>
+        {captions.availableCaptionTracks.map((track) => (
+          <track
+            key={track.code}
+            kind="captions"
+            src={track.src}
+            srcLang={track.code}
+            label={track.label}
+            default={track.default && captions.captionsEnabled}
+          />
+        ))}
+      </video>
 
-        {/* Overlays */}
-        <LoadingOverlay visible={videoState === 'loading'} />
-        <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleRetry} />
-        <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
-        <ChapterDisplay chapter={currentChapter} visible={showControls} />
-        <LoopIndicator isLooping={isLooping} />
-        <KeyboardHelpModal visible={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
+      {/* Overlays */}
+      <LoadingOverlay visible={videoState === 'loading'} />
+      <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleManualRetry} />
+      <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
+      <ChapterDisplay chapter={currentChapter} visible={showControls} />
+      <LoopIndicator isLooping={isLooping} />
+      <KeyboardHelpModal visible={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 
-        {/* Touch Skip Feedback */}
-        {isTouchDevice && <TouchSkipFeedback feedback={touchFeedback} />}
+      {/* Touch Skip Feedback */}
+      {isTouchDevice && <TouchSkipFeedback feedback={touchFeedback} />}
 
-        {/* Presence Indicator - Top Right */}
-        {videoId && (
-          <div
-            className={cn(
-              'absolute top-4 right-4 z-10',
-              'transition-opacity duration-300',
-              showControls || !playing ? 'opacity-100' : 'opacity-0',
-            )}
-          >
-            <VideoPresence videoId={videoId} />
-          </div>
-        )}
-
-        {/* Controls Overlay */}
+      {/* Presence Indicator - Top Right */}
+      {videoId && (
         <div
           className={cn(
-            'absolute bottom-0 left-0 right-0 p-4',
-            'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+            'absolute top-4 right-4 z-10',
             'transition-opacity duration-300',
-            showControls || !playing ? 'opacity-100' : 'opacity-0 pointer-events-none',
+            showControls || !playing ? 'opacity-100' : 'opacity-0',
           )}
         >
-          <VideoProgressBar
-            progressBarRef={progressBarRef}
-            videoUrl={url}
-            duration={duration}
-            currentTime={currentTime}
-            buffered={buffered}
-            chapters={chapters}
-            onSeek={controls.seek}
-            onSeekToChapter={seekToChapter}
-          />
-
-          <VideoControls
-            playing={playing}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            muted={muted}
-            playbackRate={playbackRate}
-            isFullscreen={isFullscreen}
-            isPiP={isPiP}
-            pipSupported={pipSupported}
-            isLooping={isLooping}
-            isTheaterMode={isTheaterMode}
-            chapters={chapters}
-            currentChapter={currentChapter}
-            captionsEnabled={captions.captionsEnabled}
-            selectedCaptionTrack={captions.selectedCaptionTrack}
-            availableCaptionTracks={captions.availableCaptionTracks}
-            onTogglePlay={controls.togglePlay}
-            onSeekForward={controls.seekForward}
-            onSeekBackward={controls.seekBackward}
-            onSeekToChapter={seekToChapter}
-            onVolumeChange={controls.handleVolumeChange}
-            onToggleMute={controls.toggleMute}
-            onPlaybackRateChange={controls.handlePlaybackRateChange}
-            onToggleFullscreen={controls.toggleFullscreen}
-            onTogglePiP={controls.togglePictureInPicture}
-            onToggleLoop={controls.toggleLoop}
-            onToggleTheaterMode={toggleTheaterMode}
-            onSelectCaptionTrack={captions.selectCaptionTrack}
-            onShowKeyboardHelp={() => setShowKeyboardHelp(true)}
-          />
+          <VideoPresence videoId={videoId} />
         </div>
+      )}
+
+      {/* Controls Overlay */}
+      <div
+        className={cn(
+          'absolute bottom-0 left-0 right-0 p-4',
+          'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+          'transition-opacity duration-300',
+          showControls || !playing ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        )}
+      >
+        <VideoProgressBar
+          progressBarRef={progressBarRef}
+          videoUrl={url}
+          duration={duration}
+          currentTime={currentTime}
+          buffered={buffered}
+          chapters={chapters}
+          onSeek={controls.seek}
+          onSeekToChapter={seekToChapter}
+        />
+
+        <VideoControls
+          playing={playing}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          muted={muted}
+          playbackRate={playbackRate}
+          isFullscreen={isFullscreen}
+          isPiP={isPiP}
+          pipSupported={pipSupported}
+          isLooping={isLooping}
+          captionsEnabled={captions.captionsEnabled}
+          selectedCaptionTrack={captions.selectedCaptionTrack}
+          availableCaptionTracks={captions.availableCaptionTracks}
+          onTogglePlay={controls.togglePlay}
+          onSeekForward={controls.seekForward}
+          onSeekBackward={controls.seekBackward}
+          onVolumeChange={controls.handleVolumeChange}
+          onToggleMute={controls.toggleMute}
+          onPlaybackRateChange={controls.handlePlaybackRateChange}
+          onToggleFullscreen={controls.toggleFullscreen}
+          onTogglePiP={controls.togglePictureInPicture}
+          onToggleLoop={controls.toggleLoop}
+          onSelectCaptionTrack={captions.selectCaptionTrack}
+        />
       </div>
-    </>
+    </div>
   );
 }

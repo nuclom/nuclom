@@ -17,16 +17,6 @@ export interface EmailRecipient {
   readonly name?: string;
 }
 
-export interface CommentNotificationData {
-  readonly recipientEmail: string;
-  readonly recipientName: string;
-  readonly commenterName: string;
-  readonly videoTitle: string;
-  readonly videoUrl: string;
-  readonly commentPreview: string;
-  readonly isReply: boolean;
-}
-
 export interface InvitationNotificationData {
   readonly recipientEmail: string;
   readonly inviterName: string;
@@ -71,7 +61,6 @@ export class EmailError extends Data.TaggedError('EmailError')<{
 // =============================================================================
 
 export interface EmailNotificationServiceInterface {
-  readonly sendCommentNotification: (data: CommentNotificationData) => Effect.Effect<void, EmailError>;
   readonly sendInvitationNotification: (data: InvitationNotificationData) => Effect.Effect<void, EmailError>;
   readonly sendVideoProcessingNotification: (data: VideoProcessingNotificationData) => Effect.Effect<void, EmailError>;
   readonly sendTrialEndingNotification: (data: TrialEndingNotificationData) => Effect.Effect<void, EmailError>;
@@ -105,36 +94,6 @@ const getBaseStyles = () => `
   .error { border-left-color: #ef4444; }
   .success { border-left-color: #10b981; }
 `;
-
-const createCommentEmailHtml = (data: CommentNotificationData): string => {
-  const subject = data.isReply ? 'replied to your comment' : 'commented on your video';
-  return `
-<!DOCTYPE html>
-<html>
-<head><style>${getBaseStyles()}</style></head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Nuclom</h1>
-    </div>
-    <div class="content">
-      <h2>Hi ${data.recipientName},</h2>
-      <p><strong>${data.commenterName}</strong> ${subject} "${data.videoTitle}".</p>
-      <div class="highlight">
-        <p style="margin: 0; font-style: italic;">"${data.commentPreview}"</p>
-      </div>
-      <p style="text-align: center;">
-        <a href="${data.videoUrl}" class="button">View ${data.isReply ? 'Reply' : 'Comment'}</a>
-      </p>
-    </div>
-    <div class="footer">
-      <p>You're receiving this email because you have notifications enabled for comments on Nuclom.</p>
-      <p>&copy; ${new Date().getFullYear()} Nuclom. All rights reserved.</p>
-    </div>
-  </div>
-</body>
-</html>`;
-};
 
 const createInvitationEmailHtml = (data: InvitationNotificationData): string => `
 <!DOCTYPE html>
@@ -333,14 +292,6 @@ const makeEmailNotificationService = Effect.gen(function* () {
     });
 
   const service: EmailNotificationServiceInterface = {
-    sendCommentNotification: (data) => {
-      const subject = data.isReply
-        ? `${data.commenterName} replied to your comment on "${data.videoTitle}"`
-        : `${data.commenterName} commented on "${data.videoTitle}"`;
-      const html = createCommentEmailHtml(data);
-      return sendEmail(data.recipientEmail, subject, html);
-    },
-
     sendInvitationNotification: (data) => {
       const subject = `${data.inviterName} invited you to join ${data.organizationName} on Nuclom`;
       const html = createInvitationEmailHtml(data);
@@ -389,11 +340,6 @@ export const EmailNotificationsLive = Layer.effect(EmailNotifications, makeEmail
 // =============================================================================
 // Helper Effects
 // =============================================================================
-
-export const sendCommentNotification = (
-  data: CommentNotificationData,
-): Effect.Effect<void, EmailError, EmailNotifications> =>
-  Effect.flatMap(EmailNotifications, (service) => service.sendCommentNotification(data));
 
 export const sendInvitationNotification = (
   data: InvitationNotificationData,

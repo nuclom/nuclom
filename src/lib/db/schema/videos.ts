@@ -319,7 +319,6 @@ export type NewUserPresence = typeof userPresence.$inferInsert;
 
 import { aiActionItems } from './ai-insights';
 // Import these lazily to avoid circular dependencies
-import { comments } from './comments';
 import { decisions } from './knowledge';
 import { transcriptChunks } from './search';
 import { speakerSegments, videoSpeakers } from './speakers';
@@ -341,7 +340,6 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     fields: [videos.collectionId],
     references: [collections.id],
   }),
-  comments: many(comments),
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
   decisions: many(decisions),

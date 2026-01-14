@@ -11,12 +11,10 @@
  * - Search across all segments
  */
 
-import { ChevronDown, ChevronRight, FileText, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { TranscriptSegment } from '@/lib/db/schema';
 import { formatTime } from '@/lib/format-utils';
 import { findSegmentIndexByTime } from '@/lib/subtitles';
@@ -42,6 +40,12 @@ export interface ChapteredTranscriptProps {
   processingStatus?: 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed';
   /** Optional className */
   className?: string;
+  /** Compact mode - removes Card wrapper for sidebar use */
+  compact?: boolean;
+  /** Controlled scroll state - when true, auto-scroll is paused */
+  userHasScrolled?: boolean;
+  /** Callback when user scroll state changes */
+  onUserScrollChange?: (hasScrolled: boolean) => void;
 }
 
 interface ChapterGroup {
@@ -141,7 +145,7 @@ function SegmentItem({ segment, index, isActive, searchTerm, onSeek }: SegmentIt
     <div
       id={`transcript-segment-${index}`}
       className={cn(
-        'group relative flex gap-2 sm:gap-4 p-2 sm:p-2.5 rounded-md transition-colors cursor-pointer',
+        'group relative flex items-center gap-2 sm:gap-4 p-2 sm:p-2.5 rounded-md transition-colors cursor-pointer',
         isActive ? 'bg-primary/10 border-l-2 border-primary' : 'hover:bg-muted/50 border-l-2 border-transparent',
       )}
       onClick={() => onSeek?.(segment.startTime)}
@@ -304,11 +308,17 @@ export function ChapteredTranscript({
   onSeek,
   processingStatus,
   className,
+  userHasScrolled: controlledUserHasScrolled,
+  onUserScrollChange,
 }: ChapteredTranscriptProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const [internalUserHasScrolled, setInternalUserHasScrolled] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const userHasScrolled = controlledUserHasScrolled ?? internalUserHasScrolled;
+  const setUserHasScrolled = onUserScrollChange ?? setInternalUserHasScrolled;
 
   // Group segments by chapter
   const chapterGroups = useMemo(
@@ -370,24 +380,24 @@ export function ChapteredTranscript({
       setUserHasScrolled(false);
     }
     lastTimeRef.current = currentTime;
-  }, [currentTime]);
+  }, [currentTime, setUserHasScrolled]);
 
-  // Handle scroll to detect user scrolling
-  const handleScroll = useCallback(() => {
-    setUserHasScrolled(true);
-  }, []);
-
-  // Reset scroll flag after inactivity
+  // Detect user scrolling via wheel event
   useEffect(() => {
-    if (!userHasScrolled) return;
-    const timeout = setTimeout(() => setUserHasScrolled(false), 3000);
-    return () => clearTimeout(timeout);
-  }, [userHasScrolled]);
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
 
-  // Handle seek with scroll reset
+    const handleWheel = () => {
+      setUserHasScrolled(true);
+    };
+
+    scrollArea.addEventListener('wheel', handleWheel, { passive: true });
+    return () => scrollArea.removeEventListener('wheel', handleWheel);
+  }, [setUserHasScrolled]);
+
+  // Handle seek - don't reset scroll state here, let the jump detection handle it
   const handleSeek = useCallback(
     (time: number) => {
-      setUserHasScrolled(false);
       onSeek?.(time);
     },
     [onSeek],
@@ -395,147 +405,114 @@ export function ChapteredTranscript({
 
   // Loading state
   if (processingStatus === 'pending' || processingStatus === 'transcribing') {
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <div className="animate-pulse flex space-x-1">
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-            <p className="text-sm mt-4">
-              {processingStatus === 'transcribing' ? 'Transcribing audio...' : 'Preparing transcript...'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    const loadingContent = (
+      <div className={cn('flex flex-col items-center justify-center text-muted-foreground py-8')}>
+        <div className="animate-pulse flex space-x-1">
+          <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+        <p className="text-sm mt-4">
+          {processingStatus === 'transcribing' ? 'Transcribing audio...' : 'Preparing transcript...'}
+        </p>
+      </div>
     );
+
+    return <div className={cn('px-4', className)}>{loadingContent}</div>;
   }
 
   // Error state
   if (processingStatus === 'failed') {
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-red-500 text-center py-8">Failed to generate transcript.</p>
-        </CardContent>
-      </Card>
-    );
+    const errorContent = <p className={cn('text-sm text-red-500 text-center py-6')}>Failed to generate transcript.</p>;
+
+    return <div className={cn('px-4', className)}>{errorContent}</div>;
   }
 
   // Empty state
   if (!segments || segments.length === 0) {
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm text-center py-8">No transcript available.</p>
-        </CardContent>
-      </Card>
+    const emptyContent = (
+      <p className={cn('text-muted-foreground text-sm text-center py-6')}>No transcript available.</p>
     );
+
+    return <div className={cn('px-4', className)}>{emptyContent}</div>;
   }
 
-  return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-            {chapters.length > 0 && (
-              <span className="text-xs text-muted-foreground font-normal">({chapters.length} chapters)</span>
-            )}
-          </CardTitle>
+  // Search bar component (reused in both modes)
+  const searchBar = (
+    <div className={cn('relative px-4 pb-3')}>
+      <Search
+        className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+        style={{ left: '1.25rem' }}
+      />
+      <Input
+        type="text"
+        placeholder="Search transcript..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className={cn('pl-8 pr-20 h-9')}
+        autoFocus
+      />
+      {searchTerm && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2" style={{ right: '1.25rem' }}>
+          <span className="text-xs text-muted-foreground">
+            {searchMatchCount} match{searchMatchCount !== 1 ? 'es' : ''}
+          </span>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
-            onClick={() => setShowSearch(!showSearch)}
-            aria-label={showSearch ? 'Close search' : 'Search transcript'}
+            className="h-5 w-5"
+            onClick={() => setSearchTerm('')}
+            aria-label="Clear search"
           >
-            {showSearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+            <X className="h-3 w-3" />
           </Button>
         </div>
+      )}
+    </div>
+  );
 
-        {showSearch && (
-          <div className="relative mt-2">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search transcript..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-20 h-9"
-              autoFocus
+  // Transcript content (reused in both modes)
+  const transcriptContent = (
+    <>
+      <div ref={scrollAreaRef} className="px-4">
+        <div className="space-y-1">
+          {filteredGroups.map((group, groupIndex) => (
+            <ChapterGroupItem
+              key={group.chapter?.id ?? `ungrouped-${groupIndex}`}
+              group={group}
+              segments={segments}
+              currentSegmentIndex={currentSegmentIndex}
+              searchTerm={searchTerm}
+              isCurrentChapter={group.chapter?.id === currentChapterId}
+              defaultExpanded={groupIndex === 0 || group.chapter?.id === currentChapterId}
+              onSeek={handleSeek}
             />
-            {searchTerm && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {searchMatchCount} match{searchMatchCount !== 1 ? 'es' : ''}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5"
-                  onClick={() => setSearchTerm('')}
-                  aria-label="Clear search"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-          </div>
+          ))}
+        </div>
+
+        {searchTerm && searchMatchCount === 0 && (
+          <div className="py-8 text-center text-muted-foreground text-sm">No matches found for "{searchTerm}"</div>
         )}
-      </CardHeader>
+      </div>
+    </>
+  );
 
-      <CardContent className="pt-0">
-        <ScrollArea ref={scrollAreaRef} className="pr-4" style={{ maxHeight: '500px' }} onScrollCapture={handleScroll}>
-          <div className="space-y-1">
-            {filteredGroups.map((group, groupIndex) => (
-              <ChapterGroupItem
-                key={group.chapter?.id ?? `ungrouped-${groupIndex}`}
-                group={group}
-                segments={segments}
-                currentSegmentIndex={currentSegmentIndex}
-                searchTerm={searchTerm}
-                isCurrentChapter={group.chapter?.id === currentChapterId}
-                defaultExpanded={groupIndex === 0 || group.chapter?.id === currentChapterId}
-                onSeek={handleSeek}
-              />
-            ))}
-          </div>
-
-          {searchTerm && searchMatchCount === 0 && (
-            <div className="py-8 text-center text-muted-foreground text-sm">No matches found for "{searchTerm}"</div>
-          )}
-        </ScrollArea>
-
-        {userHasScrolled && (
-          <div className="flex justify-center mt-2">
-            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setUserHasScrolled(false)}>
-              Resume auto-scroll
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <div className={cn('relative flex flex-col h-full', className)}>
+      {/* Compact search toggle */}
+      <div className="flex items-center justify-end px-4 pb-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => setShowSearch(!showSearch)}
+          aria-label={showSearch ? 'Close search' : 'Search transcript'}
+        >
+          {showSearch ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+      {showSearch && searchBar}
+      <div className="flex-1 overflow-hidden">{transcriptContent}</div>
+    </div>
   );
 }

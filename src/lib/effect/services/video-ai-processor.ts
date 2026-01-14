@@ -13,6 +13,7 @@ import { eq } from 'drizzle-orm';
 import { Context, Effect, Layer, pipe } from 'effect';
 import {
   type ActionItem,
+  aiActionItems,
   notifications,
   type ProcessingStatus,
   type TranscriptSegment,
@@ -214,6 +215,39 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
         }),
     });
 
+  const saveActionItemsToTable = (
+    videoId: string,
+    organizationId: string,
+    actionItems: ReadonlyArray<ActionItem>,
+  ): Effect.Effect<void, VideoAIProcessingError> =>
+    Effect.tryPromise({
+      try: async () => {
+        // Delete existing AI-extracted action items for this video
+        await db.delete(aiActionItems).where(eq(aiActionItems.videoId, videoId));
+
+        // Insert new action items
+        if (actionItems.length > 0) {
+          await db.insert(aiActionItems).values(
+            actionItems.map((item) => ({
+              organizationId,
+              videoId,
+              title: item.text,
+              priority: item.priority ?? 'medium',
+              timestampStart: item.timestamp ?? null,
+              confidence: 80, // Default confidence for AI-extracted items
+            })),
+          );
+        }
+      },
+      catch: (e) =>
+        new VideoAIProcessingError({
+          message: 'Failed to save action items to table',
+          stage: 'analyzing',
+          videoId,
+          cause: e,
+        }),
+    });
+
   const saveChapters = (
     videoId: string,
     chapters: ReadonlyArray<ChapterResult>,
@@ -335,6 +369,32 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
     videoTitle?: string,
   ): Effect.Effect<AIProcessingResult, VideoAIProcessingError> =>
     Effect.gen(function* () {
+      // Get video to retrieve organizationId for action items table
+      const video = yield* Effect.tryPromise({
+        try: () =>
+          db.query.videos.findFirst({
+            where: eq(videos.id, videoId),
+            columns: { organizationId: true },
+          }),
+        catch: (e) =>
+          new VideoAIProcessingError({
+            message: 'Failed to get video for action items',
+            stage: 'analyzing',
+            videoId,
+            cause: e,
+          }),
+      });
+
+      if (!video?.organizationId) {
+        return yield* Effect.fail(
+          new VideoAIProcessingError({
+            message: 'Video not found or missing organization',
+            stage: 'analyzing',
+            videoId,
+          }),
+        );
+      }
+
       // Update status to analyzing
       yield* updateProcessingStatus(videoId, 'analyzing');
 
@@ -373,7 +433,11 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
 
       // Save all results to database
       yield* Effect.all(
-        [saveAIAnalysis(videoId, summaryResult, tagsResult, actionItems), saveChapters(videoId, chaptersResult)],
+        [
+          saveAIAnalysis(videoId, summaryResult, tagsResult, actionItems),
+          saveChapters(videoId, chaptersResult),
+          saveActionItemsToTable(videoId, video.organizationId, actionItems),
+        ],
         { concurrency: 'unbounded' },
       );
 
