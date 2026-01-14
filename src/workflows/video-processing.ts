@@ -1341,7 +1341,6 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   }
 
   // Step 2: Transcribe the video
-  let transcription: TranscriptionResult;
   const transcribeResult = await transcribeVideo(videoUrl).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
     isFatal: error instanceof FatalError,
@@ -1353,7 +1352,7 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     }
     return handleWorkflowFailure(videoId, transcribeResult.error);
   }
-  transcription = transcribeResult;
+  const transcription: TranscriptionResult = transcribeResult;
 
   // Step 3: Save transcript and duration
   const saveTranscriptResult = await saveTranscript(

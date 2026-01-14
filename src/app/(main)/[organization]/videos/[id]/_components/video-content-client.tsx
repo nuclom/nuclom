@@ -7,7 +7,7 @@
  * Syncs transcript highlighting with video playback time.
  */
 
-import { CheckCircle2, Clock, Lightbulb, Loader2, Play, RefreshCw, Share2, Sparkles, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Play, RefreshCw, Share2, Sparkles, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
@@ -90,69 +90,122 @@ function ProcessingStatus({ status, error, createdAt, onRetry, isRetrying }: Pro
 // Action Items List
 // =============================================================================
 
+interface DatabaseActionItem {
+  id: string;
+  title: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  priority: 'high' | 'medium' | 'low';
+  timestampStart: number | null;
+}
+
 interface ActionItemsListProps {
-  items: ActionItem[];
   videoId: string;
+  organizationId: string;
   onSeek?: (time: number) => void;
 }
 
-function ActionItemsList({ items, videoId, onSeek }: ActionItemsListProps) {
-  const [completedItems, setCompletedItems] = useState<Set<number>>(() => {
-    if (typeof window === 'undefined') return new Set();
-    const stored = localStorage.getItem(`action-items-${videoId}`);
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  });
+function ActionItemsList({ videoId, organizationId, onSeek }: ActionItemsListProps) {
+  const [actionItems, setActionItems] = useState<DatabaseActionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const toggleItem = useCallback(
-    (index: number) => {
-      setCompletedItems((prev) => {
-        const next = new Set(prev);
-        if (next.has(index)) {
-          next.delete(index);
-        } else {
-          next.add(index);
+  // Fetch action items from database
+  useEffect(() => {
+    async function fetchActionItems() {
+      try {
+        const response = await fetch(
+          `/api/insights/action-items?organizationId=${organizationId}&videoId=${videoId}&limit=50`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setActionItems(data.data?.actionItems || []);
         }
-        localStorage.setItem(`action-items-${videoId}`, JSON.stringify([...next]));
-        return next;
-      });
-    },
-    [videoId],
-  );
+      } catch (error) {
+        console.error('Failed to fetch action items:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchActionItems();
+  }, [videoId, organizationId]);
 
-  if (items.length === 0) return null;
+  const toggleItem = useCallback(async (item: DatabaseActionItem) => {
+    const newStatus = item.status === 'completed' ? 'pending' : 'completed';
+    setUpdatingId(item.id);
+
+    try {
+      const response = await fetch(`/api/insights/action-items/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        setActionItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i)));
+      }
+    } catch (error) {
+      console.error('Failed to update action item:', error);
+    } finally {
+      setUpdatingId(null);
+    }
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (actionItems.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <CheckCircle2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
+        <h3 className="text-sm font-medium mb-1">No action items</h3>
+        <p className="text-sm text-muted-foreground">Action items will appear here once extracted</p>
+      </div>
+    );
+  }
 
   return (
     <ul className="space-y-2">
-      {items.map((item, index) => {
-        const isCompleted = completedItems.has(index);
+      {actionItems.map((item) => {
+        const isCompleted = item.status === 'completed';
+        const isUpdating = updatingId === item.id;
         return (
-          <li key={index} className="flex items-start gap-3 group">
+          <li key={item.id} className="flex items-start gap-3 group">
             <button
               type="button"
-              onClick={() => toggleItem(index)}
+              onClick={() => toggleItem(item)}
+              disabled={isUpdating}
               className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
                 isCompleted ? 'bg-primary border-primary' : 'border-muted-foreground/30 hover:border-primary/50'
-              }`}
+              } ${isUpdating ? 'opacity-50' : ''}`}
             >
-              <CheckCircle2
-                className={`h-3 w-3 transition-opacity ${
-                  isCompleted
-                    ? 'text-primary-foreground opacity-100'
-                    : 'text-muted-foreground/50 opacity-0 group-hover:opacity-100'
-                }`}
-              />
+              {isUpdating ? (
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+              ) : (
+                <CheckCircle2
+                  className={`h-3 w-3 transition-opacity ${
+                    isCompleted
+                      ? 'text-primary-foreground opacity-100'
+                      : 'text-muted-foreground/50 opacity-0 group-hover:opacity-100'
+                  }`}
+                />
+              )}
             </button>
             <div className="flex-1 min-w-0">
               <p className={`text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-                {item.text}
+                {item.title}
               </p>
-              {item.timestamp !== undefined && item.timestamp !== null && onSeek && (
+              {item.timestampStart !== null && onSeek && (
                 <button
                   type="button"
-                  onClick={() => onSeek(item.timestamp as number)}
+                  onClick={() => onSeek(item.timestampStart as number)}
                   className="text-xs text-muted-foreground hover:text-foreground font-mono transition-colors mt-1"
                 >
-                  {formatTime(item.timestamp)}
+                  {formatTime(item.timestampStart)}
                 </button>
               )}
             </div>
@@ -491,15 +544,7 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
 
               {/* Action Items Tab */}
               <TabsContent value="action-items" className="mt-6">
-                {actionItems.length > 0 ? (
-                  <ActionItemsList items={actionItems} videoId={video.id} onSeek={handleSeek} />
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <CheckCircle2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                    <h3 className="text-sm font-medium mb-1">No action items</h3>
-                    <p className="text-sm text-muted-foreground">Action items will appear here once extracted</p>
-                  </div>
-                )}
+                <ActionItemsList videoId={video.id} organizationId={video.organization.id} onSeek={handleSeek} />
               </TabsContent>
 
               {/* Decisions Tab */}

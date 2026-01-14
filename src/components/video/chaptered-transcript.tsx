@@ -11,10 +11,9 @@
  * - Search across all segments
  */
 
-import { ChevronDown, ChevronRight, FileText, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { TranscriptSegment } from '@/lib/db/schema';
 import { formatTime } from '@/lib/format-utils';
@@ -381,7 +380,7 @@ export function ChapteredTranscript({
       setUserHasScrolled(false);
     }
     lastTimeRef.current = currentTime;
-  }, [currentTime]);
+  }, [currentTime, setUserHasScrolled]);
 
   // Detect user scrolling via wheel event
   useEffect(() => {
@@ -394,7 +393,7 @@ export function ChapteredTranscript({
 
     scrollArea.addEventListener('wheel', handleWheel, { passive: true });
     return () => scrollArea.removeEventListener('wheel', handleWheel);
-  }, []);
+  }, [setUserHasScrolled]);
 
   // Handle seek - don't reset scroll state here, let the jump detection handle it
   const handleSeek = useCallback(
