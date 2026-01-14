@@ -18,6 +18,7 @@ src/lib/db/schema/
 ├── billing.ts         # Subscription and payment tables
 ├── integrations.ts    # External service integrations
 ├── knowledge.ts       # Knowledge graph tables
+├── chat.ts            # AI chat knowledge base tables
 ├── ai-insights.ts     # AI-extracted topics and action items
 ├── analytics.ts       # Video analytics and metrics
 ├── speakers.ts        # Speaker diarization tables
