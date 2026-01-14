@@ -12,10 +12,10 @@ Videos are the core content type in Nuclom. Each video belongs to an organizatio
 
 - **Video Management**: Upload, update, and delete videos
 - **AI Processing**: Automatic transcription, summarization, and action item extraction
-- **Comments**: Timestamped comments with threading and reactions
 - **Progress Tracking**: Track user viewing progress
 - **Sharing**: Public/password-protected share links
 - **Subtitles**: Multi-language subtitle support
+- **Knowledge Graph**: Decision tracking and organizational knowledge
 
 ## API Endpoints
 
@@ -49,16 +49,6 @@ The following endpoints are available. See the OpenAPI spec for full details.
 | `GET /videos/{id}/subtitles` | List available subtitle languages |
 | `GET /videos/{id}/subtitles/{lang}` | Get subtitle file (VTT/SRT) |
 
-### Comments
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /videos/{id}/comments` | List comments for a video |
-| `POST /videos/{id}/comments` | Add a comment |
-| `PATCH /comments/{id}` | Update a comment |
-| `DELETE /comments/{id}` | Delete a comment |
-| `POST /comments/{id}/reactions` | Add reaction to comment |
-
 ### Progress & Analytics
 
 | Endpoint | Description |
@@ -90,24 +80,6 @@ interface Video {
   isDeleted: boolean;
   deletedAt?: string;
   retentionUntil?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### Comment
-
-```typescript
-interface Comment {
-  id: string;
-  content: string;
-  timestamp?: string;      // Video timestamp "HH:MM:SS"
-  authorId: string;
-  videoId: string;
-  parentId?: string;       // For threaded replies
-  author?: User;
-  replies?: Comment[];
-  reactions?: Reaction[];
   createdAt: string;
   updatedAt: string;
 }
@@ -161,7 +133,6 @@ Soft-deleted videos can be restored during the retention period.
 | Create video | Organization member |
 | Update video | Video author or organization owner |
 | Delete video | Video author or organization owner |
-| Comment | Organization member |
 
 ## Error Codes
 
@@ -203,16 +174,4 @@ await fetch("/api/videos/upload", {
   body: formData
 });
 
-// Add timestamped comment
-await fetch(`/api/videos/${videoId}/comments`, {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${token}`,
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    content: "Great point here!",
-    timestamp: "00:15:30"
-  })
-});
 ```

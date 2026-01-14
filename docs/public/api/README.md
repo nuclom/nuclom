@@ -46,7 +46,6 @@ curl -X GET "https://nuclom.com/api/videos" \
 | **Authentication** | Sign up, sign in, OAuth, sessions | [authentication.md](authentication.md) |
 | **Videos** | Upload, manage, and stream videos | [videos.md](videos.md) |
 | **Organizations** | Teams, members, and permissions | [organizations.md](organizations.md) |
-| **Comments** | Time-stamped discussions | [comments.md](comments.md) |
 | **Notifications** | User notifications | [notifications.md](notifications.md) |
 
 ### AI & Analytics
@@ -228,21 +227,6 @@ interface Video {
   seriesId?: string
   transcript?: string
   aiSummary?: string
-  createdAt: string
-  updatedAt: string
-}
-```
-
-### Comment
-
-```typescript
-interface Comment {
-  id: string
-  content: string
-  timestamp?: string    // Video timestamp (e.g., "01:23")
-  authorId: string
-  videoId: string
-  parentId?: string     // For threaded replies
   createdAt: string
   updatedAt: string
 }

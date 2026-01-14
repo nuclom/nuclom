@@ -1,177 +1,59 @@
 # Collaboration Features Guide
 
-Nuclom's collaboration features transform video viewing from a passive experience into an interactive team activity. This guide covers comments, sharing, real-time collaboration, and advanced teamwork features.
+Nuclom's collaboration features transform video content into actionable knowledge for your team. This guide covers sharing, real-time collaboration, notifications, and knowledge management.
 
 ## What You'll Learn
 
-- Time-stamped comments and discussions
 - Video sharing and permissions
-- Real-time collaboration features
-- Notification management
-- Collaboration workflows
+- Real-time presence and notifications
+- Knowledge graph and decision tracking
+- Activity feeds and team workflows
 - Advanced sharing options
 
 ## Getting Started with Collaboration
 
 ### The Collaboration Mindset
 
-**From Viewing to Collaborating**
+**From Viewing to Knowledge**
 
 - Traditional video viewing is passive
-- Nuclom makes video content collaborative
-- Comments create discussions around content
+- Nuclom extracts knowledge from video content
+- AI-powered insights surface key information
 - Sharing builds knowledge across teams
 
 **Key Collaboration Features**
 
-- **Time-stamped comments** - Feedback at specific moments
-- **Threaded discussions** - Organized conversation flow
-- **Real-time notifications** - Stay updated on activity
-- **@mentions** - Direct attention to specific people
-- **Sharing controls** - Manage who sees what content
+- **Video sharing** - Share with teams or external viewers
+- **Real-time presence** - See who's viewing content
+- **Notifications** - Stay updated on activity
+- **Knowledge graph** - Track decisions and topics
+- **Activity feed** - Monitor team engagement
 
 ### Your First Collaboration
 
-**Step 1: Watch and Comment**
+**Step 1: Share a Video**
 
 1. Open any video in your organization
-2. Play the video and pause at an interesting moment
-3. Click the **comment button** or press **"C"**
-4. Type your comment and press **Enter**
-5. Your comment appears with a timestamp
+2. Click the **Share** button
+3. Choose your sharing method:
+   - Share with organization members
+   - Generate a shareable link
+   - Embed in external sites
+4. Set appropriate permissions
 
-**Step 2: Start a Discussion**
+**Step 2: Track Team Activity**
 
-1. Read existing comments from other viewers
-2. Reply to comments by clicking **"Reply"**
-3. Use **@mentions** to notify specific team members
-4. Keep the conversation focused and constructive
+1. View the activity feed for updates
+2. Check notifications for mentions
+3. See who's currently viewing videos
+4. Monitor engagement metrics
 
-**Step 3: Share the Video**
+**Step 3: Build Knowledge**
 
-1. Click the **"Share"** button on the video
-2. Choose sharing method (link, email, or team notification)
-3. Set appropriate permissions for recipients
-4. Add a personal message explaining why you're sharing
-
-## Time-Stamped Comments
-
-### Creating Comments
-
-#### Basic Comments
-
-**During Playback**
-
-1. Pause the video at the desired moment
-2. Click the **comment icon** in the video player
-3. Type your comment
-4. Press **Enter** to submit
-
-**Keyboard Shortcut**
-
-- Press **"C"** while watching to add a comment
-- Comment automatically includes current timestamp
-- Focus automatically goes to comment input
-
-#### Advanced Comment Features
-
-**Formatting Options**
-
-- **Bold text** - `**bold**`
-- **Italic text** - `*italic*`
-- **Code snippets** - `` `code` ``
-- **Links** - Automatic link detection
-- **Lists** - Use `-` for bullet points
-
-**@Mentions**
-
-- Type `@` followed by a team member's name
-- Autocomplete suggests available users
-- Mentioned users receive notifications
-- Creates direct communication channel
-
-### Managing Comments
-
-#### Comment Organization
-
-**Threaded Discussions**
-
-- **Reply to comments** - Click "Reply" under any comment
-- **View threads** - Expand/collapse discussion threads
-- **Sort options** - Chronological, by popularity, or by thread
-- **Filter comments** - Show only your comments or mentions
-
-**Comment Timeline**
-
-- **Timeline view** - See all comments in chronological order
-- **Jump to timestamp** - Click comment timestamp to jump to that moment
-- **Comment density** - Visual indicator of discussion activity
-- **Hot spots** - Identify most-discussed moments
-
-#### Comment Moderation
-
-**Content Guidelines**
-
-- Keep comments professional and constructive
-- Focus on the video content
-- Avoid off-topic discussions
-- Respect team members and their opinions
-
-**Moderation Tools**
-
-- **Edit comments** - Fix typos or update content
-- **Delete comments** - Remove inappropriate content
-- **Report comments** - Flag problematic content
-- **Moderate channel** - Channel admins can moderate all comments
-
-### Comment Best Practices
-
-#### Effective Commenting
-
-**Be Specific**
-
-- Reference exact moments or topics
-- Provide context for your feedback
-- Include actionable suggestions
-- Ask specific questions
-
-**Be Constructive**
-
-- Offer solutions, not just problems
-- Acknowledge good points before suggesting changes
-- Use positive language when possible
-- Focus on content, not personality
-
-**Be Timely**
-
-- Comment soon after watching
-- Respond to replies promptly
-- Keep discussions active and relevant
-- Follow up on action items
-
-#### Comment Examples
-
-**Good Comments**
-
-```
-@john Great explanation of the new feature at 2:15!
-One question: how does this handle edge cases with
-large datasets?
-
-The design mockup at 5:30 looks fantastic. Have we
-considered how this will work on mobile devices?
-
-Action item: @sarah can you create a follow-up
-video showing the implementation details?
-```
-
-**Comments to Avoid**
-
-```
-Good video. (too generic)
-This is wrong. (not constructive)
-I don't understand anything. (not specific)
-```
+1. Review AI-extracted decisions
+2. Explore the knowledge graph
+3. Track action items
+4. Connect videos to external resources
 
 ## Sharing and Permissions
 
@@ -230,23 +112,16 @@ I don't understand anything. (not specific)
 **Viewer**
 
 - Watch videos
-- Read comments
+- View AI insights and summaries
 - Basic sharing capabilities
 - No editing permissions
 
-**Commenter**
-
-- All viewer permissions
-- Add comments and replies
-- @mention other users
-- Participate in discussions
-
 **Contributor**
 
-- All commenter permissions
+- All viewer permissions
 - Upload videos to shared channels
 - Edit video metadata
-- Moderate comments
+- Manage content organization
 
 **Admin**
 
@@ -260,7 +135,7 @@ I don't understand anything. (not specific)
 **Video-Level Permissions**
 
 1. Open video settings
-2. Navigate to **"Permissions"** tab
+2. Navigate to **Permissions** tab
 3. Set default access level
 4. Add specific user permissions
 5. Configure sharing options
@@ -268,7 +143,7 @@ I don't understand anything. (not specific)
 **Bulk Permission Changes**
 
 1. Select multiple videos
-2. Choose **"Change Permissions"** from actions menu
+2. Choose **Change Permissions** from actions menu
 3. Set new permission levels
 4. Apply changes to all selected videos
 
@@ -283,12 +158,12 @@ I don't understand anything. (not specific)
 - Schedule future access grants
 - Useful for event-based content
 
-**Location-Based Access**
+**Link Expiration**
 
-- Restrict access to specific geographic regions
-- IP-based access controls
-- Useful for compliance requirements
-- Enhanced security for sensitive content
+- Set expiration dates on share links
+- Perfect for time-sensitive content
+- Automatic cleanup after expiration
+- View count limits available
 
 #### Sharing Analytics
 
@@ -296,7 +171,7 @@ I don't understand anything. (not specific)
 
 - See who has viewed shared content
 - Track viewing completion rates
-- Monitor comment engagement
+- Monitor engagement patterns
 - Identify popular content
 
 **Sharing Metrics**
@@ -308,32 +183,32 @@ I don't understand anything. (not specific)
 
 ## Real-Time Collaboration
 
-### Live Collaboration Features
+### Presence Features
 
-#### Synchronized Viewing
+#### User Presence
 
-**Watch Parties**
+**Real-Time Status**
 
-- Watch videos together in real-time
-- Synchronized playback across viewers
-- Live chat during viewing
-- Perfect for team reviews or training
+- See who's currently online
+- View current video being watched
+- Watch position tracking
+- Status indicators (online, away, busy)
 
-**Screen Sharing Integration**
+**Team Awareness**
 
-- Share Nuclom videos during video calls
-- Maintain comment functionality
-- Combine with presentation tools
-- Enhanced remote collaboration
+- Know when colleagues are available
+- Coordinate viewing sessions
+- Identify subject matter experts
+- Facilitate just-in-time discussions
 
-#### Real-Time Notifications
+### Notifications
 
 **Activity Alerts**
 
-- New comments on videos you're watching
-- Replies to your comments
-- @mentions in discussions
 - New videos in subscribed channels
+- Sharing notifications
+- AI processing completion
+- Action item assignments
 
 **Customizable Notifications**
 
@@ -342,33 +217,85 @@ I don't understand anything. (not specific)
 - Schedule quiet hours
 - Manage notification frequency
 
-### Collaboration Workflows
+### @Mentions
 
-#### Review and Approval
+**Getting Attention**
+
+- Mention team members in video titles and descriptions
+- Tag users in action items
+- Direct attention to specific content
+- Facilitate follow-up
+
+## Knowledge Management
+
+### Decision Tracking
+
+**AI-Extracted Decisions**
+
+- Automatic decision detection from videos
+- Decision status tracking (proposed, decided, revisited)
+- Participant identification
+- Context preservation
+
+**Decision Management**
+
+- Review decisions across videos
+- Track decision history
+- Link to external resources (GitHub, Jira, etc.)
+- Search decisions semantically
+
+### Knowledge Graph
+
+**Connected Knowledge**
+
+- Link people, topics, and decisions
+- Visualize relationships
+- Navigate between related content
+- Build organizational memory
+
+**External Links**
+
+- Connect to GitHub PRs and issues
+- Link to documentation
+- Reference code files
+- Integrate with project tools
+
+### Action Items
+
+**Task Extraction**
+
+- AI automatically identifies action items
+- Assignment and due dates
+- Priority levels
+- Status tracking
+
+**Action Item Workflow**
+
+1. Review extracted action items
+2. Assign to team members
+3. Set due dates and priorities
+4. Track completion status
+
+## Collaboration Workflows
+
+### Review and Approval
 
 **Content Review Process**
 
 1. **Draft Stage** - Upload video as private
 2. **Review Stage** - Share with reviewers for feedback
-3. **Revision Stage** - Make changes based on comments
+3. **Revision Stage** - Make changes based on insights
 4. **Approval Stage** - Get final approval from stakeholders
 5. **Publication Stage** - Release to wider audience
 
-**Approval Workflows**
-
-- Set up required approvals for certain content
-- Automatic notifications to approvers
-- Track approval status
-- Maintain audit trail
-
-#### Team Communication
+### Team Communication
 
 **Daily Standups**
 
 - Share daily update videos
-- Comment with questions or updates
+- Review AI summaries for quick catchup
+- Track action items across videos
 - Keep remote teams connected
-- Maintain project momentum
 
 **Project Updates**
 
@@ -384,66 +311,30 @@ I don't understand anything. (not specific)
 - Onboard new team members
 - Build institutional knowledge
 
-## Advanced Collaboration Tools
+## Collaboration Analytics
 
-### Integration Features
-
-#### Calendar Integration
-
-**Meeting Recordings**
-
-- Automatically upload meeting recordings
-- Link to calendar events
-- Include meeting notes and agenda
-- Easy sharing with attendees
-
-**Scheduled Sharing**
-
-- Schedule content sharing for specific times
-- Align with meeting schedules
-- Automatic reminder notifications
-- Time zone awareness
-
-#### Project Management Integration
-
-**Task Creation**
-
-- Create tasks from video comments
-- Link videos to project tickets
-- Track action items and deadlines
-- Integrate with project management tools
-
-**Progress Tracking**
-
-- Monitor video-based training completion
-- Track project milestone videos
-- Generate progress reports
-- Identify bottlenecks and issues
-
-### Collaboration Analytics
-
-#### Team Engagement
+### Team Engagement
 
 **Participation Metrics**
 
-- Comment activity by team member
 - Video viewing patterns
 - Sharing behavior analysis
 - Collaboration frequency
+- Content engagement rates
 
 **Content Performance**
 
-- Most-commented videos
 - Highest engagement rates
 - Popular sharing destinations
 - Trending topics and themes
+- Most-referenced decisions
 
-#### Productivity Insights
+### Productivity Insights
 
 **Time Savings**
 
-- Measure time saved through video communication
-- Compare to traditional meeting times
+- Measure time saved through AI summaries
+- Compare to traditional meeting reviews
 - Track knowledge transfer efficiency
 - ROI analysis for video collaboration
 
@@ -458,37 +349,21 @@ I don't understand anything. (not specific)
 
 ### Creating Collaborative Content
 
-#### Design for Discussion
+#### Design for Knowledge Sharing
 
-**Leave Room for Questions**
-
-- Pause at key moments
-- Ask specific questions
-- Encourage viewer participation
-- Create natural discussion points
-
-**Structure for Collaboration**
+**Structure for Clarity**
 
 - Clear introduction and objectives
 - Logical flow and organization
+- Key decisions clearly stated
 - Summary and next steps
-- Call-to-action for viewers
 
-#### Encourage Participation
+**Enable Discovery**
 
-**Ask Direct Questions**
-
-- "What do you think about this approach?"
-- "How would you handle this situation?"
-- "What questions do you have?"
-- "What should we do next?"
-
-**Use @Mentions Strategically**
-
-- Mention specific experts for their input
-- Tag decision-makers for approvals
-- Include relevant stakeholders
-- Distribute discussion fairly
+- Use descriptive titles
+- Add comprehensive descriptions
+- Organize into appropriate channels
+- Tag with relevant topics
 
 ### Managing Collaboration
 
@@ -497,32 +372,16 @@ I don't understand anything. (not specific)
 **Communication Guidelines**
 
 - Response time expectations
-- Comment quality standards
+- Sharing best practices
 - Professional communication norms
-- Conflict resolution procedures
+- Decision documentation standards
 
 **Collaboration Roles**
 
-- Define who should comment
+- Define content ownership
 - Establish review responsibilities
 - Set approval requirements
 - Clarify decision-making authority
-
-#### Maintain Momentum
-
-**Regular Check-ins**
-
-- Schedule collaboration reviews
-- Monitor discussion activity
-- Follow up on action items
-- Celebrate collaboration successes
-
-**Feedback Loops**
-
-- Collect feedback on collaboration processes
-- Iterate on workflows
-- Improve based on team input
-- Measure collaboration effectiveness
 
 ### Troubleshooting Collaboration Issues
 
@@ -530,33 +389,19 @@ I don't understand anything. (not specific)
 
 **Low Engagement**
 
-- Make content more interactive
-- Ask specific questions
-- Use @mentions to directly involve people
+- Make content more discoverable
+- Use notifications strategically
 - Provide clear calls-to-action
+- Leverage AI insights
 
-**Off-Topic Discussions**
+**Information Overload**
 
-- Redirect conversations back to content
-- Use moderation tools when necessary
-- Create separate channels for general discussion
-- Set clear collaboration guidelines
-
-**Overwhelming Notifications**
-
-- Adjust notification settings
-- Use digest notifications instead of real-time
+- Organize content into channels
+- Use AI summaries for quick review
 - Prioritize important notifications
-- Educate team on notification management
+- Create focused content series
 
 #### Technical Issues
-
-**Comment Sync Problems**
-
-- Refresh the page
-- Check internet connection
-- Clear browser cache
-- Contact support if persistent
 
 **Sharing Link Issues**
 

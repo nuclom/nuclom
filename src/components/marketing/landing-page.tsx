@@ -127,11 +127,11 @@ export function LandingPage() {
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                 3
               </div>
-              <h4 className="text-xl font-semibold mb-3">Collaborate Together</h4>
+              <h4 className="text-xl font-semibold mb-3">Extract Insights</h4>
               <p className="text-muted-foreground">
-                Add time-stamped comments, share feedback, and track progress, all in one place.
+                AI extracts key decisions, action items, and summaries. Build your team's knowledge base.
               </p>
-              <MessageSquare className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+              <Network className="w-12 h-12 text-primary/20 mx-auto mt-6" />
             </div>
           </div>
         </div>
@@ -168,9 +168,9 @@ export function LandingPage() {
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Users className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">Real-Time Collaboration</CardTitle>
+                <CardTitle className="text-xl mb-3">Team Collaboration</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Time-stamped comments, threaded discussions, @mentions, reactions, and real-time presence.
+                  Real-time presence, activity feeds, smart sharing, and notifications for seamless teamwork.
                 </CardDescription>
               </CardHeader>
             </Card>

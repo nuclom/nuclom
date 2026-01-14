@@ -21,7 +21,6 @@ import {
   Network,
   Palette,
   Play,
-  Quote,
   Scissors,
   Search,
   Settings,
@@ -139,28 +138,16 @@ const featureCategories = [
     color: 'from-green-500/20 to-green-500/5',
     features: [
       {
-        icon: MessageSquare,
-        title: 'Time-Stamped Comments',
+        icon: Share2,
+        title: 'Smart Sharing',
         description:
-          'Add comments at specific moments in videos. Jump directly to the relevant section when viewing feedback.',
-      },
-      {
-        icon: MessageSquare,
-        title: 'Threaded Discussions',
-        description:
-          'Engage in nested reply threads for detailed discussions. Keep conversations organized and contextual.',
-      },
-      {
-        icon: Star,
-        title: 'Rich Reactions',
-        description:
-          'Express yourself with emoji reactions including like, love, laugh, surprised, sad, thinking, and celebrate.',
+          'Share videos with your team or external viewers. Control access with granular permissions and expiration.',
       },
       {
         icon: Bell,
-        title: '@Mentions & Notifications',
+        title: 'Notifications & Alerts',
         description:
-          'Mention team members to get their attention. Receive notifications for comments, mentions, and activity.',
+          'Stay informed about new videos, processing completion, and team activity with customizable notifications.',
       },
       {
         icon: Users,
@@ -240,10 +227,9 @@ const featureCategories = [
           'Compile multiple clips into highlight videos. Perfect for summaries, training, and presentations.',
       },
       {
-        icon: Quote,
-        title: 'Quote Cards',
-        description:
-          'Extract and share memorable quotes with beautiful styling. Great for social media and presentations.',
+        icon: Star,
+        title: 'Key Moment Export',
+        description: 'Export important moments as standalone clips. Perfect for sharing insights and decisions.',
       },
     ],
   },
@@ -380,7 +366,7 @@ const featureCategories = [
       {
         icon: Settings,
         title: 'Notification Preferences',
-        description: 'Customize email and push notifications. Control frequency for comments, mentions, and digests.',
+        description: 'Customize email and push notifications. Control frequency for activity and digest updates.',
       },
       {
         icon: Palette,
