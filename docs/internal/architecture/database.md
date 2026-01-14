@@ -14,7 +14,6 @@ src/lib/db/schema/
 ├── user-extensions.ts # Application-specific user data (decoupled from auth)
 ├── relations.ts       # All Drizzle ORM relations
 ├── videos.ts          # Video and channel tables
-├── comments.ts        # Comment and reaction tables
 ├── notifications.ts   # User notification tables
 ├── billing.ts         # Subscription and payment tables
 ├── integrations.ts    # External service integrations
@@ -120,17 +119,6 @@ erDiagram
         updated_at timestamp
     }
 
-    comments {
-        id text PK
-        content text
-        timestamp text
-        author_id text FK
-        video_id text FK
-        parent_id text FK
-        created_at timestamp
-        updated_at timestamp
-    }
-
     video_progress {
         id text PK
         user_id text FK
@@ -146,17 +134,13 @@ erDiagram
     organizations ||--o{ series : "contains"
     organizations ||--o{ videos : "contains"
     users ||--o{ videos : "creates"
-    users ||--o{ comments : "writes"
     users ||--o{ video_progress : "tracks"
-    videos ||--o{ comments : "has"
     videos ||--o{ video_progress : "has"
     videos ||--o{ video_moments : "has"
     videos ||--o{ video_clips : "has"
-    videos ||--o{ quote_cards : "has"
     video_moments ||--o{ video_clips : "creates"
     channels ||--o{ videos : "organizes"
     series ||--o{ videos : "organizes"
-    comments ||--o{ comments : "replies to"
 
     video_moments {
         id text PK
@@ -204,20 +188,6 @@ erDiagram
         created_by text FK
         created_at timestamp
         updated_at timestamp
-    }
-
-    quote_cards {
-        id text PK
-        video_id text FK
-        organization_id text FK
-        quote_text text
-        speaker text
-        timestamp_seconds integer
-        template jsonb
-        image_url text
-        storage_key text
-        created_by text FK
-        created_at timestamp
     }
 ```
 
@@ -328,30 +298,6 @@ CREATE TABLE videos (
 - Author attribution and organization isolation
 - Optional categorization (channel/collection can be null)
 
-### Comments Table
-
-Hierarchical comment system for video discussions.
-
-```sql
-CREATE TABLE comments (
-    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-    content TEXT NOT NULL,
-    timestamp TEXT, -- Video timestamp for context
-    author_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
-    parent_id TEXT REFERENCES comments(id), -- Self-referencing for replies
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-);
-```
-
-**Key Features:**
-
-- Threaded comments with parent-child relationships
-- Video timestamp association for contextual comments
-- Cascade deletion maintains data integrity
-- Self-referencing foreign key for reply threads
-
 ### Video Progress Table
 
 Tracks user viewing progress and completion status.
@@ -391,9 +337,9 @@ CREATE TABLE video_progress (
 
 ### Engagement Tracking
 
-- **Comment Threads**: Hierarchical discussion structure
 - **Progress Tracking**: Individual viewing progress per user
-- **Timestamped Comments**: Comments linked to specific video moments
+- **Decision Tracking**: AI-extracted decisions from videos
+- **Knowledge Graph**: Linked entities for organizational knowledge
 
 ## Data Types and Constraints
 
@@ -428,9 +374,6 @@ CREATE TABLE video_progress (
 -- Video queries by organization
 CREATE INDEX idx_videos_organization_id ON videos(organization_id);
 
--- Comment queries by video
-CREATE INDEX idx_comments_video_id ON comments(video_id);
-
 -- Progress queries by user
 CREATE INDEX idx_video_progress_user_id ON video_progress(user_id);
 
@@ -443,9 +386,6 @@ CREATE INDEX idx_organization_users_organization_id ON organization_users(organi
 ```sql
 -- Video filtering by organization and channel
 CREATE INDEX idx_videos_organization_channel ON videos(organization_id, channel_id);
-
--- Comments with threading
-CREATE INDEX idx_comments_video_parent ON comments(video_id, parent_id);
 ```
 
 ## Security Considerations

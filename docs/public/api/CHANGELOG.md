@@ -25,7 +25,8 @@ All notable changes to the Nuclom API will be documented in this file.
 
 ### Removed
 
-- N/A
+- Comments and discussion system (removed in favor of asynchronous collaboration features)
+- Quote cards feature
 
 ### Fixed
 
@@ -45,7 +46,6 @@ All notable changes to the Nuclom API will be documented in this file.
 - Organization management
 - Video upload and processing
 - AI-powered video analysis
-- Comment and discussion system
 - User progress tracking
 
 ---

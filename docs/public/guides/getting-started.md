@@ -166,14 +166,6 @@ Press **`Cmd/Ctrl + K`** to open the command bar:
 | `F` | Toggle fullscreen |
 | `M` | Toggle mute |
 
-### Comments
-
-| Shortcut | Action |
-| -------- | ------ |
-| `C` | Add comment at current timestamp |
-| `Enter` | Submit comment |
-| `Escape` | Cancel comment |
-
 ---
 
 ## Next Steps
@@ -200,9 +192,9 @@ Now that you're set up:
 
 ### Collaboration Tips
 
-- **@mention team members** — Ensure important feedback is seen
-- **Use time-stamped comments** — Reference specific moments
-- **Respond to comments** — Keep discussions active
+- **Share with your team** — Make content accessible to collaborators
+- **Review AI summaries** — Get key points quickly
+- **Track decisions** — Use the knowledge graph for important choices
 
 ---
 
