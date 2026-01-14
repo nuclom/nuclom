@@ -44,11 +44,18 @@ jobs:
             const maxAttempts = 60;
             const checkInterval = 10000; // 10 seconds
 
+            const deploymentSha =
+              context.payload?.pull_request?.head?.sha ??
+              context.payload?.merge_group?.head_sha ??
+              context.sha;
+
+            console.log(`Looking for deployments for SHA: ${deploymentSha}`);
+
             for (let attempt = 0; attempt < maxAttempts; attempt++) {
               const { data: deployments } = await github.rest.repos.listDeployments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                sha: context.sha,
+                sha: deploymentSha,
                 per_page: 10
               });
 
