@@ -13,7 +13,6 @@
  * - Payment overdue: 30 days suspended, after 30 more days deleted
  */
 
-import { sleep } from 'workflow';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('subscription-enforcement');
@@ -556,70 +555,70 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
 /**
  * Daily subscription enforcement workflow.
  *
- * Runs once per day to:
- * 1. Handle expired trials
- * 2. Suspend accounts with payment issues
- * 3. Schedule data deletion for accounts past grace period
- * 4. Send warning notifications
+ * This workflow executes once and exits - cron handles the daily scheduling.
+ * Each invocation:
+ * 1. Handles expired trials
+ * 2. Suspends accounts with payment issues
+ * 3. Schedules data deletion for accounts past grace period
+ * 4. Sends warning notifications
+ * 5. Returns and exits
  *
- * Uses durable sleep - survives server restarts.
+ * IMPORTANT: This workflow is designed to run once per cron invocation.
+ * Do NOT add infinite loops - the cron schedule handles periodic execution.
  */
-export async function subscriptionEnforcementWorkflow(): Promise<void> {
+export async function subscriptionEnforcementWorkflow(): Promise<EnforcementResult> {
   'use workflow';
 
   log.info({}, 'Starting subscription enforcement workflow');
 
-  // Run forever, once per day
-  while (true) {
-    try {
-      const result: EnforcementResult = {
-        trialExpirationsHandled: 0,
-        suspensionsApplied: 0,
-        deletionsScheduled: 0,
-        notificationsSent: 0,
-        errors: [],
-      };
+  const result: EnforcementResult = {
+    trialExpirationsHandled: 0,
+    suspensionsApplied: 0,
+    deletionsScheduled: 0,
+    notificationsSent: 0,
+    errors: [],
+  };
 
-      // Handle expired trials
-      const trialResult = await handleExpiredTrials();
-      result.trialExpirationsHandled = trialResult.handled;
-      result.notificationsSent += trialResult.notifications;
-      result.errors.push(...trialResult.errors);
+  try {
+    // Handle expired trials
+    const trialResult = await handleExpiredTrials();
+    result.trialExpirationsHandled = trialResult.handled;
+    result.notificationsSent += trialResult.notifications;
+    result.errors.push(...trialResult.errors);
 
-      // Handle trials ending soon (payment method check)
-      const warningResult = await handleTrialsEndingSoon();
-      result.notificationsSent += warningResult.notifications;
-      result.errors.push(...warningResult.errors);
+    // Handle trials ending soon (payment method check)
+    const warningResult = await handleTrialsEndingSoon();
+    result.notificationsSent += warningResult.notifications;
+    result.errors.push(...warningResult.errors);
 
-      // Handle payment issues
-      const paymentResult = await handlePaymentIssues();
-      result.suspensionsApplied = paymentResult.suspended;
-      result.notificationsSent += paymentResult.notifications;
-      result.errors.push(...paymentResult.errors);
+    // Handle payment issues
+    const paymentResult = await handlePaymentIssues();
+    result.suspensionsApplied = paymentResult.suspended;
+    result.notificationsSent += paymentResult.notifications;
+    result.errors.push(...paymentResult.errors);
 
-      // Handle data deletion
-      const deletionResult = await handleDataDeletion();
-      result.deletionsScheduled = deletionResult.scheduled;
-      result.notificationsSent += deletionResult.notifications;
-      result.errors.push(...deletionResult.errors);
+    // Handle data deletion
+    const deletionResult = await handleDataDeletion();
+    result.deletionsScheduled = deletionResult.scheduled;
+    result.notificationsSent += deletionResult.notifications;
+    result.errors.push(...deletionResult.errors);
 
-      log.info(
-        {
-          trialExpirationsHandled: result.trialExpirationsHandled,
-          suspensionsApplied: result.suspensionsApplied,
-          deletionsScheduled: result.deletionsScheduled,
-          notificationsSent: result.notificationsSent,
-          errorCount: result.errors.length,
-        },
-        'Daily enforcement completed',
-      );
-    } catch (error) {
-      log.error({ error }, 'Error in subscription enforcement workflow');
-    }
-
-    // Sleep for 24 hours
-    await sleep(24 * 60 * 60 * 1000);
+    log.info(
+      {
+        trialExpirationsHandled: result.trialExpirationsHandled,
+        suspensionsApplied: result.suspensionsApplied,
+        deletionsScheduled: result.deletionsScheduled,
+        notificationsSent: result.notificationsSent,
+        errorCount: result.errors.length,
+      },
+      'Daily enforcement completed',
+    );
+  } catch (error) {
+    log.error({ error }, 'Error in subscription enforcement workflow');
+    result.errors.push(error instanceof Error ? error.message : String(error));
   }
+
+  return result;
 }
 
 /**

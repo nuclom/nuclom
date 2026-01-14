@@ -170,7 +170,7 @@ await db.insert(videos).values({ title, authorId })
 ## Recent Additions (v2.0)
 
 - Knowledge graph with decision extraction
-- Structured AI outputs (Zod schemas)
+- Structured AI outputs (Effect Schema)
 - Video recommendations
 - Continue watching / Watch later
 - Comment reactions (8 types)

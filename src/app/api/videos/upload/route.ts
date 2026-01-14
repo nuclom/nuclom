@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         }),
     });
 
-    // Validate form fields with Zod schema
+    // Validate form fields with Effect Schema
     const validatedData = yield* validateFormData(VideoUploadSchema, formData);
 
     // Get the video file

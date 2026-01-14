@@ -12,7 +12,6 @@
  * - Consumes no resources during sleep
  */
 
-import { sleep } from 'workflow';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('cleanup-workflow');
@@ -178,31 +177,27 @@ async function safeCleanupExpiredVideos(): Promise<number> {
 }
 
 /**
- * Run video cleanup on a daily schedule.
+ * Run video cleanup once per cron invocation.
  *
- * This workflow runs indefinitely, sleeping for 24 hours between cleanups.
- * The sleep consumes no resources - the workflow is suspended and resumed
- * by the Workflow DevKit runtime.
+ * This workflow executes once and exits - cron handles the daily scheduling.
+ * Each invocation cleans up videos that have passed their retention period.
  *
- * To start this workflow, call it once (e.g., on app startup or via admin endpoint).
- * It will then run forever, cleaning up expired videos daily.
- *
- * Note: Step calls are at top level (not inside try/catch) so the workflow
- * static analyzer can trace them for the debug UI.
+ * IMPORTANT: This workflow is designed to run once per cron invocation.
+ * Do NOT add infinite loops - the cron schedule handles periodic execution.
  */
-export async function scheduledCleanupWorkflow(): Promise<never> {
+export async function scheduledCleanupWorkflow(): Promise<CleanupResult> {
   'use workflow';
 
   log.info({}, 'Starting scheduled video cleanup workflow');
 
-  while (true) {
-    // Run cleanup - errors are handled inside the step
-    const deletedCount = await safeCleanupExpiredVideos();
-    log.info({ deletedCount, timestamp: new Date().toISOString() }, 'Cleanup cycle completed');
+  // Run cleanup - errors are handled inside the step
+  const deletedCount = await safeCleanupExpiredVideos();
+  log.info({ deletedCount, timestamp: new Date().toISOString() }, 'Cleanup cycle completed');
 
-    // Sleep for 24 hours
-    await sleep('24 hours');
-  }
+  return {
+    deletedCount,
+    timestamp: new Date(),
+  };
 }
 
 /**

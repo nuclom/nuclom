@@ -80,7 +80,7 @@ Every API you create includes:
 ## Code Quality Standards
 
 - Use TypeScript for type safety and self-documenting code
-- Validate all inputs at the boundary (use Zod or similar)
+- Validate all inputs at the boundary (use Effect Schema)
 - Implement proper error handling with custom error classes
 - Use middleware patterns for cross-cutting concerns
 - Follow the project's established patterns in CLAUDE.md and docs/

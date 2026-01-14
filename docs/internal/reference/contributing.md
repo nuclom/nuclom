@@ -558,16 +558,17 @@ const videos = await db.query.videos.findMany({
 
 ```typescript
 // ✅ Good: Validate all inputs
-import { z } from "zod/v4";
+import { Effect, Schema } from "effect";
+import { validate } from "@/lib/validation";
 
-const updateVideoSchema = z.object({
-  title: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  duration: z.string().regex(/^\d+:\d{2}$/),
+const updateVideoSchema = Schema.Struct({
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+  duration: Schema.String,
 });
 
 export async function updateVideo(id: string, data: unknown) {
-  const validatedData = updateVideoSchema.parse(data);
+  const validatedData = await Effect.runPromise(validate(updateVideoSchema, data));
   // Process validated data
 }
 ```
@@ -576,15 +577,15 @@ export async function updateVideo(id: string, data: unknown) {
 
 ```typescript
 // ✅ Good: Validate environment variables
-import { z } from "zod/v4";
+import { Config, Effect } from "effect";
 
-const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  BETTER_AUTH_SECRET: z.string().min(32),
-  REPLICATE_API_TOKEN: z.string().startsWith("r8_").optional(),
+const EnvConfig = Config.all({
+  DATABASE_URL: Config.string("DATABASE_URL"),
+  BETTER_AUTH_SECRET: Config.string("BETTER_AUTH_SECRET"),
+  REPLICATE_API_TOKEN: Config.string("REPLICATE_API_TOKEN").pipe(Config.option),
 });
 
-export const env = envSchema.parse(process.env);
+export const env = Effect.runSync(Config.unwrap(EnvConfig));
 ```
 
 ## Accessibility Requirements

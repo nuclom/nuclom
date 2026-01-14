@@ -36,7 +36,7 @@ export {
   generateVideoSummary,
   generateVideoTags,
 } from './ai';
-// AI Structured Service (with Zod schemas)
+// AI Structured Service (Effect Schema)
 export type {
   ActionItemsResult,
   AIStructuredServiceInterface,

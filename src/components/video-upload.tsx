@@ -334,7 +334,10 @@ export function VideoUpload({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setFile(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                }}
                 disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
               >
                 <X className="h-4 w-4 mr-1" />
@@ -360,7 +363,10 @@ export function VideoUpload({
                 type="button"
                 variant="outline"
                 disabled={uploadState.status === 'uploading' || uploadState.status === 'processing'}
-                onClick={() => document.getElementById('video-upload')?.click()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById('video-upload')?.click();
+                }}
               >
                 Select Video File
               </Button>

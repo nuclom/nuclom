@@ -12,6 +12,7 @@ export * from './audit-logs';
 export * from './auth';
 export * from './auth-relations';
 export * from './billing';
+export * from './chat';
 export * from './clips';
 export * from './enums';
 export * from './integrations';

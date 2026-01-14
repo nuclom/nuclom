@@ -89,7 +89,7 @@ graph TB
 | **Multi-organization** | Organization-based routing with permissions |
 | **Video streaming** | R2 storage with CDN distribution |
 | **Real-time comments** | Time-stamped, threaded discussions |
-| **AI summaries** | OpenAI with structured outputs (Zod schemas) |
+| **AI summaries** | OpenAI with structured outputs (Effect Schema) |
 | **Role-based access** | Owner, Admin, Member permissions |
 | **OAuth login** | GitHub and Google providers |
 
