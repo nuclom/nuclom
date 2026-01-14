@@ -1,7 +1,7 @@
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
-import { OrganizationRepository } from '@/lib/effect';
+import { BillingRepository, OrganizationRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
 import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
 import { validateRequestBody } from '@/lib/validation';
@@ -49,6 +49,10 @@ export async function POST(request: NextRequest) {
       logo,
       userId: user.id,
     });
+
+    // Create a 14-day trial subscription for the new organization
+    const billingRepo = yield* BillingRepository;
+    yield* billingRepo.createTrialSubscription(org.id, 14);
 
     // Send Slack monitoring notification
     const slackMonitoring = yield* SlackMonitoring;

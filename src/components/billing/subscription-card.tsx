@@ -56,8 +56,8 @@ const getStatusBadge = (status: string, cancelAtPeriodEnd: boolean) => {
 };
 
 // Plan display names and prices (synced with pricing.md)
+// Note: No free plan - all new users start with a 14-day Scale trial
 const PLAN_DISPLAY_INFO: Record<string, { displayName: string; monthlyPrice: number }> = {
-  free: { displayName: 'Free', monthlyPrice: 0 },
   scale: { displayName: 'Scale', monthlyPrice: 2500 }, // $25.00/user/month
   pro: { displayName: 'Pro', monthlyPrice: 4500 }, // $45.00/user/month
   enterprise: { displayName: 'Enterprise', monthlyPrice: 0 }, // Custom pricing
@@ -105,20 +105,22 @@ export function SubscriptionCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan</CardTitle>
-          <CardDescription>You are currently on the free plan</CardDescription>
+          <CardTitle>No Active Subscription</CardTitle>
+          <CardDescription>Your trial has expired or no subscription is active</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold">Free</p>
-              <p className="text-sm text-muted-foreground">Basic features with limited storage</p>
-            </div>
-            <Badge variant="secondary">Free Tier</Badge>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Subscription Required</AlertTitle>
+            <AlertDescription>
+              To continue using Nuclom, please subscribe to a plan. Your data is being preserved.
+            </AlertDescription>
+          </Alert>
         </CardContent>
         <CardFooter>
-          <p className="text-sm text-muted-foreground">Upgrade to a paid plan to unlock more features and storage.</p>
+          <p className="text-sm text-muted-foreground">
+            Choose a plan below to restore full access to your videos and features.
+          </p>
         </CardFooter>
       </Card>
     );

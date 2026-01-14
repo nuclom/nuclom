@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DuplicateError, UnauthorizedError } from '@/lib/effect/errors';
 import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
+import { BillingRepository, type BillingRepositoryService } from '@/lib/effect/services/billing-repository';
 import {
   OrganizationRepository,
   type OrganizationRepositoryService,
@@ -95,27 +96,44 @@ describe('Organizations API Route', () => {
     sendErrorEvent: vi.fn().mockImplementation(() => Effect.void),
   });
 
+  // Helper to create a mock billing repository
+  const createMockBillingRepository = (): Partial<BillingRepositoryService> => ({
+    createTrialSubscription: vi.fn().mockImplementation(() =>
+      Effect.succeed({
+        id: 'sub-123',
+        plan: 'scale',
+        referenceId: 'org-123',
+        status: 'trialing',
+        trialStart: new Date(),
+        trialEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      }),
+    ),
+  });
+
   // Setup test layer for each test
   const setupTestLayer = (
     options: {
       authenticated?: boolean;
       orgRepo?: Partial<OrganizationRepositoryService>;
       slackMonitoring?: Partial<SlackMonitoringServiceInterface>;
+      billingRepo?: Partial<BillingRepositoryService>;
     } = {},
   ) => {
-    const { authenticated = true, orgRepo = {}, slackMonitoring = {} } = options;
+    const { authenticated = true, orgRepo = {}, slackMonitoring = {}, billingRepo = {} } = options;
     const mockAuth = createMockAuthService(authenticated);
     const mockOrgRepo = { ...createMockOrganizationRepository(), ...orgRepo };
     const mockSlack = { ...createMockSlackMonitoringService(), ...slackMonitoring };
+    const mockBilling = { ...createMockBillingRepository(), ...billingRepo };
 
     const AuthLayer = Layer.succeed(Auth, mockAuth);
     const OrgRepoLayer = Layer.succeed(OrganizationRepository, mockOrgRepo as OrganizationRepositoryService);
     const SlackLayer = Layer.succeed(SlackMonitoring, mockSlack as SlackMonitoringServiceInterface);
-    const testLayer = Layer.mergeAll(AuthLayer, OrgRepoLayer, SlackLayer);
+    const BillingLayer = Layer.succeed(BillingRepository, mockBilling as BillingRepositoryService);
+    const testLayer = Layer.mergeAll(AuthLayer, OrgRepoLayer, SlackLayer, BillingLayer);
 
     mockCreateFullLayer.mockReturnValue(testLayer as never);
 
-    return { mockAuth, mockOrgRepo, mockSlack };
+    return { mockAuth, mockOrgRepo, mockSlack, mockBilling };
   };
 
   beforeEach(() => {

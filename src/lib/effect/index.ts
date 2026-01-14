@@ -172,6 +172,9 @@ export {
   // Auth
   Auth,
   addVideoToSeries,
+  // BillingRepository
+  BillingRepository,
+  BillingRepositoryLive,
   // ClipRepository
   ClipRepository,
   ClipRepositoryLive,
