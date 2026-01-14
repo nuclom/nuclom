@@ -221,7 +221,6 @@ async function generateAndUploadThumbnail(
   videoId: string,
   videoUrl: string,
   organizationId: string,
-  timestamp = 1,
 ): Promise<string | null> {
   'use step';
 
@@ -248,22 +247,20 @@ async function generateAndUploadThumbnail(
 
     const replicate = new Replicate({ auth: replicateToken });
 
-    // Use video-to-gif model to extract a frame at the specified timestamp
-    const VIDEO_TO_GIF_MODEL = 'fofr/video-to-gif:79bdd53be0a7a5f7c2f4813aba9c2a33e29e5dcf82d01f988d4e5c1c2a17c10e';
+    // Use lucataco/frame-extractor to extract a frame as a static image thumbnail
+    // This is fast (uses OpenCV) and produces a static image instead of a GIF
+    // Note: Only supports first/last frame, not arbitrary timestamps
+    const FRAME_EXTRACTOR_MODEL = 'lucataco/frame-extractor';
 
-    const output = await replicate.run(VIDEO_TO_GIF_MODEL as `${string}/${string}`, {
+    const output = await replicate.run(FRAME_EXTRACTOR_MODEL as `${string}/${string}`, {
       input: {
         video: videoUrl,
-        start_time: Math.max(0, timestamp),
-        duration: 0.1, // Very short to get essentially a single frame
-        fps: 1,
-        width: 1280,
+        return_first_frame: false, // Use last frame to avoid black intro screens
       },
     });
 
-    // The output is typically a URL to the generated content
-    const generatedUrl =
-      typeof output === 'string' ? output : Array.isArray(output) && output.length > 0 ? String(output[0]) : null;
+    // The model returns a single URI string
+    const generatedUrl = typeof output === 'string' ? output : null;
 
     if (!generatedUrl) {
       log.warn({ videoId }, 'No thumbnail URL returned from Replicate');
@@ -280,9 +277,9 @@ async function generateAndUploadThumbnail(
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Determine content type and extension
-    const contentType = response.headers.get('content-type') || 'image/gif';
-    const extension = contentType.includes('gif') ? 'gif' : contentType.includes('png') ? 'png' : 'jpg';
+    // Determine content type and extension (frame-extractor returns PNG images)
+    const contentType = response.headers.get('content-type') || 'image/png';
+    const extension = contentType.includes('png') ? 'png' : contentType.includes('gif') ? 'gif' : 'jpg';
 
     // Upload to R2 storage
     const thumbnailKey = `${organizationId}/thumbnails/${Date.now()}-${videoId}.${extension}`;
@@ -562,18 +559,25 @@ async function analyzeWithAI(
   };
 }
 
-async function saveTranscript(videoId: string, transcript: string, segments: TranscriptSegment[]): Promise<void> {
+async function saveTranscript(
+  videoId: string,
+  transcript: string,
+  segments: TranscriptSegment[],
+  durationSeconds: number,
+): Promise<void> {
   'use step';
 
   const { eq } = await import('drizzle-orm');
   const { db } = await import('@/lib/db');
   const { videos } = await import('@/lib/db/schema');
+  const { formatDuration } = await import('@/lib/format-utils');
 
   await db
     .update(videos)
     .set({
       transcript,
       transcriptSegments: segments,
+      duration: formatDuration(durationSeconds),
       updatedAt: new Date(),
     })
     .where(eq(videos.id, videoId));
@@ -1042,28 +1046,43 @@ async function extractDecisions(segments: TranscriptSegment[], videoTitle?: stri
     const result = await generateObject({
       model,
       schema: decisionSchema,
-      prompt: `Analyze this video transcript and extract all decisions made.
+      prompt: `Analyze this video transcript and extract ALL decisions, agreements, conclusions, and commitments made.
 
-For each decision, identify:
-1. What was decided (clear, actionable summary)
-2. When in the video (timestamp)
-3. Who was involved (speakers and their roles)
-4. The context and reasoning behind the decision
-5. Whether it's final (decided), proposed, revisiting a previous decision, or superseding one
-6. Any alternatives that were considered
-7. External references mentioned (PRs, issues, documents, files)
+## What Counts as a Decision
+Be INCLUSIVE - extract anything that represents:
+- **Explicit decisions**: "We decided...", "Let's go with...", "We'll use..."
+- **Implicit agreements**: "Sounds good", "That works", "Makes sense, let's do that"
+- **Conclusions reached**: "So we're going to...", "The plan is to...", "We'll proceed with..."
+- **Commitments made**: "I'll take care of...", "We should...", "Let's..."
+- **Choices between options**: Any time one approach was chosen over another
+- **Plans established**: "Next steps are...", "The approach will be...", "We're planning to..."
+- **Recommendations accepted**: "Good idea, let's do that", "I agree with..."
+- **Direction set**: "Going forward we'll...", "From now on...", "The way we'll handle this..."
 
-Focus on extracting:
-- **Technical decisions**: Architecture choices, technology/tool selections, implementation approaches
-- **Process decisions**: Workflow changes, policies, procedures
-- **Product decisions**: Features, priorities, scope changes
-- **Team decisions**: Assignments, timelines, resource allocation
+## Decision Categories
+- **Technical**: Architecture, technology choices, implementation approaches, APIs, frameworks, tools, code patterns
+- **Process**: Workflows, meetings, communication, documentation, reviews, approvals
+- **Product**: Features, priorities, scope, user experience, requirements, specifications
+- **Team**: Assignments, responsibilities, timelines, deadlines, resource allocation
+- **Other**: Any other significant agreement or conclusion
 
-For each decision:
-- Provide a clear, standalone summary (someone should understand the decision without context)
-- Include the reasoning and factors that led to the decision
-- Identify all participants and their roles
-- Assign a confidence score (0-100)
+## For Each Decision, Extract:
+1. **Summary**: Clear, standalone description (understandable without context)
+2. **Timestamp**: When it occurred in the video
+3. **Participants**: Who was involved and their role (decider, participant, or mentioned)
+4. **Context**: The discussion that led to this decision
+5. **Reasoning**: Why this choice was made (if stated or implied)
+6. **Status**: proposed (still discussing), decided (agreed upon), revisited (reconsidering), superseded (replaced)
+7. **External refs**: Any PRs, issues, documents, files, or tools mentioned
+
+## Confidence Scoring Guidelines
+- 90-100: Explicit decision with clear language ("We decided to...")
+- 70-89: Strong implicit agreement ("Sounds good, let's do that")
+- 50-69: Probable decision/conclusion (direction was set but language was less explicit)
+- 30-49: Possible decision (implied agreement or tentative plan)
+- Below 30: Too uncertain to include
+
+Be generous in extraction - it's better to capture a potential decision than miss an important one. Even informal agreements in casual conversation can be valuable decisions to track.
 
 ${videoTitle ? `Video Title: "${videoTitle}"` : ''}
 
@@ -1079,6 +1098,54 @@ ${formattedTranscript}`,
       totalDecisions: 0,
       primaryTopics: [],
     };
+  }
+}
+
+/**
+ * Log diagnostic information about extracted decisions before saving.
+ * This helps debug when decisions aren't showing up in the UI.
+ */
+function logDecisionDiagnostics(
+  videoId: string,
+  extractedDecisions: ExtractedDecisionResult,
+  confidenceThreshold: number,
+): void {
+  const total = extractedDecisions.decisions.length;
+  const aboveThreshold = extractedDecisions.decisions.filter((d) => d.confidence >= confidenceThreshold).length;
+  const belowThreshold = total - aboveThreshold;
+
+  log.info(
+    {
+      videoId,
+      totalExtracted: total,
+      aboveThreshold,
+      belowThreshold,
+      confidenceThreshold,
+      primaryTopics: extractedDecisions.primaryTopics,
+    },
+    'Decision extraction diagnostics',
+  );
+
+  if (total > 0) {
+    // Log details of each decision for debugging
+    for (const decision of extractedDecisions.decisions) {
+      log.info(
+        {
+          videoId,
+          summary: decision.summary.slice(0, 100),
+          confidence: decision.confidence,
+          type: decision.decisionType,
+          status: decision.status,
+          willBeSaved: decision.confidence >= confidenceThreshold,
+        },
+        'Extracted decision detail',
+      );
+    }
+  } else {
+    log.warn(
+      { videoId, segmentCount: extractedDecisions.totalDecisions },
+      'No decisions extracted from video - this may indicate the content has no explicit decisions or the AI could not identify them',
+    );
   }
 }
 
@@ -1098,8 +1165,8 @@ async function saveDecisions(
 
   try {
     for (const extracted of extractedDecisions.decisions) {
-      // Only save decisions with sufficient confidence
-      if (extracted.confidence < 50) {
+      // Only save decisions with sufficient confidence (lowered from 50 to 30 to capture more decisions)
+      if (extracted.confidence < 30) {
         continue;
       }
 
@@ -1384,7 +1451,6 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   }
 
   // Step 2: Transcribe the video with vocabulary hints
-  let transcription: TranscriptionResult;
   const transcribeResult = await transcribeVideo(videoUrl, {
     vocabularyTerms,
     participantNames,
@@ -1399,7 +1465,7 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     }
     return handleWorkflowFailure(videoId, transcribeResult.error);
   }
-  transcription = transcribeResult;
+  let transcription: TranscriptionResult = transcribeResult;
 
   // Step 2.5: Apply vocabulary corrections to transcript (post-processing)
   if (organizationId) {
@@ -1415,20 +1481,22 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     };
   }
 
-  // Step 3: Save transcript
-  const saveTranscriptResult = await saveTranscript(videoId, transcription.transcript, transcription.segments).catch(
-    (error) => ({
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  );
+  // Step 3: Save transcript and duration
+  const saveTranscriptResult = await saveTranscript(
+    videoId,
+    transcription.transcript,
+    transcription.segments,
+    transcription.duration,
+  ).catch((error) => ({
+    error: error instanceof Error ? error.message : String(error),
+  }));
   if (saveTranscriptResult && 'error' in saveTranscriptResult) {
     return handleWorkflowFailure(videoId, saveTranscriptResult.error);
   }
 
   // Step 3.5: Generate and save thumbnail
   if (organizationId) {
-    const thumbnailTimestamp = Math.max(1, Math.floor(transcription.duration * 0.1));
-    const thumbnailUrl = await generateAndUploadThumbnail(videoId, videoUrl, organizationId, thumbnailTimestamp);
+    const thumbnailUrl = await generateAndUploadThumbnail(videoId, videoUrl, organizationId);
     if (thumbnailUrl) {
       await saveThumbnailUrl(videoId, thumbnailUrl);
     }
@@ -1486,6 +1554,10 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
 
   // Step 10: Extract decisions for knowledge graph
   const extractedDecisions = await extractDecisions(transcription.segments, videoTitle);
+
+  // Log diagnostics to help debug decision extraction issues
+  const DECISION_CONFIDENCE_THRESHOLD = 30;
+  logDecisionDiagnostics(videoId, extractedDecisions, DECISION_CONFIDENCE_THRESHOLD);
 
   // Step 11: Save extracted decisions to database
   const effectiveOrgId = organizationId || (await getVideoOrganizationId(videoId));

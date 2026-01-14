@@ -11,7 +11,7 @@ interface UseCaptionsOptions {
 }
 
 export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCaptionsOptions) {
-  const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const [captionsEnabled, setCaptionsEnabled] = useState(true);
   const [selectedCaptionTrack, setSelectedCaptionTrack] = useState<string | null>(null);
   const [availableCaptionTracks, setAvailableCaptionTracks] = useState<CaptionTrack[]>([]);
 
@@ -19,9 +19,10 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
   useEffect(() => {
     if (customCaptionTracks && customCaptionTracks.length > 0) {
       setAvailableCaptionTracks(customCaptionTracks);
-      const defaultTrack = customCaptionTracks.find((t) => t.default);
+      const defaultTrack = customCaptionTracks.find((t) => t.default) || customCaptionTracks[0];
       if (defaultTrack) {
         setSelectedCaptionTrack(defaultTrack.code);
+        setCaptionsEnabled(true);
       }
     } else if (videoId) {
       fetch(`/api/videos/${videoId}/subtitles`)
@@ -37,6 +38,12 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
                 default: lang.isOriginal,
               }));
             setAvailableCaptionTracks(tracks);
+            // Auto-enable first available track
+            const defaultTrack = tracks.find((t) => t.default) || tracks[0];
+            if (defaultTrack) {
+              setSelectedCaptionTrack(defaultTrack.code);
+              setCaptionsEnabled(true);
+            }
           }
         })
         .catch((err) => {
@@ -44,6 +51,43 @@ export function useCaptions({ videoRef, videoId, customCaptionTracks }: UseCapti
         });
     }
   }, [videoId, customCaptionTracks]);
+
+  // Apply caption state to video element's text tracks
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || availableCaptionTracks.length === 0) return;
+
+    const applyTrackMode = () => {
+      const tracks = Array.from(video.textTracks);
+
+      tracks.forEach((track) => {
+        if (captionsEnabled && selectedCaptionTrack && track.language === selectedCaptionTrack) {
+          track.mode = 'showing';
+        } else {
+          track.mode = 'hidden';
+        }
+      });
+    };
+
+    // Apply immediately
+    applyTrackMode();
+
+    // Listen for track additions and cue loading
+    const handleTrackChange = () => applyTrackMode();
+    video.textTracks.addEventListener('addtrack', handleTrackChange);
+    video.textTracks.addEventListener('change', handleTrackChange);
+
+    // Also poll briefly to catch any timing issues with track loading
+    const intervalId = setInterval(applyTrackMode, 200);
+    const timeoutId = setTimeout(() => clearInterval(intervalId), 2000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+      video.textTracks.removeEventListener('addtrack', handleTrackChange);
+      video.textTracks.removeEventListener('change', handleTrackChange);
+    };
+  }, [videoRef, captionsEnabled, selectedCaptionTrack, availableCaptionTracks.length]);
 
   const toggleCaptions = useCallback(() => {
     const video = videoRef.current;

@@ -26,8 +26,15 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1768404295732,
-      "tag": "0003_add-vocabulary-schema",
+      "when": 1768378963856,
+      "tag": "0003_remove-comments-and-quote-cards",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768406034410,
+      "tag": "0004_add-vocabulary-schema",
       "breakpoints": true
     }
   ]

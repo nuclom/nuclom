@@ -1,6 +1,6 @@
 {
-  "id": "0ad67ea5-8d1a-4741-a50e-9d4e69b0e4c3",
-  "prevId": "acb91908-bef4-4ffc-885c-4d4b7327491a",
+  "id": "04765506-33f9-489e-83b7-abad588c6a9c",
+  "prevId": "0ad67ea5-8d1a-4741-a50e-9d4e69b0e4c3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -9231,6 +9231,304 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.organization_vocabulary": {
+      "name": "organization_vocabulary",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term": {
+          "name": "term",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variations": {
+          "name": "variations",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "category": {
+          "name": "category",
+          "type": "VocabularyCategory",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pronunciation": {
+          "name": "pronunciation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "org_vocabulary_org_idx": {
+          "name": "org_vocabulary_org_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "org_vocabulary_category_idx": {
+          "name": "org_vocabulary_category_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "category",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "org_vocabulary_term_idx": {
+          "name": "org_vocabulary_term_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "term",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "organization_vocabulary_organization_id_organizations_id_fk": {
+          "name": "organization_vocabulary_organization_id_organizations_id_fk",
+          "tableFrom": "organization_vocabulary",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "organization_vocabulary_created_by_users_id_fk": {
+          "name": "organization_vocabulary_created_by_users_id_fk",
+          "tableFrom": "organization_vocabulary",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "org_vocabulary_org_term_unique": {
+          "name": "org_vocabulary_org_term_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "term"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.vocabulary_correction_suggestions": {
+      "name": "vocabulary_correction_suggestions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_text": {
+          "name": "original_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "corrected_text": {
+          "name": "corrected_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "occurrence_count": {
+          "name": "occurrence_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "status": {
+          "name": "status",
+          "type": "CorrectionSuggestionStatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "suggested_at": {
+          "name": "suggested_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "vocab_correction_org_idx": {
+          "name": "vocab_correction_org_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vocab_correction_status_idx": {
+          "name": "vocab_correction_status_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vocabulary_correction_suggestions_organization_id_organizations_id_fk": {
+          "name": "vocabulary_correction_suggestions_organization_id_organizations_id_fk",
+          "tableFrom": "vocabulary_correction_suggestions",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vocab_correction_org_text_unique": {
+          "name": "vocab_correction_org_text_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "original_text",
+            "corrected_text"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.video_workflow_history": {
       "name": "video_workflow_history",
       "schema": "",
@@ -9573,6 +9871,15 @@
         "updated"
       ]
     },
+    "public.CorrectionSuggestionStatus": {
+      "name": "CorrectionSuggestionStatus",
+      "schema": "public",
+      "values": [
+        "pending",
+        "accepted",
+        "dismissed"
+      ]
+    },
     "public.DecisionStatus": {
       "name": "DecisionStatus",
       "schema": "public",
@@ -9847,6 +10154,17 @@
         "direct",
         "share_link",
         "embed"
+      ]
+    },
+    "public.VocabularyCategory": {
+      "name": "VocabularyCategory",
+      "schema": "public",
+      "values": [
+        "product",
+        "person",
+        "technical",
+        "acronym",
+        "company"
       ]
     },
     "public.WorkflowTemplateType": {

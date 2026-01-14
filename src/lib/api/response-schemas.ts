@@ -80,7 +80,6 @@ export const VideoWithDetails = Video.pipe(
   Schema.extend(
     Schema.Struct({
       author: Schema.optional(UserSummary),
-      comments: Schema.optional(Schema.Array(Schema.Unknown)),
       chapters: Schema.optional(Schema.Array(Schema.Unknown)),
     }),
   ),
@@ -122,26 +121,6 @@ export const PaginatedSeries = Schema.Struct({
   data: Schema.Array(Series),
   pagination: PaginationMeta,
 });
-
-// =============================================================================
-// Comment Schemas
-// =============================================================================
-
-export const Comment = Schema.Struct({
-  id: Schema.UUID,
-  content: Schema.String,
-  timestamp: Schema.NullOr(Schema.String),
-  videoId: Schema.UUID,
-  authorId: Schema.UUID,
-  parentId: Schema.NullOr(Schema.UUID),
-  author: Schema.optional(UserSummary),
-  replies: Schema.optional(Schema.Array(Schema.Unknown)),
-  reactions: Schema.optional(Schema.Array(Schema.Unknown)),
-  createdAt: Schema.String,
-  updatedAt: Schema.String,
-});
-
-export const CommentList = Schema.Array(Comment);
 
 // =============================================================================
 // Chapter Schemas
@@ -324,15 +303,5 @@ export const HighlightReel = Schema.Struct({
   status: Schema.Literal('draft', 'rendering', 'ready', 'failed'),
   videoUrl: Schema.NullOr(Schema.String),
   thumbnailUrl: Schema.NullOr(Schema.String),
-  createdAt: Schema.String,
-});
-
-export const QuoteCard = Schema.Struct({
-  id: Schema.UUID,
-  quoteText: Schema.String,
-  speaker: Schema.NullOr(Schema.String),
-  timestampSeconds: Schema.NullOr(Schema.Number),
-  imageUrl: Schema.NullOr(Schema.String),
-  videoId: Schema.UUID,
   createdAt: Schema.String,
 });

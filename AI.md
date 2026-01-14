@@ -200,30 +200,6 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 3. Implement loading state: `loading.tsx`
 4. Handle errors: `error.tsx`
 
-### Updating the Changelog
-
-When completing features or bug fixes, add an entry to `src/lib/changelog.ts`:
-
-1. Add a new entry at the top of the `changelog` array
-2. Use the git commit date for the `date` field
-3. Set the appropriate type:
-   - `feature` - New functionality
-   - `improvement` - Enhancements to existing features
-   - `fix` - Bug fixes
-4. Focus on user-facing changes, not implementation details
-5. Keep the title concise and benefit-oriented
-
-Example entry:
-```typescript
-{
-  date: "2026-01-10",
-  title: "Real-time collaborative video annotations",
-  type: "feature",
-}
-```
-
-The changelog is displayed at `/changelog` on the marketing website.
-
 ## Testing
 
 ### Unit Tests (Vitest)

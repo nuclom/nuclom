@@ -7,8 +7,7 @@
 
 import { type Context, Effect, Layer } from 'effect';
 import { vi } from 'vitest';
-import type { Comment, User, Video } from '@/lib/db/schema';
-import type { CommentWithAuthor, CommentWithReplies } from '@/lib/effect/services/comment-repository';
+import type { User, Video } from '@/lib/db/schema';
 import type { NotificationWithActor } from '@/lib/effect/services/notification-repository';
 import type { PaginatedResponse, VideoWithAuthor } from '@/lib/types';
 import { createMockOrganization, createMockUser, createMockVideo } from './mocks';
@@ -37,7 +36,6 @@ export interface MockDatabaseService {
     query: {
       videos: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
       users: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
-      comments: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
       organizations: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
       notifications: { findFirst: ReturnType<typeof vi.fn>; findMany: ReturnType<typeof vi.fn> };
     };
@@ -68,7 +66,6 @@ export function createMockDatabaseService(): MockDatabaseService {
     query: {
       videos: { findFirst: vi.fn(), findMany: vi.fn() },
       users: { findFirst: vi.fn(), findMany: vi.fn() },
-      comments: { findFirst: vi.fn(), findMany: vi.fn() },
       organizations: { findFirst: vi.fn(), findMany: vi.fn() },
       notifications: { findFirst: vi.fn(), findMany: vi.fn() },
     },
@@ -201,39 +198,6 @@ export function createMockVideoRepositoryService(): MockVideoRepositoryService {
 export function createMockVideoRepositoryLayer(mockRepo?: MockVideoRepositoryService) {
   const repo = mockRepo ?? createMockVideoRepositoryService();
   return Layer.succeed(VideoRepository, repo as unknown as VideoRepositoryService);
-}
-
-// =============================================================================
-// Mock CommentRepository Service
-// =============================================================================
-
-import { CommentRepository, type CommentRepositoryService } from '@/lib/effect/services/comment-repository';
-
-export interface MockCommentRepositoryService {
-  getComments: ReturnType<typeof vi.fn>;
-  getComment: ReturnType<typeof vi.fn>;
-  createComment: ReturnType<typeof vi.fn>;
-  updateComment: ReturnType<typeof vi.fn>;
-  deleteComment: ReturnType<typeof vi.fn>;
-  getCommentsByTimestamp: ReturnType<typeof vi.fn>;
-}
-
-export function createMockCommentRepositoryService(): MockCommentRepositoryService {
-  const mockComment = createMockCommentWithAuthor();
-
-  return {
-    getComments: vi.fn().mockImplementation(() => Effect.succeed([])),
-    getComment: vi.fn().mockImplementation(() => Effect.succeed(mockComment)),
-    createComment: vi.fn().mockImplementation((data) => Effect.succeed({ ...mockComment, ...data })),
-    updateComment: vi.fn().mockImplementation((id, _authorId, data) => Effect.succeed({ ...mockComment, id, ...data })),
-    deleteComment: vi.fn().mockImplementation((id) => Effect.succeed({ ...mockComment, id })),
-    getCommentsByTimestamp: vi.fn().mockImplementation(() => Effect.succeed([])),
-  };
-}
-
-export function createMockCommentRepositoryLayer(mockRepo?: MockCommentRepositoryService) {
-  const repo = mockRepo ?? createMockCommentRepositoryService();
-  return Layer.succeed(CommentRepository, repo as unknown as CommentRepositoryService);
 }
 
 // =============================================================================
@@ -444,49 +408,19 @@ export function createMockVideoWithFullAuthor(
   } as VideoWithAuthor;
 }
 
-export function createMockCommentWithAuthor(
-  commentOverrides: Partial<Comment> = {},
-  userOverrides: Partial<User> = {},
-): CommentWithAuthor {
-  const author = createMockUser(userOverrides);
-  return {
-    id: 'comment-123',
-    content: 'Test comment content',
-    timestamp: '00:01:30',
-    authorId: author.id,
-    videoId: 'video-123',
-    parentId: null,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-    author,
-    ...commentOverrides,
-  } as CommentWithAuthor;
-}
-
-export function createMockCommentWithReplies(
-  commentOverrides: Partial<Comment> = {},
-  replies: CommentWithAuthor[] = [],
-): CommentWithReplies {
-  return {
-    ...createMockCommentWithAuthor(commentOverrides),
-    replies,
-  } as CommentWithReplies;
-}
-
 export function createMockNotification(overrides: Record<string, unknown> = {}): NotificationWithActor {
   return {
     id: 'notification-123',
-    type: 'comment' as const,
-    title: 'New Comment',
-    message: 'Someone commented on your video',
+    type: 'video_shared' as const,
+    title: 'Video Shared',
+    body: 'Someone shared a video with you',
     read: false,
     userId: 'user-123',
-    videoId: 'video-123',
-    commentId: 'comment-123',
+    resourceType: 'video',
+    resourceId: 'video-123',
     createdAt: new Date('2024-01-01'),
-    video: null,
-    comment: null,
-    fromUser: null,
+    actorId: null,
+    actor: null,
     ...overrides,
   } as unknown as NotificationWithActor;
 }

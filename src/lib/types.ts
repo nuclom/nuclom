@@ -1,7 +1,6 @@
 import type {
   Channel,
   Collection,
-  Comment,
   Decision,
   DecisionLink,
   DecisionParticipant,
@@ -28,7 +27,6 @@ export type VideoWithDetails = VideoBase & {
   organization: Organization;
   channel?: Channel | null;
   collection?: Collection | null;
-  comments: (Comment & { author: User })[];
 };
 
 export type OrganizationWithMembers = Organization & {

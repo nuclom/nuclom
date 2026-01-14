@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Cause, Effect, Exit, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
@@ -10,7 +10,7 @@ import {
 } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
 import { db } from '@/lib/db';
-import { comments, videos } from '@/lib/db/schema';
+import { videos } from '@/lib/db/schema';
 import { DatabaseError, NotFoundError, ValidationError, VideoRepository } from '@/lib/effect';
 import { releaseVideoCount } from '@/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@/lib/effect/services/billing-repository';
@@ -36,18 +36,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
             organization: true,
             channel: true,
             collection: true,
-            comments: {
-              with: {
-                author: true,
-                replies: {
-                  with: {
-                    author: true,
-                  },
-                },
-              },
-              where: isNull(comments.parentId),
-              orderBy: asc(comments.createdAt),
-            },
           },
         }),
       catch: (error) =>

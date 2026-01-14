@@ -20,7 +20,6 @@ import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
 import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
-import { type CommentRepository, CommentRepositoryLive } from './services/comment-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
@@ -133,7 +132,6 @@ const VideoProcessorWithDeps = withDep(VideoProcessorLive, StorageLive);
 // Repositories with Database dependency only
 const OrganizationRepositoryWithDeps = withDep(OrganizationRepositoryLive, DatabaseLive);
 const VideoProgressRepositoryWithDeps = withDep(VideoProgressRepositoryLive, DatabaseLive);
-const CommentRepositoryWithDeps = withDep(CommentRepositoryLive, DatabaseLive);
 const PresenceWithDeps = withDep(PresenceLive, DatabaseLive);
 const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, DatabaseLive);
 const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
@@ -164,7 +162,6 @@ const AppServicesLive = Layer.mergeAll(
   VideoRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
-  CommentRepositoryWithDeps,
   PresenceWithDeps,
   NotificationRepositoryWithDeps,
   IntegrationRepositoryWithDeps,
@@ -195,7 +192,6 @@ export type AppServices =
   | VideoRepository
   | OrganizationRepository
   | VideoProgressRepository
-  | CommentRepository
   | Presence
   | NotificationRepository
   | EmailNotifications

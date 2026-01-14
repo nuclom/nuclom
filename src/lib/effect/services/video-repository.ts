@@ -10,7 +10,6 @@ import {
   type ActionItem,
   channels,
   collections,
-  comments,
   organizations,
   type ProcessingStatus,
   type TranscriptSegment,
@@ -497,53 +496,11 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         collection = collectionData[0] || null;
       }
 
-      // Get comments
-      const commentsData = yield* Effect.tryPromise({
-        try: () =>
-          db
-            .select({
-              id: comments.id,
-              content: comments.content,
-              timestamp: comments.timestamp,
-              authorId: comments.authorId,
-              videoId: comments.videoId,
-              parentId: comments.parentId,
-              createdAt: comments.createdAt,
-              updatedAt: comments.updatedAt,
-              author: {
-                id: users.id,
-                email: users.email,
-                name: users.name,
-                image: users.image,
-                createdAt: users.createdAt,
-                updatedAt: users.updatedAt,
-                emailVerified: users.emailVerified,
-                role: users.role,
-                banned: users.banned,
-                banReason: users.banReason,
-                banExpires: users.banExpires,
-                twoFactorEnabled: users.twoFactorEnabled,
-                lastLoginMethod: users.lastLoginMethod,
-                stripeCustomerId: users.stripeCustomerId,
-              },
-            })
-            .from(comments)
-            .innerJoin(users, eq(comments.authorId, users.id))
-            .where(eq(comments.videoId, id))
-            .orderBy(desc(comments.createdAt)),
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to fetch comments',
-            operation: 'getVideo.comments',
-            cause: error,
-          }),
-      });
-
       return {
         ...videoData[0],
         channel,
         collection,
-        comments: commentsData,
+        comments: [],
       } as VideoWithDetails;
     });
 

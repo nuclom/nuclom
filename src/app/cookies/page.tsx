@@ -56,15 +56,13 @@ export default function CookiePolicyPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-linear-to-r from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
               <Play className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-              Nuclom
-            </h1>
+            <h1 className="text-2xl font-bold bg-linear-to-r from-foreground to-foreground/80 bg-clip-text">Nuclom</h1>
           </div>
           <Button variant="ghost" asChild>
             <Link href="/" className="flex items-center gap-2">
@@ -276,7 +274,7 @@ export default function CookiePolicyPage() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-8 h-8 bg-linear-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg">
                 <Play className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold">Nuclom</span>

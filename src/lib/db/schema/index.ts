@@ -13,7 +13,6 @@ export * from './auth';
 export * from './auth-relations';
 export * from './billing';
 export * from './clips';
-export * from './comments';
 export * from './enums';
 export * from './integrations';
 export * from './knowledge';

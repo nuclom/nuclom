@@ -24,7 +24,6 @@ import {
   users,
 } from './auth';
 import { invoices, paymentMethods, usage } from './billing';
-import { comments } from './comments';
 import { decisions, knowledgeNodes } from './knowledge';
 import { userExtensions, userPreferences } from './user-extensions';
 import { channels, collections, videoProgresses, videos } from './videos';
@@ -45,7 +44,6 @@ export const userRelations = relations(users, ({ one, many }) => ({
   extensions: one(userExtensions),
   // Application relations
   videos: many(videos),
-  comments: many(comments),
   videoProgresses: many(videoProgresses),
 }));
 

@@ -5,7 +5,6 @@
  * - videoMoments: AI-detected key moments
  * - videoClips: Extracted video segments
  * - highlightReels: Composed highlight reels
- * - quoteCards: Shareable quote images
  */
 
 import { relations } from 'drizzle-orm';
@@ -39,14 +38,6 @@ export type HighlightReelConfig = {
   readonly backgroundMusicVolume?: number;
   readonly introTemplate?: string;
   readonly outroTemplate?: string;
-};
-
-export type QuoteCardTemplate = {
-  readonly templateId: string;
-  readonly backgroundColor?: string;
-  readonly textColor?: string;
-  readonly fontFamily?: string;
-  readonly brandingEnabled?: boolean;
 };
 
 // =============================================================================
@@ -167,37 +158,6 @@ export const highlightReels = pgTable(
 );
 
 // =============================================================================
-// Quote Cards
-// =============================================================================
-
-export const quoteCards = pgTable(
-  'quote_cards',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    videoId: text('video_id')
-      .notNull()
-      .references(() => videos.id, { onDelete: 'cascade' }),
-    organizationId: text('organization_id')
-      .notNull()
-      .references(() => organizations.id, { onDelete: 'cascade' }),
-    quoteText: text('quote_text').notNull(),
-    speaker: text('speaker'),
-    timestampSeconds: integer('timestamp_seconds'),
-    // Template styling
-    template: jsonb('template').$type<QuoteCardTemplate>(),
-    // Generated image
-    imageUrl: text('image_url'),
-    storageKey: text('storage_key'),
-    // Ownership
-    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-  },
-  (table) => [index('quote_cards_video_idx').on(table.videoId), index('quote_cards_org_idx').on(table.organizationId)],
-);
-
-// =============================================================================
 // Type Exports
 // =============================================================================
 
@@ -207,8 +167,6 @@ export type VideoClip = typeof videoClips.$inferSelect;
 export type NewVideoClip = typeof videoClips.$inferInsert;
 export type HighlightReel = typeof highlightReels.$inferSelect;
 export type NewHighlightReel = typeof highlightReels.$inferInsert;
-export type QuoteCard = typeof quoteCards.$inferSelect;
-export type NewQuoteCard = typeof quoteCards.$inferInsert;
 
 // =============================================================================
 // Relations
@@ -252,21 +210,6 @@ export const highlightReelsRelations = relations(highlightReels, ({ one }) => ({
   }),
   creator: one(users, {
     fields: [highlightReels.createdBy],
-    references: [users.id],
-  }),
-}));
-
-export const quoteCardsRelations = relations(quoteCards, ({ one }) => ({
-  video: one(videos, {
-    fields: [quoteCards.videoId],
-    references: [videos.id],
-  }),
-  organization: one(organizations, {
-    fields: [quoteCards.organizationId],
-    references: [organizations.id],
-  }),
-  creator: one(users, {
-    fields: [quoteCards.createdBy],
     references: [users.id],
   }),
 }));

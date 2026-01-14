@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { channels, collections, comments, organizations, users, videos } from '@/lib/db/schema';
+import { channels, collections, organizations, users, videos } from '@/lib/db/schema';
 import type { VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {
@@ -140,44 +140,10 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
     collection = collectionData[0] || null;
   }
 
-  // Get comments
-  const commentsData = await db
-    .select({
-      id: comments.id,
-      content: comments.content,
-      timestamp: comments.timestamp,
-      authorId: comments.authorId,
-      videoId: comments.videoId,
-      parentId: comments.parentId,
-      createdAt: comments.createdAt,
-      updatedAt: comments.updatedAt,
-      author: {
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        image: users.image,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt,
-        emailVerified: users.emailVerified,
-        role: users.role,
-        banned: users.banned,
-        banReason: users.banReason,
-        banExpires: users.banExpires,
-        twoFactorEnabled: users.twoFactorEnabled,
-        stripeCustomerId: users.stripeCustomerId,
-        lastLoginMethod: users.lastLoginMethod,
-      },
-    })
-    .from(comments)
-    .innerJoin(users, eq(comments.authorId, users.id))
-    .where(eq(comments.videoId, id))
-    .orderBy(desc(comments.createdAt));
-
   return {
     ...videoData[0],
     channel,
     collection,
-    comments: commentsData,
   };
 }
 

@@ -5,8 +5,6 @@
  */
 
 export { ChapteredTranscript, type ChapteredTranscriptProps } from './chaptered-transcript';
-export { CreateQuoteCardDialog } from './create-quote-card-dialog';
-export { QuoteCards } from './quote-cards';
 export {
   getSpeakerColor,
   type Speaker,

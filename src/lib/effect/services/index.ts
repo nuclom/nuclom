@@ -17,7 +17,6 @@ export {
   createActivity,
   getActivityFeed,
   getActivityStats,
-  logCommentAdded,
   logIntegrationConnected,
   logMemberJoined,
   logVideoProcessed,
@@ -139,12 +138,9 @@ export type {
   CreateClipInput,
   CreateHighlightReelInput,
   CreateMomentInput,
-  CreateQuoteCardInput,
   HighlightReelWithCreator,
-  QuoteCardWithCreator,
   UpdateClipInput,
   UpdateHighlightReelInput,
-  UpdateQuoteCardInput,
   VideoClipWithCreator,
   VideoMomentWithVideo,
 } from './clip-repository';
@@ -155,11 +151,9 @@ export {
   createHighlightReel,
   createMoment,
   createMomentsBatch,
-  createQuoteCard,
   deleteClip,
   deleteHighlightReel,
   deleteMomentsByVideoId,
-  deleteQuoteCard,
   getClip,
   getClips,
   getClipsByOrganization,
@@ -167,45 +161,9 @@ export {
   getHighlightReels,
   getMoments,
   getMomentsByType,
-  getQuoteCard,
-  getQuoteCards,
   updateClip,
   updateHighlightReel,
-  updateQuoteCard,
 } from './clip-repository';
-// Comment Reactions Service
-export type {
-  CommentReactionsServiceInterface,
-  CommentWithReactions,
-  ReactionCount,
-  ReactionUser,
-} from './comment-reactions';
-export {
-  CommentReactionsService,
-  CommentReactionsServiceLive,
-  getReactionCounts,
-  getReactionsForComments,
-  toggleReaction,
-} from './comment-reactions';
-export type {
-  CommentEvent,
-  CommentRepositoryService,
-  CommentWithAuthor,
-  CommentWithReplies,
-  CreateCommentInput,
-  UpdateCommentInput,
-} from './comment-repository';
-// Comment Repository
-export {
-  CommentRepository,
-  CommentRepositoryLive,
-  createComment,
-  deleteComment,
-  getComment,
-  getComments,
-  getCommentsByTimestamp,
-  updateComment,
-} from './comment-repository';
 export type { DatabaseService, DrizzleDB } from './database';
 // Database Service
 export {
@@ -242,7 +200,6 @@ export {
 } from './decision-extraction';
 // Email Notifications Service
 export type {
-  CommentNotificationData,
   EmailError,
   EmailNotificationServiceInterface,
   InvitationNotificationData,
@@ -253,7 +210,6 @@ export type {
 export {
   EmailNotifications,
   EmailNotificationsLive,
-  sendCommentNotification,
   sendInvitationNotification,
   sendSubscriptionNotification,
   sendTrialEndingNotification,
@@ -371,8 +327,6 @@ export {
   markAsRead,
   NotificationRepository,
   NotificationRepositoryLive,
-  notifyCommentReply,
-  notifyNewCommentOnVideo,
 } from './notification-repository';
 export type {
   CreateOrganizationInput,

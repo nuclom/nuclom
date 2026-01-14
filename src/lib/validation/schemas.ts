@@ -329,26 +329,6 @@ export const ReorderSeriesVideosSchema = Schema.Struct({
 });
 
 // =============================================================================
-// Comment Schemas
-// =============================================================================
-
-export const CreateCommentSchema = Schema.Struct({
-  content: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => 'Comment content is required' }),
-    Schema.maxLength(2000, { message: () => 'Comment must be 2000 characters or less' }),
-  ),
-  timestamp: Schema.optionalWith(Schema.NullOr(TimestampFormatSchema), { nullable: true }),
-  parentId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
-});
-
-export const UpdateCommentSchema = Schema.Struct({
-  content: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => 'Comment content is required' }),
-    Schema.maxLength(2000, { message: () => 'Comment must be 2000 characters or less' }),
-  ),
-});
-
-// =============================================================================
 // Organization Schemas
 // =============================================================================
 
@@ -526,37 +506,6 @@ export const UpdateHighlightReelSchema = Schema.Struct({
   clipIds: Schema.optional(Schema.Array(UuidSchema)),
 });
 
-export const CreateQuoteCardSchema = Schema.Struct({
-  quoteText: Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => 'Quote text is required' }),
-    Schema.maxLength(500, { message: () => 'Quote text must be less than 500 characters' }),
-  ),
-  speaker: Schema.optionalWith(
-    Schema.String.pipe(Schema.maxLength(100, { message: () => 'Speaker name must be less than 100 characters' })),
-    { nullable: true },
-  ),
-  timestampSeconds: Schema.optionalWith(
-    Schema.Number.pipe(Schema.greaterThanOrEqualTo(0, { message: () => 'Timestamp must be non-negative' })),
-    { nullable: true },
-  ),
-  templateId: Schema.optional(Schema.String),
-});
-
-export const UpdateQuoteCardSchema = Schema.Struct({
-  quoteText: Schema.optional(
-    Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => 'Quote text is required' }),
-      Schema.maxLength(500, { message: () => 'Quote text must be less than 500 characters' }),
-    ),
-  ),
-  speaker: Schema.optionalWith(
-    Schema.NullOr(
-      Schema.String.pipe(Schema.maxLength(100, { message: () => 'Speaker name must be less than 100 characters' })),
-    ),
-    { nullable: true },
-  ),
-});
-
 // =============================================================================
 // Billing Schemas
 // =============================================================================
@@ -630,9 +579,6 @@ export type UpdateSeriesInput = typeof UpdateSeriesSchema.Type;
 export type GetSeriesInput = typeof GetSeriesSchema.Type;
 export type AddVideoToSeriesInput = typeof AddVideoToSeriesSchema.Type;
 export type ReorderSeriesVideosInput = typeof ReorderSeriesVideosSchema.Type;
-
-export type CreateCommentInput = typeof CreateCommentSchema.Type;
-export type UpdateCommentInput = typeof UpdateCommentSchema.Type;
 
 export type CreateOrganizationInput = typeof CreateOrganizationSchema.Type;
 export type UpdateOrganizationInput = typeof UpdateOrganizationSchema.Type;
