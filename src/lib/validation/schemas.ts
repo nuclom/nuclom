@@ -130,7 +130,7 @@ export const SearchSchema = Schema.Struct({
     Schema.minLength(1, { message: () => 'Search query is required' }),
     Schema.maxLength(200, { message: () => 'Search query is too long' }),
   ),
-  type: Schema.optionalWith(Schema.Literal('all', 'videos', 'series', 'channels'), { default: () => 'all' as const }),
+  type: Schema.optionalWith(Schema.Literal('all', 'videos', 'collections'), { default: () => 'all' as const }),
   page: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1)), { default: () => 1 }),
   limit: Schema.optionalWith(Schema.Number.pipe(Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)), {
     default: () => 20,
@@ -190,8 +190,6 @@ export const CreateVideoSchema = Schema.Struct({
     { nullable: true },
   ),
   organizationId: UuidSchema,
-  channelId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
-  collectionId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
   transcript: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
   aiSummary: Schema.optionalWith(Schema.NullOr(Schema.String), { nullable: true }),
 });
@@ -209,8 +207,6 @@ export const UpdateVideoSchema = Schema.Struct({
     ),
     { nullable: true },
   ),
-  channelId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
-  collectionId: Schema.optionalWith(Schema.NullOr(UuidSchema), { nullable: true }),
 });
 
 export const VideoUploadSchema = Schema.Struct({
@@ -223,8 +219,6 @@ export const VideoUploadSchema = Schema.Struct({
   ),
   organizationId: UuidSchema,
   authorId: UuidSchema,
-  channelId: Schema.optional(UuidSchema),
-  collectionId: Schema.optional(UuidSchema),
   skipAIProcessing: Schema.optional(Schema.Literal('true', 'false')),
 });
 
@@ -264,10 +258,10 @@ export const CreateChapterSchema = BaseChapterSchema.pipe(
 );
 
 // =============================================================================
-// Series Schemas
+// Collection Schemas
 // =============================================================================
 
-export const CreateSeriesSchema = Schema.Struct({
+export const CreateCollectionSchema = Schema.Struct({
   name: Schema.Trim.pipe(
     Schema.minLength(1, { message: () => 'Name is required' }),
     Schema.maxLength(100, { message: () => 'Name must be 100 characters or less' }),
@@ -285,10 +279,11 @@ export const CreateSeriesSchema = Schema.Struct({
     { nullable: true },
   ),
   organizationId: UuidSchema,
+  type: Schema.optionalWith(Schema.Literal('folder', 'playlist'), { default: () => 'folder' as const }),
   isPublic: Schema.optionalWith(Schema.Boolean, { default: () => false }),
 });
 
-export const UpdateSeriesSchema = Schema.Struct({
+export const UpdateCollectionSchema = Schema.Struct({
   name: Schema.optional(
     Schema.Trim.pipe(
       Schema.minLength(1, { message: () => 'Name is required' }),
@@ -310,8 +305,9 @@ export const UpdateSeriesSchema = Schema.Struct({
   isPublic: Schema.optional(Schema.Boolean),
 });
 
-export const GetSeriesSchema = Schema.Struct({
+export const GetCollectionsSchema = Schema.Struct({
   organizationId: UuidSchema,
+  type: Schema.optional(Schema.Literal('folder', 'playlist')),
   page: Schema.optionalWith(Schema.NumberFromString.pipe(Schema.int(), Schema.positive()), { default: () => 1 }),
   limit: Schema.optionalWith(
     Schema.NumberFromString.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(100)),
@@ -319,14 +315,26 @@ export const GetSeriesSchema = Schema.Struct({
   ),
 });
 
-export const AddVideoToSeriesSchema = Schema.Struct({
+export const AddVideoToCollectionSchema = Schema.Struct({
   videoId: UuidSchema,
   position: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
 });
 
-export const ReorderSeriesVideosSchema = Schema.Struct({
+export const ReorderCollectionVideosSchema = Schema.Struct({
   videoIds: Schema.Array(UuidSchema).pipe(Schema.minItems(1, { message: () => 'At least one video ID is required' })),
 });
+
+// Legacy aliases for backward compatibility
+/** @deprecated Use CreateCollectionSchema instead */
+export const CreateSeriesSchema = CreateCollectionSchema;
+/** @deprecated Use UpdateCollectionSchema instead */
+export const UpdateSeriesSchema = UpdateCollectionSchema;
+/** @deprecated Use GetCollectionsSchema instead */
+export const GetSeriesSchema = GetCollectionsSchema;
+/** @deprecated Use AddVideoToCollectionSchema instead */
+export const AddVideoToSeriesSchema = AddVideoToCollectionSchema;
+/** @deprecated Use ReorderCollectionVideosSchema instead */
+export const ReorderSeriesVideosSchema = ReorderCollectionVideosSchema;
 
 // =============================================================================
 // Organization Schemas
@@ -398,14 +406,17 @@ export const UpdateProgressSchema = Schema.Struct({
 });
 
 // =============================================================================
-// Series Progress Schemas
+// Collection Progress Schemas
 // =============================================================================
 
-export const UpdateSeriesProgressSchema = Schema.Struct({
+export const UpdateCollectionProgressSchema = Schema.Struct({
   lastVideoId: Schema.optional(UuidSchema),
   lastPosition: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
   completedVideoIds: Schema.optional(Schema.Array(UuidSchema)),
 });
+
+/** @deprecated Use UpdateCollectionProgressSchema instead */
+export const UpdateSeriesProgressSchema = UpdateCollectionProgressSchema;
 
 // =============================================================================
 // Notification Schemas
@@ -574,18 +585,33 @@ export type GetVideosInput = typeof GetVideosSchema.Type;
 
 export type CreateChapterInput = typeof CreateChapterSchema.Type;
 
-export type CreateSeriesInput = typeof CreateSeriesSchema.Type;
-export type UpdateSeriesInput = typeof UpdateSeriesSchema.Type;
-export type GetSeriesInput = typeof GetSeriesSchema.Type;
-export type AddVideoToSeriesInput = typeof AddVideoToSeriesSchema.Type;
-export type ReorderSeriesVideosInput = typeof ReorderSeriesVideosSchema.Type;
+// Collection types
+export type CreateCollectionInput = typeof CreateCollectionSchema.Type;
+export type UpdateCollectionInput = typeof UpdateCollectionSchema.Type;
+export type GetCollectionsInput = typeof GetCollectionsSchema.Type;
+export type AddVideoToCollectionInput = typeof AddVideoToCollectionSchema.Type;
+export type ReorderCollectionVideosInput = typeof ReorderCollectionVideosSchema.Type;
+export type UpdateCollectionProgressInput = typeof UpdateCollectionProgressSchema.Type;
+
+// Legacy series type aliases
+/** @deprecated Use CreateCollectionInput instead */
+export type CreateSeriesInput = CreateCollectionInput;
+/** @deprecated Use UpdateCollectionInput instead */
+export type UpdateSeriesInput = UpdateCollectionInput;
+/** @deprecated Use GetCollectionsInput instead */
+export type GetSeriesInput = GetCollectionsInput;
+/** @deprecated Use AddVideoToCollectionInput instead */
+export type AddVideoToSeriesInput = AddVideoToCollectionInput;
+/** @deprecated Use ReorderCollectionVideosInput instead */
+export type ReorderSeriesVideosInput = ReorderCollectionVideosInput;
+/** @deprecated Use UpdateCollectionProgressInput instead */
+export type UpdateSeriesProgressInput = UpdateCollectionProgressInput;
 
 export type CreateOrganizationInput = typeof CreateOrganizationSchema.Type;
 export type UpdateOrganizationInput = typeof UpdateOrganizationSchema.Type;
 
 export type CreateInvitationInput = typeof CreateInvitationSchema.Type;
 export type UpdateProgressInput = typeof UpdateProgressSchema.Type;
-export type UpdateSeriesProgressInput = typeof UpdateSeriesProgressSchema.Type;
 export type UpdateNotificationInput = typeof UpdateNotificationSchema.Type;
 
 export type CreateCheckoutInput = typeof CreateCheckoutSchema.Type;

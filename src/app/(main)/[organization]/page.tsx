@@ -8,7 +8,7 @@ import { VideoSection } from '@/components/dashboard/video-section';
 import { GettingStartedChecklist } from '@/components/getting-started-checklist';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
-import { getCachedChannels, getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
+import { getCachedCollections, getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -138,21 +138,21 @@ interface DashboardContentProps {
 }
 
 async function DashboardContent({ organizationId, organizationSlug, userName }: DashboardContentProps) {
-  // Fetch videos and channels using cached Effect queries
-  const [videosResult, channelsResult] = await Promise.all([
+  // Fetch videos and collections using cached Effect queries
+  const [videosResult, collectionsResult] = await Promise.all([
     getCachedVideos(organizationId),
-    getCachedChannels(organizationId),
+    getCachedCollections(organizationId),
   ]);
   const videos = videosResult.data;
-  const channels = channelsResult.data;
+  const collections = collectionsResult.data;
 
   const hasVideos = videos.length > 0;
-  const hasChannelsWithVideos = channels.some((channel) => channel.videoCount > 0);
+  const hasCollectionsWithVideos = collections.some((collection) => collection.videoCount > 0);
 
   // Split videos into sections
   const continueWatching = videos.slice(0, 4);
   const newThisWeek = videos.slice(0, 8);
-  const fromChannels = hasChannelsWithVideos ? videos.slice(0, 6) : [];
+  const fromCollections = hasCollectionsWithVideos ? videos.slice(0, 6) : [];
 
   return (
     <div className="space-y-8">
@@ -181,10 +181,10 @@ async function DashboardContent({ organizationId, organizationSlug, userName }: 
               />
 
               <VideoSection
-                title="From Your Channels"
-                videos={fromChannels}
+                title="From Your Collections"
+                videos={fromCollections}
                 organization={organizationSlug}
-                viewAllHref={`/${organizationSlug}/channels`}
+                viewAllHref={`/${organizationSlug}/collections`}
               />
             </>
           ) : (

@@ -34,6 +34,12 @@ export const userRoleEnum = pgEnum('UserRole', ['user', 'admin']);
 export const organizationRoleEnum = pgEnum('OrganizationRole', ['owner', 'member']);
 
 // =============================================================================
+// Collection Enums
+// =============================================================================
+
+export const collectionTypeEnum = pgEnum('CollectionType', ['folder', 'playlist']);
+
+// =============================================================================
 // Video Processing Enums
 // =============================================================================
 

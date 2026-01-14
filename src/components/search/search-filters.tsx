@@ -13,24 +13,22 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { Channel, Collection, User } from '@/lib/db/schema';
+import type { Collection, User } from '@/lib/db/schema';
 import { cn } from '@/lib/utils';
 
 interface SearchFiltersProps {
   organization: string;
   authors?: User[];
-  channels?: Channel[];
   collections?: Collection[];
 }
 
-export function SearchFilters({ organization, authors = [], channels = [], collections = [] }: SearchFiltersProps) {
+export function SearchFilters({ organization, authors = [], collections = [] }: SearchFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
   // Get current filter values
   const authorId = searchParams.get('authorId') || '';
-  const channelId = searchParams.get('channelId') || '';
   const collectionId = searchParams.get('collectionId') || '';
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
@@ -39,7 +37,7 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
   const sortBy = searchParams.get('sortBy') || 'relevance';
   const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-  const hasActiveFilters = authorId || channelId || collectionId || dateFrom || dateTo || hasTranscript || hasAiSummary;
+  const hasActiveFilters = authorId || collectionId || dateFrom || dateTo || hasTranscript || hasAiSummary;
 
   const updateFilter = useCallback(
     (key: string, value: string | boolean) => {
@@ -61,7 +59,6 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
     startTransition(() => {
       const params = new URLSearchParams(searchParams.toString());
       params.delete('authorId');
-      params.delete('channelId');
       params.delete('collectionId');
       params.delete('dateFrom');
       params.delete('dateTo');
@@ -141,43 +138,6 @@ export function SearchFilters({ organization, authors = [], channels = [], colle
                         <CommandItem key={author.id} onSelect={() => updateFilter('authorId', author.id)}>
                           <Check className={cn('mr-2 h-4 w-4', authorId === author.id ? 'opacity-100' : 'opacity-0')} />
                           {author.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-
-        {/* Channel filter */}
-        {channels.length > 0 && (
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Channel</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  {channelId ? channels.find((c) => c.id === channelId)?.name || 'Select channel' : 'All channels'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search channels..." />
-                  <CommandList>
-                    <CommandEmpty>No channel found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem onSelect={() => updateFilter('channelId', '')}>
-                        <Check className={cn('mr-2 h-4 w-4', !channelId ? 'opacity-100' : 'opacity-0')} />
-                        All channels
-                      </CommandItem>
-                      {channels.map((channel) => (
-                        <CommandItem key={channel.id} onSelect={() => updateFilter('channelId', channel.id)}>
-                          <Check
-                            className={cn('mr-2 h-4 w-4', channelId === channel.id ? 'opacity-100' : 'opacity-0')}
-                          />
-                          {channel.name}
                         </CommandItem>
                       ))}
                     </CommandGroup>

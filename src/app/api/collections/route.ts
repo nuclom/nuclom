@@ -8,22 +8,26 @@ import {
   Storage,
 } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader, parsePaginationParams } from '@/lib/api-utils';
-import { MissingFieldError, SeriesRepository } from '@/lib/effect';
+import type { CollectionType } from '@/lib/db/schema';
+import { MissingFieldError } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
+import { CollectionRepository } from '@/lib/effect/services/collection-repository';
 import { validateRequestBody } from '@/lib/validation';
 
-const CreateSeriesSchema = Schema.Struct({
+const CreateCollectionSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),
   description: Schema.optional(Schema.String),
   thumbnailUrl: Schema.optional(Schema.String),
   organizationId: Schema.String,
+  type: Schema.optional(Schema.Literal('folder', 'playlist')),
   isPublic: Schema.optional(Schema.Boolean),
 });
 
 /**
- * @summary List series
- * @description Get a paginated list of video series for an organization
- * @response 200 PaginatedSeries - List of series with pagination
+ * @summary List collections
+ * @description Get a paginated list of collections for an organization.
+ * Use `type` query param to filter by collection type (folder or playlist).
+ * @response 200 PaginatedCollections - List of collections with pagination
  * @response 400 - Invalid request parameters
  * @response 401 - Unauthorized
  */
@@ -36,6 +40,7 @@ export async function GET(request: NextRequest) {
     // Parse query params with validation
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId');
+    const type = searchParams.get('type') as CollectionType | null;
     const { page, limit } = parsePaginationParams(searchParams);
 
     if (!organizationId) {
@@ -47,18 +52,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch series using repository
-    const seriesRepo = yield* SeriesRepository;
-    const seriesData = yield* seriesRepo.getSeries(organizationId, page, limit);
+    // Validate type if provided
+    if (type && type !== 'folder' && type !== 'playlist') {
+      return yield* Effect.fail(
+        new MissingFieldError({
+          field: 'type',
+          message: 'Invalid collection type. Must be "folder" or "playlist"',
+        }),
+      );
+    }
 
-    // Generate presigned thumbnail URLs for all series
+    // Fetch collections using repository
+    const collectionRepo = yield* CollectionRepository;
+    const collectionsData = yield* collectionRepo.getCollections(organizationId, {
+      type: type ?? undefined,
+      page,
+      limit,
+    });
+
+    // Generate presigned thumbnail URLs for all collections
     const storage = yield* Storage;
-    const seriesWithPresignedUrls = yield* Effect.all(
-      seriesData.data.map((series) =>
+    const collectionsWithPresignedUrls = yield* Effect.all(
+      collectionsData.data.map((collection) =>
         Effect.gen(function* () {
-          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, series.thumbnailUrl);
+          const presignedThumbnailUrl = yield* generatePresignedThumbnailUrl(storage, collection.thumbnailUrl);
           return {
-            ...series,
+            ...collection,
             thumbnailUrl: presignedThumbnailUrl,
           };
         }),
@@ -67,8 +86,8 @@ export async function GET(request: NextRequest) {
     );
 
     return {
-      data: seriesWithPresignedUrls,
-      pagination: seriesData.pagination,
+      data: collectionsWithPresignedUrls,
+      pagination: collectionsData.pagination,
     };
   });
 
@@ -80,9 +99,10 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * @summary Create series
- * @description Create a new video series/playlist
- * @response 201 Series - Series created successfully
+ * @summary Create collection
+ * @description Create a new collection. Use `type: "folder"` for simple grouping,
+ * `type: "playlist"` for ordered videos with progress tracking.
+ * @response 201 Collection - Collection created successfully
  * @response 400 - Invalid request body
  * @response 401 - Unauthorized
  */
@@ -93,19 +113,20 @@ export async function POST(request: NextRequest) {
     const { user } = yield* authService.getSession(request.headers);
 
     // Parse and validate request body
-    const { name, description, thumbnailUrl, organizationId, isPublic } = yield* validateRequestBody(
-      CreateSeriesSchema,
+    const { name, description, thumbnailUrl, organizationId, type, isPublic } = yield* validateRequestBody(
+      CreateCollectionSchema,
       request,
     );
 
-    // Create series using repository
-    const seriesRepo = yield* SeriesRepository;
-    return yield* seriesRepo.createSeries({
+    // Create collection using repository
+    const collectionRepo = yield* CollectionRepository;
+    return yield* collectionRepo.createCollection({
       name,
       description,
       thumbnailUrl,
       organizationId,
       createdById: user.id,
+      type: type ?? 'folder',
       isPublic: isPublic ?? false,
     });
   });

@@ -1,27 +1,27 @@
-import { Folders, Plus, Video } from 'lucide-react';
+import { Folders, ListVideo, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
-import { getCachedChannels, getCachedOrganizationBySlug } from '@/lib/effect';
+import { getCachedCollections, getCachedOrganizationBySlug } from '@/lib/effect';
 
 export const metadata: Metadata = {
-  title: 'Channels',
-  description: 'Organize your videos into channels by topic, team, or project',
+  title: 'Collections',
+  description: 'Organize your videos into folders and playlists',
 };
 
 // =============================================================================
 // Loading Skeleton Component
 // =============================================================================
 
-function ChannelsSkeleton() {
+function CollectionsSkeleton() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -49,60 +49,63 @@ function EmptyState() {
       <div className="rounded-full bg-muted p-6 mb-4">
         <Folders className="h-12 w-12 text-muted-foreground" />
       </div>
-      <h2 className="text-xl font-semibold mb-2">No channels yet</h2>
+      <h2 className="text-xl font-semibold mb-2">No collections yet</h2>
       <p className="text-muted-foreground max-w-sm mb-6">
-        Channels help you organize videos by topic, team, or project. Create your first channel to get started.
+        Collections help you organize videos into folders or playlists. Create your first collection to get started.
       </p>
       <Button className="flex items-center gap-2">
         <Plus className="h-4 w-4" />
-        Create Channel
+        Create Collection
       </Button>
     </div>
   );
 }
 
 // =============================================================================
-// Channel Card Component
+// Collection Card Component
 // =============================================================================
 
-interface ChannelCardProps {
-  channel: {
+interface CollectionCardProps {
+  collection: {
     id: string;
     name: string;
     description: string | null;
+    type: 'folder' | 'playlist';
     videoCount: number;
-    memberCount: number;
+    thumbnailUrl: string | null;
   };
   organizationSlug: string;
 }
 
-function ChannelCard({ channel, organizationSlug }: ChannelCardProps) {
+function CollectionCard({ collection, organizationSlug }: CollectionCardProps) {
+  const isPlaylist = collection.type === 'playlist';
+  const Icon = isPlaylist ? ListVideo : Folders;
+  const iconColor = isPlaylist ? 'bg-blue-500' : 'bg-purple-500';
+
   return (
-    <Link href={`/${organizationSlug}/channels/${channel.id}`}>
+    <Link href={`/${organizationSlug}/collections/${collection.id}`}>
       <Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-purple-500 text-lg font-bold text-white">
-                {channel.name.charAt(0).toUpperCase()}
-              </div>
-            </Avatar>
+            <div className={`h-10 w-10 rounded-lg ${iconColor} flex items-center justify-center`}>
+              <Icon className="h-5 w-5 text-white" />
+            </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg truncate">{channel.name}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg truncate">{collection.name}</CardTitle>
+                <Badge variant={isPlaylist ? 'default' : 'secondary'} className="text-xs">
+                  {isPlaylist ? 'Playlist' : 'Folder'}
+                </Badge>
+              </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {channel.description && (
-            <CardDescription className="line-clamp-2 mb-3">{channel.description}</CardDescription>
+          {collection.description && (
+            <CardDescription className="line-clamp-2 mb-3">{collection.description}</CardDescription>
           )}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Video className="h-4 w-4" />
-              <span>
-                {channel.videoCount} {channel.videoCount === 1 ? 'video' : 'videos'}
-              </span>
-            </div>
+          <div className="text-sm text-muted-foreground">
+            {collection.videoCount} {collection.videoCount === 1 ? 'video' : 'videos'}
           </div>
         </CardContent>
       </Card>
@@ -111,36 +114,64 @@ function ChannelCard({ channel, organizationSlug }: ChannelCardProps) {
 }
 
 // =============================================================================
-// Channels Content Component (Server Component)
+// Collections Content Component (Server Component)
 // =============================================================================
 
-interface ChannelsContentProps {
+interface CollectionsContentProps {
   organizationId: string;
   organizationSlug: string;
 }
 
-async function ChannelsContent({ organizationId, organizationSlug }: ChannelsContentProps) {
-  const result = await getCachedChannels(organizationId);
-  const channels = result.data;
+async function CollectionsContent({ organizationId, organizationSlug }: CollectionsContentProps) {
+  const result = await getCachedCollections(organizationId);
+  const collections = result.data;
 
-  if (channels.length === 0) {
+  if (collections.length === 0) {
     return <EmptyState />;
   }
 
+  // Separate folders and playlists
+  const folders = collections.filter((c) => c.type === 'folder');
+  const playlists = collections.filter((c) => c.type === 'playlist');
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {channels.map((channel) => (
-        <ChannelCard key={channel.id} channel={channel} organizationSlug={organizationSlug} />
-      ))}
+    <div className="space-y-10">
+      {folders.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Folders className="h-5 w-5" />
+            Folders
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {folders.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} organizationSlug={organizationSlug} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {playlists.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <ListVideo className="h-5 w-5" />
+            Playlists
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {playlists.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} organizationSlug={organizationSlug} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
 // =============================================================================
-// Channels Loader Component
+// Collections Loader Component
 // =============================================================================
 
-async function ChannelsLoader({ params }: { params: Promise<{ organization: string }> }) {
+async function CollectionsLoader({ params }: { params: Promise<{ organization: string }> }) {
   const { organization: organizationSlug } = await params;
 
   // Authenticate user
@@ -163,14 +194,14 @@ async function ChannelsLoader({ params }: { params: Promise<{ organization: stri
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Channels</h1>
+        <h1 className="text-3xl font-bold">Collections</h1>
         <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Create Channel
+          Create Collection
         </Button>
       </div>
 
-      <ChannelsContent organizationId={organization.id} organizationSlug={organizationSlug} />
+      <CollectionsContent organizationId={organization.id} organizationSlug={organizationSlug} />
     </div>
   );
 }
@@ -179,10 +210,10 @@ async function ChannelsLoader({ params }: { params: Promise<{ organization: stri
 // Main Page Component
 // =============================================================================
 
-export default function ChannelsPage({ params }: { params: Promise<{ organization: string }> }) {
+export default function CollectionsPage({ params }: { params: Promise<{ organization: string }> }) {
   return (
-    <Suspense fallback={<ChannelsSkeleton />}>
-      <ChannelsLoader params={params} />
+    <Suspense fallback={<CollectionsSkeleton />}>
+      <CollectionsLoader params={params} />
     </Suspense>
   );
 }
