@@ -57,6 +57,10 @@ export interface VideoDecisionsSidebarProps {
   onSeek?: (time: number) => void;
   /** Optional className */
   className?: string;
+  /** If true, returns null when there are no decisions */
+  hideWhenEmpty?: boolean;
+  /** Callback when decisions are loaded, reports the count */
+  onLoad?: (count: number) => void;
 }
 
 // =============================================================================
@@ -258,7 +262,14 @@ function EmptyState() {
 // Main Component
 // =============================================================================
 
-export function VideoDecisionsSidebar({ videoId, currentTime = 0, onSeek, className }: VideoDecisionsSidebarProps) {
+export function VideoDecisionsSidebar({
+  videoId,
+  currentTime = 0,
+  onSeek,
+  className,
+  hideWhenEmpty = false,
+  onLoad,
+}: VideoDecisionsSidebarProps) {
   const [decisions, setDecisions] = useState<VideoDecision[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -270,17 +281,22 @@ export function VideoDecisionsSidebar({ videoId, currentTime = 0, onSeek, classN
         const response = await fetch(`/api/videos/${videoId}/decisions`);
         if (response.ok) {
           const data = await response.json();
-          setDecisions(data.decisions || []);
+          const fetchedDecisions = data.decisions || [];
+          setDecisions(fetchedDecisions);
+          onLoad?.(fetchedDecisions.length);
+        } else {
+          onLoad?.(0);
         }
       } catch {
         // Silently fail - decisions are supplementary
+        onLoad?.(0);
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchDecisions();
-  }, [videoId]);
+  }, [videoId, onLoad]);
 
   // Sort decisions by timestamp
   const sortedDecisions = useMemo(
@@ -306,6 +322,11 @@ export function VideoDecisionsSidebar({ videoId, currentTime = 0, onSeek, classN
     }
     return null;
   }, [sortedDecisions, currentTime]);
+
+  // Hide component entirely when empty and hideWhenEmpty is true
+  if (hideWhenEmpty && !isLoading && decisions.length === 0) {
+    return null;
+  }
 
   return (
     <div className={cn('flex flex-col h-full', className)}>

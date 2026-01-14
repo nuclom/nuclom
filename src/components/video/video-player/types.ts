@@ -37,6 +37,10 @@ export interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
   /** Callback to register the seek function for external control */
   registerSeek?: (seekFn: (time: number) => void) => void;
+  /** Callback to register the play function for external control */
+  registerPlay?: (playFn: () => void) => void;
+  /** Optional function to refresh the video URL (for expired signed URLs) */
+  onRefreshUrl?: () => Promise<string | null>;
   className?: string;
 }
 

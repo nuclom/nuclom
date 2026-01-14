@@ -45,6 +45,8 @@ export function VideoPlayer({
   onError,
   onTimeUpdate,
   registerSeek,
+  registerPlay,
+  onRefreshUrl,
   className,
 }: VideoPlayerProps) {
   // Refs
@@ -71,6 +73,15 @@ export function VideoPlayer({
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [pipSupported, setPipSupported] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [currentUrl, setCurrentUrl] = useState(url);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPlaybackTimeRef = useRef<number>(0);
+
+  // Update currentUrl if prop changes
+  useEffect(() => {
+    setCurrentUrl(url);
+  }, [url]);
 
   // Keep callback ref up to date
   progressCallbackRef.current = onProgress;
@@ -203,6 +214,11 @@ export function VideoPlayer({
     registerSeek?.(controls.seek);
   }, [registerSeek, controls.seek]);
 
+  // Register play function for external control
+  useEffect(() => {
+    registerPlay?.(controls.play);
+  }, [registerPlay, controls.play]);
+
   // Find current chapter
   const currentChapter = useMemo((): VideoChapter | null => {
     if (!chapters.length || !duration) return null;
@@ -264,6 +280,11 @@ export function VideoPlayer({
     onTimeUpdate?.(video.currentTime);
     reportProgress();
 
+    // Track last successful playback position for recovery
+    if (video.currentTime > 0) {
+      lastPlaybackTimeRef.current = video.currentTime;
+    }
+
     if (video.buffered.length > 0) {
       const bufferedEnd = video.buffered.end(video.buffered.length - 1);
       setBuffered((bufferedEnd / video.duration) * 100);
@@ -307,13 +328,68 @@ export function VideoPlayer({
     }
   }, [onEnded]);
 
+  const MAX_AUTO_RETRIES = 3;
+
+  const handleRetry = useCallback(async () => {
+    const video = videoRef.current;
+    const resumeTime = lastPlaybackTimeRef.current;
+
+    setVideoState('loading');
+    setErrorMessage(null);
+
+    // Try to refresh the URL if a refresh function is provided
+    if (onRefreshUrl) {
+      try {
+        const newUrl = await onRefreshUrl();
+        if (newUrl) {
+          setCurrentUrl(newUrl);
+        }
+      } catch {
+        // Continue with existing URL if refresh fails
+      }
+    }
+
+    if (video) {
+      video.load();
+      // Resume from last position after reload
+      const handleCanPlayOnce = () => {
+        if (resumeTime > 0) {
+          video.currentTime = resumeTime;
+        }
+        video.play().catch(() => {
+          // Autoplay may be blocked, user will need to click play
+        });
+        video.removeEventListener('canplay', handleCanPlayOnce);
+      };
+      video.addEventListener('canplay', handleCanPlayOnce);
+    }
+  }, [onRefreshUrl]);
+
   const handleError = useCallback(() => {
     const video = videoRef.current;
     const errorMsg = video?.error?.message || 'Failed to load video';
-    setErrorMessage(errorMsg);
-    setVideoState('error');
-    onError?.(errorMsg);
-  }, [onError]);
+
+    // Clear any existing retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+
+    // Auto-retry with exponential backoff for recoverable errors
+    if (retryCount < MAX_AUTO_RETRIES) {
+      const delay = Math.min(1000 * 2 ** retryCount, 8000); // 1s, 2s, 4s, max 8s
+      setVideoState('loading');
+      setRetryCount((prev) => prev + 1);
+
+      retryTimeoutRef.current = setTimeout(() => {
+        handleRetry();
+      }, delay);
+    } else {
+      // Max retries reached, show error to user
+      setErrorMessage(errorMsg);
+      setVideoState('error');
+      onError?.(errorMsg);
+    }
+  }, [retryCount, handleRetry, onError]);
 
   const handleWaiting = useCallback(() => {
     setVideoState('loading');
@@ -323,13 +399,14 @@ export function VideoPlayer({
     if (videoState === 'loading') {
       setVideoState(playing ? 'playing' : 'ready');
     }
+    // Reset retry count on successful playback
+    setRetryCount(0);
   }, [videoState, playing]);
 
-  const handleRetry = useCallback(() => {
-    setVideoState('idle');
-    setErrorMessage(null);
-    videoRef.current?.load();
-  }, []);
+  const handleManualRetry = useCallback(() => {
+    setRetryCount(0);
+    handleRetry();
+  }, [handleRetry]);
 
   const seekToChapter = useCallback(
     (chapter: VideoChapter) => {
@@ -400,6 +477,15 @@ export function VideoPlayer({
     };
   }, []);
 
+  // Cleanup retry timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const showPlayButton = (videoState === 'ready' || videoState === 'paused' || videoState === 'idle') && !playing;
 
   return (
@@ -437,7 +523,7 @@ export function VideoPlayer({
         {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
         <video
           ref={videoRef}
-          src={url}
+          src={currentUrl}
           poster={thumbnailUrl}
           className="w-full h-full object-contain"
           preload="metadata"
@@ -468,7 +554,7 @@ export function VideoPlayer({
 
         {/* Overlays */}
         <LoadingOverlay visible={videoState === 'loading'} />
-        <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleRetry} />
+        <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleManualRetry} />
         <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
         <ChapterDisplay chapter={currentChapter} visible={showControls} />
         <LoopIndicator isLooping={isLooping} />

@@ -39,6 +39,10 @@ export interface VideoPlayerWithProgressProps {
   onTimeUpdate?: (currentTime: number) => void;
   /** Callback to register the seek function for external control */
   registerSeek?: (seekFn: (time: number) => void) => void;
+  /** Callback to register the play function for external control */
+  registerPlay?: (playFn: () => void) => void;
+  /** Optional function to refresh the video URL (for expired signed URLs) */
+  onRefreshUrl?: () => Promise<string | null>;
   /** Optional className */
   className?: string;
 }
@@ -77,6 +81,8 @@ export function VideoPlayerWithProgress({
   onEnded,
   onTimeUpdate,
   registerSeek,
+  registerPlay,
+  onRefreshUrl,
   className,
 }: VideoPlayerWithProgressProps) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
@@ -154,6 +160,8 @@ export function VideoPlayerWithProgress({
         onError={handleError}
         onTimeUpdate={onTimeUpdate}
         registerSeek={registerSeek}
+        registerPlay={registerPlay}
+        onRefreshUrl={onRefreshUrl}
       />
     </div>
   );

@@ -306,7 +306,6 @@ export function ChapteredTranscript({
   onSeek,
   processingStatus,
   className,
-  compact = false,
 }: ChapteredTranscriptProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -399,9 +398,7 @@ export function ChapteredTranscript({
   // Loading state
   if (processingStatus === 'pending' || processingStatus === 'transcribing') {
     const loadingContent = (
-      <div
-        className={cn('flex flex-col items-center justify-center text-muted-foreground', compact ? 'py-8' : 'py-12')}
-      >
+      <div className={cn('flex flex-col items-center justify-center text-muted-foreground py-8')}>
         <div className="animate-pulse flex space-x-1">
           <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
           <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -413,93 +410,42 @@ export function ChapteredTranscript({
       </div>
     );
 
-    if (compact) {
-      return <div className={cn('px-4', className)}>{loadingContent}</div>;
-    }
-
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>{loadingContent}</CardContent>
-      </Card>
-    );
+    return <div className={cn('px-4', className)}>{loadingContent}</div>;
   }
 
   // Error state
   if (processingStatus === 'failed') {
-    const errorContent = (
-      <p className={cn('text-sm text-red-500 text-center', compact ? 'py-6' : 'py-8')}>
-        Failed to generate transcript.
-      </p>
-    );
+    const errorContent = <p className={cn('text-sm text-red-500 text-center py-6')}>Failed to generate transcript.</p>;
 
-    if (compact) {
-      return <div className={cn('px-4', className)}>{errorContent}</div>;
-    }
-
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>{errorContent}</CardContent>
-      </Card>
-    );
+    return <div className={cn('px-4', className)}>{errorContent}</div>;
   }
 
   // Empty state
   if (!segments || segments.length === 0) {
     const emptyContent = (
-      <p className={cn('text-muted-foreground text-sm text-center', compact ? 'py-6' : 'py-8')}>
-        No transcript available.
-      </p>
+      <p className={cn('text-muted-foreground text-sm text-center py-6')}>No transcript available.</p>
     );
 
-    if (compact) {
-      return <div className={cn('px-4', className)}>{emptyContent}</div>;
-    }
-
-    return (
-      <Card className={className}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-          </CardTitle>
-        </CardHeader>
-        <CardContent>{emptyContent}</CardContent>
-      </Card>
-    );
+    return <div className={cn('px-4', className)}>{emptyContent}</div>;
   }
 
   // Search bar component (reused in both modes)
   const searchBar = (
-    <div className={cn('relative', compact ? 'px-4 pb-3' : 'mt-2')}>
+    <div className={cn('relative px-4 pb-3')}>
       <Search
         className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-        style={compact ? { left: '1.25rem' } : undefined}
+        style={{ left: '1.25rem' }}
       />
       <Input
         type="text"
         placeholder="Search transcript..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className={cn('pl-8 pr-20 h-9', compact && 'pl-8')}
+        className={cn('pl-8 pr-20 h-9')}
         autoFocus
       />
       {searchTerm && (
-        <div
-          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2"
-          style={compact ? { right: '1.25rem' } : undefined}
-        >
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2" style={{ right: '1.25rem' }}>
           <span className="text-xs text-muted-foreground">
             {searchMatchCount} match{searchMatchCount !== 1 ? 'es' : ''}
           </span>
@@ -520,12 +466,7 @@ export function ChapteredTranscript({
   // Transcript content (reused in both modes)
   const transcriptContent = (
     <>
-      <ScrollArea
-        ref={scrollAreaRef}
-        className={compact ? 'px-4' : 'pr-4'}
-        style={{ maxHeight: compact ? 'calc(100% - 50px)' : '500px' }}
-        onScrollCapture={handleScroll}
-      >
+      <ScrollArea ref={scrollAreaRef} className={'px-4'} style={{ maxHeight: '500px' }} onScrollCapture={handleScroll}>
         <div className="space-y-1">
           {filteredGroups.map((group, groupIndex) => (
             <ChapterGroupItem
@@ -547,7 +488,7 @@ export function ChapteredTranscript({
       </ScrollArea>
 
       {userHasScrolled && (
-        <div className={cn('flex justify-center mt-2', compact && 'px-4 pb-2')}>
+        <div className={cn('flex justify-center mt-2 px-4 pb-2')}>
           <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setUserHasScrolled(false)}>
             Resume auto-scroll
           </Button>
@@ -556,54 +497,22 @@ export function ChapteredTranscript({
     </>
   );
 
-  // Compact mode - no Card wrapper
-  if (compact) {
-    return (
-      <div className={cn('flex flex-col h-full', className)}>
-        {/* Compact search toggle */}
-        <div className="flex items-center justify-end px-4 pb-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setShowSearch(!showSearch)}
-            aria-label={showSearch ? 'Close search' : 'Search transcript'}
-          >
-            {showSearch ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
-          </Button>
-        </div>
-        {showSearch && searchBar}
-        <div className="flex-1 overflow-hidden">{transcriptContent}</div>
-      </div>
-    );
-  }
-
-  // Full mode with Card wrapper
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Transcript
-            {chapters.length > 0 && (
-              <span className="text-xs text-muted-foreground font-normal">({chapters.length} chapters)</span>
-            )}
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setShowSearch(!showSearch)}
-            aria-label={showSearch ? 'Close search' : 'Search transcript'}
-          >
-            {showSearch ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-          </Button>
-        </div>
-        {showSearch && searchBar}
-      </CardHeader>
-
-      <CardContent className="pt-0">{transcriptContent}</CardContent>
-    </Card>
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Compact search toggle */}
+      <div className="flex items-center justify-end px-4 pb-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => setShowSearch(!showSearch)}
+          aria-label={showSearch ? 'Close search' : 'Search transcript'}
+        >
+          {showSearch ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+      {showSearch && searchBar}
+      <div className="flex-1 overflow-hidden">{transcriptContent}</div>
+    </div>
   );
 }
