@@ -22,6 +22,13 @@
       "when": 1767948264118,
       "tag": "0002_remove-code-snippets",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768404295732,
+      "tag": "0003_add-vocabulary-schema",
+      "breakpoints": true
     }
   ]
 }
