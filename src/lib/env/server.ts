@@ -61,9 +61,11 @@ export const ServerEnv = Schema.Struct({
   ),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
+  VERCEL_BRANCH_URL: Schema.optional(Schema.String),
   VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
   VERCEL_ENV: Schema.optional(Schema.Literal('production', 'preview', 'development')),
   VERCEL_GIT_COMMIT_SHA: Schema.optional(Schema.String),
+  VERCEL_TARGET_ENV: Schema.optional(Schema.Literal('production', 'staging', 'development', 'preview')),
 });
 
 export type ServerEnvType = typeof ServerEnv.Type;
@@ -79,7 +81,7 @@ export const env = Schema.decodeUnknownSync(ServerEnv)(process.env);
 export function getAppUrl(): string {
   // Local development should always use localhost
   if (env.NODE_ENV === 'development') {
-    return 'http://localhost:5001';
+    return 'http://localhost:3091';
   }
 
   // Production environment - use the production URL
@@ -93,5 +95,5 @@ export function getAppUrl(): string {
   }
 
   // Local development fallback
-  return 'http://localhost:5001';
+  return 'http://localhost:3091';
 }

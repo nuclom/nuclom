@@ -33,7 +33,7 @@ export const env = Schema.decodeUnknownSync(ClientEnv)({
 export function getAppUrl(): string {
   // Local development should always use localhost
   if (env.NODE_ENV === 'development') {
-    return 'http://localhost:5001';
+    return 'http://localhost:3091';
   }
 
   // Production environment - use the production URL
@@ -47,5 +47,5 @@ export function getAppUrl(): string {
   }
 
   // Local development fallback
-  return 'http://localhost:5001';
+  return 'http://localhost:3091';
 }
