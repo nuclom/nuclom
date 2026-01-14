@@ -3,18 +3,16 @@
 import {
   Captions,
   CaptionsOff,
-  Keyboard,
+  Check,
+  FastForward,
   Maximize,
   Minimize,
-  Minimize2,
-  MonitorPlay,
   Pause,
   PictureInPicture2,
   Play,
   Repeat,
+  Rewind,
   Settings,
-  SkipBack,
-  SkipForward,
   Volume1,
   Volume2,
   VolumeX,
@@ -24,13 +22,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { type CaptionTrack, KEYBOARD_SHORTCUTS, PLAYBACK_RATES, SKIP_SECONDS, type VideoChapter } from '../types';
+import { type CaptionTrack, PLAYBACK_RATES, SKIP_SECONDS } from '../types';
 import { formatTime } from '../utils';
 
 interface VideoControlsProps {
@@ -44,25 +44,19 @@ interface VideoControlsProps {
   isPiP: boolean;
   pipSupported: boolean;
   isLooping: boolean;
-  isTheaterMode: boolean;
-  chapters: VideoChapter[];
-  currentChapter: VideoChapter | null;
   captionsEnabled: boolean;
   selectedCaptionTrack: string | null;
   availableCaptionTracks: CaptionTrack[];
   onTogglePlay: () => void;
   onSeekForward: () => void;
   onSeekBackward: () => void;
-  onSeekToChapter: (chapter: VideoChapter) => void;
   onVolumeChange: (value: number[]) => void;
   onToggleMute: () => void;
   onPlaybackRateChange: (rate: number) => void;
   onToggleFullscreen: () => void;
   onTogglePiP: () => void;
   onToggleLoop: () => void;
-  onToggleTheaterMode: () => void;
   onSelectCaptionTrack: (trackCode: string | null) => void;
-  onShowKeyboardHelp: () => void;
 }
 
 export function VideoControls({
@@ -76,25 +70,19 @@ export function VideoControls({
   isPiP,
   pipSupported,
   isLooping,
-  isTheaterMode,
-  chapters,
-  currentChapter,
   captionsEnabled,
   selectedCaptionTrack,
   availableCaptionTracks,
   onTogglePlay,
   onSeekForward,
   onSeekBackward,
-  onSeekToChapter,
   onVolumeChange,
   onToggleMute,
   onPlaybackRateChange,
   onToggleFullscreen,
   onTogglePiP,
   onToggleLoop,
-  onToggleTheaterMode,
   onSelectCaptionTrack,
-  onShowKeyboardHelp,
 }: VideoControlsProps) {
   const VolumeIcon = muted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
@@ -119,7 +107,7 @@ export function VideoControls({
           className="text-white hover:bg-white/20"
           aria-label={`Skip back ${SKIP_SECONDS} seconds`}
         >
-          <SkipBack className="h-4 w-4" />
+          <Rewind className="h-4 w-4" />
         </Button>
 
         <Button
@@ -129,7 +117,7 @@ export function VideoControls({
           className="text-white hover:bg-white/20"
           aria-label={`Skip forward ${SKIP_SECONDS} seconds`}
         >
-          <SkipForward className="h-4 w-4" />
+          <FastForward className="h-4 w-4" />
         </Button>
 
         {/* Volume Control */}
@@ -171,148 +159,84 @@ export function VideoControls({
 
       {/* Right Controls */}
       <div className="flex items-center gap-1">
-        {/* Loop Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleLoop}
-          className={cn('text-white hover:bg-white/20', isLooping && 'bg-white/20')}
-          aria-label={isLooping ? 'Disable loop' : 'Enable loop'}
-          title="Toggle loop (R)"
-        >
-          <Repeat className="h-4 w-4" />
-        </Button>
-
-        {/* Settings Menu */}
+        {/* Settings Menu - Contains most options */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 text-xs px-2">
-              <Settings className="h-4 w-4 mr-1" />
-              {playbackRate}x
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" aria-label="Settings">
+              <Settings className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Playback Speed</DropdownMenuLabel>
-            {PLAYBACK_RATES.map((rate) => (
-              <DropdownMenuItem
-                key={rate}
-                onClick={() => onPlaybackRateChange(rate)}
-                className={cn(rate === playbackRate && 'bg-accent')}
-              >
-                {rate}x
+          <DropdownMenuContent align="end" className="w-56">
+            {/* Playback Speed */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <span className="flex-1">Playback speed</span>
+                <span className="text-xs text-muted-foreground">{playbackRate}x</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  {PLAYBACK_RATES.map((rate) => (
+                    <DropdownMenuItem key={rate} onClick={() => onPlaybackRateChange(rate)}>
+                      {rate === playbackRate && <Check className="h-4 w-4 mr-2" />}
+                      <span className={cn(rate !== playbackRate && 'ml-6')}>{rate}x</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+
+            {/* Captions */}
+            {availableCaptionTracks.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {captionsEnabled ? <Captions className="h-4 w-4 mr-2" /> : <CaptionsOff className="h-4 w-4 mr-2" />}
+                  <span className="flex-1">Captions</span>
+                  <span className="text-xs text-muted-foreground">
+                    {captionsEnabled
+                      ? availableCaptionTracks.find((t) => t.code === selectedCaptionTrack)?.label || 'On'
+                      : 'Off'}
+                  </span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => onSelectCaptionTrack(null)}>
+                      {!captionsEnabled && <Check className="h-4 w-4 mr-2" />}
+                      <span className={cn(captionsEnabled && 'ml-6')}>Off</span>
+                    </DropdownMenuItem>
+                    {availableCaptionTracks.map((track) => (
+                      <DropdownMenuItem key={track.code} onClick={() => onSelectCaptionTrack(track.code)}>
+                        {captionsEnabled && selectedCaptionTrack === track.code && <Check className="h-4 w-4 mr-2" />}
+                        <span className={cn(!(captionsEnabled && selectedCaptionTrack === track.code) && 'ml-6')}>
+                          {track.label}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+            )}
+
+            <DropdownMenuSeparator />
+
+            {/* Loop */}
+            <DropdownMenuItem onClick={onToggleLoop}>
+              <Repeat className={cn('h-4 w-4 mr-2', isLooping && 'text-primary')} />
+              <span className="flex-1">Loop</span>
+              {isLooping && <Check className="h-4 w-4 ml-2" />}
+            </DropdownMenuItem>
+
+            {/* Picture-in-Picture */}
+            {pipSupported && (
+              <DropdownMenuItem onClick={onTogglePiP}>
+                <PictureInPicture2 className={cn('h-4 w-4 mr-2', isPiP && 'text-primary')} />
+                <span className="flex-1">Picture-in-picture</span>
+                {isPiP && <Check className="h-4 w-4 ml-2" />}
               </DropdownMenuItem>
-            ))}
-            {chapters.length > 0 && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Chapters</DropdownMenuLabel>
-                {chapters.map((chapter) => (
-                  <DropdownMenuItem
-                    key={chapter.id}
-                    onClick={() => onSeekToChapter(chapter)}
-                    className={cn(currentChapter?.id === chapter.id && 'bg-accent')}
-                  >
-                    <span className="flex-1 truncate">{chapter.title}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{formatTime(chapter.startTime)}</span>
-                  </DropdownMenuItem>
-                ))}
-              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Keyboard Shortcuts Help */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20"
-              aria-label="Keyboard shortcuts"
-              title="Keyboard shortcuts (?)"
-            >
-              <Keyboard className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-64">
-            <h4 className="font-medium mb-2">Keyboard Shortcuts</h4>
-            <div className="space-y-1 text-sm">
-              {KEYBOARD_SHORTCUTS.slice(0, 6).map((shortcut) => (
-                <div key={shortcut.key} className="flex justify-between">
-                  <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">{shortcut.key}</kbd>
-                  <span className="text-muted-foreground text-xs">{shortcut.action}</span>
-                </div>
-              ))}
-            </div>
-            <Button variant="link" size="sm" className="w-full mt-2 text-xs" onClick={onShowKeyboardHelp}>
-              View all shortcuts
-            </Button>
-          </PopoverContent>
-        </Popover>
-
-        {/* Captions */}
-        {availableCaptionTracks.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('text-white hover:bg-white/20', captionsEnabled && 'bg-white/20')}
-                aria-label={captionsEnabled ? 'Captions on' : 'Captions off'}
-                title="Captions (C)"
-              >
-                {captionsEnabled ? <Captions className="h-4 w-4" /> : <CaptionsOff className="h-4 w-4" />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Subtitles</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onSelectCaptionTrack(null)}
-                className={cn(!captionsEnabled && 'bg-accent')}
-              >
-                Off
-              </DropdownMenuItem>
-              {availableCaptionTracks.map((track) => (
-                <DropdownMenuItem
-                  key={track.code}
-                  onClick={() => onSelectCaptionTrack(track.code)}
-                  className={cn(captionsEnabled && selectedCaptionTrack === track.code && 'bg-accent')}
-                >
-                  {track.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-
-        {/* Theater Mode */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleTheaterMode}
-          className={cn('text-white hover:bg-white/20', isTheaterMode && 'bg-white/20')}
-          aria-label={isTheaterMode ? 'Exit theater mode' : 'Enter theater mode'}
-          title="Theater mode (T)"
-        >
-          {isTheaterMode ? <Minimize2 className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
-        </Button>
-
-        {/* Picture-in-Picture */}
-        {pipSupported && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onTogglePiP}
-            className={cn('text-white hover:bg-white/20', isPiP && 'bg-white/20')}
-            aria-label={isPiP ? 'Exit Picture-in-Picture' : 'Enter Picture-in-Picture'}
-            title="Picture-in-Picture (P)"
-          >
-            <PictureInPicture2 className="h-4 w-4" />
-          </Button>
-        )}
-
-        {/* Fullscreen */}
+        {/* Fullscreen - Keep visible for quick access */}
         <Button
           variant="ghost"
           size="icon"

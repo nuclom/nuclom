@@ -92,33 +92,73 @@ function ProcessingStatus({ status, error, createdAt, onRetry, isRetrying }: Pro
 
 interface ActionItemsListProps {
   items: ActionItem[];
+  videoId: string;
   onSeek?: (time: number) => void;
 }
 
-function ActionItemsList({ items, onSeek }: ActionItemsListProps) {
+function ActionItemsList({ items, videoId, onSeek }: ActionItemsListProps) {
+  const [completedItems, setCompletedItems] = useState<Set<number>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    const stored = localStorage.getItem(`action-items-${videoId}`);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
+
+  const toggleItem = useCallback(
+    (index: number) => {
+      setCompletedItems((prev) => {
+        const next = new Set(prev);
+        if (next.has(index)) {
+          next.delete(index);
+        } else {
+          next.add(index);
+        }
+        localStorage.setItem(`action-items-${videoId}`, JSON.stringify([...next]));
+        return next;
+      });
+    },
+    [videoId],
+  );
+
   if (items.length === 0) return null;
 
   return (
     <ul className="space-y-2">
-      {items.map((item, index) => (
-        <li key={index} className="flex items-start gap-3 group">
-          <div className="mt-0.5 h-4 w-4 rounded border border-muted-foreground/30 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="h-3 w-3 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground">{item.text}</p>
-            {item.timestamp !== undefined && item.timestamp !== null && onSeek && (
-              <button
-                type="button"
-                onClick={() => onSeek(item.timestamp as number)}
-                className="text-xs text-muted-foreground hover:text-foreground font-mono transition-colors mt-1"
-              >
-                {formatTime(item.timestamp)}
-              </button>
-            )}
-          </div>
-        </li>
-      ))}
+      {items.map((item, index) => {
+        const isCompleted = completedItems.has(index);
+        return (
+          <li key={index} className="flex items-start gap-3 group">
+            <button
+              type="button"
+              onClick={() => toggleItem(index)}
+              className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                isCompleted ? 'bg-primary border-primary' : 'border-muted-foreground/30 hover:border-primary/50'
+              }`}
+            >
+              <CheckCircle2
+                className={`h-3 w-3 transition-opacity ${
+                  isCompleted
+                    ? 'text-primary-foreground opacity-100'
+                    : 'text-muted-foreground/50 opacity-0 group-hover:opacity-100'
+                }`}
+              />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                {item.text}
+              </p>
+              {item.timestamp !== undefined && item.timestamp !== null && onSeek && (
+                <button
+                  type="button"
+                  onClick={() => onSeek(item.timestamp as number)}
+                  className="text-xs text-muted-foreground hover:text-foreground font-mono transition-colors mt-1"
+                >
+                  {formatTime(item.timestamp)}
+                </button>
+              )}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -147,12 +187,17 @@ function JumpToSection({ chapters, onSeek, currentTime }: JumpToSectionProps) {
               <button
                 type="button"
                 onClick={() => onSeek(chapter.startTime)}
-                className={`w-full text-left p-2 rounded-md text-sm hover:bg-muted transition-colors flex items-center gap-3 ${
+                className={`w-full text-left p-2 rounded-md text-sm hover:bg-muted transition-colors flex items-start gap-3 ${
                   isActive ? 'text-foreground' : 'text-muted-foreground'
                 }`}
               >
-                <span className="font-mono text-xs shrink-0">{formatTime(chapter.startTime)}</span>
-                <span className="line-clamp-2">{chapter.summary || chapter.title}</span>
+                <span className="font-mono text-xs shrink-0 mt-0.5">{formatTime(chapter.startTime)}</span>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-medium">{chapter.title}</span>
+                  {chapter.summary && (
+                    <span className="text-xs text-muted-foreground line-clamp-2">{chapter.summary}</span>
+                  )}
+                </div>
               </button>
             </li>
           );
@@ -220,6 +265,9 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   const playFnRef = useRef<(() => void) | null>(null);
   const [isRetrying, startRetryTransition] = useTransition();
   const hasSeenInitialTime = useRef(false);
+
+  // Transcript auto-scroll state
+  const [transcriptUserHasScrolled, setTranscriptUserHasScrolled] = useState(false);
 
   // Seek to initial time from URL
   useEffect(() => {
@@ -314,64 +362,195 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_500px] 2xl:grid-cols-[1fr_600px] gap-4">
-      {/* Header - First in DOM for mobile order, top-left on desktop */}
-      <header className="lg:col-start-1 lg:row-start-1 lg:pr-3 xl:pr-4">
-        <div className="flex items-center gap-2 mb-2">
-          <ProcessingStatus
-            status={video.processingStatus}
-            error={video.processingError}
-            createdAt={video.createdAt}
-            onRetry={handleRetryProcessing}
-            isRetrying={isRetrying}
-          />
-        </div>
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{video.title}</h1>
-          <div className="flex items-center gap-1 shrink-0">
-            <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5">
-              <Share2 className="h-4 w-4" />
-              Share
-            </Button>
-            <VideoActions
-              videoId={video.id}
-              videoTitle={video.title}
-              organizationSlug={organizationSlug}
-              canDelete={canDelete}
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_500px] 2xl:grid-cols-[1fr_600px] gap-6 lg:h-[calc(100vh-6rem)]">
+      {/* Left column - Header sticky, tabs scroll */}
+      <div className="lg:col-start-1 lg:row-start-1 flex flex-col lg:min-h-0">
+        {/* Header - Sticky on desktop */}
+        <header className="lg:sticky lg:top-0 lg:bg-background lg:z-10 lg:pb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <ProcessingStatus
+              status={video.processingStatus}
+              error={video.processingError}
+              createdAt={video.createdAt}
+              onRetry={handleRetryProcessing}
+              isRetrying={isRetrying}
             />
           </div>
-        </div>
-        <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-5 w-5">
-              <AvatarImage src={video.author.image || undefined} alt={video.author.name || 'Author'} />
-              <AvatarFallback className="text-xs">{video.author.name?.[0] || 'A'}</AvatarFallback>
-            </Avatar>
-            <span>{video.author.name || 'Unknown'}</span>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{video.title}</h1>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5">
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+              <VideoActions
+                videoId={video.id}
+                videoTitle={video.title}
+                organizationSlug={organizationSlug}
+                canDelete={canDelete}
+              />
+            </div>
           </div>
-          <span>·</span>
-          <span>{new Date(video.createdAt).toLocaleDateString()}</span>
-          <span>·</span>
-          <span>{video.duration}</span>
-        </div>
-        {tags.length > 0 && (
-          <div className="flex items-center gap-1.5 mt-3">
-            {tags.slice(0, 4).map((tag, i) => (
-              <Badge key={i} variant="outline" className={`text-xs font-normal ${getTagColor(tag)}`}>
-                {tag}
-              </Badge>
-            ))}
-            {tags.length > 4 && (
-              <Badge variant="secondary" className="text-xs font-normal">
-                +{tags.length - 4}
-              </Badge>
+          <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={video.author.image || undefined} alt={video.author.name || 'Author'} />
+                <AvatarFallback className="text-xs">{video.author.name?.[0] || 'A'}</AvatarFallback>
+              </Avatar>
+              <span>{video.author.name || 'Unknown'}</span>
+            </div>
+            <span>·</span>
+            <span>{new Date(video.createdAt).toLocaleDateString()}</span>
+            <span>·</span>
+            <span>{video.duration}</span>
+          </div>
+          {tags.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-3">
+              {tags.slice(0, 4).map((tag, i) => (
+                <Badge key={i} variant="outline" className={`text-xs font-normal ${getTagColor(tag)}`}>
+                  {tag}
+                </Badge>
+              ))}
+              {tags.length > 4 && (
+                <Badge variant="secondary" className="text-xs font-normal">
+                  +{tags.length - 4}
+                </Badge>
+              )}
+            </div>
+          )}
+        </header>
+
+        {/* Tabs */}
+        <Tabs defaultValue="summary" className="w-full flex-1 flex flex-col lg:min-h-0">
+          <TabsList className="w-full justify-start h-auto p-0 bg-background border-b rounded-none gap-0 lg:sticky lg:top-0 lg:z-10 shrink-0">
+            <TabsTrigger
+              value="summary"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
+            >
+              Summary
+            </TabsTrigger>
+            <TabsTrigger
+              value="action-items"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm flex items-center gap-1.5"
+            >
+              Action Items
+              {actionItems.length > 0 && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {actionItems.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            {decisionsCount !== null && decisionsCount > 0 && (
+              <TabsTrigger
+                value="decisions"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm flex items-center gap-1.5"
+              >
+                Decisions
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {decisionsCount}
+                </Badge>
+              </TabsTrigger>
+            )}
+            <TabsTrigger
+              value="transcript"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
+            >
+              Transcript
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Scrollable tab content wrapper */}
+          <div className="relative flex-1 lg:min-h-0">
+            <div className="h-full lg:overflow-y-auto lg:pr-6 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+              {/* Summary Tab */}
+              <TabsContent value="summary" className="mt-6 space-y-6">
+                {/* Recap / AI Summary */}
+                <section>
+                  {video.aiSummary ? (
+                    <div className="text-sm text-foreground leading-relaxed">
+                      <Streamdown>{video.aiSummary}</Streamdown>
+                    </div>
+                  ) : video.processingStatus === 'analyzing' ? (
+                    <div className="flex items-center gap-2 text-muted-foreground py-4">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Generating summary...</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No summary available yet.</p>
+                  )}
+                </section>
+
+                {/* Description */}
+                {video.description && (
+                  <section>
+                    <h2 className="text-sm font-semibold mb-3">Description</h2>
+                    <p className="text-sm text-muted-foreground">{video.description}</p>
+                  </section>
+                )}
+              </TabsContent>
+
+              {/* Action Items Tab */}
+              <TabsContent value="action-items" className="mt-6">
+                {actionItems.length > 0 ? (
+                  <ActionItemsList items={actionItems} videoId={video.id} onSeek={handleSeek} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <CheckCircle2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <h3 className="text-sm font-medium mb-1">No action items</h3>
+                    <p className="text-sm text-muted-foreground">Action items will appear here once extracted</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Decisions Tab */}
+              {decisionsCount !== null && decisionsCount > 0 && (
+                <TabsContent value="decisions" className="mt-6">
+                  <VideoDecisionsSidebar
+                    videoId={video.id}
+                    onLoad={handleDecisionsLoad}
+                    onSeek={handleSeek}
+                    hideWhenEmpty
+                    className="border-none p-0"
+                  />
+                </TabsContent>
+              )}
+
+              {/* Transcript Tab */}
+              <TabsContent value="transcript" className="mt-6">
+                <ChapteredTranscript
+                  chapters={playerChapters}
+                  segments={video.transcriptSegments || []}
+                  currentTime={currentTime}
+                  duration={durationSeconds}
+                  onSeek={handleSeekAndPlay}
+                  processingStatus={
+                    video.processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'
+                  }
+                  userHasScrolled={transcriptUserHasScrolled}
+                  onUserScrollChange={setTranscriptUserHasScrolled}
+                />
+              </TabsContent>
+            </div>
+
+            {/* Floating resume auto-scroll button */}
+            {transcriptUserHasScrolled && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none z-10">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-xs h-8 shadow-lg pointer-events-auto"
+                  onClick={() => setTranscriptUserHasScrolled(false)}
+                >
+                  Resume auto-scroll
+                </Button>
+              </div>
             )}
           </div>
-        )}
-      </header>
+        </Tabs>
+      </div>
 
-      {/* Video Player - Second in DOM for mobile, spans right column on desktop */}
-      <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pl-3 xl:pl-4">
+      {/* Video Player - Right column on desktop */}
+      <div className="lg:col-start-2 lg:row-start-1">
         <div className="lg:sticky lg:top-4 space-y-4">
           {/* Video Player */}
           <div className="relative rounded-xl overflow-hidden bg-black">
@@ -416,116 +595,6 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
             <JumpToSection chapters={playerChapters} onSeek={handleSeekAndPlay} currentTime={currentTime} />
           )}
         </div>
-      </div>
-
-      {/* Tabs - Third in DOM for mobile, below header on desktop */}
-      <div className="lg:col-start-1 lg:row-start-2 lg:pr-3 xl:pr-4">
-        {/* Tabs */}
-        <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-0">
-            <TabsTrigger
-              value="summary"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
-            >
-              Summary
-            </TabsTrigger>
-            <TabsTrigger
-              value="action-items"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm flex items-center gap-1.5"
-            >
-              Action Items
-              {actionItems.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {actionItems.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            {decisionsCount !== null && decisionsCount > 0 && (
-              <TabsTrigger
-                value="decisions"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm flex items-center gap-1.5"
-              >
-                Decisions
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {decisionsCount}
-                </Badge>
-              </TabsTrigger>
-            )}
-            <TabsTrigger
-              value="transcript"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-sm"
-            >
-              Transcript
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Summary Tab */}
-          <TabsContent value="summary" className="mt-6 space-y-6">
-            {/* Recap / AI Summary */}
-            <section>
-              {video.aiSummary ? (
-                <div className="text-sm text-foreground leading-relaxed">
-                  <Streamdown>{video.aiSummary}</Streamdown>
-                </div>
-              ) : video.processingStatus === 'analyzing' ? (
-                <div className="flex items-center gap-2 text-muted-foreground py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Generating summary...</span>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No summary available yet.</p>
-              )}
-            </section>
-
-            {/* Description */}
-            {video.description && (
-              <section>
-                <h2 className="text-sm font-semibold mb-3">Description</h2>
-                <p className="text-sm text-muted-foreground">{video.description}</p>
-              </section>
-            )}
-          </TabsContent>
-
-          {/* Action Items Tab */}
-          <TabsContent value="action-items" className="mt-6">
-            {actionItems.length > 0 ? (
-              <ActionItemsList items={actionItems} onSeek={handleSeek} />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <CheckCircle2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                <h3 className="text-sm font-medium mb-1">No action items</h3>
-                <p className="text-sm text-muted-foreground">Action items will appear here once extracted</p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Decisions Tab */}
-          {decisionsCount !== null && decisionsCount > 0 && (
-            <TabsContent value="decisions" className="mt-6">
-              <VideoDecisionsSidebar
-                videoId={video.id}
-                onLoad={handleDecisionsLoad}
-                onSeek={handleSeek}
-                hideWhenEmpty
-                className="border-none p-0"
-              />
-            </TabsContent>
-          )}
-
-          {/* Transcript Tab */}
-          <TabsContent value="transcript" className="mt-6">
-            <ChapteredTranscript
-              chapters={playerChapters}
-              segments={video.transcriptSegments || []}
-              currentTime={currentTime}
-              duration={durationSeconds}
-              onSeek={handleSeek}
-              processingStatus={
-                video.processingStatus as 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed'
-              }
-            />
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   );

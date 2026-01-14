@@ -76,7 +76,6 @@ export const KEYBOARD_SHORTCUTS = [
   { key: '↑ / ↓', action: 'Volume up / down' },
   { key: 'M', action: 'Mute / Unmute' },
   { key: 'F', action: 'Fullscreen' },
-  { key: 'T', action: 'Theater mode' },
   { key: 'P', action: 'Picture-in-Picture' },
   { key: 'C', action: 'Toggle captions' },
   { key: 'R', action: 'Toggle loop' },

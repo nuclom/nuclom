@@ -16,7 +16,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { TranscriptSegment } from '@/lib/db/schema';
 import { formatTime } from '@/lib/format-utils';
 import { findSegmentIndexByTime } from '@/lib/subtitles';
@@ -44,6 +43,10 @@ export interface ChapteredTranscriptProps {
   className?: string;
   /** Compact mode - removes Card wrapper for sidebar use */
   compact?: boolean;
+  /** Controlled scroll state - when true, auto-scroll is paused */
+  userHasScrolled?: boolean;
+  /** Callback when user scroll state changes */
+  onUserScrollChange?: (hasScrolled: boolean) => void;
 }
 
 interface ChapterGroup {
@@ -143,7 +146,7 @@ function SegmentItem({ segment, index, isActive, searchTerm, onSeek }: SegmentIt
     <div
       id={`transcript-segment-${index}`}
       className={cn(
-        'group relative flex gap-2 sm:gap-4 p-2 sm:p-2.5 rounded-md transition-colors cursor-pointer',
+        'group relative flex items-center gap-2 sm:gap-4 p-2 sm:p-2.5 rounded-md transition-colors cursor-pointer',
         isActive ? 'bg-primary/10 border-l-2 border-primary' : 'hover:bg-muted/50 border-l-2 border-transparent',
       )}
       onClick={() => onSeek?.(segment.startTime)}
@@ -306,11 +309,17 @@ export function ChapteredTranscript({
   onSeek,
   processingStatus,
   className,
+  userHasScrolled: controlledUserHasScrolled,
+  onUserScrollChange,
 }: ChapteredTranscriptProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const [internalUserHasScrolled, setInternalUserHasScrolled] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const userHasScrolled = controlledUserHasScrolled ?? internalUserHasScrolled;
+  const setUserHasScrolled = onUserScrollChange ?? setInternalUserHasScrolled;
 
   // Group segments by chapter
   const chapterGroups = useMemo(
@@ -374,17 +383,18 @@ export function ChapteredTranscript({
     lastTimeRef.current = currentTime;
   }, [currentTime]);
 
-  // Handle scroll to detect user scrolling
-  const handleScroll = useCallback(() => {
-    setUserHasScrolled(true);
-  }, []);
-
-  // Reset scroll flag after inactivity
+  // Detect user scrolling via wheel event
   useEffect(() => {
-    if (!userHasScrolled) return;
-    const timeout = setTimeout(() => setUserHasScrolled(false), 3000);
-    return () => clearTimeout(timeout);
-  }, [userHasScrolled]);
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+
+    const handleWheel = () => {
+      setUserHasScrolled(true);
+    };
+
+    scrollArea.addEventListener('wheel', handleWheel, { passive: true });
+    return () => scrollArea.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Handle seek with scroll reset
   const handleSeek = useCallback(
@@ -466,7 +476,7 @@ export function ChapteredTranscript({
   // Transcript content (reused in both modes)
   const transcriptContent = (
     <>
-      <ScrollArea ref={scrollAreaRef} className={'px-4'} style={{ maxHeight: '500px' }} onScrollCapture={handleScroll}>
+      <div ref={scrollAreaRef} className="px-4">
         <div className="space-y-1">
           {filteredGroups.map((group, groupIndex) => (
             <ChapterGroupItem
@@ -485,20 +495,12 @@ export function ChapteredTranscript({
         {searchTerm && searchMatchCount === 0 && (
           <div className="py-8 text-center text-muted-foreground text-sm">No matches found for "{searchTerm}"</div>
         )}
-      </ScrollArea>
-
-      {userHasScrolled && (
-        <div className={cn('flex justify-center mt-2 px-4 pb-2')}>
-          <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setUserHasScrolled(false)}>
-            Resume auto-scroll
-          </Button>
-        </div>
-      )}
+      </div>
     </>
   );
 
   return (
-    <div className={cn('flex flex-col h-full', className)}>
+    <div className={cn('relative flex flex-col h-full', className)}>
       {/* Compact search toggle */}
       <div className="flex items-center justify-end px-4 pb-2">
         <Button

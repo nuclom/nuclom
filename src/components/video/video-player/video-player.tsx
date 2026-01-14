@@ -18,7 +18,6 @@ import {
 import { VideoProgressBar } from './components/video-progress-bar';
 import { useCaptions } from './hooks/use-captions';
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts';
-import { useTheaterMode } from './hooks/use-theater-mode';
 import { useTouchGestures } from './hooks/use-touch-gestures';
 import { useVideoControls } from './hooks/use-video-controls';
 import { useViewTracking } from './hooks/use-view-tracking';
@@ -119,8 +118,6 @@ export function VideoPlayer({
     playing,
   });
 
-  const { isTheaterMode, toggleTheaterMode, exitTheaterMode } = useTheaterMode();
-
   // Mini-player registration
   const { registerVideo, updateRegisteredVideo, unregisterVideo, shouldShowForVideo, deactivateMiniPlayer } =
     useMiniPlayer();
@@ -205,7 +202,6 @@ export function VideoPlayer({
     togglePictureInPicture: controls.togglePictureInPicture,
     toggleLoop: controls.toggleLoop,
     toggleCaptions: captions.toggleCaptions,
-    toggleTheaterMode,
     setShowKeyboardHelp,
   });
 
@@ -489,146 +485,117 @@ export function VideoPlayer({
   const showPlayButton = (videoState === 'ready' || videoState === 'paused' || videoState === 'idle') && !playing;
 
   return (
-    <>
-      {/* Theater Mode Backdrop */}
-      {isTheaterMode && (
-        <div
-          className="fixed inset-0 z-30 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={exitTheaterMode}
-          onKeyDown={(e) => e.key === 'Escape' && exitTheaterMode()}
-          role="button"
-          tabIndex={0}
-          aria-label="Exit theater mode"
-        />
-      )}
-
-      <div
-        ref={containerRef}
-        className={cn(
-          'relative aspect-video bg-black rounded-lg overflow-hidden group',
-          isTheaterMode && [
-            'fixed z-40',
-            'w-[90vw] max-h-[90vh]',
-            'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
-            'rounded-lg shadow-2xl',
-          ],
-          className,
-        )}
-        // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
-        tabIndex={0}
-        role="application"
-        aria-label={`Video player: ${title}`}
+    <div
+      ref={containerRef}
+      className={cn('relative aspect-video bg-black rounded-lg overflow-hidden group', className)}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: role="application" makes this a valid interactive region for keyboard controls
+      tabIndex={0}
+      role="application"
+      aria-label={`Video player: ${title}`}
+    >
+      {/* Video Element */}
+      {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
+      <video
+        ref={videoRef}
+        src={currentUrl}
+        poster={thumbnailUrl}
+        className="w-full h-full object-contain"
+        preload="metadata"
+        playsInline
+        crossOrigin="anonymous"
+        onClick={controls.handleVideoClick}
+        onLoadStart={handleLoadStart}
+        onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onEnded={handleEnded}
+        onError={handleError}
+        onWaiting={handleWaiting}
+        onCanPlay={handleCanPlay}
       >
-        {/* Video Element */}
-        {/* biome-ignore lint/a11y/useMediaCaption: Captions are dynamically provided via availableCaptionTracks */}
-        <video
-          ref={videoRef}
-          src={currentUrl}
-          poster={thumbnailUrl}
-          className="w-full h-full object-contain"
-          preload="metadata"
-          playsInline
-          crossOrigin="anonymous"
-          onClick={controls.handleVideoClick}
-          onLoadStart={handleLoadStart}
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          onEnded={handleEnded}
-          onError={handleError}
-          onWaiting={handleWaiting}
-          onCanPlay={handleCanPlay}
-        >
-          {captions.availableCaptionTracks.map((track) => (
-            <track
-              key={track.code}
-              kind="captions"
-              src={track.src}
-              srcLang={track.code}
-              label={track.label}
-              default={track.default && captions.captionsEnabled}
-            />
-          ))}
-        </video>
+        {captions.availableCaptionTracks.map((track) => (
+          <track
+            key={track.code}
+            kind="captions"
+            src={track.src}
+            srcLang={track.code}
+            label={track.label}
+            default={track.default && captions.captionsEnabled}
+          />
+        ))}
+      </video>
 
-        {/* Overlays */}
-        <LoadingOverlay visible={videoState === 'loading'} />
-        <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleManualRetry} />
-        <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
-        <ChapterDisplay chapter={currentChapter} visible={showControls} />
-        <LoopIndicator isLooping={isLooping} />
-        <KeyboardHelpModal visible={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
+      {/* Overlays */}
+      <LoadingOverlay visible={videoState === 'loading'} />
+      <ErrorOverlay visible={videoState === 'error'} message={errorMessage} onRetry={handleManualRetry} />
+      <PlayButtonOverlay visible={showPlayButton} onPlay={controls.togglePlay} />
+      <ChapterDisplay chapter={currentChapter} visible={showControls} />
+      <LoopIndicator isLooping={isLooping} />
+      <KeyboardHelpModal visible={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
 
-        {/* Touch Skip Feedback */}
-        {isTouchDevice && <TouchSkipFeedback feedback={touchFeedback} />}
+      {/* Touch Skip Feedback */}
+      {isTouchDevice && <TouchSkipFeedback feedback={touchFeedback} />}
 
-        {/* Presence Indicator - Top Right */}
-        {videoId && (
-          <div
-            className={cn(
-              'absolute top-4 right-4 z-10',
-              'transition-opacity duration-300',
-              showControls || !playing ? 'opacity-100' : 'opacity-0',
-            )}
-          >
-            <VideoPresence videoId={videoId} />
-          </div>
-        )}
-
-        {/* Controls Overlay */}
+      {/* Presence Indicator - Top Right */}
+      {videoId && (
         <div
           className={cn(
-            'absolute bottom-0 left-0 right-0 p-4',
-            'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+            'absolute top-4 right-4 z-10',
             'transition-opacity duration-300',
-            showControls || !playing ? 'opacity-100' : 'opacity-0 pointer-events-none',
+            showControls || !playing ? 'opacity-100' : 'opacity-0',
           )}
         >
-          <VideoProgressBar
-            progressBarRef={progressBarRef}
-            videoUrl={url}
-            duration={duration}
-            currentTime={currentTime}
-            buffered={buffered}
-            chapters={chapters}
-            onSeek={controls.seek}
-            onSeekToChapter={seekToChapter}
-          />
-
-          <VideoControls
-            playing={playing}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            muted={muted}
-            playbackRate={playbackRate}
-            isFullscreen={isFullscreen}
-            isPiP={isPiP}
-            pipSupported={pipSupported}
-            isLooping={isLooping}
-            isTheaterMode={isTheaterMode}
-            chapters={chapters}
-            currentChapter={currentChapter}
-            captionsEnabled={captions.captionsEnabled}
-            selectedCaptionTrack={captions.selectedCaptionTrack}
-            availableCaptionTracks={captions.availableCaptionTracks}
-            onTogglePlay={controls.togglePlay}
-            onSeekForward={controls.seekForward}
-            onSeekBackward={controls.seekBackward}
-            onSeekToChapter={seekToChapter}
-            onVolumeChange={controls.handleVolumeChange}
-            onToggleMute={controls.toggleMute}
-            onPlaybackRateChange={controls.handlePlaybackRateChange}
-            onToggleFullscreen={controls.toggleFullscreen}
-            onTogglePiP={controls.togglePictureInPicture}
-            onToggleLoop={controls.toggleLoop}
-            onToggleTheaterMode={toggleTheaterMode}
-            onSelectCaptionTrack={captions.selectCaptionTrack}
-            onShowKeyboardHelp={() => setShowKeyboardHelp(true)}
-          />
+          <VideoPresence videoId={videoId} />
         </div>
+      )}
+
+      {/* Controls Overlay */}
+      <div
+        className={cn(
+          'absolute bottom-0 left-0 right-0 p-4',
+          'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+          'transition-opacity duration-300',
+          showControls || !playing ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        )}
+      >
+        <VideoProgressBar
+          progressBarRef={progressBarRef}
+          videoUrl={url}
+          duration={duration}
+          currentTime={currentTime}
+          buffered={buffered}
+          chapters={chapters}
+          onSeek={controls.seek}
+          onSeekToChapter={seekToChapter}
+        />
+
+        <VideoControls
+          playing={playing}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          muted={muted}
+          playbackRate={playbackRate}
+          isFullscreen={isFullscreen}
+          isPiP={isPiP}
+          pipSupported={pipSupported}
+          isLooping={isLooping}
+          captionsEnabled={captions.captionsEnabled}
+          selectedCaptionTrack={captions.selectedCaptionTrack}
+          availableCaptionTracks={captions.availableCaptionTracks}
+          onTogglePlay={controls.togglePlay}
+          onSeekForward={controls.seekForward}
+          onSeekBackward={controls.seekBackward}
+          onVolumeChange={controls.handleVolumeChange}
+          onToggleMute={controls.toggleMute}
+          onPlaybackRateChange={controls.handlePlaybackRateChange}
+          onToggleFullscreen={controls.toggleFullscreen}
+          onTogglePiP={controls.togglePictureInPicture}
+          onToggleLoop={controls.toggleLoop}
+          onSelectCaptionTrack={captions.selectCaptionTrack}
+        />
       </div>
-    </>
+    </div>
   );
 }

@@ -83,7 +83,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         nativeName: 'English',
         isOriginal: true,
         available: hasTranscript,
-        url: `${baseUrl}/en.vtt`,
+        url: `${baseUrl}/en`,
       },
     ];
 
