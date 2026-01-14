@@ -24,4 +24,5 @@ export * from './speakers';
 export * from './types';
 export * from './user-extensions';
 export * from './videos';
+export * from './vocabulary';
 export * from './workflows';

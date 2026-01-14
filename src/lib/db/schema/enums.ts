@@ -21,6 +21,7 @@
  * - Clips: clipTypeEnum, momentTypeEnum, clipStatusEnum, highlightReelStatusEnum
  * - Health: healthCheckServiceEnum, healthCheckStatusEnum
  * - Activity: activityTypeEnum, zapierWebhookEventEnum
+ * - Vocabulary: vocabularyCategoryEnum, correctionSuggestionStatusEnum
  */
 
 import { pgEnum } from 'drizzle-orm/pg-core';
@@ -253,4 +254,22 @@ export const zapierWebhookEventEnum = pgEnum('ZapierWebhookEvent', [
   'comment.replied',
   'member.joined',
   'member.left',
+]);
+
+// =============================================================================
+// Vocabulary Enums
+// =============================================================================
+
+export const vocabularyCategoryEnum = pgEnum('VocabularyCategory', [
+  'product',
+  'person',
+  'technical',
+  'acronym',
+  'company',
+]);
+
+export const correctionSuggestionStatusEnum = pgEnum('CorrectionSuggestionStatus', [
+  'pending',
+  'accepted',
+  'dismissed',
 ]);

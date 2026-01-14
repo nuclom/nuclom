@@ -26,6 +26,13 @@ import { processVideoWorkflow } from './video-processing';
 // Types
 // =============================================================================
 
+export interface MeetingParticipant {
+  readonly name: string;
+  readonly email?: string;
+  readonly joinTime?: string;
+  readonly leaveTime?: string;
+}
+
 export interface ImportMeetingInput {
   readonly importedMeetingId: string;
   readonly integrationId: string;
@@ -36,6 +43,8 @@ export interface ImportMeetingInput {
   readonly userId: string;
   readonly organizationId: string;
   readonly accessToken: string;
+  /** Meeting participants for speaker identification */
+  readonly participants?: MeetingParticipant[];
 }
 
 export interface ImportMeetingResult {
@@ -194,6 +203,72 @@ async function generatePresignedUrl(key: string, expiresIn = 3600): Promise<stri
   return getSignedUrl(client, command, { expiresIn });
 }
 
+/**
+ * Create speaker profiles from meeting participants.
+ * This pre-populates speaker data before diarization for easier matching.
+ */
+async function createSpeakerProfilesFromParticipants(
+  _videoId: string,
+  organizationId: string,
+  participants: MeetingParticipant[],
+): Promise<void> {
+  'use step';
+
+  if (participants.length === 0) return;
+
+  const { db } = await import('@/lib/db');
+  const { speakerProfiles, members, users } = await import('@/lib/db/schema');
+  const { eq, and } = await import('drizzle-orm');
+
+  try {
+    for (const participant of participants) {
+      // Try to find existing org member by email
+      let userId: string | null = null;
+      let existingProfileId: string | null = null;
+
+      if (participant.email) {
+        // Look up user by email
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, participant.email),
+          columns: { id: true },
+        });
+
+        if (user) {
+          userId = user.id;
+
+          // Check if they're an org member
+          const member = await db.query.members.findFirst({
+            where: and(eq(members.userId, user.id), eq(members.organizationId, organizationId)),
+          });
+
+          if (member) {
+            // Check if they already have a speaker profile
+            const existingProfile = await db.query.speakerProfiles.findFirst({
+              where: and(eq(speakerProfiles.userId, user.id), eq(speakerProfiles.organizationId, organizationId)),
+            });
+
+            if (existingProfile) {
+              existingProfileId = existingProfile.id;
+            }
+          }
+        }
+      }
+
+      // Create a new speaker profile if one doesn't exist for this user
+      if (!existingProfileId) {
+        await db.insert(speakerProfiles).values({
+          organizationId,
+          userId,
+          displayName: participant.name,
+        });
+      }
+    }
+  } catch (error) {
+    // Log but don't fail the import
+    console.warn('Failed to create speaker profiles from participants:', error);
+  }
+}
+
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -287,8 +362,17 @@ async function createVideoRecord(
 export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<ImportMeetingResult> {
   'use workflow';
 
-  const { importedMeetingId, provider, externalId, downloadUrl, meetingTitle, userId, organizationId, accessToken } =
-    input;
+  const {
+    importedMeetingId,
+    provider,
+    externalId,
+    downloadUrl,
+    meetingTitle,
+    userId,
+    organizationId,
+    accessToken,
+    participants,
+  } = input;
 
   // Step 1: Update import status to downloading
   const downloadingResult = await updateImportStatus(importedMeetingId, 'downloading').catch((error) => ({
@@ -354,16 +438,25 @@ export async function importMeetingWorkflow(input: ImportMeetingInput): Promise<
     importedAt: new Date(),
   });
 
-  // Step 7: Generate presigned URL for processing workflow
+  // Step 7: Create speaker profiles from participants (if available)
+  if (participants && participants.length > 0) {
+    await createSpeakerProfilesFromParticipants(video.id, organizationId, participants);
+  }
+
+  // Step 8: Generate presigned URL for processing workflow
   const presignedUrl = await generatePresignedUrl(uploadResult.key);
 
-  // Step 8: Trigger video processing workflow
+  // Step 9: Trigger video processing workflow
   // This is a separate durable workflow that will handle transcription and AI analysis
+  // Pass participant names for improved transcription accuracy
+  const participantNames = participants?.map((p) => p.name) ?? [];
+
   await processVideoWorkflow({
     videoId: video.id,
     videoUrl: presignedUrl,
     videoTitle: meetingTitle,
     organizationId,
+    participantNames,
   });
 
   return {
