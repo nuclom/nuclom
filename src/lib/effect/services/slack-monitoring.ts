@@ -75,9 +75,16 @@ interface SlackBlock {
   readonly elements?: SlackTextElement[];
 }
 
+interface SlackAttachment {
+  readonly color?: string;
+  readonly blocks?: SlackBlock[];
+  readonly fallback?: string;
+}
+
 interface SlackWebhookPayload {
   readonly text: string;
   readonly blocks?: SlackBlock[];
+  readonly attachments?: SlackAttachment[];
   readonly unfurl_links?: boolean;
   readonly unfurl_media?: boolean;
 }
@@ -171,7 +178,15 @@ export interface SlackMonitoringServiceInterface {
       organizationId?: string;
       organizationName?: string;
       userId?: string;
+      userName?: string;
+      userEmail?: string;
       stackTrace?: string;
+      httpStatus?: number;
+      httpMethod?: string;
+      requestId?: string;
+      severity?: 'critical' | 'error' | 'warning';
+      videoId?: string;
+      videoTitle?: string;
     },
   ) => Effect.Effect<void, Error>;
 }
@@ -306,6 +321,61 @@ const formatDuration = (seconds: number): string => {
     return `${minutes}m ${secs}s`;
   }
   return `${secs}s`;
+};
+
+// =============================================================================
+// Error Severity Helpers
+// =============================================================================
+
+type ErrorSeverity = 'critical' | 'error' | 'warning';
+
+const getSeverityColor = (severity: ErrorSeverity): string => {
+  const colorMap: Record<ErrorSeverity, string> = {
+    critical: '#dc2626', // Red
+    error: '#f97316', // Orange
+    warning: '#eab308', // Yellow
+  };
+  return colorMap[severity];
+};
+
+const getSeverityEmoji = (severity: ErrorSeverity): string => {
+  const emojiMap: Record<ErrorSeverity, string> = {
+    critical: ':rotating_light:',
+    error: ':warning:',
+    warning: ':yellow_heart:',
+  };
+  return emojiMap[severity];
+};
+
+const getSeverityLabel = (severity: ErrorSeverity): string => {
+  const labelMap: Record<ErrorSeverity, string> = {
+    critical: 'CRITICAL',
+    error: 'ERROR',
+    warning: 'WARNING',
+  };
+  return labelMap[severity];
+};
+
+const inferSeverityFromStatus = (httpStatus?: number): ErrorSeverity => {
+  if (!httpStatus) return 'error';
+  if (httpStatus >= 500) return 'critical';
+  if (httpStatus >= 400) return 'error';
+  return 'warning';
+};
+
+const truncateErrorMessage = (message: string, maxLength: number = 500): string => {
+  if (message.length <= maxLength) return message;
+  return `${message.substring(0, maxLength)}...`;
+};
+
+const formatStackTrace = (stackTrace: string, maxLines: number = 10): string => {
+  const lines = stackTrace.split('\n');
+  const truncated = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    const remainingLines = lines.length - maxLines;
+    truncated.push(`... and ${remainingLines} more lines`);
+  }
+  return truncated.join('\n');
 };
 
 // =============================================================================
@@ -541,6 +611,217 @@ const makeSlackMonitoringService = Effect.gen(function* () {
     return blocks;
   };
 
+  // Build enhanced error event payload with color-coded attachments
+  const buildErrorEventPayload = (
+    type: 'api_error' | 'webhook_failed' | 'integration_error',
+    data: Parameters<SlackMonitoringServiceInterface['sendErrorEvent']>[1],
+    timestamp: Date,
+  ): SlackWebhookPayload => {
+    const severity = data.severity || inferSeverityFromStatus(data.httpStatus);
+    const severityEmoji = getSeverityEmoji(severity);
+    const severityLabel = getSeverityLabel(severity);
+    const severityColor = getSeverityColor(severity);
+    const title = getEventTitle(type);
+
+    // Header block with severity indicator
+    const headerBlocks: SlackBlock[] = [
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `${severityEmoji} ${title}`,
+          emoji: true,
+        },
+      },
+    ];
+
+    // Severity badge as context
+    headerBlocks.push({
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `*Severity:* \`${severityLabel}\`${data.httpStatus ? ` • *Status:* \`${data.httpStatus}\`` : ''}${data.httpMethod ? ` • *Method:* \`${data.httpMethod}\`` : ''}`,
+        },
+      ],
+    } as SlackBlock);
+
+    // Main error details in attachment (with color bar)
+    const attachmentBlocks: SlackBlock[] = [];
+
+    // Error message section with better formatting
+    if (data.errorMessage) {
+      const truncatedMessage = truncateErrorMessage(data.errorMessage);
+      attachmentBlocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Error Message:*\n\`\`\`${truncatedMessage}\`\`\``,
+        },
+      } as SlackBlock);
+    }
+
+    // Context fields in a structured grid
+    const contextFields: Array<{ type: string; text: string }> = [];
+
+    if (data.endpoint) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Endpoint:*\n\`${data.endpoint}\``,
+      });
+    }
+
+    if (data.errorCode) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Error Code:*\n\`${data.errorCode}\``,
+      });
+    }
+
+    if (data.requestId) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Request ID:*\n\`${data.requestId}\``,
+      });
+    }
+
+    if (data.integrationName) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Integration:*\n${data.integrationName}`,
+      });
+    }
+
+    if (data.webhookType) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Webhook Type:*\n${data.webhookType}`,
+      });
+    }
+
+    if (data.organizationName) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Organization:*\n${data.organizationName}`,
+      });
+    }
+
+    if (data.userName || data.userEmail) {
+      const userInfo = data.userName
+        ? data.userEmail
+          ? `${data.userName} (${data.userEmail})`
+          : data.userName
+        : data.userEmail;
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*User:*\n${userInfo}`,
+      });
+    }
+
+    if (data.videoTitle) {
+      contextFields.push({
+        type: 'mrkdwn',
+        text: `*Video:*\n${data.videoTitle}`,
+      });
+    }
+
+    if (contextFields.length > 0) {
+      attachmentBlocks.push({
+        type: 'section',
+        fields: contextFields,
+      });
+    }
+
+    // Stack trace in collapsible section (using code block)
+    if (data.stackTrace) {
+      const formattedStack = formatStackTrace(data.stackTrace);
+      attachmentBlocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Stack Trace:*\n\`\`\`${formattedStack}\`\`\``,
+        },
+      } as SlackBlock);
+    }
+
+    // Timestamp
+    attachmentBlocks.push({
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `<!date^${Math.floor(timestamp.getTime() / 1000)}^{date_short_pretty} at {time}|${timestamp.toISOString()}>`,
+        },
+      ],
+    } as SlackBlock);
+
+    // Action buttons
+    const actionElements: SlackTextElement[] = [];
+
+    if (data.organizationId) {
+      actionElements.push({
+        type: 'button',
+        text: {
+          type: 'plain_text',
+          text: 'View Organization',
+          emoji: true,
+        },
+        url: `${appUrl}/admin/organizations/${data.organizationId}`,
+        action_id: 'view_organization',
+      });
+    }
+
+    if (data.userId) {
+      actionElements.push({
+        type: 'button',
+        text: {
+          type: 'plain_text',
+          text: 'View User',
+          emoji: true,
+        },
+        url: `${appUrl}/admin/users/${data.userId}`,
+        action_id: 'view_user',
+      });
+    }
+
+    if (data.videoId) {
+      actionElements.push({
+        type: 'button',
+        text: {
+          type: 'plain_text',
+          text: 'View Video',
+          emoji: true,
+        },
+        url: `${appUrl}/admin/videos/${data.videoId}`,
+        action_id: 'view_video',
+      });
+    }
+
+    if (actionElements.length > 0) {
+      attachmentBlocks.push({
+        type: 'actions',
+        elements: actionElements,
+      });
+    }
+
+    // Build the fallback text
+    const fallbackText = `${severityEmoji} [${severityLabel}] ${title}: ${truncateErrorMessage(data.errorMessage, 100)}`;
+
+    return {
+      text: fallbackText,
+      blocks: headerBlocks,
+      attachments: [
+        {
+          color: severityColor,
+          blocks: attachmentBlocks,
+          fallback: fallbackText,
+        },
+      ],
+      unfurl_links: false,
+      unfurl_media: false,
+    };
+  };
+
   const sendEvent = (event: MonitoringEvent): Effect.Effect<void, Error> => {
     // Get the webhook URL for this event category
     const category = getEventCategory(event.type);
@@ -597,15 +878,20 @@ const makeSlackMonitoringService = Effect.gen(function* () {
       userName: data.userName,
     });
 
-  const sendErrorEvent: SlackMonitoringServiceInterface['sendErrorEvent'] = (type, data) =>
-    sendEvent({
-      type,
-      timestamp: new Date(),
-      data,
-      organizationId: data.organizationId,
-      organizationName: data.organizationName,
-      userId: data.userId,
-    });
+  const sendErrorEvent: SlackMonitoringServiceInterface['sendErrorEvent'] = (type, data) => {
+    // Get the webhook URL for errors
+    const webhookUrl = getWebhookUrl('errors');
+
+    // Skip if no webhook configured
+    if (!webhookUrl) {
+      return Effect.succeed(undefined);
+    }
+
+    // Use enhanced error payload builder
+    const payload = buildErrorEventPayload(type, data, new Date());
+
+    return sendWebhook(payload, webhookUrl);
+  };
 
   return {
     isConfigured,
@@ -691,6 +977,18 @@ export async function notifySlackMonitoring(
     errorMessage?: string;
     useCase?: string;
     company?: string;
+    // Error-specific fields
+    errorCode?: string;
+    endpoint?: string;
+    httpStatus?: number;
+    httpMethod?: string;
+    requestId?: string;
+    severity?: 'critical' | 'error' | 'warning';
+    stackTrace?: string;
+    webhookType?: string;
+    integrationName?: string;
+    videoId?: string;
+    videoTitle?: string;
     [key: string]: unknown;
   },
 ): Promise<void> {
@@ -703,6 +1001,27 @@ export async function notifySlackMonitoring(
       return; // Silently skip if not configured
     }
 
+    // Use enhanced formatting for error events (including video processing failures with error messages)
+    const isErrorEvent =
+      type === 'api_error' ||
+      type === 'webhook_failed' ||
+      type === 'integration_error' ||
+      type === 'video_processing_failed';
+    if (isErrorEvent && data.errorMessage) {
+      const payload = buildStandaloneErrorPayload(type as 'api_error' | 'webhook_failed' | 'integration_error', data);
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        console.error(`[SlackMonitoring] Webhook failed: ${response.status}`);
+      }
+      return;
+    }
+
+    // Standard formatting for non-error events
     const emoji = getEventEmoji(type);
     const title = getEventTitle(type);
 
@@ -787,6 +1106,218 @@ export async function notifySlackMonitoring(
     // Log but don't throw - monitoring should never break the app
     console.error('[SlackMonitoring] Failed to send notification:', error);
   }
+}
+
+/**
+ * Build enhanced error payload for standalone function
+ */
+function buildStandaloneErrorPayload(
+  type: 'api_error' | 'webhook_failed' | 'integration_error',
+  data: Parameters<typeof notifySlackMonitoring>[1],
+): SlackWebhookPayload {
+  const appUrl = getAppUrl();
+  const severity = data.severity || inferSeverityFromStatus(data.httpStatus);
+  const severityEmoji = getSeverityEmoji(severity);
+  const severityLabel = getSeverityLabel(severity);
+  const severityColor = getSeverityColor(severity);
+  const title = getEventTitle(type);
+
+  // Header block with severity indicator
+  const headerBlocks = [
+    {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: `${severityEmoji} ${title}`,
+        emoji: true,
+      },
+    },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `*Severity:* \`${severityLabel}\`${data.httpStatus ? ` • *Status:* \`${data.httpStatus}\`` : ''}${data.httpMethod ? ` • *Method:* \`${data.httpMethod}\`` : ''}`,
+        },
+      ],
+    },
+  ];
+
+  // Main error details in attachment (with color bar)
+  const attachmentBlocks: Array<Record<string, unknown>> = [];
+
+  // Error message section with better formatting
+  if (data.errorMessage) {
+    const truncatedMessage = truncateErrorMessage(String(data.errorMessage));
+    attachmentBlocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Error Message:*\n\`\`\`${truncatedMessage}\`\`\``,
+      },
+    });
+  }
+
+  // Context fields in a structured grid
+  const contextFields: Array<{ type: string; text: string }> = [];
+
+  if (data.endpoint) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Endpoint:*\n\`${data.endpoint}\``,
+    });
+  }
+
+  if (data.errorCode) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Error Code:*\n\`${data.errorCode}\``,
+    });
+  }
+
+  if (data.requestId) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Request ID:*\n\`${data.requestId}\``,
+    });
+  }
+
+  if (data.integrationName) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Integration:*\n${data.integrationName}`,
+    });
+  }
+
+  if (data.webhookType) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Webhook Type:*\n${data.webhookType}`,
+    });
+  }
+
+  if (data.organizationName) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Organization:*\n${data.organizationName}`,
+    });
+  }
+
+  if (data.userName || data.userEmail) {
+    const userInfo = data.userName
+      ? data.userEmail
+        ? `${data.userName} (${data.userEmail})`
+        : data.userName
+      : data.userEmail;
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*User:*\n${userInfo}`,
+    });
+  }
+
+  if (data.videoTitle) {
+    contextFields.push({
+      type: 'mrkdwn',
+      text: `*Video:*\n${data.videoTitle}`,
+    });
+  }
+
+  if (contextFields.length > 0) {
+    attachmentBlocks.push({
+      type: 'section',
+      fields: contextFields,
+    });
+  }
+
+  // Stack trace in code block
+  if (data.stackTrace) {
+    const formattedStack = formatStackTrace(String(data.stackTrace));
+    attachmentBlocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Stack Trace:*\n\`\`\`${formattedStack}\`\`\``,
+      },
+    });
+  }
+
+  // Timestamp
+  attachmentBlocks.push({
+    type: 'context',
+    elements: [
+      {
+        type: 'mrkdwn',
+        text: `<!date^${Math.floor(Date.now() / 1000)}^{date_short_pretty} at {time}|${new Date().toISOString()}>`,
+      },
+    ],
+  });
+
+  // Action buttons
+  const actionElements: Array<Record<string, unknown>> = [];
+
+  if (data.organizationId) {
+    actionElements.push({
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'View Organization',
+        emoji: true,
+      },
+      url: `${appUrl}/admin/organizations/${data.organizationId}`,
+      action_id: 'view_organization',
+    });
+  }
+
+  if (data.userId) {
+    actionElements.push({
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'View User',
+        emoji: true,
+      },
+      url: `${appUrl}/admin/users/${data.userId}`,
+      action_id: 'view_user',
+    });
+  }
+
+  if (data.videoId) {
+    actionElements.push({
+      type: 'button',
+      text: {
+        type: 'plain_text',
+        text: 'View Video',
+        emoji: true,
+      },
+      url: `${appUrl}/admin/videos/${data.videoId}`,
+      action_id: 'view_video',
+    });
+  }
+
+  if (actionElements.length > 0) {
+    attachmentBlocks.push({
+      type: 'actions',
+      elements: actionElements,
+    });
+  }
+
+  // Build the fallback text
+  const errorMsg = data.errorMessage ? truncateErrorMessage(String(data.errorMessage), 100) : 'Unknown error';
+  const fallbackText = `${severityEmoji} [${severityLabel}] ${title}: ${errorMsg}`;
+
+  return {
+    text: fallbackText,
+    blocks: headerBlocks as SlackBlock[],
+    attachments: [
+      {
+        color: severityColor,
+        blocks: attachmentBlocks as unknown as SlackBlock[],
+        fallback: fallbackText,
+      },
+    ],
+    unfurl_links: false,
+    unfurl_media: false,
+  };
 }
 
 /**

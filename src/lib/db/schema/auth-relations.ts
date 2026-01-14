@@ -25,6 +25,7 @@ import {
 } from './auth';
 import { invoices, paymentMethods, usage } from './billing';
 import { decisions, knowledgeNodes } from './knowledge';
+import { notifications } from './notifications';
 import { userExtensions, userPreferences } from './user-extensions';
 import { channels, collections, videoProgresses, videos } from './videos';
 
@@ -45,6 +46,9 @@ export const userRelations = relations(users, ({ one, many }) => ({
   // Application relations
   videos: many(videos),
   videoProgresses: many(videoProgresses),
+  // Notification relations (must match relationName from notificationRelations)
+  notifications: many(notifications, { relationName: 'NotificationRecipient' }),
+  actedNotifications: many(notifications, { relationName: 'NotificationActor' }),
 }));
 
 // =============================================================================
