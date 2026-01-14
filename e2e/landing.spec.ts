@@ -36,9 +36,9 @@ test.describe('Landing Page', () => {
       test.skip(true, 'Redirected to authenticated page');
       return;
     }
-    await expect(page.getByText('Collaborate on Videos')).toBeVisible();
-    // Use exact match to avoid matching other text containing this phrase
-    await expect(page.getByText('Like Never Before', { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' }),
+    ).toBeVisible();
     // Use first() as there are multiple "Start Free Trial" links on the page
     await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
   });
@@ -72,10 +72,15 @@ test.describe('Landing Page', () => {
       test.skip(true, 'Redirected to authenticated page');
       return;
     }
-    await expect(page.getByText('Get Started in Minutes')).toBeVisible();
-    await expect(page.getByText('Upload Your Videos')).toBeVisible();
-    await expect(page.getByText('Invite Your Team')).toBeVisible();
-    await expect(page.getByText('Collaborate Together')).toBeVisible();
+    const howItWorksSection = page
+      .locator('section')
+      .filter({ has: page.getByRole('heading', { name: 'Get Started in Minutes' }) })
+      .first();
+    await howItWorksSection.scrollIntoViewIfNeeded();
+    await expect(howItWorksSection.getByRole('heading', { name: 'Get Started in Minutes' })).toBeVisible();
+    await expect(howItWorksSection.getByRole('heading', { name: 'Upload Your Videos' })).toBeVisible();
+    await expect(howItWorksSection.getByRole('heading', { name: 'Invite Your Team' })).toBeVisible();
+    await expect(howItWorksSection.getByRole('heading', { name: 'Extract Insights' })).toBeVisible();
   });
 
   test('should display footer with links', async ({ page }) => {
@@ -85,7 +90,9 @@ test.describe('Landing Page', () => {
     }
     await expect(page.getByRole('link', { name: /privacy/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /terms/i }).first()).toBeVisible();
-    await expect(page.getByText(/Nuclom. All rights reserved/i)).toBeVisible();
+    await expect(
+      page.getByRole('contentinfo').getByText(/Nuclom. All rights reserved/i),
+    ).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
@@ -166,6 +173,8 @@ test.describe('Landing Page - Mobile', () => {
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
     // Hero content should be visible
-    await expect(page.getByText('Collaborate on Videos')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' }),
+    ).toBeVisible();
   });
 });
