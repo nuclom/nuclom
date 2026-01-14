@@ -19,9 +19,9 @@ import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';
 import { makeAuthLayer } from './services/auth';
 import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
-import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
 import { type ChatRepository, ChatRepositoryLive } from './services/chat-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
+import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
@@ -33,7 +33,6 @@ import { type Presence, PresenceLive } from './services/presence';
 import { type ReplicateAPI, ReplicateLive } from './services/replicate';
 import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
-import { type SeriesRepository, SeriesRepositoryLive } from './services/series-repository';
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
 import { type Storage, StorageLive } from './services/storage';
 import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
@@ -139,8 +138,7 @@ const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, Datab
 const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
 const BillingRepositoryWithDeps = withDep(BillingRepositoryLive, DatabaseLive);
 const SearchRepositoryWithDeps = withDep(SearchRepositoryLive, DatabaseLive);
-const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
-const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
+const CollectionRepositoryWithDeps = withDep(CollectionRepositoryLive, DatabaseLive);
 const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
 const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
@@ -177,8 +175,7 @@ const AppServicesLive = Layer.mergeAll(
   BillingWithDeps,
   SearchRepositoryWithDeps,
   SemanticSearchRepositoryWithDeps,
-  SeriesRepositoryWithDeps,
-  ChannelRepositoryWithDeps,
+  CollectionRepositoryWithDeps,
   ClipRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
   VocabularyRepositoryWithDeps,
@@ -211,8 +208,7 @@ export type AppServices =
   | Billing
   | SearchRepository
   | SemanticSearchRepository
-  | SeriesRepository
-  | ChannelRepository
+  | CollectionRepository
   | ClipRepository
   | KnowledgeGraphRepository
   | VocabularyRepository

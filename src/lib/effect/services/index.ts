@@ -36,7 +36,7 @@ export {
   generateVideoSummary,
   generateVideoTags,
 } from './ai';
-// AI Structured Service (with Zod schemas)
+// AI Structured Service (Effect Schema)
 export type {
   ActionItemsResult,
   AIStructuredServiceInterface,
@@ -121,17 +121,6 @@ export {
   getVideoCount,
   incrementUsage,
 } from './billing-repository';
-// Channel Repository
-export type { ChannelRepositoryService, CreateChannelInput, UpdateChannelInput } from './channel-repository';
-export {
-  ChannelRepository,
-  ChannelRepositoryLive,
-  createChannel,
-  deleteChannel,
-  getChannel,
-  getChannels,
-  updateChannel,
-} from './channel-repository';
 // Clip Repository
 export type {
   ClipRepositoryService,
@@ -164,6 +153,30 @@ export {
   updateClip,
   updateHighlightReel,
 } from './clip-repository';
+// Collection Repository (unified: folders and playlists)
+export type {
+  CollectionRepositoryService,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+} from './collection-repository';
+export {
+  addVideoToCollection,
+  CollectionRepository,
+  CollectionRepositoryLive,
+  createCollection,
+  deleteCollection,
+  getAvailableVideosForCollection,
+  getCollection,
+  getCollectionProgress,
+  getCollections,
+  getCollectionsWithProgress,
+  getCollectionWithVideos,
+  markCollectionVideoCompleted,
+  removeVideoFromCollection,
+  reorderCollectionVideos,
+  updateCollection,
+  updateCollectionProgress,
+} from './collection-repository';
 export type { DatabaseService, DrizzleDB } from './database';
 // Database Service
 export {
@@ -459,25 +472,6 @@ export {
   semanticSearch,
   semanticSearchWithVideos,
 } from './semantic-search-repository';
-export type { CreateSeriesInput, SeriesRepositoryService, UpdateSeriesInput } from './series-repository';
-// Series Repository
-export {
-  addVideoToSeries,
-  createSeries,
-  deleteSeries,
-  getAvailableVideosForSeries,
-  getSeries,
-  getSeriesProgress,
-  getSeriesWithProgress,
-  getSeriesWithVideos,
-  markSeriesVideoCompleted,
-  removeVideoFromSeries,
-  reorderSeriesVideos,
-  SeriesRepository,
-  SeriesRepositoryLive,
-  updateSeries,
-  updateSeriesProgress,
-} from './series-repository';
 // Slack Service
 export type {
   SlackChannel,

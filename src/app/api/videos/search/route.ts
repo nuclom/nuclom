@@ -18,7 +18,6 @@ import type { ApiResponse } from '@/lib/types';
  *
  * Query parameters:
  * - q: Search query (required)
- * - channelId: Filter by channel
  * - authorId: Filter by author
  * - dateFrom: Filter by start date (ISO 8601)
  * - dateTo: Filter by end date (ISO 8601)
@@ -36,7 +35,6 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(request.url);
   const query = url.searchParams.get('q');
-  const channelId = url.searchParams.get('channelId') || undefined;
   const authorId = url.searchParams.get('authorId') || undefined;
   const dateFromStr = url.searchParams.get('dateFrom');
   const dateToStr = url.searchParams.get('dateTo');
@@ -66,7 +64,6 @@ export async function GET(request: NextRequest) {
     const searchResults = yield* videoRepo.searchVideos({
       query: query.trim(),
       organizationId: activeOrg.value.id,
-      channelId,
       authorId,
       dateFrom,
       dateTo,

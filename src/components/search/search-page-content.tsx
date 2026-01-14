@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { logger } from '@/lib/client-logger';
-import type { Channel, Collection, SearchFilters as SearchFiltersType, User } from '@/lib/db/schema';
+import type { Collection, SearchFilters as SearchFiltersType, User } from '@/lib/db/schema';
 import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from '@/lib/types';
 import { SavedSearches } from './saved-searches';
 import { SearchFilters } from './search-filters';
@@ -16,17 +16,10 @@ interface SearchPageContentProps {
   organizationId: string;
   organization: string;
   authors: User[];
-  channels: Channel[];
   collections: Collection[];
 }
 
-export function SearchPageContent({
-  organizationId,
-  organization,
-  authors,
-  channels,
-  collections,
-}: SearchPageContentProps) {
+export function SearchPageContent({ organizationId, organization, authors, collections }: SearchPageContentProps) {
   const searchParams = useSearchParams();
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [savedSearches, setSavedSearches] = useState<SavedSearchWithUser[]>([]);
@@ -41,7 +34,6 @@ export function SearchPageContent({
   const currentFilters: SearchFiltersType = useMemo(
     () => ({
       authorId: searchParams.get('authorId') || undefined,
-      channelId: searchParams.get('channelId') || undefined,
       collectionId: searchParams.get('collectionId') || undefined,
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,
@@ -129,7 +121,7 @@ export function SearchPageContent({
         {/* Sidebar */}
         <aside className="w-72 flex-shrink-0 space-y-8">
           {/* Filters */}
-          <SearchFilters organization={organization} authors={authors} channels={channels} collections={collections} />
+          <SearchFilters organization={organization} authors={authors} collections={collections} />
 
           {/* Saved searches */}
           <SavedSearches

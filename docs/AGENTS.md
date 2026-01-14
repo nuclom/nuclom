@@ -51,7 +51,7 @@ pnpm build         # Verify build
 2. **Drizzle ORM** - Type-safe database queries
 3. **better-auth** - Authentication with OAuth support
 4. **Effect-TS** - Error handling in API routes
-5. **Zod** - Schema validation
+5. **Effect Schema** - Schema validation
 6. **shadcn/ui** - UI component library
 
 ## Code Modification Guidelines
@@ -68,7 +68,7 @@ pnpm build         # Verify build
 1. Use TypeScript properly - no `any` types
 2. Follow component patterns in `src/components/ui/`
 3. Use Effect-TS patterns for API error handling
-4. Validate inputs with Zod schemas
+4. Validate inputs with Effect Schema
 
 ### After Making Changes
 

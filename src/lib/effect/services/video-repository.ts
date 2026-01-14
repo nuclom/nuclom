@@ -8,8 +8,6 @@ import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, ne, or, sql
 import { Context, Effect, Layer } from 'effect';
 import {
   type ActionItem,
-  channels,
-  collections,
   organizations,
   type ProcessingStatus,
   type TranscriptSegment,
@@ -34,8 +32,6 @@ export interface CreateVideoInput {
   readonly videoUrl?: string;
   readonly authorId: string;
   readonly organizationId: string;
-  readonly channelId?: string;
-  readonly collectionId?: string;
   readonly transcript?: string;
   readonly transcriptSegments?: TranscriptSegment[];
   readonly processingStatus?: ProcessingStatus;
@@ -50,8 +46,6 @@ export interface UpdateVideoInput {
   readonly duration?: string;
   readonly thumbnailUrl?: string | null;
   readonly videoUrl?: string | null;
-  readonly channelId?: string | null;
-  readonly collectionId?: string | null;
   readonly transcript?: string | null;
   readonly transcriptSegments?: TranscriptSegment[] | null;
   readonly processingStatus?: ProcessingStatus;
@@ -71,7 +65,6 @@ export interface SoftDeleteOptions {
 export interface VideoSearchInput {
   readonly query: string;
   readonly organizationId: string;
-  readonly channelId?: string;
   readonly authorId?: string;
   readonly dateFrom?: Date;
   readonly dateTo?: Date;
@@ -160,15 +153,6 @@ export interface VideoRepositoryService {
   ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
 
   /**
-   * Get paginated videos for a channel with author details
-   */
-  readonly getChannelVideosWithAuthor: (
-    channelId: string,
-    page?: number,
-    limit?: number,
-  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
-
-  /**
    * Get paginated videos shared by others in the organization (not authored by the current user)
    */
   readonly getVideosSharedByOthers: (
@@ -250,8 +234,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -330,8 +312,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -404,8 +384,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               videoUrl: videos.videoUrl,
               authorId: videos.authorId,
               organizationId: videos.organizationId,
-              channelId: videos.channelId,
-              collectionId: videos.collectionId,
               transcript: videos.transcript,
               transcriptSegments: videos.transcriptSegments,
               processingStatus: videos.processingStatus,
@@ -464,42 +442,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         );
       }
 
-      // Get channel if exists
-      let channel = null;
-      const videoChannelId = videoData[0].channelId;
-      if (videoChannelId) {
-        const channelData = yield* Effect.tryPromise({
-          try: () => db.select().from(channels).where(eq(channels.id, videoChannelId)).limit(1),
-          catch: (error) =>
-            new DatabaseError({
-              message: 'Failed to fetch channel',
-              operation: 'getVideo.channel',
-              cause: error,
-            }),
-        });
-        channel = channelData[0] || null;
-      }
-
-      // Get collection if exists
-      let collection = null;
-      const videoCollectionId = videoData[0].collectionId;
-      if (videoCollectionId) {
-        const collectionData = yield* Effect.tryPromise({
-          try: () => db.select().from(collections).where(eq(collections.id, videoCollectionId)).limit(1),
-          catch: (error) =>
-            new DatabaseError({
-              message: 'Failed to fetch collection',
-              operation: 'getVideo.collection',
-              cause: error,
-            }),
-        });
-        collection = collectionData[0] || null;
-      }
-
       return {
         ...videoData[0],
-        channel,
-        collection,
         comments: [],
       } as VideoWithDetails;
     });
@@ -730,10 +674,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           ),
         ];
 
-        if (input.channelId) {
-          conditions.push(eq(videos.channelId, input.channelId));
-        }
-
         if (input.authorId) {
           conditions.push(eq(videos.authorId, input.authorId));
         }
@@ -758,8 +698,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -855,8 +793,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -919,85 +855,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const getChannelVideosWithAuthor = (
-    channelId: string,
-    page = 1,
-    limit = 20,
-  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const offset = (page - 1) * limit;
-
-        const videosData = await db
-          .select({
-            id: videos.id,
-            title: videos.title,
-            description: videos.description,
-            duration: videos.duration,
-            thumbnailUrl: videos.thumbnailUrl,
-            videoUrl: videos.videoUrl,
-            authorId: videos.authorId,
-            organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
-            transcript: videos.transcript,
-            transcriptSegments: videos.transcriptSegments,
-            processingStatus: videos.processingStatus,
-            processingError: videos.processingError,
-            aiSummary: videos.aiSummary,
-            aiTags: videos.aiTags,
-            aiActionItems: videos.aiActionItems,
-            deletedAt: videos.deletedAt,
-            retentionUntil: videos.retentionUntil,
-            createdAt: videos.createdAt,
-            updatedAt: videos.updatedAt,
-            author: {
-              id: users.id,
-              email: users.email,
-              name: users.name,
-              image: users.image,
-              createdAt: users.createdAt,
-              updatedAt: users.updatedAt,
-              emailVerified: users.emailVerified,
-              role: users.role,
-              banned: users.banned,
-              banReason: users.banReason,
-              banExpires: users.banExpires,
-              twoFactorEnabled: users.twoFactorEnabled,
-              lastLoginMethod: users.lastLoginMethod,
-              stripeCustomerId: users.stripeCustomerId,
-            },
-          })
-          .from(videos)
-          .innerJoin(users, eq(videos.authorId, users.id))
-          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)))
-          .orderBy(desc(videos.createdAt))
-          .offset(offset)
-          .limit(limit);
-
-        const totalCount = await db
-          .select()
-          .from(videos)
-          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)));
-
-        return {
-          data: videosData as VideoWithAuthor[],
-          pagination: {
-            page,
-            limit,
-            total: totalCount.length,
-            totalPages: Math.ceil(totalCount.length / limit),
-          },
-        };
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch channel videos',
-          operation: 'getChannelVideosWithAuthor',
-          cause: error,
-        }),
-    });
-
   const getVideosSharedByOthers = (
     userId: string,
     organizationId: string,
@@ -1019,8 +876,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -1092,7 +947,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
     getVideoChapters,
     searchVideos,
     getVideosByAuthor,
-    getChannelVideosWithAuthor,
     getVideosSharedByOthers,
   } satisfies VideoRepositoryService;
 });
@@ -1206,16 +1060,6 @@ export const getVideosByAuthor = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideosByAuthor(authorId, organizationId, page, limit);
-  });
-
-export const getChannelVideosWithAuthor = (
-  channelId: string,
-  page?: number,
-  limit?: number,
-): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* VideoRepository;
-    return yield* repo.getChannelVideosWithAuthor(channelId, page, limit);
   });
 
 export const getVideosSharedByOthers = (

@@ -1,5 +1,5 @@
 {
-  "id": "c8679a51-4873-4835-9758-82a874c38d11",
+  "id": "cddab8a9-c69a-491c-8a23-2207136e27f1",
   "prevId": "04765506-33f9-489e-83b7-abad588c6a9c",
   "version": "7",
   "dialect": "postgresql",
@@ -8392,8 +8392,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.channels": {
-      "name": "channels",
+    "public.collection_progress": {
+      "name": "collection_progress",
       "schema": "",
       "columns": {
         "id": {
@@ -8402,37 +8402,37 @@
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "collection_id": {
+          "name": "collection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_video_id": {
+          "name": "last_video_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "organization_id": {
-          "name": "organization_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "member_count": {
-          "name": "member_count",
+        "last_position": {
+          "name": "last_position",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
+        "completed_video_ids": {
+          "name": "completed_video_ids",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "default": "'[]'::jsonb"
         },
         "updated_at": {
           "name": "updated_at",
@@ -8443,11 +8443,26 @@
         }
       },
       "indexes": {
-        "channels_organization_id_idx": {
-          "name": "channels_organization_id_idx",
+        "collection_progress_user_id_idx": {
+          "name": "collection_progress_user_id_idx",
           "columns": [
             {
-              "expression": "organization_id",
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "collection_progress_collection_id_idx": {
+          "name": "collection_progress_collection_id_idx",
+          "columns": [
+            {
+              "expression": "collection_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -8460,12 +8475,150 @@
         }
       },
       "foreignKeys": {
-        "channels_organization_id_organizations_id_fk": {
-          "name": "channels_organization_id_organizations_id_fk",
-          "tableFrom": "channels",
-          "tableTo": "organizations",
+        "collection_progress_user_id_users_id_fk": {
+          "name": "collection_progress_user_id_users_id_fk",
+          "tableFrom": "collection_progress",
+          "tableTo": "users",
           "columnsFrom": [
-            "organization_id"
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "collection_progress_collection_id_collections_id_fk": {
+          "name": "collection_progress_collection_id_collections_id_fk",
+          "tableFrom": "collection_progress",
+          "tableTo": "collections",
+          "columnsFrom": [
+            "collection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "collection_progress_last_video_id_videos_id_fk": {
+          "name": "collection_progress_last_video_id_videos_id_fk",
+          "tableFrom": "collection_progress",
+          "tableTo": "videos",
+          "columnsFrom": [
+            "last_video_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "collection_progress_user_id_collection_id_unique": {
+          "name": "collection_progress_user_id_collection_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "collection_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.collection_videos": {
+      "name": "collection_videos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "collection_id": {
+          "name": "collection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "collection_videos_collection_id_idx": {
+          "name": "collection_videos_collection_id_idx",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "collection_videos_video_id_idx": {
+          "name": "collection_videos_video_id_idx",
+          "columns": [
+            {
+              "expression": "video_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "collection_videos_collection_id_collections_id_fk": {
+          "name": "collection_videos_collection_id_collections_id_fk",
+          "tableFrom": "collection_videos",
+          "tableTo": "collections",
+          "columnsFrom": [
+            "collection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "collection_videos_video_id_videos_id_fk": {
+          "name": "collection_videos_video_id_videos_id_fk",
+          "tableFrom": "collection_videos",
+          "tableTo": "videos",
+          "columnsFrom": [
+            "video_id"
           ],
           "columnsTo": [
             "id"
@@ -8475,7 +8628,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "collection_videos_collection_id_video_id_unique": {
+          "name": "collection_videos_collection_id_video_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "collection_id",
+            "video_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -8513,6 +8675,14 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "CollectionType",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'folder'"
         },
         "is_public": {
           "name": "is_public",
@@ -8572,6 +8742,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "collections_type_idx": {
+          "name": "collections_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -8604,256 +8789,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.series_progress": {
-      "name": "series_progress",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "series_id": {
-          "name": "series_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "last_video_id": {
-          "name": "last_video_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_position": {
-          "name": "last_position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "completed_video_ids": {
-          "name": "completed_video_ids",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "series_progress_user_id_idx": {
-          "name": "series_progress_user_id_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "series_progress_series_id_idx": {
-          "name": "series_progress_series_id_idx",
-          "columns": [
-            {
-              "expression": "series_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "series_progress_user_id_users_id_fk": {
-          "name": "series_progress_user_id_users_id_fk",
-          "tableFrom": "series_progress",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "series_progress_series_id_collections_id_fk": {
-          "name": "series_progress_series_id_collections_id_fk",
-          "tableFrom": "series_progress",
-          "tableTo": "collections",
-          "columnsFrom": [
-            "series_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "series_progress_last_video_id_videos_id_fk": {
-          "name": "series_progress_last_video_id_videos_id_fk",
-          "tableFrom": "series_progress",
-          "tableTo": "videos",
-          "columnsFrom": [
-            "last_video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "series_progress_user_id_series_id_unique": {
-          "name": "series_progress_user_id_series_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id",
-            "series_id"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.series_videos": {
-      "name": "series_videos",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "series_id": {
-          "name": "series_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "video_id": {
-          "name": "video_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "position": {
-          "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "series_videos_series_id_idx": {
-          "name": "series_videos_series_id_idx",
-          "columns": [
-            {
-              "expression": "series_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "series_videos_video_id_idx": {
-          "name": "series_videos_video_id_idx",
-          "columns": [
-            {
-              "expression": "video_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "series_videos_series_id_collections_id_fk": {
-          "name": "series_videos_series_id_collections_id_fk",
-          "tableFrom": "series_videos",
-          "tableTo": "collections",
-          "columnsFrom": [
-            "series_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "series_videos_video_id_videos_id_fk": {
-          "name": "series_videos_video_id_videos_id_fk",
-          "tableFrom": "series_videos",
-          "tableTo": "videos",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "series_videos_series_id_video_id_unique": {
-          "name": "series_videos_series_id_video_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "series_id",
-            "video_id"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -9263,18 +9198,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "channel_id": {
-          "name": "channel_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "collection_id": {
-          "name": "collection_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "transcript": {
           "name": "transcript",
           "type": "text",
@@ -9393,36 +9316,6 @@
           "method": "btree",
           "with": {}
         },
-        "videos_channel_id_idx": {
-          "name": "videos_channel_id_idx",
-          "columns": [
-            {
-              "expression": "channel_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "videos_collection_id_idx": {
-          "name": "videos_collection_id_idx",
-          "columns": [
-            {
-              "expression": "collection_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "videos_processing_status_idx": {
           "name": "videos_processing_status_idx",
           "columns": [
@@ -9464,32 +9357,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "videos_channel_id_channels_id_fk": {
-          "name": "videos_channel_id_channels_id_fk",
-          "tableFrom": "videos",
-          "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "videos_collection_id_collections_id_fk": {
-          "name": "videos_collection_id_collections_id_fk",
-          "tableFrom": "videos",
-          "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -10247,6 +10114,14 @@
       "values": [
         "auto",
         "manual"
+      ]
+    },
+    "public.CollectionType": {
+      "name": "CollectionType",
+      "schema": "public",
+      "values": [
+        "folder",
+        "playlist"
       ]
     },
     "public.ConsentAction": {

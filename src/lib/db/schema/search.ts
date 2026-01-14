@@ -17,9 +17,8 @@ import { videos } from './videos';
 // =============================================================================
 
 export type SearchFilters = {
-  readonly types?: ReadonlyArray<'video' | 'series' | 'channel'>;
+  readonly types?: ReadonlyArray<'video' | 'collections'>;
   readonly authorId?: string;
-  readonly channelId?: string;
   readonly collectionId?: string;
   readonly dateFrom?: string;
   readonly dateTo?: string;

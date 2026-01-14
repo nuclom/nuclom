@@ -8,19 +8,20 @@
 import { Cause, type Context, Effect, Exit, Option } from 'effect';
 import { revalidateTag } from 'next/cache';
 import { cache } from 'react';
+import type { CollectionType } from '@/lib/db/schema';
 import type {
+  CollectionProgressWithDetails,
+  CollectionWithProgress,
+  CollectionWithVideoCount,
+  CollectionWithVideos,
   PaginatedResponse,
   PaginatedResponse as PaginatedResponseType,
-  SeriesProgressWithDetails,
-  SeriesWithVideoCount,
-  SeriesWithVideos,
   VideoWithAuthor,
   VideoWithDetails,
 } from '@/lib/types';
 import { AppLive, type AppServices } from './runtime';
-import { ChannelRepository } from './services/channel-repository';
+import { CollectionRepository } from './services/collection-repository';
 import { OrganizationRepository } from './services/organization-repository';
-import { SeriesRepository } from './services/series-repository';
 import { Storage } from './services/storage';
 import { type VideoProgressData, VideoProgressRepository } from './services/video-progress-repository';
 import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository';
@@ -342,94 +343,121 @@ export const createCachedQuery = <TArgs extends unknown[], TResult>(
 };
 
 // =============================================================================
-// Series Queries (Cached)
+// Collection Queries (Cached)
 // =============================================================================
 
 /**
- * Get series for an organization (cached per request)
+ * Get collections for an organization (cached per request)
  */
-export const getSeries = cache(
+export const getCollections = cache(
   async (
     organizationId: string,
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedResponseType<SeriesWithVideoCount>> => {
+    options?: {
+      type?: CollectionType;
+      page?: number;
+      limit?: number;
+    },
+  ): Promise<PaginatedResponseType<CollectionWithVideoCount>> => {
     const effect = Effect.gen(function* () {
-      const repo = yield* SeriesRepository;
-      return yield* repo.getSeries(organizationId, page, limit);
+      const repo = yield* CollectionRepository;
+      return yield* repo.getCollections(organizationId, options);
     });
     return runServerEffect(effect);
   },
 );
 
 /**
- * Get a series with its videos (cached per request)
+ * Get a collection with its videos (cached per request)
  */
-export const getSeriesWithVideos = cache(async (id: string): Promise<SeriesWithVideos> => {
+export const getCollectionWithVideos = cache(async (id: string): Promise<CollectionWithVideos> => {
   const effect = Effect.gen(function* () {
-    const repo = yield* SeriesRepository;
-    return yield* repo.getSeriesWithVideos(id);
+    const repo = yield* CollectionRepository;
+    return yield* repo.getCollectionWithVideos(id);
   });
   return runServerEffect(effect);
 });
 
 /**
- * Get series with user progress (cached per request)
+ * Get collections with user progress (cached per request)
  */
-export const getSeriesWithProgress = cache(
-  async (
-    organizationId: string,
-    userId: string,
-  ): Promise<(SeriesWithVideoCount & { progress?: SeriesProgressWithDetails })[]> => {
+export const getCollectionsWithProgress = cache(
+  async (organizationId: string, userId: string, type?: CollectionType): Promise<CollectionWithProgress[]> => {
     const effect = Effect.gen(function* () {
-      const repo = yield* SeriesRepository;
-      return yield* repo.getSeriesWithProgress(organizationId, userId);
+      const repo = yield* CollectionRepository;
+      return yield* repo.getCollectionsWithProgress(organizationId, userId, type);
     });
     return runServerEffect(effect);
   },
 );
 
 /**
- * Get user's progress for a specific series (cached per request)
+ * Get user's progress for a specific collection (cached per request)
  */
-export const getSeriesProgress = cache(
-  async (userId: string, seriesId: string): Promise<SeriesProgressWithDetails | null> => {
+export const getCollectionProgress = cache(
+  async (userId: string, collectionId: string): Promise<CollectionProgressWithDetails | null> => {
     const effect = Effect.gen(function* () {
-      const repo = yield* SeriesRepository;
-      return yield* repo.getSeriesProgress(userId, seriesId);
+      const repo = yield* CollectionRepository;
+      return yield* repo.getCollectionProgress(userId, collectionId);
     });
     return runServerEffect(effect);
   },
 );
 
+// Legacy aliases for backward compatibility during migration
+/** @deprecated Use getCollections instead */
+export const getSeries = (organizationId: string, page = 1, limit = 20) =>
+  getCollections(organizationId, { type: 'playlist', page, limit });
+
+/** @deprecated Use getCollectionWithVideos instead */
+export const getSeriesWithVideos = getCollectionWithVideos;
+
+/** @deprecated Use getCollectionsWithProgress instead */
+export const getSeriesWithProgress = (organizationId: string, userId: string) =>
+  getCollectionsWithProgress(organizationId, userId, 'playlist');
+
+/** @deprecated Use getCollectionProgress instead */
+export const getSeriesProgress = getCollectionProgress;
+
+/** @deprecated Use getCollections with type: 'folder' instead */
+export const getChannels = (organizationId: string, page = 1, limit = 20) =>
+  getCollections(organizationId, { type: 'folder', page, limit });
+
 // =============================================================================
-// Series Revalidation Helpers
+// Collection Revalidation Helpers
 // =============================================================================
 
 /**
- * Revalidate series-related caches
+ * Revalidate collection-related caches
  */
-export const revalidateSeries = (organizationId?: string) => {
-  revalidateTag('series', 'max');
+export const revalidateCollections = (organizationId?: string) => {
+  revalidateTag('collections', 'max');
   if (organizationId) {
-    revalidateTag(`series:${organizationId}`, 'max');
+    revalidateTag(`collections:${organizationId}`, 'max');
   }
 };
 
 /**
- * Revalidate a specific series cache
+ * Revalidate a specific collection cache
  */
-export const revalidateSeriesById = (seriesId: string) => {
-  revalidateTag(`series:${seriesId}`, 'max');
+export const revalidateCollectionById = (collectionId: string) => {
+  revalidateTag(`collection:${collectionId}`, 'max');
 };
 
 /**
- * Revalidate series progress caches
+ * Revalidate collection progress caches
  */
-export const revalidateSeriesProgress = (seriesId: string, userId: string) => {
-  revalidateTag(`series-progress:${seriesId}:${userId}`, 'max');
-  revalidateTag(`series-progress:user:${userId}`, 'max');
+export const revalidateCollectionProgress = (collectionId: string, userId: string) => {
+  revalidateTag(`collection-progress:${collectionId}:${userId}`, 'max');
+  revalidateTag(`collection-progress:user:${userId}`, 'max');
 };
+
+// Legacy aliases
+/** @deprecated Use revalidateCollections instead */
+export const revalidateSeries = revalidateCollections;
+/** @deprecated Use revalidateCollectionById instead */
+export const revalidateSeriesById = revalidateCollectionById;
+/** @deprecated Use revalidateCollectionProgress instead */
+export const revalidateSeriesProgress = revalidateCollectionProgress;
 
 // =============================================================================
 // User's Own Videos Queries (Cached)
@@ -452,41 +480,6 @@ export const getVideosByAuthor = cache(
     return runServerEffect(effect);
   },
 );
-
-/**
- * Get videos in a channel with author details (cached per request)
- */
-export const getChannelVideosWithAuthor = cache(
-  async (channelId: string, page: number = 1, limit: number = 20): Promise<PaginatedResponse<VideoWithAuthor>> => {
-    const effect = Effect.gen(function* () {
-      const repo = yield* VideoRepository;
-      return yield* repo.getChannelVideosWithAuthor(channelId, page, limit);
-    });
-    return runServerEffect(effect);
-  },
-);
-
-/**
- * Get channel with member count (cached per request)
- */
-export const getChannel = cache(async (channelId: string) => {
-  const effect = Effect.gen(function* () {
-    const repo = yield* ChannelRepository;
-    return yield* repo.getChannel(channelId);
-  });
-  return runServerEffect(effect);
-});
-
-/**
- * Get channels for an organization (cached per request)
- */
-export const getChannels = cache(async (organizationId: string, page: number = 1, limit: number = 20) => {
-  const effect = Effect.gen(function* () {
-    const repo = yield* ChannelRepository;
-    return yield* repo.getChannels(organizationId, page, limit);
-  });
-  return runServerEffect(effect);
-});
 
 /**
  * Get videos shared by others in the organization (not authored by the user) (cached per request)

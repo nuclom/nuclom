@@ -57,7 +57,6 @@ export interface SemanticSearchParams {
   readonly threshold?: number;
   readonly contentTypes?: readonly ('transcript_chunk' | 'decision')[];
   readonly videoIds?: readonly string[];
-  readonly channelIds?: readonly string[];
 }
 
 /**
@@ -340,8 +339,6 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
               videoUrl: videos.videoUrl,
               authorId: videos.authorId,
               organizationId: videos.organizationId,
-              channelId: videos.channelId,
-              collectionId: videos.collectionId,
               transcript: videos.transcript,
               transcriptSegments: videos.transcriptSegments,
               processingStatus: videos.processingStatus,
@@ -447,8 +444,6 @@ const makeSemanticSearchRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,

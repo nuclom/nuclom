@@ -8,7 +8,7 @@ import { Effect, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
-import { Storage, ValidationError, VideoRepository } from '@/lib/effect';
+import { CollectionRepository, Storage, ValidationError, VideoRepository } from '@/lib/effect';
 import type { ApiResponse } from '@/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@/lib/validation';
 import { processVideoWorkflow } from '@/workflows/video-processing';
@@ -23,7 +23,6 @@ const UrlUploadRequestSchema = Schema.Struct({
   description: Schema.optional(Schema.String),
   organizationId: Schema.String,
   authorId: Schema.String,
-  channelId: Schema.optional(Schema.String),
   collectionId: Schema.optional(Schema.String),
 });
 
@@ -103,7 +102,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { url, title, description, organizationId, authorId, channelId, collectionId } = body;
+  const { url, title, description, organizationId, authorId, collectionId } = body;
 
   // Validate URL
   let videoUrl: URL;
@@ -119,6 +118,7 @@ export async function POST(request: NextRequest) {
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
     const videoRepo = yield* VideoRepository;
+    const collectionRepo = yield* CollectionRepository;
 
     // Check if storage is configured
     if (!storage.isConfigured) {
@@ -235,10 +235,12 @@ export async function POST(request: NextRequest) {
       thumbnailUrl: undefined,
       authorId,
       organizationId,
-      channelId: channelId || undefined,
-      collectionId: collectionId || undefined,
       processingStatus: 'pending',
     });
+
+    if (collectionId) {
+      yield* collectionRepo.addVideoToCollection(collectionId, video.id);
+    }
 
     return {
       videoId: video.id,

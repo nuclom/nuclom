@@ -66,8 +66,6 @@ export function createMockVideo(overrides: Partial<TestVideo> = {}): TestVideo {
     videoUrl: '/video.mp4',
     authorId: 'user-123',
     organizationId: 'org-123',
-    channelId: null,
-    collectionId: null,
     transcript: 'Sample transcript text',
     transcriptSegments: [],
     processingStatus: 'completed',

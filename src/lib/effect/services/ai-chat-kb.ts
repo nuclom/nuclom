@@ -6,10 +6,9 @@
  */
 
 import { gateway } from '@ai-sdk/gateway';
-import { generateText, stepCountIs, streamText, tool } from 'ai';
+import { generateText, jsonSchema, stepCountIs, streamText, tool } from 'ai';
 import { createBashTool } from 'bash-tool';
-import { Context, Effect, Layer } from 'effect';
-import { z } from 'zod';
+import { Context, Effect, JSONSchema, Layer, ParseResult, Schema } from 'effect';
 import { AIServiceError } from '../errors';
 import { Embedding, type EmbeddingServiceInterface } from './embedding';
 import { KnowledgeGraphRepository, type KnowledgeGraphRepositoryInterface } from './knowledge-graph-repository';
@@ -107,19 +106,35 @@ Guidelines:
 // Tool Schemas
 // =============================================================================
 
-const searchKnowledgeBaseSchema = z.object({
-  query: z.string().describe('The search query to find relevant content'),
-  limit: z.number().optional().default(10).describe('Maximum number of results to return'),
+const searchKnowledgeBaseInput = Schema.Struct({
+  query: Schema.String,
+  limit: Schema.optional(Schema.Number),
 });
 
-const getDecisionDetailsSchema = z.object({
-  decisionId: z.string().describe('The ID of the decision to retrieve'),
+const getDecisionDetailsInput = Schema.Struct({
+  decisionId: Schema.String,
 });
 
-const listRecentDecisionsSchema = z.object({
-  videoId: z.string().optional().describe('Optional video ID to filter decisions'),
-  limit: z.number().optional().default(10).describe('Maximum number of decisions to return'),
+const listRecentDecisionsInput = Schema.Struct({
+  videoId: Schema.optional(Schema.String),
+  limit: Schema.optional(Schema.Number),
 });
+
+const searchKnowledgeBaseSchema = jsonSchema(JSONSchema.make(searchKnowledgeBaseInput));
+const getDecisionDetailsSchema = jsonSchema(JSONSchema.make(getDecisionDetailsInput));
+const listRecentDecisionsSchema = jsonSchema(JSONSchema.make(listRecentDecisionsInput));
+
+const decodeToolInput = <A, I>(schema: Schema.Schema<A, I>, input: unknown): A => {
+  const decoded = Schema.decodeUnknownEither(schema)(input);
+  if (decoded._tag === 'Right') {
+    return decoded.right;
+  }
+  const issues = ParseResult.ArrayFormatter.formatErrorSync(decoded.left);
+  const message = issues
+    .map((issue) => (issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message))
+    .join('; ');
+  throw new Error(message);
+};
 
 // =============================================================================
 // Tool Definitions
@@ -142,8 +157,8 @@ const createKnowledgeBaseTools = (deps: ToolDependencies) => {
       description:
         'Search through video transcripts and knowledge base content using semantic search. Returns relevant excerpts with timestamps and relevance scores.',
       inputSchema: searchKnowledgeBaseSchema,
-      execute: async (input) => {
-        const { query, limit } = input;
+      execute: async (input: unknown) => {
+        const { query, limit } = decodeToolInput(searchKnowledgeBaseInput, input);
         const result = await Effect.runPromise(
           Effect.gen(function* () {
             const queryEmbedding = yield* embeddingService.generateEmbedding(query);
@@ -191,8 +206,8 @@ const createKnowledgeBaseTools = (deps: ToolDependencies) => {
     getDecisionDetails: tool({
       description: 'Get detailed information about a specific decision by its ID.',
       inputSchema: getDecisionDetailsSchema,
-      execute: async (input) => {
-        const { decisionId } = input;
+      execute: async (input: unknown) => {
+        const { decisionId } = decodeToolInput(getDecisionDetailsInput, input);
         const decision = await Effect.runPromise(
           kgRepo.getDecision(decisionId).pipe(Effect.catchAll(() => Effect.succeed(null))),
         );
@@ -219,8 +234,8 @@ const createKnowledgeBaseTools = (deps: ToolDependencies) => {
     listRecentDecisions: tool({
       description: 'List recent decisions from the organization, optionally filtered by video.',
       inputSchema: listRecentDecisionsSchema,
-      execute: async (input) => {
-        const { videoId, limit } = input;
+      execute: async (input: unknown) => {
+        const { videoId, limit } = decodeToolInput(listRecentDecisionsInput, input);
         const decisions = await Effect.runPromise(
           kgRepo
             .listDecisions({
@@ -289,8 +304,8 @@ const makeAIChatKBService = Effect.gen(function* () {
 
       // Create bash tool for advanced processing
       const bashToolkit = yield* Effect.tryPromise({
-        try: () => createBashTool({ destination: '/tmp/chat-workspace' }),
-        catch: (error) =>
+        try: (_signal) => createBashTool({ destination: '/tmp/chat-workspace' }),
+        catch: (error: unknown) =>
           new AIServiceError({
             message: 'Failed to create bash toolkit',
             operation: 'createBashTool',
@@ -319,7 +334,7 @@ const makeAIChatKBService = Effect.gen(function* () {
             stopWhen: stepCountIs(10),
           });
         },
-        catch: (error) =>
+        catch: (error: unknown) =>
           new AIServiceError({
             message: 'Failed to generate chat response',
             operation: 'generateResponse',
@@ -362,8 +377,8 @@ const makeAIChatKBService = Effect.gen(function* () {
 
       // Create bash tool for advanced processing
       const bashToolkit = yield* Effect.tryPromise({
-        try: () => createBashTool({ destination: '/tmp/chat-workspace' }),
-        catch: (error) =>
+        try: (_signal) => createBashTool({ destination: '/tmp/chat-workspace' }),
+        catch: (error: unknown) =>
           new AIServiceError({
             message: 'Failed to create bash toolkit',
             operation: 'createBashTool',
@@ -414,7 +429,7 @@ const makeAIChatKBService = Effect.gen(function* () {
             },
           });
         },
-        catch: (error) =>
+        catch: (error: unknown) =>
           new AIServiceError({
             message: 'Failed to stream chat response',
             operation: 'streamResponse',

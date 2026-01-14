@@ -2,7 +2,7 @@
  * Effect-based Configuration
  *
  * Uses Effect's Config module for type-safe environment variable handling.
- * This replaces the Zod-based validation with Effect's built-in Config system.
+ * This replaces ad-hoc validation with Effect's built-in Config system.
  */
 
 import { Config, ConfigError, Effect, Layer, type Redacted } from 'effect';

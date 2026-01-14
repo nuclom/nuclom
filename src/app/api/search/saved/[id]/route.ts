@@ -19,9 +19,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Parse request body
     const SearchFiltersSchema = Schema.Struct({
-      types: Schema.optional(Schema.Array(Schema.Literal('video', 'series', 'channel'))),
+      types: Schema.optional(Schema.Array(Schema.Literal('video', 'collections'))),
       authorId: Schema.optional(Schema.String),
-      channelId: Schema.optional(Schema.String),
       collectionId: Schema.optional(Schema.String),
       dateFrom: Schema.optional(Schema.String),
       dateTo: Schema.optional(Schema.String),

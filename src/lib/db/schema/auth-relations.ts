@@ -27,7 +27,7 @@ import { invoices, paymentMethods, usage } from './billing';
 import { decisions, knowledgeNodes } from './knowledge';
 import { notifications } from './notifications';
 import { userExtensions, userPreferences } from './user-extensions';
-import { channels, collections, videoProgresses, videos } from './videos';
+import { collections, videoProgresses, videos } from './videos';
 
 // =============================================================================
 // User Relations
@@ -81,7 +81,6 @@ export const organizationRelations = relations(organizations, ({ one, many }) =>
   members: many(members),
   invitations: many(invitations),
   videos: many(videos),
-  channels: many(channels),
   collections: many(collections),
   subscription: one(subscriptions),
   usageRecords: many(usage),
