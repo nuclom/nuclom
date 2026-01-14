@@ -41,8 +41,8 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
  * Trusted domains:
  * - Production: nuclom.com
  * - Staging: staging.nuclom.com
- * - Deploy Previews: *.vercel.app (via VERCEL_URL)
- * - Local: localhost:5001
+ * - Deploy Previews: *.vercel.app (via VERCEL_URL and VERCEL_BRANCH_URL)
+ * - Local: localhost:3091
  */
 function buildTrustedOrigins(): string[] {
   const origins: string[] = [];
@@ -57,6 +57,11 @@ function buildTrustedOrigins(): string[] {
   // Vercel deployment URL (for deploy previews: *.vercel.app)
   if (env.VERCEL_URL) {
     origins.push(`https://${env.VERCEL_URL}`);
+  }
+
+  // Vercel branch URL (stable URL for the branch)
+  if (env.VERCEL_BRANCH_URL) {
+    origins.push(`https://${env.VERCEL_BRANCH_URL}`);
   }
 
   // Production Vercel URL if set

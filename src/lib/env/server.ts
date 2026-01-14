@@ -61,6 +61,7 @@ export const ServerEnv = Schema.Struct({
   ),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
+  VERCEL_BRANCH_URL: Schema.optional(Schema.String),
   VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
   VERCEL_ENV: Schema.optional(Schema.Literal('production', 'preview', 'development')),
   VERCEL_GIT_COMMIT_SHA: Schema.optional(Schema.String),
