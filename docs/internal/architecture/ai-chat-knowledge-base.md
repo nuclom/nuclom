@@ -1,6 +1,6 @@
 # AI Chat Knowledge Base
 
-The AI Chat Knowledge Base feature provides an intelligent conversational interface that allows users to query their organization's video content using natural language. It uses RAG (Retrieval Augmented Generation) to provide accurate, context-aware responses grounded in the organization's knowledge base.
+The AI Chat Knowledge Base feature provides an intelligent conversational interface that allows users to query their organization's video content using natural language. It uses a tool-based agent loop pattern with the Vercel AI SDK to provide accurate, context-aware responses grounded in the organization's knowledge base.
 
 ## Architecture Overview
 
@@ -126,9 +126,29 @@ streamResponse(messages: ChatMessage[], context: ChatContext, callbacks?): Effec
 
 The agent has access to the following tools:
 
-1. **searchKnowledgeBase** - Semantic search across transcripts and decisions
-2. **getDecisionDetails** - Get detailed information about a specific decision
+1. **searchKnowledgeBase** - Semantic search across transcripts and decisions using pgvector
+2. **getDecisionDetails** - Get detailed information about a specific decision by ID
 3. **listRecentDecisions** - List recent decisions with optional filters
+4. **bash** - Execute shell commands for data processing and analysis (via bash-tool)
+
+#### Tool Loop Pattern
+
+The service uses AI SDK 6.x with `stopWhen: stepCountIs(10)` to enable multi-step reasoning:
+
+```typescript
+const result = await generateText({
+  model: gateway('xai/grok-3'),
+  messages: allMessages,
+  tools: allTools,
+  stopWhen: stepCountIs(10), // Allow up to 10 tool invocations
+});
+```
+
+This allows the AI to:
+- Search the knowledge base for relevant content
+- Retrieve decision details when needed
+- Use bash for text processing or calculations
+- Iteratively refine responses based on tool results
 
 ## API Routes
 

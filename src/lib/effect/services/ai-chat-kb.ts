@@ -2,17 +2,18 @@
  * AI Chat Knowledge Base Service
  *
  * Provides an AI agent with access to the organization's knowledge base.
- * Uses RAG (Retrieval Augmented Generation) by fetching relevant context
- * from transcripts and decisions before generating responses.
+ * Uses a tool-based agent loop pattern with bash-tool for advanced queries.
  */
 
 import { gateway } from '@ai-sdk/gateway';
-import { generateText, streamText } from 'ai';
+import { generateText, stepCountIs, streamText, tool } from 'ai';
+import { createBashTool } from 'bash-tool';
 import { Context, Effect, Layer } from 'effect';
+import { z } from 'zod';
 import { AIServiceError } from '../errors';
-import { Embedding } from './embedding';
-import { KnowledgeGraphRepository } from './knowledge-graph-repository';
-import { SemanticSearchRepository } from './semantic-search-repository';
+import { Embedding, type EmbeddingServiceInterface } from './embedding';
+import { KnowledgeGraphRepository, type KnowledgeGraphRepositoryInterface } from './knowledge-graph-repository';
+import { SemanticSearchRepository, type SemanticSearchRepositoryService } from './semantic-search-repository';
 
 // =============================================================================
 // Types
@@ -51,12 +52,13 @@ export interface SourceReference {
 export interface StreamCallbacks {
   onChunk?: (chunk: string) => void;
   onSource?: (source: SourceReference) => void;
+  onToolCall?: (toolName: string, args: unknown) => void;
   onFinish?: (response: ChatResponse) => void;
 }
 
 export interface AIChatKBServiceInterface {
   /**
-   * Generate a response using the knowledge base with RAG
+   * Generate a response using the knowledge base with tool-based agent
    */
   readonly generateResponse: (
     messages: readonly ChatMessage[],
@@ -64,7 +66,7 @@ export interface AIChatKBServiceInterface {
   ) => Effect.Effect<ChatResponse, AIServiceError>;
 
   /**
-   * Stream a response using the knowledge base
+   * Stream a response using the knowledge base with tool-based agent
    */
   readonly streamResponse: (
     messages: readonly ChatMessage[],
@@ -85,17 +87,178 @@ export class AIChatKB extends Context.Tag('AIChatKB')<AIChatKB, AIChatKBServiceI
 
 const DEFAULT_SYSTEM_PROMPT = `You are an AI assistant with access to your organization's video knowledge base.
 
-Your capabilities:
-- Answer questions based on video transcripts and decisions
-- Cite sources when referencing specific content
-- Provide relevant context from past discussions
+You have access to the following tools:
+1. searchKnowledgeBase - Search through video transcripts and content using semantic search
+2. getDecisionDetails - Get detailed information about a specific decision
+3. listRecentDecisions - List recent decisions from the organization
+4. bash - Execute shell commands for data processing and analysis
+
+Use these tools to find relevant information before answering questions.
 
 Guidelines:
-- Use the provided context to answer questions accurately
+- Always search the knowledge base when answering questions about video content
 - Cite your sources by mentioning which videos or decisions you found information from
-- If the context doesn't contain relevant information, say so honestly
+- If you cannot find relevant information, say so honestly
 - Be concise but thorough in your responses
-- When referencing timestamps, format them as MM:SS or HH:MM:SS`;
+- When referencing timestamps, format them as MM:SS or HH:MM:SS
+- You can use bash for text processing, calculations, or data analysis`;
+
+// =============================================================================
+// Tool Schemas
+// =============================================================================
+
+const searchKnowledgeBaseSchema = z.object({
+  query: z.string().describe('The search query to find relevant content'),
+  limit: z.number().optional().default(10).describe('Maximum number of results to return'),
+});
+
+const getDecisionDetailsSchema = z.object({
+  decisionId: z.string().describe('The ID of the decision to retrieve'),
+});
+
+const listRecentDecisionsSchema = z.object({
+  videoId: z.string().optional().describe('Optional video ID to filter decisions'),
+  limit: z.number().optional().default(10).describe('Maximum number of decisions to return'),
+});
+
+// =============================================================================
+// Tool Definitions
+// =============================================================================
+
+interface ToolDependencies {
+  embeddingService: EmbeddingServiceInterface;
+  searchRepo: SemanticSearchRepositoryService;
+  kgRepo: KnowledgeGraphRepositoryInterface;
+  context: ChatContext;
+  sources: SourceReference[];
+  onSource?: (source: SourceReference) => void;
+}
+
+const createKnowledgeBaseTools = (deps: ToolDependencies) => {
+  const { embeddingService, searchRepo, kgRepo, context, sources, onSource } = deps;
+
+  return {
+    searchKnowledgeBase: tool({
+      description:
+        'Search through video transcripts and knowledge base content using semantic search. Returns relevant excerpts with timestamps and relevance scores.',
+      inputSchema: searchKnowledgeBaseSchema,
+      execute: async (input) => {
+        const { query, limit } = input;
+        const result = await Effect.runPromise(
+          Effect.gen(function* () {
+            const queryEmbedding = yield* embeddingService.generateEmbedding(query);
+            const searchResults = yield* searchRepo
+              .semanticSearch({
+                queryEmbedding: [...queryEmbedding],
+                organizationId: context.organizationId,
+                videoIds: context.videoIds ? [...context.videoIds] : undefined,
+                limit: limit ?? 10,
+                threshold: 0.5,
+              })
+              .pipe(Effect.catchAll(() => Effect.succeed([] as const)));
+
+            return [...searchResults];
+          }).pipe(Effect.catchAll(() => Effect.succeed([]))),
+        );
+
+        // Add to sources
+        for (const r of result) {
+          const source: SourceReference = {
+            type: r.contentType,
+            id: r.contentId,
+            relevance: Math.round(r.similarity * 100),
+            preview: r.textPreview,
+            videoId: r.videoId,
+            timestamp: r.timestampStart,
+          };
+          if (!sources.some((s) => s.id === source.id)) {
+            sources.push(source);
+            onSource?.(source);
+          }
+        }
+
+        return result.map((r) => ({
+          type: r.contentType,
+          id: r.contentId,
+          relevance: Math.round(r.similarity * 100),
+          preview: r.textPreview,
+          videoId: r.videoId,
+          timestamp: r.timestampStart,
+        }));
+      },
+    }),
+
+    getDecisionDetails: tool({
+      description: 'Get detailed information about a specific decision by its ID.',
+      inputSchema: getDecisionDetailsSchema,
+      execute: async (input) => {
+        const { decisionId } = input;
+        const decision = await Effect.runPromise(
+          kgRepo.getDecision(decisionId).pipe(Effect.catchAll(() => Effect.succeed(null))),
+        );
+
+        if (decision) {
+          const source: SourceReference = {
+            type: 'decision',
+            id: decision.id,
+            relevance: decision.confidence ?? 80,
+            preview: decision.summary,
+            videoId: decision.videoId,
+            timestamp: decision.timestampStart ?? undefined,
+          };
+          if (!sources.some((s) => s.id === source.id)) {
+            sources.push(source);
+            onSource?.(source);
+          }
+        }
+
+        return decision ?? { error: 'Decision not found' };
+      },
+    }),
+
+    listRecentDecisions: tool({
+      description: 'List recent decisions from the organization, optionally filtered by video.',
+      inputSchema: listRecentDecisionsSchema,
+      execute: async (input) => {
+        const { videoId, limit } = input;
+        const decisions = await Effect.runPromise(
+          kgRepo
+            .listDecisions({
+              organizationId: context.organizationId,
+              videoId,
+              limit: limit ?? 10,
+            })
+            .pipe(Effect.catchAll(() => Effect.succeed([] as const))),
+        );
+
+        // Add to sources
+        for (const d of decisions) {
+          const source: SourceReference = {
+            type: 'decision',
+            id: d.id,
+            relevance: d.confidence ?? 80,
+            preview: d.summary,
+            videoId: d.videoId,
+            timestamp: d.timestampStart ?? undefined,
+          };
+          if (!sources.some((s) => s.id === source.id)) {
+            sources.push(source);
+            onSource?.(source);
+          }
+        }
+
+        return [...decisions].map((d) => ({
+          id: d.id,
+          summary: d.summary,
+          status: d.status,
+          context: d.context,
+          videoId: d.videoId,
+          timestamp: d.timestampStart,
+        }));
+      },
+    }),
+  };
+};
 
 // =============================================================================
 // AI Chat KB Service Implementation
@@ -108,108 +271,39 @@ const makeAIChatKBService = Effect.gen(function* () {
 
   const model = gateway('xai/grok-3');
 
-  /**
-   * Retrieve relevant context for a query using semantic search
-   */
-  const retrieveContext = (
-    query: string,
-    context: ChatContext,
-  ): Effect.Effect<{ sources: SourceReference[]; contextText: string }, AIServiceError> =>
-    Effect.gen(function* () {
-      // Generate embedding for the query
-      const queryEmbedding = yield* embeddingService.generateEmbedding(query);
-
-      // Perform semantic search
-      const searchResults = yield* searchRepo
-        .semanticSearch({
-          queryEmbedding,
-          organizationId: context.organizationId,
-          videoIds: context.videoIds ? [...context.videoIds] : undefined,
-          limit: 10,
-          threshold: 0.6,
-        })
-        .pipe(Effect.catchAll(() => Effect.succeed([])));
-
-      // Also fetch recent decisions
-      const decisions = yield* kgRepo
-        .listDecisions({
-          organizationId: context.organizationId,
-          videoId: context.videoIds?.[0],
-          limit: 5,
-        })
-        .pipe(Effect.catchAll(() => Effect.succeed([])));
-
-      // Build sources and context
-      const sources: SourceReference[] = [];
-      const contextParts: string[] = [];
-
-      // Add search results to context
-      for (const result of searchResults) {
-        sources.push({
-          type: result.contentType,
-          id: result.contentId,
-          relevance: Math.round(result.similarity * 100),
-          preview: result.textPreview,
-          videoId: result.videoId,
-          timestamp: result.timestampStart,
-        });
-
-        if (result.textPreview) {
-          const timestamp = result.timestampStart
-            ? `[${Math.floor(result.timestampStart / 60)}:${String(Math.floor(result.timestampStart % 60)).padStart(2, '0')}]`
-            : '';
-          contextParts.push(`[${result.contentType}${timestamp}]: ${result.textPreview}`);
-        }
-      }
-
-      // Add decisions to context
-      for (const decision of decisions) {
-        if (!sources.some((s) => s.id === decision.id)) {
-          sources.push({
-            type: 'decision',
-            id: decision.id,
-            relevance: decision.confidence ?? 80,
-            preview: decision.summary,
-            videoId: decision.videoId,
-            timestamp: decision.timestampStart ?? undefined,
-          });
-        }
-
-        contextParts.push(`[Decision - ${decision.status}]: ${decision.summary}`);
-        if (decision.context) {
-          contextParts.push(`  Context: ${decision.context}`);
-        }
-      }
-
-      const contextText =
-        contextParts.length > 0 ? `\n\n### Relevant Context from Knowledge Base:\n${contextParts.join('\n\n')}` : '';
-
-      return { sources, contextText };
-    }).pipe(
-      Effect.catchAll((error) =>
-        Effect.fail(
-          new AIServiceError({
-            message: 'Failed to retrieve context',
-            operation: 'retrieveContext',
-            cause: error,
-          }),
-        ),
-      ),
-    );
-
   const generateResponse = (
     messages: readonly ChatMessage[],
     context: ChatContext,
   ): Effect.Effect<ChatResponse, AIServiceError> =>
     Effect.gen(function* () {
-      // Get the last user message for context retrieval
-      const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
-      const query = lastUserMessage?.content ?? '';
+      const sources: SourceReference[] = [];
 
-      // Retrieve relevant context
-      const { sources, contextText } = yield* retrieveContext(query, context);
+      // Create knowledge base tools
+      const kbTools = createKnowledgeBaseTools({
+        embeddingService,
+        searchRepo,
+        kgRepo,
+        context,
+        sources,
+      });
 
-      const systemPrompt = (context.systemPrompt ?? DEFAULT_SYSTEM_PROMPT) + contextText;
+      // Create bash tool for advanced processing
+      const bashToolkit = yield* Effect.tryPromise({
+        try: () => createBashTool({ destination: '/tmp/chat-workspace' }),
+        catch: (error) =>
+          new AIServiceError({
+            message: 'Failed to create bash toolkit',
+            operation: 'createBashTool',
+            cause: error,
+          }),
+      });
+
+      const allTools = {
+        ...kbTools,
+        bash: bashToolkit.tools.bash,
+      };
+
+      const systemPrompt = context.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
 
       const allMessages = [
         { role: 'system' as const, content: systemPrompt },
@@ -221,6 +315,8 @@ const makeAIChatKBService = Effect.gen(function* () {
           return await generateText({
             model,
             messages: allMessages,
+            tools: allTools,
+            stopWhen: stepCountIs(10),
           });
         },
         catch: (error) =>
@@ -252,19 +348,35 @@ const makeAIChatKBService = Effect.gen(function* () {
     callbacks?: StreamCallbacks,
   ): Effect.Effect<ReadableStream<string>, AIServiceError> =>
     Effect.gen(function* () {
-      // Get the last user message for context retrieval
-      const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
-      const query = lastUserMessage?.content ?? '';
+      const sources: SourceReference[] = [];
 
-      // Retrieve relevant context
-      const { sources, contextText } = yield* retrieveContext(query, context);
+      // Create knowledge base tools
+      const kbTools = createKnowledgeBaseTools({
+        embeddingService,
+        searchRepo,
+        kgRepo,
+        context,
+        sources,
+        onSource: callbacks?.onSource,
+      });
 
-      // Notify about sources
-      for (const source of sources) {
-        callbacks?.onSource?.(source);
-      }
+      // Create bash tool for advanced processing
+      const bashToolkit = yield* Effect.tryPromise({
+        try: () => createBashTool({ destination: '/tmp/chat-workspace' }),
+        catch: (error) =>
+          new AIServiceError({
+            message: 'Failed to create bash toolkit',
+            operation: 'createBashTool',
+            cause: error,
+          }),
+      });
 
-      const systemPrompt = (context.systemPrompt ?? DEFAULT_SYSTEM_PROMPT) + contextText;
+      const allTools = {
+        ...kbTools,
+        bash: bashToolkit.tools.bash,
+      };
+
+      const systemPrompt = context.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
 
       const allMessages = [
         { role: 'system' as const, content: systemPrompt },
@@ -276,6 +388,15 @@ const makeAIChatKBService = Effect.gen(function* () {
           return streamText({
             model,
             messages: allMessages,
+            tools: allTools,
+            stopWhen: stepCountIs(10),
+            onStepFinish: ({ toolCalls }) => {
+              if (toolCalls) {
+                for (const tc of toolCalls) {
+                  callbacks?.onToolCall?.(tc.toolName, tc);
+                }
+              }
+            },
             onFinish: ({ text, usage }) => {
               callbacks?.onFinish?.({
                 response: text,
