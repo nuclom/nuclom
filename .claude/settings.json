@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "env": {
+    "INSIDE_CLAUDE_CODE": "1"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$TOOL_INPUT\" =~ \\.(ts|tsx|js|jsx|json|md)$ ]]; then pnpm format --write \"$TOOL_INPUT\" 2>/dev/null || true; fi",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [[ \"$branch\" == \"main\" || \"$branch\" == \"master\" ]]; then echo 'ERROR: Cannot edit files on protected branch. Please create a feature branch first.' >&2; exit 2; fi",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
