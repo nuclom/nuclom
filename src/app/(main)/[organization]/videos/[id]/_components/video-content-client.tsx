@@ -87,6 +87,77 @@ function ProcessingStatus({ status, error, createdAt, onRetry, isRetrying }: Pro
 }
 
 // =============================================================================
+// Processing Empty State
+// =============================================================================
+
+interface ProcessingEmptyStateProps {
+  status: 'pending' | 'transcribing' | 'diarizing' | 'analyzing' | 'failed';
+}
+
+function ProcessingEmptyState({ status }: ProcessingEmptyStateProps) {
+  const statusContent = {
+    pending: {
+      icon: Clock,
+      title: 'Waiting to process',
+      description:
+        "Your video is queued and will be processed shortly. We'll generate a summary, action items, and transcript.",
+      iconColor: 'text-muted-foreground/50',
+      animate: false,
+    },
+    transcribing: {
+      icon: Loader2,
+      title: 'Transcribing video',
+      description:
+        "Converting speech to text. Once complete, we'll analyze the content to generate a summary and extract key insights.",
+      iconColor: 'text-blue-500',
+      animate: true,
+    },
+    diarizing: {
+      icon: Loader2,
+      title: 'Identifying speakers',
+      description:
+        'Detecting who said what in your video. This helps create a more useful transcript and accurate summaries.',
+      iconColor: 'text-blue-500',
+      animate: true,
+    },
+    analyzing: {
+      icon: Sparkles,
+      title: 'Analyzing content',
+      description: 'Generating your summary, extracting action items, and identifying key topics from the transcript.',
+      iconColor: 'text-purple-500',
+      animate: true,
+    },
+    failed: {
+      icon: XCircle,
+      title: 'Processing failed',
+      description:
+        'Something went wrong while processing your video. Please try uploading again or contact support if the issue persists.',
+      iconColor: 'text-red-500',
+      animate: false,
+    },
+  };
+
+  const content = statusContent[status];
+  const Icon = content.icon;
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="relative mb-4">
+        <Icon className={`h-12 w-12 ${content.iconColor} ${content.animate ? 'animate-spin' : ''}`} />
+        {content.animate && (
+          <div
+            className="absolute inset-0 h-12 w-12 rounded-full border-2 border-current opacity-20 animate-ping"
+            style={{ animationDuration: '2s' }}
+          />
+        )}
+      </div>
+      <h3 className="text-sm font-medium mb-2">{content.title}</h3>
+      <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">{content.description}</p>
+    </div>
+  );
+}
+
+// =============================================================================
 // Action Items List
 // =============================================================================
 
@@ -523,13 +594,14 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
                     <div className="text-sm text-foreground leading-relaxed">
                       <Streamdown>{video.aiSummary}</Streamdown>
                     </div>
-                  ) : video.processingStatus === 'analyzing' ? (
-                    <div className="flex items-center gap-2 text-muted-foreground py-4">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm">Generating summary...</span>
-                    </div>
+                  ) : video.processingStatus !== 'completed' ? (
+                    <ProcessingEmptyState
+                      status={
+                        video.processingStatus as 'pending' | 'transcribing' | 'diarizing' | 'analyzing' | 'failed'
+                      }
+                    />
                   ) : (
-                    <p className="text-sm text-muted-foreground">No summary available yet.</p>
+                    <p className="text-sm text-muted-foreground">No summary available.</p>
                   )}
                 </section>
 
