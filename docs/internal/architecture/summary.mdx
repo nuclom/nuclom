@@ -1,0 +1,192 @@
+---
+title: "Architecture Summary"
+description: "Quick reference for the Nuclom platform architecture"
+icon: "list-check"
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+| ----- | ------------ |
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS |
+| **UI** | shadcn/ui, Radix UI, Lucide Icons |
+| **Backend** | Next.js API Routes, Effect-TS |
+| **Database** | PostgreSQL, Drizzle ORM |
+| **Auth** | Better-Auth (GitHub, Google OAuth) |
+| **Storage** | Cloudflare R2 |
+| **AI** | OpenAI, Vercel AI SDK |
+| **Deployment** | Vercel with CI/CD |
+
+## Key Decisions
+
+<AccordionGroup>
+  <Accordion title="1. Next.js 16 with App Router">
+    **Why:** Server Components for performance, built-in API routes, excellent TypeScript support, seamless Vercel deployment.
+  </Accordion>
+  <Accordion title="2. PostgreSQL + Drizzle ORM">
+    **Why:** Relational model fits collaboration data, type-safe queries, mature tooling, excellent read performance.
+  </Accordion>
+  <Accordion title="3. Better-Auth (not NextAuth)">
+    **Why:** Better TypeScript support, more flexible configuration, built-in session management.
+  </Accordion>
+  <Accordion title="4. Cloudflare R2">
+    **Why:** Cost-effective storage, global CDN, S3-compatible API, excellent video streaming performance.
+  </Accordion>
+  <Accordion title="5. Organization-based Multi-tenancy">
+    **Why:** Clean data separation, scalable permissions, URL-based routing.
+  </Accordion>
+</AccordionGroup>
+
+## Core Features
+
+| Feature | Description |
+| ------- | ----------- |
+| **Multi-organization** | Separate workspaces with role-based permissions |
+| **Video collaboration** | Upload, stream, comment with timestamps |
+| **AI insights** | Summaries, transcripts, action items |
+| **Knowledge graph** | Decision extraction and relationships |
+| **Real-time presence** | See who's watching |
+| **Recommendations** | Personalized video suggestions |
+
+## Database Tables
+
+<Tabs>
+  <Tab title="Core">
+    | Table | Purpose |
+    | ----- | ------- |
+    | `users` | User accounts |
+    | `organizations` | Team workspaces |
+    | `members` | Organization membership |
+    | `videos` | Video metadata |
+    | `comments` | Time-stamped discussions |
+    | `channels` | Video grouping by topic |
+    | `series` | Sequential video groups |
+  </Tab>
+  <Tab title="Engagement">
+    | Table | Purpose |
+    | ----- | ------- |
+    | `comment_reactions` | Emoji reactions |
+    | `watch_history` | Progress tracking |
+    | `watch_later` | Bookmarks |
+    | `notifications` | User alerts |
+  </Tab>
+  <Tab title="Knowledge">
+    | Table | Purpose |
+    | ----- | ------- |
+    | `decisions` | Extracted decisions |
+    | `knowledge_nodes` | Graph nodes |
+    | `knowledge_edges` | Relationships |
+  </Tab>
+</Tabs>
+
+## Architecture Patterns
+
+<CodeGroup>
+```typescript Server Components
+// Server Components by default
+export default async function Page() {
+  const data = await fetchData()
+  return <Component data={data} />
+}
+
+// Client Components when needed
+"use client"
+export function Interactive() {
+  const [state, setState] = useState()
+  // ...
+}
+```
+
+```typescript API Routes
+// Always call connection() for database access
+export async function GET(request: NextRequest) {
+  await connection()
+
+  const result = await Effect.runPromise(
+    Effect.tryPromise(() => db.query.videos.findMany())
+  )
+
+  return NextResponse.json({ success: true, data: result })
+}
+```
+
+```typescript Database Queries
+// Drizzle query builder
+const video = await db.query.videos.findFirst({
+  where: eq(videos.id, id),
+  with: { author: true, comments: true }
+})
+
+// Type-safe inserts
+await db.insert(videos).values({ title, authorId })
+```
+</CodeGroup>
+
+## Performance
+
+<CardGroup cols={2}>
+  <Card title="Frontend" icon="browser">
+    - Server-side rendering
+    - Route-based code splitting
+    - Image optimization
+    - Static generation where possible
+  </Card>
+  <Card title="Backend" icon="server">
+    - Indexed database queries
+    - Connection pooling
+    - CDN for video delivery
+    - Edge-optimized API
+  </Card>
+</CardGroup>
+
+## Security
+
+| Area | Implementation |
+| ---- | -------------- |
+| **Auth** | OAuth 2.0, session cookies, CSRF protection |
+| **Authz** | Role-based access (Owner, Admin, Member) |
+| **Data** | Input validation, SQL injection prevention |
+| **Infra** | HTTPS, env var management |
+
+## Recent Additions (v2.0)
+
+<Note>
+These features were added in version 2.0 of the platform.
+</Note>
+
+- Knowledge graph with decision extraction
+- Structured AI outputs (Effect Schema)
+- Video recommendations
+- Continue watching / Watch later
+- Comment reactions (8 types)
+- User presence indicators
+- Performance monitoring
+
+## Documentation
+
+<CardGroup cols={2}>
+  <Card title="Full Architecture" href="/internal/architecture/overview" icon="sitemap">
+    Complete system overview
+  </Card>
+  <Card title="Database Schema" href="/internal/architecture/database" icon="database">
+    Tables and relationships
+  </Card>
+  <Card title="Frontend Patterns" href="/internal/architecture/frontend" icon="browser">
+    Components and state
+  </Card>
+  <Card title="Backend Patterns" href="/internal/architecture/backend" icon="server">
+    API design
+  </Card>
+  <Card title="Authentication" href="/internal/architecture/authentication" icon="lock">
+    Auth configuration
+  </Card>
+  <Card title="Video Processing" href="/internal/architecture/video-processing" icon="video">
+    Processing pipeline
+  </Card>
+  <Card title="Effect-TS" href="/internal/architecture/effect-ts" icon="code">
+    Error handling
+  </Card>
+  <Card title="Deployment" href="/internal/architecture/deployment" icon="rocket">
+    CI/CD and infrastructure
+  </Card>
+</CardGroup>

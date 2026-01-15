@@ -1,0 +1,454 @@
+---
+title: "Deployment Architecture"
+description: "Cloud-native deployment with scalability, reliability, and performance"
+icon: "rocket"
+---
+
+Nuclom is designed for cloud-native deployment with a focus on scalability, reliability, and performance. This document outlines the deployment strategy and infrastructure requirements.
+
+## Deployment Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CDN/Edge                                  │
+│  Cloudflare CDN → Edge Functions → Static Assets                │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Application Layer                             │
+│  Vercel Platform → Next.js Application → API Routes             │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+┌───────────────────┐ ┌───────────────┐ ┌───────────────────────┐
+│   Database Layer  │ │ Storage Layer │ │  External Services    │
+│  PostgreSQL       │ │ Cloudflare R2 │ │  OAuth, OpenAI        │
+│  + Replicas       │ │ Videos/Assets │ │  Replicate            │
+└───────────────────┘ └───────────────┘ └───────────────────────┘
+```
+
+## Infrastructure Components
+
+<CardGroup cols={2}>
+  <Card title="Application Platform (Vercel)" icon="cloud">
+    - Serverless deployment for Next.js
+    - Global edge network for low-latency
+    - Auto-scaling based on demand
+    - Integrated CI/CD from Git
+  </Card>
+  <Card title="Database (PostgreSQL)" icon="database">
+    - Primary database for read/write
+    - Optional read replicas for scaling
+    - Connection pooling (PgBouncer)
+    - Automated backups with PITR
+  </Card>
+  <Card title="File Storage (Cloudflare R2)" icon="hard-drive">
+    - Object storage for video files
+    - Global CDN for fast delivery
+    - Direct streaming capabilities
+    - Lifecycle management
+  </Card>
+  <Card title="Authentication Services" icon="lock">
+    - GitHub and Google OAuth
+    - Better-Auth session management
+    - HTTPS, secure cookies, CSRF protection
+  </Card>
+</CardGroup>
+
+## Deployment Environments
+
+<Note>
+For comprehensive setup instructions and configuration details, see: [Deployment Environments Guide](/internal/architecture/deployment-environments)
+</Note>
+
+| Environment | URL | Purpose | Database |
+|-------------|-----|---------|----------|
+| Development | `localhost:5001` | Local development | Local PostgreSQL |
+| Staging | `staging.nuclom.com` | Pre-release testing, QA | Isolated staging DB |
+| Production | `nuclom.com` | Live user traffic | Production DB + replicas |
+
+<Tabs>
+  <Tab title="Development">
+    ```yaml
+    environment: development
+    database:
+      host: localhost
+      port: 5432
+      database: nuclom_dev
+      ssl: false
+    auth:
+      secret: dev-secret-key
+      requireEmailVerification: false
+    storage:
+      provider: local
+      path: ./uploads
+    ```
+  </Tab>
+  <Tab title="Staging">
+    ```yaml
+    environment: staging
+    database:
+      host: staging-db.example.com
+      port: 5432
+      database: nuclom_staging
+      ssl: true
+      connectionLimit: 20
+    auth:
+      secret: staging-secret-key
+      requireEmailVerification: true
+    storage:
+      provider: cloudflare-r2
+      bucket: nuclom-staging
+    ```
+  </Tab>
+  <Tab title="Production">
+    ```yaml
+    environment: production
+    database:
+      host: prod-db.example.com
+      port: 5432
+      database: nuclom_production
+      ssl: true
+      connectionLimit: 100
+      readReplicas:
+        - prod-db-read-1.example.com
+        - prod-db-read-2.example.com
+    auth:
+      secret: production-secret-key
+      requireEmailVerification: true
+    storage:
+      provider: cloudflare-r2
+      bucket: nuclom-production
+      cdn: true
+    ```
+  </Tab>
+</Tabs>
+
+## Deployment Process
+
+### Automated Pipeline
+
+```
+Code Commit → GitHub Actions CI → Lint & Type Check → Vercel Build
+                                         ↓
+                     ┌───────────────────┴───────────────────┐
+                     ↓                                       ↓
+               CI Failure → Notify Team          Deployment Ready
+                                                       ↓
+                                              E2E Tests on Deployment
+                                                       ↓
+                                            Notify Vercel Status
+                                                       ↓
+                                                Route Traffic
+```
+
+### GitHub Actions Workflows
+
+<Tabs>
+  <Tab title="CI Workflow">
+    `.github/workflows/ci.yml` - Runs on every push and PR:
+
+    ```yaml
+    name: CI
+
+    on:
+      push:
+        branches: [main]
+      pull_request:
+        branches: [main]
+      merge_group:
+      workflow_dispatch:
+
+    jobs:
+      lint-and-typecheck:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: pnpm/action-setup@v4
+            with:
+              version: 10
+          - uses: actions/setup-node@v4
+            with:
+              node-version: "22"
+              cache: "pnpm"
+          - run: pnpm install --frozen-lockfile
+          - name: Lint
+            run: pnpm lint
+          - name: Type Check
+            run: pnpm tsc --noEmit
+          - name: Notify Vercel
+            if: always()
+            uses: vercel/repository-dispatch/actions/status@v1
+    ```
+  </Tab>
+  <Tab title="E2E Workflow">
+    `.github/workflows/e2e.yml` - Runs Playwright tests against deployments:
+
+    ```yaml
+    name: E2E Tests
+
+    on:
+      deployment_status:
+      workflow_dispatch:
+        inputs:
+          deployment_url:
+            description: "Deployment URL to test against"
+            required: true
+
+    jobs:
+      e2e-tests:
+        runs-on: ubuntu-latest
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (github.event.deployment_status.state == 'success')
+        steps:
+          - uses: actions/checkout@v4
+          - uses: pnpm/action-setup@v4
+          - uses: actions/setup-node@v4
+          - run: pnpm install --frozen-lockfile
+          - run: pnpm exec playwright install chromium --with-deps
+          - name: Run E2E tests
+            run: pnpm test:e2e
+            env:
+              PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+**Key Features:**
+- No local build required - tests run against Vercel's deployment URL
+- Automatic triggering via `deployment_status` event from Vercel
+- Manual override with `workflow_dispatch` for custom URLs
+- Reports test status back to Vercel for deployment gates
+</Tip>
+
+## Database Deployment
+
+### Migration Strategy
+
+```typescript
+// scripts/migrate.ts
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { db } from "@/lib/db";
+
+async function runMigrations() {
+  console.log("Running database migrations...");
+  await migrate(db, { migrationsFolder: "./drizzle" });
+  console.log("Migrations completed successfully");
+}
+
+runMigrations();
+```
+
+### Connection Pooling
+
+```typescript
+// src/lib/db/pool.ts
+import postgres from "postgres";
+
+const sql = postgres(process.env.DATABASE_URL!, {
+  max: 50,           // Maximum connections
+  idle_timeout: 20,  // Close idle after 20 seconds
+  max_lifetime: 60 * 30,  // Close after 30 minutes
+  prepare: false,    // Disable for serverless
+});
+```
+
+### Backup Strategy
+
+```bash
+#!/bin/bash
+# scripts/backup-db.sh
+
+# Create backup
+pg_dump $DATABASE_URL | gzip > "backup-$(date +%Y%m%d-%H%M%S).sql.gz"
+
+# Upload to cloud storage
+aws s3 cp "backup-$(date +%Y%m%d-%H%M%S).sql.gz" s3://nuclom-backups/
+
+# Cleanup old backups (keep last 30 days)
+find . -name "backup-*.sql.gz" -mtime +30 -delete
+```
+
+## Health Checks
+
+```typescript
+// src/app/api/health/route.ts
+export async function GET() {
+  const checks = await Promise.all([
+    checkDatabaseHealth(),
+    checkStorageHealth(),
+    checkAuthHealth(),
+  ]);
+
+  const allHealthy = checks.every((check) => check.healthy);
+
+  return NextResponse.json({
+    status: allHealthy ? "healthy" : "unhealthy",
+    timestamp: new Date().toISOString(),
+    checks: checks.reduce((acc, check) => {
+      acc[check.service] = check.healthy;
+      return acc;
+    }, {} as Record<string, boolean>),
+  }, { status: allHealthy ? 200 : 503 });
+}
+```
+
+## Environment Configuration
+
+```bash
+# .env.production
+
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/nuclom_production
+DATABASE_MAX_CONNECTIONS=50
+
+# Authentication
+BETTER_AUTH_SECRET=your-production-secret
+
+# OAuth
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Storage
+CLOUDFLARE_R2_ENDPOINT=https://your-account.r2.cloudflarestorage.com
+CLOUDFLARE_R2_ACCESS_KEY=your-access-key
+CLOUDFLARE_R2_SECRET_KEY=your-secret-key
+CLOUDFLARE_R2_BUCKET=nuclom-production
+
+# AI Integration
+REPLICATE_API_TOKEN=your-replicate-token
+
+# Monitoring
+SENTRY_DSN=your-sentry-dsn
+ANALYTICS_ID=your-analytics-id
+```
+
+## Security Configuration
+
+### Security Headers
+
+```typescript
+// next.config.ts
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        ],
+      },
+    ];
+  },
+};
+```
+
+## Scaling Considerations
+
+<AccordionGroup>
+  <Accordion title="Database Scaling">
+    ```typescript
+    // Read/write splitting
+    const writeDb = drizzle(postgres(process.env.DATABASE_WRITE_URL!));
+    const readDb = drizzle(postgres(process.env.DATABASE_READ_URL!));
+
+    export function getDb(operation: "read" | "write" = "read") {
+      return operation === "write" ? writeDb : readDb;
+    }
+    ```
+  </Accordion>
+  <Accordion title="Caching Strategy">
+    ```typescript
+    import { createClient } from "redis";
+
+    const redis = createClient({ url: process.env.REDIS_URL });
+
+    export const cache = {
+      async get(key: string) { return await redis.get(key); },
+      async set(key: string, value: string, ttl = 3600) {
+        return await redis.setEx(key, ttl, value);
+      },
+      async del(key: string) { return await redis.del(key); },
+    };
+    ```
+  </Accordion>
+  <Accordion title="CDN Configuration">
+    ```typescript
+    export const CDN_CONFIG = {
+      cacheTtl: {
+        static: 31536000,  // 1 year
+        api: 300,          // 5 minutes
+        dynamic: 60,       // 1 minute
+      },
+      purgeOnDeploy: true,
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Monitoring and Observability
+
+<CardGroup cols={2}>
+  <Card title="Application Monitoring" icon="chart-line">
+    Sentry for error tracking and performance
+  </Card>
+  <Card title="Performance Metrics" icon="gauge">
+    Page load times, API latency, database queries
+  </Card>
+  <Card title="Health Monitoring" icon="heart-pulse">
+    Automated health checks for all services
+  </Card>
+  <Card title="Cost Monitoring" icon="dollar-sign">
+    Track database, storage, and compute usage
+  </Card>
+</CardGroup>
+
+## Disaster Recovery
+
+### Backup Strategy
+
+- **Database**: Automated daily backups with point-in-time recovery
+- **Storage**: R2 provides 11 9's durability
+- **Configuration**: Infrastructure as Code in version control
+
+### Recovery Procedures
+
+```bash
+#!/bin/bash
+# scripts/restore.sh
+
+# Download backup
+aws s3 cp s3://nuclom-backups/backup-latest.sql backup.sql
+
+# Restore database
+psql $DATABASE_URL < backup.sql
+
+# Verify restoration
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM users;"
+```
+
+## Future Enhancements
+
+<CardGroup cols={2}>
+  <Card title="Multi-region Deployment" icon="globe">
+    Global availability and reduced latency
+  </Card>
+  <Card title="Edge Computing" icon="bolt">
+    Process at the edge for faster responses
+  </Card>
+  <Card title="Blue-green Deployments" icon="code-branch">
+    Zero-downtime deployments
+  </Card>
+  <Card title="Canary Releases" icon="bird">
+    Gradual feature rollouts
+  </Card>
+</CardGroup>

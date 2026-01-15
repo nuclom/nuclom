@@ -1,0 +1,429 @@
+---
+title: "Environment Configuration"
+description: "Configure environment variables and secrets for Nuclom development and production"
+icon: "gear"
+---
+
+## Environment Files
+
+<Tabs>
+  <Tab title="Development">
+    Create `.env.local` for local development:
+
+    ```bash
+    cp .env.example .env.local
+    ```
+  </Tab>
+  <Tab title="Production">
+    Set environment variables in your deployment platform (Vercel, Railway, etc.).
+  </Tab>
+</Tabs>
+
+## Required Environment Variables
+
+### Database
+
+```env
+# PostgreSQL connection string
+DATABASE_URL="postgresql://username:password@localhost:5432/nuclom"
+
+# Example formats:
+# Local: postgresql://postgres:password@localhost:5432/nuclom
+# Railway: postgresql://postgres:password@containers-us-west-123.railway.app:5432/railway
+# Supabase: postgresql://postgres:password@db.project.supabase.co:5432/postgres
+# PlanetScale: mysql://username:password@aws.connect.psdb.cloud/database?sslaccept=strict
+```
+
+### Authentication
+
+```env
+# Better Auth configuration
+BETTER_AUTH_SECRET="your-random-secret-key-here"
+
+# GitHub OAuth (optional)
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Disable new user signups (for staging environments)
+DISABLE_SIGNUPS="true"  # Set to "true" or "1" to disable signups
+```
+
+### AI Integration
+
+```env
+# AI Gateway for text generation (uses XAI Grok-3 via Vercel AI SDK)
+# No API key needed - uses @ai-sdk/gateway
+```
+
+### Video Processing
+
+```env
+# Replicate API key for video transcription (Whisper model)
+REPLICATE_API_TOKEN="r8_your-replicate-token"
+```
+
+### File Storage
+
+```env
+# Cloudflare R2 configuration
+R2_ACCOUNT_ID="your-r2-account-id"
+R2_ACCESS_KEY_ID="your-r2-access-key"
+R2_SECRET_ACCESS_KEY="your-r2-secret-key"
+R2_BUCKET_NAME="nuclom-videos"
+```
+
+## Environment Setup by Service
+
+### Database Providers
+
+<Tabs>
+  <Tab title="Local PostgreSQL">
+    ```bash
+    # Install PostgreSQL
+    brew install postgresql  # macOS
+    sudo apt install postgresql  # Ubuntu
+
+    # Start PostgreSQL
+    brew services start postgresql  # macOS
+    sudo systemctl start postgresql  # Ubuntu
+
+    # Create database
+    createdb nuclom
+
+    # Environment variable
+    DATABASE_URL="postgresql://postgres:password@localhost:5432/nuclom"
+    ```
+  </Tab>
+  <Tab title="Railway">
+    <Steps>
+      <Step title="Create database">
+        Create a new PostgreSQL database in Railway
+      </Step>
+      <Step title="Copy connection string">
+        Copy the connection string from the database settings
+      </Step>
+      <Step title="Set environment variable">
+        ```env
+        DATABASE_URL="postgresql://postgres:password@containers-us-west-123.railway.app:5432/railway"
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Supabase">
+    <Steps>
+      <Step title="Create project">
+        Create a new project in Supabase
+      </Step>
+      <Step title="Get connection string">
+        Go to Settings -> Database and copy the connection string
+      </Step>
+      <Step title="Set environment variable">
+        ```env
+        DATABASE_URL="postgresql://postgres:password@db.project.supabase.co:5432/postgres"
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="PlanetScale">
+    <Steps>
+      <Step title="Create database">
+        Create a new database in PlanetScale
+      </Step>
+      <Step title="Create connection string">
+        Create a connection string from the dashboard
+      </Step>
+      <Step title="Set environment variable">
+        ```env
+        DATABASE_URL="mysql://username:password@aws.connect.psdb.cloud/database?sslaccept=strict"
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+### Authentication Setup
+
+<AccordionGroup>
+  <Accordion title="Better Auth Secret">
+    Generate a secure secret:
+
+    ```bash
+    # Generate a random secret
+    openssl rand -base64 32
+
+    # Or use Node.js
+    node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+    ```
+  </Accordion>
+  <Accordion title="GitHub OAuth">
+    <Steps>
+      <Step title="Create OAuth App">
+        Go to GitHub Settings -> Developer settings -> OAuth Apps
+      </Step>
+      <Step title="Configure callback URL">
+        Set Authorization callback URL to `http://localhost:5001/api/auth/callback/github`
+      </Step>
+      <Step title="Copy credentials">
+        Copy Client ID and Client Secret
+      </Step>
+    </Steps>
+
+    ```env
+    GITHUB_CLIENT_ID="your-github-client-id"
+    GITHUB_CLIENT_SECRET="your-github-client-secret"
+    ```
+  </Accordion>
+  <Accordion title="Google OAuth">
+    <Steps>
+      <Step title="Go to Google Cloud Console">
+        Create a new project or select existing
+      </Step>
+      <Step title="Enable Google+ API">
+        Enable the Google+ API for your project
+      </Step>
+      <Step title="Create OAuth credentials">
+        Go to Credentials -> Create Credentials -> OAuth client ID
+      </Step>
+      <Step title="Set redirect URIs">
+        Set authorized redirect URIs to `http://localhost:5001/api/auth/callback/google`
+      </Step>
+    </Steps>
+
+    ```env
+    GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET="your-google-client-secret"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### AI Integration Setup
+
+<Note>
+The application uses:
+- **XAI Grok-3** via `@ai-sdk/gateway` for text generation (summaries, tags, action items)
+- **Replicate Whisper** for video transcription
+
+No additional API keys are needed for text generation as it uses the Vercel AI SDK gateway.
+</Note>
+
+### File Storage Setup
+
+<Steps>
+  <Step title="Go to Cloudflare Dashboard">
+    Navigate to Cloudflare Dashboard -> R2
+  </Step>
+  <Step title="Create bucket">
+    Create a new bucket for video storage
+  </Step>
+  <Step title="Create API token">
+    Go to Manage R2 API tokens and create a new token with R2 permissions
+  </Step>
+  <Step title="Set environment variables">
+    ```env
+    R2_ACCOUNT_ID="your-r2-account-id"
+    R2_ACCESS_KEY_ID="your-r2-access-key"
+    R2_SECRET_ACCESS_KEY="your-r2-secret-key"
+    R2_BUCKET_NAME="nuclom-videos"
+    ```
+  </Step>
+</Steps>
+
+## Environment Validation
+
+### Runtime Validation
+
+The application validates environment variables at runtime:
+
+```typescript
+// src/lib/env.ts
+import { Config, Effect } from "effect";
+
+const EnvConfig = Config.all({
+  DATABASE_URL: Config.string("DATABASE_URL"),
+  BETTER_AUTH_SECRET: Config.string("BETTER_AUTH_SECRET"),
+  REPLICATE_API_TOKEN: Config.string("REPLICATE_API_TOKEN").pipe(Config.option),
+  // ... other variables
+});
+
+export const env = Effect.runSync(Config.unwrap(EnvConfig));
+```
+
+### Validation Script
+
+Create a validation script:
+
+```bash
+#!/bin/bash
+# scripts/validate-env.sh
+
+required_vars=(
+  "DATABASE_URL"
+  "BETTER_AUTH_SECRET"
+)
+
+for var in "${required_vars[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: $var is not set"
+    exit 1
+  fi
+done
+
+echo "All required environment variables are set"
+```
+
+## Security Best Practices
+
+<Warning>
+**Secret Management**
+1. Never commit secrets to version control
+2. Use different secrets for different environments
+3. Rotate secrets regularly
+4. Use environment-specific configurations
+</Warning>
+
+### Database Security
+
+1. Use connection pooling
+2. Enable SSL connections
+3. Use read-only connections where possible
+4. Implement proper access controls
+
+### API Keys
+
+1. Use least privilege principle
+2. Set usage limits
+3. Monitor API usage
+4. Implement rate limiting
+
+## Production Configuration
+
+<Tabs>
+  <Tab title="Vercel">
+    Set environment variables in Vercel dashboard:
+
+    <Steps>
+      <Step title="Open project settings">
+        Go to Project Settings -> Environment Variables
+      </Step>
+      <Step title="Add variables">
+        Add production environment variables
+      </Step>
+      <Step title="Set environments">
+        Set appropriate environments (Production, Preview, Development)
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Railway">
+    Set environment variables in Railway:
+
+    <Steps>
+      <Step title="Open project">
+        Go to your project
+      </Step>
+      <Step title="Open Variables tab">
+        Click on Variables tab
+      </Step>
+      <Step title="Add variables">
+        Add environment variables
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Docker">
+    Use environment files with Docker:
+
+    ```dockerfile
+    # Use environment file
+    docker run --env-file .env.production nuclom:latest
+
+    # Or set individual variables
+    docker run -e DATABASE_URL="..." nuclom:latest
+    ```
+  </Tab>
+</Tabs>
+
+## Environment Testing
+
+### Test Database Connection
+
+```bash
+# Test PostgreSQL connection
+psql $DATABASE_URL -c "SELECT version();"
+
+# Test with Node.js
+node -e "
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) console.error(err);
+  else console.log('Database connected:', res.rows[0]);
+  pool.end();
+});
+"
+```
+
+### Test API Keys
+
+```bash
+# Test authentication endpoints
+curl http://localhost:5001/api/auth/session
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Database Connection Failures">
+    ```bash
+    # Check if database is reachable
+    nc -zv hostname port
+
+    # Check connection string format
+    echo $DATABASE_URL
+
+    # Test with psql
+    psql $DATABASE_URL
+    ```
+  </Accordion>
+  <Accordion title="Authentication Issues">
+    ```bash
+    # Check if secret is set
+    echo $BETTER_AUTH_SECRET
+
+    # Verify OAuth redirect URLs
+    curl -I http://localhost:5001/api/auth/callback/github
+    ```
+  </Accordion>
+  <Accordion title="Missing Environment Variables">
+    ```bash
+    # Check if all required variables are set
+    env | grep -E "(DATABASE_URL|BETTER_AUTH_SECRET|REPLICATE_API_TOKEN)"
+
+    # Validate environment
+    pnpm build  # This will fail if required variables are missing
+    ```
+  </Accordion>
+  <Accordion title="Debug Environment">
+    ```bash
+    # Print all environment variables (be careful not to expose secrets)
+    printenv | grep -v SECRET | grep -v PASSWORD
+
+    # Check specific variables
+    echo "Database URL: ${DATABASE_URL%%:*}://***"
+    echo "Auth configured: ${BETTER_AUTH_SECRET:+Yes}"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Setup" icon="database" href="/internal/reference/database-setup">
+    Set up the database
+  </Card>
+  <Card title="Development Setup" icon="computer" href="/internal/reference/development-setup">
+    Configure development tools
+  </Card>
+</CardGroup>

@@ -1,0 +1,403 @@
+---
+title: "Video Processing Pipeline"
+description: "Async video processing with AI transcription, thumbnail generation, and analysis"
+icon: "video"
+---
+
+This document describes the video processing pipeline in Nuclom, including upload, async processing, and metadata extraction.
+
+## Overview
+
+Videos in Nuclom go through a multi-stage processing pipeline:
+
+<Steps>
+  <Step title="Upload">
+    Video file uploaded to Cloudflare R2
+  </Step>
+  <Step title="Async Processing">
+    Background workflow processes the video
+  </Step>
+  <Step title="Metadata Extraction">
+    Duration, resolution, codec, etc.
+  </Step>
+  <Step title="Thumbnail Generation">
+    Multiple thumbnails at different timestamps
+  </Step>
+  <Step title="Transcription">
+    Audio-to-text using Whisper
+  </Step>
+  <Step title="AI Analysis">
+    Summary and insights generation
+  </Step>
+  <Step title="Moment Detection">
+    AI identifies key moments for clip extraction
+  </Step>
+</Steps>
+
+## Architecture
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────────────┐
+│   Upload    │────>│   Storage   │────>│   Video Record      │
+│   (Client)  │     │   (R2)      │     │   (Database)        │
+└─────────────┘     └─────────────┘     └─────────────────────┘
+                                                    │
+                                                    v
+┌─────────────────────────────────────────────────────────────┐
+│                 Workflow (Vercel Workflow DevKit)           │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  Metadata   │──│  Thumbnail  │──│ Transcribe  │──...    │
+│  │  Extraction │  │  Generation │  │   (Whisper) │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           v
+┌─────────────────────────────────────────────────────────────┐
+│                   Database Update                           │
+│  - Duration, resolution, codec                              │
+│  - Thumbnail URLs                                           │
+│  - Transcript text                                          │
+│  - AI summary                                               │
+│  - Processing status: completed                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Services
+
+### VideoProcessor
+
+Located at `src/lib/effect/services/video-processor.ts`
+
+Handles the initial video upload:
+
+```typescript
+interface VideoProcessorService {
+  processVideo: (buffer, filename, organizationId, onProgress?) => Effect<ProcessingResult>;
+  getVideoInfo: (buffer, filename) => Effect<VideoInfo>;
+  validateVideo: (filename, fileSize) => Effect<void>;
+  isSupportedVideoFormat: (filename) => boolean;
+  getMaxFileSize: () => number;
+}
+```
+
+<Tip>
+**Key Features:**
+- Validates video format and file size
+- Uploads to R2 using multipart upload
+- Estimates initial duration (refined later)
+- Returns immediately - processing continues async
+</Tip>
+
+### ReplicateAPI
+
+Located at `src/lib/effect/services/replicate.ts`
+
+Provides AI-powered video processing:
+
+```typescript
+interface ReplicateService {
+  transcribe: (videoUrl) => Effect<TranscriptionResult>;
+  generateThumbnail: (videoUrl, timestamp) => Effect<ThumbnailResult>;
+  generateThumbnails: (videoUrl, timestamps) => Effect<ThumbnailResult[]>;
+  extractMetadata: (videoUrl, fileSize) => Effect<VideoMetadata>;
+}
+```
+
+**Models Used:**
+- `openai/whisper` - Audio transcription
+- `fofr/video-to-gif` - Frame extraction for thumbnails
+
+### Workflow
+
+Located at `src/workflows/video-processing.ts`
+
+Uses Workflow DevKit (useworkflow.dev) for durable processing:
+
+```typescript
+export async function processVideoWorkflow(
+  input: VideoProcessingInput,
+): Promise<VideoProcessingResult> {
+  "use workflow";
+
+  const { videoId, videoUrl, videoTitle } = input;
+
+  // Step 1: Update status to transcribing
+  await updateProcessingStatus(videoId, "transcribing");
+  "use step";
+
+  // Step 2: Transcribe the video using OpenAI Whisper
+  const transcription = await transcribeVideo(videoUrl);
+  "use step";
+
+  // Step 3: Save transcript to database
+  await saveTranscript(videoId, transcription.transcript, transcription.segments);
+  "use step";
+
+  // Step 4: Update status to analyzing
+  await updateProcessingStatus(videoId, "analyzing");
+  "use step";
+
+  // Step 5: Run AI analysis (summary, tags, action items, chapters, code snippets)
+  const analysis = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle);
+  "use step";
+
+  // Step 6: Save AI analysis results
+  await saveAIAnalysis(videoId, analysis);
+  "use step";
+
+  // Step 7: Detect key moments for clip extraction
+  const moments = await detectKeyMoments(transcription.transcript, transcription.segments, videoTitle);
+  "use step";
+
+  // Step 8: Save key moments
+  const organizationId = await getVideoOrganizationId(videoId);
+  if (organizationId && moments.length > 0) {
+    await saveKeyMoments(videoId, organizationId, moments);
+  }
+  "use step";
+
+  // Step 9: Update status to completed
+  await updateProcessingStatus(videoId, "completed");
+  "use step";
+
+  // Step 10: Send completion notification
+  await sendCompletionNotification(videoId, "completed");
+
+  return { videoId, success: true };
+}
+```
+
+<Note>
+**Key Features:**
+- `"use workflow"` directive marks the function as a durable workflow
+- `"use step"` directives create checkpoints for resumable execution
+- Automatic retries on transient failures (network errors, API timeouts)
+- Resume from last successful step on server restart or deploy
+- Built-in observability for debugging and monitoring
+- No external queue service needed
+</Note>
+
+## Processing Status
+
+Videos track their processing status in the database:
+
+| Status | Description |
+|--------|-------------|
+| `pending` | Queued for processing |
+| `uploading` | File being uploaded |
+| `processing` | General processing |
+| `extracting_metadata` | Extracting video info |
+| `generating_thumbnails` | Creating thumbnails |
+| `transcribing` | Converting audio to text |
+| `analyzing` | Generating AI summary |
+| `completed` | Processing finished |
+| `failed` | Processing error occurred |
+
+## Database Schema
+
+```sql
+ALTER TABLE videos ADD COLUMN processing_status ProcessingStatus DEFAULT 'pending';
+ALTER TABLE videos ADD COLUMN processing_progress INTEGER DEFAULT 0;
+ALTER TABLE videos ADD COLUMN processing_error TEXT;
+ALTER TABLE videos ADD COLUMN width INTEGER;
+ALTER TABLE videos ADD COLUMN height INTEGER;
+ALTER TABLE videos ADD COLUMN codec TEXT;
+ALTER TABLE videos ADD COLUMN fps INTEGER;
+ALTER TABLE videos ADD COLUMN bitrate INTEGER;
+ALTER TABLE videos ADD COLUMN file_size INTEGER;
+ALTER TABLE videos ADD COLUMN thumbnail_alternates TEXT;  -- JSON array
+ALTER TABLE videos ADD COLUMN workflow_run_id TEXT;
+ALTER TABLE videos ADD COLUMN processed_at TIMESTAMP;
+```
+
+## API Endpoints
+
+<Tabs>
+  <Tab title="Upload">
+    ### POST /api/videos/upload
+
+    Upload a video file. Returns immediately after upload.
+
+    **Request:**
+    ```
+    Content-Type: multipart/form-data
+    - video: File
+    - title: string
+    - description?: string
+    - organizationId: string
+    - authorId: string
+    ```
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "data": {
+        "videoId": "uuid",
+        "videoUrl": "https://...",
+        "thumbnailUrl": "",
+        "duration": "00:10:00",
+        "processingStatus": "pending"
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Get Status">
+    ### GET /api/videos/[id]/processing-status
+
+    Get current processing status.
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "data": {
+        "videoId": "uuid",
+        "processingStatus": "transcribing",
+        "processingProgress": 60,
+        "thumbnailUrl": "https://...",
+        "duration": "00:10:00"
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Update Status">
+    ### PATCH /api/videos/[id]/processing-status
+
+    Update processing status (called by workflow).
+
+    **Request:**
+    ```json
+    {
+      "status": "processing",
+      "progress": 50,
+      "error": null
+    }
+    ```
+  </Tab>
+  <Tab title="Complete">
+    ### POST /api/videos/[id]/processing-complete
+
+    Complete processing with all results (called by workflow).
+
+    **Request:**
+    ```json
+    {
+      "duration": "00:10:00",
+      "width": 1920,
+      "height": 1080,
+      "codec": "h264",
+      "thumbnailUrl": "https://...",
+      "transcript": "...",
+      "aiSummary": "...",
+      "processingStatus": "completed",
+      "processingProgress": 100
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## UI Components
+
+### ProcessingStatus
+
+Located at `src/components/video/processing-status.tsx`
+
+Shows current processing status with appropriate icons and animations:
+
+```tsx
+<ProcessingStatus
+  status={video.processingStatus}
+  progress={video.processingProgress}
+  showProgress={true}
+  showDetails={true}
+  onRetry={handleRetry}
+/>
+```
+
+### ProcessingStatusBadge
+
+Compact badge variant:
+
+```tsx
+<ProcessingStatusBadge status={video.processingStatus} />
+```
+
+### useProcessingStatus Hook
+
+Polls for status updates:
+
+```tsx
+const { data, loading, error } = useProcessingStatus({
+  videoId: video.id,
+  enabled: video.processingStatus !== "completed",
+  interval: 3000,
+  onComplete: () => refetchVideo(),
+});
+```
+
+## Configuration
+
+### Environment Variables
+
+```env
+# Required
+REPLICATE_API_TOKEN=r8_xxx...
+
+# Optional (for AI summary)
+XAI_API_KEY=xai_xxx...
+```
+
+### Next.js Configuration
+
+```typescript
+// next.config.ts
+import { withWorkflow } from "workflow/next";
+
+export default withWorkflow(nextConfig);
+```
+
+## Error Handling
+
+<CardGroup cols={2}>
+  <Card title="Step Retries" icon="rotate">
+    Workflow steps automatically retry on failure
+  </Card>
+  <Card title="Fatal Errors" icon="circle-xmark">
+    Use `FatalError` to stop retrying
+  </Card>
+  <Card title="Status Updates" icon="database">
+    Errors stored in `processingError` field
+  </Card>
+  <Card title="UI Feedback" icon="display">
+    Retry button shown on failed status
+  </Card>
+</CardGroup>
+
+## Performance Considerations
+
+1. **Concurrent Processing**: Multiple steps run in parallel where possible
+2. **Progress Updates**: Real-time progress updates via polling
+3. **Large Files**: Multipart upload for files > 100MB
+4. **Timeouts**: Workflow steps have built-in timeouts
+
+## Future Improvements
+
+<AccordionGroup>
+  <Accordion title="FFmpeg Integration">
+    Direct FFmpeg for metadata/thumbnails
+  </Accordion>
+  <Accordion title="Video Transcoding">
+    Multiple quality levels
+  </Accordion>
+  <Accordion title="HLS/DASH Streaming">
+    Adaptive bitrate streaming
+  </Accordion>
+  <Accordion title="WebSocket Updates">
+    Replace polling with real-time updates
+  </Accordion>
+  <Accordion title="Batch Processing">
+    Process multiple videos concurrently
+  </Accordion>
+</AccordionGroup>

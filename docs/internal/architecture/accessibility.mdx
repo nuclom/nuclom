@@ -1,0 +1,292 @@
+---
+title: "Video Accessibility Features"
+description: "WebVTT subtitles, interactive transcripts, and caption support"
+icon: "universal-access"
+---
+
+This document describes the accessibility features implemented for video content in the Nuclom platform.
+
+## Overview
+
+Nuclom provides comprehensive accessibility support for video content:
+
+<CardGroup cols={3}>
+  <Card title="WebVTT Subtitles" icon="closed-captioning">
+    Generated from transcripts for caption support
+  </Card>
+  <Card title="Interactive Transcripts" icon="file-lines">
+    Click-to-seek and current segment highlighting
+  </Card>
+  <Card title="Transcript Editing" icon="pen-to-square">
+    Allow users to correct auto-generated transcripts
+  </Card>
+</CardGroup>
+
+## Architecture
+
+### Subtitle Generation
+
+Located at `src/lib/subtitles.ts`
+
+The subtitle module provides utilities for generating WebVTT and SRT subtitle files from transcript segments.
+
+```typescript
+import { generateWebVTT, generateSRT, formatVTTTime } from "@/lib/subtitles";
+
+// Generate WebVTT from transcript segments
+const vtt = generateWebVTT(segments, {
+  language: "en",
+  wrapLines: true,
+  maxLineLength: 42,
+});
+
+// Generate SRT for compatibility
+const srt = generateSRT(segments);
+```
+
+**Key functions:**
+- `generateWebVTT(segments, options)` - Generate WebVTT subtitle file content
+- `generateSRT(segments)` - Generate SRT subtitle file content
+- `formatVTTTime(seconds)` - Format time as VTT timestamp (HH:MM:SS.mmm)
+- `findCurrentSegment(segments, time)` - Find segment at current playback time
+- `mergeAdjacentSegments(segments)` - Merge close segments for smoother reading
+
+## API Endpoints
+
+<Tabs>
+  <Tab title="Subtitle Endpoints">
+    ### GET `/api/videos/[id]/subtitles`
+
+    List available subtitle information for a video.
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "data": {
+        "videoId": "abc123",
+        "hasTranscript": true,
+        "processingStatus": "completed",
+        "languages": [
+          {
+            "code": "en",
+            "name": "English",
+            "nativeName": "English",
+            "isOriginal": true,
+            "available": true,
+            "url": "/api/videos/abc123/subtitles/en.vtt"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### GET `/api/videos/[id]/subtitles/en.vtt`
+
+    Get WebVTT subtitle file for English captions.
+
+    <Tip>
+    Append `.srt` instead of `.vtt` for SRT format
+    </Tip>
+
+    **Response:** WebVTT file content
+
+    ```
+    WEBVTT
+    Kind: captions
+    Language: en
+
+    1
+    00:00:00.000 --> 00:00:05.230
+    Welcome to this video tutorial.
+
+    2
+    00:00:05.230 --> 00:00:10.450
+    Today we'll be discussing...
+    ```
+  </Tab>
+  <Tab title="Transcript Endpoints">
+    ### GET `/api/videos/[id]/transcript`
+
+    Get transcript data for a video.
+
+    ### PUT `/api/videos/[id]/transcript`
+
+    Update transcript segments (for corrections).
+
+    **Request body:**
+    ```json
+    {
+      "segments": [
+        {
+          "startTime": 0,
+          "endTime": 5.23,
+          "text": "Corrected transcript text"
+        }
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Components
+
+### TranscriptDisplay
+
+Displays transcript with interactive features.
+
+```tsx
+import { TranscriptDisplay } from "@/components/video";
+
+<TranscriptDisplay
+  segments={transcriptSegments}
+  currentTime={currentPlaybackTime}
+  onSeek={(time) => videoRef.current.currentTime = time}
+  autoScroll={true}
+  processingStatus="completed"
+/>
+```
+
+**Features:**
+- Click segment to seek video
+- Current segment highlighting
+- Auto-scroll to current segment
+- Search within transcript
+- Add comment at timestamp
+
+### TranscriptEditor
+
+Allows users to edit and correct transcripts.
+
+```tsx
+import { TranscriptEditor } from "@/components/video";
+
+<TranscriptEditor
+  videoId={videoId}
+  segments={transcriptSegments}
+  onSave={async (segments) => {
+    await saveTranscript(segments);
+  }}
+  showSaveButton={true}
+/>
+```
+
+**Features:**
+- Edit individual segments
+- Split and merge segments
+- Adjust timestamps
+- Undo/redo support
+- Keyboard shortcuts (Ctrl+Z, Ctrl+Shift+Z, Ctrl+S)
+
+### VideoPlayer Captions
+
+The video player automatically loads captions when a videoId is provided.
+
+```tsx
+import { VideoPlayerWithProgress } from "@/components/video";
+
+<VideoPlayerWithProgress
+  videoId={videoId}
+  url={videoUrl}
+  title="Video Title"
+  duration="10:30"
+/>
+```
+
+**Caption features:**
+- Caption toggle in control bar
+- Keyboard shortcut (C) to toggle captions
+- Caption track synced with video playback
+
+## Hooks
+
+### useTranscript
+
+Custom hook for managing transcript state.
+
+```tsx
+import { useTranscript } from "@/hooks/use-transcript";
+
+const {
+  segments,
+  isLoading,
+  isSaving,
+  error,
+  saveSegments,
+  hasUnsavedChanges,
+} = useTranscript({
+  videoId: "abc123",
+  autoFetch: true,
+});
+```
+
+## Implementation Details
+
+### Caption Track Loading
+
+<Steps>
+  <Step title="Fetch Available Tracks">
+    When `videoId` is provided to VideoPlayer, it fetches available tracks from `/api/videos/[id]/subtitles`
+  </Step>
+  <Step title="Add Track Elements">
+    Available tracks are added as `<track>` elements with `crossOrigin="anonymous"`
+  </Step>
+  <Step title="Toggle Captions">
+    User can toggle captions on/off from the control bar
+  </Step>
+  <Step title="Track Mode">
+    Track mode is toggled between "showing" and "disabled"
+  </Step>
+</Steps>
+
+### Transcript Sync
+
+<Steps>
+  <Step title="Time Update">
+    VideoPlayer calls `onTimeUpdate` with current playback time
+  </Step>
+  <Step title="Find Active Segment">
+    TranscriptDisplay uses `findSegmentIndexByTime` to find active segment
+  </Step>
+  <Step title="Highlight">
+    Active segment is highlighted with primary color border
+  </Step>
+  <Step title="Auto-scroll">
+    Auto-scroll brings active segment into view (with 3-second debounce)
+  </Step>
+</Steps>
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| C | Toggle captions |
+| R | Toggle loop |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always provide transcripts">
+    Use AI transcription for accessibility compliance. This ensures all video content is accessible to users who are deaf or hard of hearing.
+  </Accordion>
+  <Accordion title="Allow corrections">
+    Users can improve auto-generated transcripts. This creates better accuracy over time and allows domain experts to fix technical terminology.
+  </Accordion>
+  <Accordion title="Test with screen readers">
+    Ensure captions work with assistive technology. Test the caption display and transcript navigation with popular screen readers like NVDA, JAWS, and VoiceOver.
+  </Accordion>
+</AccordionGroup>
+
+## Related Documentation
+
+<CardGroup cols={3}>
+  <Card title="Video Processing" href="/internal/architecture/video-processing" icon="video">
+    Processing pipeline
+  </Card>
+  <Card title="Effect-TS Services" href="/internal/architecture/effect-ts" icon="layer-group">
+    Service architecture
+  </Card>
+  <Card title="API Reference" href="/public/api" icon="book">
+    Full API documentation
+  </Card>
+</CardGroup>

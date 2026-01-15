@@ -1,0 +1,284 @@
+---
+title: "Deployment Environments"
+description: "Production, Staging, and Deploy Preview environment configuration"
+icon: "server"
+---
+
+This document outlines Nuclom's deployment strategy across Production, Staging, and Deploy Preview environments.
+
+## Environment Overview
+
+| Aspect | Deploy Preview | Staging | Production |
+|--------|----------------|---------|------------|
+| **Purpose** | PR validation | Pre-release testing, QA | Live user traffic |
+| **URL** | `*.vercel.app` (per-PR) | `staging.nuclom.com` | `nuclom.com` |
+| **Trigger** | PR opened/updated | Merge to `main` | Merge to `main` |
+| **Database** | Xata (CoW from Staging) | Xata | PlanetScale |
+| **Storage** | Shared staging R2 bucket | Staging R2 bucket | Production R2 bucket |
+| **Data** | Copy of staging data | Synthetic test data | Real user data |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Git Repository                          │
+│  Feature Branch → Pull Request → main branch                │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│   Deploy    │  │   Staging   │  │  Production │
+│   Preview   │  │   staging.  │  │   nuclom.   │
+│  *.vercel   │  │  nuclom.com │  │     com     │
+└──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+       │                │                │
+       ▼                ▼                ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│ Xata Branch │  │    Xata     │  │ PlanetScale │
+│  (CoW)      │──│  Staging    │  │ Production  │
+└─────────────┘  └─────────────┘  └─────────────┘
+       │                │
+       └────────────────┘
+              │
+              ▼
+      ┌─────────────┐
+      │ R2 Staging  │
+      │   Bucket    │
+      └─────────────┘
+```
+
+## Database Strategy
+
+<Tabs>
+  <Tab title="Production (PlanetScale)">
+    PlanetScale provides the production PostgreSQL database with:
+    - **Non-blocking schema changes** for zero-downtime migrations
+    - **Automatic backups** with point-in-time recovery
+    - **Read replicas** for scaling read-heavy workloads
+
+    ```bash
+    # Production connection (via Vercel integration)
+    DATABASE_URL="postgresql://...@aws.connect.psdb.cloud/nuclom?sslmode=require"
+    ```
+  </Tab>
+  <Tab title="Staging (Xata)">
+    Xata provides the staging database with:
+    - **Branching support** for deploy previews
+    - **PostgreSQL compatibility** via their wire protocol
+    - **Built-in search** and analytics capabilities
+
+    ```bash
+    # Staging connection
+    DATABASE_URL="postgresql://...@us-east-1.sql.xata.sh/nuclom:main?sslmode=require"
+    ```
+  </Tab>
+  <Tab title="Deploy Preview (Xata CoW)">
+    Xata uses **Copy-on-Write (CoW) at the storage layer** to enable instant branching.
+
+    <Tip>
+    Each deploy preview gets an isolated database branch that:
+    - **Inherits data instantly** - CoW creates metadata pointing to original data
+    - **Lazy copying** - Only modified blocks get copied
+    - **Full isolation** - Changes never affect parent branch
+    </Tip>
+
+    ```bash
+    # Create a branch from staging
+    xata branch create --name "pr-123" --parent-branch "staging"
+
+    # List branches
+    xata branch list
+
+    # Delete branch when PR closes
+    xata branch delete --name "pr-123"
+    ```
+  </Tab>
+</Tabs>
+
+## Storage Strategy
+
+### Separate R2 Buckets
+
+| Bucket | Environment | Purpose |
+|--------|-------------|---------|
+| `nuclom-production` | Production | Real user videos and assets |
+| `nuclom-staging` | Staging + Deploy Preview | Test videos and assets |
+
+<Note>
+**Why separate buckets?**
+1. **Data isolation** - Production assets never accessible from non-prod
+2. **Safe testing** - Can freely modify/delete staging assets
+3. **Access control** - Different credentials per environment
+4. **Cost visibility** - Clear billing separation
+</Note>
+
+Deploy previews share the staging bucket since:
+- Preview environments are short-lived
+- Test data is already synthetic
+- Simplifies configuration
+
+## Future: Anonymized Data Sync
+
+We plan to use Xata's `xata clone` to copy and anonymize production data to staging:
+
+```
+PlanetScale (Production) → Transformers (Anonymization) → Xata (Staging)
+```
+
+### Transformer System
+
+Xata uses **transformers** - column-level tools that handle anonymization:
+
+| Transformer | Example |
+|-------------|---------|
+| **Deterministic** | `info@xata.io` → `a2asd112@example.com` (same input = same output) |
+| **Masking** | `info@xata.io` → `i***o@xata.io` |
+| **Templating** | Conditional logic and composed values |
+
+<Tip>
+**Deterministic transformation** preserves referential integrity - the same email always maps to the same fake email, so foreign key relationships remain valid.
+</Tip>
+
+### Why Anonymized Production Data?
+
+<CardGroup cols={3}>
+  <Card title="Realistic Data" icon="database">
+    Test against production-like volumes and patterns
+  </Card>
+  <Card title="Edge Cases" icon="bug">
+    Discover bugs that only appear with real-world data
+  </Card>
+  <Card title="Performance Testing" icon="gauge">
+    Validate queries against realistic cardinality
+  </Card>
+</CardGroup>
+
+## Environment Variables
+
+<Tabs>
+  <Tab title="Production">
+    ```bash
+    # Database
+    DATABASE_URL=postgresql://...@aws.connect.psdb.cloud/nuclom?sslmode=require
+
+    # Storage
+    R2_BUCKET_NAME=nuclom-production
+    ```
+  </Tab>
+  <Tab title="Staging">
+    ```bash
+    # Database
+    DATABASE_URL=postgresql://...@us-east-1.sql.xata.sh/nuclom:main?sslmode=require
+
+    # Storage (shared with deploy previews)
+    R2_BUCKET_NAME=nuclom-staging
+    ```
+  </Tab>
+  <Tab title="Deploy Preview">
+    ```bash
+    # Database (auto-provisioned Xata branch)
+    DATABASE_URL=postgresql://...@us-east-1.sql.xata.sh/nuclom:pr-123?sslmode=require
+
+    # Storage (shared with staging)
+    R2_BUCKET_NAME=nuclom-staging
+    ```
+  </Tab>
+</Tabs>
+
+## Deployment Flow
+
+```
+Developer → Open PR → GitHub Actions → Xata branch create (CoW)
+                                              ↓
+                                    Branch connection string
+                                              ↓
+                                    Set DATABASE_URL for preview
+                                              ↓
+                                    Vercel deploys to preview URL
+                                              ↓
+                                    Post preview URL to PR
+
+Developer → Merge PR → GitHub Actions → Xata branch delete
+                                              ↓
+                               Vercel triggers deployments
+                                              ↓
+                    ┌─────────────────────────┴─────────────────────────┐
+                    ▼                                                   ▼
+              Staging                                             Production
+        (staging.nuclom.com)                                   (nuclom.com)
+```
+
+## Database Migrations
+
+### Migration Strategy
+
+| Environment | Database | Migration Approach |
+|-------------|----------|-------------------|
+| Production | PlanetScale (PostgreSQL) | Deploy requests (non-blocking) |
+| Staging | Xata (PostgreSQL) | Direct migration |
+| Deploy Preview | Xata branch (PostgreSQL) | Inherits from staging |
+
+### Running Migrations
+
+<Steps>
+  <Step title="Generate Migration">
+    ```bash
+    pnpm db:generate
+    ```
+  </Step>
+  <Step title="Apply to Staging">
+    ```bash
+    DATABASE_URL="$STAGING_DATABASE_URL" pnpm db:migrate
+    ```
+  </Step>
+  <Step title="Deploy to Production">
+    For production, use PlanetScale deploy requests:
+    - Create deploy request in PlanetScale dashboard
+    - Review schema diff
+    - Deploy (non-blocking, no downtime)
+  </Step>
+</Steps>
+
+### Schema Compatibility
+
+<Note>
+All environments use PostgreSQL, simplifying schema management:
+- Same SQL dialect across PlanetScale and Xata
+- Migrations tested on staging apply cleanly to production
+- No provider-specific workarounds needed
+</Note>
+
+## Rollback Procedures
+
+<Tabs>
+  <Tab title="Application Rollback">
+    ```bash
+    # Instant rollback via Vercel
+    vercel rollback [deployment-url]
+    ```
+  </Tab>
+  <Tab title="Database Rollback">
+    **PlanetScale (Production)**:
+    - Revert deploy request if still pending
+    - Point-in-time recovery for data issues
+
+    **Xata (Staging)**:
+    - Restore from automatic backups
+    - Or recreate branch from a known-good state
+  </Tab>
+</Tabs>
+
+## Related Documentation
+
+<CardGroup cols={3}>
+  <Card title="Database Schema" href="/internal/architecture/database" icon="database">
+    Schema design and relations
+  </Card>
+  <Card title="Security" href="/internal/architecture/security" icon="shield">
+    Security considerations
+  </Card>
+  <Card title="Deployment" href="/internal/architecture/deployment" icon="rocket">
+    Full deployment guide
+  </Card>
+</CardGroup>
