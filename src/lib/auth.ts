@@ -19,6 +19,7 @@ import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { ac, organizationRoles } from '@/lib/access-control';
 import { env, getAppUrl } from '@/lib/env/server';
+import { captureServerEvent, identifyUser as identifyPostHogUser } from '@/lib/posthog/server';
 import { db } from './db';
 import { members, notifications, users } from './db/schema';
 import { notifySlackMonitoring } from './effect/services/slack-monitoring';
@@ -228,6 +229,26 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Identify new user in PostHog and capture signup event
+          identifyPostHogUser(user.id, {
+            email: user.email,
+            name: user.name,
+            createdAt: user.createdAt?.toISOString(),
+            emailVerified: user.emailVerified,
+          });
+
+          captureServerEvent(user.id, 'user_signed_up', {
+            email: user.email,
+            name: user.name,
+          });
+
+          console.log(`[Auth] New user created: ${user.id} (${user.email})`);
+        },
+      },
+    },
     session: {
       create: {
         before: async (session) => {
@@ -242,6 +263,27 @@ export const auth = betterAuth({
               activeOrganizationId,
             },
           };
+        },
+        after: async (session) => {
+          // Identify user in PostHog on session creation (login/signup)
+          const user = await db.query.users.findFirst({
+            where: eq(users.id, session.userId),
+          });
+
+          if (user) {
+            identifyPostHogUser(user.id, {
+              email: user.email,
+              name: user.name,
+              createdAt: user.createdAt?.toISOString(),
+              emailVerified: user.emailVerified,
+            });
+
+            captureServerEvent(user.id, 'user_session_created', {
+              sessionId: session.id,
+              userAgent: session.userAgent,
+              ipAddress: session.ipAddress,
+            });
+          }
         },
       },
     },

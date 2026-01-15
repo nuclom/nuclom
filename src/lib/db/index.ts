@@ -13,7 +13,7 @@ import * as schema from './schema';
  */
 const primaryClient = postgres(env.DATABASE_URL, {
   prepare: false, // Disable prefetch - not supported for "Transaction" pool mode
-  max: 20, // Maximum connections in pool
+  max: 5, // Reduced for serverless - prevents connection exhaustion
   idle_timeout: 20, // Close idle connections after 20 seconds
   connect_timeout: 10, // Connection timeout
 });
@@ -26,7 +26,7 @@ const primaryClient = postgres(env.DATABASE_URL, {
 const replicaClient = env.DATABASE_REPLICA_URL
   ? postgres(env.DATABASE_REPLICA_URL, {
       prepare: false,
-      max: 30, // Higher pool for read replicas
+      max: 5, // Reduced for serverless - prevents connection exhaustion
       idle_timeout: 20,
       connect_timeout: 10,
     })

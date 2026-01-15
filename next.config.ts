@@ -1,4 +1,5 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { withPostHogConfig } from "@posthog/nextjs-config";
 import { withWorkflow } from "workflow/next";
 import type { NextConfig } from "next";
 
@@ -58,17 +59,17 @@ const nextConfig: NextConfig = {
     // Content Security Policy directives
     const cspDirectives = [
       "default-src 'self'",
-      // Allow scripts from self, inline (for Next.js), Vercel Analytics, and Vercel Live
+      // Allow scripts from self, inline (for Next.js), Vercel Analytics, Vercel Live, and PostHog
       // 'unsafe-eval' is only needed in development for HMR
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://vercel.live`,
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://vercel.live https://us-assets.i.posthog.com https://eu-assets.i.posthog.com`,
       // Allow styles from self and inline (required for styled-components/emotion)
       "style-src 'self' 'unsafe-inline'",
       // Allow images from self, data URIs, blob URIs, and trusted domains
       "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com",
       // Allow fonts from self and Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Allow connections to self, API endpoints, external services, Vercel Analytics, and Vercel Live
-      "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com",
+      // Allow connections to self, API endpoints, external services, Vercel Analytics, Vercel Live, and PostHog
+      "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com https://us.i.posthog.com https://eu.i.posthog.com https://*.posthog.com",
       // Allow media from self and R2 storage
       "media-src 'self' blob: https://*.r2.dev https://*.r2.cloudflarestorage.com",
       // Prevent embedding in iframes (except for allowed origins)
@@ -183,4 +184,22 @@ const nextConfig: NextConfig = {
 
 // Apply plugins in sequence - workflow wraps the i18n-wrapped config
 const withI18n = withNextIntl(nextConfig);
-export default withWorkflow(withI18n);
+
+// PostHog configuration for source maps upload during production builds
+// Only enables source map upload when POSTHOG_PERSONAL_API_KEY is set
+const withPostHog = (config: NextConfig) =>
+  process.env.POSTHOG_PERSONAL_API_KEY
+    ? withPostHogConfig(config, {
+        personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
+        envId: process.env.POSTHOG_ENV_ID ?? "default",
+        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
+        sourcemaps: {
+          enabled: true,
+          project: "nuclom",
+          // Use git commit hash or build ID for versioning
+          version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.BUILD_ID ?? "development",
+        },
+      })
+    : config;
+
+export default withWorkflow(withPostHog(withI18n));

@@ -7,6 +7,8 @@ const NodeEnv = Schema.Literal('development', 'test', 'production');
 export const ClientEnv = Schema.Struct({
   NODE_ENV: Schema.optionalWith(NodeEnv, { default: () => 'development' as const }),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: Schema.optional(Schema.String),
+  NEXT_PUBLIC_POSTHOG_KEY: Schema.optional(Schema.String),
+  NEXT_PUBLIC_POSTHOG_HOST: Schema.optional(Schema.String),
   // Vercel automatic environment variables
   NEXT_PUBLIC_VERCEL_URL: Schema.optional(Schema.String),
   NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: Schema.optional(Schema.String),
@@ -18,6 +20,8 @@ export type ClientEnvType = typeof ClientEnv.Type;
 export const env = Schema.decodeUnknownSync(ClientEnv)({
   NODE_ENV: process.env.NODE_ENV,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+  NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
   NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
   NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,

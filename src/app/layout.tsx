@@ -5,6 +5,7 @@ import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { getAppUrl } from '@/lib/env/client';
+import { PostHogProvider } from '@/lib/posthog';
 import './globals.css';
 
 const siteUrl = getAppUrl();
@@ -91,12 +92,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <MiniPlayerProvider>
-            <div className="min-h-screen bg-background text-foreground">{children}</div>
-            <Toaster />
-          </MiniPlayerProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <MiniPlayerProvider>
+              <div className="min-h-screen bg-background text-foreground">{children}</div>
+              <Toaster />
+            </MiniPlayerProvider>
+          </ThemeProvider>
+        </PostHogProvider>
         <Analytics />
       </body>
     </html>
