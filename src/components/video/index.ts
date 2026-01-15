@@ -26,6 +26,7 @@ export {
   VideoWithTranscript,
   type VideoWithTranscriptProps,
 } from './video-detail-client';
+export { VideoEditDialog, type VideoEditDialogProps } from './video-edit-dialog';
 export {
   type CaptionTrack,
   type VideoChapter,
