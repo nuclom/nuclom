@@ -89,6 +89,79 @@ export function getDbStats() {
 }
 
 // =============================================================================
+// Connection Cleanup
+// =============================================================================
+
+/**
+ * Close all database connections gracefully
+ * Call this during application shutdown to prevent connection leaks
+ */
+export async function closeConnections(): Promise<void> {
+  const promises: Promise<void>[] = [];
+
+  promises.push(
+    primaryClient.end().catch((err) => {
+      console.error('Error closing primary database connection:', err);
+    }),
+  );
+
+  if (replicaClient) {
+    promises.push(
+      replicaClient.end().catch((err) => {
+        console.error('Error closing replica database connection:', err);
+      }),
+    );
+  }
+
+  await Promise.all(promises);
+}
+
+/**
+ * Get the raw postgres client for the Effect layer to reuse
+ * This allows the Effect layer to use the same pooled connection
+ */
+export function getPrimaryClient(): postgres.Sql {
+  return primaryClient;
+}
+
+/**
+ * Register shutdown handlers to close connections on process exit
+ * This should be called once during application initialization
+ */
+let shutdownHandlersRegistered = false;
+
+export function registerShutdownHandlers(): void {
+  if (shutdownHandlersRegistered) return;
+  shutdownHandlersRegistered = true;
+
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`Received ${signal}. Closing database connections...`);
+    await closeConnections();
+    console.log('Database connections closed.');
+    // biome-ignore lint/correctness/noProcessGlobal: Required for graceful shutdown
+    process.exit(0);
+  };
+
+  // Handle various shutdown signals
+  // biome-ignore lint/correctness/noProcessGlobal: Required for signal handlers
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  // biome-ignore lint/correctness/noProcessGlobal: Required for signal handlers
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  // Handle uncaught exceptions and unhandled rejections
+  // biome-ignore lint/correctness/noProcessGlobal: Required for shutdown cleanup
+  process.on('beforeExit', async () => {
+    await closeConnections();
+  });
+}
+
+// Auto-register shutdown handlers in non-test environments
+// biome-ignore lint/correctness/noProcessGlobal: Required for environment check
+if (process.env.NODE_ENV !== 'test') {
+  registerShutdownHandlers();
+}
+
+// =============================================================================
 // Backward Compatibility
 // =============================================================================
 
