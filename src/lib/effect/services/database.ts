@@ -67,6 +67,7 @@ export const DatabaseLive = Layer.scoped(
 
     const client = postgres(Redacted.value(databaseUrl), {
       prepare: false, // Required for "Transaction" pool mode
+      max: 3, // Limit connections in Effect layer for serverless
     });
 
     const db = drizzle(client, { schema });

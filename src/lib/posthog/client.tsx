@@ -1,14 +1,14 @@
 'use client';
 
-import process from 'node:process';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
 import { Suspense, useEffect } from 'react';
+import { env } from '../env/client';
 
 // Environment variables
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com';
+const POSTHOG_KEY = env.NEXT_PUBLIC_POSTHOG_KEY;
+const POSTHOG_HOST = env.NEXT_PUBLIC_POSTHOG_HOST;
 
 /**
  * Initialize PostHog client-side SDK
@@ -40,7 +40,7 @@ export function initPostHog() {
     // Persist user identity across sessions
     persistence: 'localStorage+cookie',
     // Enable debug mode in development
-    debug: process.env.NODE_ENV === 'development',
+    debug: env.NODE_ENV === 'development',
     // Bootstrap feature flags on load for immediate availability
     bootstrap: {
       // Feature flags will be fetched on init
@@ -81,11 +81,6 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initPostHog();
   }, []);
-
-  // Don't render provider if no API key (graceful degradation)
-  if (!POSTHOG_KEY) {
-    return <>{children}</>;
-  }
 
   return (
     <PHProvider client={posthog}>
