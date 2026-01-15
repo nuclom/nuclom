@@ -2,7 +2,6 @@
 
 import { ArrowLeft, CheckCircle2, Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
-import posthog from 'posthog-js';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,19 +39,10 @@ export function ForgotPasswordForm() {
         }),
       });
 
-      // Track password reset request
-      posthog.capture('password_reset_requested', {
-        source: 'form',
-      });
-
       // Always show success regardless of whether email exists (security best practice)
       // The API returns success even if the email doesn't exist to prevent enumeration
       setIsSuccess(true);
     } catch (_err) {
-      // Track password reset request (we still show success for security reasons)
-      posthog.capture('password_reset_requested', {
-        source: 'form',
-      });
       // Don't reveal if the email exists or not
       setIsSuccess(true);
     } finally {
