@@ -71,15 +71,25 @@ await runMigrations();
 /**
  * Vercel Programmatic Configuration
  *
- * Defines cron jobs for periodic workflows:
- * - Subscription Enforcement: Daily at midnight UTC
- * - Scheduled Cleanup: Daily at 2 AM UTC
- * - Uptime Monitor: Every 5 minutes
+ * Defines:
+ * - Rewrites: Proxy /docs to Mintlify hosted documentation
+ * - Cron Jobs: Periodic workflows for maintenance tasks
  *
  * @see https://vercel.com/docs/project-configuration/vercel-ts
  * @see https://vercel.com/docs/cron-jobs
  */
 export const config: VercelConfig = {
+  // Rewrite /docs/* to Mintlify hosted documentation
+  rewrites: [
+    {
+      source: '/docs',
+      destination: 'https://nuclom.mintlify.app/docs',
+    },
+    {
+      source: '/docs/:path*',
+      destination: 'https://nuclom.mintlify.app/docs/:path*',
+    },
+  ],
   crons: [
     // Daily subscription enforcement - runs at midnight UTC
     {
