@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChapteredTranscript, VideoActions, VideoPlayerWithProgress } from '@/components/video';
+import { ChapteredTranscript, VideoActions, VideoEditDialog, VideoPlayerWithProgress } from '@/components/video';
 import { useToast } from '@/hooks/use-toast';
 import type { ActionItem, VideoChapter } from '@/lib/db/schema';
 import { formatTime } from '@/lib/format-utils';
@@ -322,6 +322,9 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
   // Transcript auto-scroll state
   const [transcriptUserHasScrolled, setTranscriptUserHasScrolled] = useState(false);
 
+  // Edit dialog state
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   // Seek to initial time from URL
   useEffect(() => {
     if (initialSeekTime > 0 && seekFnRef.current && !hasSeenInitialTime.current) {
@@ -441,6 +444,8 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
                 videoTitle={video.title}
                 organizationSlug={organizationSlug}
                 canDelete={canDelete}
+                canEdit={canDelete}
+                onEdit={() => setShowEditDialog(true)}
               />
             </div>
           </div>
@@ -641,6 +646,15 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
           )}
         </div>
       </div>
+
+      {/* Edit Video Dialog */}
+      <VideoEditDialog
+        videoId={video.id}
+        initialTitle={video.title}
+        initialDescription={video.description}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+      />
     </div>
   );
 }
