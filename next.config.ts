@@ -192,7 +192,7 @@ const withPostHog = (config: NextConfig) =>
     ? withPostHogConfig(config, {
         personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
         envId: process.env.POSTHOG_ENV_ID ?? "default",
-        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
         sourcemaps: {
           enabled: true,
           project: "nuclom",
