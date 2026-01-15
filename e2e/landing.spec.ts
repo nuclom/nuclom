@@ -101,10 +101,15 @@ test.describe('Landing Page', () => {
     const featuresLink = page.locator('nav').getByRole('link', { name: 'Features', exact: true });
     if (await featuresLink.isVisible().catch(() => false)) {
       await featuresLink.click();
-      // Wait for smooth scroll animation to complete
-      await page.waitForTimeout(500);
-      // Verify the features section exists and is reachable (URL has #features or section is visible)
-      await expect(page.locator('section#features').first()).toBeVisible();
+      // Wait for URL to update with hash
+      await page.waitForURL(/.*#features/, { timeout: 3000 }).catch(() => {
+        // Hash navigation might not always update URL
+      });
+      // Scroll section into view and verify it exists
+      const featuresSection = page.locator('section#features').first();
+      await featuresSection.scrollIntoViewIfNeeded();
+      // Verify the section is now in the viewport
+      await expect(featuresSection).toBeInViewport({ timeout: 5000 });
     }
   });
 });

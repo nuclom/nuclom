@@ -1,10 +1,12 @@
-import { expect, test } from './fixtures';
+import { expect, TEST_CONFIG, test } from './fixtures';
+
+const { testOrg } = TEST_CONFIG;
 
 test.describe('Video List', () => {
   test.describe('Authenticated User', () => {
     test('should display video cards if videos exist', async ({ authenticatedPage: page }) => {
-      await page.goto('/vercel');
-      await expect(page).toHaveURL(/\/vercel/);
+      await page.goto(`/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
       await page.waitForLoadState('domcontentloaded');
 
@@ -25,8 +27,8 @@ test.describe('Video Detail Page', () => {
   test.describe('Page Elements', () => {
     test('should handle video page navigation', async ({ authenticatedPage: page }) => {
       // First go to org page
-      await page.goto('/vercel');
-      await expect(page).toHaveURL(/\/vercel/);
+      await page.goto(`/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
       // Look for video links
       const videoLinks = page.locator("a[href*='/videos/']");
@@ -43,8 +45,8 @@ test.describe('Video Detail Page', () => {
 
 test.describe('Search Page', () => {
   test('should display search page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/search');
-    await expect(page).toHaveURL(/\/vercel\/search/);
+    await page.goto(`/${testOrg}/search`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/search`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -59,8 +61,8 @@ test.describe('Search Page', () => {
 
 test.describe('My Videos Page', () => {
   test('should display my videos page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/my-videos');
-    await expect(page).toHaveURL(/\/vercel\/my-videos/);
+    await page.goto(`/${testOrg}/my-videos`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/my-videos`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -71,8 +73,8 @@ test.describe('My Videos Page', () => {
 
 test.describe('Shared Videos Page', () => {
   test('should display shared videos page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/shared');
-    await expect(page).toHaveURL(/\/vercel\/shared/);
+    await page.goto(`/${testOrg}/shared`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/shared`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -83,8 +85,8 @@ test.describe('Shared Videos Page', () => {
 
 test.describe('Channels Page', () => {
   test('should handle channel navigation', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel');
-    await expect(page).toHaveURL(/\/vercel/);
+    await page.goto(`/${testOrg}`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
     // Look for channel links
     const channelLinks = page.locator("a[href*='/channels/']");
@@ -99,8 +101,8 @@ test.describe('Channels Page', () => {
 
 test.describe('Series Page', () => {
   test('should display series page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/series');
-    await expect(page).toHaveURL(/\/vercel\/series/);
+    await page.goto(`/${testOrg}/series`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/series`));
 
     await page.waitForLoadState('domcontentloaded');
 

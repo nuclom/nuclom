@@ -8,10 +8,10 @@ import { test as base, type Page } from '@playwright/test';
  */
 export const TEST_CONFIG = {
   // Test organization slug (used for authenticated routes)
-  testOrg: process.env.E2E_TEST_ORG || 'vercel',
+  testOrg: process.env.E2E_TEST_ORG || 'e2e-tests',
   // Test user credentials
-  testUserEmail: process.env.E2E_TEST_USER_EMAIL || 'e2e-test@example.com',
-  testUserPassword: process.env.E2E_TEST_USER_PASSWORD || 'testpassword123',
+  testUserEmail: process.env.E2E_TEST_USER_EMAIL,
+  testUserPassword: process.env.E2E_TEST_USER_PASSWORD,
   // Timeouts
   navigationTimeout: 15000,
   actionTimeout: 10000,
