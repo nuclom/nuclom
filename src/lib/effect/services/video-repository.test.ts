@@ -104,6 +104,12 @@ describe('VideoRepository Types', () => {
         getVideosSharedByOthers: () => {
           throw new Error('Mock');
         },
+        canAccessVideo: () => {
+          throw new Error('Mock');
+        },
+        getAccessibleVideos: () => {
+          throw new Error('Mock');
+        },
       };
 
       expect(mockService.getVideos).toBeDefined();

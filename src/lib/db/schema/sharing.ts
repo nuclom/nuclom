@@ -3,11 +3,12 @@
  *
  * Tables for video sharing functionality:
  * - videoShareLinks: Shareable video links with access controls
+ * - videoShares: Direct sharing of private videos with specific users or teams
  */
 
 import { relations } from 'drizzle-orm';
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from './auth';
+import { index, integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { teams, users } from './auth';
 import { videoShareLinkAccessEnum, videoShareLinkStatusEnum } from './enums';
 import { videos } from './videos';
 
@@ -46,11 +47,53 @@ export const videoShareLinks = pgTable(
 );
 
 // =============================================================================
+// Video Shares (Direct sharing with users/teams)
+// =============================================================================
+
+/**
+ * Direct video sharing for private videos.
+ * Each record grants access to either a specific user OR a team (mutually exclusive).
+ * Used when video visibility is 'private' to grant access to specific parties.
+ */
+export const videoShares = pgTable(
+  'video_shares',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    videoId: text('video_id')
+      .notNull()
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    // Either userId OR teamId should be set, not both
+    userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    teamId: text('team_id').references(() => teams.id, { onDelete: 'cascade' }),
+    // Access level for this share
+    accessLevel: videoShareLinkAccessEnum('access_level').notNull().default('view'),
+    // Who created this share
+    sharedBy: text('shared_by')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('video_shares_video_idx').on(table.videoId),
+    index('video_shares_user_idx').on(table.userId),
+    index('video_shares_team_idx').on(table.teamId),
+    // Ensure unique share per user per video
+    unique('video_shares_video_user_unique').on(table.videoId, table.userId),
+    // Ensure unique share per team per video
+    unique('video_shares_video_team_unique').on(table.videoId, table.teamId),
+  ],
+);
+
+// =============================================================================
 // Type Exports
 // =============================================================================
 
 export type VideoShareLink = typeof videoShareLinks.$inferSelect;
 export type NewVideoShareLink = typeof videoShareLinks.$inferInsert;
+export type VideoShare = typeof videoShares.$inferSelect;
+export type NewVideoShare = typeof videoShares.$inferInsert;
 
 // =============================================================================
 // Relations
@@ -63,6 +106,25 @@ export const videoShareLinksRelations = relations(videoShareLinks, ({ one }) => 
   }),
   creator: one(users, {
     fields: [videoShareLinks.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const videoSharesRelations = relations(videoShares, ({ one }) => ({
+  video: one(videos, {
+    fields: [videoShares.videoId],
+    references: [videos.id],
+  }),
+  user: one(users, {
+    fields: [videoShares.userId],
+    references: [users.id],
+  }),
+  team: one(teams, {
+    fields: [videoShares.teamId],
+    references: [teams.id],
+  }),
+  sharedByUser: one(users, {
+    fields: [videoShares.sharedBy],
     references: [users.id],
   }),
 }));

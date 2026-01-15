@@ -14,7 +14,7 @@ import { relations, sql } from 'drizzle-orm';
 import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { organizations, users } from './auth';
 import { tsvector } from './custom-types';
-import { collectionTypeEnum, processingStatusEnum } from './enums';
+import { collectionTypeEnum, processingStatusEnum, videoVisibilityEnum } from './enums';
 
 // =============================================================================
 // JSONB Types
@@ -82,6 +82,11 @@ export const videos = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
+    // Visibility settings
+    // - 'private': Only owner can see, can share with specific users/teams
+    // - 'organization': All organization members can see (default)
+    // - 'public': Anyone with the link can view without authentication
+    visibility: videoVisibilityEnum('visibility').default('organization').notNull(),
     // Transcription fields
     transcript: text('transcript'),
     transcriptSegments: jsonb('transcript_segments').$type<TranscriptSegment[]>(),
@@ -107,6 +112,9 @@ export const videos = pgTable(
     organizationCreatedIdx: index('videos_organization_created_idx').on(table.organizationId, table.createdAt),
     authorIdx: index('videos_author_id_idx').on(table.authorId),
     processingStatusIdx: index('videos_processing_status_idx').on(table.processingStatus),
+    visibilityIdx: index('videos_visibility_idx').on(table.visibility),
+    // Composite index for efficient visibility-based queries
+    orgVisibilityIdx: index('videos_org_visibility_idx').on(table.organizationId, table.visibility),
   }),
 );
 
@@ -278,6 +286,7 @@ export type NewCollection = typeof collections.$inferInsert;
 export type CollectionType = Collection['type'];
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
+export type VideoVisibility = Video['visibility'];
 export type CollectionVideo = typeof collectionVideos.$inferSelect;
 export type NewCollectionVideo = typeof collectionVideos.$inferInsert;
 export type CollectionProgress = typeof collectionProgress.$inferSelect;
@@ -299,6 +308,7 @@ import { aiActionItems } from './ai-insights';
 // Import these lazily to avoid circular dependencies
 import { decisions } from './knowledge';
 import { transcriptChunks } from './search';
+import { videoShares } from './sharing';
 import { speakerSegments, videoSpeakers } from './speakers';
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -318,6 +328,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   speakerSegments: many(speakerSegments),
   aiActionItems: many(aiActionItems),
   transcriptChunks: many(transcriptChunks),
+  shares: many(videoShares),
 }));
 
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({

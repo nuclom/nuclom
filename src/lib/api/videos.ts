@@ -23,6 +23,7 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
       aiSummary: videos.aiSummary,
       aiTags: videos.aiTags,
       aiActionItems: videos.aiActionItems,
+      visibility: videos.visibility,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       author: {
@@ -79,6 +80,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       aiSummary: videos.aiSummary,
       aiTags: videos.aiTags,
       aiActionItems: videos.aiActionItems,
+      visibility: videos.visibility,
       deletedAt: videos.deletedAt,
       retentionUntil: videos.retentionUntil,
       createdAt: videos.createdAt,

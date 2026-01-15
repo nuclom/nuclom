@@ -138,6 +138,7 @@ const makeWatchLaterService = Effect.gen(function* () {
               aiSummary: videos.aiSummary,
               aiTags: videos.aiTags,
               aiActionItems: videos.aiActionItems,
+              visibility: videos.visibility,
               deletedAt: videos.deletedAt,
               retentionUntil: videos.retentionUntil,
               createdAt: videos.createdAt,
