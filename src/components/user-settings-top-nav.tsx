@@ -28,9 +28,10 @@ export function UserSettingsTopNav({ user }: UserSettingsTopNavProps) {
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      router.push('/login');
+      const signOutPromise = authClient.signOut();
+      router.replace('/login');
       router.refresh();
+      await signOutPromise;
     } catch (error) {
       logger.error('Logout failed', error);
     }
@@ -52,7 +53,7 @@ export function UserSettingsTopNav({ user }: UserSettingsTopNavProps) {
         {/* Left section - Back button and Logo */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/home">
+            <Link href="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Link>
@@ -60,7 +61,7 @@ export function UserSettingsTopNav({ user }: UserSettingsTopNavProps) {
 
           <div className="hidden md:block h-6 w-px bg-border" />
 
-          <Link href="/home" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
               <Film className="h-5 w-5 text-white" />
             </div>
@@ -107,7 +108,7 @@ export function UserSettingsTopNav({ user }: UserSettingsTopNavProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/home" className="cursor-pointer">
+                <Link href="/" className="cursor-pointer">
                   <Home className="mr-2 h-4 w-4" />
                   <span>Home Page</span>
                 </Link>
