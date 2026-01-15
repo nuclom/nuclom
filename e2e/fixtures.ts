@@ -27,14 +27,20 @@ export const test = base.extend<{
   authenticatedPage: async ({ browser }, use) => {
     const authFile = path.join(process.cwd(), 'playwright/.auth/user.json');
 
+    // Include Vercel bypass headers when running in CI
+    const extraHTTPHeaders = process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? { 'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET }
+      : undefined;
+
     let context: BrowserContext;
     try {
       context = await browser.newContext({
         storageState: authFile,
+        extraHTTPHeaders,
       });
     } catch {
       // If auth file doesn't exist, create a context without it
-      context = await browser.newContext();
+      context = await browser.newContext({ extraHTTPHeaders });
     }
 
     const page = await context.newPage();

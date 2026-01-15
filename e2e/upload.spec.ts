@@ -10,8 +10,13 @@ test.describe('Video Upload Page', () => {
 
       // Check for upload page elements - heading is "Upload Videos" (plural)
       await expect(page.getByRole('heading', { name: /upload videos/i })).toBeVisible({ timeout: 15000 });
-      // Description mentions various upload sources
-      await expect(page.getByText(/upload videos from your computer/i)).toBeVisible();
+      // Description mentions various upload sources - use first() to handle potential duplicates
+      await expect(
+        page
+          .getByRole('main')
+          .getByText(/upload videos from your computer/i)
+          .first(),
+      ).toBeVisible();
     });
 
     test('should have back to videos link', async ({ authenticatedPage: page }) => {

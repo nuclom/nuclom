@@ -18,12 +18,12 @@ test.describe('Video List', () => {
         .catch(() => false);
       // Empty state shows upload prompt
       const isEmpty = await page
-        .getByText(/upload your first video/i)
+        .getByText(/upload your first video|get started by uploading/i)
         .isVisible()
         .catch(() => false);
-      // Also check for the dashboard hero which appears when no videos
+      // Also check for the dashboard hero which shows a greeting when no videos
       const hasDashboardHero = await page
-        .getByRole('heading', { name: /welcome/i })
+        .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
         .isVisible()
         .catch(() => false);
 

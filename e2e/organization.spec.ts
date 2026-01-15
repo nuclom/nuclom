@@ -16,13 +16,19 @@ test.describe('Organization Dashboard', () => {
         .getByText('Continue Watching')
         .isVisible()
         .catch(() => false);
+      // Empty state shows the DashboardHero with greeting and upload prompt
       const hasEmptyState = await page
-        .getByText(/upload your first video/i)
+        .getByText(/upload your first video|get started by uploading/i)
+        .isVisible()
+        .catch(() => false);
+      // Also check for the greeting pattern which indicates empty state
+      const hasGreeting = await page
+        .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
         .isVisible()
         .catch(() => false);
 
       // Either videos or empty state should be visible
-      expect(hasVideos || hasEmptyState).toBe(true);
+      expect(hasVideos || hasEmptyState || hasGreeting).toBe(true);
 
       if (hasVideos) {
         // If videos exist, check for all sections
