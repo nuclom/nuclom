@@ -48,6 +48,9 @@ export const permissionStatement = {
 
   // Invitation management (required by Better Auth)
   invitation: ['create', 'cancel'],
+
+  // Team management (required by Better Auth for teams feature)
+  team: ['create', 'read', 'update', 'delete'],
 } as const;
 
 /**
@@ -77,6 +80,7 @@ export const ownerRole = ac.newRole({
   audit_log: ['read', 'download'],
   organization: ['update', 'delete'],
   invitation: ['create', 'cancel'],
+  team: ['create', 'read', 'update', 'delete'],
 });
 
 /**
@@ -102,6 +106,7 @@ export const adminRole = ac.newRole({
   audit_log: ['read'],
   organization: ['update'],
   invitation: ['create', 'cancel'],
+  team: ['create', 'read', 'update', 'delete'],
 });
 
 /**
@@ -120,6 +125,7 @@ export const editorRole = ac.newRole({
   comment: ['create', 'read', 'update', 'delete', 'comment'],
   member: ['read'],
   analytics: ['read'],
+  team: ['read'],
 });
 
 /**
@@ -138,6 +144,7 @@ export const memberRole = ac.newRole({
   comment: ['read', 'comment'],
   member: ['read'],
   analytics: ['read'],
+  team: ['read'],
 });
 
 /**

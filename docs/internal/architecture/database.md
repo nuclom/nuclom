@@ -10,7 +10,9 @@ The database schema is organized into multiple files in `src/lib/db/schema/`:
 src/lib/db/schema/
 ├── index.ts           # Re-exports all schema files
 ├── enums.ts           # All PostgreSQL enum types (centralized)
-├── auth.ts            # Better-auth managed tables (DO NOT EDIT)
+├── auth.ts            # Better-auth managed tables (DO NOT EDIT directly)
+│                      # Includes: users, sessions, accounts, organizations,
+│                      # members, invitations, teams, teamMembers, etc.
 ├── user-extensions.ts # Application-specific user data (decoupled from auth)
 ├── relations.ts       # All Drizzle ORM relations
 ├── videos.ts          # Video and channel tables
@@ -260,6 +262,53 @@ CREATE TYPE OrganizationRole AS ENUM ('OWNER', 'ADMIN', 'MEMBER');
 - Role-based access control with enum constraint
 - Unique constraint prevents duplicate memberships
 - Cascade deletion for data consistency
+
+### Teams Table
+
+Sub-groups within organizations for granular access management.
+
+```sql
+CREATE TABLE teams (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP
+);
+
+CREATE INDEX teams_organizationId_idx ON teams(organization_id);
+CREATE INDEX teams_name_idx ON teams(name);
+```
+
+**Key Features:**
+
+- Sub-groups within organizations for project/department organization
+- Organization-scoped teams with cascade deletion
+- Used for granular permission management
+- Referenced by sessions (activeTeamId) and invitations (teamId)
+
+### Team Members Table
+
+Associates users with teams for team-based access control.
+
+```sql
+CREATE TABLE team_members (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX teamMembers_teamId_idx ON team_members(team_id);
+CREATE INDEX teamMembers_userId_idx ON team_members(user_id);
+```
+
+**Key Features:**
+
+- Many-to-many relationship between users and teams
+- Cascade deletion when team or user is removed
+- Enables team-based permission checks
+- Supports listing user's teams and team's members
 
 ### Videos Table
 
