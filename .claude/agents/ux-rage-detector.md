@@ -1,6 +1,33 @@
 ---
 name: ux-rage-detector
-description: Use this agent when you need to identify friction points, confusing interactions, or frustrating user experiences in your application. This agent analyzes user flows, UI components, and interaction patterns to find where users are likely to abandon tasks or become frustrated.\n\nExamples:\n\n<example>\nContext: Developer just finished implementing a new checkout flow.\nuser: "I just finished the checkout flow, can you review it?"\nassistant: "Let me use the ux-rage-detector agent to analyze your checkout flow for potential user friction points."\n<commentary>\nSince the user completed a user-facing flow, use the ux-rage-detector agent to identify where users might abandon the checkout process.\n</commentary>\n</example>\n\n<example>\nContext: Team noticed high bounce rates on a specific page.\nuser: "Our analytics show 70% of users leave on the settings page"\nassistant: "I'll launch the ux-rage-detector agent to analyze the settings page and identify what's causing users to abandon it."\n<commentary>\nUser is reporting a user experience problem with quantifiable abandonment. Use the ux-rage-detector agent to diagnose the issue.\n</commentary>\n</example>\n\n<example>\nContext: Developer implemented a new form component.\nuser: "Can you look at the registration form I built?"\nassistant: "I'll use the ux-rage-detector agent to analyze your registration form for usability issues and potential drop-off points."\n<commentary>\nForms are common sources of user frustration. Use the ux-rage-detector agent proactively to catch issues before they impact users.\n</commentary>\n</example>\n\n<example>\nContext: Reviewing a multi-step wizard component.\nuser: "Here's the onboarding wizard, does it look good?"\nassistant: "Let me engage the ux-rage-detector agent to walk through your onboarding wizard and identify any steps where users might get stuck or give up."\n<commentary>\nMulti-step flows have multiple abandonment points. The ux-rage-detector agent will analyze each step for friction.\n</commentary>\n</example>
+description: |
+  Use this agent when you need to identify friction points, confusing interactions, or frustrating user experiences in your application. This agent analyzes user flows, UI components, and interaction patterns to find where users are likely to abandon tasks or become frustrated.
+
+  Examples:
+
+  <example>
+  Context: Developer just finished implementing a new checkout flow.
+  user: "I just finished the checkout flow, can you review it?"
+  assistant: "Let me use the ux-rage-detector agent to analyze your checkout flow for potential user friction points."
+  </example>
+
+  <example>
+  Context: Team noticed high bounce rates on a specific page.
+  user: "Our analytics show 70% of users leave on the settings page"
+  assistant: "I'll launch the ux-rage-detector agent to analyze the settings page and identify what's causing users to abandon it."
+  </example>
+
+  <example>
+  Context: Developer implemented a new form component.
+  user: "Can you look at the registration form I built?"
+  assistant: "I'll use the ux-rage-detector agent to analyze your registration form for usability issues and potential drop-off points."
+  </example>
+
+  <example>
+  Context: Reviewing a multi-step wizard component.
+  user: "Here's the onboarding wizard, does it look good?"
+  assistant: "Let me engage the ux-rage-detector agent to walk through your onboarding wizard and identify any steps where users might get stuck or give up."
+  </example>
 model: inherit
 ---
 

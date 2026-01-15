@@ -1,6 +1,32 @@
 ---
 name: product-strategist
-description: Use this agent when you need strategic analysis of your product features and codebase to make critical build/kill decisions. This includes evaluating existing features for ROI, identifying what to build next, questioning product assumptions, and prioritizing development efforts. Examples:\n\n<example>\nContext: User has completed a major feature and wants strategic guidance on next steps.\nuser: "I just finished building the video annotation feature. What should I focus on next?"\nassistant: "Let me bring in the product strategist to analyze your codebase and provide strategic recommendations."\n<uses Task tool to launch product-strategist agent>\n</example>\n\n<example>\nContext: User is unsure whether to continue investing in a feature.\nuser: "We've been working on real-time collaboration for 3 sprints but adoption is low. Should we keep going?"\nassistant: "This is a strategic decision that requires deep analysis. I'll use the product strategist agent to evaluate this feature against your product goals."\n<uses Task tool to launch product-strategist agent>\n</example>\n\n<example>\nContext: User wants a product audit before a planning cycle.\nuser: "We're planning Q2. Can you look at what we have and tell me what's working and what isn't?"\nassistant: "I'll launch the product strategist to conduct a comprehensive analysis of your features and provide build/kill recommendations."\n<uses Task tool to launch product-strategist agent>\n</example>\n\n<example>\nContext: After reviewing multiple files, assistant recognizes the codebase has accumulated technical and product debt.\nassistant: "I've noticed this codebase has several partially-implemented features and some legacy code paths. Let me bring in the product strategist to help evaluate what's worth keeping versus cutting."\n<uses Task tool to launch product-strategist agent>\n</example>
+description: |
+  Use this agent when you need strategic analysis of your product features and codebase to make critical build/kill decisions. This includes evaluating existing features for ROI, identifying what to build next, questioning product assumptions, and prioritizing development efforts.
+
+  Examples:
+
+  <example>
+  Context: User has completed a major feature and wants strategic guidance on next steps.
+  user: "I just finished building the video annotation feature. What should I focus on next?"
+  assistant: "Let me bring in the product strategist to analyze your codebase and provide strategic recommendations."
+  </example>
+
+  <example>
+  Context: User is unsure whether to continue investing in a feature.
+  user: "We've been working on real-time collaboration for 3 sprints but adoption is low. Should we keep going?"
+  assistant: "This is a strategic decision that requires deep analysis. I'll use the product strategist agent to evaluate this feature against your product goals."
+  </example>
+
+  <example>
+  Context: User wants a product audit before a planning cycle.
+  user: "We're planning Q2. Can you look at what we have and tell me what's working and what isn't?"
+  assistant: "I'll launch the product strategist to conduct a comprehensive analysis of your features and provide build/kill recommendations."
+  </example>
+
+  <example>
+  Context: After reviewing multiple files, assistant recognizes the codebase has accumulated technical and product debt.
+  assistant: "I've noticed this codebase has several partially-implemented features and some legacy code paths. Let me bring in the product strategist to help evaluate what's worth keeping versus cutting."
+  </example>
 model: inherit
 ---
 

@@ -1,6 +1,33 @@
 ---
 name: integration-specialist
-description: Use this agent when you need to connect your application to external services, APIs, or third-party platforms. This includes setting up OAuth flows, API key authentication, webhook endpoints, retry logic, rate limiting handling, and ensuring reliable data synchronization between systems.\n\nExamples:\n\n<example>\nContext: User needs to integrate a payment provider into their application.\nuser: "I need to add Stripe payments to our checkout flow"\nassistant: "I'll use the integration-specialist agent to set up the Stripe integration properly."\n<Task tool call to integration-specialist agent>\n</example>\n\n<example>\nContext: User wants to receive real-time updates from an external service.\nuser: "We need to listen for GitHub webhook events when PRs are merged"\nassistant: "Let me bring in the integration-specialist agent to configure the webhook endpoint and handling logic."\n<Task tool call to integration-specialist agent>\n</example>\n\n<example>\nContext: User is dealing with unreliable API calls.\nuser: "Our API calls to the weather service keep failing randomly"\nassistant: "I'll engage the integration-specialist agent to implement proper retry logic and error handling for this external service."\n<Task tool call to integration-specialist agent>\n</example>\n\n<example>\nContext: User needs to implement OAuth authentication with a third-party service.\nuser: "Users should be able to log in with their Google account"\nassistant: "I'll use the integration-specialist agent to implement the Google OAuth flow securely."\n<Task tool call to integration-specialist agent>\n</example>
+description: |
+  Use this agent when you need to connect your application to external services, APIs, or third-party platforms. This includes setting up OAuth flows, API key authentication, webhook endpoints, retry logic, rate limiting handling, and ensuring reliable data synchronization between systems.
+
+  Examples:
+
+  <example>
+  Context: User needs to integrate a payment provider into their application.
+  user: "I need to add Stripe payments to our checkout flow"
+  assistant: "I'll use the integration-specialist agent to set up the Stripe integration properly."
+  </example>
+
+  <example>
+  Context: User wants to receive real-time updates from an external service.
+  user: "We need to listen for GitHub webhook events when PRs are merged"
+  assistant: "Let me bring in the integration-specialist agent to configure the webhook endpoint and handling logic."
+  </example>
+
+  <example>
+  Context: User is dealing with unreliable API calls.
+  user: "Our API calls to the weather service keep failing randomly"
+  assistant: "I'll engage the integration-specialist agent to implement proper retry logic and error handling for this external service."
+  </example>
+
+  <example>
+  Context: User needs to implement OAuth authentication with a third-party service.
+  user: "Users should be able to log in with their Google account"
+  assistant: "I'll use the integration-specialist agent to implement the Google OAuth flow securely."
+  </example>
 model: inherit
 ---
 
