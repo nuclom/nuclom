@@ -52,7 +52,7 @@
           {
             "group": "API Reference",
             "openapi": {
-              "source": "../public/openapi.json",
+              "source": "https://nuclom.com/openapi.json",
               "directory": "docs/api-reference"
             }
           }
