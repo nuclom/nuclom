@@ -1,0 +1,101 @@
+---
+title: 'Service Level Agreement'
+description: 'Nuclom platform availability and performance commitments'
+icon: 'file-contract'
+---
+
+## Uptime Commitment
+
+Nuclom commits to the following uptime guarantees:
+
+| Tier | Uptime SLA |
+| ---- | ---------- |
+| **Free** | No SLA |
+| **Pro** | 99.9% |
+| **Enterprise** | 99.99% |
+
+## Definitions
+
+### Uptime Calculation
+
+Uptime percentage is calculated as:
+
+```
+Uptime % = ((Total Minutes - Downtime Minutes) / Total Minutes) × 100
+```
+
+### Scheduled Maintenance
+
+Scheduled maintenance windows are excluded from uptime calculations when:
+
+- Announced at least 72 hours in advance
+- Scheduled during low-traffic periods
+- Limited to 4 hours per month
+
+## Service Credits
+
+<Note>
+  Service credits are available for Pro and Enterprise customers when SLA targets are not met.
+</Note>
+
+### Credit Schedule
+
+| Monthly Uptime | Credit (% of monthly bill) |
+| -------------- | -------------------------- |
+| 99.9% - 99.0% | 10% |
+| 99.0% - 95.0% | 25% |
+| Below 95.0% | 50% |
+
+### Requesting Credits
+
+<Steps>
+  <Step title="Document Downtime">
+    Note the date, time, and duration of the outage
+  </Step>
+  <Step title="Submit Request">
+    Email sla@nuclom.com within 30 days of the incident
+  </Step>
+  <Step title="Review">
+    Our team will verify and apply credits within 10 business days
+  </Step>
+</Steps>
+
+## Exclusions
+
+The SLA does not apply to:
+
+- Scheduled maintenance
+- Beta or preview features
+- Customer-caused issues
+- Third-party service outages
+- Force majeure events
+- Free tier accounts
+
+## Support Response Times
+
+| Priority | Pro | Enterprise |
+| -------- | --- | ---------- |
+| **Critical** (service down) | 8 hours | 1 hour |
+| **High** (major impact) | 24 hours | 4 hours |
+| **Medium** (minor impact) | 48 hours | 8 hours |
+| **Low** (questions) | 72 hours | 24 hours |
+
+## Status Page
+
+Monitor real-time platform status at [status.nuclom.com](https://status.nuclom.com)
+
+<CardGroup cols={2}>
+  <Card title="Subscribe to Updates" icon="bell">
+    Get notified of incidents and maintenance
+  </Card>
+  <Card title="Historical Uptime" icon="chart-line">
+    View 90-day uptime history
+  </Card>
+</CardGroup>
+
+## Contact
+
+For SLA-related inquiries:
+
+- **Email:** sla@nuclom.com
+- **Enterprise customers:** Contact your account manager

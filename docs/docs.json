@@ -1,0 +1,190 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Nuclom",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "support"
+            ]
+          },
+          {
+            "group": "User Guides",
+            "pages": [
+              "guides/getting-started",
+              "guides/organization-management",
+              "guides/video-organization",
+              "guides/collaboration",
+              "guides/team-management",
+              "guides/settings-preferences",
+              "guides/workflow-templates",
+              "guides/troubleshooting"
+            ]
+          },
+          {
+            "group": "Enterprise",
+            "pages": [
+              "enterprise/overview",
+              "support-tiers",
+              "sla"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Core Endpoints",
+            "pages": [
+              "api-reference/videos",
+              "api-reference/organizations",
+              "api-reference/notifications"
+            ]
+          },
+          {
+            "group": "AI & Analytics",
+            "pages": [
+              "api-reference/ai",
+              "api-reference/knowledge",
+              "api-reference/insights"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api-reference/embed",
+              "api-reference/errors",
+              "api-reference/changelog"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Internal Docs",
+        "groups": [
+          {
+            "group": "Internal Documentation",
+            "pages": [
+              "internal/overview"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "internal/architecture/overview",
+              "internal/architecture/summary",
+              "internal/architecture/database",
+              "internal/architecture/frontend",
+              "internal/architecture/backend",
+              "internal/architecture/authentication",
+              "internal/architecture/video-processing",
+              "internal/architecture/semantic-search",
+              "internal/architecture/knowledge-graph",
+              "internal/architecture/ai-chat-knowledge-base",
+              "internal/architecture/effect-ts",
+              "internal/architecture/effect-best-practices",
+              "internal/architecture/workflows",
+              "internal/architecture/integrations",
+              "internal/architecture/deployment",
+              "internal/architecture/deployment-environments",
+              "internal/architecture/security",
+              "internal/architecture/accessibility"
+            ]
+          },
+          {
+            "group": "Development Reference",
+            "pages": [
+              "internal/reference/development-setup",
+              "internal/reference/environment-config",
+              "internal/reference/database-setup",
+              "internal/reference/components",
+              "internal/reference/hooks",
+              "internal/reference/styling",
+              "internal/reference/testing",
+              "internal/reference/contributing",
+              "internal/reference/migrations",
+              "internal/reference/data-integrity",
+              "internal/reference/logging"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "internal/features/highlight-reel-rendering"
+            ]
+          },
+          {
+            "group": "Business",
+            "pages": [
+              "internal/pricing"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/nuclom",
+          "icon": "github"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://nuclom.com/community",
+          "icon": "slack"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "api": {
+    "openapi": [
+      "openapi.json"
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@nuclom.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://nuclom.com"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/nuclom",
+      "github": "https://github.com/nuclom",
+      "linkedin": "https://www.linkedin.com/company/nuclom"
+    }
+  }
+}

@@ -1,0 +1,459 @@
+---
+title: "Integrations Architecture"
+description: "Video conferencing, cloud storage, team collaboration, and automation platform integrations"
+icon: "plug"
+---
+
+This document describes the architecture of all platform integrations in Nuclom, including video conferencing, cloud storage, team collaboration, and automation platforms.
+
+## Overview
+
+Nuclom provides deep integrations with video conferencing, cloud storage, collaboration, and automation platforms:
+
+<CardGroup cols={2}>
+  <Card title="Video Conferencing" icon="video">
+    Import recordings from Zoom and Google Meet
+  </Card>
+  <Card title="Cloud Storage" icon="cloud">
+    Browse and import videos from Google Drive
+  </Card>
+  <Card title="Team Collaboration" icon="users">
+    Send notifications to Slack and Microsoft Teams
+  </Card>
+  <Card title="Automation" icon="bolt">
+    Trigger Zapier automations on video events
+  </Card>
+</CardGroup>
+
+Additional capabilities:
+- Bulk upload videos from local files with no size limits
+- View calendar events with meeting links
+- Auto-import recordings when meetings end
+- Track import progress in real-time
+
+## Architecture Components
+
+### Service Layer
+
+The integrations use Effect-TS for type-safe API operations.
+
+```
+src/lib/effect/services/
+├── zoom.ts                    # Zoom API operations (OAuth, recordings, users)
+├── google-meet.ts             # Google API operations (OAuth, Drive, Calendar)
+├── slack.ts                   # Slack API operations (OAuth, messaging, channels)
+├── microsoft-teams.ts         # Microsoft Graph API operations (OAuth, Teams, messages)
+├── zapier-webhooks.ts         # Zapier webhook management and delivery
+├── activity-feed-repository.ts # Activity tracking for organizations
+└── integration-repository.ts  # Database operations for integrations
+```
+
+### API Routes
+
+```
+src/app/api/integrations/
+├── route.ts             # List/delete integrations
+├── import/route.ts      # Import recordings
+├── zoom/
+│   ├── authorize/       # OAuth initiation
+│   ├── callback/        # OAuth callback
+│   ├── recordings/      # List recordings
+│   ├── meetings/        # List scheduled meetings
+│   └── webhook/         # Zoom webhook handler
+├── google/
+│   ├── authorize/       # OAuth initiation
+│   ├── callback/        # OAuth callback
+│   ├── recordings/      # List Meet recordings
+│   ├── calendar/        # List calendar events
+│   ├── drive/           # Browse/import Google Drive videos
+│   └── webhook/         # Google push notification handler
+├── slack/
+│   ├── authorize/       # OAuth initiation
+│   ├── callback/        # OAuth callback
+│   ├── channels/        # List Slack channels
+│   └── webhook/         # Slack event handler
+└── teams/
+    ├── authorize/       # OAuth initiation
+    ├── callback/        # OAuth callback
+    └── channels/        # List Teams and channels
+```
+
+### UI Components
+
+```
+src/components/
+├── import-hub.tsx              # Unified import dialog with all sources
+├── bulk-video-upload.tsx       # Multi-file upload with presigned URLs
+└── integrations/
+    ├── recording-browser.tsx       # Browse and select recordings to import
+    ├── google-drive-picker.tsx     # Browse and import from Google Drive
+    ├── meeting-calendar.tsx        # Calendar view of meetings
+    ├── import-progress-tracker.tsx # Real-time import status tracking
+    └── integration-settings.tsx    # Per-integration settings dialog
+```
+
+## Database Schema
+
+<AccordionGroup>
+  <Accordion title="integrations">
+    Stores OAuth credentials and integration metadata:
+
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | id | string | Primary key |
+    | userId | string | FK to users |
+    | organizationId | string | FK to organizations |
+    | provider | enum | zoom, google_meet, slack, microsoft_teams |
+    | accessToken | string | OAuth access token |
+    | refreshToken | string | OAuth refresh token |
+    | expiresAt | Date | Token expiration |
+    | metadata | JSON | Provider-specific settings |
+  </Accordion>
+  <Accordion title="importedMeetings">
+    Tracks imported recordings and their status:
+
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | id | string | Primary key |
+    | integrationId | string | FK to integrations |
+    | videoId | string | FK to videos (when imported) |
+    | externalId | string | Provider's meeting ID |
+    | importStatus | enum | pending, downloading, processing, completed, failed |
+    | importError | string | Error message if failed |
+  </Accordion>
+  <Accordion title="activityFeed">
+    Tracks organization-wide activities:
+
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | id | string | Primary key |
+    | organizationId | string | FK to organizations |
+    | actorId | string | FK to users |
+    | activityType | enum | video_uploaded, video_processed, comment_added, etc. |
+    | resourceType | string | Type of resource |
+    | resourceId | string | ID of resource |
+    | metadata | JSON | Additional context |
+  </Accordion>
+  <Accordion title="zapierWebhooks">
+    Stores webhook configurations for Zapier:
+
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | id | string | Primary key |
+    | organizationId | string | FK to organizations |
+    | targetUrl | string | Webhook URL |
+    | events | string[] | Array of event types |
+    | secret | string | HMAC signing key |
+    | isActive | boolean | Whether webhook is active |
+  </Accordion>
+</AccordionGroup>
+
+## OAuth Flow
+
+<Steps>
+  <Step title="Initiate">
+    User clicks "Connect [Provider]"
+  </Step>
+  <Step title="State Token">
+    Backend generates state token and stores in HTTP-only cookie
+  </Step>
+  <Step title="Redirect">
+    Redirect to provider's OAuth authorization URL
+  </Step>
+  <Step title="Authorize">
+    User authorizes on provider's site
+  </Step>
+  <Step title="Callback">
+    Provider redirects to callback URL with code
+  </Step>
+  <Step title="Exchange">
+    Backend exchanges code for tokens
+  </Step>
+  <Step title="Store">
+    Store tokens securely in database
+  </Step>
+</Steps>
+
+### Provider-Specific Notes
+
+<Tabs>
+  <Tab title="Zoom">
+    - Standard OAuth 2.0 flow
+    - Webhook secret for event verification
+    - Scopes: `recording:read`, `user:read`
+  </Tab>
+  <Tab title="Google">
+    - Requests `access_type=offline` for refresh tokens
+    - Uses `prompt=consent` to ensure refresh token is returned
+    - Scopes: `userinfo.email`, `userinfo.profile`, `drive.readonly`, `calendar.readonly`
+  </Tab>
+  <Tab title="Slack">
+    - OAuth 2.0 with bot tokens
+    - Scopes: `channels:read`, `chat:write`, `incoming-webhook`, `users:read`, `users:read.email`
+  </Tab>
+  <Tab title="Microsoft Teams">
+    - OAuth 2.0 with Microsoft Graph API
+    - Scopes: `User.Read`, `Team.ReadBasic.All`, `Channel.ReadBasic.All`, `ChannelMessage.Send`, `offline_access`
+  </Tab>
+</Tabs>
+
+## Recording Import Workflow
+
+```
+1. Selection    → User browses recordings via provider API
+2. Initiation   → Selected recordings create importedMeeting records
+3. Download     → Background job downloads recording from provider
+4. Upload       → Video uploaded to Cloudflare R2
+5. Creation     → Video record created in database
+6. Processing   → AI analysis triggered (transcription, summary)
+7. Completion   → Status updated to "completed"
+```
+
+## Webhook Integration
+
+### Zoom Webhooks
+
+Endpoint: `/api/integrations/zoom/webhook`
+
+<CardGroup cols={2}>
+  <Card title="recording.completed" icon="circle-check">
+    Auto-import new recordings
+  </Card>
+  <Card title="endpoint.url_validation" icon="shield-check">
+    Webhook URL verification
+  </Card>
+</CardGroup>
+
+**Security:**
+- HMAC-SHA256 signature verification
+- Timestamp validation to prevent replay attacks
+
+### Google Push Notifications
+
+Endpoint: `/api/integrations/google/webhook`
+
+Uses Google's push notification system for Drive/Calendar changes. Channel tokens are used to identify the integration.
+
+## Auto-Import Feature
+
+<Note>
+When enabled via settings:
+1. Webhook receives `recording.completed` event
+2. Check if auto-import is enabled for the integration
+3. Verify recording meets minimum duration requirement
+4. Create import record and trigger workflow
+5. User receives notification when complete
+</Note>
+
+## Presigned URL Upload
+
+The presigned URL upload feature bypasses Next.js/Vercel API route size limits (typically 4.5MB) by allowing direct uploads to Cloudflare R2.
+
+### Flow
+
+<Steps>
+  <Step title="Request Presigned URL">
+    Client requests upload URL with file metadata
+  </Step>
+  <Step title="Generate URL">
+    Server generates presigned PUT URL (expires in 1 hour)
+  </Step>
+  <Step title="Direct Upload">
+    Client uploads file directly to R2 storage
+  </Step>
+  <Step title="Confirm Upload">
+    Client confirms upload, server creates video record
+  </Step>
+</Steps>
+
+### Benefits
+
+<CardGroup cols={2}>
+  <Card title="No Size Limits" icon="expand">
+    Up to 5GB per file
+  </Card>
+  <Card title="Faster Uploads" icon="bolt">
+    Direct to storage
+  </Card>
+  <Card title="Reduced Server Load" icon="server">
+    Bypasses API routes
+  </Card>
+  <Card title="Progress Tracking" icon="chart-line">
+    Real-time progress
+  </Card>
+</CardGroup>
+
+## Import Hub
+
+The Import Hub provides a unified interface for all import sources:
+
+| Source | Description |
+|--------|-------------|
+| **Local Files** | Bulk upload from computer |
+| **Google Drive** | Browse and import any video |
+| **Google Meet** | Import meeting recordings |
+| **Zoom** | Import meeting recordings |
+
+<Tip>
+Future sources (coming soon): Dropbox, OneDrive
+</Tip>
+
+## Slack Integration
+
+### Capabilities
+
+- Connect Slack workspace via OAuth
+- List accessible channels (public and private)
+- Send rich video notifications with Block Kit
+- Include video thumbnails and watch links
+- Webhook event handling for interactivity
+
+### Message Format
+
+Video notifications use Slack's Block Kit for rich formatting:
+- Section with video title and author
+- Thumbnail image (when available)
+- Action button to watch video
+
+## Microsoft Teams Integration
+
+### Capabilities
+
+- Connect Microsoft account via OAuth
+- List joined Teams and channels
+- Send Adaptive Card notifications
+- Include video thumbnails and descriptions
+- Token refresh for long-lived connections
+
+### Message Format
+
+Video notifications use Adaptive Cards:
+- Title and author text blocks
+- Thumbnail image
+- Watch button (Action.OpenUrl)
+
+## Zapier Integration
+
+### Webhook Events
+
+| Event | Description |
+|-------|-------------|
+| `video.uploaded` | New video uploaded |
+| `video.processed` | AI processing complete |
+| `video.shared` | Video shared |
+| `comment.created` | New comment added |
+| `comment.replied` | Comment reply added |
+| `member.joined` | New member joined |
+| `member.left` | Member left organization |
+
+### Security
+
+- HMAC-SHA256 signature in `X-Nuclom-Signature` header
+- Timestamp in `X-Nuclom-Timestamp` header
+- Event type in `X-Nuclom-Event` header
+- 30-second timeout for delivery
+- Automatic retry on failure
+
+## Activity Feed
+
+### Activity Types
+
+<CardGroup cols={2}>
+  <Card title="Video Activities" icon="video">
+    uploaded, processed, shared, imported
+  </Card>
+  <Card title="Comment Activities" icon="comment">
+    added, replied, reaction added
+  </Card>
+  <Card title="Member Activities" icon="user">
+    joined, left
+  </Card>
+  <Card title="Integration Activities" icon="plug">
+    connected, disconnected
+  </Card>
+</CardGroup>
+
+## Slack Monitoring
+
+The platform includes Slack webhook integration for monitoring platform events in real-time.
+
+### Event Categories
+
+| Category | Events |
+|----------|--------|
+| **Accounts** | user_registered, organization_created, member_invited, member_joined |
+| **Billing** | subscription_created, subscription_upgraded, payment_succeeded, payment_failed |
+| **Usage** | video_uploaded, video_processed, video_processing_failed |
+| **Errors** | api_error, webhook_failed, integration_error |
+
+### Configuration
+
+```env
+# Default webhook (fallback for all events)
+SLACK_MONITORING_WEBHOOK_URL=https://hooks.slack.com/services/xxx/xxx/xxx
+
+# Category-specific webhooks (optional)
+SLACK_MONITORING_WEBHOOK_ACCOUNTS=https://hooks.slack.com/services/xxx/xxx/xxx
+SLACK_MONITORING_WEBHOOK_BILLING=https://hooks.slack.com/services/xxx/xxx/xxx
+```
+
+## Environment Variables
+
+```env
+# Zoom Integration
+ZOOM_CLIENT_ID=
+ZOOM_CLIENT_SECRET=
+ZOOM_WEBHOOK_SECRET=
+
+# Google Integration
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Slack Integration
+SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_SIGNING_SECRET=
+
+# Microsoft Teams Integration
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=
+MICROSOFT_TENANT_ID=  # Optional, defaults to "common"
+
+# App URL (for OAuth redirects)
+NEXT_PUBLIC_URL=
+```
+
+## Security Considerations
+
+<Warning>
+Critical security measures:
+
+1. **Token Storage**: Access tokens stored encrypted in database
+2. **State Validation**: CSRF protection via state parameter
+3. **Webhook Verification**: Signature validation for all webhook requests
+4. **Scope Minimization**: Request only necessary OAuth scopes
+5. **Token Refresh**: Auto-refresh to minimize user interruption
+</Warning>
+
+## Future Enhancements
+
+<CardGroup cols={3}>
+  <Card title="Dropbox/OneDrive" icon="cloud">
+    Additional cloud storage integrations
+  </Card>
+  <Card title="Meeting Scheduling" icon="calendar">
+    Schedule meetings from Nuclom
+  </Card>
+  <Card title="Participant Analytics" icon="chart-pie">
+    Meeting participation metrics
+  </Card>
+  <Card title="Real-time Activity" icon="bolt">
+    WebSocket-based activity feed
+  </Card>
+  <Card title="Message Threading" icon="comments">
+    Slack/Teams message threads
+  </Card>
+  <Card title="Import Queue" icon="list-check">
+    Background import visualization
+  </Card>
+</CardGroup>
