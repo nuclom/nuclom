@@ -292,10 +292,7 @@ const SidebarInput = React.forwardRef<React.ElementRef<typeof Input>, React.Comp
       <Input
         ref={ref}
         data-sidebar="input"
-        className={cn(
-          'h-8 w-full bg-background shadow-none',
-          className,
-        )}
+        className={cn('h-8 w-full bg-background shadow-none', className)}
         {...props}
       />
     );
