@@ -7,102 +7,117 @@
     "light": "#07C983",
     "dark": "#0D9373"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/docs/favicon.svg",
   "navigation": {
-    "tabs": [
+    "dropdowns": [
       {
-        "tab": "Documentation",
+        "dropdown": "Documentation",
         "groups": [
           {
             "group": "Get Started",
             "pages": [
-              "introduction",
-              "quickstart",
-              "support"
+              "docs/introduction",
+              "docs/quickstart",
+              "docs/support"
             ]
           },
           {
             "group": "User Guides",
             "pages": [
-              "guides/getting-started",
-              "guides/organization-management",
-              "guides/video-organization",
-              "guides/collaboration",
-              "guides/team-management",
-              "guides/settings-preferences",
-              "guides/workflow-templates",
-              "guides/troubleshooting"
+              "docs/guides/getting-started",
+              "docs/guides/organization-management",
+              "docs/guides/video-organization",
+              "docs/guides/collaboration",
+              "docs/guides/team-management",
+              "docs/guides/settings-preferences",
+              "docs/guides/workflow-templates",
+              "docs/guides/troubleshooting"
             ]
           },
           {
             "group": "Enterprise",
             "pages": [
-              "enterprise/overview",
-              "support-tiers",
-              "sla"
+              "docs/enterprise/overview",
+              "docs/support-tiers",
+              "docs/sla"
             ]
           }
         ]
       },
       {
-        "tab": "Internal Docs",
+        "dropdown": "API Reference",
+        "description": "Reference for the REST API",
+        "icon": "terminal",
+        "groups": [
+          {
+            "group": "API Reference",
+            "openapi": {
+              "source": "../public/openapi.json",
+              "directory": "docs/api-reference"
+            }
+          }
+        ]
+      },
+      {
+        "dropdown": "Internal Docs",
         "hidden": true,
         "groups": [
           {
             "group": "Internal Documentation",
             "pages": [
-              "internal/overview"
+              "docs/internal/overview"
             ]
           },
           {
             "group": "Architecture",
             "pages": [
-              "internal/architecture/overview",
-              "internal/architecture/summary",
-              "internal/architecture/database",
-              "internal/architecture/frontend",
-              "internal/architecture/backend",
-              "internal/architecture/authentication",
-              "internal/architecture/video-processing",
-              "internal/architecture/semantic-search",
-              "internal/architecture/knowledge-graph",
-              "internal/architecture/ai-chat-knowledge-base",
-              "internal/architecture/effect-ts",
-              "internal/architecture/effect-best-practices",
-              "internal/architecture/workflows",
-              "internal/architecture/integrations",
-              "internal/architecture/deployment",
-              "internal/architecture/deployment-environments",
-              "internal/architecture/security",
-              "internal/architecture/accessibility"
+              "docs/internal/architecture/overview",
+              "docs/internal/architecture/summary",
+              "docs/internal/architecture/database",
+              "docs/internal/architecture/frontend",
+              "docs/internal/architecture/backend",
+              "docs/internal/architecture/authentication",
+              "docs/internal/architecture/video-processing",
+              "docs/internal/architecture/semantic-search",
+              "docs/internal/architecture/knowledge-graph",
+              "docs/internal/architecture/ai-chat-knowledge-base",
+              "docs/internal/architecture/analytics",
+              "docs/internal/architecture/effect-ts",
+              "docs/internal/architecture/effect-best-practices",
+              "docs/internal/architecture/workflows",
+              "docs/internal/architecture/integrations",
+              "docs/internal/architecture/deployment",
+              "docs/internal/architecture/deployment-environments",
+              "docs/internal/architecture/security",
+              "docs/internal/architecture/accessibility"
             ]
           },
           {
             "group": "Development Reference",
             "pages": [
-              "internal/reference/development-setup",
-              "internal/reference/environment-config",
-              "internal/reference/database-setup",
-              "internal/reference/components",
-              "internal/reference/hooks",
-              "internal/reference/styling",
-              "internal/reference/testing",
-              "internal/reference/contributing",
-              "internal/reference/migrations",
-              "internal/reference/data-integrity",
-              "internal/reference/logging"
+              "docs/internal/reference/development-setup",
+              "docs/internal/reference/environment-config",
+              "docs/internal/reference/database-setup",
+              "docs/internal/reference/components",
+              "docs/internal/reference/hooks",
+              "docs/internal/reference/styling",
+              "docs/internal/reference/testing",
+              "docs/internal/reference/contributing",
+              "docs/internal/reference/migrations",
+              "docs/internal/reference/data-integrity",
+              "docs/internal/reference/logging"
             ]
           },
           {
             "group": "Features",
             "pages": [
-              "internal/features/highlight-reel-rendering"
+              "docs/internal/features/highlight-reel-rendering"
             ]
           },
           {
             "group": "Business",
             "pages": [
-              "internal/pricing"
+              "docs/internal/pricing"
             ]
           }
         ]
@@ -119,8 +134,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/docs/logo/light.svg",
+    "dark": "/docs/logo/dark.svg"
   },
   "navbar": {
     "links": [
