@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -274,6 +275,14 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         logger.error('Failed to send notification', notificationError);
       }
 
+      // Track invitation accepted
+      posthog.capture('invitation_accepted', {
+        organization_id: invitation.organizationId,
+        organization_name: invitation.organization.name,
+        role: invitation.role,
+        inviter_id: invitation.inviterId,
+      });
+
       toast({
         title: 'Welcome!',
         description: `You've joined ${invitation.organization.name}`,
@@ -284,6 +293,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       router.refresh();
     } catch (err) {
       logger.error('Failed to accept invitation', err);
+      posthog.captureException(err);
       toast({
         title: 'Error',
         description: 'Failed to accept invitation. Please try again.',
@@ -310,6 +320,14 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         return;
       }
 
+      // Track invitation declined
+      posthog.capture('invitation_declined', {
+        organization_id: invitation.organizationId,
+        organization_name: invitation.organization.name,
+        role: invitation.role,
+        inviter_id: invitation.inviterId,
+      });
+
       toast({
         title: 'Invitation declined',
         description: 'The invitation has been declined.',
@@ -319,6 +337,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       router.refresh();
     } catch (err) {
       logger.error('Failed to decline invitation', err);
+      posthog.captureException(err);
       toast({
         title: 'Error',
         description: 'Failed to decline invitation. Please try again.',

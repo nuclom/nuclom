@@ -3,6 +3,7 @@
 import { Eye, EyeOff, Github, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useState } from 'react';
 import {
   PasswordRequirements,
@@ -43,6 +44,12 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
     setSocialLoading(provider);
     setError(null);
 
+    // Track signup attempt
+    posthog.capture('signup_attempted', {
+      method: provider,
+      source: 'social',
+    });
+
     try {
       await authClient.signIn.social({
         provider,
@@ -50,6 +57,12 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
         errorCallbackURL: '/auth-error',
       });
     } catch (err) {
+      // Track signup failure
+      posthog.capture('signup_failed', {
+        method: provider,
+        source: 'social',
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       setError(`Failed to sign up with ${provider === 'github' ? 'GitHub' : 'Google'}`);
       logger.error(`${provider} signup failed`, err);
       setSocialLoading(null);
@@ -63,10 +76,23 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
 
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
+      // Track validation failure
+      posthog.capture('signup_failed', {
+        method: 'email',
+        source: 'form',
+        error: 'Password requirements not met',
+        failed_requirements: passwordValidation.failedRequirements,
+      });
       setError(`Password requirements not met: ${passwordValidation.failedRequirements.join(', ')}`);
       setIsLoading(false);
       return;
     }
+
+    // Track signup attempt
+    posthog.capture('signup_attempted', {
+      method: 'email',
+      source: 'form',
+    });
 
     try {
       const result = await authClient.signUp.email({
@@ -76,13 +102,34 @@ export function RegisterForm({ redirectTo }: RegisterFormProps) {
       });
 
       if (result.error) {
+        // Track signup failure
+        posthog.capture('signup_failed', {
+          method: 'email',
+          source: 'form',
+          error: result.error.message || 'Unknown error',
+        });
         setError(result.error.message || 'Failed to create account');
       } else {
+        // Identify user on successful signup
+        posthog.identify(email, {
+          email: email,
+          name: name,
+        });
+        posthog.capture('user_signed_up', {
+          method: 'email',
+          source: 'form',
+        });
         // Redirect to verification pending page with email and redirect URL
         const verificationUrl = `/verification-pending?email=${encodeURIComponent(email)}${finalRedirectTo !== '/onboarding' ? `&redirectTo=${encodeURIComponent(finalRedirectTo)}` : ''}`;
         router.push(verificationUrl);
       }
     } catch (err) {
+      // Track signup failure
+      posthog.capture('signup_failed', {
+        method: 'email',
+        source: 'form',
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       setError('An unexpected error occurred');
       logger.error('Registration failed', err);
     } finally {

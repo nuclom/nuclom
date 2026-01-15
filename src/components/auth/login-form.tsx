@@ -3,6 +3,7 @@
 import { Eye, EyeOff, Github, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     setSocialLoading(provider);
     setError(null);
 
+    // Track login attempt
+    posthog.capture('login_attempted', {
+      method: provider,
+      source: 'social',
+    });
+
     try {
       await authClient.signIn.social({
         provider,
@@ -66,6 +73,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         errorCallbackURL: '/auth-error',
       });
     } catch (err) {
+      // Track login failure
+      posthog.capture('login_failed', {
+        method: provider,
+        source: 'social',
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       setError(`Failed to sign in with ${provider === 'github' ? 'GitHub' : 'Google'}`);
       logger.error(`${provider} login failed`, err);
       setSocialLoading(null);
@@ -77,6 +90,12 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     setIsLoading(true);
     setError(null);
 
+    // Track login attempt
+    posthog.capture('login_attempted', {
+      method: 'email',
+      source: 'form',
+    });
+
     try {
       const result = await authClient.signIn.email({
         email,
@@ -84,12 +103,32 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       });
 
       if (result.error) {
+        // Track login failure
+        posthog.capture('login_failed', {
+          method: 'email',
+          source: 'form',
+          error: result.error.message || 'Unknown error',
+        });
         setError(result.error.message || 'Failed to sign in');
       } else {
+        // Identify user on successful login
+        posthog.identify(email, {
+          email: email,
+        });
+        posthog.capture('user_signed_in', {
+          method: 'email',
+          source: 'form',
+        });
         router.push(finalRedirectTo);
         router.refresh();
       }
     } catch (err) {
+      // Track login failure
+      posthog.capture('login_failed', {
+        method: 'email',
+        source: 'form',
+        error: err instanceof Error ? err.message : 'Unknown error',
+      });
       setError('An unexpected error occurred');
       logger.error('Login failed', err);
     } finally {
