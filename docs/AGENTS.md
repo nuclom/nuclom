@@ -37,7 +37,9 @@ pnpm build         # Verify build
 |------|----------|-------|
 | Database schema | `src/lib/db/schema/` | Drizzle ORM definitions |
 | API endpoints | `src/lib/openapi/endpoints.ts` | OpenAPI route handlers |
-| Auth logic | `src/lib/auth/` | better-auth configuration |
+| Auth logic | `src/lib/auth.ts` | better-auth configuration (server) |
+| Auth client | `src/lib/auth-client.ts` | better-auth client with helpers |
+| Access control | `src/lib/access-control.ts` | Roles and permissions |
 | React components | `src/components/` | UI and feature components |
 | App routes | `src/app/` | Next.js App Router pages |
 | Custom hooks | `src/hooks/` | React hooks |

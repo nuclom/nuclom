@@ -22,6 +22,14 @@ Effective team management is crucial for successful video collaboration. This gu
 - Sets organization-wide policies
 - Manages billing and subscriptions
 
+**Team Level (New)**
+
+- Sub-groups within organizations
+- Project or department-focused groups
+- Members can belong to multiple teams
+- Team-based content organization
+- Maximum 20 teams per organization
+
 **Channel Level**
 
 - Subset of organization members
@@ -35,6 +43,37 @@ Effective team management is crucial for successful video collaboration. This gu
 - Specific sharing controls
 - Temporary access grants
 - Guest access management
+
+### Teams Feature
+
+Teams provide a way to organize members into sub-groups within your organization. This is useful for:
+
+- **Department organization** - Create teams for Engineering, Marketing, Sales, etc.
+- **Project groups** - Organize members by project or initiative
+- **Access control** - Team-based permissions for content
+- **Collaboration focus** - Keep discussions and content relevant to team members
+
+**Creating Teams**
+
+1. Go to **Settings** → **Teams**
+2. Click **"Create Team"**
+3. Enter team name (e.g., "Engineering", "Q1 Project")
+4. Add team members from your organization
+5. Click **"Create Team"**
+
+**Managing Team Members**
+
+- Add existing organization members to teams
+- Members can belong to multiple teams
+- Remove members without affecting their organization membership
+- Team invitations are linked via invitation links
+
+**Active Team Context**
+
+When working in the platform, you can set an "active team" which:
+- Filters content relevant to your team
+- Sets context for new content creation
+- Helps organize your workspace
 
 ### Team Roles
 
@@ -56,12 +95,21 @@ Effective team management is crucial for successful video collaboration. This gu
 - Security and compliance management
 - Multiple admins allowed
 
+**Editor**
+
+- Content creation and editing
+- Can create and edit videos, collections
+- Read access to channels and teams
+- Comment and collaborate
+- Standard content permissions
+
 **Member**
 
 - Standard organization access
 - Upload and organize content
 - Comment and collaborate
 - Create channels and series
+- Read access to teams
 - Default role for new members
 
 **Viewer**
