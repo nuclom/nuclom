@@ -73,6 +73,7 @@ export function createMockVideo(overrides: Partial<TestVideo> = {}): TestVideo {
     aiSummary: 'AI generated summary',
     aiTags: ['test', 'video'],
     aiActionItems: [],
+    visibility: 'organization',
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
     ...overrides,

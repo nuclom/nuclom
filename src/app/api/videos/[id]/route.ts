@@ -2,7 +2,8 @@ import { eq } from 'drizzle-orm';
 import { Cause, Effect, Exit, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
-  createPublicLayer,
+  Auth,
+  createFullLayer,
   generatePresignedThumbnailUrl,
   generatePresignedVideoUrl,
   mapErrorToApiResponse,
@@ -11,7 +12,7 @@ import {
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
 import { db } from '@/lib/db';
 import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError, VideoRepository } from '@/lib/effect';
+import { DatabaseError, ForbiddenError, NotFoundError, ValidationError, VideoRepository } from '@/lib/effect';
 import { releaseVideoCount } from '@/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@/lib/effect/services/billing-repository';
 import type { UpdateVideoInput } from '@/lib/effect/services/video-repository';
@@ -22,7 +23,7 @@ import { validateRequestBody } from '@/lib/validation';
 // GET /api/videos/[id] - Get video details
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
@@ -54,6 +55,33 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       );
     }
 
+    // Check video visibility and access
+    const videoRepo = yield* VideoRepository;
+
+    // Try to get user ID from session (may be null for unauthenticated requests)
+    let userId: string | null = null;
+    try {
+      const authService = yield* Auth;
+      const sessionResult = yield* authService.getSession(request.headers).pipe(
+        Effect.map((session) => session.user.id),
+        Effect.catchAll(() => Effect.succeed(null)),
+      );
+      userId = sessionResult;
+    } catch {
+      // No auth - userId remains null
+    }
+
+    // Check access based on visibility
+    const accessCheck = yield* videoRepo.canAccessVideo(resolvedParams.id, userId);
+
+    if (!accessCheck.canAccess) {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: 'You do not have access to this video',
+        }),
+      );
+    }
+
     // Generate presigned URLs for video and thumbnail
     const storage = yield* Storage;
     const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
@@ -65,10 +93,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       ...videoData,
       thumbnailUrl: presignedThumbnailUrl,
       videoUrl: presignedVideoUrl,
+      accessLevel: accessCheck.accessLevel,
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
@@ -85,9 +114,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       };
       // Use short cache with stale-while-revalidate for video details
       // AI analysis data is included, so it benefits from caching
+      // Only cache public videos
+      const cacheControl =
+        data.visibility === 'public' ? getCacheControlHeader(CachePresets.shortWithSwr()) : 'private, no-cache';
       return NextResponse.json(response, {
         headers: {
-          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
+          'Cache-Control': cacheControl,
         },
       });
     },
@@ -117,6 +149,7 @@ const UpdateVideoBodySchema = Schema.Struct({
   duration: Schema.optional(Schema.String),
   thumbnailUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   videoUrl: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
+  visibility: Schema.optional(Schema.Literal('private', 'organization', 'public')),
   transcript: Schema.optional(Schema.Union(Schema.String, Schema.Null)),
   transcriptSegments: Schema.optional(Schema.Union(Schema.Array(TranscriptSegmentSchema), Schema.Null)),
   processingStatus: Schema.optional(
@@ -152,7 +185,23 @@ const parseDateField = (
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    // Authenticate user - only authors can update videos
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
     const resolvedParams = yield* Effect.promise(() => params);
+
+    // Check if user has permission to update (must be author)
+    const videoRepo = yield* VideoRepository;
+    const accessCheck = yield* videoRepo.canAccessVideo(resolvedParams.id, user.id);
+
+    if (!accessCheck.canAccess || accessCheck.accessLevel !== 'download') {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: 'Only the video author can update the video',
+        }),
+      );
+    }
 
     const body = yield* validateRequestBody(UpdateVideoBodySchema, request);
     const deletedAt = yield* parseDateField(body.deletedAt, 'deletedAt');
@@ -169,6 +218,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       duration: body.duration,
       thumbnailUrl: body.thumbnailUrl,
       videoUrl: body.videoUrl,
+      visibility: body.visibility,
       transcript: body.transcript,
       transcriptSegments,
       processingStatus: body.processingStatus,
@@ -181,7 +231,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     // Update video using repository
-    const videoRepo = yield* VideoRepository;
     yield* videoRepo.updateVideo(resolvedParams.id, updateData);
 
     // Fetch updated video with relations
@@ -218,7 +267,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {
@@ -257,9 +306,25 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const retentionDays = retentionDaysParam ? Number.parseInt(retentionDaysParam, 10) : undefined;
 
   const effect = Effect.gen(function* () {
+    // Authenticate user - only authors can delete videos
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
     const resolvedParams = yield* Effect.promise(() => params);
 
     const videoRepo = yield* VideoRepository;
+
+    // Check if user has permission to delete (must be author)
+    const accessCheck = yield* videoRepo.canAccessVideo(resolvedParams.id, user.id);
+
+    if (!accessCheck.canAccess || accessCheck.accessLevel !== 'download') {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: 'Only the video author can delete the video',
+        }),
+      );
+    }
+
     const video = yield* videoRepo.getVideo(resolvedParams.id);
 
     if (permanent) {
@@ -285,7 +350,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
+  const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
 
   return Exit.match(exit, {

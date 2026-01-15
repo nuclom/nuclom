@@ -17,6 +17,7 @@
  * - Audit Logs: auditLogCategoryEnum, auditLogSeverityEnum
  * - Analytics: videoViewSourceEnum
  * - Sharing: videoShareLinkStatusEnum, videoShareLinkAccessEnum
+ * - Visibility: videoVisibilityEnum
  * - Workflows: workflowTemplateTypeEnum
  * - Clips: clipTypeEnum, momentTypeEnum, clipStatusEnum, highlightReelStatusEnum
  * - Health: healthCheckServiceEnum, healthCheckStatusEnum
@@ -190,6 +191,18 @@ export const videoViewSourceEnum = pgEnum('VideoViewSource', ['direct', 'share_l
 
 export const videoShareLinkStatusEnum = pgEnum('VideoShareLinkStatus', ['active', 'expired', 'revoked']);
 export const videoShareLinkAccessEnum = pgEnum('VideoShareLinkAccess', ['view', 'comment', 'download']);
+
+// =============================================================================
+// Video Visibility Enums
+// =============================================================================
+
+/**
+ * Video visibility levels:
+ * - private: Only visible to the owner, can be shared with specific users/teams
+ * - organization: Visible to all members of the organization (default)
+ * - public: Publicly accessible from the internet without authentication
+ */
+export const videoVisibilityEnum = pgEnum('VideoVisibility', ['private', 'organization', 'public']);
 
 // =============================================================================
 // Workflow Template Enums

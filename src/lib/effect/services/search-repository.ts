@@ -206,6 +206,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             ai_summary: string | null;
             ai_tags: string[] | null;
             ai_action_items: unknown;
+            visibility: string;
             search_vector: unknown;
             created_at: Date;
             updated_at: Date;
@@ -298,6 +299,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               aiSummary: row.ai_summary,
               aiTags: row.ai_tags,
               aiActionItems: row.ai_action_items as VideoWithAuthor['aiActionItems'],
+              visibility: row.visibility as VideoWithAuthor['visibility'],
               searchVector: row.search_vector as unknown as string,
               createdAt: row.created_at,
               updatedAt: row.updated_at,
@@ -364,6 +366,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               aiSummary: videos.aiSummary,
               aiTags: videos.aiTags,
               aiActionItems: videos.aiActionItems,
+              visibility: videos.visibility,
               searchVector: videos.searchVector,
               createdAt: videos.createdAt,
               updatedAt: videos.updatedAt,
@@ -772,6 +775,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             searchVector: videos.searchVector,
             createdAt: videos.createdAt,
             updatedAt: videos.updatedAt,

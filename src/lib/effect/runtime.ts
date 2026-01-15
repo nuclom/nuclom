@@ -39,6 +39,7 @@ import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
 import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
+import { type VideoSharesRepository, VideoSharesRepositoryLive } from './services/video-shares-repository';
 import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
 
 // =============================================================================
@@ -143,6 +144,7 @@ const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, D
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
 const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
 const ChatRepositoryWithDeps = withDep(ChatRepositoryLive, DatabaseLive);
+const VideoSharesRepositoryWithDeps = withDep(VideoSharesRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
@@ -166,6 +168,7 @@ const AIChatKBWithDeps = AIChatKBLive.pipe(
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
   VideoRepositoryWithDeps,
+  VideoSharesRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
   PresenceWithDeps,
@@ -198,6 +201,7 @@ export type AppServices =
   | ReplicateAPI
   | VideoProcessor
   | VideoRepository
+  | VideoSharesRepository
   | OrganizationRepository
   | VideoProgressRepository
   | Presence
