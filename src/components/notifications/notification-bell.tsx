@@ -70,13 +70,13 @@ const getNotificationLink = (notification: Notification, organization: string): 
 
   switch (notification.resourceType) {
     case 'video':
-      return `/${organization}/videos/${notification.resourceId}`;
+      return `/org/${organization}/videos/${notification.resourceId}`;
     case 'comment':
-      return `/${organization}/videos/${notification.resourceId}`;
+      return `/org/${organization}/videos/${notification.resourceId}`;
     case 'organization':
-      return `/${organization}`;
+      return `/org/${organization}`;
     case 'subscription':
-      return `/${organization}/settings/billing`;
+      return `/org/${organization}/settings/billing`;
     default:
       return null;
   }
@@ -316,7 +316,7 @@ export function NotificationBell({ organization }: NotificationBellProps) {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="justify-center cursor-pointer">
-              <Link href={`/${organization}/notifications`} className="text-center text-sm">
+              <Link href={`/org/${organization}/notifications`} className="text-center text-sm">
                 View all notifications
               </Link>
             </DropdownMenuItem>

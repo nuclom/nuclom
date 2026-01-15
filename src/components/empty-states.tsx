@@ -47,7 +47,7 @@ export function EmptyVideos({ organization }: { organization: string }) {
       title="No videos yet"
       description="Upload your first video to start building your team's video library."
       actionLabel="Upload Video"
-      actionHref={`/${organization}/upload`}
+      actionHref={`/org/${organization}/upload`}
     />
   );
 }
@@ -59,7 +59,7 @@ export function EmptyChannels({ organization }: { organization: string }) {
       title="No channels yet"
       description="Create channels to organize your videos by topic, team, or project."
       actionLabel="Create Channel"
-      actionHref={`/${organization}/channels/new`}
+      actionHref={`/org/${organization}/channels/new`}
     />
   );
 }
@@ -105,7 +105,7 @@ export function EmptyWatchLater({ organization }: { organization: string }) {
       title="Watch later is empty"
       description="Save videos to watch later by clicking the bookmark icon on any video."
       actionLabel="Browse Videos"
-      actionHref={`/${organization}/videos`}
+      actionHref={`/org/${organization}/videos`}
     />
   );
 }

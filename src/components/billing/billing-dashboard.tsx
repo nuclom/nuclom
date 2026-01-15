@@ -42,10 +42,10 @@ export function BillingDashboard({
     if (success === 'true') {
       toast.success('Subscription activated successfully!');
       // Remove query params
-      router.replace(`/${organizationSlug}/settings/billing`);
+      router.replace(`/org/${organizationSlug}/settings/billing`);
     } else if (canceled === 'true') {
       toast.info('Checkout was canceled');
-      router.replace(`/${organizationSlug}/settings/billing`);
+      router.replace(`/org/${organizationSlug}/settings/billing`);
     }
   }, [searchParams, router, organizationSlug]);
 

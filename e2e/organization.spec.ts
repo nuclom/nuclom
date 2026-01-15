@@ -5,8 +5,8 @@ const { testOrg } = TEST_CONFIG;
 test.describe('Organization Dashboard', () => {
   test.describe('Authenticated User', () => {
     test('should display organization dashboard with video sections', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
+      await page.goto(`/org/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
       // Wait for the page to load - either video sections or empty state
       await page.waitForLoadState('networkidle', { timeout: 15000 });
@@ -39,8 +39,8 @@ test.describe('Organization Dashboard', () => {
     });
 
     test('should display upload button when no videos', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
+      await page.goto(`/org/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
       // If no videos, should show upload button
       const noVideosMessage = page.getByText(/no videos found|upload your first video/i);
@@ -52,8 +52,8 @@ test.describe('Organization Dashboard', () => {
     });
 
     test('should navigate to upload page', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
+      await page.goto(`/org/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
       // Look for any upload link/button
       const uploadLink = page.getByRole('link', { name: /upload/i }).first();
@@ -67,7 +67,7 @@ test.describe('Organization Dashboard', () => {
   test.describe('Unauthenticated User', () => {
     test('should redirect to landing page when accessing org route', async ({ page }) => {
       await page.context().clearCookies();
-      await page.goto(`/${testOrg}`);
+      await page.goto(`/org/${testOrg}`);
 
       // Should redirect to landing or login
       await page.waitForURL(/^\/$|\/login/, { timeout: 10000 });
@@ -77,8 +77,8 @@ test.describe('Organization Dashboard', () => {
 
 test.describe('Organization Navigation', () => {
   test('should have functioning navigation components', async ({ authenticatedPage: page }) => {
-    await page.goto(`/${testOrg}`);
-    await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
+    await page.goto(`/org/${testOrg}`);
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
 
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');

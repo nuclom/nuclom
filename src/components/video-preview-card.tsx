@@ -111,7 +111,9 @@ export function VideoPreviewCard({
       const videoEl = videoRef.current;
       const time = videoEl ? Math.floor(videoEl.currentTime) : Math.floor(savedTime);
       const url =
-        time > 0 ? `/${organizationSlug}/videos/${video.id}?t=${time}` : `/${organizationSlug}/videos/${video.id}`;
+        time > 0
+          ? `/org/${organizationSlug}/videos/${video.id}?t=${time}`
+          : `/org/${organizationSlug}/videos/${video.id}`;
 
       router.push(url);
     },

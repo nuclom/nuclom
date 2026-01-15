@@ -46,7 +46,7 @@ export function GettingStartedChecklist({
       title: 'Upload your first video',
       description: 'Share a screen recording or video update',
       icon: Upload,
-      href: `/${organization}/upload`,
+      href: `/org/${organization}/upload`,
       completed: hasVideos,
     },
     {
@@ -54,7 +54,7 @@ export function GettingStartedChecklist({
       title: 'Invite your team',
       description: 'Collaborate with teammates on videos',
       icon: Users,
-      href: `/${organization}/settings/members`,
+      href: `/org/${organization}/settings/members`,
       completed: hasTeamMembers,
     },
     {
@@ -62,7 +62,7 @@ export function GettingStartedChecklist({
       title: 'Connect your tools',
       description: 'Import recordings from Zoom or Google Meet',
       icon: Settings,
-      href: `/${organization}/settings/integrations`,
+      href: `/org/${organization}/settings/integrations`,
       completed: hasIntegrations,
     },
   ];

@@ -64,7 +64,7 @@ export function TrialBanner({ trialEnd, organizationSlug, className }: TrialBann
           )}
           asChild
         >
-          <Link href={`/${organizationSlug}/settings/billing`}>{isExpired ? 'Subscribe Now' : 'Upgrade'}</Link>
+          <Link href={`/org/${organizationSlug}/settings/billing`}>{isExpired ? 'Subscribe Now' : 'Upgrade'}</Link>
         </Button>
 
         {!isUrgent && !isExpired && (

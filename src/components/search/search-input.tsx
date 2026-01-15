@@ -87,7 +87,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
           params.delete('q');
         }
         params.delete('page'); // Reset pagination on new search
-        router.push(`/${organization}/search?${params.toString()}`);
+        router.push(`/org/${organization}/search?${params.toString()}`);
       });
       setShowSuggestions(false);
     },
@@ -100,7 +100,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
         const suggestion = suggestions[selectedIndex];
         if (suggestion.type === 'video' && suggestion.videoId) {
-          router.push(`/${organization}/videos/${suggestion.videoId}`);
+          router.push(`/org/${organization}/videos/${suggestion.videoId}`);
         } else {
           setQuery(suggestion.text);
           handleSearch(suggestion.text);
@@ -171,7 +171,7 @@ export function SearchInput({ organizationId, organization, className, autoFocus
               }`}
               onClick={() => {
                 if (suggestion.type === 'video' && suggestion.videoId) {
-                  router.push(`/${organization}/videos/${suggestion.videoId}`);
+                  router.push(`/org/${organization}/videos/${suggestion.videoId}`);
                 } else {
                   setQuery(suggestion.text);
                   handleSearch(suggestion.text);

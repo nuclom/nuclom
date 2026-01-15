@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import process from 'node:process';
 import { ImageResponse } from 'next/og';
-import { OGImageContent } from './_og-image/og-image-content';
+import { OGImageContent } from '../components/og-image/og-image-content';
 
 export const alt = 'Nuclom - Video Collaboration Platform';
 export const size = {

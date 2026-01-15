@@ -27,7 +27,7 @@ export function SearchResults({ results, organization, isLoading }: SearchResult
       startTransition(() => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', String(page));
-        router.push(`/${organization}/search?${params.toString()}`);
+        router.push(`/org/${organization}/search?${params.toString()}`);
       });
     },
     [router, organization, searchParams],

@@ -36,8 +36,8 @@ test.describe('Settings Pages', () => {
 
   test.describe('Organization Settings', () => {
     test('should display organization settings page', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}/settings/organization`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}/settings/organization`));
+      await page.goto(`/org/${testOrg}/settings/organization`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/settings/organization`));
 
       await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/\/settings\/organization/);
@@ -46,8 +46,8 @@ test.describe('Settings Pages', () => {
 
   test.describe('Members Settings', () => {
     test('should display members settings page', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}/settings/members`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}/settings/members`));
+      await page.goto(`/org/${testOrg}/settings/members`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/settings/members`));
 
       await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/\/settings\/members/);
@@ -56,8 +56,8 @@ test.describe('Settings Pages', () => {
 
   test.describe('Settings Navigation', () => {
     test('should navigate between settings pages', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}/settings/profile`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}/settings/profile`));
+      await page.goto(`/org/${testOrg}/settings/profile`);
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/settings/profile`));
 
       // Look for settings navigation links
       const orgSettingsLink = page.getByRole('link', { name: /organization/i });
@@ -72,7 +72,7 @@ test.describe('Settings Pages', () => {
 test.describe('Settings - Unauthenticated', () => {
   test('should redirect when accessing settings without auth', async ({ page }) => {
     await page.context().clearCookies();
-    await page.goto(`/${testOrg}/settings/profile`);
+    await page.goto(`/org/${testOrg}/settings/profile`);
 
     // Should redirect to landing or login
     await page.waitForURL(/^\/$|\/login|\/auth/, { timeout: 10000 });

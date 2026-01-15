@@ -58,7 +58,7 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
       <span className="w-6 text-center text-sm text-muted-foreground font-mono">{item.position + 1}</span>
 
       <Link
-        href={`/${organization}/videos/${video.id}`}
+        href={`/org/${organization}/videos/${video.id}`}
         className="relative h-16 w-28 flex-shrink-0 rounded overflow-hidden group"
       >
         <Image
@@ -80,7 +80,7 @@ function SortableVideoItem({ item, organization, onRemove, isRemoving }: Sortabl
 
       <div className="flex-1 min-w-0">
         <Link
-          href={`/${organization}/videos/${video.id}`}
+          href={`/org/${organization}/videos/${video.id}`}
           className="font-medium hover:text-primary transition-colors line-clamp-1"
         >
           {video.title}

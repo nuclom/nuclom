@@ -45,7 +45,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
   return (
     <Card className="group hover:border-primary transition-colors overflow-hidden">
       <CardHeader className="p-0 relative">
-        <Link href={`/${organization}/series/${series.id}`}>
+        <Link href={`/org/${organization}/series/${series.id}`}>
           <div className="relative aspect-video overflow-hidden">
             <Image
               src={series.thumbnailUrl || '/placeholder.svg'}
@@ -92,7 +92,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
         </DropdownMenu>
       </CardHeader>
       <CardContent className="p-4">
-        <Link href={`/${organization}/series/${series.id}`}>
+        <Link href={`/org/${organization}/series/${series.id}`}>
           <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">{series.name}</h3>
         </Link>
         {series.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{series.description}</p>}
@@ -104,7 +104,7 @@ export function SeriesCard({ series, organization, onEdit, onDelete, priority = 
         </div>
         {hasProgress && series.progress?.lastVideo && (
           <Link
-            href={`/${organization}/videos/${series.progress.lastVideo.id}`}
+            href={`/org/${organization}/videos/${series.progress.lastVideo.id}`}
             className="mt-3 flex items-center gap-2 text-sm text-primary hover:underline"
           >
             <Play className="h-4 w-4" />

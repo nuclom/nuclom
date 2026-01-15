@@ -25,17 +25,17 @@ export function SidebarNav({ organization }: SidebarNavProps) {
   const mainNavItems: NavItem[] = [
     {
       title: 'Home',
-      href: `/${organization}`,
+      href: `/org/${organization}`,
       icon: Home,
     },
     {
       title: 'Videos',
-      href: `/${organization}/videos`,
+      href: `/org/${organization}/videos`,
       icon: Video,
     },
     {
       title: 'Collections',
-      href: `/${organization}/collections`,
+      href: `/org/${organization}/collections`,
       icon: Folders,
     },
   ];
@@ -43,33 +43,33 @@ export function SidebarNav({ organization }: SidebarNavProps) {
   const libraryNavItems: NavItem[] = [
     {
       title: 'My Videos',
-      href: `/${organization}/my-videos`,
+      href: `/org/${organization}/my-videos`,
       icon: PlayCircle,
     },
     {
       title: 'Watch Later',
-      href: `/${organization}/watch-later`,
+      href: `/org/${organization}/watch-later`,
       icon: Clock,
     },
     {
       title: 'Watch History',
-      href: `/${organization}/history`,
+      href: `/org/${organization}/history`,
       icon: History,
     },
     {
       title: 'Shared with Me',
-      href: `/${organization}/shared`,
+      href: `/org/${organization}/shared`,
       icon: Share2,
     },
     {
       title: 'Trash',
-      href: `/${organization}/trash`,
+      href: `/org/${organization}/trash`,
       icon: Trash2,
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === `/${organization}`) {
+    if (href === `/org/${organization}`) {
       return pathname === href;
     }
     return pathname.startsWith(href);
@@ -79,7 +79,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
     <aside className="w-64 border-r bg-card/50 flex flex-col h-[calc(100vh-4rem)]">
       <div className="p-4">
         <Button asChild className="w-full gap-2" size="lg">
-          <Link href={`/${organization}/upload`}>
+          <Link href={`/org/${organization}/upload`}>
             <Upload className="h-4 w-4" />
             Upload Video
           </Link>
@@ -136,10 +136,10 @@ export function SidebarNav({ organization }: SidebarNavProps) {
 
       <div className="p-4 border-t">
         <Link
-          href={`/${organization}/settings/organization`}
+          href={`/org/${organization}/settings/organization`}
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
-            pathname.startsWith(`/${organization}/settings`)
+            pathname.startsWith(`/org/${organization}/settings`)
               ? 'bg-accent text-accent-foreground'
               : 'text-muted-foreground hover:text-foreground',
           )}

@@ -185,7 +185,7 @@ function getExpandUrl(): string | null {
     return null;
   }
   const time = Math.floor(memoryState.currentTime);
-  return `/${memoryState.organizationSlug}/videos/${memoryState.videoId}?t=${time}`;
+  return `/org/${memoryState.organizationSlug}/videos/${memoryState.videoId}?t=${time}`;
 }
 
 /**

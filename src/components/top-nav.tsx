@@ -68,7 +68,7 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
           {/* Mobile sidebar trigger */}
           {children}
 
-          <Link href={`/${organization}`} className="flex items-center group">
+          <Link href={`/org/${organization}`} className="flex items-center group">
             <NuclomLogo size="sm" showText />
           </Link>
 
@@ -87,7 +87,7 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
         {/* Right section - Actions */}
         <div className="flex items-center justify-end gap-2">
           <Button size="sm" className="hidden sm:inline-flex gap-2 bg-primary hover:bg-primary/90" asChild>
-            <Link href={`/${organization}/upload`}>
+            <Link href={`/org/${organization}/upload`}>
               <Plus className="h-4 w-4" />
               <span className="hidden md:inline">New Video</span>
             </Link>

@@ -34,7 +34,7 @@ async function HomeLoader() {
     redirect('/onboarding');
   }
 
-  redirect(`/${organization.slug}`);
+  redirect(`/org/${organization.slug}`);
 }
 
 export default function Home() {
