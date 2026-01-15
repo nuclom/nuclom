@@ -54,7 +54,7 @@ export function VideoSection({
           <p className="text-muted-foreground text-center mb-4">{emptyMessage}</p>
           {showUploadCTA && (
             <Button asChild>
-              <Link href={`/${organization}/upload`}>
+              <Link href={`/org/${organization}/upload`}>
                 <Upload className="mr-2 h-4 w-4" />
                 Upload your first video
               </Link>

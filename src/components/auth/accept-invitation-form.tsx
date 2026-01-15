@@ -124,7 +124,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
         </CardHeader>
         <CardContent className="space-y-4">
           <Button className="w-full" asChild>
-            <Link href={`/${orgSlug}`}>Go to {invitation.organization.name}</Link>
+            <Link href={`/org/${orgSlug}`}>Go to {invitation.organization.name}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -280,7 +280,7 @@ export function AcceptInvitationForm({ invitation, error }: AcceptInvitationForm
       });
 
       const orgSlug = invitation.organization.slug || invitation.organizationId;
-      router.push(`/${orgSlug}`);
+      router.push(`/org/${orgSlug}`);
       router.refresh();
     } catch (err) {
       logger.error('Failed to accept invitation', err);

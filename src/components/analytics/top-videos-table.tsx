@@ -77,7 +77,7 @@ export function TopVideosTable({ videos, organizationSlug }: TopVideosTableProps
               <TableRow key={item.videoId}>
                 <TableCell>
                   <Link
-                    href={`/${organizationSlug}/videos/${item.videoId}`}
+                    href={`/org/${organizationSlug}/videos/${item.videoId}`}
                     className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                   >
                     <span className="text-muted-foreground text-sm font-medium w-4">{index + 1}</span>

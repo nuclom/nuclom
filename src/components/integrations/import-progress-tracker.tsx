@@ -287,7 +287,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
                     {/* Actions */}
                     {meeting.importStatus === 'completed' && meeting.videoId && (
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/${organizationSlug}/videos/${meeting.videoId}`}>
+                        <Link href={`/org/${organizationSlug}/videos/${meeting.videoId}`}>
                           <ExternalLink className="h-3 w-3 mr-1" />
                           View
                         </Link>

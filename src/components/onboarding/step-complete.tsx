@@ -16,14 +16,14 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
       icon: Upload,
       title: 'Upload your first video',
       description: 'Share a screen recording or video update',
-      href: `/${organizationSlug}/upload`,
+      href: `/org/${organizationSlug}/upload`,
       primary: true,
     },
     {
       icon: Users,
       title: 'Invite your team',
       description: 'Collaborate with teammates on videos',
-      href: `/${organizationSlug}/settings/members`,
+      href: `/org/${organizationSlug}/settings/members`,
     },
   ];
 
@@ -68,7 +68,7 @@ export function StepComplete({ organizationSlug, organizationName }: StepComplet
 
       <div className="pt-4">
         <Button asChild size="lg" className="px-8">
-          <Link href={`/${organizationSlug}`}>Go to Dashboard</Link>
+          <Link href={`/org/${organizationSlug}`}>Go to Dashboard</Link>
         </Button>
       </div>
     </div>

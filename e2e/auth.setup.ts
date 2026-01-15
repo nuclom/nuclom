@@ -31,7 +31,7 @@ setup('authenticate', async ({ page }) => {
   await page.getByRole('button', { name: /sign in/i }).click();
 
   // Wait for redirect to organization page
-  await expect(page).toHaveURL(new RegExp(`/${testOrg}`), { timeout: 15000 });
+  await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 15000 });
 
   // Save signed-in state to file
   await page.context().storageState({ path: 'playwright/.auth/user.json' });

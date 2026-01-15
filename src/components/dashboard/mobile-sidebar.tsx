@@ -42,22 +42,22 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
   const mainNavItems: NavItem[] = [
     {
       title: 'Home',
-      href: `/${organization}`,
+      href: `/org/${organization}`,
       icon: Home,
     },
     {
       title: 'Videos',
-      href: `/${organization}/videos`,
+      href: `/org/${organization}/videos`,
       icon: Video,
     },
     {
       title: 'Channels',
-      href: `/${organization}/channels`,
+      href: `/org/${organization}/channels`,
       icon: Folders,
     },
     {
       title: 'Series',
-      href: `/${organization}/series`,
+      href: `/org/${organization}/series`,
       icon: ListVideo,
     },
   ];
@@ -65,33 +65,33 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
   const libraryNavItems: NavItem[] = [
     {
       title: 'My Videos',
-      href: `/${organization}/my-videos`,
+      href: `/org/${organization}/my-videos`,
       icon: PlayCircle,
     },
     {
       title: 'Watch Later',
-      href: `/${organization}/watch-later`,
+      href: `/org/${organization}/watch-later`,
       icon: Clock,
     },
     {
       title: 'Watch History',
-      href: `/${organization}/history`,
+      href: `/org/${organization}/history`,
       icon: History,
     },
     {
       title: 'Shared with Me',
-      href: `/${organization}/shared`,
+      href: `/org/${organization}/shared`,
       icon: Share2,
     },
     {
       title: 'Trash',
-      href: `/${organization}/trash`,
+      href: `/org/${organization}/trash`,
       icon: Trash2,
     },
   ];
 
   const isActive = (href: string) => {
-    if (href === `/${organization}`) {
+    if (href === `/org/${organization}`) {
       return pathname === href;
     }
     return pathname.startsWith(href);
@@ -116,7 +116,7 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
 
         <div className="p-4">
           <Button asChild className="w-full justify-start gap-2" size="lg" onClick={handleNavClick}>
-            <Link href={`/${organization}/upload`}>
+            <Link href={`/org/${organization}/upload`}>
               <Upload className="h-4 w-4" />
               Upload Video
             </Link>
@@ -187,7 +187,7 @@ export function MobileSidebar({ organization }: MobileSidebarProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
           <Link
-            href={`/${organization}/settings`}
+            href={`/org/${organization}/settings`}
             onClick={handleNavClick}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
           >

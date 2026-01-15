@@ -55,7 +55,7 @@ export function OrgSettingsTopNav({ user, organization, organizationName }: OrgS
         {/* Left section - Back button and Logo */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/${organization}`}>
+            <Link href={`/org/${organization}`}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Link>
@@ -63,7 +63,7 @@ export function OrgSettingsTopNav({ user, organization, organizationName }: OrgS
 
           <div className="hidden md:block h-6 w-px bg-border" />
 
-          <Link href={`/${organization}`} className="flex items-center gap-2.5 group">
+          <Link href={`/org/${organization}`} className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
               <Film className="h-5 w-5 text-white" />
             </div>
@@ -110,7 +110,7 @@ export function OrgSettingsTopNav({ user, organization, organizationName }: OrgS
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/${organization}`} className="cursor-pointer">
+                <Link href={`/org/${organization}`} className="cursor-pointer">
                   <Home className="mr-2 h-4 w-4" />
                   <span>Home Page</span>
                 </Link>

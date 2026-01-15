@@ -26,22 +26,22 @@ export function OrgSettingsSidebar({ organization }: { organization: string }) {
       title: 'Organization',
       items: [
         {
-          href: `/${organization}/settings`,
+          href: `/org/${organization}/settings`,
           label: 'General',
           icon: Building,
         },
         {
-          href: `/${organization}/settings/members`,
+          href: `/org/${organization}/settings/members`,
           label: 'Members',
           icon: Users,
         },
         {
-          href: `/${organization}/settings/roles`,
+          href: `/org/${organization}/settings/roles`,
           label: 'Roles & Permissions',
           icon: UserSquare2,
         },
         {
-          href: `/${organization}/settings/billing`,
+          href: `/org/${organization}/settings/billing`,
           label: 'Billing',
           icon: CreditCard,
         },
@@ -51,13 +51,13 @@ export function OrgSettingsSidebar({ organization }: { organization: string }) {
       title: 'Enterprise',
       items: [
         {
-          href: `/${organization}/settings/sso`,
+          href: `/org/${organization}/settings/sso`,
           label: 'Single Sign-On',
           icon: Lock,
           badge: 'Enterprise',
         },
         {
-          href: `/${organization}/settings/audit-logs`,
+          href: `/org/${organization}/settings/audit-logs`,
           label: 'Audit Logs',
           icon: ClipboardList,
           badge: 'Enterprise',
@@ -68,17 +68,17 @@ export function OrgSettingsSidebar({ organization }: { organization: string }) {
       title: 'Developer',
       items: [
         {
-          href: `/${organization}/settings/api-keys`,
+          href: `/org/${organization}/settings/api-keys`,
           label: 'API Keys',
           icon: Key,
         },
         {
-          href: `/${organization}/settings/oauth-apps`,
+          href: `/org/${organization}/settings/oauth-apps`,
           label: 'OAuth Apps',
           icon: Globe,
         },
         {
-          href: `/${organization}/settings/integrations`,
+          href: `/org/${organization}/settings/integrations`,
           label: 'Integrations',
           icon: Plug,
         },
@@ -87,8 +87,8 @@ export function OrgSettingsSidebar({ organization }: { organization: string }) {
   ];
 
   const isActive = (href: string) => {
-    if (href === `/${organization}/settings`) {
-      return pathname === `/${organization}/settings` || pathname === `/${organization}/settings/organization`;
+    if (href === `/org/${organization}/settings`) {
+      return pathname === `/org/${organization}/settings` || pathname === `/org/${organization}/settings/organization`;
     }
     return pathname === href;
   };

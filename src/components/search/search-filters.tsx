@@ -49,7 +49,7 @@ export function SearchFilters({ organization, authors = [], collections = [] }: 
           params.set(key, String(value));
         }
         params.delete('page'); // Reset pagination on filter change
-        router.push(`/${organization}/search?${params.toString()}`);
+        router.push(`/org/${organization}/search?${params.toString()}`);
       });
     },
     [router, organization, searchParams],
@@ -65,7 +65,7 @@ export function SearchFilters({ organization, authors = [], collections = [] }: 
       params.delete('hasTranscript');
       params.delete('hasAiSummary');
       params.delete('page');
-      router.push(`/${organization}/search?${params.toString()}`);
+      router.push(`/org/${organization}/search?${params.toString()}`);
     });
   }, [router, organization, searchParams]);
 

@@ -78,7 +78,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
 
   const handleSearchSubmit = React.useCallback(() => {
     if (query.trim()) {
-      runCommand(() => router.push(`/${organization}/search?q=${encodeURIComponent(query.trim())}`));
+      runCommand(() => router.push(`/org/${organization}/search?q=${encodeURIComponent(query.trim())}`));
     }
   }, [query, router, organization, runCommand]);
 
@@ -137,7 +137,7 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
                 {searchResults.map((video) => (
                   <CommandItem
                     key={video.id}
-                    onSelect={() => runCommand(() => router.push(`/${organization}/videos/${video.id}`))}
+                    onSelect={() => runCommand(() => router.push(`/org/${organization}/videos/${video.id}`))}
                   >
                     <Video className="mr-2 h-4 w-4" />
                     <div className="flex flex-col">
@@ -173,41 +173,41 @@ export function CommandBar({ organization, organizationId }: CommandBarProps) {
           )}
 
           <CommandGroup heading="Navigation">
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}`))}>
               <Home className="mr-2 h-4 w-4" />
               <span>Home</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/my-videos`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/my-videos`))}>
               <Video className="mr-2 h-4 w-4" />
               <span>My Videos</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/notebooks`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/notebooks`))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>Notebooks</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/search`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/search`))}>
               <Search className="mr-2 h-4 w-4" />
               <span>Advanced Search</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Actions">
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/upload`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/upload`))}>
               <Plus className="mr-2 h-4 w-4" />
               <span>New Video</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/notebooks/new`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/notebooks/new`))}>
               <FolderKanban className="mr-2 h-4 w-4" />
               <span>New Notebook</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/settings/profile`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/settings/profile`))}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => router.push(`/${organization}/settings/members`))}>
+            <CommandItem onSelect={() => runCommand(() => router.push(`/org/${organization}/settings/members`))}>
               <Users className="mr-2 h-4 w-4" />
               <span>Members</span>
             </CommandItem>

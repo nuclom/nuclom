@@ -27,7 +27,7 @@ export function SearchResultCard({ result, organization }: SearchResultCardProps
   };
 
   return (
-    <Link href={`/${organization}/videos/${video.id}`} className="group block">
+    <Link href={`/org/${organization}/videos/${video.id}`} className="group block">
       <Card className="overflow-hidden hover:border-primary transition-colors">
         <CardContent className="p-0">
           <div className="flex gap-4 p-4">

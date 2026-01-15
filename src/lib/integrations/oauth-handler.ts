@@ -227,12 +227,12 @@ export function saveIntegration(params: {
  * Creates a redirect response for successful OAuth callback
  */
 export function successRedirect(organizationId: string, provider: string): Response {
-  return redirect(`/${organizationId}/settings/integrations?success=${provider.toLowerCase()}`);
+  return redirect(`/org/${organizationId}/settings/integrations?success=${provider.toLowerCase()}`);
 }
 
 /**
  * Creates a redirect response for failed OAuth callback
  */
 export function errorRedirect(organizationId: string, provider: string): Response {
-  return redirect(`/${organizationId}/settings/integrations?error=${provider.toLowerCase()}_callback_failed`);
+  return redirect(`/org/${organizationId}/settings/integrations?error=${provider.toLowerCase()}_callback_failed`);
 }

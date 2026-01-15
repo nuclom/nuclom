@@ -84,7 +84,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       if (data) {
         setOrganizations((prev) => [...prev, data]);
         await authClient.organization.setActive({ organizationId: data.id });
-        router.push(`/${data.slug}`);
+        router.push(`/org/${data.slug}`);
         setOpen(false);
         toast({
           title: 'Success',
@@ -106,7 +106,7 @@ export function OrganizationSwitcher({ currentOrganization }: { currentOrganizat
       await authClient.organization.setActive({
         organizationId: organization.id,
       });
-      router.push(`/${organization.slug}`);
+      router.push(`/org/${organization.slug}`);
       setOpen(false);
       setActiveOrg(organization);
     } catch (error) {

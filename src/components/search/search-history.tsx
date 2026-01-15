@@ -32,7 +32,7 @@ export function SearchHistory({ history, organizationId, organization, onRefresh
 
   const handleApplySearch = (query: string) => {
     startTransition(() => {
-      router.push(`/${organization}/search?q=${encodeURIComponent(query)}`);
+      router.push(`/org/${organization}/search?q=${encodeURIComponent(query)}`);
     });
   };
 

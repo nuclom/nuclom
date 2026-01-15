@@ -57,7 +57,7 @@ export function VideoActions({
       }
 
       // Redirect to videos list after successful deletion
-      router.push(`/${organizationSlug}/videos`);
+      router.push(`/org/${organizationSlug}/videos`);
       router.refresh();
     } catch (error) {
       logger.error('Failed to delete video', error);

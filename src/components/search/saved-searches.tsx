@@ -61,7 +61,7 @@ export function SavedSearches({
           }
         });
       }
-      router.push(`/${organization}/search?${params.toString()}`);
+      router.push(`/org/${organization}/search?${params.toString()}`);
     });
   };
 

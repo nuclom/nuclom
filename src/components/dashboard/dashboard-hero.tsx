@@ -40,13 +40,13 @@ export function DashboardHero({ organization, userName }: DashboardHeroProps) {
 
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link href={`/${organization}/upload`}>
+            <Link href={`/org/${organization}/upload`}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Video
             </Link>
           </Button>
           <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
-            <Link href={`/${organization}/record`}>
+            <Link href={`/org/${organization}/record`}>
               <div className="mr-2 h-4 w-4 rounded-full bg-red-500 animate-pulse" />
               Record
             </Link>
