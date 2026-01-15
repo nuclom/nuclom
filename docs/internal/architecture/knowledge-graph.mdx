@@ -1,0 +1,300 @@
+---
+title: "Knowledge Graph"
+description: "AI-powered decision extraction and organizational knowledge management"
+icon: "diagram-project"
+---
+
+This document describes the Knowledge Graph feature that automatically extracts, stores, and queries decisions made in video meetings.
+
+## Overview
+
+The Knowledge Graph transforms Nuclom from video storage into an organizational memory layer by:
+
+<CardGroup cols={3}>
+  <Card title="Extracting Decisions" icon="brain">
+    AI automatically identifies decisions from video transcripts
+  </Card>
+  <Card title="Building Relationships" icon="link">
+    Links decisions to people, topics, videos, and external artifacts
+  </Card>
+  <Card title="Enabling Discovery" icon="magnifying-glass">
+    Query decisions by topic, person, artifact, or timeline
+  </Card>
+</CardGroup>
+
+## Architecture
+
+### Database Schema
+
+The knowledge graph uses five new tables:
+
+```
+decisions
+├── decisionParticipants (who was involved)
+├── decisionLinks (external artifact references)
+└── knowledgeNodes/knowledgeEdges (graph structure)
+```
+
+<AccordionGroup>
+  <Accordion title="decisions">
+    Core decision records with:
+    - `summary`: Brief decision summary
+    - `context`: Background context
+    - `reasoning`: Why this decision was made
+    - `status`: proposed | decided | revisited | superseded
+    - `decisionType`: technical | process | product | team | other
+    - `timestampStart/End`: Video timestamp range
+    - `confidence`: AI confidence score (0-100)
+    - `tags`: Array of topic tags
+    - `embedding`: Vector embedding for semantic search (future)
+  </Accordion>
+  <Accordion title="decisionParticipants">
+    People involved in decisions:
+    - `role`: decider | participant | mentioned
+    - References user table when available, stores name otherwise
+  </Accordion>
+  <Accordion title="knowledgeNodes">
+    Graph nodes for:
+    - `person`: Team members
+    - `topic`: Discussion topics/themes
+    - `artifact`: External references (PRs, docs, issues)
+    - `decision`: Decisions themselves
+    - `video`: Video recordings
+  </Accordion>
+  <Accordion title="knowledgeEdges">
+    Relationships between nodes:
+    - `relationshipType`: Examples: "made_by", "discussed_in", "related_to", "mentions"
+    - `weight`: Relationship strength (optional)
+  </Accordion>
+  <Accordion title="decisionLinks">
+    Polymorphic links to external artifacts:
+    - `artifactType`: github:pr, github:issue, google:doc, notion:page, jira:issue
+    - `artifactId`: External identifier
+    - `url`: Direct link to artifact
+  </Accordion>
+</AccordionGroup>
+
+### AI Decision Extraction
+
+The `DecisionExtractionService` uses AI to extract decisions from transcripts:
+
+```typescript
+import { DecisionExtractionService } from "@/lib/effect";
+
+const decisions = await DecisionExtractionService.extractDecisions(
+  transcriptSegments,
+  videoTitle
+);
+```
+
+**Extraction includes:**
+- Decision summary and type classification
+- Participant identification with roles
+- Topic/tag extraction
+- Timestamp mapping to transcript segments
+- Confidence scoring
+- External artifact detection (GitHub PR mentions, etc.)
+
+### Video Processing Integration
+
+Decision extraction is integrated into the video processing workflow:
+
+```typescript
+// In video-processing.ts workflow
+
+// Step 7: Extract decisions
+const decisions = await extractDecisions(transcription.segments, videoTitle);
+
+// Step 8: Save to database
+await saveDecisions(videoId, organizationId, decisions);
+```
+
+## API Endpoints
+
+<Tabs>
+  <Tab title="Decisions">
+    | Endpoint | Method | Description |
+    |----------|--------|-------------|
+    | `/api/knowledge/decisions` | GET | List decisions with filters |
+    | `/api/knowledge/decisions` | POST | Create manual decision |
+    | `/api/knowledge/decisions/[id]` | GET | Get single decision |
+    | `/api/knowledge/decisions/[id]` | PUT | Update decision |
+    | `/api/knowledge/decisions/[id]` | DELETE | Delete decision |
+
+    **Query parameters for listing:**
+    - `organizationId` (required)
+    - `videoId`, `status`, `type`, `topic`, `person`, `search`
+  </Tab>
+  <Tab title="Timeline">
+    ```
+    GET /api/knowledge/timeline?organizationId=xxx&startDate=xxx&endDate=xxx
+    ```
+
+    Returns chronologically ordered decisions within a date range.
+  </Tab>
+  <Tab title="Context">
+    ```
+    GET /api/knowledge/context?organizationId=xxx&artifactType=github:pr&artifactId=123
+    ```
+
+    Returns all decisions linked to a specific external artifact.
+  </Tab>
+  <Tab title="Graph">
+    ```
+    GET /api/knowledge/graph?organizationId=xxx
+    ```
+
+    Returns knowledge graph nodes and edges for visualization.
+  </Tab>
+  <Tab title="Video Decisions">
+    ```
+    GET /api/videos/[id]/decisions
+    ```
+
+    Returns all decisions extracted from a specific video.
+  </Tab>
+</Tabs>
+
+## UI Components
+
+<CardGroup cols={3}>
+  <Card title="DecisionTimeline" icon="timeline">
+    Chronological timeline showing decisions across videos:
+    - Filter by type and status
+    - Expandable cards with full context
+    - Direct video links with timestamp
+  </Card>
+  <Card title="KnowledgeExplorer" icon="diagram-project">
+    Interactive force-directed graph visualization:
+    - Node types: person, topic, decision, video, artifact
+    - Click to explore connected nodes
+    - Search and filter capabilities
+    - Zoom and fullscreen support
+  </Card>
+  <Card title="VideoDecisionsSidebar" icon="sidebar">
+    Sidebar panel for video detail page:
+    - Shows decisions sorted by timestamp
+    - Highlights active decision during playback
+    - Click to seek video to decision point
+    - Expandable details (reasoning, context, participants)
+  </Card>
+</CardGroup>
+
+## Usage
+
+### Viewing Decisions on Videos
+
+<Steps>
+  <Step title="Navigate">
+    Navigate to any video page
+  </Step>
+  <Step title="Open Tab">
+    Click the "Decisions" tab in the sidebar
+  </Step>
+  <Step title="Interact">
+    Click a decision to seek to that point in the video
+  </Step>
+</Steps>
+
+### Browsing the Knowledge Graph
+
+<Steps>
+  <Step title="Navigate">
+    Navigate to the Knowledge Explorer page
+  </Step>
+  <Step title="Search">
+    Use search/filter to find specific nodes
+  </Step>
+  <Step title="Explore">
+    Click nodes to see connections and details
+  </Step>
+</Steps>
+
+### Querying Decisions
+
+Use the timeline view to find decisions by:
+- Date range
+- Topic or keyword
+- Decision type
+- Status
+
+## Data Flow
+
+```
+Video Upload
+    |
+Transcription (Step 3)
+    |
+AI Analysis (Step 6)
+    |
+Decision Extraction (Step 7)  <-- DecisionExtractionService
+    |
+Database Storage (Step 8)     <-- KnowledgeGraphRepository
+    |
+API Endpoints                 <-- /api/knowledge/*
+    |
+UI Components                 <-- Timeline, Explorer, Sidebar
+```
+
+## Configuration
+
+<Note>
+The AI model used for decision extraction is configurable:
+- Default: `xai/grok-3` via AI Gateway
+- Configurable via environment or service layer
+</Note>
+
+## Future Enhancements
+
+<CardGroup cols={2}>
+  <Card title="Vector Embeddings" icon="brain">
+    Semantic search for decisions
+  </Card>
+  <Card title="Cross-video Linking" icon="link">
+    Link related decisions across videos
+  </Card>
+  <Card title="Impact Tracking" icon="chart-line">
+    Track decision outcomes
+  </Card>
+  <Card title="Integrations" icon="plug">
+    Connect to project management tools
+  </Card>
+  <Card title="Reminders" icon="bell">
+    Automated decision follow-up reminders
+  </Card>
+  <Card title="Conflict Detection" icon="triangle-exclamation">
+    Detect conflicting decisions
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Decisions not appearing">
+    1. Check video processing completed successfully
+    2. Verify transcript was generated
+    3. Check the video has sufficient spoken content
+  </Accordion>
+  <Accordion title="Low confidence scores">
+    - May indicate unclear discussion in the video
+    - Consider adding manual decisions for important items
+  </Accordion>
+  <Accordion title="Missing participants">
+    - Participants are extracted from transcript text
+    - Names must be mentioned explicitly in discussion
+  </Accordion>
+</AccordionGroup>
+
+## Related Documentation
+
+<CardGroup cols={3}>
+  <Card title="Video Processing" href="/internal/architecture/video-processing" icon="video">
+    Processing pipeline
+  </Card>
+  <Card title="Database Schema" href="/internal/architecture/database" icon="database">
+    Full schema documentation
+  </Card>
+  <Card title="API Reference" href="/public/api" icon="book">
+    API documentation
+  </Card>
+</CardGroup>

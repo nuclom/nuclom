@@ -1,0 +1,353 @@
+---
+title: 'Team Management'
+description: 'Invite members, manage roles and permissions, and organize your team effectively'
+icon: 'users-gear'
+---
+
+Effective team management is crucial for successful video collaboration. This guide covers inviting members, managing roles and permissions, and maintaining organization security.
+
+## Understanding Team Structure
+
+### Organization Hierarchy
+
+```
+Organization Level
+├── Team Level (sub-groups, max 20 per org)
+├── Channel Level (topic-specific access)
+└── Content Level (individual video permissions)
+```
+
+### Teams Feature
+
+Teams provide a way to organize members into sub-groups within your organization:
+
+<CardGroup cols={2}>
+  <Card title="Department organization" icon="building">
+    Create teams for Engineering, Marketing, Sales, etc.
+  </Card>
+  <Card title="Project groups" icon="folder">
+    Organize members by project or initiative
+  </Card>
+  <Card title="Access control" icon="lock">
+    Team-based permissions for content
+  </Card>
+  <Card title="Collaboration focus" icon="users">
+    Keep discussions relevant to team members
+  </Card>
+</CardGroup>
+
+### Creating Teams
+
+<Steps>
+  <Step title="Go to Settings">
+    Navigate to **Settings** → **Teams**
+  </Step>
+  <Step title="Create Team">
+    Click **Create Team**
+  </Step>
+  <Step title="Configure">
+    Enter team name and add members from your organization
+  </Step>
+</Steps>
+
+## Team Roles
+
+### Organization Roles
+
+| Role | Capabilities |
+| ---- | ------------ |
+| **Owner** | Full administrative control, billing, member management, only one per org |
+| **Admin** | Member management (except owner), content moderation, settings |
+| **Editor** | Content creation and editing, read access to channels and teams |
+| **Member** | Upload, organize, comment, create channels/series (default role) |
+| **Viewer** | View-only access, limited sharing, cannot upload |
+
+### Content-Specific Roles
+
+| Role | Scope |
+| ---- | ----- |
+| **Channel Admin** | Manage specific channel settings and membership |
+| **Series Moderator** | Manage series content, order, and access |
+
+## Inviting Team Members
+
+### Individual Invitations
+
+<Tabs>
+  <Tab title="Via Email">
+    <Steps>
+      <Step title="Open Members">
+        Go to **Settings** → **Members**
+      </Step>
+      <Step title="Click Invite">
+        Click **Invite Member**
+      </Step>
+      <Step title="Enter Details">
+        Enter email, select role, add optional message
+      </Step>
+      <Step title="Send">
+        Click **Send Invitation**
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Via Sharing Link">
+    1. Generate organization invitation link
+    2. Set expiration date and usage limits
+    3. Share link with team members
+    4. Monitor invitation acceptance
+  </Tab>
+  <Tab title="Via Command Bar">
+    1. Press **Cmd/Ctrl + K**
+    2. Type "invite member"
+    3. Enter email and role
+    4. Send invitation
+  </Tab>
+</Tabs>
+
+### Bulk Invitations
+
+<AccordionGroup>
+  <Accordion title="CSV Import">
+    1. Prepare CSV file with columns: email, role, name
+    2. Go to **Settings** → **Members** → **Bulk Import**
+    3. Upload CSV file
+    4. Review and send all invitations
+  </Accordion>
+  <Accordion title="Domain-Based Invitations">
+    1. Set up domain-based auto-acceptance
+    2. Anyone with company email can join
+    3. Set default role for domain users
+    4. Configure approval workflows if needed
+  </Accordion>
+</AccordionGroup>
+
+### Invitation Status
+
+| Status | Description |
+| ------ | ----------- |
+| **Pending** | Invitation sent, not yet accepted |
+| **Accepted** | Member has joined organization |
+| **Expired** | Invitation has expired |
+| **Rejected** | Invitation was declined |
+
+## Managing Team Members
+
+### Member Directory
+
+<Steps>
+  <Step title="Navigate">
+    Go to **Settings** → **Members**
+  </Step>
+  <Step title="View">
+    See all organization members with roles and permissions
+  </Step>
+  <Step title="Search">
+    Use search and filters to find specific members
+  </Step>
+</Steps>
+
+### Changing Member Roles
+
+**Individual Changes:**
+
+1. Find the member in **Settings** → **Members**
+2. Click **Edit** or the role dropdown
+3. Select new role
+4. Confirm changes
+
+**Bulk Changes:**
+
+1. Select multiple members
+2. Choose **Change Role** from actions menu
+3. Apply to all selected
+
+### Custom Permissions
+
+<CardGroup cols={2}>
+  <Card title="Granular Control" icon="sliders">
+    Set specific permissions per member, override role defaults
+  </Card>
+  <Card title="Permission Categories" icon="folder-tree">
+    Content, Collaboration, Administration, Security
+  </Card>
+</CardGroup>
+
+## Team Security
+
+### Access Controls
+
+<CardGroup cols={2}>
+  <Card title="Two-Factor Authentication" icon="shield-check">
+    Require 2FA for all members or admin roles only
+  </Card>
+  <Card title="Session Management" icon="clock">
+    Set timeout periods and force logout after inactivity
+  </Card>
+  <Card title="IP Restrictions" icon="globe">
+    Limit access to specific IP ranges or locations
+  </Card>
+  <Card title="Audit Trails" icon="file-lines">
+    Complete action history and compliance reporting
+  </Card>
+</CardGroup>
+
+### Security Monitoring
+
+**Activity Logs:**
+
+- Track member login activity
+- Monitor permission changes
+- Log content access
+- Review security events
+
+<Warning>
+  Regularly review audit trails to identify unauthorized access attempts.
+</Warning>
+
+## Organizing Large Teams
+
+### Team Structure Strategies
+
+<Tabs>
+  <Tab title="Departmental">
+    ```
+    Company Organization
+    ├── Engineering Team
+    │   ├── Frontend Developers
+    │   ├── Backend Developers
+    │   └── DevOps Team
+    ├── Marketing Team
+    │   ├── Content Creators
+    │   └── Analytics Team
+    └── Sales Team
+        ├── Account Managers
+        └── Customer Success
+    ```
+  </Tab>
+  <Tab title="Project-Based">
+    ```
+    Project Alpha Organization
+    ├── Core Team
+    │   ├── Project Manager
+    │   ├── Lead Developer
+    │   └── Designer
+    ├── Extended Team
+    │   ├── Stakeholders
+    │   └── Subject Matter Experts
+    └── External Partners
+        ├── Contractors
+        └── Consultants
+    ```
+  </Tab>
+</Tabs>
+
+### Communication Management
+
+| Channel | Purpose |
+| ------- | ------- |
+| **Organization-Wide** | Announcements, policy changes, important notifications |
+| **Team-Specific** | Department updates, project communications |
+
+## Team Onboarding
+
+### Onboarding Process
+
+<Steps>
+  <Step title="Pre-Arrival Setup">
+    Create account, set permissions, prepare welcome materials
+  </Step>
+  <Step title="First Day">
+    Welcome tour, role overview, tool training
+  </Step>
+  <Step title="First Week">
+    Complete profile, join channels, attend meetings, start contributing
+  </Step>
+</Steps>
+
+### Training Resources
+
+<CardGroup cols={2}>
+  <Card title="Video Tutorials" icon="video">
+    Platform overview, feature demonstrations, best practices
+  </Card>
+  <Card title="Documentation" icon="book">
+    User guides, team procedures, troubleshooting resources
+  </Card>
+</CardGroup>
+
+## Handling Team Changes
+
+### Member Departures
+
+<Steps>
+  <Step title="Revoke Access">
+    Remove organization access immediately
+  </Step>
+  <Step title="Transfer Content">
+    Transfer content ownership to appropriate team members
+  </Step>
+  <Step title="Cleanup">
+    Remove from channels, revoke sharing permissions, archive info
+  </Step>
+</Steps>
+
+### Team Restructuring
+
+**Reorganization Planning:**
+
+1. Identify affected members
+2. Map current permissions
+3. Plan new structure
+4. Communicate changes clearly
+
+## Best Practices
+
+### Team Communication
+
+<AccordionGroup>
+  <Accordion title="Regular Check-ins">
+    Weekly team calls, monthly all-hands, quarterly strategy sessions
+  </Accordion>
+  <Accordion title="Clear Expectations">
+    Define communication standards, response times, escalation procedures
+  </Accordion>
+  <Accordion title="Feedback Culture">
+    Encourage open feedback, provide constructive criticism, celebrate successes
+  </Accordion>
+</AccordionGroup>
+
+### Performance Management
+
+| Area | Metrics |
+| ---- | ------- |
+| **Engagement** | Participation rates, content contributions, collaboration frequency |
+| **Productivity** | Content creation rates, review times, project contributions |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Member Can't Access Organization">
+    - Verify invitation was sent and accepted
+    - Check email spam folders
+    - Confirm role permissions
+    - Validate organization access
+  </Accordion>
+  <Accordion title="Permission Problems">
+    - Review role assignments
+    - Check custom permissions
+    - Verify group memberships
+    - Update access controls
+  </Accordion>
+  <Accordion title="Low Engagement">
+    - Analyze participation patterns
+    - Identify barriers
+    - Provide additional training
+    - Adjust communication strategies
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Settings & Preferences" icon="gear" href="/guides/settings-preferences">
+  Customize your Nuclom experience
+</Card>

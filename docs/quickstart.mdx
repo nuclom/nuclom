@@ -1,0 +1,74 @@
+---
+title: Quickstart
+description: 'Get up and running with Nuclom in under 5 minutes'
+---
+
+## Create Your Account
+
+<Steps>
+  <Step title="Sign Up">
+    Go to [nuclom.com](https://nuclom.com) and click **Get Started**. Choose your sign-up method:
+    - **Email** — Enter email and create a password
+    - **GitHub** — Sign in with your GitHub account
+    - **Google** — Sign in with your Google account
+  </Step>
+  <Step title="Complete Your Profile">
+    Set up your name, profile picture, and timezone.
+  </Step>
+  <Step title="Create an Organization">
+    Click **Create Organization** and fill in your team's details.
+  </Step>
+  <Step title="Upload Your First Video">
+    Click the **New** button and select **New Video** to upload your first video.
+  </Step>
+</Steps>
+
+## For Developers
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/nuclom/nuclom.git
+    cd nuclom
+    ```
+  </Step>
+  <Step title="Install Dependencies">
+    ```bash
+    pnpm install
+    ```
+  </Step>
+  <Step title="Set Up Environment">
+    ```bash
+    cp .env.example .env.local
+    # Edit .env.local with your configuration
+    ```
+  </Step>
+  <Step title="Start Development Server">
+    ```bash
+    pnpm dev
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  See the [Development Setup](/internal/reference/development-setup) guide for detailed instructions.
+</Info>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card
+    title="User Guides"
+    icon="book-open"
+    href="/guides/getting-started"
+  >
+    Learn how to use Nuclom effectively
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Build integrations with our API
+  </Card>
+</CardGroup>

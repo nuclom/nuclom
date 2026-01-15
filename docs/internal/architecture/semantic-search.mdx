@@ -1,0 +1,271 @@
+---
+title: "Semantic Search"
+description: "Vector-based content search using pgvector and OpenAI embeddings"
+icon: "magnifying-glass"
+---
+
+This document describes the semantic search capabilities in Nuclom, enabling teams to find content by meaning rather than exact keyword matches.
+
+## Overview
+
+Semantic search uses vector embeddings to find content that is conceptually similar to a query, even when the exact words don't match. For example, searching for "database scaling discussions" will find videos mentioning "PostgreSQL performance", "sharding", "read replicas", etc.
+
+## Architecture
+
+### Components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Search Flow                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  User Query ─────> Embedding ─────> Vector Search           │
+│      │             Service          (pgvector)               │
+│      │                                  │                    │
+│      │                                  v                    │
+│      └────────────────────────────> Full-text <───┐         │
+│                                     Search        │         │
+│                                        │          │         │
+│                                        v          │         │
+│                                   Hybrid Merge ───┘         │
+│                                        │                    │
+│                                        v                    │
+│                                   Ranked Results            │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Database Schema
+
+#### transcript_chunks Table
+
+Stores chunked transcript segments with vector embeddings:
+
+```sql
+CREATE TABLE transcript_chunks (
+  id UUID PRIMARY KEY,
+  video_id TEXT REFERENCES videos(id),
+  organization_id TEXT REFERENCES organizations(id),
+  chunk_index INTEGER,
+  text TEXT NOT NULL,
+  token_count INTEGER,
+  timestamp_start INTEGER,  -- seconds into video
+  timestamp_end INTEGER,
+  speakers TEXT[],
+  embedding vector(1536),   -- OpenAI text-embedding-3-small
+  created_at TIMESTAMP
+);
+```
+
+#### Vector Indexes
+
+HNSW indexes for fast approximate nearest neighbor search:
+
+```sql
+CREATE INDEX transcript_chunks_embedding_idx
+  ON transcript_chunks
+  USING hnsw (embedding vector_cosine_ops)
+  WITH (m = 16, ef_construction = 64);
+```
+
+### Embedding Pipeline
+
+<Steps>
+  <Step title="Chunking">
+    Transcripts are split into ~500 token chunks with overlap
+  </Step>
+  <Step title="Embedding Generation">
+    OpenAI `text-embedding-3-small` (1536 dimensions)
+  </Step>
+  <Step title="Storage">
+    Embeddings stored as `vector(1536)` in PostgreSQL with pgvector
+  </Step>
+  <Step title="Indexing">
+    HNSW index for sub-linear search time
+  </Step>
+</Steps>
+
+## API Endpoints
+
+<Tabs>
+  <Tab title="Semantic Search">
+    ```http
+    POST /api/search/semantic
+    {
+      "query": "discussions about database scaling",
+      "organizationId": "org_123",
+      "limit": 20,
+      "threshold": 0.7,
+      "contentTypes": ["transcript_chunk", "decision"]
+    }
+    ```
+  </Tab>
+  <Tab title="Hybrid Search">
+    Combines semantic and keyword search with configurable weights:
+
+    ```http
+    POST /api/search/hybrid
+    {
+      "query": "PostgreSQL performance",
+      "organizationId": "org_123",
+      "semanticWeight": 0.5,  // 0-1, default 0.5
+      "semanticThreshold": 0.6
+    }
+    ```
+  </Tab>
+  <Tab title="Similar Videos">
+    Find videos with similar content:
+
+    ```http
+    GET /api/videos/{videoId}/similar?limit=5&threshold=0.7
+    ```
+  </Tab>
+  <Tab title="Generate Embeddings">
+    Trigger embedding generation for a video:
+
+    ```http
+    POST /api/videos/{videoId}/embeddings
+    ```
+  </Tab>
+</Tabs>
+
+## Services
+
+### Embedding Service
+
+`src/lib/effect/services/embedding.ts`
+
+```typescript
+interface EmbeddingServiceInterface {
+  generateEmbedding(text: string): Effect<readonly number[], AIServiceError>;
+  generateEmbeddings(texts: readonly string[]): Effect<readonly number[][], AIServiceError>;
+  chunkTranscript(transcript: string, segments?: TranscriptSegment[]): Effect<TextChunk[], never>;
+  processTranscript(transcript: string, segments?: TranscriptSegment[]): Effect<ChunkEmbedding[], AIServiceError>;
+}
+```
+
+### Semantic Search Repository
+
+`src/lib/effect/services/semantic-search-repository.ts`
+
+```typescript
+interface SemanticSearchRepositoryService {
+  saveTranscriptChunks(videoId: string, organizationId: string, chunks: ChunkEmbedding[]): Effect<TranscriptChunk[], DatabaseError>;
+  semanticSearch(params: SemanticSearchParams): Effect<SemanticSearchResult[], DatabaseError>;
+  findSimilarVideos(params: SimilarVideosParams): Effect<SimilarVideoResult[], DatabaseError>;
+}
+```
+
+## Search Types
+
+<CardGroup cols={3}>
+  <Card title="Pure Semantic Search" icon="brain">
+    Best for conceptual queries:
+    - "discussions about authentication"
+    - "how we handle error handling"
+    - "performance optimization strategies"
+  </Card>
+  <Card title="Pure Keyword Search" icon="text">
+    Best for exact term searches:
+    - Specific error messages
+    - Code snippets
+    - Exact phrases
+  </Card>
+  <Card title="Hybrid Search" icon="merge">
+    Best for most use cases - combines both approaches:
+    - Natural language questions
+    - Technical topic exploration
+    - Documentation search
+  </Card>
+</CardGroup>
+
+## Configuration
+
+### Similarity Threshold
+
+Default: 0.7 (70% similarity)
+
+| Value | Result |
+|-------|--------|
+| Higher | More relevant but fewer results |
+| Lower | More results but less precise |
+
+### Semantic Weight (Hybrid Search)
+
+Default: 0.5 (50/50 blend)
+
+| Value | Result |
+|-------|--------|
+| 1.0 | Pure semantic |
+| 0.0 | Pure keyword |
+
+## Chunking Strategy
+
+Transcripts are chunked using an overlapping window approach:
+
+| Parameter | Value |
+|-----------|-------|
+| **Max tokens** | 500 per chunk |
+| **Overlap** | 50 tokens between chunks |
+| **Segment-aware** | Uses transcript segments when available for accurate timestamps |
+
+## Integration Points
+
+<AccordionGroup>
+  <Accordion title="Video Processing">
+    Embeddings are generated automatically when:
+    - A video transcript is completed
+    - Manual trigger via `/api/videos/{videoId}/embeddings`
+  </Accordion>
+  <Accordion title="Knowledge Graph">
+    Decisions table has embedding fields for semantic search across decisions:
+    - `decisions.embedding_vector` - vector(1536)
+    - `knowledge_nodes.embedding_vector` - vector(1536)
+  </Accordion>
+  <Accordion title="Decision Extraction">
+    When decisions are extracted from videos, embeddings can be generated for semantic retrieval of organizational decisions.
+  </Accordion>
+</AccordionGroup>
+
+## Performance Considerations
+
+### Index Configuration
+
+HNSW parameters for ~1M vectors:
+- `m = 16` - connections per node (balance of recall vs speed)
+- `ef_construction = 64` - construction time quality
+
+### Query Optimization
+
+- Vector similarity uses cosine distance
+- Combined with filtering on organization_id for multi-tenancy
+- Results limited by threshold before final ranking
+
+### Backfill
+
+For existing videos without embeddings:
+
+```bash
+# API endpoint to get videos needing embeddings
+GET /api/videos/embeddings/pending?organizationId=org_123
+
+# Process each video
+POST /api/videos/{videoId}/embeddings
+```
+
+## Future Enhancements
+
+<CardGroup cols={2}>
+  <Card title="Topic Clustering" icon="layer-group">
+    Group videos by semantic similarity
+  </Card>
+  <Card title="Auto-tagging" icon="tags">
+    Generate tags from embedding clusters
+  </Card>
+  <Card title="Cross-video Q&A" icon="message-question">
+    Answer questions across all team videos
+  </Card>
+  <Card title="Timeline Search" icon="timeline">
+    Find specific moments by semantic query
+  </Card>
+</CardGroup>

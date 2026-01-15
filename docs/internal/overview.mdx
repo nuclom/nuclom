@@ -1,0 +1,170 @@
+---
+title: "Internal Documentation"
+description: "Developer and contributor documentation for the Nuclom codebase"
+icon: "book"
+---
+
+## Quick Start
+
+Get running in 5 minutes:
+
+```bash
+git clone https://github.com/SferaDev/nuclom.git
+cd nuclom
+pnpm install
+cp .env.example .env.local  # Configure your environment
+pnpm db:migrate
+pnpm dev                    # -> http://localhost:5001
+```
+
+<Card title="Detailed Setup" icon="computer" href="/internal/reference/development-setup">
+  Full development environment setup guide
+</Card>
+
+## Documentation Index
+
+### Development Reference
+
+| Guide | Description |
+| ----- | ----------- |
+| [Development Setup](/internal/reference/development-setup) | Environment setup and installation |
+| [Environment Config](/internal/reference/environment-config) | Environment variables |
+| [Database Setup](/internal/reference/database-setup) | PostgreSQL and migrations |
+| [Components](/internal/reference/components) | UI component library |
+| [Hooks](/internal/reference/hooks) | Custom React hooks |
+| [Styling](/internal/reference/styling) | Tailwind CSS and themes |
+| [Testing](/internal/reference/testing) | Vitest and Playwright |
+| [Contributing](/internal/reference/contributing) | Code standards and workflow |
+
+### Architecture
+
+| Guide | Description |
+| ----- | ----------- |
+| [Overview](/internal/architecture/overview) | High-level system design |
+| [Database](/internal/architecture/database) | Schema and relationships |
+| [Frontend](/internal/architecture/frontend) | Next.js and React patterns |
+| [Backend](/internal/architecture/backend) | API design |
+| [Authentication](/internal/architecture/authentication) | Better-Auth implementation |
+| [Video Processing](/internal/architecture/video-processing) | Upload and streaming |
+
+## Tech Stack
+
+| Layer | Technologies |
+| ----- | ------------ |
+| **Frontend** | Next.js 16, React 19, TypeScript |
+| **Styling** | Tailwind CSS, shadcn/ui, Radix UI |
+| **Backend** | Next.js API Routes, Effect-TS |
+| **Database** | PostgreSQL, Drizzle ORM |
+| **Auth** | Better-Auth (OAuth: GitHub, Google) |
+| **Storage** | Cloudflare R2 |
+| **AI** | OpenAI, Vercel AI SDK |
+| **Testing** | Vitest, Playwright |
+| **Build** | pnpm, Biome (lint/format) |
+
+## Common Commands
+
+<Tabs>
+  <Tab title="Development">
+    ```bash
+    pnpm dev              # Start dev server
+    pnpm build            # Production build
+    pnpm start            # Start production server
+    ```
+  </Tab>
+  <Tab title="Code Quality">
+    ```bash
+    pnpm tsc              # Type check
+    pnpm lint             # Lint with Biome
+    pnpm format           # Format with Biome
+    ```
+  </Tab>
+  <Tab title="Database">
+    ```bash
+    pnpm db:generate      # Generate migration
+    pnpm db:migrate       # Run migrations
+    pnpm db:push          # Push schema (dev only)
+    pnpm db:studio        # Open Drizzle Studio
+    ```
+  </Tab>
+  <Tab title="Testing">
+    ```bash
+    pnpm test             # Unit tests (Vitest)
+    pnpm test:e2e         # E2E tests (Playwright)
+    pnpm test:coverage    # Coverage report
+    ```
+  </Tab>
+</Tabs>
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (main)/            # Main app routes
+│   │   └── [organization]/ # Organization-scoped pages
+│   ├── api/               # API endpoints
+│   └── globals.css        # Global styles
+├── components/            # React components
+│   ├── ui/               # shadcn/ui primitives
+│   └── *.tsx             # Feature components
+├── hooks/                # Custom React hooks
+├── lib/                  # Core utilities
+│   ├── db/              # Database schema & connection
+│   ├── auth.ts          # Auth configuration
+│   └── utils.ts         # Utilities
+└── types/                # TypeScript types
+```
+
+## Key Patterns
+
+### API Routes
+
+```typescript
+// Always call connection() first
+import { connection } from "next/server"
+
+export async function GET(request: NextRequest) {
+  await connection()  // Required for database access
+  // ... handler logic
+}
+```
+
+### Database Queries
+
+```typescript
+// Use Drizzle query builder
+const video = await db.query.videos.findFirst({
+  where: eq(videos.id, videoId),
+  with: { user: true, comments: true }
+})
+```
+
+### Components
+
+```typescript
+// Use cn() for conditional classes
+import { cn } from "@/lib/utils"
+
+<div className={cn("base-styles", isActive && "active-styles")} />
+```
+
+## Contributing
+
+<Steps>
+  <Step title="Read Contributing Guidelines">
+    Review the [Contributing Guidelines](/internal/reference/contributing)
+  </Step>
+  <Step title="Set up Development Environment">
+    Follow the [Development Setup](/internal/reference/development-setup)
+  </Step>
+  <Step title="Understand System Architecture">
+    Learn about the [Architecture](/internal/architecture/overview)
+  </Step>
+  <Step title="Follow Code Patterns">
+    Follow established code patterns
+  </Step>
+</Steps>
+
+<Note>
+**Need help?** Check the troubleshooting guides or reach out to the team.
+</Note>
