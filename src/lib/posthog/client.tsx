@@ -3,7 +3,8 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
+import { useSession } from '@/lib/auth-client';
 import { env } from '../env/client';
 
 // Environment variables
@@ -74,6 +75,45 @@ function PageViewTracker() {
 }
 
 /**
+ * PostHog User Identifier
+ * Identifies users in PostHog when they log in and resets on logout.
+ * This ensures user activity is attributed to the correct person.
+ */
+function PostHogIdentifier() {
+  const { data: session, isPending } = useSession();
+  const posthogInstance = usePostHog();
+  const previousUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isPending || !posthogInstance) return;
+
+    const user = session?.user;
+    const currentUserId = user?.id ?? null;
+
+    // Only process if user state has changed
+    if (currentUserId === previousUserIdRef.current) return;
+
+    if (user) {
+      // User logged in - identify them in PostHog
+      posthogInstance.identify(user.id, {
+        email: user.email,
+        name: user.name,
+        // Include additional user properties for richer analytics
+        createdAt: user.createdAt,
+        emailVerified: user.emailVerified,
+      });
+    } else if (previousUserIdRef.current !== null) {
+      // User logged out - reset PostHog identity
+      posthogInstance.reset();
+    }
+
+    previousUserIdRef.current = currentUserId;
+  }, [session, isPending, posthogInstance]);
+
+  return null;
+}
+
+/**
  * PostHog Provider wrapper for the application
  * Initializes PostHog and provides context to all child components
  */
@@ -87,6 +127,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <PageViewTracker />
       </Suspense>
+      <PostHogIdentifier />
       {children}
     </PHProvider>
   );
