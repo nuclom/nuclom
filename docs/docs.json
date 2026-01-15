@@ -54,7 +54,7 @@
               "api-reference/authentication"
             ],
             "openapi": {
-              "source": "https://nuclom.com/openapi.json",
+              "source": "../public/openapi.json",
               "directory": "api-reference"
             }
           },
