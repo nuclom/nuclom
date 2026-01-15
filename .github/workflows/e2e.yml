@@ -147,4 +147,4 @@ jobs:
         if: always()
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: "Vercel Status: End-to-End Tests"
+          name: "Vercel - nuclom: E2E Tests"
