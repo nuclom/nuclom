@@ -7,10 +7,11 @@
 
 import { layer as pgDrizzleLayer } from '@effect/sql-drizzle/Pg';
 import { PgClient } from '@effect/sql-pg';
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { Config, Context, Effect, Layer, pipe, Redacted } from 'effect';
-import postgres from 'postgres';
-import * as schema from '@/lib/db/schema';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { Config, Context, Effect, Layer, pipe } from 'effect';
+import type postgres from 'postgres';
+import { getPrimaryClient, db as globalDb } from '@/lib/db';
+import type * as schema from '@/lib/db/schema';
 import { DatabaseError, DuplicateError, NotFoundError, TransactionError } from '../errors';
 
 // =============================================================================
@@ -57,30 +58,21 @@ export const DrizzleLive = pgDrizzleLayer.pipe(Layer.provide(makePgClientLayer))
 // =============================================================================
 
 /**
- * Creates a Database service layer using direct postgres-js connection
- * This is useful when you don't need full Effect SQL features
+ * Creates a Database service layer using the global pooled connection
+ *
+ * This reuses the connection pool from @/lib/db instead of creating new
+ * connections per request. This is more efficient and prevents connection leaks.
+ *
+ * The global connection pool handles:
+ * - Connection pooling (max: 20 connections)
+ * - Idle timeout (20 seconds)
+ * - Connection timeout (10 seconds)
+ * - Graceful shutdown via registerShutdownHandlers()
  */
-export const DatabaseLive = Layer.scoped(
-  Database,
-  Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted('DATABASE_URL');
-
-    const client = postgres(Redacted.value(databaseUrl), {
-      prepare: false, // Required for "Transaction" pool mode
-    });
-
-    const db = drizzle(client, { schema });
-
-    // Cleanup on scope closure
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        client.end();
-      }),
-    );
-
-    return { db, client };
-  }),
-);
+export const DatabaseLive = Layer.succeed(Database, {
+  db: globalDb,
+  client: getPrimaryClient(),
+});
 
 // =============================================================================
 // Database Helper Functions
