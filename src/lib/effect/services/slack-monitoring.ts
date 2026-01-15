@@ -18,6 +18,7 @@ export type MonitoringEventType =
   | 'organization_created'
   | 'member_invited'
   | 'member_joined'
+  | 'invitation_accepted'
   | 'beta_access_requested'
   // Billing events
   | 'subscription_created'
@@ -108,7 +109,13 @@ export interface SlackMonitoringServiceInterface {
    * Send an account event (user registration, organization creation)
    */
   readonly sendAccountEvent: (
-    type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined' | 'beta_access_requested',
+    type:
+      | 'user_registered'
+      | 'organization_created'
+      | 'member_invited'
+      | 'member_joined'
+      | 'invitation_accepted'
+      | 'beta_access_requested',
     data: {
       userId?: string;
       userName?: string;
@@ -116,6 +123,7 @@ export interface SlackMonitoringServiceInterface {
       organizationId?: string;
       organizationName?: string;
       inviterName?: string;
+      invitationEmail?: string;
       role?: string;
       useCase?: string;
       company?: string;
@@ -213,6 +221,7 @@ const getEventCategory = (type: MonitoringEventType): EventCategory => {
     organization_created: 'accounts',
     member_invited: 'accounts',
     member_joined: 'accounts',
+    invitation_accepted: 'accounts',
     beta_access_requested: 'accounts',
     // Billing events
     subscription_created: 'billing',
@@ -259,6 +268,7 @@ const getEventEmoji = (type: MonitoringEventType): string => {
     organization_created: ':office:',
     member_invited: ':email:',
     member_joined: ':handshake:',
+    invitation_accepted: ':white_check_mark:',
     beta_access_requested: ':raising_hand:',
     subscription_created: ':tada:',
     subscription_upgraded: ':arrow_up:',
@@ -284,6 +294,7 @@ const getEventTitle = (type: MonitoringEventType): string => {
     organization_created: 'New Organization Created',
     member_invited: 'Member Invited',
     member_joined: 'Member Joined Organization',
+    invitation_accepted: 'Invitation Accepted',
     beta_access_requested: 'Beta Access Requested',
     subscription_created: 'New Subscription',
     subscription_upgraded: 'Subscription Upgraded',
@@ -920,7 +931,13 @@ export const sendSlackMonitoringEvent = (event: MonitoringEvent): Effect.Effect<
   });
 
 export const sendSlackAccountEvent = (
-  type: 'user_registered' | 'organization_created' | 'member_invited' | 'member_joined' | 'beta_access_requested',
+  type:
+    | 'user_registered'
+    | 'organization_created'
+    | 'member_invited'
+    | 'member_joined'
+    | 'invitation_accepted'
+    | 'beta_access_requested',
   data: Parameters<SlackMonitoringServiceInterface['sendAccountEvent']>[1],
 ): Effect.Effect<void, Error, SlackMonitoring> =>
   Effect.gen(function* () {
@@ -977,6 +994,7 @@ export async function notifySlackMonitoring(
     errorMessage?: string;
     useCase?: string;
     company?: string;
+    invitationEmail?: string;
     // Error-specific fields
     errorCode?: string;
     endpoint?: string;

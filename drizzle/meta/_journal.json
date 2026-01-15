@@ -43,6 +43,13 @@
       "when": 1768428583217,
       "tag": "0005_simplify-collections",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768455388841,
+      "tag": "0006_plain_rhino",
+      "breakpoints": true
     }
   ]
 }

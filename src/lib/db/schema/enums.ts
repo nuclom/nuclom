@@ -85,6 +85,11 @@ export const notificationTypeEnum = pgEnum('NotificationType', [
   'subscription_canceled',
   'payment_failed',
   'payment_succeeded',
+  // Organization management notifications
+  'organization_created',
+  'member_added',
+  'member_removed',
+  'role_updated',
 ]);
 
 // =============================================================================
