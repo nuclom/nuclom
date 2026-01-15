@@ -35,9 +35,10 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
-      router.push('/login');
+      const signOutPromise = authClient.signOut();
+      router.replace('/login');
       router.refresh();
+      await signOutPromise;
     } catch (error) {
       logger.error('Logout failed', error);
     }

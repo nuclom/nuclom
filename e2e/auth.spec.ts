@@ -133,8 +133,8 @@ test.describe('Authentication Flow', () => {
     // Clear any existing cookies
     await page.context().clearCookies();
 
-    // Try to access a protected route
-    await page.goto('/vercel');
+    // Try to access a protected route (using e2e-tests org as example)
+    await page.goto('/e2e-tests');
 
     // Should redirect to landing or login
     await expect(page).toHaveURL(/^\/$|\/login|\/auth/);
