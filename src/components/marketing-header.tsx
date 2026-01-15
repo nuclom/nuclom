@@ -33,9 +33,10 @@ export function MarketingHeader({ showDocs = true }: MarketingHeaderProps) {
   const handleLogout = async () => {
     try {
       setMobileMenuOpen(false);
-      await authClient.signOut();
-      router.push('/');
+      const signOutPromise = authClient.signOut();
+      router.replace('/');
       router.refresh();
+      await signOutPromise;
     } catch (error) {
       logger.error('Logout failed', error);
     }
