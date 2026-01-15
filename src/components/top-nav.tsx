@@ -3,6 +3,7 @@
 import { HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { NuclomLogo } from '@/components/nuclom-logo';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,11 @@ interface TopNavProps {
 export function TopNav({ organization, organizationId, children }: TopNavProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -97,7 +103,7 @@ export function TopNav({ organization, organizationId, children }: TopNavProps) 
                 <Avatar className="h-9 w-9 ring-2 ring-border">
                   <AvatarImage src={user?.image || '/placeholder.svg?height=36&width=36'} alt={user?.name || 'User'} />
                   <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {isLoading ? '...' : getInitials(user?.name)}
+                    {!mounted || isLoading ? '...' : getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
