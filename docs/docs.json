@@ -52,7 +52,11 @@
             "pages": [
               "api-reference/introduction",
               "api-reference/authentication"
-            ]
+            ],
+            "openapi": {
+              "source": "https://nuclom.com/openapi.json",
+              "directory": "api-reference"
+            }
           },
           {
             "group": "Core Endpoints",
@@ -161,11 +165,6 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
-  },
-  "api": {
-    "openapi": [
-      "openapi.json"
-    ]
   },
   "navbar": {
     "links": [
