@@ -45,47 +45,8 @@
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/authentication"
-            ],
-            "openapi": {
-              "source": "../public/openapi.json",
-              "directory": "api-reference"
-            }
-          },
-          {
-            "group": "Core Endpoints",
-            "pages": [
-              "api-reference/videos",
-              "api-reference/organizations",
-              "api-reference/notifications"
-            ]
-          },
-          {
-            "group": "AI & Analytics",
-            "pages": [
-              "api-reference/ai",
-              "api-reference/knowledge",
-              "api-reference/insights"
-            ]
-          },
-          {
-            "group": "Utilities",
-            "pages": [
-              "api-reference/embed",
-              "api-reference/errors",
-              "api-reference/changelog"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "Internal Docs",
+        "hidden": true,
         "groups": [
           {
             "group": "Internal Documentation",
@@ -153,11 +114,6 @@
           "anchor": "GitHub",
           "href": "https://github.com/nuclom",
           "icon": "github"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://nuclom.com/community",
-          "icon": "slack"
         }
       ]
     }
@@ -182,8 +138,7 @@
   "footer": {
     "socials": {
       "x": "https://x.com/nuclom",
-      "github": "https://github.com/nuclom",
-      "linkedin": "https://www.linkedin.com/company/nuclom"
+      "github": "https://github.com/nuclom"
     }
   }
 }
