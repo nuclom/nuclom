@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
-import type { VercelConfig } from '@vercel/config/v1';
+import { routes, type VercelConfig } from '@vercel/config/v1';
 
 // =============================================================================
 // Pre-Build Migration Runner
@@ -68,6 +68,30 @@ async function runMigrations(): Promise<void> {
 // Run migrations using top-level await
 await runMigrations();
 
+// =============================================================================
+// Mintlify Documentation Hosting
+// =============================================================================
+
+const branch = process.env.VERCEL_GIT_COMMIT_REF;
+const prodHost = 'nuclom.mintlify.app';
+
+/**
+ * Determines the Mintlify host to use.
+ * Checks if a preview deployment exists for the current branch,
+ * falls back to production if not available.
+ */
+async function getDocsHost(): Promise<string> {
+  if (!branch || branch === 'main') {
+    return prodHost;
+  }
+
+  const previewHost = `nuclom-${branch}.mintlify.app`;
+  const res = await fetch(`https://${previewHost}/docs`, { method: 'HEAD' }).catch(() => null);
+  return res?.ok ? previewHost : prodHost;
+}
+
+const docsHost = await getDocsHost();
+
 /**
  * Vercel Programmatic Configuration
  *
@@ -81,14 +105,15 @@ await runMigrations();
 export const config: VercelConfig = {
   // Rewrite /docs/* to Mintlify hosted documentation
   rewrites: [
-    {
-      source: '/docs',
-      destination: 'https://nuclom.mintlify.app/docs',
-    },
-    {
-      source: '/docs/:path*',
-      destination: 'https://nuclom.mintlify.app/docs/:path*',
-    },
+    routes.rewrite('/docs', `https://${docsHost}/docs`),
+    routes.rewrite('/docs/:path*', `https://${docsHost}/docs/:path*`),
+    routes.rewrite('/_mintlify/:path*', `https://${docsHost}/_mintlify/:path*`),
+    routes.rewrite('/docs/llms.txt', `https://${docsHost}/llms.txt`),
+    routes.rewrite('/docs/llms-full.txt', `https://${docsHost}/llms-full.txt`),
+    routes.rewrite('/docs/sitemap.xml', `https://${docsHost}/sitemap.xml`),
+    routes.rewrite('/docs/robots.txt', `https://${docsHost}/robots.txt`),
+    routes.rewrite('/docs/mcp', `https://${docsHost}/mcp`),
+    routes.rewrite('/mintlify-assets/:path+', `https://${docsHost}/mintlify-assets/:path+`),
   ],
   crons: [
     // Daily subscription enforcement - runs at midnight UTC
