@@ -467,17 +467,37 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Configure which routes the middleware applies to
+// =============================================================================
+// Middleware Route Matcher
+// =============================================================================
+
+/**
+ * Excluded paths/prefixes (for documentation - actual pattern below):
+ * - _next/static     : Next.js static files
+ * - _next/image      : Next.js image optimization
+ * - public           : Public folder assets
+ * - favicon\.ico     : Favicon
+ * - \.well-known/    : Well-known URIs (workflows, etc.)
+ * - sitemap\.xml     : SEO sitemap
+ * - robots\.txt      : SEO robots file
+ * - manifest\.webmanifest : PWA manifest
+ * - openapi\.(json|yaml)  : API documentation
+ *
+ * Excluded file extensions:
+ * - Images: svg, png, jpg, jpeg, gif, webp, ico
+ * - Fonts:  woff, woff2, ttf, eot
+ * - Other:  webmanifest
+ */
+
+// Pattern components (for readability - Next.js requires static config)
+const NEXT_INTERNALS = '_next/static|_next/image';
+const STATIC_PATHS = 'public|favicon\\.ico|\\.well-known/|sitemap\\.xml|robots\\.txt';
+const CONFIG_FILES = 'manifest\\.webmanifest|openapi\\.json|openapi\\.yaml';
+const STATIC_EXTENSIONS = 'svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest';
+
+// Build the complete exclusion pattern
+const EXCLUDED_PATTERN = `${NEXT_INTERNALS}|${STATIC_PATHS}|${CONFIG_FILES}|.*\\.(?:${STATIC_EXTENSIONS})`;
+
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - Public assets (images, fonts, etc.)
-     * - public folder assets
-     */
-    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|manifest.webmanifest|openapi.json|openapi.yaml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
-  ],
+  matcher: [`/((?!${EXCLUDED_PATTERN}).*)`],
 };
