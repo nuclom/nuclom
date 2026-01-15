@@ -191,6 +191,92 @@ interface TranscriptSegmentItemProps {
   vocabularyTerms?: VocabularyTerm[];
   /** Whether to highlight vocabulary */
   highlightVocabulary?: boolean;
+  /** Current playback time for word-level highlighting */
+  currentTime?: number;
+}
+
+// =============================================================================
+// Word-Level Timing Interpolation
+// =============================================================================
+
+interface WordTiming {
+  word: string;
+  startTime: number;
+  endTime: number;
+}
+
+/**
+ * Interpolate word timings within a segment
+ * Distributes the segment duration evenly across words
+ */
+function interpolateWordTimings(segment: TranscriptSegment): WordTiming[] {
+  const words = segment.text.split(/\s+/).filter((w) => w.length > 0);
+  if (words.length === 0) return [];
+
+  const segmentDuration = segment.endTime - segment.startTime;
+  const wordDuration = segmentDuration / words.length;
+
+  return words.map((word, idx) => ({
+    word,
+    startTime: segment.startTime + idx * wordDuration,
+    endTime: segment.startTime + (idx + 1) * wordDuration,
+  }));
+}
+
+/**
+ * Find the index of the word being spoken at the given time
+ */
+function findCurrentWordIndex(wordTimings: WordTiming[], currentTime: number): number {
+  return wordTimings.findIndex((timing) => currentTime >= timing.startTime && currentTime < timing.endTime);
+}
+
+/**
+ * Render text with word-level playback highlighting
+ * When the segment is active, highlights the word currently being spoken
+ */
+function renderTextWithWordHighlight(
+  segment: TranscriptSegment,
+  currentTime: number | undefined,
+  isActive: boolean,
+  searchTerm: string,
+  vocabularyTerms?: VocabularyTerm[],
+  highlightVocabulary?: boolean,
+): React.ReactNode {
+  // If not active or no currentTime, fall back to standard rendering
+  if (!isActive || currentTime === undefined) {
+    return highlightTextWithVocabulary(segment.text, searchTerm, vocabularyTerms, highlightVocabulary);
+  }
+
+  // Get word timings and find current word
+  const wordTimings = interpolateWordTimings(segment);
+  const currentWordIndex = findCurrentWordIndex(wordTimings, currentTime);
+
+  // Render each word with appropriate highlighting
+  return (
+    <>
+      {wordTimings.map((timing, idx) => {
+        const isCurrentWord = idx === currentWordIndex;
+        const isPastWord = currentWordIndex >= 0 && idx < currentWordIndex;
+
+        return (
+          <span key={idx}>
+            <span
+              className={cn(
+                'transition-colors duration-150',
+                isCurrentWord && 'text-primary font-semibold bg-primary/20 rounded px-0.5',
+                isPastWord && 'text-foreground',
+                !isCurrentWord && !isPastWord && 'text-muted-foreground',
+              )}
+              data-active={isCurrentWord ? '' : undefined}
+            >
+              {timing.word}
+            </span>
+            {idx < wordTimings.length - 1 && ' '}
+          </span>
+        );
+      })}
+    </>
+  );
 }
 
 function TranscriptSegmentItem({
@@ -204,6 +290,7 @@ function TranscriptSegmentItem({
   showSpeaker,
   vocabularyTerms,
   highlightVocabulary,
+  currentTime,
 }: TranscriptSegmentItemProps) {
   return (
     <div
@@ -252,14 +339,21 @@ function TranscriptSegmentItem({
         </span>
       </div>
 
-      {/* Text content */}
+      {/* Text content with word-level highlighting */}
       <div className="flex-1 min-w-0 pr-6 sm:pr-0">
         {/* Speaker name (if available and different from label) */}
         {showSpeaker && speaker?.name && (
           <span className="text-xs font-medium text-muted-foreground mb-0.5 block">{speaker.name}</span>
         )}
-        <p className={cn('text-sm leading-relaxed', isActive && 'text-foreground font-medium')}>
-          {highlightTextWithVocabulary(segment.text, searchTerm, vocabularyTerms, highlightVocabulary)}
+        <p className={cn('text-sm leading-relaxed', isActive && 'text-foreground')}>
+          {renderTextWithWordHighlight(
+            segment,
+            currentTime,
+            isActive,
+            searchTerm,
+            vocabularyTerms,
+            highlightVocabulary,
+          )}
         </p>
       </div>
 
@@ -535,6 +629,7 @@ export function TranscriptDisplay({
                   showSpeaker={showSpeakers}
                   vocabularyTerms={vocabularyTerms}
                   highlightVocabulary={highlightVocabulary}
+                  currentTime={currentTime}
                 />
               );
             })}
