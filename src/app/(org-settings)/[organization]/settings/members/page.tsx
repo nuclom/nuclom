@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
+import { Clock, Loader2, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,10 +35,26 @@ type MemberWithUser = Member & {
   user: User;
 };
 
+type Invitation = {
+  id: string;
+  email: string;
+  role: string | null;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+  inviter: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+  };
+};
+
 function MembersSettingsContent() {
   const params = useParams();
   const { toast } = useToast();
   const [members, setMembers] = useState<MemberWithUser[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -75,12 +91,20 @@ function MembersSettingsContent() {
         logo: currentOrg.logo || null,
       });
 
-      // For now, we'll need to fetch members via a custom API since BetterAuth
-      // doesn't expose a direct client method for listing members
-      const response = await fetch(`/api/organizations/${currentOrg.id}/members`);
-      if (response.ok) {
-        const data = await response.json();
+      // Fetch members and invitations in parallel
+      const [membersResponse, invitationsResponse] = await Promise.all([
+        fetch(`/api/organizations/${currentOrg.id}/members`),
+        fetch(`/api/organizations/${currentOrg.id}/invitations`),
+      ]);
+
+      if (membersResponse.ok) {
+        const data = await membersResponse.json();
         setMembers(data || []);
+      }
+
+      if (invitationsResponse.ok) {
+        const data = await invitationsResponse.json();
+        setInvitations(data || []);
       }
     } catch (error) {
       console.error('Error loading organization and members:', error);
@@ -184,6 +208,38 @@ function MembersSettingsContent() {
     }
   };
 
+  const handleCancelInvitation = async (invitationId: string, email: string) => {
+    if (!organization) return;
+
+    const confirmed = confirm(`Are you sure you want to cancel the invitation for ${email}?`);
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/organizations/${organization.id}/invitations?invitationId=${invitationId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel invitation');
+      }
+
+      toast({
+        title: 'Success',
+        description: `Invitation for ${email} has been cancelled`,
+      });
+
+      // Reload data
+      await loadOrganizationAndMembers();
+    } catch (error) {
+      console.error('Error cancelling invitation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to cancel invitation',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role.toLowerCase()) {
       case 'owner':
@@ -193,6 +249,18 @@ function MembersSettingsContent() {
       default:
         return 'outline';
     }
+  };
+
+  const isExpired = (expiresAt: string) => {
+    return new Date(expiresAt) < new Date();
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   if (loading) {
@@ -220,125 +288,194 @@ function MembersSettingsContent() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>Manage who has access to this organization.</CardDescription>
-        </div>
-        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Invite Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite Member</DialogTitle>
-              <DialogDescription>Send an invitation to join {organization?.name}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  value={inviteData.email}
-                  onChange={(e) =>
-                    setInviteData((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Select
-                  value={inviteData.role}
-                  onValueChange={(value: 'member' | 'owner') => setInviteData((prev) => ({ ...prev, role: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="owner">Owner</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
-                {inviting ? 'Sending...' : 'Send Invitation'}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Members</CardTitle>
+            <CardDescription>Manage who has access to this organization.</CardDescription>
+          </div>
+          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Invite Member
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-6">Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="text-right pr-6">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell className="pl-6">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.user.image || '/placeholder.svg'} />
-                      <AvatarFallback>{member.user.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{member.user.name}</div>
-                      <div className="text-sm text-muted-foreground">{member.user.email}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getRoleBadgeVariant(member.role)}>{member.role}</Badge>
-                </TableCell>
-                <TableCell className="text-right pr-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {member.role !== 'owner' && (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => handleUpdateRole(member.id, member.role === 'member' ? 'owner' : 'member')}
-                          >
-                            <Shield className="h-4 w-4 mr-2" />
-                            {member.role === 'member' ? 'Make Owner' : 'Make Member'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleRemoveMember(member.id, member.user.name)}
-                            className="text-destructive"
-                          >
-                            <UserMinus className="h-4 w-4 mr-2" />
-                            Remove Member
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite Member</DialogTitle>
+                <DialogDescription>Send an invitation to join {organization?.name}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    value={inviteData.email}
+                    onChange={(e) =>
+                      setInviteData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    value={inviteData.role}
+                    onValueChange={(value: 'member' | 'owner') => setInviteData((prev) => ({ ...prev, role: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="owner">Owner</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
+                  {inviting ? 'Sending...' : 'Send Invitation'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="pl-6">Name</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="text-right pr-6">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="pl-6">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.user.image || '/placeholder.svg'} />
+                        <AvatarFallback>{member.user.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{member.user.name}</div>
+                        <div className="text-sm text-muted-foreground">{member.user.email}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getRoleBadgeVariant(member.role)}>{member.role}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right pr-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {member.role !== 'owner' && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleUpdateRole(member.id, member.role === 'member' ? 'owner' : 'member')}
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              {member.role === 'member' ? 'Make Owner' : 'Make Member'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleRemoveMember(member.id, member.user.name)}
+                              className="text-destructive"
+                            >
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Remove Member
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Pending Invitations */}
+      {invitations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Pending Invitations
+            </CardTitle>
+            <CardDescription>
+              {invitations.length} pending invitation{invitations.length !== 1 ? 's' : ''}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-6">Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Invited By</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead className="text-right pr-6">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invitations.map((invitation) => (
+                  <TableRow key={invitation.id}>
+                    <TableCell className="pl-6">
+                      <div className="font-medium">{invitation.email}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(invitation.role || 'member')}>
+                        {invitation.role || 'member'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={invitation.inviter.image || '/placeholder.svg'} />
+                          <AvatarFallback>{invitation.inviter.name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-muted-foreground">{invitation.inviter.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={isExpired(invitation.expiresAt) ? 'text-destructive' : 'text-muted-foreground'}>
+                        {isExpired(invitation.expiresAt) ? 'Expired' : formatDate(invitation.expiresAt)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right pr-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCancelInvitation(invitation.id, invitation.email)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <MailX className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
