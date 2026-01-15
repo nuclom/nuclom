@@ -433,7 +433,8 @@ export const auth = betterAuth({
         console.log(`[Auth] Team ${ctx.teamId} removed from ${ctx.organization.name}`);
       },
       async sendInvitationEmail(data) {
-        const inviteLink = `${getAppUrl()}/accept-invitation/${data.id}`;
+        // Always use production URL for invitation links (not preview URLs)
+        const inviteLink = `${getProductionURL()}/accept-invitation/${data.id}`;
         const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';
         const inviterName = data.inviter.user.name || 'Someone';
 
@@ -454,41 +455,33 @@ export const auth = betterAuth({
           });
         }
 
-        // Send styled email invitation
+        // Send styled email invitation (using inline styles for email client compatibility)
         const html = `
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
-  .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  .header { background-color: #6366f1; padding: 24px; text-align: center; }
-  .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
-  .content { padding: 32px 24px; }
-  .button { display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 16px 0; }
-  .footer { padding: 24px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; }
-  .highlight { background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #6366f1; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Nuclom</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background-color: #6366f1; padding: 24px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Nuclom</h1>
     </div>
-    <div class="content">
-      <h2>You've been invited!</h2>
-      <p><strong>${inviterName}</strong> has invited you to join <strong>${data.organization.name}</strong> as a <strong>${data.role}</strong>.</p>
-      <div class="highlight">
+    <div style="padding: 32px 24px;">
+      <h2 style="margin: 0 0 16px 0; color: #333;">You've been invited!</h2>
+      <p style="margin: 0 0 16px 0;"><strong>${inviterName}</strong> has invited you to join <strong>${data.organization.name}</strong> as a <strong>${data.role}</strong>.</p>
+      <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #6366f1;">
         <p style="margin: 0;">Join the team to collaborate on videos, share feedback, and work together seamlessly.</p>
       </div>
-      <p style="text-align: center;">
-        <a href="${inviteLink}" class="button">Accept Invitation</a>
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600;">Accept Invitation</a>
       </p>
-      <p style="color: #666; font-size: 14px;">This invitation will expire in 48 hours.</p>
+      <p style="color: #666; font-size: 14px; margin: 0;">This invitation will expire in 48 hours.</p>
     </div>
-    <div class="footer">
-      <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
-      <p>&copy; ${new Date().getFullYear()} Nuclom. All rights reserved.</p>
+    <div style="padding: 24px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee;">
+      <p style="margin: 0 0 8px 0;">If you weren't expecting this invitation, you can safely ignore this email.</p>
+      <p style="margin: 0;">&copy; ${new Date().getFullYear()} Nuclom. All rights reserved.</p>
     </div>
   </div>
 </body>

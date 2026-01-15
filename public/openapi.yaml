@@ -3572,6 +3572,9 @@ paths:
       summary: Delete video
       operationId: deleteVideo
       description: "DELETE /api/videos/[id]\n\nBy default, performs a soft delete with a 30-day retention period.\nQuery parameters:\n- permanent=true: Permanently delete the video and clean up R2 storage\n- retentionDays=N: Override the default retention period (only for soft delete)"
+      security:
+        - 
+          bearerAuth:[]
       parameters:
         - 
           name: id
@@ -3589,6 +3592,8 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Unauthorized
         404:
           description: Not found
     get:
@@ -3596,6 +3601,9 @@ paths:
         - Videos
       summary: Get video details
       operationId: getVideo
+      security:
+        - 
+          bearerAuth:[]
       parameters:
         - 
           name: id
@@ -3613,6 +3621,8 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Unauthorized
         404:
           description: Not found
     put:
@@ -3620,6 +3630,9 @@ paths:
         - Videos
       summary: Update video
       operationId: updateVideo
+      security:
+        - 
+          bearerAuth:[]
       parameters:
         - 
           name: id
@@ -3639,6 +3652,8 @@ paths:
           description: Success
         400:
           description: Invalid request
+        401:
+          description: Unauthorized
         404:
           description: Not found
   /videos/{id}/analytics/talk-time:
@@ -4290,6 +4305,96 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+  /videos/{id}/shares:
+    delete:
+      tags:
+        - Videos
+      summary: "Remove a share by ID (query param: shareId)"
+      operationId: deleteVideoShar
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+    get:
+      tags:
+        - Videos
+      summary: List shares for a video
+      operationId: getVideoShar
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+    post:
+      tags:
+        - Videos
+      summary: Create shar
+      operationId: createVideoShar
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
         404:
