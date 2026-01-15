@@ -59,19 +59,21 @@ const nextConfig: NextConfig = {
     // Content Security Policy directives
     const cspDirectives = [
       "default-src 'self'",
-      // Allow scripts from self, inline (for Next.js), Vercel Analytics, Vercel Live, and PostHog
+      // Allow scripts from self, inline (for Next.js), Vercel Analytics, Vercel Live, PostHog, and Mintlify
       // 'unsafe-eval' is only needed in development for HMR
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://vercel.live https://us-assets.i.posthog.com https://eu-assets.i.posthog.com`,
-      // Allow styles from self and inline (required for styled-components/emotion)
-      "style-src 'self' 'unsafe-inline'",
-      // Allow images from self, data URIs, blob URIs, and trusted domains
-      "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com",
-      // Allow fonts from self and Google Fonts
-      "font-src 'self' https://fonts.gstatic.com",
-      // Allow connections to self, API endpoints, external services, Vercel Analytics, Vercel Live, and PostHog
-      "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com https://us.i.posthog.com https://eu.i.posthog.com https://*.posthog.com",
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://vercel.live https://us-assets.i.posthog.com https://eu-assets.i.posthog.com https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://js.sentry-cdn.com`,
+      // Allow styles from self, inline (required for styled-components/emotion), and Mintlify
+      "style-src 'self' 'unsafe-inline' https://d4tuoctqmanu0.cloudfront.net https://fonts.googleapis.com",
+      // Allow images from self, data URIs, blob URIs, and trusted domains including Mintlify
+      "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com https://d3gk2c5xim1je2.cloudfront.net https://mintcdn.com https://*.mintcdn.com https://cdn.jsdelivr.net",
+      // Allow fonts from self, Google Fonts, and Mintlify
+      "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://d4tuoctqmanu0.cloudfront.net",
+      // Allow connections to self, API endpoints, external services, Vercel Analytics, Vercel Live, PostHog, and Mintlify
+      "connect-src 'self' https://*.r2.cloudflarestorage.com https://api.stripe.com wss://*.nuclom.com https://vitals.vercel-insights.com https://vercel.live wss://ws-us3.pusher.com https://us.i.posthog.com https://eu.i.posthog.com https://*.posthog.com https://*.mintlify.dev https://*.mintlify.com https://d1ctpt7j8wusba.cloudfront.net https://mintcdn.com https://*.mintcdn.com https://api.mintlifytrieve.com https://browser.sentry-cdn.com",
       // Allow media from self and R2 storage
       "media-src 'self' blob: https://*.r2.dev https://*.r2.cloudflarestorage.com",
+      // Allow frames from Mintlify
+      "frame-src 'self' https://*.mintlify.dev",
       // Prevent embedding in iframes (except for allowed origins)
       "frame-ancestors 'self'",
       // Form submissions only to self
