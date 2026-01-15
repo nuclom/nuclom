@@ -68,10 +68,6 @@ async function runMigrations(): Promise<void> {
 // Run migrations using top-level await
 await runMigrations();
 
-// =============================================================================
-// Vercel Configuration
-// =============================================================================
-
 /**
  * Vercel Programmatic Configuration
  *
