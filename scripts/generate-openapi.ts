@@ -358,10 +358,52 @@ function schemaToJsonSchema(schema: Schema.Schema.Any): Record<string, unknown> 
   try {
     const jsonSchema = JSONSchema.make(schema);
     const { $schema, ...rest } = jsonSchema as unknown as Record<string, unknown>;
-    return rest;
+    // Resolve $defs references inline since OpenAPI resolves $ref from root
+    return resolveDefsInline(rest);
   } catch {
     return { type: 'object' };
   }
+}
+
+/**
+ * Recursively resolves $defs references inline within a JSON Schema.
+ * This is needed because Effect's JSONSchema.make generates local $defs,
+ * but OpenAPI resolves $ref from the document root.
+ */
+function resolveDefsInline(schema: Record<string, unknown>): Record<string, unknown> {
+  const defs = schema.$defs as Record<string, unknown> | undefined;
+
+  function resolve(obj: unknown): unknown {
+    if (obj === null || obj === undefined) return obj;
+    if (Array.isArray(obj)) return obj.map(resolve);
+    if (typeof obj !== 'object') return obj;
+
+    const record = obj as Record<string, unknown>;
+
+    // If this is a $ref to a local $defs, inline it
+    if (record.$ref && typeof record.$ref === 'string') {
+      const ref = record.$ref;
+      if (ref.startsWith('#/$defs/') && defs) {
+        const defName = ref.slice('#/$defs/'.length);
+        const def = defs[defName];
+        if (def && typeof def === 'object') {
+          // Return the resolved definition (also resolve any nested refs)
+          return resolve(def);
+        }
+      }
+    }
+
+    // Recursively resolve all properties
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(record)) {
+      // Skip $defs since we're inlining them
+      if (key === '$defs') continue;
+      result[key] = resolve(value);
+    }
+    return result;
+  }
+
+  return resolve(schema) as Record<string, unknown>;
 }
 
 function resolveSchema(schemaName: string): Schema.Schema.Any | undefined {
