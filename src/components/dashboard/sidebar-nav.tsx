@@ -1,19 +1,6 @@
 'use client';
 
-import {
-  Building,
-  Clock,
-  Folders,
-  History,
-  Home,
-  ListVideo,
-  PlayCircle,
-  Plus,
-  Share2,
-  Trash2,
-  Upload,
-  Video,
-} from 'lucide-react';
+import { Building, Clock, Folders, History, Home, PlayCircle, Share2, Trash2, Upload, Video } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -47,14 +34,9 @@ export function SidebarNav({ organization }: SidebarNavProps) {
       icon: Video,
     },
     {
-      title: 'Channels',
-      href: `/${organization}/channels`,
+      title: 'Collections',
+      href: `/${organization}/collections`,
       icon: Folders,
-    },
-    {
-      title: 'Series',
-      href: `/${organization}/series`,
-      icon: ListVideo,
     },
   ];
 
@@ -149,18 +131,6 @@ export function SidebarNav({ organization }: SidebarNavProps) {
               </Link>
             ))}
           </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className="py-2">
-          <div className="flex items-center justify-between px-3 mb-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Collections</h3>
-            <Button variant="ghost" size="icon" className="h-6 w-6">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <p className="px-3 py-2 text-sm text-muted-foreground">No collections yet</p>
         </div>
       </ScrollArea>
 

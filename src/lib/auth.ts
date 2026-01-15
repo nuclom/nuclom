@@ -250,9 +250,15 @@ export const auth = betterAuth({
     admin({
       defaultRole: 'user',
       adminRoles: ['admin'],
+      // Allow specific user IDs to have admin access (useful for initial setup)
+      adminUserIds: env.ADMIN_USER_IDS?.split(',').map((id) => id.trim()) || [],
       impersonationSessionDuration: 60 * 60, // 1 hour
       defaultBanReason: 'Terms of service violation',
       defaultBanExpiresIn: 60 * 60 * 24 * 7, // 7 days
+      // Custom message shown to banned users
+      bannedUserMessage: 'Your account has been suspended. Please contact support for assistance.',
+      // Prevent admins from impersonating other admins for security
+      allowImpersonatingAdmins: false,
     }),
     organization({
       // Access control configuration
@@ -263,6 +269,12 @@ export const auth = betterAuth({
         enabled: true,
         maximumRolesPerOrganization: 10,
       },
+      // Enable teams feature for sub-group management within organizations
+      teams: {
+        enabled: true,
+        maximumTeams: 20, // Allow up to 20 teams per organization
+        allowRemovingAllTeams: true, // Allow removing all teams from an organization
+      },
       allowUserToCreateOrganization: async () => {
         // Allow all authenticated users to create organizations
         return true;
@@ -271,6 +283,155 @@ export const auth = betterAuth({
       creatorRole: 'owner',
       membershipLimit: 100,
       invitationExpiresIn: 60 * 60 * 48, // 48 hours
+      cancelPendingInvitationsOnReInvite: true, // Auto-cancel previous invitations when re-inviting
+      requireEmailVerificationOnInvitation: false, // Don't require email verification to accept invitation
+      // =============================================================================
+      // Organization Lifecycle Hooks
+      // =============================================================================
+      async beforeCreateOrganization(ctx: { organization: { name: string }; user: { id: string } }) {
+        console.log(`[Auth] Creating organization "${ctx.organization.name}" by user ${ctx.user.id}`);
+        // Validate organization name
+        if (ctx.organization.name.length < 2) {
+          throw new Error('Organization name must be at least 2 characters');
+        }
+        return { data: ctx.organization };
+      },
+      async afterCreateOrganization(ctx: { organization: { id: string; name: string }; member: { userId: string } }) {
+        console.log(`[Auth] Organization "${ctx.organization.name}" created with member ${ctx.member.userId}`);
+        // Create notification for the creator
+        await db.insert(notifications).values({
+          userId: ctx.member.userId,
+          type: 'organization_created',
+          title: 'Organization created',
+          body: `Your organization "${ctx.organization.name}" has been created successfully.`,
+          resourceType: 'organization',
+          resourceId: ctx.organization.id,
+        });
+        // Send Slack notification for monitoring
+        await notifySlackMonitoring('organization_created', {
+          organizationId: ctx.organization.id,
+          organizationName: ctx.organization.name,
+          userId: ctx.member.userId,
+        });
+      },
+      async beforeUpdateOrganization(ctx: { organization: { id: string } }) {
+        console.log(`[Auth] Updating organization ${ctx.organization.id}`);
+        return { data: ctx.organization };
+      },
+      async afterUpdateOrganization(ctx: { organization: { id: string } }) {
+        console.log(`[Auth] Organization ${ctx.organization.id} updated`);
+      },
+      // =============================================================================
+      // Member Lifecycle Hooks
+      // =============================================================================
+      async beforeAddMember(ctx: { member: { userId: string; organizationId: string } }) {
+        console.log(`[Auth] Adding member ${ctx.member.userId} to organization ${ctx.member.organizationId}`);
+        return { data: ctx.member };
+      },
+      async afterAddMember(ctx: {
+        member: { userId: string; role: string };
+        organization: { id: string; name: string };
+      }) {
+        console.log(`[Auth] Member ${ctx.member.userId} added to organization ${ctx.organization.name}`);
+        // Create notification for the new member
+        await db.insert(notifications).values({
+          userId: ctx.member.userId,
+          type: 'member_added',
+          title: `Joined ${ctx.organization.name}`,
+          body: `You have been added to ${ctx.organization.name} as a ${ctx.member.role}.`,
+          resourceType: 'organization',
+          resourceId: ctx.organization.id,
+        });
+      },
+      async beforeRemoveMember(ctx: { member: { userId: string; organizationId: string } }) {
+        console.log(`[Auth] Removing member ${ctx.member.userId} from organization ${ctx.member.organizationId}`);
+        return { data: ctx.member };
+      },
+      async afterRemoveMember(ctx: { member: { userId: string }; organization: { id: string; name: string } }) {
+        console.log(`[Auth] Member ${ctx.member.userId} removed from organization ${ctx.organization.name}`);
+        // Create notification for the removed member
+        await db.insert(notifications).values({
+          userId: ctx.member.userId,
+          type: 'member_removed',
+          title: `Left ${ctx.organization.name}`,
+          body: `You have been removed from ${ctx.organization.name}.`,
+          resourceType: 'organization',
+          resourceId: ctx.organization.id,
+        });
+      },
+      async beforeUpdateMemberRole(ctx: { member: { userId: string }; role: string }) {
+        console.log(`[Auth] Updating member ${ctx.member.userId} role to ${ctx.role}`);
+        return { data: ctx.member };
+      },
+      async afterUpdateMemberRole(ctx: {
+        member: { userId: string };
+        organization: { id: string; name: string };
+        role: string;
+      }) {
+        console.log(`[Auth] Member ${ctx.member.userId} role updated to ${ctx.role}`);
+        // Create notification for role change
+        await db.insert(notifications).values({
+          userId: ctx.member.userId,
+          type: 'role_updated',
+          title: 'Role updated',
+          body: `Your role in ${ctx.organization.name} has been changed to ${ctx.role}.`,
+          resourceType: 'organization',
+          resourceId: ctx.organization.id,
+        });
+      },
+      // =============================================================================
+      // Invitation Lifecycle Hooks
+      // =============================================================================
+      async beforeCreateInvitation(ctx: { invitation: { email: string } }) {
+        console.log(`[Auth] Creating invitation for ${ctx.invitation.email}`);
+        return { data: ctx.invitation };
+      },
+      async afterCreateInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
+        console.log(`[Auth] Invitation created for ${ctx.invitation.email} to ${ctx.organization.name}`);
+      },
+      async afterAcceptInvitation(ctx: {
+        invitation: { email: string };
+        organization: { id: string; name: string };
+        member: { userId: string };
+      }) {
+        console.log(`[Auth] Invitation accepted by ${ctx.member.userId} for ${ctx.organization.name}`);
+        // Send Slack notification for monitoring
+        await notifySlackMonitoring('invitation_accepted', {
+          organizationId: ctx.organization.id,
+          organizationName: ctx.organization.name,
+          userId: ctx.member.userId,
+          invitationEmail: ctx.invitation.email,
+        });
+      },
+      async afterRejectInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
+        console.log(`[Auth] Invitation rejected for ${ctx.invitation.email} to ${ctx.organization.name}`);
+      },
+      async afterCancelInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
+        console.log(`[Auth] Invitation cancelled for ${ctx.invitation.email} to ${ctx.organization.name}`);
+      },
+      // =============================================================================
+      // Team Lifecycle Hooks
+      // =============================================================================
+      async beforeCreateTeam(ctx: { team: { name: string } }) {
+        console.log(`[Auth] Creating team "${ctx.team.name}"`);
+        return { data: ctx.team };
+      },
+      async afterCreateTeam(ctx: { team: { name: string }; organization: { name: string } }) {
+        console.log(`[Auth] Team "${ctx.team.name}" created in ${ctx.organization.name}`);
+      },
+      async beforeUpdateTeam(ctx: { team: { id: string } }) {
+        console.log(`[Auth] Updating team ${ctx.team.id}`);
+        return { data: ctx.team };
+      },
+      async afterUpdateTeam(ctx: { team: { id: string }; organization: { name: string } }) {
+        console.log(`[Auth] Team ${ctx.team.id} updated in ${ctx.organization.name}`);
+      },
+      async beforeRemoveTeam(ctx: { teamId: string }) {
+        console.log(`[Auth] Removing team ${ctx.teamId}`);
+      },
+      async afterRemoveTeam(ctx: { teamId: string; organization: { name: string } }) {
+        console.log(`[Auth] Team ${ctx.teamId} removed from ${ctx.organization.name}`);
+      },
       async sendInvitationEmail(data) {
         const inviteLink = `${getAppUrl()}/accept-invitation/${data.id}`;
         const fromEmail = env.RESEND_FROM_EMAIL || 'notifications@nuclom.com';

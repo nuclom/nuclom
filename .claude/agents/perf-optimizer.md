@@ -1,6 +1,27 @@
 ---
 name: perf-optimizer
-description: Use this agent when you need to identify and fix performance bottlenecks, implement effective caching strategies, optimize slow operations, or improve application response times. This includes analyzing slow database queries, optimizing render cycles, reducing bundle sizes, fixing memory leaks, and implementing strategic caching layers.\n\nExamples:\n\n<example>\nContext: User notices their page is loading slowly after implementing a new feature.\nuser: "The dashboard page is taking 5 seconds to load now, it used to be fast"\nassistant: "I'll use the perf-optimizer agent to identify what's causing the slowdown and fix it."\n<commentary>\nSince the user is reporting a performance regression, use the Task tool to launch the perf-optimizer agent to diagnose the bottleneck and implement fixes.\n</commentary>\n</example>\n\n<example>\nContext: User just implemented a data fetching pattern and wants it optimized.\nuser: "I added this API call to fetch user settings on every page"\nassistant: "Let me review this implementation. I notice this could benefit from caching. I'll use the perf-optimizer agent to implement an effective caching strategy."\n<commentary>\nProactively launching perf-optimizer because the described pattern (fetching on every page) is a known performance anti-pattern that would benefit from caching.\n</commentary>\n</example>\n\n<example>\nContext: User is preparing for production deployment.\nuser: "We're about to launch, can you check if there are any obvious performance issues?"\nassistant: "I'll use the perf-optimizer agent to audit the codebase for performance bottlenecks before launch."\n<commentary>\nUse the perf-optimizer agent for pre-launch performance audits to catch issues before they affect users.\n</commentary>\n</example>
+description: |
+  Use this agent when you need to identify and fix performance bottlenecks, implement effective caching strategies, optimize slow operations, or improve application response times. This includes analyzing slow database queries, optimizing render cycles, reducing bundle sizes, fixing memory leaks, and implementing strategic caching layers.
+
+  Examples:
+
+  <example>
+  Context: User notices their page is loading slowly after implementing a new feature.
+  user: "The dashboard page is taking 5 seconds to load now, it used to be fast"
+  assistant: "I'll use the perf-optimizer agent to identify what's causing the slowdown and fix it."
+  </example>
+
+  <example>
+  Context: User just implemented a data fetching pattern and wants it optimized.
+  user: "I added this API call to fetch user settings on every page"
+  assistant: "Let me review this implementation. I notice this could benefit from caching. I'll use the perf-optimizer agent to implement an effective caching strategy."
+  </example>
+
+  <example>
+  Context: User is preparing for production deployment.
+  user: "We're about to launch, can you check if there are any obvious performance issues?"
+  assistant: "I'll use the perf-optimizer agent to audit the codebase for performance bottlenecks before launch."
+  </example>
 model: inherit
 ---
 

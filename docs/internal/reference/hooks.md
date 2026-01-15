@@ -452,31 +452,29 @@ export function formatDuration(seconds: number): string {
 
 ```typescript
 // src/lib/validation.ts
-import { z } from "zod/v4";
+import { Schema } from "effect";
+import { safeParse } from "@/lib/validation";
 
-export const videoSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title too long"),
-  description: z.string().max(500, "Description too long").optional(),
-  duration: z.string().regex(/^\d+:\d{2}$/, "Invalid duration format"),
-  thumbnailUrl: z.string().url("Invalid thumbnail URL").optional(),
-  videoUrl: z.string().url("Invalid video URL").optional(),
+export const videoSchema = Schema.Struct({
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+  duration: Schema.String,
+  thumbnailUrl: Schema.optional(Schema.String),
+  videoUrl: Schema.optional(Schema.String),
 });
 
-export const organizationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(50, "Name too long"),
-  slug: z
-    .string()
-    .min(1, "Slug is required")
-    .regex(/^[a-z0-9-]+$/, "Invalid slug format"),
-  description: z.string().max(200, "Description too long").optional(),
+export const organizationSchema = Schema.Struct({
+  name: Schema.String,
+  slug: Schema.String,
+  description: Schema.optional(Schema.String),
 });
 
 export function validateVideo(data: unknown) {
-  return videoSchema.safeParse(data);
+  return safeParse(videoSchema, data);
 }
 
 export function validateOrganization(data: unknown) {
-  return organizationSchema.safeParse(data);
+  return safeParse(organizationSchema, data);
 }
 ```
 

@@ -201,16 +201,16 @@ The application validates environment variables at runtime:
 
 ```typescript
 // src/lib/env.ts
-import { z } from "zod/v4";
+import { Config, Effect } from "effect";
 
-const envSchema = z.object({
-  DATABASE_URL: z.string().min(1),
-  BETTER_AUTH_SECRET: z.string().min(1),
-  REPLICATE_API_TOKEN: z.string().min(1).optional(),
+const EnvConfig = Config.all({
+  DATABASE_URL: Config.string("DATABASE_URL"),
+  BETTER_AUTH_SECRET: Config.string("BETTER_AUTH_SECRET"),
+  REPLICATE_API_TOKEN: Config.string("REPLICATE_API_TOKEN").pipe(Config.option),
   // ... other variables
 });
 
-export const env = envSchema.parse(process.env);
+export const env = Effect.runSync(Config.unwrap(EnvConfig));
 ```
 
 ### Validation Script

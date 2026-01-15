@@ -265,25 +265,27 @@ paths:
           description: Invalid request
         401:
           description: Unauthorized
-  /channels:
+  /chat/conversations:
     get:
       tags:
-        - Channels
-      summary: Get channels for the active organization
-      operationId: listChannel
+        - Chat
+      summary: List conversations for a user
+      operationId: listChatConversation
       security:
         - 
           bearerAuth:[]
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
         401:
           description: Unauthorized
     post:
       tags:
-        - Channels
-      summary: Create a new channel
-      operationId: createChannel
+        - Chat
+      summary: Create a new conversation
+      operationId: createChatConversation
       security:
         - 
           bearerAuth:[]
@@ -294,12 +296,12 @@ paths:
           description: Invalid request
         401:
           description: Unauthorized
-  /channels/{id}:
+  /chat/conversations/{id}:
     delete:
       tags:
-        - Channels
-      summary: Delete channel
-      operationId: deleteChannel
+        - Chat
+      summary: Delete a conversation
+      operationId: deleteChatConversation
       security:
         - 
           bearerAuth:[]
@@ -326,9 +328,9 @@ paths:
           description: Not found
     get:
       tags:
-        - Channels
-      summary: Get channel details
-      operationId: getChannel
+        - Chat
+      summary: Get a conversation
+      operationId: getChatConversation
       security:
         - 
           bearerAuth:[]
@@ -355,9 +357,9 @@ paths:
           description: Not found
     patch:
       tags:
-        - Channels
-      summary: Update channel
-      operationId: patchChannel
+        - Chat
+      summary: Update a conversation title
+      operationId: patchChatConversation
       security:
         - 
           bearerAuth:[]
@@ -378,6 +380,69 @@ paths:
       responses:
         200:
           description: Success
+        400:
+          description: Invalid request
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+  /chat/conversations/{id}/messages:
+    get:
+      tags:
+        - Chat
+      summary: List messages in a conversation
+      operationId: getChatConversationMessag
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Invalid request
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+    post:
+      tags:
+        - Chat
+      summary: Send a message and get AI response
+      operationId: createChatConversationMessag
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
         400:
           description: Invalid request
         401:
@@ -505,6 +570,429 @@ paths:
           description: Unauthorized
         404:
           description: Not found
+  /collections:
+    get:
+      tags:
+        - Collections
+      summary: List collections
+      operationId: listCollection
+      description: "Get a paginated list of collections for an organization.\nUse `type` query param to filter by collection type (folder or playlist)."
+      security:
+        - 
+          bearerAuth:[]
+      responses:
+        200:
+          description: List of collections with pagination
+        400:
+          description: - Invalid request parameters
+        401:
+          description: - Unauthorized
+    post:
+      tags:
+        - Collections
+      summary: Create collection
+      operationId: createCollection
+      description: "Create a new collection. Use `type: \"folder\"` for simple grouping,\n`type: \"playlist\"` for ordered videos with progress tracking."
+      security:
+        - 
+          bearerAuth:[]
+      requestBody:
+        required: true
+        description: Create collection data
+        content:
+          application/json:
+            schema:
+              "$defs":
+                UUID:
+                  type: string
+                  description: a Universally Unique Identifier
+                  format: uuid
+                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+              type: object
+              required:
+                - name
+                - organizationId
+              properties:
+                name:
+                  type: string
+                  description: a string that will be trimmed
+                description:
+                  anyOf:
+                    - 
+                      anyOf:
+                        - 
+                          type: string
+                          description: a string that will be trimmed
+                        - 
+                          type: "null"
+                    - 
+                      type: "null"
+                thumbnailUrl:
+                  anyOf:
+                    - 
+                      anyOf:
+                        - 
+                          type: string
+                        - 
+                          type: "null"
+                    - 
+                      type: "null"
+                organizationId:
+                  "$ref": "#/$defs/UUID"
+                type:
+                  type: string
+                  enum:
+                    - folder
+                    - playlist
+                isPublic:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        201:
+          description: Collection created successfully
+        400:
+          description: - Invalid request body
+        401:
+          description: - Unauthorized
+  /collections/{id}:
+    delete:
+      tags:
+        - Collections
+      summary: Delete collection
+      operationId: deleteCollection
+      description: Delete a collection (videos are not deleted, only the grouping)
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: - Collection deleted successfully
+        401:
+          description: - Unauthorized
+        404:
+          description: - Collection not found
+    get:
+      tags:
+        - Collections
+      summary: Get collection details
+      operationId: getCollection
+      description: Get a collection with all its videos
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Collection with videos
+        401:
+          description: - Unauthorized
+        404:
+          description: - Collection not found
+    patch:
+      tags:
+        - Collections
+      summary: Update collection
+      operationId: patchCollection
+      description: Update collection metadata
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      requestBody:
+        required: true
+        description: Update collection data
+        content:
+          application/json:
+            schema:
+              type: object
+              required:[]
+              properties:
+                name:
+                  type: string
+                  description: a string that will be trimmed
+                description:
+                  anyOf:
+                    - 
+                      anyOf:
+                        - 
+                          type: string
+                          description: a string that will be trimmed
+                        - 
+                          type: "null"
+                    - 
+                      type: "null"
+                thumbnailUrl:
+                  anyOf:
+                    - 
+                      anyOf:
+                        - 
+                          type: string
+                        - 
+                          type: "null"
+                    - 
+                      type: "null"
+                isPublic:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        200:
+          description: Updated collection
+        400:
+          description: - Invalid request body
+        401:
+          description: - Unauthorized
+        404:
+          description: - Collection not found
+  /collections/{id}/progress:
+    get:
+      tags:
+        - Collections
+      summary: Get collection progress
+      operationId: getCollectionProgress
+      description: "Get the current user's progress through a playlist collection"
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Progress details
+        401:
+          description: - Unauthorized
+    post:
+      tags:
+        - Collections
+      summary: Update collection progress
+      operationId: createCollectionProgress
+      description: "Update the current user's progress through a playlist collection.\nSet `completed: true` to mark the current video as completed."
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      requestBody:
+        required: true
+        description: Update collection progress data
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentTime
+              properties:
+                currentTime:
+                  type: string
+                  description: a string at least 1 character(s) long
+                  title: minLength(1)
+                  minLength: 1
+                completed:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        201:
+          description: Updated progress
+        400:
+          description: - Invalid request body
+        401:
+          description: - Unauthorized
+  /collections/{id}/videos:
+    get:
+      tags:
+        - Collections
+      summary: Get available videos
+      operationId: getCollectionVideo
+      description: Get videos that can be added to this collection (not already in it)
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: "Video[] - List of available videos"
+        401:
+          description: - Unauthorized
+    patch:
+      tags:
+        - Collections
+      summary: Reorder videos in collection
+      operationId: patchCollectionVideo
+      description: Reorder videos in a playlist collection. Pass all video IDs in desired order.
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: - Videos reordered successfully
+        400:
+          description: - Invalid request body
+        401:
+          description: - Unauthorized
+    post:
+      tags:
+        - Collections
+      summary: Add video to collection
+      operationId: createCollectionVideo
+      description: Add a video to this collection. For playlists, you can specify position.
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Video added to collection
+        400:
+          description: - Invalid request body
+        401:
+          description: - Unauthorized
+  /collections/{id}/videos/{videoId}:
+    delete:
+      tags:
+        - Collections
+      summary: Remove video from collection
+      operationId: deleteCollectionVideo
+      description: Remove a video from this collection (the video itself is not deleted)
+      security:
+        - 
+          bearerAuth:[]
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+        - 
+          name: videoId
+          in: path
+          description: VideoId ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: - Video removed from collection
+        401:
+          description: - Unauthorized
+        404:
+          description: - Video not found in collection
   /cron:
     get:
       tags:
@@ -2169,6 +2657,103 @@ paths:
           description: Success
         404:
           description: Not found
+  /organizations/{id}/vocabulary:
+    delete:
+      tags:
+        - Organizations
+      summary: Delete vocabulary
+      operationId: deleteOrganizationVocabulary
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    get:
+      tags:
+        - Organizations
+      summary: Get vocabulary
+      operationId: getOrganizationVocabulary
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    patch:
+      tags:
+        - Organizations
+      summary: Patch vocabulary
+      operationId: patchOrganizationVocabulary
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        200:
+          description: Success
+        404:
+          description: Not found
+    post:
+      tags:
+        - Organizations
+      summary: Create vocabulary
+      operationId: createOrganizationVocabulary
+      parameters:
+        - 
+          name: id
+          in: path
+          description: Id ID
+          required: true
+          schema:
+            "$defs":
+              UUID:
+                type: string
+                description: a Universally Unique Identifier
+                format: uuid
+                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "$ref": "#/$defs/UUID"
+      responses:
+        201:
+          description: Created successfully
+        404:
+          description: Not found
   /organizations/slug/{slug}:
     get:
       tags:
@@ -2411,527 +2996,6 @@ paths:
           description: Success
         401:
           description: Unauthorized
-  /series:
-    get:
-      tags:
-        - Series
-      summary: List series
-      operationId: listSery
-      description: Get a paginated list of video series for an organization
-      security:
-        - 
-          bearerAuth:[]
-      responses:
-        200:
-          description: List of series with pagination
-          content:
-            application/json:
-              schema:
-                "$defs":
-                  UUID:
-                    type: string
-                    description: a Universally Unique Identifier
-                    format: uuid
-                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                type: object
-                required:
-                  - data
-                  - pagination
-                properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - id
-                        - name
-                        - description
-                        - thumbnailUrl
-                        - organizationId
-                        - isPublic
-                        - videoCount
-                        - createdAt
-                        - updatedAt
-                      properties:
-                        id:
-                          "$ref": "#/$defs/UUID"
-                        name:
-                          type: string
-                        description:
-                          anyOf:
-                            - 
-                              type: string
-                            - 
-                              type: "null"
-                        thumbnailUrl:
-                          anyOf:
-                            - 
-                              type: string
-                            - 
-                              type: "null"
-                        organizationId:
-                          "$ref": "#/$defs/UUID"
-                        isPublic:
-                          type: boolean
-                        videoCount:
-                          type: number
-                        createdAt:
-                          type: string
-                        updatedAt:
-                          type: string
-                      additionalProperties: false
-                  pagination:
-                    type: object
-                    required:
-                      - page
-                      - limit
-                      - total
-                      - totalPages
-                    properties:
-                      page:
-                        type: number
-                      limit:
-                        type: number
-                      total:
-                        type: number
-                      totalPages:
-                        type: number
-                    additionalProperties: false
-                additionalProperties: false
-        400:
-          description: - Invalid request parameters
-        401:
-          description: - Unauthorized
-    post:
-      tags:
-        - Series
-      summary: Create series
-      operationId: createSery
-      description: Create a new video series/playlist
-      security:
-        - 
-          bearerAuth:[]
-      requestBody:
-        required: true
-        description: Create series data
-        content:
-          application/json:
-            schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-              type: object
-              required:
-                - name
-                - organizationId
-              properties:
-                name:
-                  type: string
-                  description: a string that will be trimmed
-                description:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          type: string
-                          description: a string that will be trimmed
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
-                thumbnailUrl:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          type: string
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
-                organizationId:
-                  "$ref": "#/$defs/UUID"
-                isPublic:
-                  type: boolean
-              additionalProperties: false
-      responses:
-        201:
-          description: Series created successfully
-          content:
-            application/json:
-              schema:
-                "$defs":
-                  UUID:
-                    type: string
-                    description: a Universally Unique Identifier
-                    format: uuid
-                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-                type: object
-                required:
-                  - id
-                  - name
-                  - description
-                  - thumbnailUrl
-                  - organizationId
-                  - isPublic
-                  - videoCount
-                  - createdAt
-                  - updatedAt
-                properties:
-                  id:
-                    "$ref": "#/$defs/UUID"
-                  name:
-                    type: string
-                  description:
-                    anyOf:
-                      - 
-                        type: string
-                      - 
-                        type: "null"
-                  thumbnailUrl:
-                    anyOf:
-                      - 
-                        type: string
-                      - 
-                        type: "null"
-                  organizationId:
-                    "$ref": "#/$defs/UUID"
-                  isPublic:
-                    type: boolean
-                  videoCount:
-                    type: number
-                  createdAt:
-                    type: string
-                  updatedAt:
-                    type: string
-                additionalProperties: false
-        400:
-          description: - Invalid request body
-        401:
-          description: - Unauthorized
-  /series/{id}:
-    delete:
-      tags:
-        - Series
-      summary: Delete a series
-      operationId: deleteSery
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-    get:
-      tags:
-        - Series
-      summary: Get series with videos
-      operationId: getSery
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-    patch:
-      tags:
-        - Series
-      summary: Update a series
-      operationId: patchSery
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      requestBody:
-        required: true
-        description: Update a series data
-        content:
-          application/json:
-            schema:
-              type: object
-              required:[]
-              properties:
-                name:
-                  type: string
-                  description: a string that will be trimmed
-                description:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          type: string
-                          description: a string that will be trimmed
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
-                thumbnailUrl:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          type: string
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
-                isPublic:
-                  type: boolean
-              additionalProperties: false
-      responses:
-        200:
-          description: Success
-        400:
-          description: Invalid request
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-  /series/{id}/progress:
-    get:
-      tags:
-        - Series
-      summary: "Get user's progress for a series"
-      operationId: getSeryProgress
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-    post:
-      tags:
-        - Series
-      summary: "Update user's progress"
-      operationId: createSeryProgress
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        201:
-          description: Created successfully
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-  /series/{id}/videos:
-    get:
-      tags:
-        - Series
-      summary: Get available videos (not in series)
-      operationId: getSeryVideo
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-    patch:
-      tags:
-        - Series
-      summary: Reorder videos in series
-      operationId: patchSeryVideo
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        400:
-          description: Invalid request
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-    post:
-      tags:
-        - Series
-      summary: Add video to series
-      operationId: createSeryVideo
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        201:
-          description: Created successfully
-        400:
-          description: Invalid request
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
-  /series/{id}/videos/{videoId}:
-    delete:
-      tags:
-        - Series
-      summary: Remove video from series
-      operationId: deleteSeryVideo
-      security:
-        - 
-          bearerAuth:[]
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-        - 
-          name: videoId
-          in: path
-          description: VideoId ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        200:
-          description: Success
-        401:
-          description: Unauthorized
-        404:
-          description: Not found
   /share/{id}:
     get:
       tags:
@@ -3367,26 +3431,6 @@ paths:
                       type: "null"
                 organizationId:
                   "$ref": "#/$defs/UUID"
-                channelId:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          "$ref": "#/$defs/UUID"
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
-                collectionId:
-                  anyOf:
-                    - 
-                      anyOf:
-                        - 
-                          "$ref": "#/$defs/UUID"
-                        - 
-                          type: "null"
-                    - 
-                      type: "null"
                 transcript:
                   anyOf:
                     - 
@@ -3921,32 +3965,6 @@ paths:
       responses:
         200:
           description: Success
-        404:
-          description: Not found
-  /videos/{id}/move:
-    post:
-      tags:
-        - Videos
-      summary: Create move
-      operationId: createVideoMove
-      description: "POST /api/videos/[id]/move\n\nBody:\n- channelId?: string | null - The channel to move the video to (null to unassign)\n- collectionId?: string | null - The collection to move the video to (null to unassign)"
-      parameters:
-        - 
-          name: id
-          in: path
-          description: Id ID
-          required: true
-          schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
-      responses:
-        201:
-          description: Created successfully
         404:
           description: Not found
   /videos/{id}/presence:
@@ -4663,7 +4681,7 @@ paths:
         - Videos
       summary: List search
       operationId: listVideoSearch
-      description: "GET /api/videos/search\n\nSearch videos with full-text search and filters.\n\nQuery parameters:\n- q: Search query (required)\n- channelId: Filter by channel\n- authorId: Filter by author\n- dateFrom: Filter by start date (ISO 8601)\n- dateTo: Filter by end date (ISO 8601)\n- page: Page number (default: 1)\n- limit: Results per page (default: 20)"
+      description: "GET /api/videos/search\n\nSearch videos with full-text search and filters.\n\nQuery parameters:\n- q: Search query (required)\n- authorId: Filter by author\n- dateFrom: Filter by start date (ISO 8601)\n- dateTo: Filter by end date (ISO 8601)\n- page: Page number (default: 1)\n- limit: Results per page (default: 20)"
       responses:
         200:
           description: Success
@@ -4691,6 +4709,15 @@ paths:
         - Videos
       summary: Generate presigned upload URL(s)
       operationId: createVideoUploadPresigned
+      responses:
+        201:
+          description: Created successfully
+  /videos/upload/url:
+    post:
+      tags:
+        - Videos
+      summary: Import video from URL
+      operationId: createVideoUploadUrl
       responses:
         201:
           description: Created successfully

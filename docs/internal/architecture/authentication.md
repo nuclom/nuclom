@@ -706,24 +706,133 @@ Nuclom uses several Better-Auth plugins for enhanced authentication features:
 admin({
   defaultRole: "user",
   adminRoles: ["admin"],
+  // Allow specific user IDs to have admin access (useful for initial setup)
+  adminUserIds: env.ADMIN_USER_IDS?.split(',').map(id => id.trim()) || [],
   impersonationSessionDuration: 60 * 60, // 1 hour
   defaultBanReason: "Terms of service violation",
   defaultBanExpiresIn: 60 * 60 * 24 * 7, // 7 days
+  // Custom message shown to banned users
+  bannedUserMessage: "Your account has been suspended. Please contact support.",
+  // Prevent admins from impersonating other admins for security
+  allowImpersonatingAdmins: false,
 }),
+```
+
+**Admin Helper Functions (auth-client.ts):**
+```typescript
+import { listUsers, createUser, banUser, unbanUser, impersonateUser, stopImpersonation, revokeUserSessions, setUserRole, removeUser } from "@/lib/auth-client";
+
+// List all users (admin only)
+const { data: users } = await listUsers({ limit: 50, search: "john" });
+
+// Create a new user
+await createUser({ email: "user@example.com", name: "John", password: "...", role: "user" });
+
+// Ban a user
+await banUser({ userId: "...", reason: "Spam", expiresIn: 86400 * 7 });
+
+// Impersonate a user (for support)
+await impersonateUser(userId);
+await stopImpersonation();
 ```
 
 ### Organization Plugin
 
 ```typescript
 organization({
+  // Access control configuration
+  ac,
+  roles: organizationRoles,
+  // Enable dynamic role creation for custom organization roles
+  dynamicAccessControl: {
+    enabled: true,
+    maximumRolesPerOrganization: 10,
+  },
+  // Enable teams for sub-group management within organizations
+  teams: {
+    enabled: true,
+    maximumTeams: 20,
+    allowRemovingAllTeams: true,
+  },
   allowUserToCreateOrganization: async () => true,
   organizationLimit: 5,
   creatorRole: "owner",
   membershipLimit: 100,
   invitationExpiresIn: 60 * 60 * 48, // 48 hours
+  cancelPendingInvitationsOnReInvite: true,
+  // Lifecycle hooks (see below)
   async sendInvitationEmail(data) { /* custom email handler */ },
 }),
 ```
+
+### Organization Lifecycle Hooks
+
+The organization plugin supports comprehensive lifecycle hooks for tracking and automating organization events:
+
+**Organization Hooks:**
+- `beforeCreateOrganization` / `afterCreateOrganization` - Validate and track organization creation
+- `beforeUpdateOrganization` / `afterUpdateOrganization` - Track organization updates
+
+**Member Hooks:**
+- `beforeAddMember` / `afterAddMember` - Track new member additions, send notifications
+- `beforeRemoveMember` / `afterRemoveMember` - Handle member departures
+- `beforeUpdateMemberRole` / `afterUpdateMemberRole` - Track role changes
+
+**Invitation Hooks:**
+- `beforeCreateInvitation` / `afterCreateInvitation` - Track invitation creation
+- `afterAcceptInvitation` - Track successful invitations
+- `afterRejectInvitation` / `afterCancelInvitation` - Handle declined/cancelled invitations
+
+**Team Hooks:**
+- `beforeCreateTeam` / `afterCreateTeam` - Track team creation
+- `beforeUpdateTeam` / `afterUpdateTeam` - Track team updates
+- `beforeRemoveTeam` / `afterRemoveTeam` - Handle team deletion
+
+```typescript
+// Example: afterAddMember hook
+async afterAddMember(ctx) {
+  await db.insert(notifications).values({
+    userId: ctx.member.userId,
+    type: 'member_added',
+    title: `Joined ${ctx.organization.name}`,
+    body: `You have been added as a ${ctx.member.role}.`,
+    resourceType: 'organization',
+    resourceId: ctx.organization.id,
+  });
+}
+```
+
+### Teams Feature
+
+Teams provide sub-group management within organizations for granular access control:
+
+```typescript
+// Client-side team management
+import { createTeam, listTeams, updateTeam, removeTeam, setActiveTeam, addTeamMember, removeTeamMember, listTeamMembers, listUserTeams } from "@/lib/auth-client";
+
+// Create a team
+await createTeam({ name: "Engineering", organizationId: org.id });
+
+// List teams in an organization
+const { data: teams } = await listTeams(organizationId);
+
+// Add a member to a team
+await addTeamMember({ teamId: team.id, userId: user.id });
+
+// Set active team for session context
+await setActiveTeam(teamId);
+
+// List teams the current user belongs to
+const { data: myTeams } = await listUserTeams();
+```
+
+**Team Capabilities:**
+- Sub-groups within organizations for project/department organization
+- Team-specific invitations via `teamId` field
+- Active team context stored in sessions (`activeTeamId`)
+- Team lifecycle hooks for tracking
+- Maximum 20 teams per organization (configurable)
+- Team members tracked in `team_members` table
 
 ### API Key Plugin
 

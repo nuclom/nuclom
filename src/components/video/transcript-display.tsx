@@ -25,6 +25,28 @@ import { cn } from '@/lib/utils';
 // Types
 // =============================================================================
 
+export interface SpeakerInfo {
+  /** Speaker ID (from diarization or assignment) */
+  id: string;
+  /** Display label (e.g., "A", "B" or actual name) */
+  label: string;
+  /** Optional display name if assigned */
+  name?: string;
+  /** Optional avatar URL */
+  avatarUrl?: string;
+  /** Color for visual distinction */
+  color?: string;
+}
+
+export interface VocabularyTerm {
+  /** The term as it appears in text */
+  term: string;
+  /** Category for styling */
+  category?: 'product' | 'person' | 'technical' | 'acronym' | 'company';
+  /** Optional description for tooltip */
+  description?: string;
+}
+
 export interface TranscriptDisplayProps {
   /** Transcript segments to display */
   segments: TranscriptSegment[];
@@ -39,33 +61,111 @@ export interface TranscriptDisplayProps {
   /** Whether transcript is still loading */
   isLoading?: boolean;
   /** Processing status message */
-  processingStatus?: 'pending' | 'transcribing' | 'analyzing' | 'completed' | 'failed';
+  processingStatus?: 'pending' | 'transcribing' | 'diarizing' | 'analyzing' | 'completed' | 'failed';
   /** Maximum height for the transcript container */
   maxHeight?: string;
   /** Optional className */
   className?: string;
+  /** Speaker information for segments (keyed by speaker ID) */
+  speakers?: Map<string, SpeakerInfo>;
+  /** Vocabulary terms to highlight */
+  vocabularyTerms?: VocabularyTerm[];
+  /** Whether to show speaker labels */
+  showSpeakers?: boolean;
+  /** Whether to highlight vocabulary terms */
+  highlightVocabulary?: boolean;
 }
 
 // =============================================================================
 // Helper Functions
 // =============================================================================
 
-function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode {
-  if (!searchTerm.trim()) {
-    return text;
+const VOCABULARY_CATEGORY_COLORS: Record<string, string> = {
+  product: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200',
+  person: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200',
+  technical: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200',
+  acronym: 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200',
+  company: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200',
+};
+
+function highlightTextWithVocabulary(
+  text: string,
+  searchTerm: string,
+  vocabularyTerms?: VocabularyTerm[],
+  highlightVocabulary?: boolean,
+): React.ReactNode {
+  // First apply vocabulary highlighting
+  let result: React.ReactNode = text;
+
+  if (highlightVocabulary && vocabularyTerms && vocabularyTerms.length > 0) {
+    // Build regex pattern for all vocabulary terms
+    const termPatterns = vocabularyTerms.map((v) => ({
+      pattern: new RegExp(`\\b(${escapeRegExp(v.term)})\\b`, 'gi'),
+      term: v,
+    }));
+
+    let segments: Array<{ text: string; isVocab: boolean; term?: VocabularyTerm }> = [{ text, isVocab: false }];
+
+    for (const { pattern, term } of termPatterns) {
+      segments = segments.flatMap((seg) => {
+        if (seg.isVocab) return [seg];
+
+        const parts: Array<{ text: string; isVocab: boolean; term?: VocabularyTerm }> = [];
+        let lastIndex = 0;
+        let match: RegExpExecArray | null = pattern.exec(seg.text);
+
+        while (match !== null) {
+          if (match.index > lastIndex) {
+            parts.push({ text: seg.text.slice(lastIndex, match.index), isVocab: false });
+          }
+          parts.push({ text: match[0], isVocab: true, term });
+          lastIndex = match.index + match[0].length;
+          match = pattern.exec(seg.text);
+        }
+
+        if (lastIndex < seg.text.length) {
+          parts.push({ text: seg.text.slice(lastIndex), isVocab: false });
+        }
+
+        return parts.length > 0 ? parts : [seg];
+      });
+    }
+
+    result = segments.map((seg, idx) => {
+      if (seg.isVocab && seg.term) {
+        const colorClass =
+          VOCABULARY_CATEGORY_COLORS[seg.term.category ?? 'technical'] ?? VOCABULARY_CATEGORY_COLORS.technical;
+        return (
+          <span
+            key={idx}
+            className={cn('rounded px-0.5', colorClass)}
+            title={seg.term.description ?? `${seg.term.category ?? 'term'}: ${seg.term.term}`}
+          >
+            {seg.text}
+          </span>
+        );
+      }
+      return seg.text;
+    });
   }
 
-  const parts = text.split(new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi'));
+  // Then apply search term highlighting
+  if (searchTerm.trim()) {
+    if (typeof result === 'string') {
+      const parts = result.split(new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi'));
+      result = parts.map((part, index) =>
+        part.toLowerCase() === searchTerm.toLowerCase() ? (
+          <mark key={index} className="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5">
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      );
+    }
+  }
 
-  return parts.map((part, index) =>
-    part.toLowerCase() === searchTerm.toLowerCase() ? (
-      <mark key={index} className="bg-yellow-200 dark:bg-yellow-800 rounded px-0.5">
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  );
+  return result;
 }
 
 function escapeRegExp(string: string): string {
@@ -83,6 +183,100 @@ interface TranscriptSegmentItemProps {
   searchTerm: string;
   onSeek?: (time: number) => void;
   onAddComment?: (segment: TranscriptSegment) => void;
+  /** Speaker info for this segment */
+  speaker?: SpeakerInfo;
+  /** Whether to show speaker label */
+  showSpeaker?: boolean;
+  /** Vocabulary terms to highlight */
+  vocabularyTerms?: VocabularyTerm[];
+  /** Whether to highlight vocabulary */
+  highlightVocabulary?: boolean;
+  /** Current playback time for word-level highlighting */
+  currentTime?: number;
+}
+
+// =============================================================================
+// Word-Level Timing Interpolation
+// =============================================================================
+
+interface WordTiming {
+  word: string;
+  startTime: number;
+  endTime: number;
+}
+
+/**
+ * Interpolate word timings within a segment
+ * Distributes the segment duration evenly across words
+ */
+function interpolateWordTimings(segment: TranscriptSegment): WordTiming[] {
+  const words = segment.text.split(/\s+/).filter((w) => w.length > 0);
+  if (words.length === 0) return [];
+
+  const segmentDuration = segment.endTime - segment.startTime;
+  const wordDuration = segmentDuration / words.length;
+
+  return words.map((word, idx) => ({
+    word,
+    startTime: segment.startTime + idx * wordDuration,
+    endTime: segment.startTime + (idx + 1) * wordDuration,
+  }));
+}
+
+/**
+ * Find the index of the word being spoken at the given time
+ */
+function findCurrentWordIndex(wordTimings: WordTiming[], currentTime: number): number {
+  return wordTimings.findIndex((timing) => currentTime >= timing.startTime && currentTime < timing.endTime);
+}
+
+/**
+ * Render text with word-level playback highlighting
+ * When the segment is active, highlights the word currently being spoken
+ */
+function renderTextWithWordHighlight(
+  segment: TranscriptSegment,
+  currentTime: number | undefined,
+  isActive: boolean,
+  searchTerm: string,
+  vocabularyTerms?: VocabularyTerm[],
+  highlightVocabulary?: boolean,
+): React.ReactNode {
+  // If not active or no currentTime, fall back to standard rendering
+  if (!isActive || currentTime === undefined) {
+    return highlightTextWithVocabulary(segment.text, searchTerm, vocabularyTerms, highlightVocabulary);
+  }
+
+  // Get word timings and find current word
+  const wordTimings = interpolateWordTimings(segment);
+  const currentWordIndex = findCurrentWordIndex(wordTimings, currentTime);
+
+  // Render each word with appropriate highlighting
+  return (
+    <>
+      {wordTimings.map((timing, idx) => {
+        const isCurrentWord = idx === currentWordIndex;
+        const isPastWord = currentWordIndex >= 0 && idx < currentWordIndex;
+
+        return (
+          <span key={idx}>
+            <span
+              className={cn(
+                'transition-colors duration-150',
+                isCurrentWord && 'text-primary font-semibold bg-primary/20 rounded px-0.5',
+                isPastWord && 'text-foreground',
+                !isCurrentWord && !isPastWord && 'text-muted-foreground',
+              )}
+              data-active={isCurrentWord ? '' : undefined}
+            >
+              {timing.word}
+            </span>
+            {idx < wordTimings.length - 1 && ' '}
+          </span>
+        );
+      })}
+    </>
+  );
 }
 
 function TranscriptSegmentItem({
@@ -92,6 +286,11 @@ function TranscriptSegmentItem({
   searchTerm,
   onSeek,
   onAddComment,
+  speaker,
+  showSpeaker,
+  vocabularyTerms,
+  highlightVocabulary,
+  currentTime,
 }: TranscriptSegmentItemProps) {
   return (
     <div
@@ -113,6 +312,21 @@ function TranscriptSegmentItem({
       role="button"
       aria-label={`Jump to ${formatTime(segment.startTime)}: ${segment.text}`}
     >
+      {/* Speaker indicator */}
+      {showSpeaker && speaker && (
+        <div className="flex-shrink-0 flex items-start">
+          <div
+            className={cn(
+              'w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium',
+              speaker.color || 'bg-gray-500',
+            )}
+            title={speaker.name || `Speaker ${speaker.label}`}
+          >
+            {speaker.name ? speaker.name.charAt(0).toUpperCase() : speaker.label}
+          </div>
+        </div>
+      )}
+
       {/* Timestamp */}
       <div className="flex-shrink-0 w-12 sm:w-16">
         <span
@@ -125,10 +339,21 @@ function TranscriptSegmentItem({
         </span>
       </div>
 
-      {/* Text content */}
+      {/* Text content with word-level highlighting */}
       <div className="flex-1 min-w-0 pr-6 sm:pr-0">
-        <p className={cn('text-sm leading-relaxed', isActive && 'text-foreground font-medium')}>
-          {highlightSearchTerm(segment.text, searchTerm)}
+        {/* Speaker name (if available and different from label) */}
+        {showSpeaker && speaker?.name && (
+          <span className="text-xs font-medium text-muted-foreground mb-0.5 block">{speaker.name}</span>
+        )}
+        <p className={cn('text-sm leading-relaxed', isActive && 'text-foreground')}>
+          {renderTextWithWordHighlight(
+            segment,
+            currentTime,
+            isActive,
+            searchTerm,
+            vocabularyTerms,
+            highlightVocabulary,
+          )}
         </p>
       </div>
 
@@ -177,6 +402,10 @@ export function TranscriptDisplay({
   processingStatus,
   maxHeight = '24rem',
   className,
+  speakers,
+  vocabularyTerms,
+  showSpeakers = false,
+  highlightVocabulary = false,
 }: TranscriptDisplayProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -252,7 +481,22 @@ export function TranscriptDisplay({
   );
 
   // Show loading state
-  if (isLoading || processingStatus === 'pending' || processingStatus === 'transcribing') {
+  const isProcessing =
+    isLoading ||
+    processingStatus === 'pending' ||
+    processingStatus === 'transcribing' ||
+    processingStatus === 'diarizing' ||
+    processingStatus === 'analyzing';
+
+  if (isProcessing) {
+    const statusMessages: Record<string, string> = {
+      pending: 'Preparing transcript...',
+      transcribing: 'Transcribing audio...',
+      diarizing: 'Identifying speakers...',
+      analyzing: 'Analyzing content...',
+    };
+    const statusMessage = statusMessages[processingStatus ?? 'pending'] ?? 'Processing...';
+
     return (
       <Card className={className}>
         <CardHeader className="pb-3">
@@ -268,9 +512,7 @@ export function TranscriptDisplay({
               <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
               <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <p className="text-sm mt-4">
-              {processingStatus === 'transcribing' ? 'Transcribing audio...' : 'Preparing transcript...'}
-            </p>
+            <p className="text-sm mt-4">{statusMessage}</p>
           </div>
         </CardContent>
       </Card>
@@ -370,6 +612,10 @@ export function TranscriptDisplay({
                 (s) => s.startTime === segment.startTime && s.text === segment.text,
               );
 
+              // Get speaker info if available (using segment's speaker field if it exists)
+              const segmentWithSpeaker = segment as TranscriptSegment & { speaker?: string };
+              const speakerInfo = segmentWithSpeaker.speaker ? speakers?.get(segmentWithSpeaker.speaker) : undefined;
+
               return (
                 <TranscriptSegmentItem
                   key={`${segment.startTime}-${displayIndex}`}
@@ -379,6 +625,11 @@ export function TranscriptDisplay({
                   searchTerm={searchTerm}
                   onSeek={handleSegmentClick}
                   onAddComment={onAddComment}
+                  speaker={speakerInfo}
+                  showSpeaker={showSpeakers}
+                  vocabularyTerms={vocabularyTerms}
+                  highlightVocabulary={highlightVocabulary}
+                  currentTime={currentTime}
                 />
               );
             })}

@@ -15,11 +15,13 @@ const log = createLogger('effect-runtime');
 import { env } from '@/lib/env/server';
 // Services
 import { type AI, AILive } from './services/ai';
+import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';
 import { makeAuthLayer } from './services/auth';
 import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
-import { type ChannelRepository, ChannelRepositoryLive } from './services/channel-repository';
+import { type ChatRepository, ChatRepositoryLive } from './services/chat-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
+import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
@@ -31,13 +33,14 @@ import { type Presence, PresenceLive } from './services/presence';
 import { type ReplicateAPI, ReplicateLive } from './services/replicate';
 import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
-import { type SeriesRepository, SeriesRepositoryLive } from './services/series-repository';
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
 import { type Storage, StorageLive } from './services/storage';
 import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
 import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
+import { type VideoSharesRepository, VideoSharesRepositoryLive } from './services/video-shares-repository';
+import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
 
 // =============================================================================
 // Layer Composition Utilities
@@ -136,10 +139,12 @@ const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, Datab
 const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
 const BillingRepositoryWithDeps = withDep(BillingRepositoryLive, DatabaseLive);
 const SearchRepositoryWithDeps = withDep(SearchRepositoryLive, DatabaseLive);
-const SeriesRepositoryWithDeps = withDep(SeriesRepositoryLive, DatabaseLive);
-const ChannelRepositoryWithDeps = withDep(ChannelRepositoryLive, DatabaseLive);
+const CollectionRepositoryWithDeps = withDep(CollectionRepositoryLive, DatabaseLive);
 const KnowledgeGraphRepositoryWithDeps = withDep(KnowledgeGraphRepositoryLive, DatabaseLive);
 const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, DatabaseLive);
+const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
+const ChatRepositoryWithDeps = withDep(ChatRepositoryLive, DatabaseLive);
+const VideoSharesRepositoryWithDeps = withDep(VideoSharesRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
@@ -154,10 +159,16 @@ const BillingWithDeps = withDeps(
   EmailNotificationsLive,
 );
 
+// AIChatKB service depends on Embedding, SemanticSearchRepository, and KnowledgeGraphRepository
+const AIChatKBWithDeps = AIChatKBLive.pipe(
+  Layer.provide(Layer.mergeAll(EmbeddingLive, SemanticSearchRepositoryWithDeps, KnowledgeGraphRepositoryWithDeps)),
+);
+
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
   VideoRepositoryWithDeps,
+  VideoSharesRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
   PresenceWithDeps,
@@ -167,10 +178,12 @@ const AppServicesLive = Layer.mergeAll(
   BillingWithDeps,
   SearchRepositoryWithDeps,
   SemanticSearchRepositoryWithDeps,
-  SeriesRepositoryWithDeps,
-  ChannelRepositoryWithDeps,
+  CollectionRepositoryWithDeps,
   ClipRepositoryWithDeps,
   KnowledgeGraphRepositoryWithDeps,
+  VocabularyRepositoryWithDeps,
+  ChatRepositoryWithDeps,
+  AIChatKBWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -183,10 +196,12 @@ export type AppServices =
   | Database
   | Storage
   | AI
+  | AIChatKB
   | Embedding
   | ReplicateAPI
   | VideoProcessor
   | VideoRepository
+  | VideoSharesRepository
   | OrganizationRepository
   | VideoProgressRepository
   | Presence
@@ -197,10 +212,11 @@ export type AppServices =
   | Billing
   | SearchRepository
   | SemanticSearchRepository
-  | SeriesRepository
-  | ChannelRepository
+  | CollectionRepository
   | ClipRepository
   | KnowledgeGraphRepository
+  | VocabularyRepository
+  | ChatRepository
   | StripeServiceTag
   | SlackMonitoring;
 

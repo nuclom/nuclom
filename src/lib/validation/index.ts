@@ -33,7 +33,7 @@ export function validateOptional<A, I>(
 }
 
 /**
- * Result type for safeParse - matches Zod-like API for easy migration
+ * Result type for safeParse - matches a familiar safeParse-style API
  */
 export type SafeParseResult<A> =
   | { success: true; data: A }
@@ -43,7 +43,7 @@ export type SafeParseResult<A> =
  * Safely parses data against an Effect Schema.
  * Returns the parsed data or validation errors if validation fails.
  * Does not throw errors - useful for form handling.
- * Returns a Zod-like result object for compatibility.
+ * Returns a safeParse-style result object for compatibility.
  */
 export function safeParse<A, I>(schema: Schema.Schema<A, I>, data: unknown): SafeParseResult<A> {
   const result = Schema.decodeUnknownEither(schema)(data);
@@ -170,7 +170,7 @@ export function createQueryValidator<A, I>(schema: Schema.Schema<A, I>) {
     /** Validate query parameters, returning an Effect that fails with ValidationError */
     validate: (url: string | URL): Effect.Effect<A, ValidationError> => validateQueryParams(schema, url),
 
-    /** Validate query parameters with a Zod-like result object */
+    /** Validate query parameters with a safeParse-style result object */
     safeParse: (url: string | URL): SafeParseResult<A> => safeParse(schema, parseQueryParams(url)),
 
     /** Get the underlying schema for composition */
@@ -204,7 +204,7 @@ export function createBodyValidator<A, I>(schema: Schema.Schema<A, I>) {
     /** Validate request body, returning an Effect that fails with ValidationError */
     validate: (request: Request): Effect.Effect<A, ValidationError> => validateRequestBody(schema, request),
 
-    /** Validate raw data with a Zod-like result object */
+    /** Validate raw data with a safeParse-style result object */
     safeParse: (data: unknown): SafeParseResult<A> => safeParse(schema, data),
 
     /** Get the underlying schema for composition */

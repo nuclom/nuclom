@@ -8,13 +8,15 @@ import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, lt, lte, ne, or, sql
 import { Context, Effect, Layer } from 'effect';
 import {
   type ActionItem,
-  channels,
-  collections,
+  members,
   organizations,
   type ProcessingStatus,
   type TranscriptSegment,
+  teamMembers,
   users,
+  type VideoVisibility,
   videoChapters,
+  videoShares,
   videos,
 } from '@/lib/db/schema';
 import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
@@ -34,8 +36,7 @@ export interface CreateVideoInput {
   readonly videoUrl?: string;
   readonly authorId: string;
   readonly organizationId: string;
-  readonly channelId?: string;
-  readonly collectionId?: string;
+  readonly visibility?: VideoVisibility;
   readonly transcript?: string;
   readonly transcriptSegments?: TranscriptSegment[];
   readonly processingStatus?: ProcessingStatus;
@@ -50,8 +51,7 @@ export interface UpdateVideoInput {
   readonly duration?: string;
   readonly thumbnailUrl?: string | null;
   readonly videoUrl?: string | null;
-  readonly channelId?: string | null;
-  readonly collectionId?: string | null;
+  readonly visibility?: VideoVisibility;
   readonly transcript?: string | null;
   readonly transcriptSegments?: TranscriptSegment[] | null;
   readonly processingStatus?: ProcessingStatus;
@@ -71,7 +71,6 @@ export interface SoftDeleteOptions {
 export interface VideoSearchInput {
   readonly query: string;
   readonly organizationId: string;
-  readonly channelId?: string;
   readonly authorId?: string;
   readonly dateFrom?: Date;
   readonly dateTo?: Date;
@@ -160,15 +159,6 @@ export interface VideoRepositoryService {
   ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
 
   /**
-   * Get paginated videos for a channel with author details
-   */
-  readonly getChannelVideosWithAuthor: (
-    channelId: string,
-    page?: number,
-    limit?: number,
-  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
-
-  /**
    * Get paginated videos shared by others in the organization (not authored by the current user)
    */
   readonly getVideosSharedByOthers: (
@@ -176,6 +166,41 @@ export interface VideoRepositoryService {
     organizationId: string,
     page?: number,
     limit?: number,
+  ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
+
+  /**
+   * Check if a user can access a specific video based on visibility and sharing rules.
+   * Returns the access level if allowed, or null if not allowed.
+   *
+   * Access rules:
+   * - 'public' videos: Anyone can view
+   * - 'organization' videos: Any organization member can view
+   * - 'private' videos: Only author or explicitly shared users/team members
+   */
+  readonly canAccessVideo: (
+    videoId: string,
+    userId: string | null,
+  ) => Effect.Effect<{ canAccess: boolean; accessLevel: 'view' | 'comment' | 'download' | null }, DatabaseError>;
+
+  /**
+   * Get accessible videos for a user considering visibility rules.
+   * Includes:
+   * - Videos authored by the user (any visibility)
+   * - Organization videos (if user is a member)
+   * - Private videos explicitly shared with the user or their teams
+   * - Public videos (optional, controlled by includePublic parameter)
+   */
+  readonly getAccessibleVideos: (
+    userId: string,
+    organizationId: string,
+    options?: {
+      includeOwn?: boolean;
+      includeOrganization?: boolean;
+      includeSharedWithMe?: boolean;
+      includePublic?: boolean;
+      page?: number;
+      limit?: number;
+    },
   ) => Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError>;
 }
 
@@ -250,8 +275,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -259,6 +282,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             deletedAt: videos.deletedAt,
             retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
@@ -330,8 +354,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -339,6 +361,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             deletedAt: videos.deletedAt,
             retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
@@ -404,8 +427,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               videoUrl: videos.videoUrl,
               authorId: videos.authorId,
               organizationId: videos.organizationId,
-              channelId: videos.channelId,
-              collectionId: videos.collectionId,
               transcript: videos.transcript,
               transcriptSegments: videos.transcriptSegments,
               processingStatus: videos.processingStatus,
@@ -413,6 +434,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
               aiSummary: videos.aiSummary,
               aiTags: videos.aiTags,
               aiActionItems: videos.aiActionItems,
+              visibility: videos.visibility,
               createdAt: videos.createdAt,
               updatedAt: videos.updatedAt,
               author: {
@@ -464,42 +486,8 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         );
       }
 
-      // Get channel if exists
-      let channel = null;
-      const videoChannelId = videoData[0].channelId;
-      if (videoChannelId) {
-        const channelData = yield* Effect.tryPromise({
-          try: () => db.select().from(channels).where(eq(channels.id, videoChannelId)).limit(1),
-          catch: (error) =>
-            new DatabaseError({
-              message: 'Failed to fetch channel',
-              operation: 'getVideo.channel',
-              cause: error,
-            }),
-        });
-        channel = channelData[0] || null;
-      }
-
-      // Get collection if exists
-      let collection = null;
-      const videoCollectionId = videoData[0].collectionId;
-      if (videoCollectionId) {
-        const collectionData = yield* Effect.tryPromise({
-          try: () => db.select().from(collections).where(eq(collections.id, videoCollectionId)).limit(1),
-          catch: (error) =>
-            new DatabaseError({
-              message: 'Failed to fetch collection',
-              operation: 'getVideo.collection',
-              cause: error,
-            }),
-        });
-        collection = collectionData[0] || null;
-      }
-
       return {
         ...videoData[0],
-        channel,
-        collection,
         comments: [],
       } as VideoWithDetails;
     });
@@ -730,10 +718,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           ),
         ];
 
-        if (input.channelId) {
-          conditions.push(eq(videos.channelId, input.channelId));
-        }
-
         if (input.authorId) {
           conditions.push(eq(videos.authorId, input.authorId));
         }
@@ -758,8 +742,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -767,6 +749,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             deletedAt: videos.deletedAt,
             retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
@@ -855,8 +838,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -864,6 +845,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             deletedAt: videos.deletedAt,
             retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
@@ -919,85 +901,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         }),
     });
 
-  const getChannelVideosWithAuthor = (
-    channelId: string,
-    page = 1,
-    limit = 20,
-  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const offset = (page - 1) * limit;
-
-        const videosData = await db
-          .select({
-            id: videos.id,
-            title: videos.title,
-            description: videos.description,
-            duration: videos.duration,
-            thumbnailUrl: videos.thumbnailUrl,
-            videoUrl: videos.videoUrl,
-            authorId: videos.authorId,
-            organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
-            transcript: videos.transcript,
-            transcriptSegments: videos.transcriptSegments,
-            processingStatus: videos.processingStatus,
-            processingError: videos.processingError,
-            aiSummary: videos.aiSummary,
-            aiTags: videos.aiTags,
-            aiActionItems: videos.aiActionItems,
-            deletedAt: videos.deletedAt,
-            retentionUntil: videos.retentionUntil,
-            createdAt: videos.createdAt,
-            updatedAt: videos.updatedAt,
-            author: {
-              id: users.id,
-              email: users.email,
-              name: users.name,
-              image: users.image,
-              createdAt: users.createdAt,
-              updatedAt: users.updatedAt,
-              emailVerified: users.emailVerified,
-              role: users.role,
-              banned: users.banned,
-              banReason: users.banReason,
-              banExpires: users.banExpires,
-              twoFactorEnabled: users.twoFactorEnabled,
-              lastLoginMethod: users.lastLoginMethod,
-              stripeCustomerId: users.stripeCustomerId,
-            },
-          })
-          .from(videos)
-          .innerJoin(users, eq(videos.authorId, users.id))
-          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)))
-          .orderBy(desc(videos.createdAt))
-          .offset(offset)
-          .limit(limit);
-
-        const totalCount = await db
-          .select()
-          .from(videos)
-          .where(and(eq(videos.channelId, channelId), isNull(videos.deletedAt)));
-
-        return {
-          data: videosData as VideoWithAuthor[],
-          pagination: {
-            page,
-            limit,
-            total: totalCount.length,
-            totalPages: Math.ceil(totalCount.length / limit),
-          },
-        };
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch channel videos',
-          operation: 'getChannelVideosWithAuthor',
-          cause: error,
-        }),
-    });
-
   const getVideosSharedByOthers = (
     userId: string,
     organizationId: string,
@@ -1019,8 +922,6 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -1028,6 +929,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             deletedAt: videos.deletedAt,
             retentionUntil: videos.retentionUntil,
             createdAt: videos.createdAt,
@@ -1079,6 +981,266 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         }),
     });
 
+  const canAccessVideo = (
+    videoId: string,
+    userId: string | null,
+  ): Effect.Effect<{ canAccess: boolean; accessLevel: 'view' | 'comment' | 'download' | null }, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        // First, get the video to check its visibility and author
+        const video = await db
+          .select({
+            id: videos.id,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            visibility: videos.visibility,
+            deletedAt: videos.deletedAt,
+          })
+          .from(videos)
+          .where(eq(videos.id, videoId))
+          .limit(1);
+
+        if (!video.length || video[0].deletedAt) {
+          return { canAccess: false, accessLevel: null };
+        }
+
+        const v = video[0];
+
+        // Public videos: anyone can view
+        if (v.visibility === 'public') {
+          return { canAccess: true, accessLevel: 'view' };
+        }
+
+        // For non-public videos, user must be authenticated
+        if (!userId) {
+          return { canAccess: false, accessLevel: null };
+        }
+
+        // Author always has full access
+        if (v.authorId === userId) {
+          return { canAccess: true, accessLevel: 'download' };
+        }
+
+        // Organization videos: check if user is a member
+        if (v.visibility === 'organization') {
+          const membership = await db
+            .select()
+            .from(members)
+            .where(and(eq(members.organizationId, v.organizationId), eq(members.userId, userId)))
+            .limit(1);
+
+          if (membership.length > 0) {
+            return { canAccess: true, accessLevel: 'view' };
+          }
+        }
+
+        // Private videos: check explicit shares
+        if (v.visibility === 'private') {
+          // Check direct user share
+          const userShare = await db
+            .select({ accessLevel: videoShares.accessLevel })
+            .from(videoShares)
+            .where(and(eq(videoShares.videoId, videoId), eq(videoShares.userId, userId)))
+            .limit(1);
+
+          if (userShare.length > 0) {
+            return { canAccess: true, accessLevel: userShare[0].accessLevel };
+          }
+
+          // Check team shares - user must be a member of a team that has access
+          const teamShare = await db
+            .select({ accessLevel: videoShares.accessLevel })
+            .from(videoShares)
+            .innerJoin(teamMembers, eq(videoShares.teamId, teamMembers.teamId))
+            .where(and(eq(videoShares.videoId, videoId), eq(teamMembers.userId, userId)))
+            .limit(1);
+
+          if (teamShare.length > 0) {
+            return { canAccess: true, accessLevel: teamShare[0].accessLevel };
+          }
+        }
+
+        return { canAccess: false, accessLevel: null };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to check video access',
+          operation: 'canAccessVideo',
+          cause: error,
+        }),
+    });
+
+  const getAccessibleVideos = (
+    userId: string,
+    organizationId: string,
+    options: {
+      includeOwn?: boolean;
+      includeOrganization?: boolean;
+      includeSharedWithMe?: boolean;
+      includePublic?: boolean;
+      page?: number;
+      limit?: number;
+    } = {},
+  ): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const {
+          includeOwn = true,
+          includeOrganization = true,
+          includeSharedWithMe = true,
+          includePublic = false,
+          page = 1,
+          limit: itemsLimit = 20,
+        } = options;
+        const offset = (page - 1) * itemsLimit;
+
+        // Build conditions for accessible videos
+        const accessConditions: ReturnType<typeof eq>[] = [];
+
+        // User's own videos (any visibility)
+        if (includeOwn) {
+          accessConditions.push(eq(videos.authorId, userId));
+        }
+
+        // Organization-visible videos (not authored by user)
+        if (includeOrganization) {
+          accessConditions.push(
+            and(
+              eq(videos.organizationId, organizationId),
+              eq(videos.visibility, 'organization'),
+              ne(videos.authorId, userId),
+            ) as ReturnType<typeof eq>,
+          );
+        }
+
+        // Public videos from this organization (not authored by user)
+        if (includePublic) {
+          accessConditions.push(
+            and(
+              eq(videos.organizationId, organizationId),
+              eq(videos.visibility, 'public'),
+              ne(videos.authorId, userId),
+            ) as ReturnType<typeof eq>,
+          );
+        }
+
+        // Get IDs of private videos shared with user directly
+        let sharedVideoIds: string[] = [];
+        if (includeSharedWithMe) {
+          // Direct user shares
+          const userShares = await db
+            .select({ videoId: videoShares.videoId })
+            .from(videoShares)
+            .innerJoin(videos, eq(videoShares.videoId, videos.id))
+            .where(
+              and(
+                eq(videoShares.userId, userId),
+                eq(videos.visibility, 'private'),
+                eq(videos.organizationId, organizationId),
+                isNull(videos.deletedAt),
+              ),
+            );
+
+          // Team shares
+          const teamShares = await db
+            .select({ videoId: videoShares.videoId })
+            .from(videoShares)
+            .innerJoin(teamMembers, eq(videoShares.teamId, teamMembers.teamId))
+            .innerJoin(videos, eq(videoShares.videoId, videos.id))
+            .where(
+              and(
+                eq(teamMembers.userId, userId),
+                eq(videos.visibility, 'private'),
+                eq(videos.organizationId, organizationId),
+                isNull(videos.deletedAt),
+              ),
+            );
+
+          sharedVideoIds = [...new Set([...userShares.map((s) => s.videoId), ...teamShares.map((s) => s.videoId)])];
+        }
+
+        // Build the final where clause
+        const whereClause =
+          accessConditions.length > 0 || sharedVideoIds.length > 0
+            ? and(
+                isNull(videos.deletedAt),
+                or(
+                  ...accessConditions,
+                  ...(sharedVideoIds.length > 0
+                    ? [sql`${videos.id} IN (${sql.raw(sharedVideoIds.map((id) => `'${id}'`).join(', '))})`]
+                    : []),
+                ),
+              )
+            : and(isNull(videos.deletedAt), eq(videos.authorId, userId)); // Fallback to just own videos
+
+        const videosData = await db
+          .select({
+            id: videos.id,
+            title: videos.title,
+            description: videos.description,
+            duration: videos.duration,
+            thumbnailUrl: videos.thumbnailUrl,
+            videoUrl: videos.videoUrl,
+            authorId: videos.authorId,
+            organizationId: videos.organizationId,
+            visibility: videos.visibility,
+            transcript: videos.transcript,
+            transcriptSegments: videos.transcriptSegments,
+            processingStatus: videos.processingStatus,
+            processingError: videos.processingError,
+            aiSummary: videos.aiSummary,
+            aiTags: videos.aiTags,
+            aiActionItems: videos.aiActionItems,
+            deletedAt: videos.deletedAt,
+            retentionUntil: videos.retentionUntil,
+            createdAt: videos.createdAt,
+            updatedAt: videos.updatedAt,
+            author: {
+              id: users.id,
+              email: users.email,
+              name: users.name,
+              image: users.image,
+              createdAt: users.createdAt,
+              updatedAt: users.updatedAt,
+              emailVerified: users.emailVerified,
+              role: users.role,
+              banned: users.banned,
+              banReason: users.banReason,
+              banExpires: users.banExpires,
+              twoFactorEnabled: users.twoFactorEnabled,
+              lastLoginMethod: users.lastLoginMethod,
+              stripeCustomerId: users.stripeCustomerId,
+            },
+          })
+          .from(videos)
+          .innerJoin(users, eq(videos.authorId, users.id))
+          .where(whereClause)
+          .orderBy(desc(videos.createdAt))
+          .offset(offset)
+          .limit(itemsLimit);
+
+        // Get total count
+        const totalCountResult = await db.select({ count: sql`count(*)::int` }).from(videos).where(whereClause);
+        const total = totalCountResult[0]?.count ?? 0;
+
+        return {
+          data: videosData as VideoWithAuthor[],
+          pagination: {
+            page,
+            limit: itemsLimit,
+            total: Number(total),
+            totalPages: Math.ceil(Number(total) / itemsLimit),
+          },
+        };
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to fetch accessible videos',
+          operation: 'getAccessibleVideos',
+          cause: error,
+        }),
+    });
+
   return {
     getVideos,
     getDeletedVideos,
@@ -1092,8 +1254,9 @@ const makeVideoRepositoryService = Effect.gen(function* () {
     getVideoChapters,
     searchVideos,
     getVideosByAuthor,
-    getChannelVideosWithAuthor,
     getVideosSharedByOthers,
+    canAccessVideo,
+    getAccessibleVideos,
   } satisfies VideoRepositoryService;
 });
 
@@ -1208,16 +1371,6 @@ export const getVideosByAuthor = (
     return yield* repo.getVideosByAuthor(authorId, organizationId, page, limit);
   });
 
-export const getChannelVideosWithAuthor = (
-  channelId: string,
-  page?: number,
-  limit?: number,
-): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
-  Effect.gen(function* () {
-    const repo = yield* VideoRepository;
-    return yield* repo.getChannelVideosWithAuthor(channelId, page, limit);
-  });
-
 export const getVideosSharedByOthers = (
   userId: string,
   organizationId: string,
@@ -1227,4 +1380,34 @@ export const getVideosSharedByOthers = (
   Effect.gen(function* () {
     const repo = yield* VideoRepository;
     return yield* repo.getVideosSharedByOthers(userId, organizationId, page, limit);
+  });
+
+export const canAccessVideo = (
+  videoId: string,
+  userId: string | null,
+): Effect.Effect<
+  { canAccess: boolean; accessLevel: 'view' | 'comment' | 'download' | null },
+  DatabaseError,
+  VideoRepository
+> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.canAccessVideo(videoId, userId);
+  });
+
+export const getAccessibleVideos = (
+  userId: string,
+  organizationId: string,
+  options?: {
+    includeOwn?: boolean;
+    includeOrganization?: boolean;
+    includeSharedWithMe?: boolean;
+    includePublic?: boolean;
+    page?: number;
+    limit?: number;
+  },
+): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError, VideoRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* VideoRepository;
+    return yield* repo.getAccessibleVideos(userId, organizationId, options);
   });

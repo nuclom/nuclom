@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import { SearchPageContent } from '@/components/search';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { channels, collections, members, organizations, users, videos } from '@/lib/db/schema';
+import { collections, members, organizations, users, videos } from '@/lib/db/schema';
 
 interface SearchPageProps {
   params: Promise<{ organization: string }>;
@@ -60,13 +60,7 @@ async function SearchLoader({
   }
 
   // Fetch filter options in parallel
-  const [orgChannels, orgCollections, orgAuthors] = await Promise.all([
-    // Get channels for this organization
-    db
-      .select()
-      .from(channels)
-      .where(eq(channels.organizationId, org.id)),
-
+  const [orgCollections, orgAuthors] = await Promise.all([
     // Get collections for this organization
     db
       .select()
@@ -115,7 +109,6 @@ async function SearchLoader({
         organizationId={org.id}
         organization={organizationSlug}
         authors={orgAuthors}
-        channels={orgChannels}
         collections={orgCollections}
       />
     </div>

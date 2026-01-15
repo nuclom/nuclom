@@ -76,6 +76,20 @@ export interface DiarizationResult {
   readonly language?: string;
   /** Number of speakers detected */
   readonly speakerCount: number;
+  /** Expected speakers passed in (for UI to show matching options) */
+  readonly expectedSpeakers?: ReadonlyArray<ExpectedSpeaker>;
+}
+
+/**
+ * Expected speaker info for improved diarization matching
+ */
+export interface ExpectedSpeaker {
+  /** Speaker's name */
+  readonly name: string;
+  /** Email address (for matching to org members) */
+  readonly email?: string;
+  /** Previously learned voice embedding (for future use) */
+  readonly voiceEmbedding?: number[];
 }
 
 /**
@@ -88,6 +102,8 @@ export interface DiarizationOptions {
   readonly punctuate?: boolean;
   /** Whether to format numbers, dates, etc. */
   readonly formatText?: boolean;
+  /** Expected speakers from meeting participants (helps with speaker count hint) */
+  readonly expectedSpeakers?: ExpectedSpeaker[];
 }
 
 export interface SpeakerDiarizationServiceInterface {
@@ -178,8 +194,8 @@ const makeService = Effect.gen(function* () {
       // Step 2: Poll for completion
       const result = yield* pollForCompletion(apiKey, transcriptId);
 
-      // Step 3: Process and return results
-      return processResult(result);
+      // Step 3: Process and return results (include expected speakers for UI matching)
+      return processResult(result, options?.expectedSpeakers);
     });
 
   return {
@@ -198,10 +214,14 @@ const submitTranscription = (
 ): Effect.Effect<string, DiarizationError> =>
   Effect.tryPromise({
     try: async () => {
+      // Use expected speakers count as hint if not explicitly provided
+      const speakersExpected =
+        options?.speakersExpected ?? (options?.expectedSpeakers?.length ? options.expectedSpeakers.length : undefined);
+
       const requestBody: AssemblyAITranscriptRequest = {
         audio_url: audioUrl,
         speaker_labels: true,
-        speakers_expected: options?.speakersExpected,
+        speakers_expected: speakersExpected,
         punctuate: options?.punctuate ?? true,
         format_text: options?.formatText ?? true,
       };
@@ -300,7 +320,10 @@ const checkTranscriptStatus = (
 /**
  * Process AssemblyAI response into our result format
  */
-const processResult = (response: AssemblyAITranscriptResponse): DiarizationResult => {
+const processResult = (
+  response: AssemblyAITranscriptResponse,
+  expectedSpeakers?: ExpectedSpeaker[],
+): DiarizationResult => {
   const utterances = response.utterances || [];
   const durationMs = (response.audio_duration || 0) * 1000;
 
@@ -346,6 +369,7 @@ const processResult = (response: AssemblyAITranscriptResponse): DiarizationResul
     duration: durationMs,
     language: response.language_code,
     speakerCount: speakers.length,
+    expectedSpeakers,
   };
 };
 

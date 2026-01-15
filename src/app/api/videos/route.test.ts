@@ -82,8 +82,9 @@ describe('Videos API Route', () => {
       getVideoChapters: vi.fn().mockImplementation(() => Effect.succeed([])),
       searchVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
       getVideosByAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
-      getChannelVideosWithAuthor: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
       getVideosSharedByOthers: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
+      canAccessVideo: vi.fn().mockImplementation(() => Effect.succeed({ canAccess: true, accessLevel: 'view' })),
+      getAccessibleVideos: vi.fn().mockImplementation(() => Effect.succeed(paginatedResponse)),
     };
   };
 

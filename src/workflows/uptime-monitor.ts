@@ -13,7 +13,6 @@
  * - Admin notifications on service failures
  */
 
-import { sleep } from 'workflow';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('uptime-monitor');
@@ -256,79 +255,65 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
 // =============================================================================
 
 /**
- * Uptime monitoring workflow that runs health checks at regular intervals.
+ * Uptime monitoring workflow that runs a single health check.
  *
- * This workflow:
+ * This workflow executes once and exits - cron handles the scheduling.
+ * Each invocation:
  * 1. Checks database connectivity
  * 2. Checks R2 storage
  * 3. Checks AI service
  * 4. Stores results in healthChecks table
  * 5. Sends admin notifications on failures
- * 6. Sleeps for interval duration
- * 7. Repeats
+ * 6. Returns and exits
  *
- * The workflow uses durable execution, so it will resume from where it left off
- * if the server restarts.
+ * IMPORTANT: This workflow is designed to run once per cron invocation.
+ * Do NOT add infinite loops - the cron schedule handles periodic execution.
  */
-export async function uptimeMonitorWorkflow(input: UptimeMonitorInput): Promise<UptimeMonitorResult> {
+export async function uptimeMonitorWorkflow(_input: UptimeMonitorInput): Promise<UptimeMonitorResult> {
   'use workflow';
 
-  const intervalMs = input.intervalMs ?? 5 * 60 * 1000; // 5 minutes default
-  const maxChecks = input.maxChecks ?? 0; // 0 = infinite
+  // Step 1: Check all services in parallel
+  const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
 
-  let checksPerformed = 0;
-  let lastCheckAt = new Date().toISOString();
+  // Step 2: Calculate overall status
+  const results = [dbResult, storageResult, aiResult];
+  const activeResults = results.filter((r) => r.status !== 'not_configured');
+  const allHealthy = activeResults.every((r) => r.status === 'healthy');
+  const someHealthy = activeResults.some((r) => r.status === 'healthy');
 
-  while (maxChecks === 0 || checksPerformed < maxChecks) {
-    // Step 1: Check all services in parallel
-    const [dbResult, storageResult, aiResult] = await Promise.all([checkDatabase(), checkStorage(), checkAI()]);
-
-    // Step 2: Calculate overall status
-    const results = [dbResult, storageResult, aiResult];
-    const activeResults = results.filter((r) => r.status !== 'not_configured');
-    const allHealthy = activeResults.every((r) => r.status === 'healthy');
-    const someHealthy = activeResults.some((r) => r.status === 'healthy');
-
-    let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
-    if (allHealthy) {
-      overallStatus = 'healthy';
-    } else if (someHealthy) {
-      overallStatus = 'degraded';
-    } else {
-      overallStatus = 'unhealthy';
-    }
-
-    const overallResult: ServiceCheckResult = {
-      service: 'overall',
-      status: overallStatus,
-      latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
-      metadata: {
-        database: dbResult.status,
-        storage: storageResult.status,
-        ai: aiResult.status,
-      },
-    };
-
-    // Step 3: Save results to database
-    await saveHealthCheckResults([...results, overallResult]);
-
-    // Step 4: Notify admins on failures
-    const failedServices = results.filter((r) => r.status === 'unhealthy');
-    if (failedServices.length > 0) {
-      await notifyAdminsOnFailure(failedServices);
-    }
-
-    checksPerformed++;
-    lastCheckAt = new Date().toISOString();
-
-    // Step 5: Sleep until next check
-    if (maxChecks === 0 || checksPerformed < maxChecks) {
-      await sleep(intervalMs);
-    }
+  let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
+  if (allHealthy) {
+    overallStatus = 'healthy';
+  } else if (someHealthy) {
+    overallStatus = 'degraded';
+  } else {
+    overallStatus = 'unhealthy';
   }
 
+  const overallResult: ServiceCheckResult = {
+    service: 'overall',
+    status: overallStatus,
+    latencyMs: Math.max(dbResult.latencyMs, storageResult.latencyMs, aiResult.latencyMs),
+    metadata: {
+      database: dbResult.status,
+      storage: storageResult.status,
+      ai: aiResult.status,
+    },
+  };
+
+  // Step 3: Save results to database
+  await saveHealthCheckResults([...results, overallResult]);
+
+  // Step 4: Notify admins on failures
+  const failedServices = results.filter((r) => r.status === 'unhealthy');
+  if (failedServices.length > 0) {
+    await notifyAdminsOnFailure(failedServices);
+  }
+
+  const lastCheckAt = new Date().toISOString();
+
   return {
-    checksPerformed,
+    checksPerformed: 1,
     lastCheckAt,
   };
 }

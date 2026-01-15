@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         }),
     });
 
-    // Validate form fields with Zod schema
+    // Validate form fields with Effect Schema
     const validatedData = yield* validateFormData(VideoUploadSchema, formData);
 
     // Get the video file
@@ -111,8 +111,6 @@ export async function POST(request: NextRequest) {
       videoUrl: processingResult.videoUrl,
       authorId: validatedData.authorId,
       organizationId: validatedData.organizationId,
-      channelId: validatedData.channelId || undefined,
-      collectionId: validatedData.collectionId || undefined,
       processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
 

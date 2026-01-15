@@ -121,7 +121,7 @@ Components follow this pattern:
 
 ### Form Handling
 
-Use react-hook-form with Effect Schema validation (preferred) or Zod:
+Use react-hook-form with Effect Schema validation:
 
 ```typescript
 import { useForm } from "react-hook-form"
@@ -146,11 +146,15 @@ AI features use Vercel AI SDK with structured outputs:
 
 ```typescript
 import { generateObject } from "ai"
-import { z } from "zod"
+import { Schema } from "effect"
 
 const result = await generateObject({
   model: openai("gpt-4o"),
-  schema: z.object({...}),
+  schema: Schema.standardSchemaV1(
+    Schema.Struct({
+      // ...
+    })
+  ),
   prompt: "..."
 })
 ```

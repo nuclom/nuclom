@@ -1,6 +1,27 @@
 ---
 name: api-architect
-description: Use this agent when designing, building, or reviewing REST or GraphQL APIs. This includes creating new API endpoints, implementing authentication and authorization flows, setting up rate limiting, generating API documentation, refactoring existing APIs for better developer experience, or reviewing API designs for best practices and usability.\n\nExamples:\n\n<example>\nContext: User is building a new feature that requires API endpoints.\nuser: "I need to create endpoints for a user subscription system"\nassistant: "I'll use the api-architect agent to design and implement developer-friendly subscription endpoints with proper authentication, rate limiting, and documentation."\n<commentary>\nSince the user needs to create new API endpoints, use the api-architect agent to ensure the endpoints follow best practices for DX, include proper auth, and are well-documented.\n</commentary>\n</example>\n\n<example>\nContext: User has existing API code that needs review.\nuser: "Can you review the API routes I just created?"\nassistant: "I'll use the api-architect agent to review your API routes for developer experience, security, and documentation completeness."\n<commentary>\nSince the user wants their API code reviewed, use the api-architect agent to evaluate the endpoints against API design best practices.\n</commentary>\n</example>\n\n<example>\nContext: User needs to add authentication to their API.\nuser: "I need to secure my endpoints with JWT authentication"\nassistant: "I'll use the api-architect agent to implement JWT authentication with proper token handling, refresh flows, and security best practices."\n<commentary>\nAuthentication implementation is a core competency of the api-architect agent, ensuring secure and developer-friendly auth flows.\n</commentary>\n</example>
+description: |
+  Use this agent when designing, building, or reviewing REST or GraphQL APIs. This includes creating new API endpoints, implementing authentication and authorization flows, setting up rate limiting, generating API documentation, refactoring existing APIs for better developer experience, or reviewing API designs for best practices and usability.
+
+  Examples:
+
+  <example>
+  Context: User is building a new feature that requires API endpoints.
+  user: "I need to create endpoints for a user subscription system"
+  assistant: "I'll use the api-architect agent to design and implement developer-friendly subscription endpoints with proper authentication, rate limiting, and documentation."
+  </example>
+
+  <example>
+  Context: User has existing API code that needs review.
+  user: "Can you review the API routes I just created?"
+  assistant: "I'll use the api-architect agent to review your API routes for developer experience, security, and documentation completeness."
+  </example>
+
+  <example>
+  Context: User needs to add authentication to their API.
+  user: "I need to secure my endpoints with JWT authentication"
+  assistant: "I'll use the api-architect agent to implement JWT authentication with proper token handling, refresh flows, and security best practices."
+  </example>
 model: inherit
 ---
 
@@ -80,7 +101,7 @@ Every API you create includes:
 ## Code Quality Standards
 
 - Use TypeScript for type safety and self-documenting code
-- Validate all inputs at the boundary (use Zod or similar)
+- Validate all inputs at the boundary (use Effect Schema)
 - Implement proper error handling with custom error classes
 - Use middleware patterns for cross-cutting concerns
 - Follow the project's established patterns in CLAUDE.md and docs/

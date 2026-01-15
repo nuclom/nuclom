@@ -34,6 +34,8 @@ export interface VideoProcessingInput {
   readonly videoTitle?: string;
   readonly organizationId?: string;
   readonly skipDiarization?: boolean;
+  /** Participant names for improved transcription accuracy */
+  readonly participantNames?: string[];
 }
 
 export interface VideoProcessingResult {
@@ -132,6 +134,88 @@ interface ExtractedDecisionResult {
 // =============================================================================
 // Helper Functions
 // =============================================================================
+
+/**
+ * Fetch vocabulary terms for an organization to improve transcription accuracy
+ */
+async function getVocabularyTerms(organizationId: string): Promise<string[]> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const { organizationVocabulary } = await import('@/lib/db/schema');
+  const { eq } = await import('drizzle-orm');
+
+  try {
+    const vocabulary = await db.query.organizationVocabulary.findMany({
+      where: eq(organizationVocabulary.organizationId, organizationId),
+      columns: { term: true },
+    });
+
+    return vocabulary.map((v) => v.term);
+  } catch (error) {
+    log.warn({ organizationId, error }, 'Failed to fetch vocabulary terms');
+    return [];
+  }
+}
+
+/**
+ * Apply vocabulary corrections to transcript text and segments
+ */
+async function applyVocabularyCorrections(
+  organizationId: string,
+  transcript: string,
+  segments: TranscriptSegment[],
+): Promise<{ transcript: string; segments: TranscriptSegment[] }> {
+  'use step';
+
+  const { db } = await import('@/lib/db');
+  const { organizationVocabulary } = await import('@/lib/db/schema');
+  const { eq } = await import('drizzle-orm');
+
+  try {
+    const vocabulary = await db.query.organizationVocabulary.findMany({
+      where: eq(organizationVocabulary.organizationId, organizationId),
+      columns: { term: true, variations: true },
+    });
+
+    if (vocabulary.length === 0) {
+      return { transcript, segments };
+    }
+
+    // Apply corrections to transcript
+    let correctedTranscript = transcript;
+    for (const vocab of vocabulary) {
+      for (const variation of vocab.variations) {
+        // Case-insensitive word boundary replacement
+        const regex = new RegExp(`\\b${escapeRegExp(variation)}\\b`, 'gi');
+        correctedTranscript = correctedTranscript.replace(regex, vocab.term);
+      }
+    }
+
+    // Apply corrections to segments
+    const correctedSegments = segments.map((segment) => {
+      let correctedText = segment.text;
+      for (const vocab of vocabulary) {
+        for (const variation of vocab.variations) {
+          const regex = new RegExp(`\\b${escapeRegExp(variation)}\\b`, 'gi');
+          correctedText = correctedText.replace(regex, vocab.term);
+        }
+      }
+      return { ...segment, text: correctedText };
+    });
+
+    log.info({ organizationId, correctionCount: vocabulary.length }, 'Applied vocabulary corrections');
+
+    return { transcript: correctedTranscript, segments: correctedSegments };
+  } catch (error) {
+    log.warn({ organizationId, error }, 'Failed to apply vocabulary corrections');
+    return { transcript, segments };
+  }
+}
+
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 async function generateAndUploadThumbnail(
   videoId: string,
@@ -262,7 +346,10 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
     .where(eq(videos.id, videoId));
 }
 
-async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
+async function transcribeVideo(
+  videoUrl: string,
+  options?: { vocabularyTerms?: string[]; participantNames?: string[] },
+): Promise<TranscriptionResult> {
   'use step';
 
   const { env } = await import('@/lib/env/server');
@@ -278,6 +365,21 @@ async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
 
   const WHISPER_MODEL = 'openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e';
 
+  // Build initial_prompt from vocabulary terms and participant names
+  // This biases Whisper toward recognizing these terms correctly
+  const promptTerms: string[] = [];
+  if (options?.vocabularyTerms && options.vocabularyTerms.length > 0) {
+    promptTerms.push(...options.vocabularyTerms);
+  }
+  if (options?.participantNames && options.participantNames.length > 0) {
+    promptTerms.push(...options.participantNames);
+  }
+  const initialPrompt = promptTerms.length > 0 ? promptTerms.join(', ') : undefined;
+
+  if (initialPrompt) {
+    log.info({ termCount: promptTerms.length }, 'Using vocabulary-aware transcription');
+  }
+
   const output = (await replicate.run(WHISPER_MODEL as `${string}/${string}`, {
     input: {
       audio: videoUrl,
@@ -290,6 +392,8 @@ async function transcribeVideo(videoUrl: string): Promise<TranscriptionResult> {
       no_speech_threshold: 0.6,
       condition_on_previous_text: true,
       compression_ratio_threshold: 2.4,
+      // Vocabulary injection: initial_prompt biases the model toward these terms
+      ...(initialPrompt && { initial_prompt: initialPrompt }),
     },
   })) as {
     transcription?: string;
@@ -1205,7 +1309,11 @@ async function sendCompletionNotification(
  * Handle workflow failure by updating status and sending notification.
  * This is a separate step so the static analyzer can trace it.
  */
-async function handleWorkflowFailure(videoId: string, errorMessage: string): Promise<VideoProcessingResult> {
+async function handleWorkflowFailure(
+  videoId: string,
+  errorMessage: string,
+  stackTrace?: string,
+): Promise<VideoProcessingResult> {
   'use step';
 
   try {
@@ -1264,14 +1372,16 @@ async function handleWorkflowFailure(videoId: string, errorMessage: string): Pro
           `,
         });
 
-        // Send Slack monitoring notification
+        // Send Slack monitoring notification with stack trace
         await notifySlackMonitoring('video_processing_failed', {
           videoId,
           videoTitle: video.title,
           organizationId: video.organizationId,
           userId: user.id,
           userName: user.name || undefined,
+          userEmail: user.email,
           errorMessage,
+          stackTrace,
         });
       }
     }
@@ -1330,29 +1440,54 @@ async function getVideoOrganizationId(videoId: string): Promise<string | null> {
 export async function processVideoWorkflow(input: VideoProcessingInput): Promise<VideoProcessingResult> {
   'use workflow';
 
-  const { videoId, videoUrl, videoTitle, organizationId, skipDiarization } = input;
+  const { videoId, videoUrl, videoTitle, organizationId, skipDiarization, participantNames } = input;
 
   // Step 1: Update status to transcribing
   const statusResult = await updateProcessingStatus(videoId, 'transcribing').catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (statusResult && 'error' in statusResult) {
-    return handleWorkflowFailure(videoId, statusResult.error);
+    return handleWorkflowFailure(videoId, statusResult.error, statusResult.stack);
   }
 
-  // Step 2: Transcribe the video
-  const transcribeResult = await transcribeVideo(videoUrl).catch((error) => ({
+  // Step 1.5: Fetch vocabulary terms for transcription (if organization is known)
+  let vocabularyTerms: string[] = [];
+  if (organizationId) {
+    vocabularyTerms = await getVocabularyTerms(organizationId);
+  }
+
+  // Step 2: Transcribe the video with vocabulary hints
+  const transcribeResult = await transcribeVideo(videoUrl, {
+    vocabularyTerms,
+    participantNames,
+  }).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
     isFatal: error instanceof FatalError,
   }));
   if ('error' in transcribeResult) {
     if (transcribeResult.isFatal) {
-      await handleWorkflowFailure(videoId, transcribeResult.error);
+      await handleWorkflowFailure(videoId, transcribeResult.error, transcribeResult.stack);
       throw new FatalError(transcribeResult.error);
     }
-    return handleWorkflowFailure(videoId, transcribeResult.error);
+    return handleWorkflowFailure(videoId, transcribeResult.error, transcribeResult.stack);
   }
-  const transcription: TranscriptionResult = transcribeResult;
+  let transcription: TranscriptionResult = transcribeResult;
+
+  // Step 2.5: Apply vocabulary corrections to transcript (post-processing)
+  if (organizationId) {
+    const corrected = await applyVocabularyCorrections(
+      organizationId,
+      transcription.transcript,
+      transcription.segments as TranscriptSegment[],
+    );
+    transcription = {
+      ...transcription,
+      transcript: corrected.transcript,
+      segments: corrected.segments,
+    };
+  }
 
   // Step 3: Save transcript and duration
   const saveTranscriptResult = await saveTranscript(
@@ -1362,9 +1497,10 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     transcription.duration,
   ).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (saveTranscriptResult && 'error' in saveTranscriptResult) {
-    return handleWorkflowFailure(videoId, saveTranscriptResult.error);
+    return handleWorkflowFailure(videoId, saveTranscriptResult.error, saveTranscriptResult.stack);
   }
 
   // Step 3.5: Generate and save thumbnail
@@ -1393,28 +1529,31 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
   // Step 5: Update status to analyzing
   const analyzeStatusResult = await updateProcessingStatus(videoId, 'analyzing').catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (analyzeStatusResult && 'error' in analyzeStatusResult) {
-    return handleWorkflowFailure(videoId, analyzeStatusResult.error);
+    return handleWorkflowFailure(videoId, analyzeStatusResult.error, analyzeStatusResult.stack);
   }
 
   // Step 6: Run AI analysis
   const analysisResult = await analyzeWithAI(transcription.transcript, transcription.segments, videoTitle).catch(
     (error) => ({
       error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     }),
   );
   if ('error' in analysisResult) {
-    return handleWorkflowFailure(videoId, analysisResult.error);
+    return handleWorkflowFailure(videoId, analysisResult.error, analysisResult.stack);
   }
   const analysis: AIAnalysisResult = analysisResult;
 
   // Step 7: Save AI analysis results
   const saveAnalysisResult = await saveAIAnalysis(videoId, analysis).catch((error) => ({
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
   }));
   if (saveAnalysisResult && 'error' in saveAnalysisResult) {
-    return handleWorkflowFailure(videoId, saveAnalysisResult.error);
+    return handleWorkflowFailure(videoId, saveAnalysisResult.error, saveAnalysisResult.stack);
   }
 
   // Step 8: Detect key moments for clip extraction

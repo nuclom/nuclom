@@ -10,7 +10,9 @@ The database schema is organized into multiple files in `src/lib/db/schema/`:
 src/lib/db/schema/
 ├── index.ts           # Re-exports all schema files
 ├── enums.ts           # All PostgreSQL enum types (centralized)
-├── auth.ts            # Better-auth managed tables (DO NOT EDIT)
+├── auth.ts            # Better-auth managed tables (DO NOT EDIT directly)
+│                      # Includes: users, sessions, accounts, organizations,
+│                      # members, invitations, teams, teamMembers, etc.
 ├── user-extensions.ts # Application-specific user data (decoupled from auth)
 ├── relations.ts       # All Drizzle ORM relations
 ├── videos.ts          # Video and channel tables
@@ -18,6 +20,7 @@ src/lib/db/schema/
 ├── billing.ts         # Subscription and payment tables
 ├── integrations.ts    # External service integrations
 ├── knowledge.ts       # Knowledge graph tables
+├── chat.ts            # AI chat knowledge base tables
 ├── ai-insights.ts     # AI-extracted topics and action items
 ├── analytics.ts       # Video analytics and metrics
 ├── speakers.ts        # Speaker diarization tables
@@ -111,12 +114,21 @@ erDiagram
         video_url text
         author_id text FK
         organization_id text FK
-        channel_id text FK
-        series_id text FK
+        visibility VideoVisibility
         transcript text
         ai_summary text
         created_at timestamp
         updated_at timestamp
+    }
+
+    video_shares {
+        id text PK
+        video_id text FK
+        user_id text FK
+        team_id text FK
+        access_level VideoShareLinkAccess
+        shared_by text FK
+        created_at timestamp
     }
 
     video_progress {
@@ -138,6 +150,9 @@ erDiagram
     videos ||--o{ video_progress : "has"
     videos ||--o{ video_moments : "has"
     videos ||--o{ video_clips : "has"
+    videos ||--o{ video_shares : "shared via"
+    users ||--o{ video_shares : "shared with"
+    teams ||--o{ video_shares : "shared with"
     video_moments ||--o{ video_clips : "creates"
     channels ||--o{ videos : "organizes"
     series ||--o{ videos : "organizes"
@@ -260,6 +275,53 @@ CREATE TYPE OrganizationRole AS ENUM ('OWNER', 'ADMIN', 'MEMBER');
 - Unique constraint prevents duplicate memberships
 - Cascade deletion for data consistency
 
+### Teams Table
+
+Sub-groups within organizations for granular access management.
+
+```sql
+CREATE TABLE teams (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP
+);
+
+CREATE INDEX teams_organizationId_idx ON teams(organization_id);
+CREATE INDEX teams_name_idx ON teams(name);
+```
+
+**Key Features:**
+
+- Sub-groups within organizations for project/department organization
+- Organization-scoped teams with cascade deletion
+- Used for granular permission management
+- Referenced by sessions (activeTeamId) and invitations (teamId)
+
+### Team Members Table
+
+Associates users with teams for team-based access control.
+
+```sql
+CREATE TABLE team_members (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX teamMembers_teamId_idx ON team_members(team_id);
+CREATE INDEX teamMembers_userId_idx ON team_members(user_id);
+```
+
+**Key Features:**
+
+- Many-to-many relationship between users and teams
+- Cascade deletion when team or user is removed
+- Enables team-based permission checks
+- Supports listing user's teams and team's members
+
 ### Videos Table
 
 Central table for video content and metadata.
@@ -297,6 +359,55 @@ CREATE TABLE videos (
 - AI-generated content (transcript, summary)
 - Author attribution and organization isolation
 - Optional categorization (channel/collection can be null)
+
+### Video Visibility
+
+Videos have a `visibility` field that controls who can access them:
+
+- **`private`**: Only the author can see the video. Can be shared with specific users or teams via `video_shares` table.
+- **`organization`**: All organization members can view (default). This maintains backward compatibility with existing videos.
+- **`public`**: Anyone with the URL can view without authentication.
+
+```sql
+CREATE TYPE "VideoVisibility" AS ENUM ('private', 'organization', 'public');
+
+-- Added to videos table
+ALTER TABLE videos ADD COLUMN visibility "VideoVisibility" NOT NULL DEFAULT 'organization';
+CREATE INDEX videos_visibility_idx ON videos(visibility);
+CREATE INDEX videos_org_visibility_idx ON videos(organization_id, visibility);
+```
+
+### Video Shares Table
+
+Stores direct sharing relationships for private videos with specific users or teams.
+
+```sql
+CREATE TABLE video_shares (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,  -- Share with specific user
+    team_id TEXT REFERENCES teams(id) ON DELETE CASCADE,  -- Share with entire team
+    access_level "VideoShareLinkAccess" NOT NULL DEFAULT 'view',  -- 'view' | 'comment' | 'download'
+    shared_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for efficient lookups
+CREATE INDEX video_shares_video_idx ON video_shares(video_id);
+CREATE INDEX video_shares_user_idx ON video_shares(user_id);
+CREATE INDEX video_shares_team_idx ON video_shares(team_id);
+
+-- Unique constraints (partial indexes for nullable columns)
+CREATE UNIQUE INDEX video_shares_video_user_unique ON video_shares(video_id, user_id) WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX video_shares_video_team_unique ON video_shares(video_id, team_id) WHERE team_id IS NOT NULL;
+```
+
+**Key Features:**
+
+- **Flexible Sharing**: Share with individual users or entire teams
+- **Access Levels**: `view` (read-only), `comment` (can add comments), `download` (full access)
+- **Mutually Exclusive**: Each share is either user-based OR team-based, not both
+- **Cascade Deletion**: Shares are removed when video, user, or team is deleted
 
 ### Video Progress Table
 

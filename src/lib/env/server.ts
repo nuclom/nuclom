@@ -59,6 +59,8 @@ export const ServerEnv = Schema.Struct({
     }),
     { default: () => false },
   ),
+  // Admin user IDs (comma-separated list of user IDs with admin privileges)
+  ADMIN_USER_IDS: Schema.optional(Schema.String),
   // Vercel auto-provided environment variables (server-side only)
   VERCEL_URL: Schema.optional(Schema.String),
   VERCEL_BRANCH_URL: Schema.optional(Schema.String),

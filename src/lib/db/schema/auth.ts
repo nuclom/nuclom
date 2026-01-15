@@ -6,14 +6,17 @@
  *
  * Tables managed by better-auth:
  * - users: User accounts (core)
- * - sessions: Active user sessions
+ * - sessions: Active user sessions (with activeTeamId for team sessions)
  * - accounts: OAuth provider connections
  * - verifications: Email/phone verification tokens
  *
  * Organization plugin tables:
  * - organizations: Multi-tenant organizations
+ * - organizationRoles: Dynamic custom roles per organization
  * - members: Organization membership
- * - invitations: Pending organization invites
+ * - invitations: Pending organization invites (with optional teamId)
+ * - teams: Sub-groups within organizations for granular access
+ * - teamMembers: Team membership associations
  *
  * Plugin tables:
  * - twoFactors: Two-factor authentication settings
@@ -26,6 +29,9 @@
  * - oauthRefreshTokens: OAuth refresh tokens
  * - oauthAccessTokens: OAuth access tokens
  * - oauthConsents: User OAuth consent records
+ *
+ * SSO Provider tables:
+ * - ssoProviders: Enterprise SSO provider configurations
  *
  * IMPORTANT: Application-specific user data should go in userExtensions table,
  * NOT in the users table. This keeps auth schema clean and makes upgrades easier.
@@ -73,6 +79,7 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     impersonatedBy: text('impersonated_by'),
     activeOrganizationId: text('active_organization_id'),
+    activeTeamId: text('active_team_id'),
   },
   (table) => [index('sessions_userId_idx').on(table.userId)],
 );
@@ -148,6 +155,37 @@ export const organizationRoles = pgTable(
   ],
 );
 
+// Teams - Sub-groups within organizations for granular access management
+export const teams = pgTable(
+  'teams',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').$onUpdate(() => /* @__PURE__ */ new Date()),
+  },
+  (table) => [index('teams_organizationId_idx').on(table.organizationId), index('teams_name_idx').on(table.name)],
+);
+
+// Team Members - Associates users with teams
+export const teamMembers = pgTable(
+  'team_members',
+  {
+    id: text('id').primaryKey(),
+    teamId: text('team_id')
+      .notNull()
+      .references(() => teams.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [index('teamMembers_teamId_idx').on(table.teamId), index('teamMembers_userId_idx').on(table.userId)],
+);
+
 export const members = pgTable(
   'members',
   {
@@ -182,6 +220,8 @@ export const invitations = pgTable(
     inviterId: text('inviter_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    // Team-specific invitation (optional, for team invitations)
+    teamId: text('team_id'),
   },
   (table) => [
     index('invitations_organizationId_idx').on(table.organizationId),

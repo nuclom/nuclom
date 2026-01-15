@@ -20,13 +20,16 @@ import {
   passkeys,
   sessions,
   subscriptions,
+  teamMembers,
+  teams,
   twoFactors,
   users,
 } from './auth';
 import { invoices, paymentMethods, usage } from './billing';
 import { decisions, knowledgeNodes } from './knowledge';
+import { notifications } from './notifications';
 import { userExtensions, userPreferences } from './user-extensions';
-import { channels, collections, videoProgresses, videos } from './videos';
+import { collections, videoProgresses, videos } from './videos';
 
 // =============================================================================
 // User Relations
@@ -42,9 +45,14 @@ export const userRelations = relations(users, ({ one, many }) => ({
   apiKeys: many(apikeys),
   preferences: one(userPreferences),
   extensions: one(userExtensions),
+  // Team memberships
+  teamMemberships: many(teamMembers),
   // Application relations
   videos: many(videos),
   videoProgresses: many(videoProgresses),
+  // Notification relations (must match relationName from notificationRelations)
+  notifications: many(notifications, { relationName: 'NotificationRecipient' }),
+  actedNotifications: many(notifications, { relationName: 'NotificationActor' }),
 }));
 
 // =============================================================================
@@ -55,6 +63,14 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
+  }),
+  activeOrganization: one(organizations, {
+    fields: [sessions.activeOrganizationId],
+    references: [organizations.id],
+  }),
+  activeTeam: one(teams, {
+    fields: [sessions.activeTeamId],
+    references: [teams.id],
   }),
 }));
 
@@ -76,8 +92,8 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const organizationRelations = relations(organizations, ({ one, many }) => ({
   members: many(members),
   invitations: many(invitations),
+  teams: many(teams),
   videos: many(videos),
-  channels: many(channels),
   collections: many(collections),
   subscription: one(subscriptions),
   usageRecords: many(usage),
@@ -116,6 +132,11 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
   inviter: one(users, {
     fields: [invitations.inviterId],
     references: [users.id],
+  }),
+  // Team-specific invitation (optional)
+  team: one(teams, {
+    fields: [invitations.teamId],
+    references: [teams.id],
   }),
 }));
 
@@ -232,5 +253,32 @@ export const oauthConsentsRelations = relations(oauthConsents, ({ one }) => ({
   client: one(oauthClients, {
     fields: [oauthConsents.clientId],
     references: [oauthClients.id],
+  }),
+}));
+
+// =============================================================================
+// Team Relations
+// =============================================================================
+
+export const teamsRelations = relations(teams, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [teams.organizationId],
+    references: [organizations.id],
+  }),
+  members: many(teamMembers),
+}));
+
+// =============================================================================
+// Team Member Relations
+// =============================================================================
+
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamMembers.teamId],
+    references: [teams.id],
+  }),
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
   }),
 }));

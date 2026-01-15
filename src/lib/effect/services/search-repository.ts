@@ -161,12 +161,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
         if (filters?.authorId) {
           conditions.push(eq(videos.authorId, filters.authorId));
         }
-        if (filters?.channelId) {
-          conditions.push(eq(videos.channelId, filters.channelId));
-        }
-        if (filters?.collectionId) {
-          conditions.push(eq(videos.collectionId, filters.collectionId));
-        }
+        // Note: collectionId filtering would require joining with collectionVideos table
         if (filters?.processingStatus) {
           conditions.push(eq(videos.processingStatus, filters.processingStatus as ProcessingStatus));
         }
@@ -211,6 +206,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             ai_summary: string | null;
             ai_tags: string[] | null;
             ai_action_items: unknown;
+            visibility: string;
             search_vector: unknown;
             created_at: Date;
             updated_at: Date;
@@ -266,8 +262,6 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 OR v.description ILIKE ${`%${query}%`}
               )
               ${filters?.authorId ? sql`AND v.author_id = ${filters.authorId}` : sql``}
-              ${filters?.channelId ? sql`AND v.channel_id = ${filters.channelId}` : sql``}
-              ${filters?.collectionId ? sql`AND v.collection_id = ${filters.collectionId}` : sql``}
               ${filters?.processingStatus ? sql`AND v.processing_status = ${filters.processingStatus}` : sql``}
               ${filters?.hasTranscript ? sql`AND v.transcript IS NOT NULL` : sql``}
               ${filters?.hasAiSummary ? sql`AND v.ai_summary IS NOT NULL` : sql``}
@@ -298,8 +292,6 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               videoUrl: row.video_url,
               authorId: row.author_id,
               organizationId: row.organization_id,
-              channelId: row.channel_id,
-              collectionId: row.collection_id,
               transcript: row.transcript,
               transcriptSegments: row.transcript_segments as VideoWithAuthor['transcriptSegments'],
               processingStatus: row.processing_status as VideoWithAuthor['processingStatus'],
@@ -307,6 +299,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               aiSummary: row.ai_summary,
               aiTags: row.ai_tags,
               aiActionItems: row.ai_action_items as VideoWithAuthor['aiActionItems'],
+              visibility: row.visibility as VideoWithAuthor['visibility'],
               searchVector: row.search_vector as unknown as string,
               createdAt: row.created_at,
               updatedAt: row.updated_at,
@@ -347,8 +340,6 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 OR v.description ILIKE ${`%${query}%`}
               )
               ${filters?.authorId ? sql`AND v.author_id = ${filters.authorId}` : sql``}
-              ${filters?.channelId ? sql`AND v.channel_id = ${filters.channelId}` : sql``}
-              ${filters?.collectionId ? sql`AND v.collection_id = ${filters.collectionId}` : sql``}
               ${filters?.processingStatus ? sql`AND v.processing_status = ${filters.processingStatus}` : sql``}
               ${filters?.hasTranscript ? sql`AND v.transcript IS NOT NULL` : sql``}
               ${filters?.hasAiSummary ? sql`AND v.ai_summary IS NOT NULL` : sql``}
@@ -368,8 +359,6 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               videoUrl: videos.videoUrl,
               authorId: videos.authorId,
               organizationId: videos.organizationId,
-              channelId: videos.channelId,
-              collectionId: videos.collectionId,
               transcript: videos.transcript,
               transcriptSegments: videos.transcriptSegments,
               processingStatus: videos.processingStatus,
@@ -377,6 +366,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
               aiSummary: videos.aiSummary,
               aiTags: videos.aiTags,
               aiActionItems: videos.aiActionItems,
+              visibility: videos.visibility,
               searchVector: videos.searchVector,
               createdAt: videos.createdAt,
               updatedAt: videos.updatedAt,
@@ -778,8 +768,6 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             videoUrl: videos.videoUrl,
             authorId: videos.authorId,
             organizationId: videos.organizationId,
-            channelId: videos.channelId,
-            collectionId: videos.collectionId,
             transcript: videos.transcript,
             transcriptSegments: videos.transcriptSegments,
             processingStatus: videos.processingStatus,
@@ -787,6 +775,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             aiSummary: videos.aiSummary,
             aiTags: videos.aiTags,
             aiActionItems: videos.aiActionItems,
+            visibility: videos.visibility,
             searchVector: videos.searchVector,
             createdAt: videos.createdAt,
             updatedAt: videos.updatedAt,

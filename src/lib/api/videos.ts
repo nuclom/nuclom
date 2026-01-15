@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { channels, collections, organizations, users, videos } from '@/lib/db/schema';
+import { organizations, users, videos } from '@/lib/db/schema';
 import type { VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {
@@ -16,8 +16,6 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
       videoUrl: videos.videoUrl,
       authorId: videos.authorId,
       organizationId: videos.organizationId,
-      channelId: videos.channelId,
-      collectionId: videos.collectionId,
       transcript: videos.transcript,
       transcriptSegments: videos.transcriptSegments,
       processingStatus: videos.processingStatus,
@@ -25,6 +23,7 @@ export async function getVideos(organizationId: string, page = 1, limit = 20) {
       aiSummary: videos.aiSummary,
       aiTags: videos.aiTags,
       aiActionItems: videos.aiActionItems,
+      visibility: videos.visibility,
       createdAt: videos.createdAt,
       updatedAt: videos.updatedAt,
       author: {
@@ -74,8 +73,6 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       videoUrl: videos.videoUrl,
       authorId: videos.authorId,
       organizationId: videos.organizationId,
-      channelId: videos.channelId,
-      collectionId: videos.collectionId,
       transcript: videos.transcript,
       transcriptSegments: videos.transcriptSegments,
       processingStatus: videos.processingStatus,
@@ -83,6 +80,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
       aiSummary: videos.aiSummary,
       aiTags: videos.aiTags,
       aiActionItems: videos.aiActionItems,
+      visibility: videos.visibility,
       deletedAt: videos.deletedAt,
       retentionUntil: videos.retentionUntil,
       createdAt: videos.createdAt,
@@ -122,29 +120,7 @@ export async function getVideo(id: string): Promise<VideoWithDetails> {
     throw new Error('Video not found');
   }
 
-  // Get channel if exists
-  let channel = null;
-  if (videoData[0].channelId) {
-    const channelData = await db.select().from(channels).where(eq(channels.id, videoData[0].channelId)).limit(1);
-    channel = channelData[0] || null;
-  }
-
-  // Get collection if exists
-  let collection = null;
-  if (videoData[0].collectionId) {
-    const collectionData = await db
-      .select()
-      .from(collections)
-      .where(eq(collections.id, videoData[0].collectionId))
-      .limit(1);
-    collection = collectionData[0] || null;
-  }
-
-  return {
-    ...videoData[0],
-    channel,
-    collection,
-  };
+  return videoData[0];
 }
 
 export async function createVideo(data: {
@@ -155,8 +131,6 @@ export async function createVideo(data: {
   videoUrl?: string;
   authorId: string;
   organizationId: string;
-  channelId?: string;
-  collectionId?: string;
   transcript?: string;
   aiSummary?: string;
 }) {

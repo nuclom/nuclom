@@ -233,23 +233,29 @@ export function mapAppErrorToResponse(error: AppErrorUnion): NextResponse<ApiErr
 
   // Defensive check: if mapping is missing, treat as internal error
   if (!mapping) {
-    logger.error(`Missing error mapping for tag: ${error._tag}`, new Error(error.message));
+    const err = new Error(error.message);
+    logger.error(`Missing error mapping for tag: ${error._tag}`, err);
     notifySlackMonitoring('api_error', {
       errorMessage: `Missing error mapping: ${error._tag} - ${error.message}`,
       errorCode: 'MissingErrorMapping',
+      httpStatus: 500,
+      stackTrace: err.stack,
     }).catch(() => {});
     return createErrorResponse(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred', 500);
   }
 
   // Log non-client errors server-side and send to Slack
   if (mapping.status >= 500) {
-    logger.error(`API Error: ${error._tag}`, new Error(error.message), {
+    const err = new Error(error.message);
+    logger.error(`API Error: ${error._tag}`, err, {
       errorTag: error._tag,
     });
     // Send Slack notification for server errors (fire-and-forget)
     notifySlackMonitoring('api_error', {
       errorMessage: error.message,
       errorCode: error._tag,
+      httpStatus: mapping.status,
+      stackTrace: 'stack' in error ? String(error.stack) : err.stack,
     }).catch(() => {});
   }
 
@@ -270,12 +276,15 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
 
   // Handle unknown tagged errors (errors from libraries or legacy code)
   if (isRecord(error) && typeof error._tag === 'string' && typeof error.message === 'string') {
-    logger.error(`Unknown tagged error: ${error._tag}`, new Error(error.message as string), {
+    const err = new Error(error.message as string);
+    logger.error(`Unknown tagged error: ${error._tag}`, err, {
       errorTag: error._tag,
     });
     notifySlackMonitoring('api_error', {
       errorMessage: error.message as string,
       errorCode: `Unknown: ${error._tag}`,
+      httpStatus: 500,
+      stackTrace: typeof error.stack === 'string' ? error.stack : err.stack,
     }).catch(() => {});
     return createErrorResponse(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred', 500);
   }
@@ -286,6 +295,8 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
     notifySlackMonitoring('api_error', {
       errorMessage: error.message,
       errorCode: error.name,
+      httpStatus: 500,
+      stackTrace: error.stack,
     }).catch(() => {});
     return createErrorResponse(
       ErrorCodes.INTERNAL_ERROR,
@@ -295,10 +306,13 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
   }
 
   // Handle unknown error types
-  logger.error('Unknown API error', new Error(String(error)));
+  const unknownErr = new Error(String(error));
+  logger.error('Unknown API error', unknownErr);
   notifySlackMonitoring('api_error', {
     errorMessage: String(error),
     errorCode: 'Unknown',
+    httpStatus: 500,
+    stackTrace: unknownErr.stack,
   }).catch(() => {});
   return createErrorResponse(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred', 500);
 }

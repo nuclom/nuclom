@@ -26,8 +26,6 @@ describe('VideoRepository Types', () => {
         description: 'A test description',
         thumbnailUrl: '/thumb.jpg',
         videoUrl: '/video.mp4',
-        channelId: 'ch-123',
-        collectionId: 'col-123',
         transcript: 'Test transcript',
         processingStatus: 'pending',
         aiSummary: 'AI summary',
@@ -103,10 +101,13 @@ describe('VideoRepository Types', () => {
         getVideosByAuthor: () => {
           throw new Error('Mock');
         },
-        getChannelVideosWithAuthor: () => {
+        getVideosSharedByOthers: () => {
           throw new Error('Mock');
         },
-        getVideosSharedByOthers: () => {
+        canAccessVideo: () => {
+          throw new Error('Mock');
+        },
+        getAccessibleVideos: () => {
           throw new Error('Mock');
         },
       };

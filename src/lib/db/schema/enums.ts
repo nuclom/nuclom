@@ -17,10 +17,12 @@
  * - Audit Logs: auditLogCategoryEnum, auditLogSeverityEnum
  * - Analytics: videoViewSourceEnum
  * - Sharing: videoShareLinkStatusEnum, videoShareLinkAccessEnum
+ * - Visibility: videoVisibilityEnum
  * - Workflows: workflowTemplateTypeEnum
  * - Clips: clipTypeEnum, momentTypeEnum, clipStatusEnum, highlightReelStatusEnum
  * - Health: healthCheckServiceEnum, healthCheckStatusEnum
  * - Activity: activityTypeEnum, zapierWebhookEventEnum
+ * - Vocabulary: vocabularyCategoryEnum, correctionSuggestionStatusEnum
  */
 
 import { pgEnum } from 'drizzle-orm/pg-core';
@@ -31,6 +33,12 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 
 export const userRoleEnum = pgEnum('UserRole', ['user', 'admin']);
 export const organizationRoleEnum = pgEnum('OrganizationRole', ['owner', 'member']);
+
+// =============================================================================
+// Collection Enums
+// =============================================================================
+
+export const collectionTypeEnum = pgEnum('CollectionType', ['folder', 'playlist']);
 
 // =============================================================================
 // Video Processing Enums
@@ -78,6 +86,11 @@ export const notificationTypeEnum = pgEnum('NotificationType', [
   'subscription_canceled',
   'payment_failed',
   'payment_succeeded',
+  // Organization management notifications
+  'organization_created',
+  'member_added',
+  'member_removed',
+  'role_updated',
 ]);
 
 // =============================================================================
@@ -180,6 +193,18 @@ export const videoShareLinkStatusEnum = pgEnum('VideoShareLinkStatus', ['active'
 export const videoShareLinkAccessEnum = pgEnum('VideoShareLinkAccess', ['view', 'comment', 'download']);
 
 // =============================================================================
+// Video Visibility Enums
+// =============================================================================
+
+/**
+ * Video visibility levels:
+ * - private: Only visible to the owner, can be shared with specific users/teams
+ * - organization: Visible to all members of the organization (default)
+ * - public: Publicly accessible from the internet without authentication
+ */
+export const videoVisibilityEnum = pgEnum('VideoVisibility', ['private', 'organization', 'public']);
+
+// =============================================================================
 // Workflow Template Enums
 // =============================================================================
 
@@ -254,3 +279,27 @@ export const zapierWebhookEventEnum = pgEnum('ZapierWebhookEvent', [
   'member.joined',
   'member.left',
 ]);
+
+// =============================================================================
+// Vocabulary Enums
+// =============================================================================
+
+export const vocabularyCategoryEnum = pgEnum('VocabularyCategory', [
+  'product',
+  'person',
+  'technical',
+  'acronym',
+  'company',
+]);
+
+export const correctionSuggestionStatusEnum = pgEnum('CorrectionSuggestionStatus', [
+  'pending',
+  'accepted',
+  'dismissed',
+]);
+
+// =============================================================================
+// Chat Enums
+// =============================================================================
+
+export const chatMessageRoleEnum = pgEnum('ChatMessageRole', ['user', 'assistant', 'system', 'tool']);

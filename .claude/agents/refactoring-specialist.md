@@ -1,6 +1,35 @@
 ---
 name: refactoring-specialist
-description: Use this agent when code needs to be cleaned up, optimized, or made more maintainable. This includes improving readability, reducing complexity, enhancing performance, consolidating duplicate code, improving naming conventions, or restructuring code to follow better patterns. Ideal for reviewing code written under time pressure or when technical debt needs to be addressed.\n\nExamples:\n\n<example>\nContext: User just finished implementing a feature quickly and wants it cleaned up.\nuser: "I just finished this authentication module but it's pretty messy. Can you clean it up?"\nassistant: "I'll use the refactoring-specialist agent to review and improve your authentication module."\n<Task tool call to refactoring-specialist>\n</example>\n\n<example>\nContext: User notices performance issues in existing code.\nuser: "This function is really slow, can you make it faster?"\nassistant: "Let me bring in the refactoring-specialist agent to analyze and optimize this function for better performance."\n<Task tool call to refactoring-specialist>\n</example>\n\n<example>\nContext: After writing a complex piece of code, proactively offering cleanup.\nuser: "Write a function that parses CSV files and converts them to JSON"\nassistant: "Here's the CSV parser function:"\n<function implementation>\nassistant: "The function works but could benefit from some cleanup. Let me use the refactoring-specialist agent to improve its readability and maintainability."\n<Task tool call to refactoring-specialist>\n</example>\n\n<example>\nContext: User wants to reduce technical debt.\nuser: "This file has grown to 500 lines and is hard to navigate"\nassistant: "I'll use the refactoring-specialist agent to restructure this file into more manageable, well-organized modules."\n<Task tool call to refactoring-specialist>\n</example>
+description: |
+  Use this agent when code needs to be cleaned up, optimized, or made more maintainable. This includes improving readability, reducing complexity, enhancing performance, consolidating duplicate code, improving naming conventions, or restructuring code to follow better patterns. Ideal for reviewing code written under time pressure or when technical debt needs to be addressed.
+
+  Examples:
+
+  <example>
+  Context: User just finished implementing a feature quickly and wants it cleaned up.
+  user: "I just finished this authentication module but it's pretty messy. Can you clean it up?"
+  assistant: "I'll use the refactoring-specialist agent to review and improve your authentication module."
+  </example>
+
+  <example>
+  Context: User notices performance issues in existing code.
+  user: "This function is really slow, can you make it faster?"
+  assistant: "Let me bring in the refactoring-specialist agent to analyze and optimize this function for better performance."
+  </example>
+
+  <example>
+  Context: After writing a complex piece of code, proactively offering cleanup.
+  user: "Write a function that parses CSV files and converts them to JSON"
+  assistant: "Here's the CSV parser function:"
+  <function implementation>
+  assistant: "The function works but could benefit from some cleanup. Let me use the refactoring-specialist agent to improve its readability and maintainability."
+  </example>
+
+  <example>
+  Context: User wants to reduce technical debt.
+  user: "This file has grown to 500 lines and is hard to navigate"
+  assistant: "I'll use the refactoring-specialist agent to restructure this file into more manageable, well-organized modules."
+  </example>
 model: inherit
 ---
 

@@ -6,15 +6,15 @@ This document describes the data integrity measures implemented in Nuclom to ens
 
 Data integrity in Nuclom is enforced at three layers:
 
-1. **API Input Validation** - Zod schemas validate all incoming data
+1. **API Input Validation** - Effect Schema validates all incoming data
 2. **Content Sanitization** - XSS prevention for user-generated content
 3. **Database Constraints** - Foreign keys and cascade behaviors maintain referential integrity
 
 ## API Input Validation
 
-### Zod Schema Library
+### Effect Schema Library
 
-All API endpoints validate input using Zod schemas defined in `src/lib/validation/schemas.ts`.
+All API endpoints validate input using Effect Schema definitions in `src/lib/validation/schemas.ts`.
 
 **Key Schemas:**
 
@@ -227,7 +227,7 @@ pnpm test src/lib/db/__tests__/cascade-delete.test.ts
 
 ### For API Development
 
-1. Always use Zod schemas for input validation
+1. Always use Effect Schema for input validation
 2. Sanitize user content before storage
 3. Use the validation utilities, don't validate manually
 4. Return clear validation error messages

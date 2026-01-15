@@ -1,6 +1,7 @@
 import type {
-  Channel,
   Collection,
+  CollectionProgress,
+  CollectionVideo,
   Decision,
   DecisionLink,
   DecisionParticipant,
@@ -9,8 +10,6 @@ import type {
   SavedSearch,
   SearchFilters,
   SearchHistory,
-  SeriesProgress,
-  SeriesVideo,
   User,
   Video,
 } from './db/schema';
@@ -25,17 +24,68 @@ export type VideoWithAuthor = VideoBase & {
 export type VideoWithDetails = VideoBase & {
   author: User;
   organization: Organization;
-  channel?: Channel | null;
-  collection?: Collection | null;
+  collections?: CollectionWithVideoCount[];
 };
 
 export type OrganizationWithMembers = Organization & {
   members: (Member & { user: User })[];
 };
 
-export type ChannelWithVideos = Channel & {
-  videos: VideoWithAuthor[];
+// =============================================================================
+// Collection Types (Unified: folders and playlists)
+// =============================================================================
+
+/**
+ * Collection with video count - used for list views
+ */
+export type CollectionWithVideoCount = Collection & {
+  videoCount: number;
+  createdBy?: User | null;
 };
+
+/**
+ * Collection video with full video details
+ */
+export type CollectionVideoWithDetails = CollectionVideo & {
+  video: VideoWithAuthor;
+};
+
+/**
+ * Collection with all videos - used for detail views
+ */
+export type CollectionWithVideos = Collection & {
+  createdBy?: User | null;
+  videos: CollectionVideoWithDetails[];
+  videoCount: number;
+};
+
+/**
+ * Collection progress with details - for playlists
+ */
+export type CollectionProgressWithDetails = CollectionProgress & {
+  collection: Collection;
+  lastVideo?: Video | null;
+  completedCount: number;
+  totalCount: number;
+  progressPercentage: number;
+};
+
+/**
+ * Collection with user's progress - for playlist list views
+ */
+export type CollectionWithProgress = CollectionWithVideoCount & {
+  progress?: CollectionProgressWithDetails;
+};
+
+// Legacy type aliases for backwards compatibility during migration
+/** @deprecated Use CollectionWithVideoCount instead */
+export type SeriesWithVideoCount = CollectionWithVideoCount;
+/** @deprecated Use CollectionVideoWithDetails instead */
+export type SeriesVideoWithDetails = CollectionVideoWithDetails;
+/** @deprecated Use CollectionWithVideos instead */
+export type SeriesWithVideos = CollectionWithVideos;
+/** @deprecated Use CollectionProgressWithDetails instead */
+export type SeriesProgressWithDetails = CollectionProgressWithDetails;
 
 // Search types
 export type SearchResult = {
@@ -73,30 +123,6 @@ export type SearchHistoryWithUser = SearchHistory & {
 
 export type SavedSearchWithUser = SavedSearch & {
   user: User;
-};
-
-// Series types
-export type SeriesWithVideoCount = Collection & {
-  videoCount: number;
-  createdBy?: User | null;
-};
-
-export type SeriesVideoWithDetails = SeriesVideo & {
-  video: VideoWithAuthor;
-};
-
-export type SeriesWithVideos = Collection & {
-  createdBy?: User | null;
-  videos: SeriesVideoWithDetails[];
-  videoCount: number;
-};
-
-export type SeriesProgressWithDetails = SeriesProgress & {
-  series: Collection;
-  lastVideo?: Video | null;
-  completedCount: number;
-  totalCount: number;
-  progressPercentage: number;
 };
 
 // API Response types

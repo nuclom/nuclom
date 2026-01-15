@@ -653,8 +653,8 @@ const makeBillingService = Effect.gen(function* () {
           .pipe(Effect.mapError(() => new DatabaseError({ message: 'Subscription not found' })));
 
         // Update to canceled status (Better Auth Stripe schema)
+        // Keep the plan name but mark status as canceled
         yield* billingRepo.updateSubscription(subscription.referenceId, {
-          plan: 'free',
           status: 'canceled',
           stripeSubscriptionId: null,
           canceledAt: new Date(),

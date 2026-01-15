@@ -3,9 +3,10 @@
  *
  * Core video-related tables including:
  * - videos: Main video metadata
- * - channels: Organization channels
- * - collections: Video collections/series
- * - videoProgresses: User watch progress
+ * - collections: Unified video grouping (folders and playlists)
+ * - collectionVideos: Junction table for videos in collections
+ * - collectionProgress: User progress through playlist collections
+ * - videoProgresses: User watch progress on individual videos
  * - videoChapters: Video chapter markers
  */
 
@@ -13,7 +14,7 @@ import { relations, sql } from 'drizzle-orm';
 import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { organizations, users } from './auth';
 import { tsvector } from './custom-types';
-import { processingStatusEnum } from './enums';
+import { collectionTypeEnum, processingStatusEnum, videoVisibilityEnum } from './enums';
 
 // =============================================================================
 // JSONB Types
@@ -33,29 +34,7 @@ export type ActionItem = {
 };
 
 // =============================================================================
-// Channels
-// =============================================================================
-
-export const channels = pgTable(
-  'channels',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    name: text('name').notNull(),
-    description: text('description'),
-    organizationId: text('organization_id')
-      .notNull()
-      .references(() => organizations.id, { onDelete: 'cascade' }),
-    memberCount: integer('member_count').default(0).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  },
-  (table) => [index('channels_organization_id_idx').on(table.organizationId)],
-);
-
-// =============================================================================
-// Collections (Series)
+// Collections (Unified: folders and playlists)
 // =============================================================================
 
 export const collections = pgTable(
@@ -70,6 +49,8 @@ export const collections = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
+    // Collection type: 'folder' for simple grouping, 'playlist' for ordered with progress
+    type: collectionTypeEnum('type').default('folder').notNull(),
     isPublic: boolean('is_public').default(false).notNull(),
     createdById: text('created_by_id').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -78,6 +59,7 @@ export const collections = pgTable(
   (table) => [
     index('collections_organization_id_idx').on(table.organizationId),
     index('collections_created_by_id_idx').on(table.createdById),
+    index('collections_type_idx').on(table.type),
   ],
 );
 
@@ -100,8 +82,11 @@ export const videos = pgTable(
     organizationId: text('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
-    channelId: text('channel_id').references(() => channels.id, { onDelete: 'set null' }),
-    collectionId: text('collection_id').references(() => collections.id, { onDelete: 'set null' }),
+    // Visibility settings
+    // - 'private': Only owner can see, can share with specific users/teams
+    // - 'organization': All organization members can see (default)
+    // - 'public': Anyone with the link can view without authentication
+    visibility: videoVisibilityEnum('visibility').default('organization').notNull(),
     // Transcription fields
     transcript: text('transcript'),
     transcriptSegments: jsonb('transcript_segments').$type<TranscriptSegment[]>(),
@@ -126,44 +111,46 @@ export const videos = pgTable(
   (table) => ({
     organizationCreatedIdx: index('videos_organization_created_idx').on(table.organizationId, table.createdAt),
     authorIdx: index('videos_author_id_idx').on(table.authorId),
-    channelIdx: index('videos_channel_id_idx').on(table.channelId),
-    collectionIdx: index('videos_collection_id_idx').on(table.collectionId),
     processingStatusIdx: index('videos_processing_status_idx').on(table.processingStatus),
+    visibilityIdx: index('videos_visibility_idx').on(table.visibility),
+    // Composite index for efficient visibility-based queries
+    orgVisibilityIdx: index('videos_org_visibility_idx').on(table.organizationId, table.visibility),
   }),
 );
 
 // =============================================================================
-// Series Videos (Junction table)
+// Collection Videos (Junction table)
 // =============================================================================
 
-export const seriesVideos = pgTable(
-  'series_videos',
+export const collectionVideos = pgTable(
+  'collection_videos',
   {
     id: text('id')
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    seriesId: text('series_id')
+    collectionId: text('collection_id')
       .notNull()
       .references(() => collections.id, { onDelete: 'cascade' }),
     videoId: text('video_id')
       .notNull()
       .references(() => videos.id, { onDelete: 'cascade' }),
+    // Position is used for playlists (ordered), ignored for folders
     position: integer('position').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
-    unique().on(table.seriesId, table.videoId),
-    index('series_videos_series_id_idx').on(table.seriesId),
-    index('series_videos_video_id_idx').on(table.videoId),
+    unique().on(table.collectionId, table.videoId),
+    index('collection_videos_collection_id_idx').on(table.collectionId),
+    index('collection_videos_video_id_idx').on(table.videoId),
   ],
 );
 
 // =============================================================================
-// Series Progress
+// Collection Progress (for playlist collections)
 // =============================================================================
 
-export const seriesProgress = pgTable(
-  'series_progress',
+export const collectionProgress = pgTable(
+  'collection_progress',
   {
     id: text('id')
       .primaryKey()
@@ -171,7 +158,7 @@ export const seriesProgress = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    seriesId: text('series_id')
+    collectionId: text('collection_id')
       .notNull()
       .references(() => collections.id, { onDelete: 'cascade' }),
     lastVideoId: text('last_video_id').references(() => videos.id, { onDelete: 'set null' }),
@@ -180,9 +167,9 @@ export const seriesProgress = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    unique().on(table.userId, table.seriesId),
-    index('series_progress_user_id_idx').on(table.userId),
-    index('series_progress_series_id_idx').on(table.seriesId),
+    unique().on(table.userId, table.collectionId),
+    index('collection_progress_user_id_idx').on(table.userId),
+    index('collection_progress_collection_id_idx').on(table.collectionId),
   ],
 );
 
@@ -294,16 +281,16 @@ export const userPresence = pgTable(
 // Type Exports
 // =============================================================================
 
-export type Channel = typeof channels.$inferSelect;
-export type NewChannel = typeof channels.$inferInsert;
 export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
+export type CollectionType = Collection['type'];
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
-export type SeriesVideo = typeof seriesVideos.$inferSelect;
-export type NewSeriesVideo = typeof seriesVideos.$inferInsert;
-export type SeriesProgress = typeof seriesProgress.$inferSelect;
-export type NewSeriesProgress = typeof seriesProgress.$inferInsert;
+export type VideoVisibility = Video['visibility'];
+export type CollectionVideo = typeof collectionVideos.$inferSelect;
+export type NewCollectionVideo = typeof collectionVideos.$inferInsert;
+export type CollectionProgress = typeof collectionProgress.$inferSelect;
+export type NewCollectionProgress = typeof collectionProgress.$inferInsert;
 export type VideoProgress = typeof videoProgresses.$inferSelect;
 export type NewVideoProgress = typeof videoProgresses.$inferInsert;
 export type VideoChapter = typeof videoChapters.$inferSelect;
@@ -321,6 +308,7 @@ import { aiActionItems } from './ai-insights';
 // Import these lazily to avoid circular dependencies
 import { decisions } from './knowledge';
 import { transcriptChunks } from './search';
+import { videoShares } from './sharing';
 import { speakerSegments, videoSpeakers } from './speakers';
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -332,14 +320,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     fields: [videos.organizationId],
     references: [organizations.id],
   }),
-  channel: one(channels, {
-    fields: [videos.channelId],
-    references: [channels.id],
-  }),
-  collection: one(collections, {
-    fields: [videos.collectionId],
-    references: [collections.id],
-  }),
+  collectionVideos: many(collectionVideos),
   videoProgresses: many(videoProgresses),
   chapters: many(videoChapters),
   decisions: many(decisions),
@@ -347,6 +328,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   speakerSegments: many(speakerSegments),
   aiActionItems: many(aiActionItems),
   transcriptChunks: many(transcriptChunks),
+  shares: many(videoShares),
 }));
 
 export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
@@ -354,14 +336,6 @@ export const videoChaptersRelations = relations(videoChapters, ({ one }) => ({
     fields: [videoChapters.videoId],
     references: [videos.id],
   }),
-}));
-
-export const channelRelations = relations(channels, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [channels.organizationId],
-    references: [organizations.id],
-  }),
-  videos: many(videos),
 }));
 
 export const collectionRelations = relations(collections, ({ one, many }) => ({
@@ -373,33 +347,32 @@ export const collectionRelations = relations(collections, ({ one, many }) => ({
     fields: [collections.createdById],
     references: [users.id],
   }),
-  videos: many(videos),
-  seriesVideos: many(seriesVideos),
-  seriesProgress: many(seriesProgress),
+  collectionVideos: many(collectionVideos),
+  collectionProgress: many(collectionProgress),
 }));
 
-export const seriesVideosRelations = relations(seriesVideos, ({ one }) => ({
-  series: one(collections, {
-    fields: [seriesVideos.seriesId],
+export const collectionVideosRelations = relations(collectionVideos, ({ one }) => ({
+  collection: one(collections, {
+    fields: [collectionVideos.collectionId],
     references: [collections.id],
   }),
   video: one(videos, {
-    fields: [seriesVideos.videoId],
+    fields: [collectionVideos.videoId],
     references: [videos.id],
   }),
 }));
 
-export const seriesProgressRelations = relations(seriesProgress, ({ one }) => ({
+export const collectionProgressRelations = relations(collectionProgress, ({ one }) => ({
   user: one(users, {
-    fields: [seriesProgress.userId],
+    fields: [collectionProgress.userId],
     references: [users.id],
   }),
-  series: one(collections, {
-    fields: [seriesProgress.seriesId],
+  collection: one(collections, {
+    fields: [collectionProgress.collectionId],
     references: [collections.id],
   }),
   lastVideo: one(videos, {
-    fields: [seriesProgress.lastVideoId],
+    fields: [collectionProgress.lastVideoId],
     references: [videos.id],
   }),
 }));

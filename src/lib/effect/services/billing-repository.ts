@@ -61,6 +61,8 @@ export interface UsageSummary {
 /**
  * Default plan limits based on plan name (synced with pricing.md)
  *
+ * Note: There is no free plan - all users start with a 14-day Scale trial.
+ *
  * Scale Plan: $25/user/month
  * - 5 GB storage/user
  * - 25 videos/user/month
@@ -76,14 +78,7 @@ export interface UsageSummary {
  * - 300 min AI transcription/user/month
  */
 const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
-  // Free tier (for users without subscription - very limited)
-  free: {
-    storage: 500 * 1024 * 1024, // 500MB
-    videos: 3,
-    members: 1,
-    bandwidth: 1024 * 1024 * 1024, // 1GB/month
-  },
-  // Scale Plan - entry tier ($25/user/month)
+  // Scale Plan - entry tier ($25/user/month) - also used for trials
   scale: {
     storage: 5 * 1024 * 1024 * 1024, // 5GB per user
     videos: 25, // 25 per user per month
@@ -106,10 +101,10 @@ const DEFAULT_PLAN_LIMITS: Record<string, PlanLimits> = {
   },
 };
 
-// Get plan limits by plan name
+// Get plan limits by plan name - defaults to scale (trial) limits
 const getPlanLimitsByName = (planName: string): PlanLimits => {
   const normalizedName = planName.toLowerCase();
-  return DEFAULT_PLAN_LIMITS[normalizedName] || DEFAULT_PLAN_LIMITS.free;
+  return DEFAULT_PLAN_LIMITS[normalizedName] || DEFAULT_PLAN_LIMITS.scale;
 };
 
 // =============================================================================
@@ -130,6 +125,10 @@ export interface BillingRepositoryService {
     organizationId: string,
   ) => Effect.Effect<Option.Option<SubscriptionWithPlan>, DatabaseError>;
   readonly createSubscription: (data: NewSubscription) => Effect.Effect<Subscription, DatabaseError>;
+  readonly createTrialSubscription: (
+    organizationId: string,
+    trialDays?: number,
+  ) => Effect.Effect<Subscription, DatabaseError>;
   readonly updateSubscription: (
     organizationId: string,
     data: Partial<NewSubscription>,
@@ -409,6 +408,35 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         new DatabaseError({
           message: 'Failed to create subscription',
           operation: 'createSubscription',
+          cause: error,
+        }),
+    }),
+
+  createTrialSubscription: (organizationId, trialDays = 14) =>
+    Effect.tryPromise({
+      try: async () => {
+        const now = new Date();
+        const trialEnd = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+        const [subscription] = await db
+          .insert(subscriptions)
+          .values({
+            id: crypto.randomUUID(),
+            plan: 'scale', // Trial users get Scale plan features
+            referenceId: organizationId,
+            status: 'trialing',
+            trialStart: now,
+            trialEnd: trialEnd,
+            periodStart: now,
+            periodEnd: trialEnd,
+          })
+          .returning();
+        return subscription;
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to create trial subscription',
+          operation: 'createTrialSubscription',
           cause: error,
         }),
     }),
@@ -860,10 +888,10 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
         repo.getPaymentMethods(organizationId),
       ]);
 
-      // Get plan limits from subscription
+      // Get plan limits from subscription - default to scale (trial) limits if no subscription
       const planLimits = subscription
         ? subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan)
-        : getPlanLimitsByName('free');
+        : getPlanLimitsByName('scale');
 
       return {
         subscription,
@@ -968,3 +996,6 @@ export const getMemberCount = (organizationId: string) =>
 
 export const getVideoCount = (organizationId: string) =>
   Effect.flatMap(BillingRepository, (repo) => repo.getVideoCount(organizationId));
+
+export const createTrialSubscription = (organizationId: string, trialDays = 14) =>
+  Effect.flatMap(BillingRepository, (repo) => repo.createTrialSubscription(organizationId, trialDays));

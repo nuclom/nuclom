@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
 
-    // Validate query params with Zod schema
+    // Validate query params with Effect Schema
     const { organizationId, page, limit } = yield* validateQueryParams(GetVideosSchema, request.url);
 
     // Fetch videos using repository
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Validate request body with Zod schema
+    // Validate request body with Effect Schema
     const validatedData = yield* validateRequestBody(CreateVideoSchema, request);
 
     // Sanitize user-provided content to prevent XSS
@@ -103,8 +103,6 @@ export async function POST(request: NextRequest) {
       videoUrl: validatedData.videoUrl ?? undefined,
       authorId: user.id,
       organizationId: validatedData.organizationId,
-      channelId: validatedData.channelId ?? undefined,
-      collectionId: validatedData.collectionId ?? undefined,
       transcript: validatedData.transcript ?? undefined,
       aiSummary: validatedData.aiSummary ?? undefined,
     });
