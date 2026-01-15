@@ -490,13 +490,18 @@ export async function proxy(request: NextRequest) {
  */
 
 // Pattern components (for readability - Next.js requires static config)
-const NEXT_INTERNALS = '_next/static|_next/image';
-const STATIC_PATHS = 'public|favicon\\.ico|\\.well-known/|sitemap\\.xml|robots\\.txt';
-const CONFIG_FILES = 'manifest\\.webmanifest|openapi\\.json|openapi\\.yaml';
-const STATIC_EXTENSIONS = 'svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest';
+const NEXT_INTERNALS = ['_next/static', '_next/image'];
+const STATIC_PATHS = ['public', 'favicon\\.ico', '\\.well-known/', 'sitemap\\.xml', 'robots\\.txt'];
+const CONFIG_FILES = ['manifest\\.webmanifest', 'openapi\\.json', 'openapi\\.yaml'];
+const STATIC_EXTENSIONS = ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'woff', 'woff2', 'ttf', 'eot', 'webmanifest'];
 
 // Build the complete exclusion pattern
-const EXCLUDED_PATTERN = `${NEXT_INTERNALS}|${STATIC_PATHS}|${CONFIG_FILES}|.*\\.(?:${STATIC_EXTENSIONS})`;
+const EXCLUDED_PATTERN = [
+  ...NEXT_INTERNALS,
+  ...STATIC_PATHS,
+  ...CONFIG_FILES,
+  `.*\\.(?:${STATIC_EXTENSIONS.join('|')})`,
+].join('|');
 
 export const config = {
   matcher: [`/((?!${EXCLUDED_PATTERN}).*)`],
