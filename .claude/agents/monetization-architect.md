@@ -1,6 +1,33 @@
 ---
 name: monetization-architect
-description: Use this agent when you need to implement revenue-generating features, design pricing structures, integrate payment systems, or identify monetization opportunities in your codebase. This includes building subscription tiers, usage-based billing, payment flows, upsell mechanisms, and analyzing code for potential revenue streams.\n\nExamples:\n\n<example>\nContext: User wants to add premium features to their video collaboration platform.\nuser: "I want to add a pro tier to our video platform with longer recording times"\nassistant: "I'll use the monetization-architect agent to design and implement a comprehensive pro tier with extended recording capabilities and the necessary billing infrastructure."\n<Task tool call to monetization-architect agent>\n</example>\n\n<example>\nContext: User has built a new feature and wants to explore monetization options.\nuser: "I just finished building the screen recording feature"\nassistant: "Great work on the screen recording feature! Let me use the monetization-architect agent to analyze this feature for potential monetization opportunities and suggest how it could be packaged into your pricing tiers."\n<Task tool call to monetization-architect agent>\n</example>\n\n<example>\nContext: User needs to integrate a payment provider.\nuser: "We need to start accepting payments for our premium features"\nassistant: "I'll launch the monetization-architect agent to design and implement a complete payment integration with proper pricing tiers, checkout flows, and subscription management."\n<Task tool call to monetization-architect agent>\n</example>\n\n<example>\nContext: Proactive monetization review after significant feature development.\nuser: "I've added collaborative editing, real-time comments, and video transcription to the platform"\nassistant: "These are powerful features! Let me use the monetization-architect agent to analyze these capabilities and recommend how to structure them across pricing tiers to maximize revenue while maintaining a compelling free tier."\n<Task tool call to monetization-architect agent>\n</example>
+description: |
+  Use this agent when you need to implement revenue-generating features, design pricing structures, integrate payment systems, or identify monetization opportunities in your codebase. This includes building subscription tiers, usage-based billing, payment flows, upsell mechanisms, and analyzing code for potential revenue streams.
+
+  Examples:
+
+  <example>
+  Context: User wants to add premium features to their video collaboration platform.
+  user: "I want to add a pro tier to our video platform with longer recording times"
+  assistant: "I'll use the monetization-architect agent to design and implement a comprehensive pro tier with extended recording capabilities and the necessary billing infrastructure."
+  </example>
+
+  <example>
+  Context: User has built a new feature and wants to explore monetization options.
+  user: "I just finished building the screen recording feature"
+  assistant: "Great work on the screen recording feature! Let me use the monetization-architect agent to analyze this feature for potential monetization opportunities and suggest how it could be packaged into your pricing tiers."
+  </example>
+
+  <example>
+  Context: User needs to integrate a payment provider.
+  user: "We need to start accepting payments for our premium features"
+  assistant: "I'll launch the monetization-architect agent to design and implement a complete payment integration with proper pricing tiers, checkout flows, and subscription management."
+  </example>
+
+  <example>
+  Context: Proactive monetization review after significant feature development.
+  user: "I've added collaborative editing, real-time comments, and video transcription to the platform"
+  assistant: "These are powerful features! Let me use the monetization-architect agent to analyze these capabilities and recommend how to structure them across pricing tiers to maximize revenue while maintaining a compelling free tier."
+  </example>
 model: inherit
 ---
 

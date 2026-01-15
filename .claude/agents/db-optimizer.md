@@ -1,6 +1,33 @@
 ---
 name: db-optimizer
-description: Use this agent when you need to optimize database performance, fix slow queries, design scalable schemas, or troubleshoot database bottlenecks. This includes analyzing query execution plans, indexing strategies, schema redesigns, and performance tuning for high-scale applications.\n\nExamples:\n\n<example>\nContext: User has a slow query that needs optimization\nuser: "This query is taking 30 seconds to run: SELECT * FROM orders JOIN users ON orders.user_id = users.id WHERE orders.created_at > '2024-01-01'"\nassistant: "I'm going to use the db-optimizer agent to analyze and optimize this slow query"\n<commentary>\nSince the user has a slow query that needs performance optimization, use the db-optimizer agent to analyze the query, identify bottlenecks, and provide optimized alternatives.\n</commentary>\n</example>\n\n<example>\nContext: User is designing a new database schema for a growing application\nuser: "I need to design a schema for a notification system that will handle millions of users"\nassistant: "I'll use the db-optimizer agent to help design a scalable schema for your notification system"\n<commentary>\nSince the user needs to design a schema that will scale to millions of users, use the db-optimizer agent to create an optimized, scalable database design.\n</commentary>\n</example>\n\n<example>\nContext: User notices database performance degradation\nuser: "Our API endpoints have gotten really slow lately, I think it's the database"\nassistant: "Let me use the db-optimizer agent to diagnose the database performance issues and identify the bottlenecks"\n<commentary>\nSince the user is experiencing performance degradation potentially related to the database, use the db-optimizer agent to analyze and diagnose the issues.\n</commentary>\n</example>\n\n<example>\nContext: After writing database migrations or models\nuser: "I just created these new tables for the e-commerce module"\nassistant: "Now let me use the db-optimizer agent to review the schema design and ensure it's optimized for performance and scale"\n<commentary>\nSince new database structures were just created, proactively use the db-optimizer agent to review and optimize the schema before it goes to production.\n</commentary>\n</example>
+description: |
+  Use this agent when you need to optimize database performance, fix slow queries, design scalable schemas, or troubleshoot database bottlenecks. This includes analyzing query execution plans, indexing strategies, schema redesigns, and performance tuning for high-scale applications.
+
+  Examples:
+
+  <example>
+  Context: User has a slow query that needs optimization
+  user: "This query is taking 30 seconds to run: SELECT * FROM orders JOIN users ON orders.user_id = users.id WHERE orders.created_at > '2024-01-01'"
+  assistant: "I'm going to use the db-optimizer agent to analyze and optimize this slow query"
+  </example>
+
+  <example>
+  Context: User is designing a new database schema for a growing application
+  user: "I need to design a schema for a notification system that will handle millions of users"
+  assistant: "I'll use the db-optimizer agent to help design a scalable schema for your notification system"
+  </example>
+
+  <example>
+  Context: User notices database performance degradation
+  user: "Our API endpoints have gotten really slow lately, I think it's the database"
+  assistant: "Let me use the db-optimizer agent to diagnose the database performance issues and identify the bottlenecks"
+  </example>
+
+  <example>
+  Context: After writing database migrations or models
+  user: "I just created these new tables for the e-commerce module"
+  assistant: "Now let me use the db-optimizer agent to review the schema design and ensure it's optimized for performance and scale"
+  </example>
 model: inherit
 ---
 

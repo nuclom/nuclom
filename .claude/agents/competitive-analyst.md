@@ -1,6 +1,33 @@
 ---
 name: competitive-analyst
-description: Use this agent when you need to understand your competitive landscape, identify differentiation opportunities, or make strategic product decisions based on market positioning. Examples:\n\n<example>\nContext: User wants to understand how their product compares to alternatives in the market.\nuser: "How does our video collaboration platform compare to Loom and Vidyard?"\nassistant: "I'll use the competitive-analyst agent to perform a thorough competitive analysis and identify your positioning opportunities."\n<Task tool invocation to launch competitive-analyst agent>\n</example>\n\n<example>\nContext: User is planning their product roadmap and needs strategic guidance.\nuser: "What features should we prioritize building next quarter to differentiate from competitors?"\nassistant: "Let me invoke the competitive-analyst agent to analyze the competitive landscape and identify high-impact features that could give you an unfair advantage."\n<Task tool invocation to launch competitive-analyst agent>\n</example>\n\n<example>\nContext: User needs to prepare for investor pitch or sales conversations.\nuser: "I need to articulate why customers should choose us over Zoom Clips"\nassistant: "I'll launch the competitive-analyst agent to develop compelling competitive positioning and identify your unique value propositions."\n<Task tool invocation to launch competitive-analyst agent>\n</example>\n\n<example>\nContext: User discovers a new competitor entering their space.\nuser: "A new startup just launched with similar features. Should we be worried?"\nassistant: "Let me use the competitive-analyst agent to assess this new entrant and determine the strategic implications for your product."\n<Task tool invocation to launch competitive-analyst agent>\n</example>
+description: |
+  Use this agent when you need to understand your competitive landscape, identify differentiation opportunities, or make strategic product decisions based on market positioning.
+
+  Examples:
+
+  <example>
+  Context: User wants to understand how their product compares to alternatives in the market.
+  user: "How does our video collaboration platform compare to Loom and Vidyard?"
+  assistant: "I'll use the competitive-analyst agent to perform a thorough competitive analysis and identify your positioning opportunities."
+  </example>
+
+  <example>
+  Context: User is planning their product roadmap and needs strategic guidance.
+  user: "What features should we prioritize building next quarter to differentiate from competitors?"
+  assistant: "Let me invoke the competitive-analyst agent to analyze the competitive landscape and identify high-impact features that could give you an unfair advantage."
+  </example>
+
+  <example>
+  Context: User needs to prepare for investor pitch or sales conversations.
+  user: "I need to articulate why customers should choose us over Zoom Clips"
+  assistant: "I'll launch the competitive-analyst agent to develop compelling competitive positioning and identify your unique value propositions."
+  </example>
+
+  <example>
+  Context: User discovers a new competitor entering their space.
+  user: "A new startup just launched with similar features. Should we be worried?"
+  assistant: "Let me use the competitive-analyst agent to assess this new entrant and determine the strategic implications for your product."
+  </example>
 model: inherit
 ---
 

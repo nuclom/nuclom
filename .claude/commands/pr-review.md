@@ -7,7 +7,21 @@ description: Review code changes against project standards with a comprehensive 
 
 You are performing a comprehensive code review for the Nuclom video collaboration platform. Follow this structured process:
 
-## Step 1: Gather Context
+## Step 1: Run Automated Checks
+
+Before manual review, run automated checks:
+
+```bash
+# Type check - must pass
+pnpm tsc
+
+# Lint check - must pass
+pnpm lint
+```
+
+If either fails, report the errors as Critical issues. Do not proceed with full review until these pass.
+
+## Step 2: Gather Context
 
 Run these commands to understand the changes:
 
@@ -23,7 +37,7 @@ gh pr view --json title,body,files
 gh pr diff
 ```
 
-## Step 2: Review Checklist
+## Step 3: Review Checklist
 
 Evaluate ALL changes against this checklist:
 
@@ -71,7 +85,7 @@ Evaluate ALL changes against this checklist:
 - [ ] No dead code or commented-out code
 - [ ] Documentation updated if API changed
 
-## Step 3: Categorize Findings
+## Step 4: Categorize Findings
 
 Organize your findings into three categories:
 
@@ -84,7 +98,7 @@ Issues that violate project patterns or could cause future problems.
 ### Suggestion (Nice to Have)
 Minor improvements for readability or maintainability.
 
-## Step 4: Provide Feedback
+## Step 5: Provide Feedback
 
 Structure your review as:
 

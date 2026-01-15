@@ -1,6 +1,27 @@
 ---
 name: architecture-expert
-description: Use this agent when you need to design or refactor system architecture, improve code organization, establish design patterns, or transform a messy codebase into a clean, scalable structure. Ideal for planning major refactors, designing new features with long-term maintainability in mind, or reviewing architectural decisions.\n\nExamples:\n\n<example>\nContext: The user wants to add a new feature but the current code structure is becoming unwieldy.\nuser: "I need to add a notification system but I'm not sure how to organize it with the existing code"\nassistant: "Let me use the architecture-expert agent to design a scalable notification system architecture that integrates cleanly with your existing codebase."\n<commentary>\nSince the user needs to add a significant new feature and is concerned about code organization, use the architecture-expert agent to design a proper architecture before implementation.\n</commentary>\n</example>\n\n<example>\nContext: The user has completed a feature and wants to ensure it's architecturally sound.\nuser: "I just finished the user authentication module, can you check if the structure makes sense?"\nassistant: "I'll use the architecture-expert agent to review your authentication module's architecture and suggest improvements for scalability and maintainability."\n<commentary>\nSince the user wants architectural review of completed work, use the architecture-expert agent to evaluate the design patterns and structure.\n</commentary>\n</example>\n\n<example>\nContext: The user is struggling with a growing codebase.\nuser: "This codebase is getting really hard to navigate, everything seems tangled together"\nassistant: "Let me invoke the architecture-expert agent to analyze the current structure and design a refactoring plan to untangle the dependencies and improve modularity."\n<commentary>\nSince the user is dealing with code organization issues and coupling problems, use the architecture-expert agent to create a comprehensive refactoring strategy.\n</commentary>\n</example>
+description: |
+  Use this agent when you need to design or refactor system architecture, improve code organization, establish design patterns, or transform a messy codebase into a clean, scalable structure. Ideal for planning major refactors, designing new features with long-term maintainability in mind, or reviewing architectural decisions.
+
+  Examples:
+
+  <example>
+  Context: The user wants to add a new feature but the current code structure is becoming unwieldy.
+  user: "I need to add a notification system but I'm not sure how to organize it with the existing code"
+  assistant: "Let me use the architecture-expert agent to design a scalable notification system architecture that integrates cleanly with your existing codebase."
+  </example>
+
+  <example>
+  Context: The user has completed a feature and wants to ensure it's architecturally sound.
+  user: "I just finished the user authentication module, can you check if the structure makes sense?"
+  assistant: "I'll use the architecture-expert agent to review your authentication module's architecture and suggest improvements for scalability and maintainability."
+  </example>
+
+  <example>
+  Context: The user is struggling with a growing codebase.
+  user: "This codebase is getting really hard to navigate, everything seems tangled together"
+  assistant: "Let me invoke the architecture-expert agent to analyze the current structure and design a refactoring plan to untangle the dependencies and improve modularity."
+  </example>
 model: inherit
 ---
 

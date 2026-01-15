@@ -1,120 +1,92 @@
-# Claude Code Configuration Improvements
+# Comprehensive Claude Code Improvements - Round 2
 
-## Analysis Summary
+Based on deep analysis of [ChrisWiles/claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase) and our existing setup.
 
-After analyzing the [ChrisWiles/claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase) repository and comparing it to our current setup, I've identified several high-impact improvements for our Claude Code configuration.
+## Summary of Findings
 
-### Current State
+### What ChrisWiles Has (That We're Missing or Underdeveloped)
 
-**What We Have:**
-- 11 specialized agents in `.claude/agents/`
-- 1 skill (automating-browser) in `.claude/skills/`
-- Comprehensive CLAUDE.md at project root
-- No hooks, commands, or settings.json
+1. **Skill Evaluation System** - UserPromptSubmit hook that automatically suggests relevant skills based on keywords/patterns
+2. **More Commands** - `/ticket`, `/code-quality`, `/docs-sync`, `/onboard`, `/pr-summary`
+3. **Domain-Specific Skills** - testing-patterns, graphql-schema, react-ui-patterns, systematic-debugging
+4. **PostToolUse Hooks** - Auto type checking, auto test running, auto dependency install
+5. **Better CLAUDE.md** - Includes "skill activation" guidance
 
-**What ChrisWiles Has (that we're missing):**
-- `settings.json` with hook configurations
-- PostToolUse hooks for auto-formatting, auto-testing, type checking
-- PreToolUse hooks for branch protection
-- Custom slash commands (`/pr-review`, `/ticket`)
-- UserPromptSubmit hooks for skill evaluation
-- Code reviewer agent with checklist-based review
+### Issues in Our Existing Files
+
+1. **code-reviewer.md** - Has escaped newlines (`\n`) in description (malformed frontmatter)
+2. **settings.json** - Missing TypeScript check hook, test runner hook
+3. **Agents lack project context** - Many don't reference Nuclom-specific patterns
+4. **pr-review.md** - Doesn't run `pnpm tsc` or `pnpm lint` automatically
 
 ---
 
-## Top Recommendations
+## Recommendations (Prioritized)
 
-### Recommendation 1: PostToolUse Hooks for Auto-Formatting
-
-**Impact:** HIGH
+### 1. FIX: code-reviewer.md Malformed Description
+**Type:** Bug Fix
+**Impact:** HIGH - Agent may not be recognized properly
 **Effort:** LOW
 
-**What It Does:**
-Automatically runs `pnpm format` (Biome) after Claude edits TypeScript/JavaScript files.
+The description field has literal `\n` characters instead of actual newlines. This is malformed YAML frontmatter.
 
-**Why It Matters:**
-- Enforces consistent code style without manual intervention
-- Prevents style-related PR comments
-- Reduces cognitive load - Claude doesn't need to worry about formatting
-
-**Implementation:**
-Create `.claude/settings.json` with PostToolUse hook that triggers on file writes.
-
----
-
-### Recommendation 2: Custom Slash Commands
-
-**Impact:** HIGH
-**Effort:** MEDIUM
-
-**What It Does:**
-Creates reusable commands like `/pr-review` and `/commit-with-review` that standardize workflows.
-
-**Why It Matters:**
-- Consistency in code reviews and commit processes
-- Reduces repetitive prompt writing
-- Establishes team standards for AI-assisted work
-
-**Implementation:**
-Create `.claude/commands/` directory with markdown command definitions.
-
----
-
-### Recommendation 3: PreToolUse Hook for Branch Protection
-
-**Impact:** MEDIUM-HIGH
+### 2. UPDATE: settings.json - Add TypeScript Check Hook
+**Type:** Enhancement
+**Impact:** HIGH - Catches type errors immediately
 **Effort:** LOW
 
-**What It Does:**
-Prevents Claude from editing files when on main/master branch.
+Add PostToolUse hook to run `pnpm tsc` after TypeScript file edits.
 
-**Why It Matters:**
-- Prevents accidental direct commits to protected branches
-- Forces proper branch workflow
-- Safety net for destructive operations
+### 3. UPDATE: settings.json - Add Test Runner Hook
+**Type:** Enhancement
+**Impact:** MEDIUM-HIGH - Runs relevant tests automatically
+**Effort:** LOW
 
-**Implementation:**
-Add PreToolUse hook in settings.json that checks current git branch.
+Add PostToolUse hook to run tests when test files are modified.
 
----
-
-### Recommendation 4: Code Reviewer Agent
-
-**Impact:** MEDIUM
+### 4. NEW: Effect-TS Patterns Skill
+**Type:** New Feature
+**Impact:** HIGH - Major part of our codebase
 **Effort:** MEDIUM
 
-**What It Does:**
-Dedicated agent with a checklist-based approach for reviewing code changes against project standards.
+Create skill documenting Effect-TS patterns specific to Nuclom.
 
-**Why It Matters:**
-- Our code-simplifier focuses on simplification, not comprehensive review
-- Checklist ensures consistent review criteria
-- Integrates with our Effect-TS patterns and project conventions
+### 5. UPDATE: pr-review.md - Run Quality Checks
+**Type:** Enhancement
+**Impact:** MEDIUM - Ensures checks run during review
+**Effort:** LOW
 
-**Implementation:**
-Create `.claude/agents/code-reviewer.md` with project-specific checklist.
+Add step to run `pnpm tsc` and `pnpm lint` before reviewing code.
+
+### 6. NEW: /code-quality Command
+**Type:** New Feature
+**Impact:** MEDIUM - Comprehensive quality audit
+**Effort:** LOW
+
+Run lint, type check, and scan for common issues.
+
+### 7. NEW: /ticket Command
+**Type:** New Feature
+**Impact:** MEDIUM - Standardizes issue workflow
+**Effort:** MEDIUM
+
+End-to-end workflow for working on issues/tickets.
+
+### 8. UPDATE: CLAUDE.md - Add Skill/Agent Activation Guidance
+**Type:** Enhancement
+**Impact:** MEDIUM - Improves discoverability
+**Effort:** LOW
+
+Add section telling Claude when to activate specific skills/agents.
 
 ---
 
-## Testing Framework
+## Testing Framework Plan
 
-For each recommendation, we will:
+For each recommendation:
+1. Create BEFORE.md documenting current behavior
+2. Apply the change
+3. Create AFTER.md documenting new behavior
+4. Create ANALYSIS.md comparing results
 
-1. **BEFORE Test:** Run a sample prompt without the change, document behavior
-2. **Apply Change:** Implement the recommendation
-3. **AFTER Test:** Run the same prompt, document new behavior
-4. **Analysis:** Compare results and determine if the change is impactful
-
-Each recommendation has a dedicated folder in `.claude/testing-framework/` with:
-- `BEFORE.md` - Pre-change behavior observations
-- `AFTER.md` - Post-change behavior observations
-- `ANALYSIS.md` - Comparison and conclusions
-- `test-prompts.md` - The exact prompts used for testing
-
----
-
-## Sources
-
-- [ChrisWiles/claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase)
-- [Claude Code Best Practices by Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [rosmur/claudecode-best-practices](https://github.com/rosmur/claudecode-best-practices)
+Test prompts will focus on scenarios where the changes would have impact.

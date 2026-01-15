@@ -1,6 +1,35 @@
 ---
 name: code-reviewer
-description: Use this agent for comprehensive code reviews that enforce project standards. Applies a structured checklist covering TypeScript strict mode, Effect-TS patterns, React component standards, database patterns, security, and code quality. Provides categorized feedback (Critical/Warning/Suggestion) with actionable fixes.\n\nExamples:\n\n<example>\nContext: User wants feedback on code they just wrote.\nuser: "Review the API endpoint I just created"\nassistant: "I'll use the code-reviewer agent to evaluate your endpoint against project standards."\n<commentary>\nUse code-reviewer agent for any code review request to ensure comprehensive checklist coverage.\n</commentary>\n</example>\n\n<example>\nContext: User completed a feature and wants quality check.\nuser: "I finished the video annotation feature, can you check it?"\nassistant: "I'll launch the code-reviewer agent to perform a thorough review of your implementation."\n<commentary>\nUse code-reviewer for feature completion reviews to catch issues before merge.\n</commentary>\n</example>\n\n<example>\nContext: Proactive review after significant code changes.\nassistant: "I've made substantial changes to this module. Let me use the code-reviewer agent to verify everything follows project standards."\n<commentary>\nProactively use code-reviewer after completing significant work to self-verify quality.\n</commentary>\n</example>
+description: |
+  Use this agent for comprehensive code reviews that enforce project standards. Applies a structured checklist covering TypeScript strict mode, Effect-TS patterns, React component standards, database patterns, security, and code quality. Provides categorized feedback (Critical/Warning/Suggestion) with actionable fixes.
+
+  Examples:
+
+  <example>
+  Context: User wants feedback on code they just wrote.
+  user: "Review the API endpoint I just created"
+  assistant: "I'll use the code-reviewer agent to evaluate your endpoint against project standards."
+  <commentary>
+  Use code-reviewer agent for any code review request to ensure comprehensive checklist coverage.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User completed a feature and wants quality check.
+  user: "I finished the video annotation feature, can you check it?"
+  assistant: "I'll launch the code-reviewer agent to perform a thorough review of your implementation."
+  <commentary>
+  Use code-reviewer for feature completion reviews to catch issues before merge.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Proactive review after significant code changes.
+  assistant: "I've made substantial changes to this module. Let me use the code-reviewer agent to verify everything follows project standards."
+  <commentary>
+  Proactively use code-reviewer after completing significant work to self-verify quality.
+  </commentary>
+  </example>
 model: opus
 ---
 

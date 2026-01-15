@@ -14,6 +14,26 @@
             "timeout": 30000
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$TOOL_INPUT\" =~ \\.(ts|tsx)$ ]]; then echo '🔍 Running TypeScript check...' && pnpm tsc --noEmit 2>&1 | head -20 || true; fi",
+            "timeout": 60000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ \"$TOOL_INPUT\" =~ \\.test\\.(ts|tsx)$ ]]; then echo '🧪 Running related tests...' && pnpm test \"$TOOL_INPUT\" --run 2>&1 | tail -30 || true; fi",
+            "timeout": 90000
+          }
+        ]
       }
     ],
     "PreToolUse": [
