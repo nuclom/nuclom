@@ -97,19 +97,12 @@ test.describe('Landing Page', () => {
     if (viewport && viewport.width < 768) {
       return; // Skip nav test on mobile
     }
-    // Check Features link in header navigation (not footer)
+    // Check Features link in header navigation - it goes to /features page
     const featuresLink = page.locator('nav').getByRole('link', { name: 'Features', exact: true });
     if (await featuresLink.isVisible().catch(() => false)) {
       await featuresLink.click();
-      // Wait for URL to update with hash
-      await page.waitForURL(/.*#features/, { timeout: 3000 }).catch(() => {
-        // Hash navigation might not always update URL
-      });
-      // Scroll section into view and verify it exists
-      const featuresSection = page.locator('section#features').first();
-      await featuresSection.scrollIntoViewIfNeeded();
-      // Verify the section is now in the viewport
-      await expect(featuresSection).toBeInViewport({ timeout: 5000 });
+      // Features link navigates to /features page
+      await expect(page).toHaveURL(/\/features/, { timeout: 10000 });
     }
   });
 });

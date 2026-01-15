@@ -8,9 +8,10 @@ test.describe('Video Upload Page', () => {
       await page.goto(`/${testOrg}/upload`);
       await expect(page).toHaveURL(new RegExp(`/${testOrg}/upload`));
 
-      // Check for upload page elements
-      await expect(page.getByRole('heading', { name: /upload video/i })).toBeVisible({ timeout: 15000 });
-      await expect(page.getByText(/upload a new video/i)).toBeVisible();
+      // Check for upload page elements - heading is "Upload Videos" (plural)
+      await expect(page.getByRole('heading', { name: /upload videos/i })).toBeVisible({ timeout: 15000 });
+      // Description mentions various upload sources
+      await expect(page.getByText(/upload videos from your computer/i)).toBeVisible();
     });
 
     test('should have back to videos link', async ({ authenticatedPage: page }) => {

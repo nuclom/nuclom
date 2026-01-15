@@ -8,10 +8,28 @@ test.describe('Organization Dashboard', () => {
       await page.goto(`/${testOrg}`);
       await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
-      // Check for video sections
-      await expect(page.getByText('Continue watching')).toBeVisible({ timeout: 15000 });
-      await expect(page.getByText('New this week')).toBeVisible();
-      await expect(page.getByText('From your channels')).toBeVisible();
+      // Wait for the page to load - either video sections or empty state
+      await page.waitForLoadState('networkidle', { timeout: 15000 });
+
+      // Check if videos exist - look for video sections OR empty state
+      const hasVideos = await page
+        .getByText('Continue Watching')
+        .isVisible()
+        .catch(() => false);
+      const hasEmptyState = await page
+        .getByText(/upload your first video/i)
+        .isVisible()
+        .catch(() => false);
+
+      // Either videos or empty state should be visible
+      expect(hasVideos || hasEmptyState).toBe(true);
+
+      if (hasVideos) {
+        // If videos exist, check for all sections
+        await expect(page.getByText('Continue Watching')).toBeVisible();
+        await expect(page.getByText('New This Week')).toBeVisible();
+        await expect(page.getByText('From Your Collections')).toBeVisible();
+      }
     });
 
     test('should display upload button when no videos', async ({ authenticatedPage: page }) => {

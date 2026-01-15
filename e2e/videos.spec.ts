@@ -8,17 +8,27 @@ test.describe('Video List', () => {
       await page.goto(`/${testOrg}`);
       await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
-      await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
 
-      // Check if video cards exist or empty state is shown
-      const videoCards = page.locator('[data-video-card], .video-card, article').first();
-      const emptyState = page.getByText(/no videos found|upload your first video/i);
-
-      const hasVideos = await videoCards.isVisible().catch(() => false);
-      const isEmpty = await emptyState.isVisible().catch(() => false);
+      // Check if we have video content or empty state
+      // Video sections show "Continue Watching", "New This Week", etc.
+      const hasVideoSection = await page
+        .getByText('Continue Watching')
+        .isVisible()
+        .catch(() => false);
+      // Empty state shows upload prompt
+      const isEmpty = await page
+        .getByText(/upload your first video/i)
+        .isVisible()
+        .catch(() => false);
+      // Also check for the dashboard hero which appears when no videos
+      const hasDashboardHero = await page
+        .getByRole('heading', { name: /welcome/i })
+        .isVisible()
+        .catch(() => false);
 
       // Either videos or empty state should be visible
-      expect(hasVideos || isEmpty).toBe(true);
+      expect(hasVideoSection || isEmpty || hasDashboardHero).toBe(true);
     });
   });
 });

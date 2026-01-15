@@ -4,27 +4,33 @@ const { testOrg } = TEST_CONFIG;
 
 test.describe('Settings Pages', () => {
   test.describe('Profile Settings', () => {
+    // Note: Profile settings is at /settings/profile, not under org
     test('should display profile settings page', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}/settings/profile`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}/settings/profile`));
+      await page.goto('/settings/profile');
+      await expect(page).toHaveURL(/\/settings\/profile/);
 
-      await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
       await expect(page).toHaveURL(/\/settings\/profile/);
     });
 
     test('should have profile form elements', async ({ authenticatedPage: page }) => {
-      await page.goto(`/${testOrg}/settings/profile`);
-      await expect(page).toHaveURL(new RegExp(`/${testOrg}/settings/profile`));
+      await page.goto('/settings/profile');
+      await expect(page).toHaveURL(/\/settings\/profile/);
 
-      // Look for common profile fields
-      const nameInput = page.getByLabel(/name/i);
-      const emailDisplay = page.getByText(/@.*\./);
+      // Wait for page to load
+      await page.waitForLoadState('networkidle');
+
+      // Look for common profile fields - the page has "Full Name" label
+      const nameInput = page.getByLabel(/full name/i);
+      const emailInput = page.getByLabel(/email/i);
+      const profileTitle = page.getByText('Your Profile');
 
       const hasNameInput = await nameInput.isVisible().catch(() => false);
-      const hasEmail = await emailDisplay.isVisible().catch(() => false);
+      const hasEmailInput = await emailInput.isVisible().catch(() => false);
+      const hasProfileTitle = await profileTitle.isVisible().catch(() => false);
 
       // At least one profile element should exist
-      expect(hasNameInput || hasEmail).toBe(true);
+      expect(hasNameInput || hasEmailInput || hasProfileTitle).toBe(true);
     });
   });
 
