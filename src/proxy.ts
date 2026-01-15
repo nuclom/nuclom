@@ -478,6 +478,6 @@ export const config = {
      * - Public assets (images, fonts, etc.)
      * - public folder assets
      */
-    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
+    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|manifest.webmanifest|openapi.json|openapi.yaml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
   ],
 };
