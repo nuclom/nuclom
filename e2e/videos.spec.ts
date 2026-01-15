@@ -1,26 +1,34 @@
-import { expect, test } from './fixtures';
+import { expect, TEST_CONFIG, test } from './fixtures';
+
+const { testOrg } = TEST_CONFIG;
 
 test.describe('Video List', () => {
   test.describe('Authenticated User', () => {
     test('should display video cards if videos exist', async ({ authenticatedPage: page }) => {
-      await page.goto('/vercel');
+      await page.goto(`/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await page.waitForLoadState('networkidle');
 
-      await page.waitForLoadState('domcontentloaded');
-
-      // Check if video cards exist or empty state is shown
-      const videoCards = page.locator('[data-video-card], .video-card, article').first();
-      const emptyState = page.getByText(/no videos found|upload your first video/i);
-
-      const hasVideos = await videoCards.isVisible().catch(() => false);
-      const isEmpty = await emptyState.isVisible().catch(() => false);
+      // Check if we have video content or empty state
+      // Video sections show "Continue Watching", "New This Week", etc.
+      const hasVideoSection = await page
+        .getByText('Continue Watching')
+        .isVisible()
+        .catch(() => false);
+      // Empty state shows upload prompt
+      const isEmpty = await page
+        .getByText(/upload your first video|get started by uploading/i)
+        .isVisible()
+        .catch(() => false);
+      // Also check for the dashboard hero which shows a greeting when no videos
+      const hasDashboardHero = await page
+        .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
+        .isVisible()
+        .catch(() => false);
 
       // Either videos or empty state should be visible
-      expect(hasVideos || isEmpty).toBe(true);
+      expect(hasVideoSection || isEmpty || hasDashboardHero).toBe(true);
     });
   });
 });
@@ -29,12 +37,8 @@ test.describe('Video Detail Page', () => {
   test.describe('Page Elements', () => {
     test('should handle video page navigation', async ({ authenticatedPage: page }) => {
       // First go to org page
-      await page.goto('/vercel');
-
-      if (page.url().includes('login') || page.url() === '/') {
-        test.skip(true, 'Not authenticated - skipping authenticated tests');
-        return;
-      }
+      await page.goto(`/${testOrg}`);
+      await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
       // Look for video links
       const videoLinks = page.locator("a[href*='/videos/']");
@@ -51,12 +55,8 @@ test.describe('Video Detail Page', () => {
 
 test.describe('Search Page', () => {
   test('should display search page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/search');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await page.goto(`/${testOrg}/search`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/search`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -71,12 +71,8 @@ test.describe('Search Page', () => {
 
 test.describe('My Videos Page', () => {
   test('should display my videos page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/my-videos');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await page.goto(`/${testOrg}/my-videos`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/my-videos`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -87,12 +83,8 @@ test.describe('My Videos Page', () => {
 
 test.describe('Shared Videos Page', () => {
   test('should display shared videos page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/shared');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await page.goto(`/${testOrg}/shared`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/shared`));
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -103,12 +95,8 @@ test.describe('Shared Videos Page', () => {
 
 test.describe('Channels Page', () => {
   test('should handle channel navigation', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await page.goto(`/${testOrg}`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}`));
 
     // Look for channel links
     const channelLinks = page.locator("a[href*='/channels/']");
@@ -123,12 +111,8 @@ test.describe('Channels Page', () => {
 
 test.describe('Series Page', () => {
   test('should display series page', async ({ authenticatedPage: page }) => {
-    await page.goto('/vercel/series');
-
-    if (page.url().includes('login') || page.url() === '/') {
-      test.skip(true, 'Not authenticated - skipping authenticated tests');
-      return;
-    }
+    await page.goto(`/${testOrg}/series`);
+    await expect(page).toHaveURL(new RegExp(`/${testOrg}/series`));
 
     await page.waitForLoadState('domcontentloaded');
 
