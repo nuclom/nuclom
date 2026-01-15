@@ -111,13 +111,10 @@ paths:
           description: SpeakerId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -312,13 +309,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -341,13 +335,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -370,13 +361,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -402,13 +390,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -433,13 +418,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -465,13 +447,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -491,13 +470,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -518,13 +494,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       requestBody:
         required: true
         description: Update a clip data
@@ -602,12 +575,6 @@ paths:
         content:
           application/json:
             schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               type: object
               required:
                 - name
@@ -638,7 +605,10 @@ paths:
                     - 
                       type: "null"
                 organizationId:
-                  "$ref": "#/$defs/UUID"
+                  type: string
+                  description: a Universally Unique Identifier
+                  format: uuid
+                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                 type:
                   type: string
                   enum:
@@ -671,13 +641,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: - Collection deleted successfully
@@ -701,13 +668,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Collection with videos
@@ -731,13 +695,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       requestBody:
         required: true
         description: Update collection data
@@ -800,13 +761,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Progress details
@@ -828,13 +786,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       requestBody:
         required: true
         description: Update collection progress data
@@ -877,13 +832,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: "Video[] - List of available videos"
@@ -905,13 +857,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: - Videos reordered successfully
@@ -935,13 +884,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Video added to collection
@@ -966,26 +912,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: videoId
           in: path
           description: VideoId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: - Video removed from collection
@@ -1015,13 +955,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1040,13 +977,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -1119,12 +1053,6 @@ paths:
         content:
           application/json:
             schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               type: object
               required:
                 - title
@@ -1146,7 +1074,10 @@ paths:
                 clipIds:
                   type: array
                   items:
-                    "$ref": "#/$defs/UUID"
+                    type: string
+                    description: a Universally Unique Identifier
+                    format: uuid
+                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               additionalProperties: false
       responses:
         201:
@@ -1171,13 +1102,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1197,13 +1125,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1224,25 +1149,16 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       requestBody:
         required: true
         description: Update a highlight reel data
         content:
           application/json:
             schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               type: object
               required:[]
               properties:
@@ -1265,7 +1181,10 @@ paths:
                 clipIds:
                   type: array
                   items:
-                    "$ref": "#/$defs/UUID"
+                    type: string
+                    description: a Universally Unique Identifier
+                    format: uuid
+                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               additionalProperties: false
       responses:
         200:
@@ -1292,13 +1211,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -1353,13 +1269,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1382,13 +1295,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1411,13 +1321,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1564,13 +1471,10 @@ paths:
           description: IntegrationId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1588,13 +1492,10 @@ paths:
           description: IntegrationId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1782,13 +1683,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1857,13 +1755,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1886,13 +1781,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -1915,13 +1807,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2006,13 +1895,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2035,13 +1921,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2136,13 +2019,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2163,13 +2043,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2187,13 +2064,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -2212,26 +2086,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: exportId
           in: path
           description: ExportId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2250,13 +2118,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2275,13 +2140,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2299,13 +2161,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2324,13 +2183,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2348,13 +2204,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2372,13 +2225,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2397,26 +2247,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: userId
           in: path
           description: UserId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2434,26 +2278,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: userId
           in: path
           description: UserId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2471,26 +2309,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: userId
           in: path
           description: UserId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -2509,13 +2341,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2533,13 +2362,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -2558,26 +2384,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: roleId
           in: path
           description: RoleId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2595,26 +2415,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: roleId
           in: path
           description: RoleId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2632,26 +2446,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: roleId
           in: path
           description: RoleId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2670,13 +2478,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2694,13 +2499,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2719,13 +2521,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2743,13 +2542,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2767,13 +2563,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2791,13 +2584,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -2816,13 +2606,10 @@ paths:
           description: Slug ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2957,13 +2744,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -2986,13 +2770,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3058,13 +2839,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3082,13 +2860,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -3107,13 +2882,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -3199,13 +2971,10 @@ paths:
           description: SessionId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3279,12 +3048,6 @@ paths:
           content:
             application/json:
               schema:
-                "$defs":
-                  UUID:
-                    type: string
-                    description: a Universally Unique Identifier
-                    format: uuid
-                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                 type: object
                 required:
                   - data
@@ -3316,7 +3079,10 @@ paths:
                         - updatedAt
                       properties:
                         id:
-                          "$ref": "#/$defs/UUID"
+                          type: string
+                          description: a Universally Unique Identifier
+                          format: uuid
+                          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                         title:
                           type: string
                         description:
@@ -3340,19 +3106,31 @@ paths:
                             - 
                               type: "null"
                         authorId:
-                          "$ref": "#/$defs/UUID"
+                          type: string
+                          description: a Universally Unique Identifier
+                          format: uuid
+                          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                         organizationId:
-                          "$ref": "#/$defs/UUID"
+                          type: string
+                          description: a Universally Unique Identifier
+                          format: uuid
+                          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                         channelId:
                           anyOf:
                             - 
-                              "$ref": "#/$defs/UUID"
+                              type: string
+                              description: a Universally Unique Identifier
+                              format: uuid
+                              pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                             - 
                               type: "null"
                         collectionId:
                           anyOf:
                             - 
-                              "$ref": "#/$defs/UUID"
+                              type: string
+                              description: a Universally Unique Identifier
+                              format: uuid
+                              pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                             - 
                               type: "null"
                         transcript:
@@ -3427,12 +3205,6 @@ paths:
         content:
           application/json:
             schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               type: object
               required:
                 - title
@@ -3479,7 +3251,10 @@ paths:
                     - 
                       type: "null"
                 organizationId:
-                  "$ref": "#/$defs/UUID"
+                  type: string
+                  description: a Universally Unique Identifier
+                  format: uuid
+                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                 transcript:
                   anyOf:
                     - 
@@ -3507,12 +3282,6 @@ paths:
           content:
             application/json:
               schema:
-                "$defs":
-                  UUID:
-                    type: string
-                    description: a Universally Unique Identifier
-                    format: uuid
-                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                 type: object
                 required:
                   - id
@@ -3536,7 +3305,10 @@ paths:
                   - updatedAt
                 properties:
                   id:
-                    "$ref": "#/$defs/UUID"
+                    type: string
+                    description: a Universally Unique Identifier
+                    format: uuid
+                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                   title:
                     type: string
                   description:
@@ -3560,19 +3332,31 @@ paths:
                       - 
                         type: "null"
                   authorId:
-                    "$ref": "#/$defs/UUID"
+                    type: string
+                    description: a Universally Unique Identifier
+                    format: uuid
+                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                   organizationId:
-                    "$ref": "#/$defs/UUID"
+                    type: string
+                    description: a Universally Unique Identifier
+                    format: uuid
+                    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                   channelId:
                     anyOf:
                       - 
-                        "$ref": "#/$defs/UUID"
+                        type: string
+                        description: a Universally Unique Identifier
+                        format: uuid
+                        pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                       - 
                         type: "null"
                   collectionId:
                     anyOf:
                       - 
-                        "$ref": "#/$defs/UUID"
+                        type: string
+                        description: a Universally Unique Identifier
+                        format: uuid
+                        pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                       - 
                         type: "null"
                   transcript:
@@ -3631,13 +3415,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3660,13 +3441,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3689,13 +3467,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3718,13 +3493,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3743,13 +3515,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3768,13 +3537,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3797,25 +3563,16 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       requestBody:
         required: true
         description: Create a new clip from a video data
         content:
           application/json:
             schema:
-              "$defs":
-                UUID:
-                  type: string
-                  description: a Universally Unique Identifier
-                  format: uuid
-                  pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
               type: object
               required:
                 - title
@@ -3851,7 +3608,10 @@ paths:
                     - 
                       anyOf:
                         - 
-                          "$ref": "#/$defs/UUID"
+                          type: string
+                          description: a Universally Unique Identifier
+                          format: uuid
+                          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
                         - 
                           type: "null"
                     - 
@@ -3904,13 +3664,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3934,13 +3691,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3963,13 +3717,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -3992,13 +3743,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4019,13 +3767,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4044,13 +3789,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4071,13 +3813,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4098,13 +3837,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4125,13 +3861,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4155,13 +3888,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4184,13 +3914,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4213,13 +3940,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4242,13 +3966,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4270,13 +3991,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4299,13 +4017,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4331,26 +4046,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: linkId
           in: path
           description: LinkId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4374,13 +4083,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4403,13 +4109,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4432,13 +4135,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4464,13 +4164,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4491,13 +4188,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4515,13 +4209,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4542,26 +4233,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: speakerId
           in: path
           description: SpeakerId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4579,26 +4264,20 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
         - 
           name: speakerId
           in: path
           description: SpeakerId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4617,13 +4296,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4642,13 +4318,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4667,13 +4340,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4692,13 +4362,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4716,13 +4383,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4741,13 +4405,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4765,13 +4426,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4794,13 +4452,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -4905,13 +4560,10 @@ paths:
           description: WebhookId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4929,13 +4581,10 @@ paths:
           description: WebhookId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4953,13 +4602,10 @@ paths:
           description: WebhookId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -4978,13 +4624,10 @@ paths:
           description: WebhookId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -5002,13 +4645,10 @@ paths:
           description: WebhookId ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
@@ -5044,13 +4684,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -5068,13 +4705,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -5092,13 +4726,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         200:
           description: Success
@@ -5116,13 +4747,10 @@ paths:
           description: Id ID
           required: true
           schema:
-            "$defs":
-              UUID:
-                type: string
-                description: a Universally Unique Identifier
-                format: uuid
-                pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            "$ref": "#/$defs/UUID"
+            type: string
+            description: a Universally Unique Identifier
+            format: uuid
+            pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
       responses:
         201:
           description: Created successfully
