@@ -1,8 +1,19 @@
 'use client';
 
-import { AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileVideo, Loader2, Trash2, Upload } from 'lucide-react';
-import { type ChangeEvent, useCallback, useState } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  FileVideo,
+  Loader2,
+  RotateCcw,
+  Trash2,
+  Upload,
+  X,
+} from 'lucide-react';
+import { type ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,12 +82,15 @@ export function BulkVideoUpload({
   const [uploads, setUploads] = useState<FileUpload[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [expandedSection, setExpandedSection] = useState<'pending' | 'completed' | 'failed' | null>('pending');
 
-  const pendingUploads = uploads.filter((u) => u.status === 'pending');
-  const activeUploads = uploads.filter((u) => ['preparing', 'uploading', 'confirming'].includes(u.status));
-  const completedUploads = uploads.filter((u) => u.status === 'completed');
-  const failedUploads = uploads.filter((u) => u.status === 'failed');
+  const pendingUploads = useMemo(() => uploads.filter((u) => u.status === 'pending'), [uploads]);
+  const activeUploads = useMemo(
+    () => uploads.filter((u) => ['preparing', 'uploading', 'confirming'].includes(u.status)),
+    [uploads],
+  );
+  const completedUploads = useMemo(() => uploads.filter((u) => u.status === 'completed'), [uploads]);
+  const failedUploads = useMemo(() => uploads.filter((u) => u.status === 'failed'), [uploads]);
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
@@ -132,6 +146,7 @@ export function BulkVideoUpload({
 
       if (validFiles.length > 0) {
         setUploads((prev) => [...prev, ...validFiles]);
+        setExpandedSection('pending');
       }
     },
     [uploads, toast],
@@ -349,72 +364,78 @@ export function BulkVideoUpload({
     setUploads((prev) => prev.filter((u) => u.status !== 'completed'));
   };
 
-  const getStatusBadge = (status: FileUpload['status']) => {
+  const clearAll = () => {
+    // Abort any active uploads
+    for (const upload of uploads) {
+      if (upload.abortController) {
+        upload.abortController.abort();
+      }
+    }
+    setUploads([]);
+  };
+
+  const getStatusText = (status: FileUpload['status']) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Pending</Badge>;
+        return 'Waiting';
       case 'preparing':
-        return (
-          <Badge variant="secondary" className="gap-1">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Preparing
-          </Badge>
-        );
+        return 'Preparing';
       case 'uploading':
-        return (
-          <Badge variant="default" className="gap-1 bg-blue-500">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Uploading
-          </Badge>
-        );
+        return 'Uploading';
       case 'confirming':
-        return (
-          <Badge variant="default" className="gap-1 bg-purple-500">
-            <Loader2 className="h-3 w-3 animate-spin" />
-            Processing
-          </Badge>
-        );
+        return 'Processing';
       case 'completed':
-        return (
-          <Badge variant="default" className="gap-1 bg-green-500">
-            <CheckCircle className="h-3 w-3" />
-            Complete
-          </Badge>
-        );
+        return 'Complete';
       case 'failed':
-        return (
-          <Badge variant="destructive" className="gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Failed
-          </Badge>
-        );
+        return 'Failed';
       default:
-        return null;
+        return '';
     }
   };
 
-  const totalSize = uploads.reduce((sum, u) => sum + u.file.size, 0);
-  const uploadedSize = uploads.filter((u) => u.status === 'completed').reduce((sum, u) => sum + u.file.size, 0);
+  const totalSize = useMemo(() => uploads.reduce((sum, u) => sum + u.file.size, 0), [uploads]);
+  const uploadedSize = useMemo(
+    () => uploads.filter((u) => u.status === 'completed').reduce((sum, u) => sum + u.file.size, 0),
+    [uploads],
+  );
+  const overallProgress = useMemo(() => {
+    if (totalSize === 0) return 0;
+    const activeProgress = activeUploads.reduce((sum, u) => sum + (u.file.size * u.progress) / 100, 0);
+    return Math.round(((uploadedSize + activeProgress) / totalSize) * 100);
+  }, [totalSize, uploadedSize, activeUploads]);
 
   return (
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          Bulk Video Upload
-        </CardTitle>
-        <CardDescription>
-          Upload multiple videos at once. Files are uploaded directly to cloud storage for faster, more reliable uploads
-          with no size limits.
-        </CardDescription>
+    <Card className="w-full max-w-3xl mx-auto overflow-hidden">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Upload className="h-5 w-5" />
+              Upload Videos
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Upload multiple videos at once with fast, reliable cloud uploads
+            </CardDescription>
+          </div>
+          {uploads.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearAll} className="text-muted-foreground">
+              <X className="h-4 w-4 mr-1" />
+              Clear all
+            </Button>
+          )}
+        </div>
       </CardHeader>
+
       <CardContent className="space-y-6">
         {/* Drop Zone */}
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop zone requires event handlers */}
         <div
+          role="region"
+          aria-label="Drop zone for video files"
           className={cn(
-            'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
-            dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
+            'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300',
+            dragActive
+              ? 'border-primary bg-primary/5 scale-[1.01]'
+              : 'border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-muted/30',
             isUploading && 'opacity-50 pointer-events-none',
           )}
           onDragEnter={handleDrag}
@@ -423,10 +444,17 @@ export function BulkVideoUpload({
           onDrop={handleDrop}
         >
           <div className="space-y-4">
-            <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div
+              className={cn(
+                'inline-flex p-4 rounded-full bg-muted/50 transition-transform duration-200',
+                dragActive && 'scale-110',
+              )}
+            >
+              <Upload className={cn('h-8 w-8 text-muted-foreground', dragActive && 'text-primary animate-bounce')} />
+            </div>
             <div>
-              <p className="text-lg font-medium">Drop your videos here</p>
-              <p className="text-sm text-muted-foreground">or click to select files</p>
+              <p className="text-lg font-medium">{dragActive ? 'Drop videos here' : 'Drag and drop videos'}</p>
+              <p className="text-sm text-muted-foreground">or click to browse</p>
             </div>
             <Input
               type="file"
@@ -437,154 +465,257 @@ export function BulkVideoUpload({
               id="bulk-video-upload"
               disabled={isUploading}
             />
-            <Label htmlFor="bulk-video-upload" className="cursor-pointer">
-              <Button type="button" variant="outline" disabled={isUploading}>
-                Select Video Files
+            <Label htmlFor="bulk-video-upload" className="cursor-pointer inline-block">
+              <Button type="button" variant="outline" disabled={isUploading} className="pointer-events-none">
+                <FileVideo className="h-4 w-4 mr-2" />
+                Select Files
               </Button>
             </Label>
             <p className="text-xs text-muted-foreground">
-              MP4, MOV, AVI, MKV, WebM supported · Up to 5GB per file · Maximum {MAX_FILES} files
+              MP4, MOV, AVI, MKV, WebM · Up to 5GB per file · Maximum {MAX_FILES} files
             </p>
           </div>
         </div>
 
-        {/* Upload List */}
+        {/* Upload Queue */}
         {uploads.length > 0 && (
           <div className="space-y-4">
-            {/* Summary */}
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                {uploads.length} file{uploads.length !== 1 ? 's' : ''} · {formatFileSize(totalSize)}
-              </span>
-              <div className="flex items-center gap-4">
-                {completedUploads.length > 0 && (
-                  <span className="text-green-600">{completedUploads.length} completed</span>
-                )}
-                {failedUploads.length > 0 && <span className="text-red-600">{failedUploads.length} failed</span>}
+            {/* Summary Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">
+                  {uploads.length} file{uploads.length !== 1 ? 's' : ''}{' '}
+                  <span className="text-muted-foreground font-normal">({formatFileSize(totalSize)})</span>
+                </span>
+                <div className="flex items-center gap-2 text-xs">
+                  {completedUploads.length > 0 && (
+                    <Badge variant="secondary" className="gap-1 bg-green-500/10 text-green-600 dark:text-green-400">
+                      <CheckCircle className="h-3 w-3" />
+                      {completedUploads.length}
+                    </Badge>
+                  )}
+                  {failedUploads.length > 0 && (
+                    <Badge variant="destructive" className="gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {failedUploads.length}
+                    </Badge>
+                  )}
+                </div>
               </div>
+              {isUploading && <span className="text-sm text-muted-foreground">{overallProgress}% complete</span>}
             </div>
 
             {/* Overall Progress */}
-            {isUploading && (
+            {(isUploading || activeUploads.length > 0) && (
               <div className="space-y-2">
-                <Progress value={(uploadedSize / totalSize) * 100} className="h-2" />
-                <p className="text-sm text-muted-foreground text-center">
+                <Progress value={overallProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">
                   Uploading {activeUploads.length} of {pendingUploads.length + activeUploads.length} files
                 </p>
               </div>
             )}
 
-            {/* File List */}
-            <ScrollArea className="max-h-80">
+            {/* Active Uploads */}
+            {activeUploads.length > 0 && (
               <div className="space-y-2">
-                {uploads.map((upload) => (
+                {activeUploads.map((upload) => (
                   <div
                     key={upload.id}
-                    className={cn(
-                      'flex items-center gap-3 p-3 rounded-lg border',
-                      upload.status === 'failed' && 'border-destructive/50 bg-destructive/5',
-                      upload.status === 'completed' && 'border-green-500/50 bg-green-500/5',
-                    )}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20"
                   >
-                    <FileVideo className="h-8 w-8 text-muted-foreground shrink-0" />
-
-                    <div className="flex-1 min-w-0 space-y-1">
-                      {upload.status === 'pending' ? (
-                        <Input
-                          value={upload.title}
-                          onChange={(e) => updateTitle(upload.id, e.target.value)}
-                          className="h-7 text-sm"
-                          placeholder="Video title"
-                        />
-                      ) : (
-                        <p className="font-medium truncate text-sm">{upload.title}</p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{formatFileSize(upload.file.size)}</span>
-                        {upload.status === 'uploading' && (
-                          <>
-                            <span>·</span>
-                            <span>{upload.progress}%</span>
-                          </>
-                        )}
-                        {upload.error && (
-                          <>
-                            <span>·</span>
-                            <span className="text-destructive">{upload.error}</span>
-                          </>
-                        )}
+                    <div className="relative shrink-0">
+                      <FileVideo className="h-10 w-10 text-blue-500/50" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
                       </div>
-
-                      {upload.status === 'uploading' && <Progress value={upload.progress} className="h-1" />}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(upload.status)}
-
-                      {(upload.status === 'pending' || upload.status === 'failed') && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUpload(upload.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <p className="font-medium text-sm truncate">{upload.title}</p>
+                      <div className="flex items-center gap-2">
+                        <Progress value={upload.progress} className="flex-1 h-1.5" />
+                        <span className="text-xs text-muted-foreground shrink-0 w-10 text-right">
+                          {upload.progress}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(upload.file.size)} · {getStatusText(upload.status)}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            )}
 
-            {/* Completed Section Toggle */}
-            {completedUploads.length > 0 && (
-              <Button
-                variant="ghost"
-                className="w-full text-sm text-muted-foreground"
-                onClick={() => setShowCompleted(!showCompleted)}
-              >
-                {showCompleted ? (
-                  <>
-                    <ChevronUp className="h-4 w-4 mr-2" />
-                    Hide completed ({completedUploads.length})
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4 mr-2" />
-                    Show completed ({completedUploads.length})
-                  </>
+            {/* Pending Files Section */}
+            {pendingUploads.length > 0 && (
+              <div className="border rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
+                  onClick={() => setExpandedSection(expandedSection === 'pending' ? null : 'pending')}
+                >
+                  <span className="text-sm font-medium flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    Pending ({pendingUploads.length})
+                  </span>
+                  {expandedSection === 'pending' ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+                {expandedSection === 'pending' && (
+                  <ScrollArea className="max-h-60">
+                    <div className="divide-y">
+                      {pendingUploads.map((upload) => (
+                        <div
+                          key={upload.id}
+                          className="flex items-center gap-3 p-3 hover:bg-muted/20 transition-colors"
+                        >
+                          <FileVideo className="h-8 w-8 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <Input
+                              value={upload.title}
+                              onChange={(e) => updateTitle(upload.id, e.target.value)}
+                              className="h-7 text-sm"
+                              placeholder="Video title"
+                              disabled={isUploading}
+                            />
+                            <p className="text-xs text-muted-foreground">{formatFileSize(upload.file.size)}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => removeUpload(upload.id)}
+                            disabled={isUploading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 )}
-              </Button>
+              </div>
+            )}
+
+            {/* Completed Section */}
+            {completedUploads.length > 0 && (
+              <div className="border border-green-500/20 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between p-3 bg-green-500/5 hover:bg-green-500/10 transition-colors"
+                  onClick={() => setExpandedSection(expandedSection === 'completed' ? null : 'completed')}
+                >
+                  <span className="text-sm font-medium flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    Completed ({completedUploads.length})
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearCompleted();
+                      }}
+                    >
+                      Clear
+                    </Button>
+                    {expandedSection === 'completed' ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+                {expandedSection === 'completed' && (
+                  <ScrollArea className="max-h-40">
+                    <div className="divide-y divide-green-500/10">
+                      {completedUploads.map((upload) => (
+                        <div key={upload.id} className="flex items-center gap-3 p-3">
+                          <FileVideo className="h-8 w-8 text-green-500/50 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{upload.title}</p>
+                            <p className="text-xs text-muted-foreground">{formatFileSize(upload.file.size)}</p>
+                          </div>
+                          <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            )}
+
+            {/* Failed Section */}
+            {failedUploads.length > 0 && (
+              <div className="border border-destructive/20 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between p-3 bg-destructive/5 hover:bg-destructive/10 transition-colors"
+                  onClick={() => setExpandedSection(expandedSection === 'failed' ? null : 'failed')}
+                >
+                  <span className="text-sm font-medium flex items-center gap-2 text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    Failed ({failedUploads.length})
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        retryFailed();
+                      }}
+                      disabled={isUploading}
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" />
+                      Retry all
+                    </Button>
+                    {expandedSection === 'failed' ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+                {expandedSection === 'failed' && (
+                  <ScrollArea className="max-h-40">
+                    <div className="divide-y divide-destructive/10">
+                      {failedUploads.map((upload) => (
+                        <div key={upload.id} className="flex items-center gap-3 p-3">
+                          <FileVideo className="h-8 w-8 text-destructive/50 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{upload.title}</p>
+                            <p className="text-xs text-destructive">{upload.error || 'Upload failed'}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => removeUpload(upload.id)}
+                            disabled={isUploading}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
             )}
           </div>
         )}
 
-        {/* Error Alert */}
-        {failedUploads.length > 0 && !isUploading && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>
-                {failedUploads.length} upload{failedUploads.length !== 1 ? 's' : ''} failed
-              </span>
-              <Button variant="outline" size="sm" onClick={retryFailed}>
-                Retry Failed
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Success Alert */}
-        {completedUploads.length === uploads.length && uploads.length > 0 && !isUploading && (
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              All {completedUploads.length} video{completedUploads.length !== 1 ? 's' : ''} uploaded successfully!
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-4">
+        <div className="flex gap-3 pt-2">
           {pendingUploads.length > 0 && (
-            <Button onClick={startUploads} disabled={isUploading} className="flex-1">
+            <Button onClick={startUploads} disabled={isUploading} className="flex-1" size="lg">
               {isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -599,15 +730,9 @@ export function BulkVideoUpload({
             </Button>
           )}
 
-          {completedUploads.length > 0 && !isUploading && (
-            <Button variant="outline" onClick={clearCompleted}>
-              Clear Completed
-            </Button>
-          )}
-
           {onCancel && (
-            <Button variant="outline" onClick={onCancel} disabled={isUploading}>
-              {uploads.length === 0 ? 'Cancel' : 'Close'}
+            <Button variant="outline" onClick={onCancel} disabled={isUploading} size="lg">
+              {uploads.length === 0 ? 'Cancel' : 'Done'}
             </Button>
           )}
         </div>
