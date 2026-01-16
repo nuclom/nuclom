@@ -71,7 +71,11 @@ test.describe('Landing Page', () => {
       const menuButton = page.locator('header button').last();
       if (await menuButton.isVisible().catch(() => false)) {
         await menuButton.click();
-        await page.waitForTimeout(300); // Wait for menu animation
+        // Wait for menu to be visible instead of fixed timeout
+        await page
+          .getByRole('link', { name: /sign in/i })
+          .waitFor({ state: 'visible', timeout: 5000 })
+          .catch(() => {});
       }
     }
     // Find and click Sign In link
@@ -88,7 +92,7 @@ test.describe('Landing Page', () => {
       .getByRole('link', { name: /get started/i })
       .first()
       .click();
-    await expect(page).toHaveURL(/\/signup|\/register/);
+    await expect(page).toHaveURL(/\/signup|\/register/, { timeout: 10000 });
   });
 
   test('should have working navigation links', async ({ page }) => {

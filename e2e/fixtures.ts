@@ -12,9 +12,10 @@ export const TEST_CONFIG = {
   // Test user credentials
   testUserEmail: process.env.E2E_TEST_USER_EMAIL,
   testUserPassword: process.env.E2E_TEST_USER_PASSWORD,
-  // Timeouts
+  // Timeouts - standardized across all tests
   navigationTimeout: 15000,
   actionTimeout: 10000,
+  assertionTimeout: 10000,
 } as const;
 
 /**
@@ -52,13 +53,44 @@ export const test = base.extend<{
 export { expect } from '@playwright/test';
 
 /**
- * Helper to wait for page to be fully loaded
+ * Helper to wait for page to be fully loaded.
+ * Uses domcontentloaded which is more reliable than networkidle.
  */
 export async function waitForPageLoad(page: Page): Promise<void> {
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForLoadState('networkidle').catch(() => {
-    // Network idle can timeout on slow connections, continue anyway
+}
+
+/**
+ * Helper to wait for page to be stable (no pending network requests).
+ * Use sparingly - prefer waiting for specific elements instead.
+ */
+export async function waitForPageStable(page: Page, timeout = 5000): Promise<void> {
+  await page.waitForLoadState('domcontentloaded');
+  // Use a shorter timeout for networkidle as it can be flaky
+  await page.waitForLoadState('networkidle', { timeout }).catch(() => {
+    // Network idle can timeout on slow connections or long-polling, continue anyway
   });
+}
+
+/**
+ * Helper to wait for any of several elements to be visible.
+ * Returns which element was found.
+ */
+export async function waitForAnyVisible(
+  _page: Page,
+  selectors: Array<{ locator: ReturnType<Page['locator']>; name: string }>,
+  timeout = TEST_CONFIG.assertionTimeout,
+): Promise<string | null> {
+  const promises = selectors.map(async ({ locator, name }) => {
+    await locator.waitFor({ state: 'visible', timeout });
+    return name;
+  });
+
+  try {
+    return await Promise.race(promises);
+  } catch {
+    return null;
+  }
 }
 
 /**

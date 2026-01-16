@@ -36,8 +36,8 @@ test.describe('Public Pages', () => {
       await page.goto('/contact');
       await page.waitForLoadState('domcontentloaded');
 
-      // Should load without errors
-      await page.waitForLoadState('networkidle').catch(() => {});
+      // Should load with contact-related content
+      await expect(page.getByText(/contact|reach|email/i).first()).toBeVisible({ timeout: 10000 });
     });
   });
 });

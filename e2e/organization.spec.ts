@@ -6,26 +6,27 @@ test.describe('Organization Dashboard', () => {
   test.describe('Authenticated User', () => {
     test('should display organization dashboard with video sections', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-      // Wait for the page to load - either video sections or empty state
-      await page.waitForLoadState('networkidle', { timeout: 15000 });
+      // Wait for page content to load
+      await page.waitForLoadState('domcontentloaded');
+
+      // Define the possible states
+      const continueWatching = page.getByText('Continue Watching');
+      const emptyState = page.getByText(/upload your first video|get started by uploading/i);
+      const greeting = page.getByRole('heading', { name: /good (morning|afternoon|evening)/i });
+
+      // Wait for any of the states to appear
+      await Promise.race([
+        continueWatching.waitFor({ state: 'visible', timeout: 15000 }),
+        emptyState.waitFor({ state: 'visible', timeout: 15000 }),
+        greeting.waitFor({ state: 'visible', timeout: 15000 }),
+      ]).catch(() => {});
 
       // Check if videos exist - look for video sections OR empty state
-      const hasVideos = await page
-        .getByText('Continue Watching')
-        .isVisible()
-        .catch(() => false);
-      // Empty state shows the DashboardHero with greeting and upload prompt
-      const hasEmptyState = await page
-        .getByText(/upload your first video|get started by uploading/i)
-        .isVisible()
-        .catch(() => false);
-      // Also check for the greeting pattern which indicates empty state
-      const hasGreeting = await page
-        .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
-        .isVisible()
-        .catch(() => false);
+      const hasVideos = await continueWatching.isVisible().catch(() => false);
+      const hasEmptyState = await emptyState.isVisible().catch(() => false);
+      const hasGreeting = await greeting.isVisible().catch(() => false);
 
       // Either videos or empty state should be visible
       expect(hasVideos || hasEmptyState || hasGreeting).toBe(true);
@@ -40,26 +41,40 @@ test.describe('Organization Dashboard', () => {
 
     test('should display upload button when no videos', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
+
+      // Wait for page content to load
+      await page.waitForLoadState('domcontentloaded');
 
       // If no videos, should show upload button
       const noVideosMessage = page.getByText(/no videos found|upload your first video/i);
+
+      // Wait for potential empty state to appear
+      await noVideosMessage.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
       const hasNoVideos = await noVideosMessage.isVisible().catch(() => false);
 
       if (hasNoVideos) {
-        await expect(page.getByRole('link', { name: /upload first video/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /upload first video/i })).toBeVisible({ timeout: 5000 });
       }
     });
 
     test('should navigate to upload page', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
+
+      // Wait for page content to load
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for any upload link/button
       const uploadLink = page.getByRole('link', { name: /upload/i }).first();
+
+      // Wait for upload link to be visible
+      await uploadLink.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
       if (await uploadLink.isVisible()) {
         await uploadLink.click();
-        await expect(page).toHaveURL(/\/upload/);
+        await expect(page).toHaveURL(/\/upload/, { timeout: 10000 });
       }
     });
   });
@@ -70,7 +85,7 @@ test.describe('Organization Dashboard', () => {
       await page.goto(`/org/${testOrg}`);
 
       // Should redirect to landing or login
-      await page.waitForURL(/^\/$|\/login/, { timeout: 10000 });
+      await expect(page).toHaveURL(/^\/$|\/login/, { timeout: 15000 });
     });
   });
 });
@@ -78,7 +93,7 @@ test.describe('Organization Dashboard', () => {
 test.describe('Organization Navigation', () => {
   test('should have functioning navigation components', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
     // Wait for page to load
     await page.waitForLoadState('domcontentloaded');

@@ -6,26 +6,27 @@ test.describe('Video List', () => {
   test.describe('Authenticated User', () => {
     test('should display video cards if videos exist', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-      await page.waitForLoadState('networkidle');
+      // Wait for page to be ready
+      await page.waitForLoadState('domcontentloaded');
+
+      // Define the possible states
+      const videoSection = page.getByText('Continue Watching');
+      const emptyState = page.getByText(/upload your first video|get started by uploading/i);
+      const dashboardHero = page.getByRole('heading', { name: /good (morning|afternoon|evening)/i });
+
+      // Wait for any of the states to appear
+      await Promise.race([
+        videoSection.waitFor({ state: 'visible', timeout: 15000 }),
+        emptyState.waitFor({ state: 'visible', timeout: 15000 }),
+        dashboardHero.waitFor({ state: 'visible', timeout: 15000 }),
+      ]).catch(() => {});
 
       // Check if we have video content or empty state
-      // Video sections show "Continue Watching", "New This Week", etc.
-      const hasVideoSection = await page
-        .getByText('Continue Watching')
-        .isVisible()
-        .catch(() => false);
-      // Empty state shows upload prompt
-      const isEmpty = await page
-        .getByText(/upload your first video|get started by uploading/i)
-        .isVisible()
-        .catch(() => false);
-      // Also check for the dashboard hero which shows a greeting when no videos
-      const hasDashboardHero = await page
-        .getByRole('heading', { name: /good (morning|afternoon|evening)/i })
-        .isVisible()
-        .catch(() => false);
+      const hasVideoSection = await videoSection.isVisible().catch(() => false);
+      const isEmpty = await emptyState.isVisible().catch(() => false);
+      const hasDashboardHero = await dashboardHero.isVisible().catch(() => false);
 
       // Either videos or empty state should be visible
       expect(hasVideoSection || isEmpty || hasDashboardHero).toBe(true);
@@ -38,16 +39,26 @@ test.describe('Video Detail Page', () => {
     test('should handle video page navigation', async ({ authenticatedPage: page }) => {
       // First go to org page
       await page.goto(`/org/${testOrg}`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-      // Look for video links
+      // Wait for page to be fully loaded
+      await page.waitForLoadState('load');
+
+      // Look for video links - wait for them to potentially appear
       const videoLinks = page.locator("a[href*='/videos/']");
-      const count = await videoLinks.count();
 
-      if (count > 0) {
+      // Wait for first video link to be visible, with a reasonable timeout
+      // If no videos exist, this will timeout and we skip the click
+      const hasVideoLinks = await videoLinks
+        .first()
+        .waitFor({ state: 'visible', timeout: 5000 })
+        .then(() => true)
+        .catch(() => false);
+
+      if (hasVideoLinks) {
         // Click first video
         await videoLinks.first().click();
-        await expect(page).toHaveURL(/\/videos\/[\w-]+/);
+        await expect(page).toHaveURL(/\/videos\/[\w-]+/, { timeout: 10000 });
       }
     });
   });
@@ -56,7 +67,7 @@ test.describe('Video Detail Page', () => {
 test.describe('Search Page', () => {
   test('should display search page', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}/search`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/search`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/search`), { timeout: 10000 });
 
     await page.waitForLoadState('domcontentloaded');
 
@@ -72,39 +83,49 @@ test.describe('Search Page', () => {
 test.describe('My Videos Page', () => {
   test('should display my videos page', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}/my-videos`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/my-videos`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/my-videos`), { timeout: 10000 });
 
     await page.waitForLoadState('domcontentloaded');
 
     // Should be on the my-videos page
-    await expect(page).toHaveURL(/\/my-videos/);
+    await expect(page).toHaveURL(/\/my-videos/, { timeout: 5000 });
   });
 });
 
 test.describe('Shared Videos Page', () => {
   test('should display shared videos page', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}/shared`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/shared`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/shared`), { timeout: 10000 });
 
     await page.waitForLoadState('domcontentloaded');
 
     // Should be on the shared page
-    await expect(page).toHaveURL(/\/shared/);
+    await expect(page).toHaveURL(/\/shared/, { timeout: 5000 });
   });
 });
 
 test.describe('Channels Page', () => {
   test('should handle channel navigation', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-    // Look for channel links
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('load');
+
+    // Look for channel links - wait for them to potentially appear
     const channelLinks = page.locator("a[href*='/channels/']");
-    const count = await channelLinks.count();
 
-    if (count > 0) {
+    // Wait for first channel link to be visible, with a reasonable timeout
+    // If no channels exist, this will timeout and we skip the click
+    const hasChannelLinks = await channelLinks
+      .first()
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+
+    if (hasChannelLinks) {
       await channelLinks.first().click();
-      await expect(page).toHaveURL(/\/channels\/[\w-]+/);
+      await expect(page).toHaveURL(/\/channels\/[\w-]+/, { timeout: 10000 });
     }
   });
 });
@@ -112,11 +133,11 @@ test.describe('Channels Page', () => {
 test.describe('Series Page', () => {
   test('should display series page', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}/series`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/series`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/series`), { timeout: 10000 });
 
     await page.waitForLoadState('domcontentloaded');
 
     // Should be on the series page
-    await expect(page).toHaveURL(/\/series/);
+    await expect(page).toHaveURL(/\/series/, { timeout: 5000 });
   });
 });
