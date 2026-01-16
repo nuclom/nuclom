@@ -1,7 +1,6 @@
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { mapErrorToApiResponse } from '@/lib/api-errors';
-import { createFullLayer, handleEffectExitWithStatus } from '@/lib/api-handler';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExitWithOptions, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
 import { KnowledgeGraphRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
@@ -81,24 +80,11 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  // Custom handling for cache headers
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit, {
+    successHeaders: {
+      'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
     },
-    onSuccess: (data) =>
-      NextResponse.json(data, {
-        headers: {
-          'Cache-Control': getCacheControlHeader(CachePresets.shortWithSwr()),
-        },
-      }),
   });
 }
 
@@ -134,8 +120,6 @@ export async function POST(request: NextRequest) {
     return decision;
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExitWithStatus(exit, 201);
 }

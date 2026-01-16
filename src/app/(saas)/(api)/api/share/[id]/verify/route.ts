@@ -1,11 +1,10 @@
 import { eq } from 'drizzle-orm';
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videoShareLinks } from '@/lib/db/schema';
 import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 import { validateRequestBody } from '@/lib/validation';
 
 // Hash password using Web Crypto API
@@ -95,23 +94,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return { verified: true };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExit(exit);
 }

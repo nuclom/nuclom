@@ -1,12 +1,11 @@
 import { and, eq } from 'drizzle-orm';
-import { Cause, Effect, Exit, Option, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, createPublicLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, handleEffectExitWithStatus, runApiEffect, runPublicApiEffect } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videos, videoViews } from '@/lib/db/schema';
 import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
-import type { ApiResponse } from '@/lib/types';
 import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
@@ -114,25 +113,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return { success: true, viewId: result[0].id, isNewView: true };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response, { status: 201 });
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithStatus(exit, 201);
 }
 
 // =============================================================================
@@ -208,14 +190,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    return {
-      success: true,
-      data: { success: true, updated: true },
-    };
+    return { updated: true };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runPublicApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -249,17 +227,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       viewCount > 0 ? Math.round(views.reduce((sum, v) => sum + (v.completionPercent || 0), 0) / viewCount) : 0;
 
     return {
-      success: true,
-      data: {
-        viewCount,
-        uniqueViewers,
-        totalWatchTime,
-        avgCompletionPercent,
-      },
+      viewCount,
+      uniqueViewers,
+      totalWatchTime,
+      avgCompletionPercent,
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runPublicApiEffect(effect);
   return handleEffectExit(exit);
 }

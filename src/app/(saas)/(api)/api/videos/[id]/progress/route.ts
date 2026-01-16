@@ -1,10 +1,9 @@
-import { Cause, Effect, Exit, Option, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createFullLayer, handleEffectExit, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, handleEffectExitWithOptions, runApiEffect } from '@/lib/api-handler';
 import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
 import { ValidationError, VideoProgressRepository } from '@/lib/effect';
 import { Auth } from '@/lib/effect/services/auth';
-import type { ApiResponse } from '@/lib/types';
 import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
@@ -32,28 +31,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return yield* progressRepo.getProgress(videoId, user.id);
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit, {
+    successHeaders: {
       // Progress changes frequently, use very short cache
-      return NextResponse.json(response, {
-        headers: {
-          'Cache-Control': getCacheControlHeader(CachePresets.progress()),
-        },
-      });
+      'Cache-Control': getCacheControlHeader(CachePresets.progress()),
     },
   });
 }
@@ -103,8 +85,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -125,13 +106,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const progressRepo = yield* VideoProgressRepository;
     yield* progressRepo.deleteProgress(videoId, user.id);
 
-    return {
-      success: true,
-      data: { message: 'Progress deleted successfully' },
-    };
+    return { message: 'Progress deleted successfully' };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
