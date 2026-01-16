@@ -138,7 +138,7 @@ export function ImportProgressTracker({ importedMeetings, onRefresh, organizatio
   };
 
   // Sort by status (active first) then by date
-  const sortedMeetings = [...filteredMeetings].sort((a, b) => {
+  const sortedMeetings = filteredMeetings.toSorted((a, b) => {
     const statusOrder = { pending: 0, downloading: 1, processing: 2, failed: 3, completed: 4 };
     const statusDiff = statusOrder[a.importStatus] - statusOrder[b.importStatus];
     if (statusDiff !== 0) return statusDiff;

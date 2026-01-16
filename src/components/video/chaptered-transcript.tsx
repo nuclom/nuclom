@@ -77,7 +77,7 @@ function groupSegmentsByChapter(
   }
 
   // Sort chapters by start time
-  const sortedChapters = [...chapters].sort((a, b) => a.startTime - b.startTime);
+  const sortedChapters = chapters.toSorted((a, b) => a.startTime - b.startTime);
   const groups: ChapterGroup[] = [];
 
   // Handle segments before first chapter
@@ -335,7 +335,7 @@ export function ChapteredTranscript({
   // Find current chapter
   const currentChapterId = useMemo(() => {
     if (chapters.length === 0) return null;
-    const sortedChapters = [...chapters].sort((a, b) => a.startTime - b.startTime);
+    const sortedChapters = chapters.toSorted((a, b) => a.startTime - b.startTime);
     for (let i = sortedChapters.length - 1; i >= 0; i--) {
       if (currentTime >= sortedChapters[i].startTime) {
         return sortedChapters[i].id;

@@ -177,7 +177,7 @@ export function SpeakerAssignmentModal({
     if (!expectedSpeakers || expectedSpeakers.length === 0) return;
 
     const newAssignments = new Map(assignments);
-    const sortedSpeakers = [...speakers].sort((a, b) => b.speakingPercentage - a.speakingPercentage);
+    const sortedSpeakers = speakers.toSorted((a, b) => b.speakingPercentage - a.speakingPercentage);
 
     // Simple heuristic: match speakers by order of speaking time
     for (let i = 0; i < Math.min(sortedSpeakers.length, expectedSpeakers.length); i++) {

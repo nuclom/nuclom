@@ -12,6 +12,19 @@ const nextConfig: NextConfig = {
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
 
+  // Optimize barrel file imports for better bundle size and faster builds
+  // This transforms imports like `import { Check } from 'lucide-react'`
+  // into direct imports automatically at build time
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@radix-ui/react-icons",
+      "date-fns",
+      "lodash",
+      "recharts",
+    ],
+  },
+
   // Image optimization configuration
   images: {
     // Enable modern image formats for better compression
