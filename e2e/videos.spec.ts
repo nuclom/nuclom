@@ -41,18 +41,21 @@ test.describe('Video Detail Page', () => {
       await page.goto(`/org/${testOrg}`);
       await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-      // Wait for page to be ready
-      await page.waitForLoadState('domcontentloaded');
+      // Wait for page to be fully loaded
+      await page.waitForLoadState('load');
 
-      // Look for video links
+      // Look for video links - wait for them to potentially appear
       const videoLinks = page.locator("a[href*='/videos/']");
 
-      // Wait a bit for dynamic content to load
-      await page.waitForTimeout(1000);
+      // Wait for first video link to be visible, with a reasonable timeout
+      // If no videos exist, this will timeout and we skip the click
+      const hasVideoLinks = await videoLinks
+        .first()
+        .waitFor({ state: 'visible', timeout: 5000 })
+        .then(() => true)
+        .catch(() => false);
 
-      const count = await videoLinks.count();
-
-      if (count > 0) {
+      if (hasVideoLinks) {
         // Click first video
         await videoLinks.first().click();
         await expect(page).toHaveURL(/\/videos\/[\w-]+/, { timeout: 10000 });
@@ -106,18 +109,21 @@ test.describe('Channels Page', () => {
     await page.goto(`/org/${testOrg}`);
     await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 10000 });
 
-    // Wait for page to be ready
-    await page.waitForLoadState('domcontentloaded');
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('load');
 
-    // Look for channel links
+    // Look for channel links - wait for them to potentially appear
     const channelLinks = page.locator("a[href*='/channels/']");
 
-    // Wait a bit for dynamic content to load
-    await page.waitForTimeout(1000);
+    // Wait for first channel link to be visible, with a reasonable timeout
+    // If no channels exist, this will timeout and we skip the click
+    const hasChannelLinks = await channelLinks
+      .first()
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
 
-    const count = await channelLinks.count();
-
-    if (count > 0) {
+    if (hasChannelLinks) {
       await channelLinks.first().click();
       await expect(page).toHaveURL(/\/channels\/[\w-]+/, { timeout: 10000 });
     }
