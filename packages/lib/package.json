@@ -1,0 +1,34 @@
+{
+  "name": "@nuclom/lib",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "tsc": "tsc --noEmit",
+    "lint": "biome check . --error-on-warnings"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "@effect/platform": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "@effect/sql": "catalog:",
+    "@effect/sql-drizzle": "catalog:",
+    "@effect/sql-pg": "catalog:",
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:",
+    "better-auth": "catalog:",
+    "clsx": "catalog:",
+    "tailwind-merge": "catalog:",
+    "date-fns": "4.1.0",
+    "tslog": "^4.10.2",
+    "uuid": "13.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:"
+  }
+}
