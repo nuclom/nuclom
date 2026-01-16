@@ -5,11 +5,10 @@
  * URLs are valid for 1 hour and support range requests for seeking.
  */
 
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExitWithOptions, runPublicApiEffect } from '@/lib/api-handler';
 import { NotFoundError, Storage, VideoRepository } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // URL expiration time in seconds (1 hour)
 const PRESIGNED_URL_EXPIRY = 3600;
@@ -88,27 +87,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse<typeof data> = {
-        success: true,
-        data,
-      };
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExitWithOptions(exit, {
+    successHeaders: {
       // Short cache since URL expires
-      return NextResponse.json(response, {
-        headers: {
-          'Cache-Control': 'private, max-age=300', // 5 minutes
-        },
-      });
+      'Cache-Control': 'private, max-age=300',
     },
   });
 }
