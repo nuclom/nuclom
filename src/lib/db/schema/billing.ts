@@ -33,6 +33,17 @@ export type PlanFeatures = {
   readonly apiAccess: boolean;
 };
 
+/**
+ * Overage rates for pay-as-you-go billing after included amounts.
+ * Rates are in cents (USD) per unit.
+ */
+export type PlanOverageRates = {
+  readonly storagePerGb: number | null; // cents per GB per month, null = hard limit (no overage)
+  readonly bandwidthPerGb: number | null; // cents per GB, null = hard limit (no overage)
+  readonly videosPerUnit: number | null; // cents per video, null = hard limit (no overage)
+  readonly aiRequestsPerUnit: number | null; // cents per AI request, null = hard limit (no overage)
+};
+
 // =============================================================================
 // Plans
 // =============================================================================
@@ -47,6 +58,7 @@ export const plans = pgTable('plans', {
   priceYearly: integer('price_yearly'), // cents
   limits: jsonb('limits').$type<PlanLimits>().notNull(),
   features: jsonb('features').$type<PlanFeatures>().notNull(),
+  overageRates: jsonb('overage_rates').$type<PlanOverageRates>(), // null = no pay-as-you-go, hard limits only
   isActive: boolean('is_active').default(true).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -68,10 +80,19 @@ export const usage = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     periodStart: timestamp('period_start').notNull(),
     periodEnd: timestamp('period_end').notNull(),
+    // Base usage tracking
     storageUsed: bigint('storage_used', { mode: 'number' }).default(0).notNull(), // bytes
     videosUploaded: integer('videos_uploaded').default(0).notNull(),
     bandwidthUsed: bigint('bandwidth_used', { mode: 'number' }).default(0).notNull(), // bytes
     aiRequests: integer('ai_requests').default(0).notNull(),
+    // Overage tracking (usage beyond included amounts)
+    storageOverage: bigint('storage_overage', { mode: 'number' }).default(0).notNull(), // bytes over limit
+    bandwidthOverage: bigint('bandwidth_overage', { mode: 'number' }).default(0).notNull(), // bytes over limit
+    videosOverage: integer('videos_overage').default(0).notNull(), // count over limit
+    aiRequestsOverage: integer('ai_requests_overage').default(0).notNull(), // count over limit
+    // Overage charges (calculated at end of billing period or on-demand)
+    overageCharges: integer('overage_charges').default(0).notNull(), // cents
+    overageReportedToStripe: boolean('overage_reported_to_stripe').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

@@ -10,7 +10,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
 import { Storage, ValidationError } from '@/lib/effect';
-import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
+import { checkResourceLimit, requireWriteAccess } from '@/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@/lib/effect/services/billing-repository';
 import type { ApiResponse } from '@/lib/types';
 import { validate } from '@/lib/validation';
@@ -155,13 +155,34 @@ async function handleSinglePresignedUpload(body: PresignedUploadRequest, _userId
       );
     }
 
-    // Check plan limits before generating presigned URL
+    // Check plan limits before generating presigned URL (but don't track yet)
+    // Actual usage tracking happens in /api/videos/upload/confirm after successful upload
     const billingRepo = yield* BillingRepository;
     const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
 
     if (Option.isSome(subscriptionOption)) {
-      // Track the upload (this will check limits)
-      yield* trackVideoUpload(organizationId, fileSize);
+      // Verify write access (subscription is active/trialing)
+      yield* requireWriteAccess(organizationId);
+
+      // Check storage limit (without incrementing)
+      const storageCheck = yield* checkResourceLimit(organizationId, 'storage', fileSize);
+      if (!storageCheck.allowed) {
+        return yield* Effect.fail(
+          new ValidationError({
+            message: `Storage limit exceeded. Used: ${Math.round(storageCheck.currentUsage / 1024 / 1024)}MB, Limit: ${Math.round(storageCheck.limit / 1024 / 1024)}MB`,
+          }),
+        );
+      }
+
+      // Check video count limit (without incrementing)
+      const videoCheck = yield* checkResourceLimit(organizationId, 'videos', 1);
+      if (!videoCheck.allowed) {
+        return yield* Effect.fail(
+          new ValidationError({
+            message: `Video upload limit exceeded. You have uploaded ${videoCheck.currentUsage} videos this month (limit: ${videoCheck.limit}).`,
+          }),
+        );
+      }
     }
 
     // Generate unique file key
@@ -251,13 +272,36 @@ async function handleBulkPresignedUpload(body: BulkPresignedUploadRequest, _user
       );
     }
 
-    // Check plan limits for total upload size
+    // Check plan limits for total upload size (but don't track yet)
+    // Actual usage tracking happens in /api/videos/upload/confirm after successful upload
     const totalSize = files.reduce((sum, f) => sum + f.fileSize, 0);
+    const fileCount = files.length;
     const billingRepo = yield* BillingRepository;
     const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
 
     if (Option.isSome(subscriptionOption)) {
-      yield* trackVideoUpload(organizationId, totalSize);
+      // Verify write access (subscription is active/trialing)
+      yield* requireWriteAccess(organizationId);
+
+      // Check storage limit for total size (without incrementing)
+      const storageCheck = yield* checkResourceLimit(organizationId, 'storage', totalSize);
+      if (!storageCheck.allowed) {
+        return yield* Effect.fail(
+          new ValidationError({
+            message: `Storage limit exceeded. Would use: ${Math.round((storageCheck.currentUsage + totalSize) / 1024 / 1024)}MB, Limit: ${Math.round(storageCheck.limit / 1024 / 1024)}MB`,
+          }),
+        );
+      }
+
+      // Check video count limit for all files (without incrementing)
+      const videoCheck = yield* checkResourceLimit(organizationId, 'videos', fileCount);
+      if (!videoCheck.allowed) {
+        return yield* Effect.fail(
+          new ValidationError({
+            message: `Video upload limit exceeded. Would upload ${fileCount} videos, but only ${videoCheck.remaining} remaining this month (limit: ${videoCheck.limit}).`,
+          }),
+        );
+      }
     }
 
     // Generate presigned URLs for each file
