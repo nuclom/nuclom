@@ -56,6 +56,15 @@ export interface UsageSummary {
     bandwidth: number;
     aiRequests: number;
   };
+  // Overage tracking
+  overage: {
+    storage: number; // bytes over limit
+    bandwidth: number; // bytes over limit
+    videos: number; // count over limit
+    aiRequests: number; // count over limit
+  };
+  overageCharges: number; // cents
+  hasOverage: boolean;
 }
 
 /**
@@ -685,6 +694,16 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       // Get limits from local plan or from plan name-based defaults
       const limits = subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
 
+      // Get overage data
+      const overage = {
+        storage: currentUsage.storageOverage,
+        bandwidth: currentUsage.bandwidthOverage,
+        videos: currentUsage.videosOverage,
+        aiRequests: currentUsage.aiRequestsOverage,
+      };
+
+      const hasOverage = overage.storage > 0 || overage.bandwidth > 0 || overage.videos > 0 || overage.aiRequests > 0;
+
       return {
         storageUsed: currentUsage.storageUsed,
         videosUploaded: currentUsage.videosUploaded,
@@ -697,6 +716,9 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           bandwidth: calculatePercentage(currentUsage.bandwidthUsed, limits.bandwidth),
           aiRequests: calculatePercentage(currentUsage.aiRequests, 1000), // AI requests limit per month
         },
+        overage,
+        overageCharges: currentUsage.overageCharges,
+        hasOverage,
       };
     }),
 
