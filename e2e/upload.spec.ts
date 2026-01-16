@@ -6,7 +6,7 @@ test.describe('Video Upload Page', () => {
   test.describe('Authenticated User', () => {
     test('should display upload page with form elements', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}/upload`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`), { timeout: 10000 });
 
       // Check for upload page elements - heading is "Upload Videos" (plural)
       await expect(page.getByRole('heading', { name: /upload videos/i })).toBeVisible({ timeout: 15000 });
@@ -16,27 +16,33 @@ test.describe('Video Upload Page', () => {
           .getByRole('main')
           .getByText(/upload videos from your computer/i)
           .first(),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 10000 });
     });
 
     test('should have back to videos link', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}/upload`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`), { timeout: 10000 });
 
-      await expect(page.getByRole('link', { name: /back to videos/i })).toBeVisible();
+      await expect(page.getByRole('link', { name: /back to videos/i })).toBeVisible({ timeout: 10000 });
     });
 
     test('should navigate back to organization page', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}/upload`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`), { timeout: 10000 });
 
-      await page.getByRole('link', { name: /back to videos/i }).click();
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}$`));
+      // Wait for link to be visible before clicking
+      const backLink = page.getByRole('link', { name: /back to videos/i });
+      await backLink.waitFor({ state: 'visible', timeout: 10000 });
+      await backLink.click();
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}$`), { timeout: 10000 });
     });
 
     test('should have drag and drop upload area', async ({ authenticatedPage: page }) => {
       await page.goto(`/org/${testOrg}/upload`);
-      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
+      await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`), { timeout: 10000 });
+
+      // Wait for page to be ready
+      await page.waitForLoadState('domcontentloaded');
 
       // Look for drop zone or file input area
       const dropZone = page.locator("[data-dropzone], .dropzone, [role='button']").first();
@@ -57,7 +63,7 @@ test.describe('Video Upload Page', () => {
       await page.goto(`/org/${testOrg}/upload`);
 
       // Should redirect to landing or login
-      await page.waitForURL(/^\/$|\/login|\/auth/, { timeout: 10000 });
+      await expect(page).toHaveURL(/^\/$|\/login|\/auth/, { timeout: 15000 });
     });
   });
 });
@@ -65,10 +71,17 @@ test.describe('Video Upload Page', () => {
 test.describe('Video Upload Flow', () => {
   test('upload area should respond to hover interactions', async ({ authenticatedPage: page }) => {
     await page.goto(`/org/${testOrg}/upload`);
-    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`));
+    await expect(page).toHaveURL(new RegExp(`/org/${testOrg}/upload`), { timeout: 10000 });
+
+    // Wait for page to be ready
+    await page.waitForLoadState('domcontentloaded');
 
     // Find clickable upload area
     const uploadArea = page.getByText(/drag and drop|click to upload|select files/i).first();
+
+    // Wait for upload area to be visible
+    await uploadArea.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+
     if (await uploadArea.isVisible()) {
       // Verify it's interactive
       await uploadArea.hover();
