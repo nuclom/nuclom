@@ -12,6 +12,95 @@ const nextConfig: NextConfig = {
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
 
+  // Disable production source maps for faster builds
+  // PostHog handles source maps upload separately
+  productionBrowserSourceMaps: false,
+
+  // Server external packages - these are large and work better as externals
+  // They won't be bundled, reducing build time and memory usage
+  serverExternalPackages: [
+    "postgres",
+    "drizzle-orm",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/lib-storage",
+    "@aws-sdk/s3-request-presigner",
+    "sharp",
+    "openai",
+    "replicate",
+    "stripe",
+    "resend",
+    "posthog-node",
+  ],
+
+  // Bundle pages router dependencies for consistency
+  bundlePagesRouterDependencies: true,
+
+  // Turbopack configuration for faster development builds
+  turbopack: {
+    // Resolve aliases for faster module resolution
+    resolveAlias: {
+      // Optimize canvas for environments where it's not available
+      canvas: "./src/lib/utils/canvas-stub.ts",
+    },
+  },
+
+  // Experimental features for improved performance
+  experimental: {
+    // Enable CSS chunking for better caching
+    cssChunking: true,
+    // Parallel routes optimization
+    parallelServerCompiles: true,
+    // Parallel server build traces
+    parallelServerBuildTraces: true,
+    // Use Web Assembly for faster builds
+    webpackBuildWorker: true,
+    // Optimize server memory usage
+    webpackMemoryOptimizations: true,
+    // Optimize package imports for tree-shaking
+    // This significantly reduces bundle size and build time for large packages
+    optimizePackageImports: [
+      // UI component libraries
+      "lucide-react",
+      "@radix-ui/react-accordion",
+      "@radix-ui/react-alert-dialog",
+      "@radix-ui/react-aspect-ratio",
+      "@radix-ui/react-avatar",
+      "@radix-ui/react-checkbox",
+      "@radix-ui/react-collapsible",
+      "@radix-ui/react-context-menu",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-hover-card",
+      "@radix-ui/react-label",
+      "@radix-ui/react-menubar",
+      "@radix-ui/react-navigation-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-progress",
+      "@radix-ui/react-radio-group",
+      "@radix-ui/react-scroll-area",
+      "@radix-ui/react-select",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-slider",
+      "@radix-ui/react-slot",
+      "@radix-ui/react-switch",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-toast",
+      "@radix-ui/react-toggle",
+      "@radix-ui/react-toggle-group",
+      "@radix-ui/react-tooltip",
+      // Utility libraries
+      "date-fns",
+      "recharts",
+      // Effect ecosystem
+      "effect",
+      "@effect/platform",
+      "@effect/sql",
+      // AI SDK
+      "ai",
+      "@ai-sdk/react",
+    ],
+  },
+
   // Image optimization configuration
   images: {
     // Enable modern image formats for better compression
