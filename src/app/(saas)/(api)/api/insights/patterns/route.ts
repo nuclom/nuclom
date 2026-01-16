@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
     // Calculate Gini coefficient for participation balance (0 = perfect equality, 1 = perfect inequality)
     let giniCoefficient = 0;
     if (speakerParticipation.length > 1 && totalSpeakingTime > 0) {
-      const sortedTimes = speakerParticipation.map((s) => Number(s.totalSpeakingTime || 0)).sort((a, b) => a - b);
+      const sortedTimes = speakerParticipation.map((s) => Number(s.totalSpeakingTime || 0)).toSorted((a, b) => a - b);
       const n = sortedTimes.length;
       const sumOfRanks = sortedTimes.reduce((sum, time, i) => sum + time * (i + 1), 0);
       giniCoefficient = (2 * sumOfRanks) / (n * totalSpeakingTime) - (n + 1) / n;

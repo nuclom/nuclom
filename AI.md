@@ -321,6 +321,99 @@ const result = program.pipe(
 - Don't create effects without eventually executing them
 - Don't access `db` directly in API routes - use repository services
 
+## Performance Guidelines
+
+**IMPORTANT**: Always follow the React and Next.js performance best practices documented in `.claude/skills/react-best-practices/SKILL.md`. These are based on Vercel Engineering guidelines and are critical for perceived speed.
+
+### Perceived Speed Optimization (Critical)
+
+1. **Eliminate Waterfalls** - Use `Promise.all()` for independent fetches, defer awaits until needed
+2. **Optimize Bundle Size** - Use direct imports (not barrel files), dynamic imports for heavy components
+3. **Strategic Suspense** - Show shell immediately, stream data with Suspense boundaries
+4. **Preload on Intent** - Preload modules on hover/focus before user clicks
+
+### Quick Performance Checklist
+
+When writing React/Next.js code, always verify:
+
+- [ ] **Independent fetches use `Promise.all()`** - Never sequential awaits for unrelated data
+- [ ] **RSC components structured for parallel fetch** - Sibling components fetch in parallel
+- [ ] **Direct imports (not barrel files)** - Import from specific paths, not index files
+- [ ] **Dynamic imports for heavy components** - Code editors, charts, maps load on demand
+- [ ] **Minimal props to client components** - Only pass fields actually used
+- [ ] **`React.cache()` for request deduplication** - Wrap repeated server queries
+- [ ] **`after()` for non-blocking operations** - Logging, analytics after response sent
+- [ ] **SWR for client data fetching** - Automatic deduplication and caching
+- [ ] **Functional setState updates** - Use `setState(prev => ...)` to prevent stale closures
+- [ ] **Lazy state initialization** - Use `useState(() => expensive())` for computed defaults
+- [ ] **`content-visibility: auto`** for long lists - Defer off-screen rendering
+- [ ] **Immutable array methods** - Use `.toSorted()` not `.sort()` to prevent mutations
+
+### Bundle Size Rules
+
+```typescript
+// WRONG: Barrel file import (loads entire library)
+import { Button, Input } from '@/components/ui'
+import { Check, X } from 'lucide-react'
+
+// CORRECT: Direct imports
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import Check from 'lucide-react/dist/esm/icons/check'
+import X from 'lucide-react/dist/esm/icons/x'
+```
+
+### Data Fetching Patterns
+
+```typescript
+// WRONG: Sequential waterfall
+async function Page() {
+  const user = await getUser()
+  const posts = await getPosts(user.id)
+  const comments = await getComments()
+  return <Content user={user} posts={posts} comments={comments} />
+}
+
+// CORRECT: Parallel fetching
+async function Page() {
+  const userPromise = getUser()
+  const commentsPromise = getComments()
+  const user = await userPromise
+  const [posts, comments] = await Promise.all([
+    getPosts(user.id),
+    commentsPromise
+  ])
+  return <Content user={user} posts={posts} comments={comments} />
+}
+
+// BETTER: Component composition for RSC
+function Page() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <UserSection />
+      <PostsSection />
+      <CommentsSection />
+    </Suspense>
+  )
+}
+```
+
+### Client Component Optimization
+
+```typescript
+// WRONG: Passing entire object
+async function Page() {
+  const user = await getUser() // 50 fields
+  return <Profile user={user} />
+}
+
+// CORRECT: Pass only needed fields
+async function Page() {
+  const user = await getUser()
+  return <Profile name={user.name} avatar={user.avatar} />
+}
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -352,5 +445,20 @@ pnpm lint         # Check for linting issues
 - **User Guides**: `docs/public/guides/`
 - **Development**: `docs/internal/reference/`
 - **AI/LLM Instructions**: `docs/AGENTS.md`
+
+### Claude Skills (LLM Guidelines)
+
+The following skills provide detailed guidelines for AI agents working on this codebase:
+
+- **React Best Practices**: `.claude/skills/react-best-practices/SKILL.md` - Performance optimization for React/Next.js (40+ rules from Vercel Engineering)
+- **Web Design Guidelines**: `.claude/skills/web-design-guidelines/SKILL.md` - UI review checklist (100+ rules for accessibility, UX, performance)
+- **Effect-TS Patterns**: `.claude/skills/effect-ts-patterns/SKILL.md` - Effect-TS patterns specific to this codebase
+
+**IMPORTANT**: LLMs and AI agents MUST follow these skills when:
+- Writing new React components or pages
+- Implementing data fetching (server or client)
+- Reviewing or refactoring existing code
+- Optimizing performance or bundle size
+- Building accessible UI components
 
 Always update relevant documentation after making code changes.

@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Sort by total speaking time and apply limit
-    const sortedStats = speakerStats.sort((a, b) => b.totalSpeakingTime - a.totalSpeakingTime).slice(0, limit);
+    const sortedStats = speakerStats.toSorted((a, b) => b.totalSpeakingTime - a.totalSpeakingTime).slice(0, limit);
 
     // Calculate organization-wide metrics
     const totalSpeakers = profiles.length;

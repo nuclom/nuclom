@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Sort by combined score and paginate
-    const allResults = Array.from(videoMap.values()).sort((a, b) => b.combinedScore - a.combinedScore);
+    const allResults = Array.from(videoMap.values()).toSorted((a, b) => b.combinedScore - a.combinedScore);
 
     const offset = (page - 1) * limit;
     const paginatedResults = allResults.slice(offset, offset + limit);
@@ -333,7 +333,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const allResults = Array.from(videoMap.values()).sort((a, b) => b.combinedScore - a.combinedScore);
+    const allResults = Array.from(videoMap.values()).toSorted((a, b) => b.combinedScore - a.combinedScore);
     const offset = (page - 1) * limit;
     const paginatedResults = allResults.slice(offset, offset + limit);
 
