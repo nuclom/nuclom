@@ -4,7 +4,6 @@ import { formatDistanceToNow } from 'date-fns';
 import {
   Calendar,
   Check,
-  CheckCircle,
   Clock,
   Copy,
   ExternalLink,
@@ -25,6 +24,7 @@ import { Suspense, useCallback, useEffect, useState } from 'react';
 import { ImportProgressTracker } from '@/components/integrations/import-progress-tracker';
 import { IntegrationSettings } from '@/components/integrations/integration-settings';
 import { MeetingCalendar } from '@/components/integrations/meeting-calendar';
+import { NotificationSettings } from '@/components/integrations/notification-settings';
 import { RecordingBrowser } from '@/components/integrations/recording-browser';
 import {
   AlertDialog,
@@ -306,9 +306,11 @@ function IntegrationsPageContent() {
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   // Types for recording-only providers (Zoom/Google Meet)
   type RecordingProvider = 'zoom' | 'google_meet';
+  type NotificationProvider = 'slack' | 'teams';
   const [selectedProvider, setSelectedProvider] = useState<RecordingProvider | null>(null);
   const [_showCalendar, setShowCalendar] = useState(false);
   const [showSettings, setShowSettings] = useState<RecordingProvider | null>(null);
+  const [showNotificationSettings, setShowNotificationSettings] = useState<NotificationProvider | null>(null);
   const [activeTab, setActiveTab] = useState('integrations');
   const [refreshing, setRefreshing] = useState(false);
   const [showZapierDialog, setShowZapierDialog] = useState(false);
@@ -623,6 +625,17 @@ function IntegrationsPageContent() {
                                 <DropdownMenuSeparator />
                               </>
                             )}
+                            {(config.id === 'slack' || config.id === 'teams') && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => setShowNotificationSettings(config.id as NotificationProvider)}
+                                >
+                                  <Settings2 className="h-4 w-4 mr-2" />
+                                  Notification Settings
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem
@@ -716,10 +729,14 @@ function IntegrationsPageContent() {
                           Configure Webhooks
                         </Button>
                       ) : config.id === 'slack' || config.id === 'teams' ? (
-                        <div className="flex w-full items-center justify-center gap-2 text-sm text-muted-foreground">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>Integration active</span>
-                        </div>
+                        <Button
+                          variant="default"
+                          className="w-full"
+                          onClick={() => setShowNotificationSettings(config.id as NotificationProvider)}
+                        >
+                          <Settings2 className="h-4 w-4 mr-2" />
+                          Configure Notifications
+                        </Button>
                       ) : (
                         <div className="flex w-full gap-2">
                           <Button
@@ -832,6 +849,22 @@ function IntegrationsPageContent() {
         onClose={() => setShowZapierDialog(false)}
         organizationSlug={organizationSlug}
       />
+
+      {/* Notification Settings Dialog (Slack/Teams) */}
+      {showNotificationSettings && (
+        <NotificationSettings
+          provider={showNotificationSettings}
+          integration={
+            (getIntegration(showNotificationSettings) as
+              | (Omit<Integration, 'provider'> & { provider: NotificationProvider })
+              | undefined) ?? null
+          }
+          open={!!showNotificationSettings}
+          onClose={() => setShowNotificationSettings(null)}
+          onUpdate={loadIntegrations}
+          organizationSlug={organizationSlug}
+        />
+      )}
     </div>
   );
 }
