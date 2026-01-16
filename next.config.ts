@@ -60,12 +60,12 @@ const nextConfig: NextConfig = {
     const cspDirectives = [
       "default-src 'self'",
       // Allow scripts from self, inline (for Next.js), Vercel Analytics, Vercel Live, PostHog, and Mintlify
-      // 'unsafe-eval' is only needed in development for HMR
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com https://vercel.live https://us-assets.i.posthog.com https://eu-assets.i.posthog.com https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://js.sentry-cdn.com`,
+      // 'unsafe-eval' is required for Mintlify's frontmatter parsing (uses new Function())
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://vercel.live https://us-assets.i.posthog.com https://eu-assets.i.posthog.com https://cdn.jsdelivr.net https://browser.sentry-cdn.com https://js.sentry-cdn.com",
       // Allow styles from self, inline (required for styled-components/emotion), and Mintlify
       "style-src 'self' 'unsafe-inline' https://d4tuoctqmanu0.cloudfront.net https://fonts.googleapis.com",
       // Allow images from self, data URIs, blob URIs, and trusted domains including Mintlify
-      "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com https://d3gk2c5xim1je2.cloudfront.net https://mintcdn.com https://*.mintcdn.com https://cdn.jsdelivr.net",
+      "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.gravatar.com https://*.r2.dev https://*.r2.cloudflarestorage.com https://d3gk2c5xim1je2.cloudfront.net https://mintcdn.com https://*.mintcdn.com https://cdn.jsdelivr.net https://mintlify.s3.us-west-1.amazonaws.com https://mintlify.s3-us-west-1.amazonaws.com",
       // Allow fonts from self, Google Fonts, and Mintlify
       "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://d4tuoctqmanu0.cloudfront.net",
       // Allow connections to self, API endpoints, external services, Vercel Analytics, Vercel Live, PostHog, and Mintlify
