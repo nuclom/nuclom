@@ -1,5 +1,5 @@
-import { withMicrofrontends } from "@vercel/microfrontends/next/config";
-import type { NextConfig } from "next";
+import { withMicrofrontends } from '@vercel/microfrontends/next/config';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Enable compression for API responses
@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 
   // Image optimization configuration
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

@@ -20,9 +20,9 @@ import {
   users,
   videoChapters,
   videos,
-} from '@/lib/db/schema';
-import { VideoAIProcessingError } from '@/lib/effect/errors';
-import { getAppUrl } from '@/lib/env/server';
+} from '../../db/schema';
+import { getAppUrl } from '../../env/server';
+import { VideoAIProcessingError } from '../errors';
 import { type ActionItemResult, AI, type ChapterResult } from './ai';
 import { Database } from './database';
 import { EmailNotifications } from './email-notifications';

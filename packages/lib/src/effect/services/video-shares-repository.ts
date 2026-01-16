@@ -7,7 +7,7 @@
 
 import { and, eq, isNull } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { teams, users, type VideoShare, videoShares, videos } from '@/lib/db/schema';
+import { teams, users, type VideoShare, videoShares, videos } from '../../db/schema';
 import { DatabaseError, NotFoundError, ValidationError } from '../errors';
 import { Database } from './database';
 
@@ -475,7 +475,7 @@ const makeVideoSharesRepositoryService = Effect.gen(function* () {
     Effect.tryPromise({
       try: async () => {
         // Check if user is a member of any team that has access to this video
-        const { teamMembers } = await import('@/lib/db/schema');
+        const { teamMembers } = await import('../../db/schema');
         const share = await db
           .select({ accessLevel: videoShares.accessLevel })
           .from(videoShares)
@@ -499,7 +499,7 @@ const makeVideoSharesRepositoryService = Effect.gen(function* () {
   const getVideosSharedWithUser = (userId: string, organizationId: string): Effect.Effect<string[], DatabaseError> =>
     Effect.tryPromise({
       try: async () => {
-        const { teamMembers } = await import('@/lib/db/schema');
+        const { teamMembers } = await import('../../db/schema');
 
         // Direct user shares
         const userShares = await db

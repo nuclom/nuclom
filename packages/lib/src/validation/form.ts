@@ -10,7 +10,7 @@ import { useCallback, useState } from 'react';
 import type { DefaultValues, FieldError, FieldValues, Path } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from '@/lib/api-errors';
+import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from '../api-errors';
 
 // =============================================================================
 // Types

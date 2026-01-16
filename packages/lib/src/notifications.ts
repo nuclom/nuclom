@@ -6,7 +6,7 @@
  */
 
 import { toast } from 'sonner';
-import { type ErrorCode, getErrorMessage } from '@/lib/api-errors';
+import { type ErrorCode, getErrorMessage } from './api-errors';
 
 // =============================================================================
 // Success Notifications

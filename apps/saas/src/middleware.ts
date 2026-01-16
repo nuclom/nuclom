@@ -244,13 +244,10 @@ export async function middleware(request: NextRequest) {
           `← ${method} ${pathname} 401 Unauthorized (no session cookie)`,
         );
 
-        return new NextResponse(
-          JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
-          {
-            status: 401,
-            headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
-          },
-        );
+        return new NextResponse(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
+        });
       }
 
       const signInUrl = new URL('/login', request.url);
@@ -273,13 +270,10 @@ export async function middleware(request: NextRequest) {
           `← ${method} ${pathname} 401 Unauthorized`,
         );
 
-        return new NextResponse(
-          JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
-          {
-            status: 401,
-            headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
-          },
-        );
+        return new NextResponse(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
+        });
       }
 
       const signInUrl = new URL('/login', request.url);
@@ -309,10 +303,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-request-id', requestId);
 
     const durationMs = Date.now() - startTime;
-    requestLogger.info(
-      { requestId, method, path: pathname, durationMs },
-      `← ${method} ${pathname} (${durationMs}ms)`,
-    );
+    requestLogger.info({ requestId, method, path: pathname, durationMs }, `← ${method} ${pathname} (${durationMs}ms)`);
 
     return response;
   }

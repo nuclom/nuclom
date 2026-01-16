@@ -11,7 +11,7 @@
 
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { type PerformanceMetric, performanceMetrics } from '@/lib/db/schema';
+import { type PerformanceMetric, performanceMetrics } from '../../db/schema';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
 

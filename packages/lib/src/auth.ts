@@ -17,13 +17,13 @@ import {
 } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
-import { ac, organizationRoles } from '@/lib/access-control';
-import { env, getAppUrl } from '@/lib/env/server';
-import { captureServerEvent, identifyUser as identifyPostHogUser } from '@/lib/posthog/server';
+import { ac, organizationRoles } from './access-control';
 import { db } from './db';
 import { members, notifications, users } from './db/schema';
 import { notifySlackMonitoring } from './effect/services/slack-monitoring';
 import { resend } from './email';
+import { env, getAppUrl } from './env/server';
+import { captureServerEvent, identifyUser as identifyPostHogUser } from './posthog/server';
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {

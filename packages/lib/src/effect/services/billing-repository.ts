@@ -23,7 +23,7 @@ import {
   type Usage,
   usage,
   videos,
-} from '@/lib/db/schema';
+} from '../../db/schema';
 import { DatabaseError, NoSubscriptionError, NotFoundError, PlanNotFoundError, UsageTrackingError } from '../errors';
 import { Database, type DrizzleDB } from './database';
 

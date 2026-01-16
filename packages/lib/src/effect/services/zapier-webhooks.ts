@@ -12,8 +12,8 @@ import type {
   ZapierWebhook,
   ZapierWebhookDelivery,
   ZapierWebhookEvent,
-} from '@/lib/db/schema';
-import { zapierWebhookDeliveries, zapierWebhooks } from '@/lib/db/schema';
+} from '../../db/schema';
+import { zapierWebhookDeliveries, zapierWebhooks } from '../../db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

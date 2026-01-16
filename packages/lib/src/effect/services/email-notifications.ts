@@ -5,8 +5,8 @@
  */
 
 import { Context, Data, Effect, Layer } from 'effect';
-import { resend } from '@/lib/email';
-import { env } from '@/lib/env/server';
+import { resend } from '../../email';
+import { env } from '../../env/server';
 
 // =============================================================================
 // Types

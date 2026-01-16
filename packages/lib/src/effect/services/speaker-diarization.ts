@@ -10,7 +10,7 @@
  */
 
 import { Context, Data, Effect, Layer } from 'effect';
-import { env } from '@/lib/env/server';
+import { env } from '../../env/server';
 
 // =============================================================================
 // Error Types

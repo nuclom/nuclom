@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { env } from '@/lib/env/server';
+import { env } from '../env/server';
 import type { Locale } from './config';
 
 /**

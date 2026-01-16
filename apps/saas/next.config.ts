@@ -1,10 +1,11 @@
-import { withMicrofrontends } from "@vercel/microfrontends/next/config";
-import createNextIntlPlugin from "next-intl/plugin";
-import { withPostHogConfig } from "@posthog/nextjs-config";
-import { withWorkflow } from "workflow/next";
-import type { NextConfig } from "next";
+import process from 'node:process';
+import { withPostHogConfig } from '@posthog/nextjs-config';
+import { withMicrofrontends } from '@vercel/microfrontends/next/config';
+import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
+import { withWorkflow } from 'workflow/next';
 
-const withNextIntl = createNextIntlPlugin("./src/lib/i18n/request.ts");
+const withNextIntl = createNextIntlPlugin('./src/lib/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Enable Partial Prerendering (PPR) via cache components
@@ -15,26 +16,20 @@ const nextConfig: NextConfig = {
 
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
-    optimizePackageImports: [
-      "lucide-react",
-      "@radix-ui/react-icons",
-      "date-fns",
-      "lodash",
-      "recharts",
-    ],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'lodash', 'recharts'],
   },
 
   // Image optimization configuration
   images: {
-    formats: ["image/avif", "image/webp"],
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
-      { protocol: "https", hostname: "avatars.githubusercontent.com" },
-      { protocol: "https", hostname: "lh3.googleusercontent.com" },
-      { protocol: "https", hostname: "*.gravatar.com" },
-      { protocol: "https", hostname: "*.r2.dev" },
-      { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
+      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: '*.gravatar.com' },
+      { protocol: 'https', hostname: '*.r2.dev' },
+      { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
     ],
     minimumCacheTTL: 60,
   },
@@ -53,60 +48,57 @@ const nextConfig: NextConfig = {
       "frame-src 'self' https://*.mintlify.dev",
       "frame-ancestors 'self'",
       "form-action 'self'",
-      process.env.NODE_ENV === "production" ? "upgrade-insecure-requests" : "",
-      "block-all-mixed-content",
+      process.env.NODE_ENV === 'production' ? 'upgrade-insecure-requests' : '',
+      'block-all-mixed-content',
     ]
       .filter(Boolean)
-      .join("; ");
+      .join('; ');
 
     const securityHeaders = [
-      { key: "Content-Security-Policy", value: cspDirectives },
-      { key: "X-Frame-Options", value: "SAMEORIGIN" },
-      { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: 'Content-Security-Policy', value: cspDirectives },
+      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
       {
-        key: "Permissions-Policy",
+        key: 'Permissions-Policy',
         value: [
-          "camera=(self)",
-          "microphone=(self)",
-          "geolocation=()",
-          "interest-cohort=()",
-          "payment=(self)",
-          "usb=()",
-          "magnetometer=()",
-          "gyroscope=()",
-          "accelerometer=()",
-        ].join(", "),
+          'camera=(self)',
+          'microphone=(self)',
+          'geolocation=()',
+          'interest-cohort=()',
+          'payment=(self)',
+          'usb=()',
+          'magnetometer=()',
+          'gyroscope=()',
+          'accelerometer=()',
+        ].join(', '),
       },
-      { key: "X-XSS-Protection", value: "1; mode=block" },
-      { key: "X-DNS-Prefetch-Control", value: "on" },
+      { key: 'X-XSS-Protection', value: '1; mode=block' },
+      { key: 'X-DNS-Prefetch-Control', value: 'on' },
     ];
 
     return [
-      { source: "/:path*", headers: securityHeaders },
+      { source: '/:path*', headers: securityHeaders },
       {
-        source: "/static/:path*",
-        headers: [
-          ...securityHeaders,
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
+        source: '/static/:path*',
+        headers: [...securityHeaders, { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
-        source: "/_next/image/:path*",
+        source: '/_next/image/:path*',
         headers: [
           ...securityHeaders,
           {
-            key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=604800",
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=604800',
           },
         ],
       },
       {
-        source: "/api/:path*",
+        source: '/api/:path*',
         headers: [
-          { key: "Content-Security-Policy", value: "default-src 'none'; frame-ancestors 'none'" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" },
+          { key: 'Content-Security-Policy', value: "default-src 'none'; frame-ancestors 'none'" },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
         ],
       },
     ];
@@ -119,12 +111,12 @@ const withPostHog = (config: NextConfig) =>
   process.env.POSTHOG_PERSONAL_API_KEY
     ? withPostHogConfig(config, {
         personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
-        envId: process.env.POSTHOG_ENV_ID ?? "default",
-        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com",
+        envId: process.env.POSTHOG_ENV_ID ?? 'default',
+        host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
         sourcemaps: {
           enabled: true,
-          project: "nuclom",
-          version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.BUILD_ID ?? "development",
+          project: 'nuclom',
+          version: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.BUILD_ID ?? 'development',
         },
       })
     : config;

@@ -9,8 +9,8 @@
 
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { users, videos, type WatchLater, watchLater } from '@/lib/db/schema';
-import type { VideoWithAuthor } from '@/lib/types';
+import { users, videos, type WatchLater, watchLater } from '../../db/schema';
+import type { VideoWithAuthor } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

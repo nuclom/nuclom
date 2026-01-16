@@ -13,9 +13,9 @@ import {
   type UploadResult,
   uploadVideoEffect,
   videoApiEffect,
-} from '@/lib/effect/client';
-import { HttpError, type ParseError } from '@/lib/effect/errors';
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
+} from './effect/client';
+import { HttpError, type ParseError } from './effect/errors';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from './types';
 
 // =============================================================================
 // Error Class (Backwards Compatible)
@@ -146,4 +146,4 @@ export const organizationApi = {
 export { ApiError };
 
 // Re-export Effect-based API for direct Effect usage
-export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from '@/lib/effect/client';
+export { organizationApiEffect, uploadVideoEffect, videoApiEffect } from './effect/client';

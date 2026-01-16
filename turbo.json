@@ -8,9 +8,7 @@
     "tsc": {
       "dependsOn": ["^tsc"]
     },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
+    "//#lint": {},
     "test": {
       "dependsOn": ["^build"],
       "cache": false

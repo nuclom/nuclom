@@ -9,7 +9,7 @@
 
 import { and, desc, eq, gt, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { userPresence, users } from '@/lib/db/schema';
+import { userPresence, users } from '../../db/schema';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
 

@@ -11,9 +11,9 @@
 
 import { Context, Effect, Layer } from 'effect';
 import Replicate from 'replicate';
-import type { TranscriptSegment } from '@/lib/db/schema';
-import { AudioExtractionError, TranscriptionError } from '@/lib/effect/errors';
-import { env } from '@/lib/env/server';
+import type { TranscriptSegment } from '../../db/schema';
+import { env } from '../../env/server';
+import { AudioExtractionError, TranscriptionError } from '../errors';
 
 // Re-export for convenience
 export { AudioExtractionError, TranscriptionError };

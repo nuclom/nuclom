@@ -6,7 +6,7 @@
 
 import { and, eq, ne } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import { members, organizations, users } from '@/lib/db/schema';
+import { members, organizations, users } from '../../db/schema';
 import { DatabaseError, ForbiddenError, NotFoundError, TransactionError, ValidationError } from '../errors';
 import { Database } from './database';
 

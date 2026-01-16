@@ -17,7 +17,7 @@ import {
   type NewChatContext,
   type NewChatConversation,
   type NewChatMessage,
-} from '@/lib/db/schema';
+} from '../../db/schema';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
 

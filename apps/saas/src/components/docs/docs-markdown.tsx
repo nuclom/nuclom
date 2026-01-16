@@ -192,7 +192,6 @@ export function DocsMarkdown({ content }: DocsMarkdownProps) {
 
         // Images - using native img for markdown content where src is dynamic
         img: ({ src, alt, ...props }) => (
-          // biome-ignore lint/performance/noImgElement: dynamic src from markdown
           <img src={src} alt={alt || ''} className="rounded-lg border my-4" {...props} />
         ),
 

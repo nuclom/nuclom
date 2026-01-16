@@ -7,8 +7,8 @@
 
 import { eq, inArray, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { type NewTranscriptChunk, type TranscriptChunk, transcriptChunks, users, videos } from '@/lib/db/schema';
-import type { VideoWithAuthor } from '@/lib/types';
+import { type NewTranscriptChunk, type TranscriptChunk, transcriptChunks, users, videos } from '../../db/schema';
+import type { VideoWithAuthor } from '../../types';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
 import type { ChunkEmbedding } from './embedding';

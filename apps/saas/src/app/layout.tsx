@@ -5,6 +5,7 @@ import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
+import process from 'node:process';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
@@ -18,13 +19,7 @@ export const metadata: Metadata = {
   },
   description:
     'Streamline your video workflow with real-time collaboration, AI-powered transcription, and seamless sharing.',
-  keywords: [
-    'video collaboration',
-    'video platform',
-    'team collaboration',
-    'video transcription',
-    'AI video analysis',
-  ],
+  keywords: ['video collaboration', 'video platform', 'team collaboration', 'video transcription', 'AI video analysis'],
   authors: [{ name: 'Nuclom' }],
   creator: 'Nuclom',
   publisher: 'Nuclom',

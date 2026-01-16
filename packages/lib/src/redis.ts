@@ -8,7 +8,7 @@
  */
 
 import { Redis } from '@upstash/redis';
-import { env } from '@/lib/env/server';
+import { env } from './env/server';
 
 // =============================================================================
 // Redis Client

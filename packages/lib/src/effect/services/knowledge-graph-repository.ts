@@ -7,7 +7,7 @@
 
 import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { normalizeOne } from '@/lib/db/relations';
+import { normalizeOne } from '../../db/relations';
 import type {
   Decision,
   DecisionLink,
@@ -22,8 +22,8 @@ import type {
   NewDecisionParticipant,
   NewKnowledgeEdge,
   NewKnowledgeNode,
-} from '@/lib/db/schema';
-import { decisionLinks, decisionParticipants, decisions, knowledgeEdges, knowledgeNodes } from '@/lib/db/schema';
+} from '../../db/schema';
+import { decisionLinks, decisionParticipants, decisions, knowledgeEdges, knowledgeNodes } from '../../db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

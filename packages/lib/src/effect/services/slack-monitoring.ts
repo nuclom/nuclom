@@ -6,7 +6,7 @@
  */
 
 import { Config, Context, Effect, Layer, Option } from 'effect';
-import { env, getAppUrl } from '@/lib/env/server';
+import { env, getAppUrl } from '../../env/server';
 
 // =============================================================================
 // Types

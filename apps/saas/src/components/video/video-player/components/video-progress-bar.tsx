@@ -166,7 +166,6 @@ export function VideoProgressBar({
           {/* Thumbnail */}
           <div className="w-40 h-22.5 rounded overflow-hidden mb-1.5 bg-gray-800 flex items-center justify-center">
             {thumbnailUrl ? (
-              // biome-ignore lint/performance/noImgElement: Using data URL from canvas, Next.js Image doesn't support data URLs
               <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
             ) : isThumbnailLoading ? (
               <Loader2 className="h-4 w-4 animate-spin text-white/50" />

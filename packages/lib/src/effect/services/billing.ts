@@ -7,7 +7,7 @@
 import { eq } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
 import type Stripe from 'stripe';
-import { normalizeOne } from '@/lib/db/relations';
+import { normalizeOne } from '../../db/relations';
 import {
   type InvoiceStatus,
   type NewInvoice,
@@ -18,8 +18,8 @@ import {
   type Plan,
   type PlanLimits,
   type Subscription,
-} from '@/lib/db/schema';
-import { getAppUrl } from '@/lib/env/server';
+} from '../../db/schema';
+import { getAppUrl } from '../../env/server';
 import {
   DatabaseError,
   NoSubscriptionError,

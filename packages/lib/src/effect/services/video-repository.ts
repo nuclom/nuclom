@@ -18,8 +18,8 @@ import {
   videoChapters,
   videoShares,
   videos,
-} from '@/lib/db/schema';
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
+} from '../../db/schema';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '../../types';
 import { DatabaseError, type DeleteError, NotFoundError } from '../errors';
 import { Database } from './database';
 import { Storage } from './storage';

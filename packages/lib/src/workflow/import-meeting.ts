@@ -6,18 +6,18 @@
  */
 
 import { Effect, Layer } from 'effect';
-import type { IntegrationProvider } from '@/lib/db/schema';
-import { AppLive } from '@/lib/effect/runtime';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { Storage } from '@/lib/effect/services/storage';
-import { TranscriptionLive } from '@/lib/effect/services/transcription';
-import { VideoAIProcessor, VideoAIProcessorLive } from '@/lib/effect/services/video-ai-processor';
-import { VideoRepository } from '@/lib/effect/services/video-repository';
-import { Zoom, ZoomLive } from '@/lib/effect/services/zoom';
-import { formatDuration } from '@/lib/format-utils';
-import { logger } from '@/lib/logger';
+import type { IntegrationProvider } from '../db/schema';
+import { AppLive } from '../effect/runtime';
+import { DatabaseLive } from '../effect/services/database';
+import { GoogleMeet, GoogleMeetLive } from '../effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '../effect/services/integration-repository';
+import { Storage } from '../effect/services/storage';
+import { TranscriptionLive } from '../effect/services/transcription';
+import { VideoAIProcessor, VideoAIProcessorLive } from '../effect/services/video-ai-processor';
+import { VideoRepository } from '../effect/services/video-repository';
+import { Zoom, ZoomLive } from '../effect/services/zoom';
+import { formatDuration } from '../format-utils';
+import { logger } from '../logger';
 
 // =============================================================================
 // Workflow Input Types

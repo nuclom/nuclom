@@ -1,5 +1,5 @@
 import { Effect, ParseResult, pipe, Schema } from 'effect';
-import { ValidationError } from '@/lib/effect/errors';
+import { ValidationError } from '../effect/errors';
 
 /**
  * Validates data against an Effect Schema and returns an Effect

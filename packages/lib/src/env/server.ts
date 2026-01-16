@@ -2,7 +2,7 @@
 import 'server-only';
 
 import { Schema } from 'effect';
-import { ClientEnv } from '@/lib/env/client';
+import { ClientEnv } from './client';
 
 export const ServerEnv = Schema.Struct({
   ...ClientEnv.fields,

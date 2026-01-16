@@ -13,8 +13,8 @@ import {
   twoFactorClient,
 } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
-import { ac, organizationRoles } from '@/lib/access-control';
-import { env } from '@/lib/env/client';
+import { ac, organizationRoles } from './access-control';
+import { env } from './env/client';
 
 // Determine baseURL from Vercel automatic environment variables or browser origin
 const getBaseURL = () => {

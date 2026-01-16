@@ -7,7 +7,7 @@
 
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { Context, Data, Effect, Layer, Option } from 'effect';
-import { normalizeOne } from '@/lib/db/relations';
+import { normalizeOne } from '../../db/relations';
 import type {
   NewSpeakerProfile,
   NewSpeakerSegmentRow,
@@ -15,8 +15,8 @@ import type {
   SpeakerProfile,
   SpeakerSegmentRow,
   VideoSpeaker,
-} from '@/lib/db/schema';
-import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from '@/lib/db/schema';
+} from '../../db/schema';
+import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from '../../db/schema';
 import { Database } from './database';
 
 // =============================================================================

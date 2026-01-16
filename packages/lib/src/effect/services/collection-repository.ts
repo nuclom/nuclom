@@ -18,7 +18,7 @@ import {
   collectionVideos,
   users,
   videos,
-} from '@/lib/db/schema';
+} from '../../db/schema';
 import type {
   CollectionProgressWithDetails,
   CollectionVideoWithDetails,
@@ -26,7 +26,7 @@ import type {
   CollectionWithVideoCount,
   CollectionWithVideos,
   PaginatedResponse,
-} from '@/lib/types';
+} from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

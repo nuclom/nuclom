@@ -6,8 +6,8 @@
 
 import { and, desc, eq, type SQL, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import type { ActivityFeed, ActivityType, User } from '@/lib/db/schema';
-import { activityFeed, users } from '@/lib/db/schema';
+import type { ActivityFeed, ActivityType, User } from '../../db/schema';
+import { activityFeed, users } from '../../db/schema';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
 

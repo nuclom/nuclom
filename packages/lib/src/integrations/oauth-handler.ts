@@ -9,8 +9,8 @@ import { Effect } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
-import type { IntegrationProvider } from '@/lib/db/schema';
-import { IntegrationRepository } from '@/lib/effect/services/integration-repository';
+import type { IntegrationProvider } from '../db/schema';
+import { IntegrationRepository } from '../effect/services/integration-repository';
 
 // =============================================================================
 // Types

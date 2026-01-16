@@ -15,7 +15,7 @@ import {
   type MeetingParticipant,
   users,
   videos,
-} from '@/lib/db/schema';
+} from '../../db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

@@ -8,8 +8,8 @@
 import { Cause, Effect, Exit, Option } from 'effect';
 import { revalidateTag } from 'next/cache';
 import { cache } from 'react';
-import { generatePresignedThumbnailUrl, generatePresignedVideoUrl } from '@/lib/api-handler';
-import type { CollectionType } from '@/lib/db/schema';
+import { generatePresignedThumbnailUrl, generatePresignedVideoUrl } from '../api-handler';
+import type { CollectionType } from '../db/schema';
 import type {
   CollectionProgressWithDetails,
   CollectionWithProgress,
@@ -19,7 +19,7 @@ import type {
   PaginatedResponse as PaginatedResponseType,
   VideoWithAuthor,
   VideoWithDetails,
-} from '@/lib/types';
+} from '../types';
 import { AppLive, type AppServices } from './runtime';
 import { CollectionRepository } from './services/collection-repository';
 import { OrganizationRepository } from './services/organization-repository';

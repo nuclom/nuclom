@@ -13,7 +13,7 @@
  */
 
 import { Effect, Option } from 'effect';
-import type { PlanFeatures, PlanLimits } from '@/lib/db/schema';
+import type { PlanFeatures, PlanLimits } from '../../db/schema';
 import { type DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from '../errors';
 import { Billing, type LimitResource } from './billing';
 import { BillingRepository } from './billing-repository';
@@ -481,8 +481,8 @@ export const checkAndSendUsageAlerts = (
     yield* Effect.tryPromise({
       try: async () => {
         // Import dynamically to avoid circular dependencies
-        const { db } = await import('@/lib/db');
-        const { notifications, members } = await import('@/lib/db/schema');
+        const { db } = await import('../../db');
+        const { notifications, members } = await import('../../db/schema');
         const { eq, and } = await import('drizzle-orm');
 
         // Find organization owners

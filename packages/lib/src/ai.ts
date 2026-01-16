@@ -1,6 +1,6 @@
 import { gateway } from '@ai-sdk/gateway';
 import { generateText, streamText } from 'ai';
-import { logger } from '@/lib/logger';
+import { logger } from './logger';
 
 // AI service for video analysis and summaries
 export class AIService {

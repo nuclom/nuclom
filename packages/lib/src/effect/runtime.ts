@@ -8,11 +8,11 @@
 import { Cause, Effect, Exit, Layer, Logger, LogLevel, ManagedRuntime, Option } from 'effect';
 import { globalValue } from 'effect/GlobalValue';
 import { NextResponse } from 'next/server';
-import { createLogger } from '@/lib/logger';
+import { createLogger } from '../logger';
 
 const log = createLogger('effect-runtime');
 
-import { env } from '@/lib/env/server';
+import { env } from '../env/server';
 // Services
 import { type AI, AILive } from './services/ai';
 import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';

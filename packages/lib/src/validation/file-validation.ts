@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import { ValidationError } from '@/lib/effect/errors';
+import { ValidationError } from '../effect/errors';
 
 /**
  * File type magic bytes signatures.

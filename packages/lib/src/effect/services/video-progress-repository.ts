@@ -7,7 +7,7 @@
 
 import { and, eq } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import { type VideoProgress, videoProgresses } from '@/lib/db/schema';
+import { type VideoProgress, videoProgresses } from '../../db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

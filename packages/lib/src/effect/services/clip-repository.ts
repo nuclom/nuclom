@@ -18,8 +18,8 @@ import {
   users,
   videoClips,
   videoMoments,
-} from '@/lib/db/schema';
-import type { PaginatedResponse } from '@/lib/types';
+} from '../../db/schema';
+import type { PaginatedResponse } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 import { Storage } from './storage';

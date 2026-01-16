@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
-import { logger } from '@/lib/logger';
+import { logger } from '../logger';
 import { defaultLocale, isValidLocale, type Locale } from './config';
 
 /**

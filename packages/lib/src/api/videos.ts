@@ -1,7 +1,7 @@
 import { desc, eq } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { organizations, users, videos } from '@/lib/db/schema';
-import type { VideoWithAuthor, VideoWithDetails } from '@/lib/types';
+import { db } from '../db';
+import { organizations, users, videos } from '../db/schema';
+import type { VideoWithAuthor, VideoWithDetails } from '../types';
 
 export async function getVideos(organizationId: string, page = 1, limit = 20) {
   const offset = (page - 1) * limit;

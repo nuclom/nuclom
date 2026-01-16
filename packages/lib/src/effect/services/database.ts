@@ -10,8 +10,8 @@ import { PgClient } from '@effect/sql-pg';
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { Config, Context, Effect, Layer, pipe } from 'effect';
 import type postgres from 'postgres';
-import { getPrimaryClient, db as globalDb } from '@/lib/db';
-import type * as schema from '@/lib/db/schema';
+import { getPrimaryClient, db as globalDb } from '../../db';
+import type * as schema from '../../db/schema';
 import { DatabaseError, DuplicateError, NotFoundError, TransactionError } from '../errors';
 
 // =============================================================================

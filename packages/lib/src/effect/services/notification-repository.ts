@@ -6,8 +6,8 @@
 
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
-import type { Notification, User } from '@/lib/db/schema';
-import { notifications } from '@/lib/db/schema';
+import type { Notification, User } from '../../db/schema';
+import { notifications } from '../../db/schema';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

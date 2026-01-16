@@ -7,10 +7,10 @@
     "build": "next build",
     "dev": "next dev --port $(microfrontends port)",
     "tsc": "tsc --noEmit",
-    "lint": "biome check . --error-on-warnings",
     "start": "next start -p 3090"
   },
   "dependencies": {
+    "@nuclom/auth": "workspace:*",
     "@nuclom/ui": "workspace:*",
     "@vercel/analytics": "catalog:",
     "@vercel/microfrontends": "catalog:",
@@ -30,6 +30,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@typescript/native-preview": "catalog:",
     "postcss": "catalog:",
     "typescript": "catalog:"
   }

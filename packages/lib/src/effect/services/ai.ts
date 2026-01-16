@@ -8,7 +8,7 @@
 import { gateway } from '@ai-sdk/gateway';
 import { generateText, streamText } from 'ai';
 import { Context, Effect, Layer, pipe, Stream } from 'effect';
-import type { TranscriptSegment } from '@/lib/db/schema';
+import type { TranscriptSegment } from '../../db/schema';
 import { AIServiceError } from '../errors';
 
 // =============================================================================

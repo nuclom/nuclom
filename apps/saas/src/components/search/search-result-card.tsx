@@ -22,7 +22,6 @@ export function SearchResultCard({ result, organization }: SearchResultCardProps
     if (!html) return null;
     // Sanitize: only allow <mark> tags for search highlighting
     const sanitized = html.replace(/<(?!\/?(mark))[^>]+>/gi, '');
-    // biome-ignore lint/security/noDangerouslySetInnerHtml: Sanitized content with only <mark> tags for search highlighting
     return <span dangerouslySetInnerHTML={{ __html: sanitized }} />;
   };
 

@@ -11,7 +11,7 @@
  */
 
 import { Logger } from 'tslog';
-import { env } from '@/lib/env/server';
+import { env } from './env/server';
 
 // =============================================================================
 // Types

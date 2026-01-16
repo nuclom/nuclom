@@ -13,7 +13,7 @@ import {
   searchHistory,
   users,
   videos,
-} from '@/lib/db/schema';
+} from '../../db/schema';
 import type {
   SavedSearchWithUser,
   SearchHistoryWithUser,
@@ -21,7 +21,7 @@ import type {
   SearchResult,
   SearchSuggestion,
   VideoWithAuthor,
-} from '@/lib/types';
+} from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 

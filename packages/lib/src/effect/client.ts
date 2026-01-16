@@ -112,7 +112,7 @@ export const runClientEffectUnsafe = <A, E>(effect: Effect.Effect<A, E, never>):
 // Video API Client (Effect-based)
 // =============================================================================
 
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '../types';
 
 export const videoApiEffect = {
   getVideos: (

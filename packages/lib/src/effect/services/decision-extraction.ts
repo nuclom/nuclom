@@ -8,7 +8,7 @@
 import { gateway } from '@ai-sdk/gateway';
 import { generateObject, jsonSchema } from 'ai';
 import { Context, Effect, JSONSchema, Layer, Schedule, Schema } from 'effect';
-import type { TranscriptSegment } from '@/lib/db/schema';
+import type { TranscriptSegment } from '../../db/schema';
 import { AIServiceError } from '../errors';
 
 // =============================================================================

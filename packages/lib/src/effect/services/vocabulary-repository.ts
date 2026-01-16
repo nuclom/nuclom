@@ -11,8 +11,8 @@ import type {
   NewVocabularyCorrectionSuggestion,
   OrganizationVocabulary,
   VocabularyCorrectionSuggestion,
-} from '@/lib/db/schema';
-import { organizationVocabulary, vocabularyCorrectionSuggestions } from '@/lib/db/schema';
+} from '../../db/schema';
+import { organizationVocabulary, vocabularyCorrectionSuggestions } from '../../db/schema';
 import { Database } from './database';
 
 // =============================================================================

@@ -8,14 +8,14 @@
 // Re-export access control
 export {
   ac,
-  organizationRoles,
-  ownerRole,
   adminRole,
   editorRole,
   memberRole,
-  permissionStatement,
-  type PermissionResource,
+  organizationRoles,
+  ownerRole,
   type PermissionAction,
+  type PermissionResource,
+  permissionStatement,
 } from './access-control';
 
 // Cookie configuration for cross-app session sharing

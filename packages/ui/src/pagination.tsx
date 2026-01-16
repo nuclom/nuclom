@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
-import { type ButtonProps, buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { type ButtonProps, buttonVariants } from './button';
+import { cn } from './lib/utils';
 
 const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav aria-label="pagination" className={cn('mx-auto flex w-full justify-center', className)} {...props} />

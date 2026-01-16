@@ -6,13 +6,13 @@
  */
 
 import { Layer } from 'effect';
-import { DatabaseLive } from '@/lib/effect/services/database';
+import { DatabaseLive } from '../effect/services/database';
 // Import integration service layers
-import { GoogleMeetLive } from '@/lib/effect/services/google-meet';
-import { IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { MicrosoftTeamsLive } from '@/lib/effect/services/microsoft-teams';
-import { SlackLive } from '@/lib/effect/services/slack';
-import { ZoomLive } from '@/lib/effect/services/zoom';
+import { GoogleMeetLive } from '../effect/services/google-meet';
+import { IntegrationRepositoryLive } from '../effect/services/integration-repository';
+import { MicrosoftTeamsLive } from '../effect/services/microsoft-teams';
+import { SlackLive } from '../effect/services/slack';
+import { ZoomLive } from '../effect/services/zoom';
 
 // =============================================================================
 // Base Layer Compositions

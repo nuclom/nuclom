@@ -517,7 +517,6 @@ export function GoogleDrivePicker({ open, onClose, onImport }: GoogleDrivePicker
                         {/* Thumbnail or icon */}
                         <div className="w-12 h-12 shrink-0 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                           {file.thumbnailLink ? (
-                            // biome-ignore lint/performance/noImgElement: External Google Drive thumbnails require dynamic domains
                             <img
                               src={file.thumbnailLink}
                               alt=""

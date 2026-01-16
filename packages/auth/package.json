@@ -9,8 +9,7 @@
     "./middleware": "./src/middleware.ts"
   },
   "scripts": {
-    "tsc": "tsc --noEmit",
-    "lint": "biome check . --error-on-warnings"
+    "tsc": "tsgo --noEmit"
   },
   "dependencies": {
     "@better-auth/oauth-provider": "^1.4.13",
@@ -23,7 +22,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@nuclom/config": "workspace:*",
     "@types/node": "^25.0.9",
+    "@typescript/native-preview": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {

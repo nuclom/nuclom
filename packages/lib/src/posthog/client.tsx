@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
 import { Suspense, useEffect, useRef } from 'react';
-import { useSession } from '@/lib/auth-client';
+import { useSession } from '../auth-client';
 import { env } from '../env/client';
 
 // Environment variables
