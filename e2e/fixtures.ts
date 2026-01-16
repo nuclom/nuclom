@@ -77,7 +77,7 @@ export async function waitForPageStable(page: Page, timeout = 5000): Promise<voi
  * Returns which element was found.
  */
 export async function waitForAnyVisible(
-  page: Page,
+  _page: Page,
   selectors: Array<{ locator: ReturnType<Page['locator']>; name: string }>,
   timeout = TEST_CONFIG.assertionTimeout,
 ): Promise<string | null> {

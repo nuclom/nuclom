@@ -72,7 +72,10 @@ test.describe('Landing Page', () => {
       if (await menuButton.isVisible().catch(() => false)) {
         await menuButton.click();
         // Wait for menu to be visible instead of fixed timeout
-        await page.getByRole('link', { name: /sign in/i }).waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+        await page
+          .getByRole('link', { name: /sign in/i })
+          .waitFor({ state: 'visible', timeout: 5000 })
+          .catch(() => {});
       }
     }
     // Find and click Sign In link

@@ -103,7 +103,10 @@ test.describe('Register Page', () => {
     // Check that password input has minlength validation or shows error
     const passwordInput = page.getByLabel('Password');
     const hasMinLength = await passwordInput.getAttribute('minlength');
-    const errorVisible = await page.getByText(/password|at least|characters/i).isVisible().catch(() => false);
+    const errorVisible = await page
+      .getByText(/password|at least|characters/i)
+      .isVisible()
+      .catch(() => false);
 
     // Either HTML5 validation (minlength) or error message should exist
     expect(hasMinLength !== null || errorVisible).toBe(true);
