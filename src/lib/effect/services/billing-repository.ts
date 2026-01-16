@@ -56,6 +56,15 @@ export interface UsageSummary {
     bandwidth: number;
     aiRequests: number;
   };
+  // Overage tracking
+  overage: {
+    storage: number; // bytes over limit
+    bandwidth: number; // bytes over limit
+    videos: number; // count over limit
+    aiRequests: number; // count over limit
+  };
+  overageCharges: number; // cents
+  hasOverage: boolean;
 }
 
 /**
@@ -178,6 +187,15 @@ export interface BillingRepositoryService {
   readonly getMemberCount: (organizationId: string) => Effect.Effect<number, DatabaseError>;
   readonly getStorageUsed: (organizationId: string) => Effect.Effect<number, DatabaseError>;
   readonly getVideoCount: (organizationId: string) => Effect.Effect<number, DatabaseError>;
+
+  // Overage tracking
+  readonly incrementOverage: (
+    organizationId: string,
+    field: 'storageOverage' | 'bandwidthOverage' | 'videosOverage' | 'aiRequestsOverage',
+    amount: number,
+  ) => Effect.Effect<Usage, UsageTrackingError>;
+  readonly calculateOverageCharges: (organizationId: string) => Effect.Effect<number, DatabaseError>;
+  readonly markOverageReported: (organizationId: string) => Effect.Effect<void, DatabaseError>;
 }
 
 // =============================================================================
@@ -534,6 +552,13 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           videosUploaded: 0,
           bandwidthUsed: 0,
           aiRequests: 0,
+          // Overage fields
+          storageOverage: 0,
+          bandwidthOverage: 0,
+          videosOverage: 0,
+          aiRequestsOverage: 0,
+          overageCharges: 0,
+          overageReportedToStripe: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         } satisfies Usage;
@@ -669,6 +694,16 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
       // Get limits from local plan or from plan name-based defaults
       const limits = subscription.planInfo?.limits || getPlanLimitsByName(subscription.plan);
 
+      // Get overage data
+      const overage = {
+        storage: currentUsage.storageOverage,
+        bandwidth: currentUsage.bandwidthOverage,
+        videos: currentUsage.videosOverage,
+        aiRequests: currentUsage.aiRequestsOverage,
+      };
+
+      const hasOverage = overage.storage > 0 || overage.bandwidth > 0 || overage.videos > 0 || overage.aiRequests > 0;
+
       return {
         storageUsed: currentUsage.storageUsed,
         videosUploaded: currentUsage.videosUploaded,
@@ -681,6 +716,9 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           bandwidth: calculatePercentage(currentUsage.bandwidthUsed, limits.bandwidth),
           aiRequests: calculatePercentage(currentUsage.aiRequests, 1000), // AI requests limit per month
         },
+        overage,
+        overageCharges: currentUsage.overageCharges,
+        hasOverage,
       };
     }),
 
@@ -941,6 +979,122 @@ const makeBillingRepository = (db: DrizzleDB): BillingRepositoryService => ({
           operation: 'getVideoCount',
           cause: error,
         }),
+    }),
+
+  // Overage tracking
+  incrementOverage: (organizationId, field, amount) =>
+    Effect.gen(function* () {
+      const currentUsage = yield* makeBillingRepository(db)
+        .getOrCreateCurrentUsage(organizationId)
+        .pipe(
+          Effect.mapError(
+            (error) =>
+              new UsageTrackingError({
+                message: 'Failed to get current usage for overage tracking',
+                organizationId,
+                cause: error,
+              }),
+          ),
+        );
+
+      const [updatedUsage] = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .update(usage)
+            .set({
+              [field]: sql`${usage[field]} + ${amount}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(usage.id, currentUsage.id))
+            .returning(),
+        catch: (error) =>
+          new UsageTrackingError({
+            message: `Failed to increment overage ${field}`,
+            organizationId,
+            cause: error,
+          }),
+      });
+
+      return updatedUsage;
+    }),
+
+  calculateOverageCharges: (organizationId) =>
+    Effect.gen(function* () {
+      const repo = makeBillingRepository(db);
+      const subscription = yield* repo
+        .getSubscription(organizationId)
+        .pipe(Effect.catchTag('NoSubscriptionError', () => Effect.succeed(null)));
+
+      if (!subscription?.planInfo?.overageRates) {
+        return 0; // No overage rates configured
+      }
+
+      const currentUsage = yield* repo.getCurrentUsage(organizationId);
+      const rates = subscription.planInfo.overageRates;
+
+      let totalCharges = 0;
+
+      // Calculate storage overage charges (per GB)
+      if (rates.storagePerGb && currentUsage.storageOverage > 0) {
+        const storageOverageGb = currentUsage.storageOverage / (1024 * 1024 * 1024);
+        totalCharges += Math.ceil(storageOverageGb * rates.storagePerGb);
+      }
+
+      // Calculate bandwidth overage charges (per GB)
+      if (rates.bandwidthPerGb && currentUsage.bandwidthOverage > 0) {
+        const bandwidthOverageGb = currentUsage.bandwidthOverage / (1024 * 1024 * 1024);
+        totalCharges += Math.ceil(bandwidthOverageGb * rates.bandwidthPerGb);
+      }
+
+      // Calculate video overage charges (per unit)
+      if (rates.videosPerUnit && currentUsage.videosOverage > 0) {
+        totalCharges += currentUsage.videosOverage * rates.videosPerUnit;
+      }
+
+      // Calculate AI request overage charges (per unit)
+      if (rates.aiRequestsPerUnit && currentUsage.aiRequestsOverage > 0) {
+        totalCharges += currentUsage.aiRequestsOverage * rates.aiRequestsPerUnit;
+      }
+
+      // Update the usage record with calculated charges
+      yield* Effect.tryPromise({
+        try: () =>
+          db
+            .update(usage)
+            .set({
+              overageCharges: totalCharges,
+              updatedAt: new Date(),
+            })
+            .where(eq(usage.id, currentUsage.id)),
+        catch: () =>
+          new DatabaseError({ message: 'Failed to update overage charges', operation: 'calculateOverageCharges' }),
+      });
+
+      return totalCharges;
+    }),
+
+  markOverageReported: (organizationId) =>
+    Effect.gen(function* () {
+      const currentUsage = yield* makeBillingRepository(db).getCurrentUsage(organizationId);
+
+      if (!currentUsage.id) return;
+
+      yield* Effect.tryPromise({
+        try: () =>
+          db
+            .update(usage)
+            .set({
+              overageReportedToStripe: true,
+              updatedAt: new Date(),
+            })
+            .where(eq(usage.id, currentUsage.id)),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to mark overage as reported',
+            operation: 'markOverageReported',
+            cause: error,
+          }),
+      });
     }),
 });
 

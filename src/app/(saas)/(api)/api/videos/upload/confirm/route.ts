@@ -10,6 +10,7 @@ import { connection, type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
 import { Storage, ValidationError, VideoRepository } from '@/lib/effect';
+import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
 import type { ApiResponse } from '@/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@/lib/validation';
 import { processVideoWorkflow } from '@/workflows/video-processing';
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSingleConfirmation(body: ConfirmUploadRequest) {
-  const { fileKey, title, description, organizationId, authorId, skipAIProcessing } = body;
+  const { fileKey, fileSize, title, description, organizationId, authorId, skipAIProcessing } = body;
 
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
@@ -131,8 +132,8 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
     const sanitizedTitle = sanitizeTitle(title);
     const sanitizedDescription = description ? sanitizeDescription(description) : undefined;
 
-    // Store the file key as the videoUrl (used for generating presigned URLs later)
-    // We store the key directly since it's more flexible than the internal R2 URL
+    // Create video record FIRST - if this fails, we don't track usage
+    // This prevents billing mismatches when video creation fails
     const video = yield* videoRepo.createVideo({
       title: sanitizedTitle,
       description: sanitizedDescription,
@@ -143,6 +144,17 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       organizationId,
       processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
+
+    // Track usage AFTER video creation succeeds
+    // This ensures we only bill for videos that were actually created
+    yield* trackVideoUpload(organizationId, fileSize).pipe(
+      Effect.catchAll((error) => {
+        // Log billing tracking errors but don't fail the confirmation
+        // The video record exists, so continue (billing will catch up)
+        console.error('[Billing] Failed to track video upload:', error);
+        return Effect.succeed(undefined);
+      }),
+    );
 
     return {
       videoId: video.id,
@@ -216,7 +228,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         const sanitizedTitle = sanitizeTitle(upload.title);
         const sanitizedDescription = upload.description ? sanitizeDescription(upload.description) : undefined;
 
-        // Store the file key, not the URL
+        // Create video record FIRST - if this fails, we don't track usage
         const video = yield* videoRepo.createVideo({
           title: sanitizedTitle,
           description: sanitizedDescription,
@@ -227,6 +239,15 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
           organizationId,
           processingStatus: skipAIProcessing ? 'completed' : 'pending',
         });
+
+        // Track usage AFTER video creation succeeds
+        yield* trackVideoUpload(organizationId, upload.fileSize).pipe(
+          Effect.catchAll((error) => {
+            // Log billing tracking errors but don't fail the confirmation
+            console.error('[Billing] Failed to track video upload:', error);
+            return Effect.succeed(undefined);
+          }),
+        );
 
         results.push({
           uploadId: upload.uploadId,

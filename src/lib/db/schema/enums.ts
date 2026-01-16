@@ -91,6 +91,8 @@ export const notificationTypeEnum = pgEnum('NotificationType', [
   'member_added',
   'member_removed',
   'role_updated',
+  // Billing usage alerts
+  'usage_alert',
 ]);
 
 // =============================================================================

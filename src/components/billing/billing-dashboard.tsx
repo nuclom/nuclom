@@ -9,7 +9,7 @@ import type { OrganizationBillingInfo, UsageSummary } from '@/lib/effect/service
 import { InvoiceList } from './invoice-list';
 import { PaymentMethodList } from './payment-method-list';
 import { SubscriptionManager } from './subscription-manager';
-import { UsageChart, UsageOverview } from './usage-chart';
+import { UsageCards, UsageMetrics } from './usage-metrics';
 
 interface BillingDashboardProps {
   organizationId: string;
@@ -77,8 +77,8 @@ export function BillingDashboard({
         <TabsContent value="usage" className="space-y-6">
           {usageSummary ? (
             <>
-              <UsageOverview usage={usageSummary} />
-              <UsageChart usage={usageSummary} />
+              <UsageCards usage={usageSummary} />
+              <UsageMetrics usage={usageSummary} />
             </>
           ) : (
             <div className="rounded-lg border p-6 text-center text-muted-foreground">No usage data available yet</div>
