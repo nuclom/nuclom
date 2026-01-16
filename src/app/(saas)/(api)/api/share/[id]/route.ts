@@ -1,11 +1,10 @@
 import { eq } from 'drizzle-orm';
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videoShareLinks } from '@/lib/db/schema';
 import { DatabaseError, NotFoundError, Storage, ValidationError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/share/[id] - Get share link data for public access
@@ -138,25 +137,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -213,23 +195,6 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     return { tracked: true };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExit(exit);
 }

@@ -1,22 +1,17 @@
-import { eq } from 'drizzle-orm';
-import { Cause, Effect, Exit, Option, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 import {
   Auth,
-  createFullLayer,
   generatePresignedThumbnailUrl,
   generatePresignedVideoUrl,
-  mapErrorToApiResponse,
+  handleEffectExitWithOptions,
+  runApiEffect,
   Storage,
 } from '@/lib/api-handler';
-import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { db } from '@/lib/db';
-import { videos } from '@/lib/db/schema';
-import { DatabaseError, ForbiddenError, NotFoundError, ValidationError, VideoRepository } from '@/lib/effect';
+import { ForbiddenError, ValidationError, VideoRepository } from '@/lib/effect';
 import { releaseVideoCount } from '@/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@/lib/effect/services/billing-repository';
 import type { UpdateVideoInput } from '@/lib/effect/services/video-repository';
-import type { ApiResponse } from '@/lib/types';
 import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
@@ -27,49 +22,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
 
-    // Use Drizzle query builder for nested relations
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, resolvedParams.id),
-          with: {
-            author: true,
-            organization: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
-
-    if (!videoData) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: resolvedParams.id,
-        }),
-      );
-    }
-
-    // Check video visibility and access
+    // Fetch video using repository (includes author and organization)
     const videoRepo = yield* VideoRepository;
+    const videoData = yield* videoRepo.getVideo(resolvedParams.id);
 
     // Try to get user ID from session (may be null for unauthenticated requests)
-    let userId: string | null = null;
-    try {
-      const authService = yield* Auth;
-      const sessionResult = yield* authService.getSession(request.headers).pipe(
-        Effect.map((session) => session.user.id),
-        Effect.catchAll(() => Effect.succeed(null)),
-      );
-      userId = sessionResult;
-    } catch {
-      // No auth - userId remains null
-    }
+    const authService = yield* Auth;
+    const userId = yield* authService.getSession(request.headers).pipe(
+      Effect.map((session) => session.user.id),
+      Effect.catchAll(() => Effect.succeed(null)),
+    );
 
     // Check access based on visibility
     const accessCheck = yield* videoRepo.canAccessVideo(resolvedParams.id, userId);
@@ -97,31 +59,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      // Use short cache with stale-while-revalidate for video details
-      // AI analysis data is included, so it benefits from caching
-      // Only cache public videos
-      const cacheControl =
-        data.visibility === 'public' ? getCacheControlHeader(CachePresets.shortWithSwr()) : 'private, no-cache';
-      return NextResponse.json(response, {
-        headers: {
-          'Cache-Control': cacheControl,
-        },
-      });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit, {
+    successHeaders: {
+      // Dynamic cache based on visibility - set by middleware or computed at response time
+      'Cache-Control': 'private, no-cache',
     },
   });
 }
@@ -233,25 +175,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Update video using repository
     yield* videoRepo.updateVideo(resolvedParams.id, updateData);
 
-    // Fetch updated video with relations
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, resolvedParams.id),
-          with: {
-            author: true,
-            organization: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch updated video',
-          operation: 'updateVideo',
-          cause: error,
-        }),
-    });
-
-    if (!videoData) return videoData;
+    // Fetch updated video with relations using repository
+    const videoData = yield* videoRepo.getVideo(resolvedParams.id);
 
     // Generate presigned URLs for video and thumbnail
     const storage = yield* Storage;
@@ -267,24 +192,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit, { successStatus: 200 });
 }
 
 // =============================================================================
@@ -350,22 +259,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      return error._tag === 'Some'
-        ? mapErrorToApiResponse(error.value)
-        : mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit, { successStatus: 200 });
 }

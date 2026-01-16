@@ -5,9 +5,10 @@
  * These utilities are designed for use in Server Components and Server Actions.
  */
 
-import { Cause, type Context, Effect, Exit, Option } from 'effect';
+import { Cause, Effect, Exit, Option } from 'effect';
 import { revalidateTag } from 'next/cache';
 import { cache } from 'react';
+import { generatePresignedThumbnailUrl, generatePresignedVideoUrl } from '@/lib/api-handler';
 import type { CollectionType } from '@/lib/db/schema';
 import type {
   CollectionProgressWithDetails,
@@ -26,35 +27,6 @@ import { Storage } from './services/storage';
 import { type VideoProgressData, VideoProgressRepository } from './services/video-progress-repository';
 import type { CreateVideoInput, UpdateVideoInput } from './services/video-repository';
 import { VideoRepository } from './services/video-repository';
-
-// =============================================================================
-// Presigned URL Helpers
-// =============================================================================
-
-/**
- * Generate presigned URL for a stored file key.
- *
- * Converts stored R2 keys to presigned download URLs.
- * Handles legacy full R2 URLs for backward compatibility with
- * older database records that stored full URLs instead of keys.
- *
- * New records should always store just the key (e.g., "org-id/videos/file.mp4")
- * and NOT full URLs.
- */
-function generatePresignedUrl(
-  storage: Context.Tag.Service<typeof Storage>,
-  storedKey: string | null,
-  expiresIn = 3600,
-): Effect.Effect<string | null, never, never> {
-  if (!storedKey) return Effect.succeed(null);
-
-  return Effect.gen(function* () {
-    // Handle legacy full URLs for backward compatibility
-    const key = storedKey.includes('.r2.cloudflarestorage.com/') ? storage.extractKeyFromUrl(storedKey) : storedKey;
-    if (!key) return null;
-    return yield* storage.generatePresignedDownloadUrl(key, expiresIn);
-  }).pipe(Effect.catchAll(() => Effect.succeed(null)));
-}
 
 // =============================================================================
 // Server Effect Runner
@@ -125,8 +97,8 @@ export const getVideos = cache(
         videosData.data.map((video) =>
           Effect.gen(function* () {
             const [presignedThumbnailUrl, presignedVideoUrl] = yield* Effect.all([
-              generatePresignedUrl(storage, video.thumbnailUrl),
-              generatePresignedUrl(storage, video.videoUrl),
+              generatePresignedThumbnailUrl(storage, video.thumbnailUrl),
+              generatePresignedVideoUrl(storage, video.videoUrl),
             ]);
             return {
               ...video,

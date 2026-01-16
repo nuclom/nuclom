@@ -1,25 +1,16 @@
 import { and, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
-import { Cause, Effect, Exit } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import {
-  Auth,
-  createFullLayer,
-  generatePresignedThumbnailUrl,
-  mapErrorToApiResponse,
-  Storage,
-} from '@/lib/api-handler';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
+import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@/lib/api-handler';
 import { db } from '@/lib/db';
 import { videos, videoViews } from '@/lib/db/schema';
 import { DatabaseError, UnauthorizedError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/[id]/analytics - Get organization analytics
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const FullLayer = createFullLayer();
-
   const url = new URL(request.url);
   const period = url.searchParams.get('period') || '30d';
 
@@ -243,23 +234,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

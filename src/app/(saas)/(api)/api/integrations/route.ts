@@ -1,12 +1,9 @@
-import { Cause, Effect, Exit, Layer, Option } from 'effect';
+import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
+import { handleEffectExit, runApiEffect } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
-import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-
-const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const IntegrationsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
+import { UnauthorizedError } from '@/lib/effect/errors';
+import { IntegrationRepository } from '@/lib/effect/services/integration-repository';
 
 // =============================================================================
 // GET /api/integrations - List integrations for the current user
@@ -45,20 +42,8 @@ export async function GET(request: NextRequest) {
     }));
   });
 
-  const exit = await Effect.runPromiseExit(Effect.provide(effect, IntegrationsLayer));
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        console.error('[Integrations Error]', error.value);
-      }
-      return NextResponse.json({ success: false, error: 'Failed to fetch integrations' }, { status: 500 });
-    },
-    onSuccess: (data) => {
-      return NextResponse.json({ success: true, data });
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -100,27 +85,9 @@ export async function DELETE(request: NextRequest) {
     // Delete the integration
     yield* integrationRepo.deleteIntegration(integrationId);
 
-    return { success: true };
+    return { deleted: true };
   });
 
-  const exit = await Effect.runPromiseExit(Effect.provide(effect, IntegrationsLayer));
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (Option.isSome(error)) {
-        const err = error.value;
-        if (err instanceof NotFoundError) {
-          return NextResponse.json({ success: false, error: err.message }, { status: 404 });
-        }
-        if (err instanceof UnauthorizedError) {
-          return NextResponse.json({ success: false, error: err.message }, { status: 403 });
-        }
-      }
-      return NextResponse.json({ success: false, error: 'Failed to delete integration' }, { status: 500 });
-    },
-    onSuccess: () => {
-      return NextResponse.json({ success: true });
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

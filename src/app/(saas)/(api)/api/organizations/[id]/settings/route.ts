@@ -1,10 +1,9 @@
-import { Cause, Effect, Exit, Option, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
+import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
 import { auth } from '@/lib/auth';
 import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
-import type { ApiResponse } from '@/lib/types';
 import { safeParse } from '@/lib/validation';
 
 const UpdateOrganizationSchema = Schema.Struct({
@@ -41,25 +40,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return organization;
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -114,23 +96,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return { message: 'Organization settings updated successfully', organization: updatedOrg };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runPublicApiEffect(effect);
+  return handleEffectExit(exit);
 }
