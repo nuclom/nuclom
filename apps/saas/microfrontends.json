@@ -1,12 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
   "applications": {
-    "saas": {
+    "nuclom-saas": {
+      "packageName": "saas",
       "development": {
         "fallback": "https://nuclom.com"
       }
     },
-    "marketing": {
+    "nuclom-marketing": {
+      "packageName": "marketing",
       "routing": [
         {
           "paths": [
