@@ -1,0 +1,37 @@
+{
+  "name": "marketing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port $(microfrontends port)",
+    "tsc": "tsc --noEmit",
+    "start": "next start -p 3090"
+  },
+  "dependencies": {
+    "@nuclom/auth": "workspace:*",
+    "@nuclom/ui": "workspace:*",
+    "@vercel/analytics": "catalog:",
+    "@vercel/microfrontends": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "@tailwindcss/postcss": "catalog:",
+    "tailwind-merge": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
+    "next-themes": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "postcss": "catalog:",
+    "typescript": "catalog:"
+  }
+}

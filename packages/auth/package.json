@@ -1,0 +1,33 @@
+{
+  "name": "@nuclom/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./middleware": "./src/middleware.ts"
+  },
+  "scripts": {
+    "tsc": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@better-auth/oauth-provider": "^1.4.13",
+    "@better-auth/passkey": "^1.4.13",
+    "@better-auth/sso": "^1.4.13",
+    "@better-auth/stripe": "^1.4.13",
+    "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
+    "stripe": "20.1.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@nuclom/config": "workspace:*",
+    "@types/node": "^25.0.9",
+    "@typescript/native-preview": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "catalog:"
+  }
+}

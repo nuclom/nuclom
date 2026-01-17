@@ -37,8 +37,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -56,7 +54,7 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install chromium --with-deps
+        run: pnpm --filter saas exec playwright install chromium --with-deps
 
       - name: Wait for Vercel deployment
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.deployment_url == ''
@@ -132,7 +130,7 @@ jobs:
         if: always()
         with:
           name: playwright-report-${{ github.run_id }}
-          path: playwright-report/
+          path: apps/saas/playwright-report/
           retention-days: 14
 
       - name: Upload test results
@@ -140,7 +138,7 @@ jobs:
         if: always()
         with:
           name: test-results-${{ github.run_id }}
-          path: test-results/
+          path: apps/saas/test-results/
           retention-days: 14
 
       - name: Notify Vercel status

@@ -8,16 +8,19 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "src/**/*.ts",
-      "src/**/*.tsx",
-      "src/**/*.js",
-      "src/**/*.jsx",
-      "src/**/*.json",
+      "apps/**/*.ts",
+      "apps/**/*.tsx",
+      "apps/**/*.js",
+      "apps/**/*.jsx",
+      "packages/**/*.ts",
+      "packages/**/*.tsx",
+      "packages/**/*.js",
+      "packages/**/*.jsx",
       "scripts/**/*.ts",
       "e2e/**/*",
       "!**/*.d.ts",
-      "!public/openapi.json",
-      "!public/openapi.yaml"
+      "!**/public/openapi.json",
+      "!**/public/openapi.yaml"
     ]
   },
   "formatter": {
