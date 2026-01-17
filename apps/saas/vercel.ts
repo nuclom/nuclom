@@ -1,5 +1,4 @@
 import path from 'node:path';
-import process from 'node:process';
 import { routes, type VercelConfig } from '@vercel/config/v1';
 import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
@@ -56,7 +55,7 @@ async function runMigrations(): Promise<void> {
   // Using max: 1 to ensure migrations run sequentially
   const migrationClient = postgres(databaseUrl, {
     max: 1,
-    onnotice: () => {}, // Suppress notices
+    onnotice: () => { }, // Suppress notices
   });
 
   const db = drizzle(migrationClient);

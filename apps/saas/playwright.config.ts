@@ -1,4 +1,3 @@
-import process from 'node:process';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -48,9 +47,9 @@ export default defineConfig({
   webServer: process.env.CI
     ? undefined
     : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3091',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000,
-      },
+      command: 'pnpm dev',
+      url: 'http://localhost:3091',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
 });

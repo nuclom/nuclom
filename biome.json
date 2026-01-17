@@ -38,7 +38,7 @@
       "recommended": true,
       "correctness": {
         "useExhaustiveDependencies": "warn",
-        "noProcessGlobal": "error"
+        "noProcessGlobal": "off"
       },
       "style": {
         "useImportType": "error"

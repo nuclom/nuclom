@@ -1,4 +1,3 @@
-import process from 'node:process';
 import { expect, test as setup } from '@playwright/test';
 
 const testUserEmail = process.env.E2E_TEST_USER_EMAIL;
@@ -17,7 +16,7 @@ setup('authenticate', async ({ page }) => {
   if (!testUserEmail || !testUserPassword) {
     throw new Error(
       'E2E_TEST_USER_EMAIL and E2E_TEST_USER_PASSWORD environment variables are required. ' +
-        'Make sure the test user is seeded in the database.',
+      'Make sure the test user is seeded in the database.',
     );
   }
 
