@@ -138,25 +138,20 @@ export function registerShutdownHandlers(): void {
     console.log(`Received ${signal}. Closing database connections...`);
     await closeConnections();
     console.log('Database connections closed.');
-    // biome-ignore lint/correctness/noProcessGlobal: Required for graceful shutdown
     process.exit(0);
   };
 
   // Handle various shutdown signals
-  // biome-ignore lint/correctness/noProcessGlobal: Required for signal handlers
   process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  // biome-ignore lint/correctness/noProcessGlobal: Required for signal handlers
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   // Handle uncaught exceptions and unhandled rejections
-  // biome-ignore lint/correctness/noProcessGlobal: Required for shutdown cleanup
   process.on('beforeExit', async () => {
     await closeConnections();
   });
 }
 
 // Auto-register shutdown handlers in non-test environments
-// biome-ignore lint/correctness/noProcessGlobal: Required for environment check
 if (process.env.NODE_ENV !== 'test') {
   registerShutdownHandlers();
 }
