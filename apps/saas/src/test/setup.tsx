@@ -1,4 +1,3 @@
-import process from 'node:process';
 import { ReadableStream, TransformStream, WritableStream } from 'node:stream/web';
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';

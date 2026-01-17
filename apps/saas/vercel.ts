@@ -55,7 +55,7 @@ async function runMigrations(): Promise<void> {
   // Using max: 1 to ensure migrations run sequentially
   const migrationClient = postgres(databaseUrl, {
     max: 1,
-    onnotice: () => { }, // Suppress notices
+    onnotice: () => {}, // Suppress notices
   });
 
   const db = drizzle(migrationClient);

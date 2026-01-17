@@ -16,7 +16,6 @@
  *   - E2E_TEST_ORG: Organization slug (default: 'e2e-tests')
  */
 
-import process from 'node:process';
 import { hashPassword } from 'better-auth/crypto';
 import dotenv from 'dotenv';
 import { eq } from 'drizzle-orm';

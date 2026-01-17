@@ -28,7 +28,6 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import process from 'node:process';
 import { JSONSchema, Schema } from 'effect';
 import { type FunctionDeclaration, Project, type SourceFile } from 'ts-morph';
 import * as ResponseSchemas from '../src/lib/api/response-schemas';

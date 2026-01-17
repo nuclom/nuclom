@@ -1,5 +1,4 @@
 import path from 'node:path';
-import process from 'node:process';
 import type { BrowserContext } from '@playwright/test';
 import { test as base, type Page } from '@playwright/test';
 

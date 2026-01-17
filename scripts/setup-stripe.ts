@@ -17,7 +17,6 @@
  *   --force      Update existing resources instead of skipping
  */
 
-import process from 'node:process';
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
 
