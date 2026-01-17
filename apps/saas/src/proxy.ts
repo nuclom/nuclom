@@ -1,5 +1,5 @@
 /**
- * Next.js Middleware for SaaS App
+ * Next.js Middleware
  *
  * Handles:
  * - Authentication checks for protected routes
@@ -7,8 +7,8 @@
  * - Request logging with structured output
  * - Request ID generation and propagation
  *
- * Note: Marketing routes (/, /pricing, /features, etc.) are handled by the
- * separate marketing app via Vercel microfrontends.
+ * Uses Node.js runtime for better-auth session validation which requires
+ * database access.
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
@@ -38,9 +38,13 @@ function createRedisClient(): Redis | null {
     return null;
   }
 
-  return new Redis({ url, token });
+  return new Redis({
+    url,
+    token,
+  });
 }
 
+// Cache rate limiters
 let apiRateLimiter: Ratelimit | null = null;
 let authRateLimiter: Ratelimit | null = null;
 let sensitiveRateLimiter: Ratelimit | null = null;
@@ -110,6 +114,7 @@ async function checkRateLimit(
       config = API_RATE_LIMIT;
   }
 
+  // Rate limiting disabled when Redis is not configured
   if (!rateLimiter) {
     return null;
   }
@@ -153,7 +158,8 @@ function isSensitiveRoute(pathname: string): boolean {
 }
 
 function isUploadRoute(pathname: string): boolean {
-  return pathname.startsWith('/api/videos/upload') || pathname.startsWith('/api/upload');
+  const uploadPatterns = ['/api/videos/upload', '/api/upload'];
+  return uploadPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
 function isApiRoute(pathname: string): boolean {
@@ -161,7 +167,7 @@ function isApiRoute(pathname: string): boolean {
 }
 
 function isPublicApiRoute(pathname: string): boolean {
-  const publicPatterns = ['/api/health', '/api/share/', '/api/beta-access', '/api/embed/'];
+  const publicPatterns = ['/api/health', '/api/share/', '/api/beta-access'];
   return publicPatterns.some((pattern) => pathname.startsWith(pattern));
 }
 
@@ -170,22 +176,29 @@ function isCronRoute(pathname: string): boolean {
 }
 
 function isBetterAuthRoute(pathname: string): boolean {
+  // Better-auth handles its own routes - don't interfere with auth flow
   return pathname.startsWith('/api/auth/');
 }
 
 function isProtectedApiRoute(pathname: string): boolean {
+  // API routes that require authentication
+  // Exclude: public routes, auth routes (handled by better-auth), webhooks
   if (!isApiRoute(pathname)) return false;
   if (isPublicApiRoute(pathname)) return false;
   if (isCronRoute(pathname)) return false;
   if (isBetterAuthRoute(pathname)) return false;
   if (pathname.startsWith('/api/webhooks/')) return false;
+
   return true;
 }
 
 function isPublicPageRoute(pathname: string): boolean {
-  // Public routes in the SaaS app (auth flows, shared content)
-  // Marketing routes (/, /pricing, /features) are handled by the marketing app
+  // Routes that should be accessible without authentication
   const publicPatterns = [
+    '/',
+    '/auth',
+    '/auth-error',
+    '/sign-up',
     '/login',
     '/register',
     '/forgot-password',
@@ -193,10 +206,23 @@ function isPublicPageRoute(pathname: string): boolean {
     '/verify-email',
     '/verification-pending',
     '/accept-invitation',
-    '/auth-error',
     '/share',
     '/embed',
-    '/onboarding',
+    '/pricing',
+    '/about',
+    '/terms',
+    '/privacy',
+    '/cookies',
+    '/content-policy',
+    '/features',
+    '/brand',
+    '/status',
+    '/blog',
+    '/contact',
+    '/help',
+    '/docs',
+    '/support',
+    '/home',
     '/opengraph-image',
     '/twitter-image',
   ];
@@ -204,6 +230,7 @@ function isPublicPageRoute(pathname: string): boolean {
 }
 
 function isProtectedPageRoute(pathname: string): boolean {
+  // All non-API routes are protected unless explicitly public
   if (isApiRoute(pathname)) return false;
   return !isPublicPageRoute(pathname);
 }
@@ -222,65 +249,111 @@ function generateRequestId(): string {
 // Middleware
 // =============================================================================
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
   const method = request.method;
 
+  // Generate or use existing request ID
   const requestId = request.headers.get('x-request-id') || generateRequestId();
 
   // =============================================================================
   // Authentication Check for Protected Routes
   // =============================================================================
 
+  // Check if route requires authentication
   const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
 
   if (needsAuth) {
+    // Fast check: if no session cookie exists, reject immediately without DB lookup
     const sessionCookie = getSessionCookie(request, { cookiePrefix: 'nuclom' });
     if (!sessionCookie) {
+      // For API routes, return 401 Unauthorized
       if (isApiRoute(pathname)) {
         requestLogger.warn(
-          { requestId, method, path: pathname, status: 401 },
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
           `← ${method} ${pathname} 401 Unauthorized (no session cookie)`,
         );
 
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
-        });
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Authentication required',
+          }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-request-id': requestId,
+            },
+          },
+        );
       }
 
+      // For page routes, redirect to sign-in
       const signInUrl = new URL('/login', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(
-        { requestId, path: pathname, redirectTo: signInUrl.pathname },
-        `Redirecting unauthenticated user to sign-in`,
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
+        `Redirecting unauthenticated user to sign-in (no session cookie)`,
       );
 
       return NextResponse.redirect(signInUrl);
     }
 
-    const session = await auth.api.getSession({ headers: request.headers });
+    // Full session validation using better-auth (validates against DB)
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
 
     if (!session) {
+      // For API routes, return 401 Unauthorized
       if (isApiRoute(pathname)) {
         requestLogger.warn(
-          { requestId, method, path: pathname, status: 401 },
+          {
+            requestId,
+            method,
+            path: pathname,
+            status: 401,
+          },
           `← ${method} ${pathname} 401 Unauthorized`,
         );
 
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json', 'x-request-id': requestId },
-        });
+        return new NextResponse(
+          JSON.stringify({
+            error: 'Unauthorized',
+            message: 'Authentication required',
+          }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-request-id': requestId,
+            },
+          },
+        );
       }
 
+      // For page routes, redirect to sign-in
       const signInUrl = new URL('/login', request.url);
       signInUrl.searchParams.set('callbackUrl', pathname);
 
       requestLogger.info(
-        { requestId, path: pathname, redirectTo: signInUrl.pathname },
+        {
+          requestId,
+          path: pathname,
+          redirectTo: signInUrl.pathname,
+        },
         `Redirecting unauthenticated user to sign-in`,
       );
 
@@ -289,7 +362,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // =============================================================================
-  // Non-API Routes - Skip rate limiting
+  // Non-API Routes - Skip rate limiting and detailed logging
   // =============================================================================
 
   if (!isApiRoute(pathname)) {
@@ -298,22 +371,30 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Skip public endpoints (no rate limiting needed)
   if (isPublicApiRoute(pathname)) {
     const response = NextResponse.next();
     response.headers.set('x-request-id', requestId);
 
+    // Log completion for public routes
     const durationMs = Date.now() - startTime;
-    requestLogger.info({ requestId, method, path: pathname, durationMs }, `← ${method} ${pathname} (${durationMs}ms)`);
+    requestLogger.info(
+      {
+        requestId,
+        method,
+        path: pathname,
+        durationMs,
+      },
+      `← ${method} ${pathname} (${durationMs}ms)`,
+    );
 
     return response;
   }
 
-  // =============================================================================
-  // Rate Limiting for API Routes
-  // =============================================================================
-
+  // Get client identifier
   const identifier = getClientIdentifier(request);
 
+  // Determine rate limit type based on route
   let rateLimitType: 'api' | 'auth' | 'sensitive' | 'upload' = 'api';
 
   if (isSensitiveRoute(pathname)) {
@@ -324,14 +405,17 @@ export async function middleware(request: NextRequest) {
     rateLimitType = 'upload';
   }
 
+  // Check rate limit (returns null if Redis not configured)
   const result = await checkRateLimit(identifier, rateLimitType);
 
+  // If rate limiting is disabled (no Redis), continue without rate limit headers
   if (!result) {
     const response = NextResponse.next();
     response.headers.set('x-request-id', requestId);
     return response;
   }
 
+  // If rate limited, return 429
   if (!result.success) {
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
     const durationMs = Date.now() - startTime;
@@ -343,7 +427,12 @@ export async function middleware(request: NextRequest) {
         path: pathname,
         status: 429,
         durationMs,
-        rateLimit: { type: rateLimitType, limit: result.limit, remaining: 0, retryAfter },
+        rateLimit: {
+          type: rateLimitType,
+          limit: result.limit,
+          remaining: 0,
+          retryAfter,
+        },
       },
       `← ${method} ${pathname} 429 Rate Limited (${durationMs}ms)`,
     );
@@ -368,6 +457,7 @@ export async function middleware(request: NextRequest) {
     );
   }
 
+  // Continue with rate limit headers and request ID
   const response = NextResponse.next();
   response.headers.set('x-request-id', requestId);
   response.headers.set('X-RateLimit-Limit', String(result.limit));
@@ -377,8 +467,29 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+// =============================================================================
+// Middleware Route Matcher
+// =============================================================================
+
+/**
+ * Excluded paths/prefixes:
+ * - _next/static     : Next.js static files
+ * - _next/image      : Next.js image optimization
+ * - public           : Public folder assets
+ * - favicon.ico      : Favicon
+ * - .well-known/     : Well-known URIs (workflows, etc.)
+ * - sitemap.xml      : SEO sitemap
+ * - robots.txt       : SEO robots file
+ * - manifest.webmanifest : PWA manifest
+ * - openapi.(json|yaml)  : API documentation
+ *
+ * Excluded file extensions:
+ * - Images: svg, png, jpg, jpeg, gif, webp, ico
+ * - Fonts:  woff, woff2, ttf, eot
+ * - Other:  webmanifest
+ */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|public|favicon.ico|.well-known/workflow/|sitemap.xml|robots.txt|manifest.webmanifest|openapi.json|openapi.yaml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
+    '/((?!_next/static|_next/image|public|favicon\\.ico|\\.well-known/|sitemap\\.xml|robots\\.txt|manifest\\.webmanifest|openapi\\.json|openapi\\.yaml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
   ],
 };
