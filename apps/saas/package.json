@@ -1,5 +1,5 @@
 {
-  "name": "saas",
+  "name": "nuclom-saas",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -74,6 +74,7 @@
     "better-auth": "catalog:",
     "cmdk": "catalog:",
     "date-fns": "catalog:",
+    "dotenv": "^16.5.0",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "drizzle-orm": "catalog:",

@@ -285,19 +285,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      '@vercel/config':
-        specifier: ^0.0.25
-        version: 0.0.25
-      dotenv:
-        specifier: ^16.5.0
-        version: 16.6.1
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.1(@opentelemetry/api@1.9.0)(@upstash/redis@1.36.1)(kysely@0.28.9)(pg@8.17.1)(postgres@3.4.8)(sql.js@1.13.0)
-      postgres:
-        specifier: 'catalog:'
-        version: 3.4.8
     devDependencies:
       '@biomejs/biome':
         specifier: 2.3.11
@@ -579,6 +566,9 @@ importers:
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.1(@opentelemetry/api@1.9.0)(@upstash/redis@1.36.1)(kysely@0.28.9)(pg@8.17.1)(postgres@3.4.8)(sql.js@1.13.0)
