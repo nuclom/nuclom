@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@vercel/microfrontends/next/client';
 import { CopyrightYear } from '@/components/copyright-year';
 import { NuclomLogo } from '@/components/nuclom-logo';
 

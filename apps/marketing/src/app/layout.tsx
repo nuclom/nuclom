@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next';
+import { PrefetchCrossZoneLinks, PrefetchCrossZoneLinksProvider } from '@vercel/microfrontends/next/client';
 import type { Metadata, Viewport } from 'next';
 import { ThemeProvider } from 'next-themes';
 import type React from 'react';
@@ -90,9 +91,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <div className="min-h-screen bg-background text-foreground">{children}</div>
-        </ThemeProvider>
+        <PrefetchCrossZoneLinksProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <div className="min-h-screen bg-background text-foreground">{children}</div>
+          </ThemeProvider>
+          <PrefetchCrossZoneLinks prerenderEagerness="moderate" />
+        </PrefetchCrossZoneLinksProvider>
         <Analytics />
       </body>
     </html>
