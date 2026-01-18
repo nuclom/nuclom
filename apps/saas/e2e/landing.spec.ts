@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Landing Page', () => {
+// Skip landing page tests - landing page is now served by the marketing app (nuclom-marketing)
+// These tests should be moved to a separate marketing e2e test suite
+test.describe.skip('Landing Page', () => {
   test.beforeEach(async ({ page, context }) => {
     // Clear all cookies and storage to ensure we see the landing page
     await context.clearCookies();
@@ -107,7 +109,7 @@ test.describe('Landing Page', () => {
   });
 });
 
-test.describe('Landing Page - Mobile', () => {
+test.describe.skip('Landing Page - Mobile', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
   test('should display mobile-friendly layout', async ({ page, context }) => {
