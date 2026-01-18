@@ -21,7 +21,7 @@ import {
   Webhook,
   Zap,
 } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@vercel/microfrontends/next/client';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
 import { Badge } from '@/components/ui/badge';
