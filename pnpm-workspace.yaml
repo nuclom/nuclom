@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - tests/*
 
 catalog:
   '@ai-sdk/gateway': 3.0.16

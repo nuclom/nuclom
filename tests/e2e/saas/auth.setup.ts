@@ -33,5 +33,5 @@ setup('authenticate', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/org/${testOrg}`), { timeout: 15000 });
 
   // Save signed-in state to file
-  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+  await page.context().storageState({ path: './saas/.auth/user.json' });
 });

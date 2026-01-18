@@ -49,11 +49,6 @@
       "dependsOn": ["^build"],
       "cache": false
     },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "env": ["PLAYWRIGHT_BASE_URL", "VERCEL_AUTOMATION_BYPASS_SECRET", "E2E_TEST_ORG"]
-    },
     "dev": {
       "persistent": true,
       "cache": false

@@ -1171,6 +1171,12 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  tests/e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.57.0
+
 packages:
 
   '@acemir/cssom@0.9.31':
