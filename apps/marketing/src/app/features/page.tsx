@@ -1,3 +1,4 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
   BarChart3,
@@ -33,7 +34,6 @@ import {
   Video,
   Webhook,
 } from 'lucide-react';
-import Link from 'next/link';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
 import { Badge } from '@/components/ui/badge';

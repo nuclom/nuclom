@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   addDays,
   addMonths,
@@ -24,7 +25,6 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
-import Link from 'next/link';
 import type * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';

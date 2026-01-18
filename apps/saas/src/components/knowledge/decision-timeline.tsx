@@ -11,9 +11,9 @@
  * - Shows participants and confidence scores
  */
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { Calendar, ChevronRight, Clock, Lightbulb, MessageSquare, Settings, Users, Wrench } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import { Upload, VideoOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';

@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   Clock,
   Folders,
@@ -15,7 +16,6 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

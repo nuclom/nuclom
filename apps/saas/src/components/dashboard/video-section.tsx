@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { ChevronRight, Upload } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { VideoPreviewCard } from '@/components/video-preview-card';
 import type { VideoWithAuthor } from '@/lib/types';

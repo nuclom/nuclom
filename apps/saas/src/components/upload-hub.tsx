@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
   CheckCircle2,
@@ -12,7 +13,6 @@ import {
   Settings,
   Upload,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { BulkVideoUpload } from '@/components/bulk-video-upload';

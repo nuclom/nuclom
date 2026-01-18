@@ -1,8 +1,8 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Check, CheckCheck, CreditCard, MessageSquare, Trash2, UserPlus, Video, XCircle } from 'lucide-react';
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

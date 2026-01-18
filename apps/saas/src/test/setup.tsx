@@ -73,9 +73,9 @@ vi.mock('next/image', () => ({
   },
 }));
 
-// Mock Next.js Link component
-vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => {
+// Mock Vercel microfrontends Link component
+vi.mock('@vercel/microfrontends/next/client', () => ({
+  Link: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => {
     return (
       <a href={href} {...props}>
         {children}

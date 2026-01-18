@@ -1,8 +1,8 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import type { User } from 'better-auth';
 import { ArrowLeft, Building, Film, HelpCircle, Home, LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

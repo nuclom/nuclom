@@ -1,3 +1,4 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -11,7 +12,6 @@ import {
   Shield,
   XCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { CopyrightYear } from '@/components/copyright-year';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

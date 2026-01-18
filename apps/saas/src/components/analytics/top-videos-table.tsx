@@ -1,8 +1,8 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { Clock, Eye, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

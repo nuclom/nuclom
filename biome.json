@@ -41,7 +41,15 @@
         "noProcessGlobal": "off"
       },
       "style": {
-        "useImportType": "error"
+        "useImportType": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "next/link": "Use @vercel/microfrontends/next/client Link for cross-zone navigation."
+            }
+          }
+        }
       },
       "suspicious": {
         "noExplicitAny": "warn",

@@ -1,6 +1,6 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import { Camera, MonitorUp } from 'lucide-react';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';

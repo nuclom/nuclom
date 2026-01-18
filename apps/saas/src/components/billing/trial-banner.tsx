@@ -1,8 +1,8 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { differenceInDays, format } from 'date-fns';
 import { Clock, Sparkles, X } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

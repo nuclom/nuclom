@@ -46,14 +46,19 @@ test.describe('Video Upload Page', () => {
 
       // Look for drop zone or file input area
       const dropZone = page.locator("[data-dropzone], .dropzone, [role='button']").first();
-      const hasDropZone = await dropZone.isVisible().catch(() => false);
-
-      // Also check for file input
       const fileInput = page.locator("input[type='file']");
-      const hasFileInput = (await fileInput.count()) > 0;
 
-      // At least one upload mechanism should exist
-      expect(hasDropZone || hasFileInput).toBe(true);
+      // Wait for at least one upload mechanism to appear (hydration can be slow on mobile)
+      await expect
+        .poll(
+          async () => {
+            const hasDropZone = await dropZone.isVisible().catch(() => false);
+            const hasFileInput = (await fileInput.count()) > 0;
+            return hasDropZone || hasFileInput;
+          },
+          { timeout: 10000 }
+        )
+        .toBe(true);
     });
   });
 

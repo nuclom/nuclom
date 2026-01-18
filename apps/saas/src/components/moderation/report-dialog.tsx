@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertTriangle, Flag, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {

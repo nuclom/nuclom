@@ -1,8 +1,8 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { MoreHorizontal, Pencil, Play, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';

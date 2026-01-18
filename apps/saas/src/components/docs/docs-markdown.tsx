@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@vercel/microfrontends/next/client';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';

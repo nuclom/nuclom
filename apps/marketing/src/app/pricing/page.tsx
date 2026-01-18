@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
   Bot,
@@ -16,7 +17,6 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';

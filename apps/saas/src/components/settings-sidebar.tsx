@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { Building, ClipboardList, CreditCard, Globe, Key, Lock, Plug, UserSquare2, Users } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

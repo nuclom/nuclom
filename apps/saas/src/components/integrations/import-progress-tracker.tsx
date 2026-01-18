@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertCircle,
@@ -12,7 +13,6 @@ import {
   RefreshCw,
   XCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

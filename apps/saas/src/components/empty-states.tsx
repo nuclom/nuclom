@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { FileVideo, Folder, History, Search, Share2, Video } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
