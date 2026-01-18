@@ -12,7 +12,7 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check . --write --error-on-warnings",
     "format": "biome format . --write",
-    "test": "turbo test",
+    "test": "turbo test --filter=!@nuclom/e2e",
     "test:e2e": "pnpm --filter @nuclom/e2e test",
     "test:e2e:saas": "pnpm --filter @nuclom/e2e test:saas",
     "test:e2e:marketing": "pnpm --filter @nuclom/e2e test:marketing",

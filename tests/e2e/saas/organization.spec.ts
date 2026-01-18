@@ -1,4 +1,4 @@
-import { expect, TEST_CONFIG, test } from './fixtures';
+import { expect, TEST_CONFIG, test } from '../shared/fixtures';
 
 const { testOrg } = TEST_CONFIG;
 

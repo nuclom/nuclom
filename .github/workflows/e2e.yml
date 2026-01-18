@@ -156,7 +156,7 @@ jobs:
           fi
 
       - name: Run Playwright tests
-        run: pnpm test:e2e
+        run: pnpm test
         working-directory: tests/e2e
         env:
           SAAS_BASE_URL: ${{ steps.deployment.outputs.saas_url }}
