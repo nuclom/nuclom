@@ -37,6 +37,7 @@
     "@effect/sql-pg": "catalog:",
     "@hookform/resolvers": "catalog:",
     "@nuclom/auth": "workspace:*",
+    "@nuclom/config": "workspace:*",
     "@nuclom/lib": "workspace:*",
     "@nuclom/ui": "workspace:*",
     "@posthog/nextjs-config": "catalog:",

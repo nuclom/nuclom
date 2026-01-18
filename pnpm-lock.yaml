@@ -400,6 +400,9 @@ importers:
       '@nuclom/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@nuclom/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@nuclom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -521,6 +524,9 @@ importers:
       '@nuclom/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@nuclom/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@nuclom/lib':
         specifier: workspace:*
         version: link:../../packages/lib
@@ -871,9 +877,6 @@ importers:
 
   packages/config:
     devDependencies:
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.1.18
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
