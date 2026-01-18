@@ -12,18 +12,18 @@
     "tsc": "tsgo --noEmit"
   },
   "dependencies": {
-    "@better-auth/oauth-provider": "^1.4.13",
-    "@better-auth/passkey": "^1.4.13",
-    "@better-auth/sso": "^1.4.13",
-    "@better-auth/stripe": "^1.4.13",
+    "@better-auth/oauth-provider": "catalog:",
+    "@better-auth/passkey": "catalog:",
+    "@better-auth/sso": "catalog:",
+    "@better-auth/stripe": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
-    "stripe": "20.1.2"
+    "stripe": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "@nuclom/config": "workspace:*",
-    "@types/node": "^25.0.9",
+    "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
     "typescript": "catalog:"
   },
