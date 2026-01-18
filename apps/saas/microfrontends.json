@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "options": {
+    "localProxyPort": 3091
+  },
   "applications": {
     "nuclom-saas": {
       "development": {
