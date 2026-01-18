@@ -1,14 +1,5 @@
 /**
- * Next.js Middleware
- *
- * Handles:
- * - Authentication checks for protected routes
- * - Rate limiting for API routes (Redis-based, disabled if Redis not configured)
- * - Request logging with structured output
- * - Request ID generation and propagation
- *
- * Uses Node.js runtime for better-auth session validation which requires
- * database access.
+ * Next.js Middleware - Authentication, rate limiting, and request tracing
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
@@ -26,468 +17,212 @@ import {
   UPLOAD_RATE_LIMIT,
 } from '@/lib/rate-limit';
 
-// =============================================================================
-// Redis Rate Limiting (disabled if not configured)
-// =============================================================================
+const logger = createLogger('http');
 
-function createRedisClient(): Redis | null {
-  const url = env.UPSTASH_REDIS_REST_URL;
-  const token = env.UPSTASH_REDIS_REST_TOKEN;
+// Route patterns
+const PUBLIC_API = ['/api/health', '/api/share/', '/api/beta-access'];
+const PUBLIC_PAGES = [
+  '/',
+  '/auth',
+  '/auth-error',
+  '/sign-up',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/verification-pending',
+  '/accept-invitation',
+  '/share',
+  '/embed',
+  '/pricing',
+  '/about',
+  '/terms',
+  '/privacy',
+  '/cookies',
+  '/content-policy',
+  '/features',
+  '/brand',
+  '/status',
+  '/blog',
+  '/contact',
+  '/help',
+  '/docs',
+  '/support',
+  '/home',
+  '/opengraph-image',
+  '/twitter-image',
+];
+const SENSITIVE_ROUTES = [
+  '/api/auth/reset-password',
+  '/api/auth/forgot-password',
+  '/api/auth/change-password',
+  '/api/user/delete',
+];
+const AUTH_ROUTES = [
+  '/api/auth/sign-in',
+  '/api/auth/sign-up',
+  '/api/auth/sign-out',
+  '/api/auth/reset-password',
+  '/api/auth/verify-email',
+  '/api/auth/forgot-password',
+  '/api/auth/two-factor',
+  '/api/auth/passkey',
+];
+const UPLOAD_ROUTES = ['/api/videos/upload', '/api/upload'];
 
-  if (!url || !token) {
-    return null;
-  }
+const matchesAny = (path: string, patterns: string[]) =>
+  patterns.some((p) => path === p || path.startsWith(`${p}/`) || path.startsWith(p));
 
-  return new Redis({
-    url,
-    token,
-  });
-}
+// Rate limiting setup (lazy-initialized)
+type RateLimitType = 'api' | 'auth' | 'sensitive' | 'upload';
+const rateLimiters: Record<RateLimitType, Ratelimit | null> = { api: null, auth: null, sensitive: null, upload: null };
+let rateLimitersReady = false;
 
-// Cache rate limiters
-let apiRateLimiter: Ratelimit | null = null;
-let authRateLimiter: Ratelimit | null = null;
-let sensitiveRateLimiter: Ratelimit | null = null;
-let uploadRateLimiter: Ratelimit | null = null;
-let rateLimitersInitialized = false;
+function initRateLimiters() {
+  if (rateLimitersReady) return;
+  rateLimitersReady = true;
 
-function initializeRateLimiters() {
-  if (rateLimitersInitialized) return;
+  if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) return;
 
-  const redis = createRedisClient();
-  if (!redis) {
-    rateLimitersInitialized = true;
-    return;
-  }
-
-  apiRateLimiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(API_RATE_LIMIT.maxRequests, '1 m'),
-    prefix: 'ratelimit:api',
-  });
-
-  authRateLimiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(AUTH_RATE_LIMIT.maxRequests, '15 m'),
-    prefix: 'ratelimit:auth',
-  });
-
-  sensitiveRateLimiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(SENSITIVE_RATE_LIMIT.maxRequests, '1 h'),
-    prefix: 'ratelimit:sensitive',
-  });
-
-  uploadRateLimiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(UPLOAD_RATE_LIMIT.maxRequests, '1 h'),
-    prefix: 'ratelimit:upload',
-  });
-
-  rateLimitersInitialized = true;
-}
-
-async function checkRateLimit(
-  identifier: string,
-  type: 'api' | 'auth' | 'sensitive' | 'upload',
-): Promise<{ success: boolean; remaining: number; resetAt: number; limit: number } | null> {
-  initializeRateLimiters();
-
-  let rateLimiter: Ratelimit | null = null;
-  let config = API_RATE_LIMIT;
-
-  switch (type) {
-    case 'auth':
-      rateLimiter = authRateLimiter;
-      config = AUTH_RATE_LIMIT;
-      break;
-    case 'sensitive':
-      rateLimiter = sensitiveRateLimiter;
-      config = SENSITIVE_RATE_LIMIT;
-      break;
-    case 'upload':
-      rateLimiter = uploadRateLimiter;
-      config = UPLOAD_RATE_LIMIT;
-      break;
-    default:
-      rateLimiter = apiRateLimiter;
-      config = API_RATE_LIMIT;
-  }
-
-  // Rate limiting disabled when Redis is not configured
-  if (!rateLimiter) {
-    return null;
-  }
-
-  const result = await rateLimiter.limit(`${type}:${identifier}`);
-
-  return {
-    success: result.success,
-    remaining: result.remaining,
-    resetAt: result.reset,
-    limit: config.maxRequests,
+  const redis = new Redis({ url: env.UPSTASH_REDIS_REST_URL, token: env.UPSTASH_REDIS_REST_TOKEN });
+  const configs = {
+    api: { limit: API_RATE_LIMIT.maxRequests, window: '1 m' as const },
+    auth: { limit: AUTH_RATE_LIMIT.maxRequests, window: '15 m' as const },
+    sensitive: { limit: SENSITIVE_RATE_LIMIT.maxRequests, window: '1 h' as const },
+    upload: { limit: UPLOAD_RATE_LIMIT.maxRequests, window: '1 h' as const },
   };
+
+  for (const [type, cfg] of Object.entries(configs)) {
+    rateLimiters[type as RateLimitType] = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(cfg.limit, cfg.window),
+      prefix: `ratelimit:${type}`,
+    });
+  }
 }
 
-// =============================================================================
-// Route Classification
-// =============================================================================
-
-function isAuthRoute(pathname: string): boolean {
-  const authPatterns = [
-    '/api/auth/sign-in',
-    '/api/auth/sign-up',
-    '/api/auth/sign-out',
-    '/api/auth/reset-password',
-    '/api/auth/verify-email',
-    '/api/auth/forgot-password',
-    '/api/auth/two-factor',
-    '/api/auth/passkey',
-  ];
-  return authPatterns.some((pattern) => pathname.startsWith(pattern));
+// Helpers
+function normalizeError(error: unknown): Error {
+  if (error instanceof Error) {
+    const desc = Object.getOwnPropertyDescriptor(error, 'message');
+    if (desc && !desc.writable && !desc.set) {
+      const e = new Error(error.message);
+      e.name = error.name;
+      e.stack = error.stack;
+      return e;
+    }
+    return error;
+  }
+  return new Error(String(error));
 }
 
-function isSensitiveRoute(pathname: string): boolean {
-  const sensitivePatterns = [
-    '/api/auth/reset-password',
-    '/api/auth/forgot-password',
-    '/api/auth/change-password',
-    '/api/user/delete',
-  ];
-  return sensitivePatterns.some((pattern) => pathname.startsWith(pattern));
+function jsonResponse(body: object, status: number, headers: Record<string, string> = {}) {
+  return new NextResponse(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...headers },
+  });
 }
 
-function isUploadRoute(pathname: string): boolean {
-  const uploadPatterns = ['/api/videos/upload', '/api/upload'];
-  return uploadPatterns.some((pattern) => pathname.startsWith(pattern));
+function isPublicRoute(pathname: string): boolean {
+  if (pathname.startsWith('/api/')) {
+    return (
+      matchesAny(pathname, PUBLIC_API) ||
+      pathname.startsWith('/api/auth/') ||
+      pathname.startsWith('/api/webhooks/') ||
+      pathname === '/api/cron'
+    );
+  }
+  return matchesAny(pathname, PUBLIC_PAGES);
 }
 
-function isApiRoute(pathname: string): boolean {
-  return pathname.startsWith('/api/');
+function getRateLimitType(pathname: string): RateLimitType {
+  if (matchesAny(pathname, SENSITIVE_ROUTES)) return 'sensitive';
+  if (matchesAny(pathname, AUTH_ROUTES)) return 'auth';
+  if (matchesAny(pathname, UPLOAD_ROUTES)) return 'upload';
+  return 'api';
 }
 
-function isPublicApiRoute(pathname: string): boolean {
-  const publicPatterns = ['/api/health', '/api/share/', '/api/beta-access'];
-  return publicPatterns.some((pattern) => pathname.startsWith(pattern));
-}
-
-function isCronRoute(pathname: string): boolean {
-  return pathname === '/api/cron';
-}
-
-function isBetterAuthRoute(pathname: string): boolean {
-  // Better-auth handles its own routes - don't interfere with auth flow
-  return pathname.startsWith('/api/auth/');
-}
-
-function isProtectedApiRoute(pathname: string): boolean {
-  // API routes that require authentication
-  // Exclude: public routes, auth routes (handled by better-auth), webhooks
-  if (!isApiRoute(pathname)) return false;
-  if (isPublicApiRoute(pathname)) return false;
-  if (isCronRoute(pathname)) return false;
-  if (isBetterAuthRoute(pathname)) return false;
-  if (pathname.startsWith('/api/webhooks/')) return false;
-
-  return true;
-}
-
-function isPublicPageRoute(pathname: string): boolean {
-  // Routes that should be accessible without authentication
-  const publicPatterns = [
-    '/',
-    '/auth',
-    '/auth-error',
-    '/sign-up',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/reset-password',
-    '/verify-email',
-    '/verification-pending',
-    '/accept-invitation',
-    '/share',
-    '/embed',
-    '/pricing',
-    '/about',
-    '/terms',
-    '/privacy',
-    '/cookies',
-    '/content-policy',
-    '/features',
-    '/brand',
-    '/status',
-    '/blog',
-    '/contact',
-    '/help',
-    '/docs',
-    '/support',
-    '/home',
-    '/opengraph-image',
-    '/twitter-image',
-  ];
-  return publicPatterns.some((pattern) => pathname === pattern || pathname.startsWith(`${pattern}/`));
-}
-
-function isProtectedPageRoute(pathname: string): boolean {
-  // All non-API routes are protected unless explicitly public
-  if (isApiRoute(pathname)) return false;
-  return !isPublicPageRoute(pathname);
-}
-
-// =============================================================================
-// Request Logging
-// =============================================================================
-
-const requestLogger = createLogger('http');
-
-function generateRequestId(): string {
-  return crypto.randomUUID();
-}
-
-// =============================================================================
-// Middleware
-// =============================================================================
-
+// Main middleware
 export async function proxy(request: NextRequest) {
-  const startTime = Date.now();
   const { pathname } = request.nextUrl;
   const method = request.method;
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
-  // Generate or use existing request ID
-  const requestId = request.headers.get('x-request-id') || generateRequestId();
+  try {
+    // Auth check for protected routes
+    if (!isPublicRoute(pathname)) {
+      const sessionCookie = getSessionCookie(request, { cookiePrefix: 'nuclom' });
+      const session = sessionCookie ? await auth.api.getSession({ headers: request.headers }) : null;
 
-  // =============================================================================
-  // Authentication Check for Protected Routes
-  // =============================================================================
+      if (!session) {
+        if (pathname.startsWith('/api/')) {
+          logger.warn({ requestId, method, path: pathname, status: 401 }, `${method} ${pathname} 401`);
+          return jsonResponse({ error: 'Unauthorized', message: 'Authentication required' }, 401, {
+            'x-request-id': requestId,
+          });
+        }
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
 
-  // Check if route requires authentication
-  const needsAuth = isProtectedApiRoute(pathname) || isProtectedPageRoute(pathname);
+    // Non-API routes: skip rate limiting
+    if (!pathname.startsWith('/api/')) {
+      const res = NextResponse.next();
+      res.headers.set('x-request-id', requestId);
+      return res;
+    }
 
-  if (needsAuth) {
-    // Fast check: if no session cookie exists, reject immediately without DB lookup
-    const sessionCookie = getSessionCookie(request, { cookiePrefix: 'nuclom' });
-    if (!sessionCookie) {
-      // For API routes, return 401 Unauthorized
-      if (isApiRoute(pathname)) {
-        requestLogger.warn(
+    // Rate limiting for API routes
+    initRateLimiters();
+    const type = getRateLimitType(pathname);
+    const limiter = rateLimiters[type];
+    const limits = {
+      api: API_RATE_LIMIT,
+      auth: AUTH_RATE_LIMIT,
+      sensitive: SENSITIVE_RATE_LIMIT,
+      upload: UPLOAD_RATE_LIMIT,
+    }[type];
+
+    if (limiter) {
+      const result = await limiter.limit(`${type}:${getClientIdentifier(request)}`);
+
+      if (!result.success) {
+        const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+        logger.warn({ requestId, method, path: pathname, status: 429 }, `${method} ${pathname} 429`);
+        return jsonResponse(
+          { error: 'Too Many Requests', message: `Rate limit exceeded. Retry in ${retryAfter}s.`, retryAfter },
+          429,
           {
-            requestId,
-            method,
-            path: pathname,
-            status: 401,
-          },
-          `← ${method} ${pathname} 401 Unauthorized (no session cookie)`,
-        );
-
-        return new NextResponse(
-          JSON.stringify({
-            error: 'Unauthorized',
-            message: 'Authentication required',
-          }),
-          {
-            status: 401,
-            headers: {
-              'Content-Type': 'application/json',
-              'x-request-id': requestId,
-            },
+            'x-request-id': requestId,
+            'X-RateLimit-Limit': String(limits.maxRequests),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil(result.reset / 1000)),
+            'Retry-After': String(retryAfter),
           },
         );
       }
 
-      // For page routes, redirect to sign-in
-      const signInUrl = new URL('/login', request.url);
-      signInUrl.searchParams.set('callbackUrl', pathname);
-
-      requestLogger.info(
-        {
-          requestId,
-          path: pathname,
-          redirectTo: signInUrl.pathname,
-        },
-        `Redirecting unauthenticated user to sign-in (no session cookie)`,
-      );
-
-      return NextResponse.redirect(signInUrl);
+      const res = NextResponse.next();
+      res.headers.set('x-request-id', requestId);
+      res.headers.set('X-RateLimit-Limit', String(limits.maxRequests));
+      res.headers.set('X-RateLimit-Remaining', String(result.remaining));
+      res.headers.set('X-RateLimit-Reset', String(Math.ceil(result.reset / 1000)));
+      return res;
     }
 
-    // Full session validation using better-auth (validates against DB)
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!session) {
-      // For API routes, return 401 Unauthorized
-      if (isApiRoute(pathname)) {
-        requestLogger.warn(
-          {
-            requestId,
-            method,
-            path: pathname,
-            status: 401,
-          },
-          `← ${method} ${pathname} 401 Unauthorized`,
-        );
-
-        return new NextResponse(
-          JSON.stringify({
-            error: 'Unauthorized',
-            message: 'Authentication required',
-          }),
-          {
-            status: 401,
-            headers: {
-              'Content-Type': 'application/json',
-              'x-request-id': requestId,
-            },
-          },
-        );
-      }
-
-      // For page routes, redirect to sign-in
-      const signInUrl = new URL('/login', request.url);
-      signInUrl.searchParams.set('callbackUrl', pathname);
-
-      requestLogger.info(
-        {
-          requestId,
-          path: pathname,
-          redirectTo: signInUrl.pathname,
-        },
-        `Redirecting unauthenticated user to sign-in`,
-      );
-
-      return NextResponse.redirect(signInUrl);
-    }
+    const res = NextResponse.next();
+    res.headers.set('x-request-id', requestId);
+    return res;
+  } catch (error) {
+    const e = normalizeError(error);
+    logger.error({ requestId, method, path: pathname, error: e.message }, `Middleware error: ${e.message}`);
+    throw e;
   }
-
-  // =============================================================================
-  // Non-API Routes - Skip rate limiting and detailed logging
-  // =============================================================================
-
-  if (!isApiRoute(pathname)) {
-    const response = NextResponse.next();
-    response.headers.set('x-request-id', requestId);
-    return response;
-  }
-
-  // Skip public endpoints (no rate limiting needed)
-  if (isPublicApiRoute(pathname)) {
-    const response = NextResponse.next();
-    response.headers.set('x-request-id', requestId);
-
-    // Log completion for public routes
-    const durationMs = Date.now() - startTime;
-    requestLogger.info(
-      {
-        requestId,
-        method,
-        path: pathname,
-        durationMs,
-      },
-      `← ${method} ${pathname} (${durationMs}ms)`,
-    );
-
-    return response;
-  }
-
-  // Get client identifier
-  const identifier = getClientIdentifier(request);
-
-  // Determine rate limit type based on route
-  let rateLimitType: 'api' | 'auth' | 'sensitive' | 'upload' = 'api';
-
-  if (isSensitiveRoute(pathname)) {
-    rateLimitType = 'sensitive';
-  } else if (isAuthRoute(pathname)) {
-    rateLimitType = 'auth';
-  } else if (isUploadRoute(pathname)) {
-    rateLimitType = 'upload';
-  }
-
-  // Check rate limit (returns null if Redis not configured)
-  const result = await checkRateLimit(identifier, rateLimitType);
-
-  // If rate limiting is disabled (no Redis), continue without rate limit headers
-  if (!result) {
-    const response = NextResponse.next();
-    response.headers.set('x-request-id', requestId);
-    return response;
-  }
-
-  // If rate limited, return 429
-  if (!result.success) {
-    const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
-    const durationMs = Date.now() - startTime;
-
-    requestLogger.warn(
-      {
-        requestId,
-        method,
-        path: pathname,
-        status: 429,
-        durationMs,
-        rateLimit: {
-          type: rateLimitType,
-          limit: result.limit,
-          remaining: 0,
-          retryAfter,
-        },
-      },
-      `← ${method} ${pathname} 429 Rate Limited (${durationMs}ms)`,
-    );
-
-    return new NextResponse(
-      JSON.stringify({
-        error: 'Too Many Requests',
-        message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
-        retryAfter,
-      }),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-request-id': requestId,
-          'X-RateLimit-Limit': String(result.limit),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
-          'Retry-After': String(retryAfter),
-        },
-      },
-    );
-  }
-
-  // Continue with rate limit headers and request ID
-  const response = NextResponse.next();
-  response.headers.set('x-request-id', requestId);
-  response.headers.set('X-RateLimit-Limit', String(result.limit));
-  response.headers.set('X-RateLimit-Remaining', String(result.remaining));
-  response.headers.set('X-RateLimit-Reset', String(Math.ceil(result.resetAt / 1000)));
-
-  return response;
 }
 
-// =============================================================================
-// Middleware Route Matcher
-// =============================================================================
-
-/**
- * Excluded paths/prefixes:
- * - _next/static     : Next.js static files
- * - _next/image      : Next.js image optimization
- * - public           : Public folder assets
- * - favicon.ico      : Favicon
- * - .well-known/     : Well-known URIs (workflows, etc.)
- * - sitemap.xml      : SEO sitemap
- * - robots.txt       : SEO robots file
- * - manifest.webmanifest : PWA manifest
- * - openapi.(json|yaml)  : API documentation
- *
- * Excluded file extensions:
- * - Images: svg, png, jpg, jpeg, gif, webp, ico
- * - Fonts:  woff, woff2, ttf, eot
- * - Other:  webmanifest
- */
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|public|favicon\\.ico|\\.well-known/|sitemap\\.xml|robots\\.txt|manifest\\.webmanifest|openapi\\.json|openapi\\.yaml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|eot|webmanifest)).*)',
