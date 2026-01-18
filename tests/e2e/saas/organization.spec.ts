@@ -65,12 +65,22 @@ test.describe('Organization Dashboard', () => {
   });
 
   test.describe('Unauthenticated User', () => {
-    test('should redirect to landing page when accessing org route', async ({ page }) => {
-      await page.context().clearCookies();
+    test('should redirect to landing page when accessing org route', async ({ browser }) => {
+      // Create a fresh context without any auth state
+      const context = await browser.newContext({
+        ...(process.env.VERCEL_AUTOMATION_BYPASS_SECRET && {
+          extraHTTPHeaders: {
+            'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+          },
+        }),
+      });
+      const page = await context.newPage();
+
       await page.goto(`/org/${testOrg}`);
 
       // Should redirect to landing or login
       await page.waitForURL(/^\/$|\/login/, { timeout: 10000 });
+      await context.close();
     });
   });
 });

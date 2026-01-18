@@ -21,10 +21,11 @@ export const TEST_CONFIG = {
  */
 export const test = base.extend<{
   authenticatedPage: Page;
+  unauthenticatedPage: Page;
 }>({
   // Authenticated page fixture - uses stored auth state
   authenticatedPage: async ({ browser }, use) => {
-    const authFile = path.join(process.cwd(), 'playwright/.auth/user.json');
+    const authFile = path.join(process.cwd(), 'saas/.auth/user.json');
 
     // Include Vercel bypass headers when running in CI
     const extraHTTPHeaders = process.env.VERCEL_AUTOMATION_BYPASS_SECRET
@@ -42,6 +43,20 @@ export const test = base.extend<{
       context = await browser.newContext({ extraHTTPHeaders });
     }
 
+    const page = await context.newPage();
+    await use(page);
+    await context.close();
+  },
+
+  // Unauthenticated page fixture - fresh context with NO auth state
+  unauthenticatedPage: async ({ browser }, use) => {
+    // Include Vercel bypass headers (to bypass deployment protection, not auth)
+    const extraHTTPHeaders = process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? { 'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET }
+      : undefined;
+
+    // Create context WITHOUT storage state - truly unauthenticated
+    const context = await browser.newContext({ extraHTTPHeaders });
     const page = await context.newPage();
     await use(page);
     await context.close();

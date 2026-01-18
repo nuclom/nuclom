@@ -129,15 +129,23 @@ test.describe('Register Page', () => {
 });
 
 test.describe('Authentication Flow', () => {
-  test('unauthenticated user is redirected from protected routes', async ({ page }) => {
-    // Clear any existing cookies
-    await page.context().clearCookies();
+  test('unauthenticated user is redirected from protected routes', async ({ browser }) => {
+    // Create a fresh context without any auth state
+    const context = await browser.newContext({
+      ...(process.env.VERCEL_AUTOMATION_BYPASS_SECRET && {
+        extraHTTPHeaders: {
+          'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+        },
+      }),
+    });
+    const page = await context.newPage();
 
     // Try to access a protected route (using e2e-tests org as example)
     await page.goto('/e2e-tests');
 
     // Should redirect to landing or login
     await expect(page).toHaveURL(/^\/$|\/login|\/auth/);
+    await context.close();
   });
 
   test('login form disables during submission', async ({ page }) => {

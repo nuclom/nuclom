@@ -70,11 +70,21 @@ test.describe('Settings Pages', () => {
 });
 
 test.describe('Settings - Unauthenticated', () => {
-  test('should redirect when accessing settings without auth', async ({ page }) => {
-    await page.context().clearCookies();
+  test('should redirect when accessing settings without auth', async ({ browser }) => {
+    // Create a fresh context without any auth state
+    const context = await browser.newContext({
+      ...(process.env.VERCEL_AUTOMATION_BYPASS_SECRET && {
+        extraHTTPHeaders: {
+          'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+        },
+      }),
+    });
+    const page = await context.newPage();
+
     await page.goto(`/org/${testOrg}/settings/profile`);
 
     // Should redirect to landing or login
     await page.waitForURL(/^\/$|\/login|\/auth/, { timeout: 10000 });
+    await context.close();
   });
 });
