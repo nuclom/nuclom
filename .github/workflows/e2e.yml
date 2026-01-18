@@ -54,7 +54,7 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Playwright browsers
-        run: pnpm --filter nuclom-saas exec playwright install chromium chromium_headless_shell --with-deps
+        run: pnpm --filter nuclom-saas exec playwright install chromium chromium-headless-shell --with-deps
 
       - name: Wait for Vercel deployment
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.deployment_url == ''
