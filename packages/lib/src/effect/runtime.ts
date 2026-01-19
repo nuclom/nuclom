@@ -43,6 +43,9 @@ import { type VideoProgressRepository, VideoProgressRepositoryLive } from './ser
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
 import { type VideoSharesRepository, VideoSharesRepositoryLive } from './services/video-shares-repository';
 import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
+import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
+import { type RelationshipDetector, RelationshipDetectorLive } from './services/knowledge/relationship-detector';
+import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 
 // =============================================================================
 // Layer Composition Utilities
@@ -172,6 +175,19 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
   Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
+// Knowledge Graph Services - depend on ContentRepository, Embedding, and AI
+const RelationshipDetectorWithDeps = RelationshipDetectorLive.pipe(
+  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
+const TopicClusterWithDeps = TopicClusterLive.pipe(
+  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
+const DecisionTrackerWithDeps = DecisionTrackerLive.pipe(
+  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
@@ -194,6 +210,9 @@ const AppServicesLive = Layer.mergeAll(
   AIChatKBWithDeps,
   ContentRepositoryWithDeps,
   ContentProcessorWithDeps,
+  RelationshipDetectorWithDeps,
+  TopicClusterWithDeps,
+  DecisionTrackerWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -230,7 +249,10 @@ export type AppServices =
   | StripeServiceTag
   | SlackMonitoring
   | ContentRepository
-  | ContentProcessor;
+  | ContentProcessor
+  | RelationshipDetector
+  | TopicCluster
+  | DecisionTracker;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

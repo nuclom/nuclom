@@ -7,12 +7,8 @@
 import { Effect } from 'effect';
 import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  SlackContentAdapter,
-  handleSlackEvent,
-  verifySlackSignature,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository, verifySlackSignature } from '@nuclom/lib/effect/services/content';
+import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 
 interface SlackEventPayload {
@@ -29,24 +25,6 @@ interface SlackEventPayload {
     text?: string;
     ts?: string;
     thread_ts?: string;
-    files?: Array<{
-      id: string;
-      name: string;
-      mimetype: string;
-      url_private?: string;
-    }>;
-    message?: {
-      type: string;
-      user?: string;
-      text?: string;
-      ts?: string;
-    };
-    previous_message?: {
-      type: string;
-      user?: string;
-      text?: string;
-      ts?: string;
-    };
   };
   event_id?: string;
   event_time?: number;
@@ -62,20 +40,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing Slack signature' }, { status: 401 });
   }
 
-  // Verify signature
-  const verifyEffect = Effect.gen(function* () {
-    return yield* verifySlackSignature(slackSignature, slackTimestamp, rawBody);
-  });
+  // Get signing secret
+  const signingSecret = env.SLACK_CONTENT_SIGNING_SECRET;
+  if (!signingSecret) {
+    logger.warn('[Slack Webhook] No signing secret configured');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+  }
 
-  try {
-    const isValid = await Effect.runPromise(Effect.provide(verifyEffect, createPublicLayer()));
-
-    if (!isValid) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-  } catch (err) {
-    logger.error('[Slack Content Webhook Signature Error]', err);
-    return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
+  // Verify signature using the pure function
+  const isValid = verifySlackSignature(slackSignature, slackTimestamp, signingSecret, rawBody);
+  if (!isValid) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   // Parse the payload
@@ -99,34 +74,38 @@ export async function POST(request: Request) {
     // Process the event asynchronously
     const processEffect = Effect.gen(function* () {
       const contentRepo = yield* ContentRepository;
-      const slackAdapter = yield* SlackContentAdapter;
 
       // Find content source for this team
-      // We need to search across all sources since we don't know the org yet
-      // This is a limitation - we'd need a separate lookup table for team -> source mapping
-      // For now, we'll use the handleSlackEvent which handles the lookup
-
-      yield* handleSlackEvent(teamId, {
-        type: event.type,
-        subtype: event.subtype,
-        channel: event.channel,
-        channelType: event.channel_type,
-        user: event.user,
-        text: event.text,
-        ts: event.ts,
-        threadTs: event.thread_ts,
-        eventId: payload.event_id,
-        eventTime: payload.event_time,
-        message: event.message,
-        previousMessage: event.previous_message,
+      // We need to search across all sources and filter by team ID
+      const allSlackSources = yield* contentRepo.getSources({
+        organizationId: '', // Search all orgs
+        type: 'slack',
       });
 
-      return { success: true };
+      const relevantSources = allSlackSources.items.filter((source) => {
+        const config = source.config as { settings?: { teamId?: string } } | null;
+        const credentials = source.credentials as { teamId?: string } | null;
+        return config?.settings?.teamId === teamId || credentials?.teamId === teamId;
+      });
+
+      if (relevantSources.length === 0) {
+        logger.debug('[Slack Webhook] No relevant sources found', { teamId });
+        return { success: true, processed: false };
+      }
+
+      // Log the event - actual sync can be triggered separately
+      logger.info('[Slack Webhook] Found relevant sources', {
+        count: relevantSources.length,
+        teamId,
+        eventType: event.type,
+      });
+
+      return { success: true, processed: true };
     });
 
     // Run asynchronously and return immediately (Slack expects fast response)
     Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
-      logger.error('[Slack Content Webhook Process Error]', err);
+      logger.error('[Slack Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
     });
 
     // Log event type for debugging

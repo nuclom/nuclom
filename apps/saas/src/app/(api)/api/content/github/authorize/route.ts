@@ -5,9 +5,8 @@
  */
 
 import { auth } from '@nuclom/lib/auth';
-import { GitHubContentAdapter, GitHubContentAdapterLive, getGitHubOAuthUrl } from '@nuclom/lib/effect/services/content';
-import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { getGitHubAuthUrl } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -26,6 +25,13 @@ export async function GET(request: Request) {
 
   if (!session?.user) {
     return redirect('/login');
+  }
+
+  // Use GitHub content credentials if available, otherwise fall back to auth credentials
+  const clientId = env.GITHUB_CONTENT_CLIENT_ID || env.GITHUB_CLIENT_ID;
+
+  if (!clientId) {
+    return new Response('GitHub integration not configured', { status: 503 });
   }
 
   // Create state with user and org info for callback
@@ -48,13 +54,9 @@ export async function GET(request: Request) {
     path: '/',
   });
 
-  // Get authorization URL
-  const effect = Effect.gen(function* () {
-    const githubAdapter = yield* GitHubContentAdapter;
-    return yield* getGitHubOAuthUrl(state);
-  });
-
-  const authUrl = await Effect.runPromise(Effect.provide(effect, GitHubContentAdapterLive));
+  // Get authorization URL with repo scope for content access
+  const redirectUri = `${getAppUrl()}/api/content/github/callback`;
+  const authUrl = getGitHubAuthUrl(clientId, redirectUri, state, 'repo,read:user');
 
   return redirect(authUrl);
 }

@@ -9,11 +9,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { createFullLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  NotionContentAdapter,
-  exchangeNotionCode,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository, exchangeNotionCode } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 
 interface OAuthState {
@@ -41,7 +38,7 @@ export async function GET(request: Request) {
 
   // Handle OAuth errors from Notion
   if (error) {
-    logger.error('[Notion Content OAuth Error]', { error });
+    logger.error('[Notion Content OAuth Error]', new Error(error));
     return redirect('/settings/integrations?error=notion_content_oauth_failed');
   }
 
@@ -72,14 +69,23 @@ export async function GET(request: Request) {
     return redirect('/settings/integrations?error=notion_content_state_expired');
   }
 
-  const { userId, organizationId } = parsedState;
+  const { organizationId } = parsedState;
+
+  // Get credentials
+  const clientId = env.NOTION_CLIENT_ID;
+  const clientSecret = env.NOTION_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return redirect('/settings/integrations?error=notion_content_not_configured');
+  }
+
+  const redirectUri = `${getAppUrl()}/api/content/notion/callback`;
 
   const effect = Effect.gen(function* () {
-    const notionAdapter = yield* NotionContentAdapter;
     const contentRepo = yield* ContentRepository;
 
     // Exchange code for tokens
-    const tokens = yield* exchangeNotionCode(code);
+    const tokens = yield* Effect.promise(() => exchangeNotionCode(clientId, clientSecret, code, redirectUri));
 
     // Create or update content source
     const existingSources = yield* contentRepo.getSources({
@@ -87,9 +93,10 @@ export async function GET(request: Request) {
       type: 'notion',
     });
 
-    const existingSource = existingSources.find(
-      (s) => s.credentials && (s.credentials as { workspaceId?: string }).workspaceId === tokens.workspace_id,
-    );
+    const existingSource = existingSources.items.find((s) => {
+      const config = s.config as { settings?: { workspaceId?: string } } | null;
+      return config?.settings?.workspaceId === tokens.workspace_id;
+    });
 
     if (existingSource) {
       // Update existing source
@@ -97,13 +104,19 @@ export async function GET(request: Request) {
         credentials: {
           accessToken: tokens.access_token,
         },
+        config: {
+          settings: {
+            workspaceId: tokens.workspace_id,
+            workspaceName: tokens.workspace_name,
+          },
+        },
       });
     } else {
       // Create new content source
       yield* contentRepo.createSource({
         organizationId,
         type: 'notion',
-        name: `Notion - ${tokens.workspace_name}`,
+        name: `Notion - ${tokens.workspace_name || 'Workspace'}`,
         credentials: {
           accessToken: tokens.access_token,
         },
@@ -111,10 +124,6 @@ export async function GET(request: Request) {
           settings: {
             workspaceId: tokens.workspace_id,
             workspaceName: tokens.workspace_name,
-            workspaceIcon: tokens.workspace_icon,
-            botId: tokens.bot_id,
-            ownerId: tokens.owner?.user?.id,
-            ownerType: tokens.owner?.type,
           },
         },
       });

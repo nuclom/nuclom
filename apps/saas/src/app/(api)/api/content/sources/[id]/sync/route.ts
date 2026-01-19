@@ -57,18 +57,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Parse optional sync options
     let options: { since?: Date; until?: Date; limit?: number; filters?: Record<string, unknown> } | undefined;
-    try {
-      const body = await request.json();
-      if (body) {
-        options = {
-          since: body.since ? new Date(body.since) : undefined,
-          until: body.until ? new Date(body.until) : undefined,
-          limit: body.limit,
-          filters: body.filters,
-        };
-      }
-    } catch {
-      // No body or invalid JSON, use defaults
+    const bodyResult = yield* Effect.tryPromise({
+      try: () => request.json(),
+      catch: () => null, // No body or invalid JSON
+    });
+    if (bodyResult) {
+      const body = bodyResult as { since?: string; until?: string; limit?: number; filters?: Record<string, unknown> };
+      options = {
+        since: body.since ? new Date(body.since) : undefined,
+        until: body.until ? new Date(body.until) : undefined,
+        limit: body.limit,
+        filters: body.filters,
+      };
     }
 
     // Trigger sync
@@ -106,12 +106,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Get sync progress
     const progress = yield* getContentSyncProgress(id);
 
-    return progress ?? {
-      sourceId: id,
-      status: 'idle',
-      itemsProcessed: 0,
-      errors: [],
-    };
+    return (
+      progress ?? {
+        sourceId: id,
+        status: 'idle',
+        itemsProcessed: 0,
+        errors: [],
+      }
+    );
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

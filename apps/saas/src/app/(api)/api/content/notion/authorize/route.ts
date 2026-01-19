@@ -5,9 +5,8 @@
  */
 
 import { auth } from '@nuclom/lib/auth';
-import { NotionContentAdapter, NotionContentAdapterLive, getNotionOAuthUrl } from '@nuclom/lib/effect/services/content';
-import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { getNotionAuthUrl } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -26,6 +25,11 @@ export async function GET(request: Request) {
 
   if (!session?.user) {
     return redirect('/login');
+  }
+
+  // Check if Notion integration is configured
+  if (!env.NOTION_CLIENT_ID || !env.NOTION_CLIENT_SECRET) {
+    return new Response('Notion integration not configured', { status: 503 });
   }
 
   // Create state with user and org info for callback
@@ -49,12 +53,8 @@ export async function GET(request: Request) {
   });
 
   // Get authorization URL
-  const effect = Effect.gen(function* () {
-    const notionAdapter = yield* NotionContentAdapter;
-    return yield* getNotionOAuthUrl(state);
-  });
-
-  const authUrl = await Effect.runPromise(Effect.provide(effect, NotionContentAdapterLive));
+  const redirectUri = `${getAppUrl()}/api/content/notion/callback`;
+  const authUrl = getNotionAuthUrl(env.NOTION_CLIENT_ID, redirectUri, state);
 
   return redirect(authUrl);
 }

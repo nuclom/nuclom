@@ -80,7 +80,17 @@ interface GitHubIssue {
   milestone: { title: string } | null;
   comments: number;
   pull_request?: { url: string };
-  reactions: { total_count: number; '+1': number; '-1': number; laugh: number; hooray: number; confused: number; heart: number; rocket: number; eyes: number };
+  reactions: {
+    total_count: number;
+    '+1': number;
+    '-1': number;
+    laugh: number;
+    hooray: number;
+    confused: number;
+    heart: number;
+    rocket: number;
+    eyes: number;
+  };
   html_url: string;
   url: string;
   created_at: string;
@@ -395,11 +405,7 @@ function prToRawContentItem(
  * Convert a GitHub Issue to a RawContentItem
  */
 function issueToRawContentItem(issue: GitHubIssue, comments: GitHubComment[]): RawContentItem {
-  const sections = [
-    `# ${issue.title}`,
-    '',
-    issue.body || '_No description provided_',
-  ];
+  const sections = [`# ${issue.title}`, '', issue.body || '_No description provided_'];
 
   if (comments.length > 0) {
     sections.push('', '## Comments', '');
@@ -529,11 +535,7 @@ export interface GitHubContentAdapterService extends ContentSourceAdapter {
   /**
    * Sync PRs from a repository
    */
-  syncPRs(
-    source: ContentSource,
-    repo: string,
-    since?: Date,
-  ): Effect.Effect<RawContentItem[], ContentSourceSyncError>;
+  syncPRs(source: ContentSource, repo: string, since?: Date): Effect.Effect<RawContentItem[], ContentSourceSyncError>;
 
   /**
    * Sync issues from a repository
@@ -725,8 +727,7 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
         do {
           const response = yield* Effect.tryPromise({
-            try: () =>
-              githubFetch<GitHubRepo[]>(`/user/repos?per_page=100&page=${page}&sort=updated`, accessToken),
+            try: () => githubFetch<GitHubRepo[]>(`/user/repos?per_page=100&page=${page}&sort=updated`, accessToken),
             catch: (e) =>
               new ContentSourceSyncError({
                 message: `Failed to list repositories: ${e instanceof Error ? e.message : 'Unknown'}`,
@@ -845,18 +846,18 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             // Fetch additional PR data
             const reviews = yield* Effect.tryPromise({
               try: () => githubFetch<GitHubReview[]>(`/repos/${repo}/pulls/${pr.number}/reviews`, accessToken),
-              catch: () => [],
-            });
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubReview[])));
 
             const reviewComments = yield* Effect.tryPromise({
               try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/pulls/${pr.number}/comments`, accessToken),
-              catch: () => [],
-            });
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
 
             const files = yield* Effect.tryPromise({
               try: () => githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken),
-              catch: () => [],
-            });
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubFile[])));
 
             items.push(prToRawContentItem(pr, reviews, reviewComments, files));
           }
@@ -914,8 +915,8 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             // Fetch comments
             const comments = yield* Effect.tryPromise({
               try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/issues/${issue.number}/comments`, accessToken),
-              catch: () => [],
-            });
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
 
             items.push(issueToRawContentItem(issue, comments));
           }
@@ -1017,8 +1018,12 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
                 `/repos/${repo}/contributors?per_page=100`,
                 accessToken,
               ),
-            catch: () => [],
-          });
+            catch: (e) => new Error(String(e)),
+          }).pipe(
+            Effect.catchAll(() =>
+              Effect.succeed([] as Array<{ id: number; login: string; avatar_url: string; type: string }>),
+            ),
+          );
 
           for (const contributor of contributors) {
             const userData: NewGitHubUser = {
@@ -1041,8 +1046,8 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
                   await db.insert(githubUsers).values(userData);
                 }
               },
-              catch: () => null,
-            });
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.void));
           }
         }
 
@@ -1088,7 +1093,9 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
           if (!response) return null;
 
           const content =
-            response.encoding === 'base64' ? Buffer.from(response.content, 'base64').toString('utf-8') : response.content;
+            response.encoding === 'base64'
+              ? Buffer.from(response.content, 'base64').toString('utf-8')
+              : response.content;
 
           // Cache the content
           yield* Effect.tryPromise({
@@ -1114,7 +1121,7 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         }
       }).pipe(
         Effect.mapError(
-          (e) =>
+          (e: unknown) =>
             new ContentSourceSyncError({
               message: e instanceof Error ? e.message : 'Unknown error',
               sourceId: source.id,

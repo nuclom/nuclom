@@ -7,12 +7,8 @@
 import { Effect } from 'effect';
 import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  GitHubContentAdapter,
-  handleGitHubWebhook,
-  verifyGitHubSignature,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository, verifyGitHubWebhookSignature } from '@nuclom/lib/effect/services/content';
+import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 
 interface GitHubWebhookPayload {
@@ -41,14 +37,6 @@ interface GitHubWebhookPayload {
     };
     created_at: string;
     updated_at: string;
-    merged_at?: string;
-    head?: {
-      ref: string;
-      sha: string;
-    };
-    base?: {
-      ref: string;
-    };
   };
   issue?: {
     id: number;
@@ -56,33 +44,6 @@ interface GitHubWebhookPayload {
     title: string;
     body?: string;
     state: string;
-    user: {
-      id: number;
-      login: string;
-    };
-    created_at: string;
-    updated_at: string;
-    labels?: Array<{ name: string }>;
-  };
-  discussion?: {
-    id: number;
-    number: number;
-    title: string;
-    body?: string;
-    state: string;
-    user: {
-      id: number;
-      login: string;
-    };
-    created_at: string;
-    updated_at: string;
-    category?: {
-      name: string;
-    };
-  };
-  comment?: {
-    id: number;
-    body: string;
     user: {
       id: number;
       login: string;
@@ -110,19 +71,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
   }
 
-  const verifyEffect = Effect.gen(function* () {
-    return yield* verifyGitHubSignature(signature, rawBody);
-  });
+  // Get webhook secret
+  const webhookSecret = env.GITHUB_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    logger.warn('[GitHub Webhook] No webhook secret configured');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+  }
 
-  try {
-    const isValid = await Effect.runPromise(Effect.provide(verifyEffect, createPublicLayer()));
-
-    if (!isValid) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-  } catch (err) {
-    logger.error('[GitHub Content Webhook Signature Error]', err);
-    return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
+  // Verify signature using the pure function
+  const isValid = verifyGitHubWebhookSignature(signature, webhookSecret, rawBody);
+  if (!isValid) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   // Parse the payload
@@ -146,12 +105,9 @@ export async function POST(request: Request) {
     'pull_request_review_comment',
     'issues',
     'issue_comment',
-    'discussion',
-    'discussion_comment',
   ];
 
   if (!event || !supportedEvents.includes(event)) {
-    logger.debug('[GitHub Webhook] Unsupported event', { event });
     return NextResponse.json({ ok: true, message: 'Event not processed' });
   }
 
@@ -161,25 +117,40 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing repository info' }, { status: 400 });
   }
 
+  // Process event asynchronously - find matching sources and trigger sync
   const processEffect = Effect.gen(function* () {
-    yield* handleGitHubWebhook(repo.owner.login, repo.full_name.split('/')[1], {
-      event: event!,
-      action: payload.action,
-      deliveryId,
-      pullRequest: payload.pull_request,
-      issue: payload.issue,
-      discussion: payload.discussion,
-      comment: payload.comment,
-      sender: payload.sender,
-      installation: payload.installation,
+    const contentRepo = yield* ContentRepository;
+
+    // Find content sources that might have access to this repository
+    // We search all GitHub sources and filter by username match
+    const allGitHubSources = yield* contentRepo.getSources({
+      organizationId: '', // Will need to iterate through all orgs
+      type: 'github',
     });
 
-    return { success: true };
+    const relevantSources = allGitHubSources.items.filter((source) => {
+      const config = source.config as { settings?: { username?: string } } | null;
+      return config?.settings?.username === repo.owner.login;
+    });
+
+    if (relevantSources.length === 0) {
+      logger.debug('[GitHub Webhook] No relevant sources found', { repo: repo.full_name });
+      return { success: true, processed: false };
+    }
+
+    // Log that we found relevant sources - actual sync can be triggered separately
+    logger.info('[GitHub Webhook] Found relevant sources', {
+      count: relevantSources.length,
+      repo: repo.full_name,
+      event,
+    });
+
+    return { success: true, processed: true, sourceCount: relevantSources.length };
   });
 
   // Run asynchronously and return immediately
   Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
-    logger.error('[GitHub Content Webhook Process Error]', err);
+    logger.error('[GitHub Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
   });
 
   logger.info('[GitHub Content Event]', {

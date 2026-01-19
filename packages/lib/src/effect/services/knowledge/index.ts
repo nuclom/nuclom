@@ -8,7 +8,12 @@
  */
 
 // Relationship Detector
-export type { RelationshipDetectorService, RelationshipCandidate, DetectionOptions, DetectionResult } from './relationship-detector';
+export type {
+  RelationshipDetectorService,
+  RelationshipCandidate,
+  DetectionOptions,
+  DetectionResult,
+} from './relationship-detector';
 export {
   RelationshipDetector,
   RelationshipDetectorLive,

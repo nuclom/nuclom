@@ -538,7 +538,14 @@ const makeSlackContentAdapter = Effect.gen(function* () {
             const limit = options?.limit || 50;
 
             // Fetch messages
-            const historyResponse = await fetchChannelHistory(accessToken, channelId, undefined, oldest, undefined, limit);
+            const historyResponse = await fetchChannelHistory(
+              accessToken,
+              channelId,
+              undefined,
+              oldest,
+              undefined,
+              limit,
+            );
 
             hasMore = hasMore || historyResponse.has_more;
 
@@ -574,7 +581,8 @@ const makeSlackContentAdapter = Effect.gen(function* () {
           return {
             items,
             hasMore,
-            nextCursor: hasMore && items.length > 0 ? `${channelIds[0]}:${items[items.length - 1].externalId}` : undefined,
+            nextCursor:
+              hasMore && items.length > 0 ? `${channelIds[0]}:${items[items.length - 1].externalId}` : undefined,
           };
         },
         catch: (e) =>
@@ -606,9 +614,13 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                 const parentMessage = response.messages[0];
 
                 // Get channel info
-                const channelsResponse = await slackFetch<SlackChannelsListResponse>('conversations.info', accessToken, {
-                  channel: channelId,
-                });
+                const channelsResponse = await slackFetch<SlackChannelsListResponse>(
+                  'conversations.info',
+                  accessToken,
+                  {
+                    channel: channelId,
+                  },
+                );
                 const channel = (channelsResponse as unknown as { channel: SlackChannelInfo }).channel;
 
                 if (response.messages.length > 1) {
@@ -827,7 +839,19 @@ const makeSlackContentAdapter = Effect.gen(function* () {
         if (!item.item?.channel || !item.item?.ts) {
           return Effect.succeed(null);
         }
-        return service.fetchItem(source, item.item.ts);
+        // Map auth errors to sync errors for consistent error type
+        return service.fetchItem(source, item.item.ts).pipe(
+          Effect.mapError((e) =>
+            e._tag === 'ContentSourceAuthError'
+              ? new ContentSourceSyncError({
+                  message: e.message,
+                  sourceId: source.id,
+                  sourceType: 'slack',
+                  cause: e,
+                })
+              : e,
+          ),
+        );
       }
 
       return Effect.tryPromise({
@@ -911,11 +935,7 @@ export const createSlackContentAdapter = () =>
 /**
  * Get Slack OAuth URL with content scopes
  */
-export const getSlackContentAuthUrl = (
-  clientId: string,
-  redirectUri: string,
-  state: string,
-): string => {
+export const getSlackContentAuthUrl = (clientId: string, redirectUri: string, state: string): string => {
   const scopes = SLACK_CONTENT_SCOPES.join(',');
   const params = new URLSearchParams({
     client_id: clientId,
@@ -924,6 +944,67 @@ export const getSlackContentAuthUrl = (
     state,
   });
   return `https://slack.com/oauth/v2/authorize?${params.toString()}`;
+};
+
+/**
+ * Exchange Slack OAuth code for access token
+ */
+export const exchangeSlackCode = async (
+  clientId: string,
+  clientSecret: string,
+  code: string,
+  redirectUri: string,
+): Promise<{
+  access_token: string;
+  token_type: string;
+  scope: string;
+  team: { id: string; name: string };
+  authed_user: { id: string };
+}> => {
+  const response = await fetch('https://slack.com/api/oauth.v2.access', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+    }).toString(),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Slack OAuth error: ${error}`);
+  }
+
+  const data = await response.json();
+  if (!data.ok) {
+    throw new Error(`Slack OAuth error: ${data.error || 'Unknown error'}`);
+  }
+
+  return data as {
+    access_token: string;
+    token_type: string;
+    scope: string;
+    team: { id: string; name: string };
+    authed_user: { id: string };
+  };
+};
+
+/**
+ * Verify Slack request signature
+ */
+export const verifySlackSignature = (signature: string, timestamp: string, secret: string, body: string): boolean => {
+  const crypto = require('node:crypto');
+  const baseString = `v0:${timestamp}:${body}`;
+  const expectedSignature = `v0=${crypto.createHmac('sha256', secret).update(baseString).digest('hex')}`;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+  } catch {
+    return false;
+  }
 };
 
 /**

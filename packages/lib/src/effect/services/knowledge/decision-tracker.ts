@@ -29,8 +29,8 @@ import { ContentRepository, type ContentRepositoryService } from '../content/con
 // Types
 // =============================================================================
 
-export type DecisionStatus = 'proposed' | 'decided' | 'implemented' | 'superseded' | 'rejected';
-export type DecisionType = 'technical' | 'product' | 'process' | 'resource' | 'strategic' | 'other';
+export type DecisionStatus = 'proposed' | 'decided' | 'implemented' | 'revisited' | 'superseded';
+export type DecisionType = 'technical' | 'product' | 'process' | 'resource' | 'team' | 'other';
 
 export interface CreateDecisionInput {
   readonly organizationId: string;
@@ -53,7 +53,9 @@ export interface CreateDecisionInput {
   }>;
   readonly evidence?: Array<{
     contentItemId: string;
-    relevance: number;
+    confidence: number;
+    evidenceType?: 'origin' | 'discussion' | 'documentation' | 'implementation' | 'revision' | 'superseded';
+    stage?: 'proposed' | 'discussed' | 'decided' | 'documented' | 'implemented' | 'revised';
     excerpt?: string;
   }>;
 }
@@ -84,8 +86,10 @@ export interface DecisionWithRelations extends Decision {
   readonly links: DecisionLink[];
   readonly evidence?: Array<{
     contentItemId: string;
-    relevance: number;
-    excerpt?: string;
+    confidence: number;
+    evidenceType: string;
+    stage: string;
+    excerpt?: string | null;
     contentItem?: {
       id: string;
       title?: string | null;
@@ -155,8 +159,12 @@ export interface DecisionTrackerService {
   addEvidence(
     decisionId: string,
     contentItemId: string,
-    relevance: number,
-    excerpt?: string,
+    options: {
+      confidence: number;
+      evidenceType?: 'origin' | 'discussion' | 'documentation' | 'implementation' | 'revision' | 'superseded';
+      stage?: 'proposed' | 'discussed' | 'decided' | 'documented' | 'implemented' | 'revised';
+      excerpt?: string;
+    },
   ): Effect.Effect<void, NotFoundError | DatabaseError>;
 
   /**
@@ -248,7 +256,7 @@ const makeDecisionTracker = (
       const embeddingResult = yield* embedding.generateEmbedding(embeddingText).pipe(Effect.option);
 
       if (Option.isSome(embeddingResult)) {
-        (decisionData as { embeddingVector?: number[] }).embeddingVector = embeddingResult.value;
+        (decisionData as { embeddingVector?: number[] }).embeddingVector = [...embeddingResult.value];
       }
 
       const result = yield* Effect.tryPromise({
@@ -294,9 +302,12 @@ const makeDecisionTracker = (
           try: () =>
             db.insert(decisionEvidence).values(
               input.evidence!.map((e) => ({
+                organizationId: input.organizationId,
                 decisionId: result.id,
                 contentItemId: e.contentItemId,
-                relevance: e.relevance,
+                confidence: e.confidence,
+                evidenceType: e.evidenceType || 'discussion',
+                stage: e.stage || 'decided',
                 excerpt: e.excerpt,
               })),
             ),
@@ -347,7 +358,9 @@ const makeDecisionTracker = (
           db
             .select({
               contentItemId: decisionEvidence.contentItemId,
-              relevance: decisionEvidence.relevance,
+              confidence: decisionEvidence.confidence,
+              evidenceType: decisionEvidence.evidenceType,
+              stage: decisionEvidence.stage,
               excerpt: decisionEvidence.excerpt,
               contentItem: {
                 id: contentItems.id,
@@ -371,7 +384,9 @@ const makeDecisionTracker = (
         ...result,
         evidence: evidence.map((e) => ({
           contentItemId: e.contentItemId,
-          relevance: e.relevance,
+          confidence: e.confidence,
+          evidenceType: e.evidenceType,
+          stage: e.stage,
           excerpt: e.excerpt,
           contentItem: e.contentItem
             ? {
@@ -416,7 +431,7 @@ const makeDecisionTracker = (
           const embeddingResult = yield* embedding.generateEmbedding(embeddingText).pipe(Effect.option);
 
           if (Option.isSome(embeddingResult)) {
-            (updateData as { embeddingVector?: number[] }).embeddingVector = embeddingResult.value;
+            (updateData as { embeddingVector?: number[] }).embeddingVector = [...embeddingResult.value];
           }
         }
       }
@@ -533,21 +548,45 @@ const makeDecisionTracker = (
       return { decisions: rows, total: countResult };
     }),
 
-  addEvidence: (decisionId, contentItemId, relevance, excerpt) =>
+  addEvidence: (decisionId, contentItemId, options) =>
     Effect.gen(function* () {
+      // Get decision to get organizationId
+      const decision = yield* Effect.tryPromise({
+        try: () => db.query.decisions.findFirst({ where: eq(decisions.id, decisionId) }),
+        catch: (error) =>
+          new DatabaseError({
+            message: `Failed to get decision: ${error}`,
+            operation: 'select',
+            cause: error,
+          }),
+      });
+
+      if (!decision) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: `Decision not found: ${decisionId}`,
+            entity: 'decision',
+            id: decisionId,
+          }),
+        );
+      }
+
       yield* Effect.tryPromise({
         try: () =>
           db
             .insert(decisionEvidence)
             .values({
+              organizationId: decision.organizationId,
               decisionId,
               contentItemId,
-              relevance,
-              excerpt,
+              confidence: options.confidence,
+              evidenceType: options.evidenceType || 'discussion',
+              stage: options.stage || 'decided',
+              excerpt: options.excerpt,
             })
             .onConflictDoUpdate({
-              target: [decisionEvidence.decisionId, decisionEvidence.contentItemId],
-              set: { relevance, excerpt },
+              target: [decisionEvidence.decisionId, decisionEvidence.contentItemId, decisionEvidence.evidenceType],
+              set: { confidence: options.confidence, excerpt: options.excerpt },
             }),
         catch: (error) =>
           new DatabaseError({
@@ -755,9 +794,7 @@ Return a JSON array of decisions. If no decisions are found, return an empty arr
         }
 
         const extracted = JSON.parse(jsonMatch[0]) as ExtractedDecision[];
-        return extracted.filter(
-          (d) => d.summary && d.summary.length > 10 && (d.confidence || 0) >= 50,
-        );
+        return extracted.filter((d) => d.summary && d.summary.length > 10 && (d.confidence || 0) >= 50);
       } catch {
         return [];
       }

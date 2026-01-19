@@ -7,16 +7,8 @@
 import { Schema } from 'effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import {
-  Auth,
-  createFullLayer,
-  handleEffectExit,
-  resolveParams,
-} from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  getContentSource,
-} from '@nuclom/lib/effect/services/content';
+import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
+import { ContentRepository, getContentSource } from '@nuclom/lib/effect/services/content';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams } from '@nuclom/lib/validation';
 
@@ -66,7 +58,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       {
         organizationId: source.organizationId,
         sourceId: id,
-        type: query.type as 'video' | 'slack_message' | 'slack_thread' | 'notion_page' | 'notion_database' | 'github_pr' | 'github_issue' | 'github_discussion' | undefined,
+        type: query.type as
+          | 'video'
+          | 'message'
+          | 'thread'
+          | 'document'
+          | 'issue'
+          | 'pull_request'
+          | 'comment'
+          | 'file'
+          | undefined,
         processingStatus: query.processingStatus as 'pending' | 'processing' | 'completed' | 'failed' | undefined,
         authorId: query.authorId,
         searchQuery: query.searchQuery,

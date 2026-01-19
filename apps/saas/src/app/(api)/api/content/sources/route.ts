@@ -8,16 +8,8 @@
 import { Schema } from 'effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import {
-  Auth,
-  createFullLayer,
-  handleEffectExit,
-  handleEffectExitWithStatus,
-} from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  createContentSource,
-} from '@nuclom/lib/effect/services/content';
+import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { ContentRepository, createContentSource } from '@nuclom/lib/effect/services/content';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 
@@ -41,13 +33,15 @@ const CreateSourceSchema = Schema.Struct({
       syncInterval: Schema.optional(Schema.Number),
       filters: Schema.optional(
         Schema.Struct({
-          channels: Schema.optional(Schema.Array(Schema.String)),
-          users: Schema.optional(Schema.Array(Schema.String)),
+          channels: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
+          users: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
           dateRange: Schema.optional(
-            Schema.Struct({
-              from: Schema.optional(Schema.String),
-              to: Schema.optional(Schema.String),
-            }),
+            Schema.mutable(
+              Schema.Struct({
+                from: Schema.optional(Schema.String),
+                to: Schema.optional(Schema.String),
+              }),
+            ),
           ),
         }),
       ),

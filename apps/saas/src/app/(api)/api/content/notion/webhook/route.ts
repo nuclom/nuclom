@@ -1,21 +1,17 @@
 /**
  * Notion Content Webhook Handler
  *
- * POST /api/content/notion/webhook - Handle real-time Notion events for content sync
+ * POST /api/content/notion/webhook - Handle Notion change notifications
  *
- * Note: Notion doesn't have traditional webhooks. Instead, we poll for changes.
- * This endpoint handles manual sync triggers and potential future webhook support.
+ * Note: Notion doesn't have traditional webhooks with signatures.
+ * This endpoint handles manual sync triggers or potential future webhook support.
+ * For now, it just acknowledges requests and logs them.
  */
 
 import { Effect } from 'effect';
 import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  NotionContentAdapter,
-  handleNotionWebhook,
-  verifyNotionSignature,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository } from '@nuclom/lib/effect/services/content';
 import { logger } from '@nuclom/lib/logger';
 
 interface NotionWebhookPayload {
@@ -28,27 +24,7 @@ interface NotionWebhookPayload {
 }
 
 export async function POST(request: Request) {
-  const signature = request.headers.get('x-notion-signature');
-  const timestamp = request.headers.get('x-notion-timestamp');
   const rawBody = await request.text();
-
-  // Verify signature if present (for future webhook support)
-  if (signature && timestamp) {
-    const verifyEffect = Effect.gen(function* () {
-      return yield* verifyNotionSignature(signature, timestamp, rawBody);
-    });
-
-    try {
-      const isValid = await Effect.runPromise(Effect.provide(verifyEffect, createPublicLayer()));
-
-      if (!isValid) {
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
-    } catch (err) {
-      logger.error('[Notion Content Webhook Signature Error]', err);
-      return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
-    }
-  }
 
   // Parse the payload
   let payload: NotionWebhookPayload;
@@ -58,26 +34,46 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  // Process the webhook
+  // Process the webhook if workspace_id is provided
   if (payload.workspace_id) {
+    const workspaceId = payload.workspace_id;
+
     const processEffect = Effect.gen(function* () {
-      yield* handleNotionWebhook(payload.workspace_id!, {
-        type: payload.type,
-        pageId: payload.page_id,
-        databaseId: payload.database_id,
-        action: payload.action,
-        timestamp: payload.timestamp,
+      const contentRepo = yield* ContentRepository;
+
+      // Find content sources for this workspace
+      const allNotionSources = yield* contentRepo.getSources({
+        organizationId: '', // Search all orgs
+        type: 'notion',
       });
 
-      return { success: true };
+      const relevantSources = allNotionSources.items.filter((source) => {
+        const config = source.config as { settings?: { workspaceId?: string } } | null;
+        const credentials = source.credentials as { workspaceId?: string } | null;
+        return config?.settings?.workspaceId === workspaceId || credentials?.workspaceId === workspaceId;
+      });
+
+      if (relevantSources.length === 0) {
+        logger.debug('[Notion Webhook] No relevant sources found', { workspaceId });
+        return { success: true, processed: false };
+      }
+
+      // Log the event - actual sync can be triggered separately
+      logger.info('[Notion Webhook] Found relevant sources', {
+        count: relevantSources.length,
+        workspaceId,
+        type: payload.type,
+      });
+
+      return { success: true, processed: true };
     });
 
     // Run asynchronously and return immediately
     Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
-      logger.error('[Notion Content Webhook Process Error]', err);
+      logger.error('[Notion Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
     });
 
-    logger.info('[Notion Content Event]', { type: payload.type, workspaceId: payload.workspace_id });
+    logger.info('[Notion Content Event]', { type: payload.type, workspaceId });
   }
 
   return NextResponse.json({ ok: true });

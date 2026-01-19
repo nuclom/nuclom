@@ -8,17 +8,8 @@
 import { Schema } from 'effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import {
-  Auth,
-  createFullLayer,
-  handleEffectExit,
-  handleEffectExitWithStatus,
-} from '@nuclom/lib/api-handler';
-import {
-  TopicCluster,
-  autoClusterContent,
-  createTopicCluster,
-} from '@nuclom/lib/effect/services/knowledge';
+import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { TopicCluster, autoClusterContent, createTopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 
@@ -37,7 +28,7 @@ const CreateTopicSchema = Schema.Struct({
   organizationId: Schema.String,
   name: Schema.String,
   description: Schema.optional(Schema.String),
-  tags: Schema.optional(Schema.Array(Schema.String)),
+  keywords: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
   parentClusterId: Schema.optional(Schema.String),
 });
 
@@ -127,7 +118,7 @@ export async function POST(request: NextRequest) {
             organizationId: body.organizationId,
             name: cluster.name,
             description: cluster.description,
-            tags: cluster.tags,
+            keywords: cluster.tags,
           });
 
           // Add members to the cluster
@@ -153,8 +144,7 @@ export async function POST(request: NextRequest) {
       organizationId: body.organizationId,
       name: body.name,
       description: body.description,
-      tags: body.tags,
-      parentClusterId: body.parentClusterId,
+      keywords: body.keywords,
     });
 
     return cluster;

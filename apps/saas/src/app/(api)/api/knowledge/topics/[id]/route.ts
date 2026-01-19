@@ -16,10 +16,7 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import {
-  TopicCluster,
-  getTopicCluster,
-} from '@nuclom/lib/effect/services/knowledge';
+import { TopicCluster, getTopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
 
@@ -30,8 +27,7 @@ import { validateRequestBody } from '@nuclom/lib/validation';
 const UpdateTopicSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
   description: Schema.optional(Schema.String),
-  tags: Schema.optional(Schema.Array(Schema.String)),
-  parentClusterId: Schema.optional(Schema.String),
+  keywords: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
 });
 
 // =============================================================================
@@ -91,8 +87,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const updated = yield* topicService.updateCluster(id, {
       name: data.name,
       description: data.description,
-      tags: data.tags,
-      parentClusterId: data.parentClusterId,
+      keywords: data.keywords,
     });
 
     return updated;

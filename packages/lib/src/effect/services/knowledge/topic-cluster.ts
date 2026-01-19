@@ -34,14 +34,13 @@ export interface CreateTopicClusterInput {
   readonly organizationId: string;
   readonly name: string;
   readonly description?: string;
-  readonly tags?: string[];
-  readonly parentClusterId?: string;
+  readonly keywords?: string[];
 }
 
 export interface TopicClusterWithMembers extends TopicClusterType {
   readonly members: Array<{
     contentItemId: string;
-    relevanceScore: number;
+    similarityScore: number;
     contentItem?: {
       id: string;
       title?: string | null;
@@ -49,17 +48,14 @@ export interface TopicClusterWithMembers extends TopicClusterType {
       sourceId: string;
     };
   }>;
-  readonly childClusters?: TopicClusterType[];
-  readonly parentCluster?: TopicClusterType;
 }
 
 export interface TopicExpertiseEntry {
   readonly userId?: string;
-  readonly authorExternal?: string;
-  readonly authorName: string;
-  readonly topicClusterId: string;
+  readonly externalId?: string;
+  readonly name: string;
+  readonly clusterId: string;
   readonly contributionCount: number;
-  readonly totalRelevance: number;
   readonly expertiseScore: number;
 }
 
@@ -148,10 +144,7 @@ export interface TopicClusterService {
   /**
    * Get topic expertise rankings
    */
-  getTopicExperts(
-    clusterId: string,
-    options?: { limit?: number },
-  ): Effect.Effect<TopicExpertiseEntry[], DatabaseError>;
+  getTopicExperts(clusterId: string, options?: { limit?: number }): Effect.Effect<TopicExpertiseEntry[], DatabaseError>;
 
   /**
    * Update expertise scores for a cluster
@@ -192,16 +185,15 @@ const makeTopicClusterService = (
   createCluster: (input) =>
     Effect.gen(function* () {
       // Generate embedding for the cluster
-      const embeddingText = `${input.name} ${input.description || ''} ${(input.tags || []).join(' ')}`;
+      const embeddingText = `${input.name} ${input.description || ''} ${(input.keywords || []).join(' ')}`;
       const embeddingResult = yield* embedding.generateEmbedding(embeddingText).pipe(Effect.option);
 
       const clusterData = {
         organizationId: input.organizationId,
         name: input.name,
         description: input.description,
-        tags: input.tags || [],
-        parentClusterId: input.parentClusterId,
-        embeddingVector: Option.isSome(embeddingResult) ? embeddingResult.value : undefined,
+        keywords: input.keywords || [],
+        embeddingCentroid: Option.isSome(embeddingResult) ? [...embeddingResult.value] : undefined,
       };
 
       const result = yield* Effect.tryPromise({
@@ -250,7 +242,7 @@ const makeTopicClusterService = (
           db
             .select({
               contentItemId: topicClusterMembers.contentItemId,
-              relevanceScore: topicClusterMembers.relevanceScore,
+              similarityScore: topicClusterMembers.similarityScore,
               contentItem: {
                 id: contentItems.id,
                 title: contentItems.title,
@@ -260,8 +252,8 @@ const makeTopicClusterService = (
             })
             .from(topicClusterMembers)
             .leftJoin(contentItems, eq(topicClusterMembers.contentItemId, contentItems.id))
-            .where(eq(topicClusterMembers.topicClusterId, id))
-            .orderBy(desc(topicClusterMembers.relevanceScore)),
+            .where(eq(topicClusterMembers.clusterId, id))
+            .orderBy(desc(topicClusterMembers.similarityScore)),
         catch: (error) =>
           new DatabaseError({
             message: `Failed to get members: ${error}`,
@@ -270,43 +262,11 @@ const makeTopicClusterService = (
           }),
       });
 
-      // Get child clusters
-      const childClusters = yield* Effect.tryPromise({
-        try: () =>
-          db
-            .select()
-            .from(topicClusters)
-            .where(eq(topicClusters.parentClusterId, id)),
-        catch: (error) =>
-          new DatabaseError({
-            message: `Failed to get child clusters: ${error}`,
-            operation: 'select',
-            cause: error,
-          }),
-      });
-
-      // Get parent cluster if exists
-      let parentCluster: TopicClusterType | undefined;
-      if (cluster.parentClusterId) {
-        parentCluster = yield* Effect.tryPromise({
-          try: () =>
-            db.query.topicClusters.findFirst({
-              where: eq(topicClusters.id, cluster.parentClusterId!),
-            }),
-          catch: (error) =>
-            new DatabaseError({
-              message: `Failed to get parent cluster: ${error}`,
-              operation: 'select',
-              cause: error,
-            }),
-        }).pipe(Effect.map((c) => c || undefined));
-      }
-
       return {
         ...cluster,
         members: members.map((m) => ({
           contentItemId: m.contentItemId,
-          relevanceScore: m.relevanceScore,
+          similarityScore: m.similarityScore,
           contentItem: m.contentItem
             ? {
                 id: m.contentItem.id,
@@ -316,26 +276,19 @@ const makeTopicClusterService = (
               }
             : undefined,
         })),
-        childClusters,
-        parentCluster,
       } as TopicClusterWithMembers;
     }),
 
   listClusters: (organizationId, options = {}) =>
     Effect.gen(function* () {
-      const { parentId, limit = 50, offset = 0 } = options;
-
-      const conditions = [eq(topicClusters.organizationId, organizationId)];
-      if (parentId !== undefined) {
-        conditions.push(eq(topicClusters.parentClusterId, parentId));
-      }
+      const { limit = 50, offset = 0 } = options;
 
       const result = yield* Effect.tryPromise({
         try: () =>
           db
             .select()
             .from(topicClusters)
-            .where(and(...conditions))
+            .where(eq(topicClusters.organizationId, organizationId))
             .orderBy(desc(topicClusters.createdAt))
             .limit(limit)
             .offset(offset),
@@ -350,14 +303,14 @@ const makeTopicClusterService = (
       return result;
     }),
 
-  addToCluster: (clusterId, itemIds, relevanceScores) =>
+  addToCluster: (clusterId, itemIds, similarityScores) =>
     Effect.gen(function* () {
       if (itemIds.length === 0) return;
 
       const values = itemIds.map((itemId) => ({
-        topicClusterId: clusterId,
+        clusterId: clusterId,
         contentItemId: itemId,
-        relevanceScore: relevanceScores?.get(itemId) ?? 1.0,
+        similarityScore: similarityScores?.get(itemId) ?? 1.0,
       }));
 
       yield* Effect.tryPromise({
@@ -366,9 +319,9 @@ const makeTopicClusterService = (
             .insert(topicClusterMembers)
             .values(values)
             .onConflictDoUpdate({
-              target: [topicClusterMembers.topicClusterId, topicClusterMembers.contentItemId],
+              target: [topicClusterMembers.clusterId, topicClusterMembers.contentItemId],
               set: {
-                relevanceScore: sql`EXCLUDED.relevance_score`,
+                similarityScore: sql`EXCLUDED.similarity_score`,
               },
             }),
         catch: (error) =>
@@ -379,13 +332,13 @@ const makeTopicClusterService = (
           }),
       });
 
-      // Update cluster member count
+      // Update cluster content count
       yield* Effect.tryPromise({
         try: () =>
           db
             .update(topicClusters)
             .set({
-              memberCount: sql`(SELECT COUNT(*) FROM topic_cluster_members WHERE topic_cluster_id = ${clusterId})`,
+              contentCount: sql`(SELECT COUNT(*) FROM topic_cluster_members WHERE cluster_id = ${clusterId})`,
               updatedAt: new Date(),
             })
             .where(eq(topicClusters.id, clusterId)),
@@ -407,10 +360,7 @@ const makeTopicClusterService = (
           db
             .delete(topicClusterMembers)
             .where(
-              and(
-                eq(topicClusterMembers.topicClusterId, clusterId),
-                inArray(topicClusterMembers.contentItemId, itemIds),
-              ),
+              and(eq(topicClusterMembers.clusterId, clusterId), inArray(topicClusterMembers.contentItemId, itemIds)),
             ),
         catch: (error) =>
           new DatabaseError({
@@ -420,13 +370,13 @@ const makeTopicClusterService = (
           }),
       });
 
-      // Update cluster member count
+      // Update cluster content count
       yield* Effect.tryPromise({
         try: () =>
           db
             .update(topicClusters)
             .set({
-              memberCount: sql`(SELECT COUNT(*) FROM topic_cluster_members WHERE topic_cluster_id = ${clusterId})`,
+              contentCount: sql`(SELECT COUNT(*) FROM topic_cluster_members WHERE cluster_id = ${clusterId})`,
               updatedAt: new Date(),
             })
             .where(eq(topicClusters.id, clusterId)),
@@ -445,13 +395,12 @@ const makeTopicClusterService = (
 
       if (input.name !== undefined) updateData.name = input.name;
       if (input.description !== undefined) updateData.description = input.description;
-      if (input.tags !== undefined) updateData.tags = input.tags;
-      if (input.parentClusterId !== undefined) updateData.parentClusterId = input.parentClusterId;
+      if (input.keywords !== undefined) updateData.keywords = input.keywords;
 
       updateData.updatedAt = new Date();
 
-      // Regenerate embedding if name/description/tags changed
-      if (input.name || input.description || input.tags) {
+      // Regenerate embedding if name/description/keywords changed
+      if (input.name || input.description || input.keywords) {
         const current = yield* Effect.tryPromise({
           try: () => db.query.topicClusters.findFirst({ where: eq(topicClusters.id, id) }),
           catch: (error) =>
@@ -463,11 +412,11 @@ const makeTopicClusterService = (
         });
 
         if (current) {
-          const embeddingText = `${input.name || current.name} ${input.description || current.description || ''} ${(input.tags || current.tags || []).join(' ')}`;
+          const embeddingText = `${input.name || current.name} ${input.description || current.description || ''} ${(input.keywords || current.keywords || []).join(' ')}`;
           const embeddingResult = yield* embedding.generateEmbedding(embeddingText).pipe(Effect.option);
 
           if (Option.isSome(embeddingResult)) {
-            (updateData as { embeddingVector?: number[] }).embeddingVector = embeddingResult.value;
+            (updateData as { embeddingCentroid?: number[] }).embeddingCentroid = [...embeddingResult.value];
           }
         }
       }
@@ -538,10 +487,7 @@ const makeTopicClusterService = (
       // Get content items with embeddings
       const items = yield* Effect.tryPromise({
         try: () => {
-          const conditions = [
-            eq(contentItems.organizationId, organizationId),
-            sql`embedding_vector IS NOT NULL`,
-          ];
+          const conditions = [eq(contentItems.organizationId, organizationId), sql`embedding_vector IS NOT NULL`];
           if (sourceId) {
             conditions.push(eq(contentItems.sourceId, sourceId));
           }
@@ -683,16 +629,11 @@ Return as JSON: {"name": "...", "description": "..."}`,
           db
             .select({
               cluster: topicClusters,
-              similarity: sql<number>`1 - (embedding_vector <=> ${JSON.stringify(item.embeddingVector)}::vector)`,
+              similarity: sql<number>`1 - (embedding_centroid <=> ${JSON.stringify(item.embeddingVector)}::vector)`,
             })
             .from(topicClusters)
-            .where(
-              and(
-                eq(topicClusters.organizationId, item.organizationId),
-                sql`embedding_vector IS NOT NULL`,
-              ),
-            )
-            .orderBy(sql`embedding_vector <=> ${JSON.stringify(item.embeddingVector)}::vector`)
+            .where(and(eq(topicClusters.organizationId, item.organizationId), sql`embedding_centroid IS NOT NULL`))
+            .orderBy(sql`embedding_centroid <=> ${JSON.stringify(item.embeddingVector)}::vector`)
             .limit(1),
         catch: (error) =>
           new DatabaseError({
@@ -721,7 +662,7 @@ Return as JSON: {"name": "...", "description": "..."}`,
           db
             .select()
             .from(topicExpertise)
-            .where(eq(topicExpertise.topicClusterId, clusterId))
+            .where(eq(topicExpertise.clusterId, clusterId))
             .orderBy(desc(topicExpertise.expertiseScore))
             .limit(limit),
         catch: (error) =>
@@ -733,12 +674,11 @@ Return as JSON: {"name": "...", "description": "..."}`,
       });
 
       return experts.map((e) => ({
-        userId: e.userId,
-        authorExternal: e.authorExternal,
-        authorName: e.authorName,
-        topicClusterId: e.topicClusterId,
+        userId: e.userId || undefined,
+        externalId: e.externalId || undefined,
+        name: e.name,
+        clusterId: e.clusterId,
         contributionCount: e.contributionCount,
-        totalRelevance: e.totalRelevance,
         expertiseScore: e.expertiseScore,
       }));
     }),
@@ -751,14 +691,14 @@ Return as JSON: {"name": "...", "description": "..."}`,
           db
             .select({
               contentItemId: topicClusterMembers.contentItemId,
-              relevanceScore: topicClusterMembers.relevanceScore,
+              similarityScore: topicClusterMembers.similarityScore,
               authorId: contentItems.authorId,
               authorExternal: contentItems.authorExternal,
               authorName: contentItems.authorName,
             })
             .from(topicClusterMembers)
             .innerJoin(contentItems, eq(topicClusterMembers.contentItemId, contentItems.id))
-            .where(eq(topicClusterMembers.topicClusterId, clusterId)),
+            .where(eq(topicClusterMembers.clusterId, clusterId)),
         catch: (error) =>
           new DatabaseError({
             message: `Failed to get members: ${error}`,
@@ -770,49 +710,47 @@ Return as JSON: {"name": "...", "description": "..."}`,
       // Aggregate by author
       const authorStats = new Map<
         string,
-        { userId?: string; authorExternal?: string; authorName: string; count: number; relevance: number }
+        { userId?: string; externalId?: string; name: string; count: number; similarity: number }
       >();
 
       for (const member of members) {
         const key = member.authorId || member.authorExternal || member.authorName || 'unknown';
         const existing = authorStats.get(key) || {
           userId: member.authorId || undefined,
-          authorExternal: member.authorExternal || undefined,
-          authorName: member.authorName || 'Unknown',
+          externalId: member.authorExternal || undefined,
+          name: member.authorName || 'Unknown',
           count: 0,
-          relevance: 0,
+          similarity: 0,
         };
 
         existing.count++;
-        existing.relevance += member.relevanceScore;
+        existing.similarity += member.similarityScore;
         authorStats.set(key, existing);
       }
 
       // Calculate expertise scores and update
       const maxCount = Math.max(...[...authorStats.values()].map((s) => s.count), 1);
-      const maxRelevance = Math.max(...[...authorStats.values()].map((s) => s.relevance), 1);
+      const maxSimilarity = Math.max(...[...authorStats.values()].map((s) => s.similarity), 1);
 
       for (const [_, stats] of authorStats) {
-        const expertiseScore = (stats.count / maxCount) * 0.5 + (stats.relevance / maxRelevance) * 0.5;
+        const expertiseScore = (stats.count / maxCount) * 0.5 + (stats.similarity / maxSimilarity) * 0.5;
 
         yield* Effect.tryPromise({
           try: () =>
             db
               .insert(topicExpertise)
               .values({
-                topicClusterId: clusterId,
+                clusterId: clusterId,
                 userId: stats.userId,
-                authorExternal: stats.authorExternal,
-                authorName: stats.authorName,
+                externalId: stats.externalId,
+                name: stats.name,
                 contributionCount: stats.count,
-                totalRelevance: stats.relevance,
                 expertiseScore,
               })
               .onConflictDoUpdate({
-                target: [topicExpertise.topicClusterId, topicExpertise.authorExternal],
+                target: [topicExpertise.clusterId, topicExpertise.externalId],
                 set: {
                   contributionCount: stats.count,
-                  totalRelevance: stats.relevance,
                   expertiseScore,
                   updatedAt: new Date(),
                 },
@@ -842,7 +780,7 @@ Return as JSON: {"name": "...", "description": "..."}`,
           }),
       });
 
-      if (!cluster || !cluster.embeddingVector) {
+      if (!cluster || !cluster.embeddingCentroid) {
         return [];
       }
 
@@ -852,17 +790,17 @@ Return as JSON: {"name": "...", "description": "..."}`,
           db
             .select({
               cluster: topicClusters,
-              similarity: sql<number>`1 - (embedding_vector <=> ${JSON.stringify(cluster.embeddingVector)}::vector)`,
+              similarity: sql<number>`1 - (embedding_centroid <=> ${JSON.stringify(cluster.embeddingCentroid)}::vector)`,
             })
             .from(topicClusters)
             .where(
               and(
                 eq(topicClusters.organizationId, cluster.organizationId),
                 sql`id != ${clusterId}`,
-                sql`embedding_vector IS NOT NULL`,
+                sql`embedding_centroid IS NOT NULL`,
               ),
             )
-            .orderBy(sql`embedding_vector <=> ${JSON.stringify(cluster.embeddingVector)}::vector`)
+            .orderBy(sql`embedding_centroid <=> ${JSON.stringify(cluster.embeddingCentroid)}::vector`)
             .limit(limit),
         catch: (error) =>
           new DatabaseError({

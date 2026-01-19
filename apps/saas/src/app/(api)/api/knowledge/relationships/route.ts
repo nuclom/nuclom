@@ -8,17 +8,9 @@
 import { Schema } from 'effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import {
-  Auth,
-  createFullLayer,
-  handleEffectExit,
-  handleEffectExitWithStatus,
-} from '@nuclom/lib/api-handler';
+import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
 import { ContentRepository } from '@nuclom/lib/effect/services/content';
-import {
-  RelationshipDetector,
-  detectRelationships,
-} from '@nuclom/lib/effect/services/knowledge';
+import { detectRelationships } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 
@@ -28,21 +20,18 @@ import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation
 
 const GetRelationshipsQuerySchema = Schema.Struct({
   organizationId: Schema.String,
-  sourceId: Schema.optional(Schema.String),
   itemId: Schema.optional(Schema.String),
-  relationshipType: Schema.optional(Schema.String),
-  limit: Schema.optional(Schema.NumberFromString),
-  offset: Schema.optional(Schema.NumberFromString),
+  direction: Schema.optional(Schema.Literal('outgoing', 'incoming', 'both')),
 });
 
 const DetectRelationshipsSchema = Schema.Struct({
   organizationId: Schema.String,
   sourceId: Schema.optional(Schema.String),
-  itemIds: Schema.optional(Schema.Array(Schema.String)),
+  itemIds: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
   minConfidence: Schema.optional(Schema.Number),
   maxResults: Schema.optional(Schema.Number),
   strategies: Schema.optional(
-    Schema.Array(Schema.Literal('explicit', 'semantic', 'temporal', 'entity')),
+    Schema.mutable(Schema.Array(Schema.Literal('explicit', 'semantic', 'temporal', 'entity'))),
   ),
   createRelationships: Schema.optional(Schema.Boolean),
 });
@@ -64,19 +53,17 @@ export async function GET(request: NextRequest) {
     const orgRepo = yield* OrganizationRepository;
     yield* orgRepo.isMember(user.id, params.organizationId);
 
-    // Get relationships
+    // Get relationships for an item if specified
     const contentRepo = yield* ContentRepository;
-    const relationships = yield* contentRepo.getRelationships({
-      organizationId: params.organizationId,
-      sourceId: params.sourceId,
-      itemId: params.itemId,
-      relationshipType: params.relationshipType as 'references' | 'mentions' | 'similar_to' | 'related_to' | 'replies_to' | 'parent_of' | 'implements' | 'supersedes' | undefined,
-    }, {
-      limit: params.limit ?? 50,
-      offset: params.offset ?? 0,
-    });
 
-    return relationships;
+    if (params.itemId) {
+      // Get relationships for a specific item
+      const relationships = yield* contentRepo.getRelationships(params.itemId, params.direction ?? 'both');
+      return { relationships, total: relationships.length };
+    }
+
+    // Without itemId, return empty - relationships must be queried by item
+    return { relationships: [], total: 0, message: 'Provide itemId to query relationships' };
   });
 
   const runnable = Effect.provide(effect, createFullLayer());

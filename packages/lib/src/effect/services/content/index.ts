@@ -116,6 +116,8 @@ export {
   SlackContentAdapterLive,
   createSlackContentAdapter,
   getSlackContentAuthUrl,
+  exchangeSlackCode,
+  verifySlackSignature,
   SLACK_CONTENT_SCOPES,
   resolveUserMentions,
   resolveChannelMentions,

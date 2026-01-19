@@ -9,11 +9,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { createFullLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  GitHubContentAdapter,
-  exchangeGitHubCode,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository, exchangeGitHubCode } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 
 interface OAuthState {
@@ -42,7 +39,7 @@ export async function GET(request: Request) {
 
   // Handle OAuth errors from GitHub
   if (error) {
-    logger.error('[GitHub Content OAuth Error]', { error, errorDescription });
+    logger.error('[GitHub Content OAuth Error]', new Error(`${error}: ${errorDescription}`));
     return redirect('/settings/integrations?error=github_content_oauth_failed');
   }
 
@@ -73,14 +70,21 @@ export async function GET(request: Request) {
     return redirect('/settings/integrations?error=github_content_state_expired');
   }
 
-  const { userId, organizationId } = parsedState;
+  const { organizationId } = parsedState;
+
+  // Get credentials
+  const clientId = env.GITHUB_CONTENT_CLIENT_ID || env.GITHUB_CLIENT_ID;
+  const clientSecret = env.GITHUB_CONTENT_CLIENT_SECRET || env.GITHUB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return redirect('/settings/integrations?error=github_content_not_configured');
+  }
 
   const effect = Effect.gen(function* () {
-    const githubAdapter = yield* GitHubContentAdapter;
     const contentRepo = yield* ContentRepository;
 
     // Exchange code for tokens
-    const tokens = yield* exchangeGitHubCode(code);
+    const tokens = yield* Effect.promise(() => exchangeGitHubCode(clientId, clientSecret, code));
 
     // Get user info to identify the account
     const userResponse = yield* Effect.tryPromise({
@@ -91,7 +95,7 @@ export async function GET(request: Request) {
             Accept: 'application/vnd.github.v3+json',
           },
         }).then((res) => res.json()),
-      catch: (error) => new Error(`Failed to get GitHub user: ${error}`),
+      catch: (e) => new Error(`Failed to get GitHub user: ${e}`),
     });
 
     const githubUser = userResponse as { id: number; login: string; name?: string };
@@ -102,9 +106,10 @@ export async function GET(request: Request) {
       type: 'github',
     });
 
-    const existingSource = existingSources.find(
-      (s) => s.credentials && (s.credentials as { userId?: number }).userId === githubUser.id,
-    );
+    const existingSource = existingSources.items.find((s) => {
+      const config = s.config as { settings?: { userId?: number } } | null;
+      return config?.settings?.userId === githubUser.id;
+    });
 
     if (existingSource) {
       // Update existing source
@@ -112,6 +117,13 @@ export async function GET(request: Request) {
         credentials: {
           accessToken: tokens.access_token,
           scope: tokens.scope,
+        },
+        config: {
+          settings: {
+            userId: githubUser.id,
+            username: githubUser.login,
+            displayName: githubUser.name,
+          },
         },
       });
     } else {

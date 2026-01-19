@@ -371,12 +371,7 @@ function extractPropertyValue(prop: NotionProperty): unknown {
 /**
  * Convert a Notion page to a RawContentItem
  */
-function pageToRawContentItem(
-  page: NotionPage,
-  content: string,
-  breadcrumb: string[],
-  depth: number,
-): RawContentItem {
+function pageToRawContentItem(page: NotionPage, content: string, breadcrumb: string[], depth: number): RawContentItem {
   const title = extractPageTitle(page.properties);
 
   const metadata: NotionPageMetadata = {
@@ -506,7 +501,10 @@ export interface NotionContentAdapterService extends ContentSourceAdapter {
   /**
    * Get database schema
    */
-  getDatabaseSchema(sourceId: string, databaseId: string): Effect.Effect<NotionDatabaseSchemaRecord | null, DatabaseError>;
+  getDatabaseSchema(
+    sourceId: string,
+    databaseId: string,
+  ): Effect.Effect<NotionDatabaseSchemaRecord | null, DatabaseError>;
 
   /**
    * Update database schema
@@ -960,7 +958,7 @@ const makeNotionContentAdapter = Effect.gen(function* () {
     syncUsers: (source) =>
       Effect.gen(function* () {
         const accessToken = getAccessToken(source);
-        const users: NotionUser[] = [];
+        const users: NotionApiUser[] = [];
         let cursor: string | undefined;
 
         do {

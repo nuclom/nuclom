@@ -9,11 +9,14 @@
  * 4. Entity co-occurrence
  */
 
+import { and, eq, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import type {
-  ContentItem,
-  ContentRelationship,
-  ContentRelationshipType,
+import { db } from '../../../db';
+import {
+  contentItems,
+  type ContentItem,
+  type ContentRelationship,
+  type ContentRelationshipType,
 } from '../../../db/schema';
 import { ContentProcessingError, DatabaseError } from '../../errors';
 import { AI } from '../ai';
@@ -72,9 +75,7 @@ export interface RelationshipDetectorService {
   /**
    * Create detected relationships in the database
    */
-  createRelationships(
-    candidates: RelationshipCandidate[],
-  ): Effect.Effect<ContentRelationship[], DatabaseError>;
+  createRelationships(candidates: RelationshipCandidate[]): Effect.Effect<ContentRelationship[], DatabaseError>;
 
   /**
    * Find similar content items using semantic search
@@ -138,10 +139,7 @@ const makeRelationshipDetector = (
       const item = itemOption.value;
 
       // Get potential related items from same org
-      const relatedItems = yield* contentRepository.getItems(
-        { organizationId: item.organizationId },
-        { limit: 100 },
-      );
+      const relatedItems = yield* contentRepository.getItems({ organizationId: item.organizationId }, { limit: 100 });
 
       const otherItems = relatedItems.items.filter((i) => i.id !== itemId);
 
@@ -153,12 +151,7 @@ const makeRelationshipDetector = (
 
       // Strategy 2: Semantic similarity
       if (strategies.includes('semantic') && item.embeddingVector) {
-        const semanticCandidates = yield* detectSemanticSimilarity(
-          contentRepository,
-          item,
-          otherItems,
-          minConfidence,
-        );
+        const semanticCandidates = yield* detectSemanticSimilarity(contentRepository, item, otherItems, minConfidence);
         candidates.push(...semanticCandidates);
       }
 
@@ -196,17 +189,12 @@ const makeRelationshipDetector = (
       // Get items to process
       let items: ContentItem[];
       if (itemIds && itemIds.length > 0) {
-        const results = yield* Effect.forEach(
-          itemIds,
-          (id) => contentRepository.getItemOption(id),
-          { concurrency: 10 },
-        );
+        const results = yield* Effect.forEach(itemIds, (id) => contentRepository.getItemOption(id), {
+          concurrency: 10,
+        });
         items = results.filter(Option.isSome).map((o) => o.value);
       } else {
-        const result = yield* contentRepository.getItems(
-          { organizationId, sourceId },
-          { limit: 500 },
-        );
+        const result = yield* contentRepository.getItems({ organizationId, sourceId }, { limit: 500 });
         items = result.items;
       }
 
@@ -262,11 +250,11 @@ const makeRelationshipDetector = (
 
       for (const candidate of uniqueCandidates) {
         try {
-          // Check if relationship already exists
-          const existing = yield* contentRepository.getRelationship(
-            candidate.sourceItemId,
-            candidate.targetItemId,
-            candidate.relationshipType,
+          // Check if relationship already exists by getting all relationships for source item
+          const existingRelationships = yield* contentRepository.getRelationships(candidate.sourceItemId, 'outgoing');
+
+          const existing = existingRelationships.find(
+            (r) => r.targetItemId === candidate.targetItemId && r.relationshipType === candidate.relationshipType,
           );
 
           if (existing) {
@@ -332,17 +320,34 @@ const makeRelationshipDetector = (
         return [];
       }
 
-      // Use semantic search to find similar items
-      const similarItems = yield* contentRepository.searchByEmbedding(
-        item.organizationId,
-        item.embeddingVector as number[],
-        { limit: limit + 1, minSimilarity },
-      );
+      // Use direct vector similarity search
+      const similarItems = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select({
+              item: contentItems,
+              similarity: sql<number>`1 - (embedding_vector <=> ${JSON.stringify(item.embeddingVector)}::vector)`,
+            })
+            .from(contentItems)
+            .where(
+              and(
+                eq(contentItems.organizationId, item.organizationId),
+                sql`id != ${itemId}`,
+                sql`embedding_vector IS NOT NULL`,
+              ),
+            )
+            .orderBy(sql`embedding_vector <=> ${JSON.stringify(item.embeddingVector)}::vector`)
+            .limit(limit + 1),
+        catch: (error) =>
+          new DatabaseError({
+            message: `Failed to find similar items: ${error}`,
+            operation: 'select',
+            cause: error,
+          }),
+      });
 
-      // Filter out the source item itself
-      return similarItems
-        .filter((r) => r.item.id !== itemId)
-        .slice(0, limit);
+      // Filter by minimum similarity and exclude source item
+      return similarItems.filter((r) => r.similarity >= minSimilarity && r.item.id !== itemId).slice(0, limit);
     }),
 });
 
@@ -353,10 +358,7 @@ const makeRelationshipDetector = (
 /**
  * Detect explicit references (URLs, mentions, IDs) between items
  */
-function detectExplicitReferences(
-  sourceItem: ContentItem,
-  targetItems: ContentItem[],
-): RelationshipCandidate[] {
+function detectExplicitReferences(sourceItem: ContentItem, targetItems: ContentItem[]): RelationshipCandidate[] {
   const candidates: RelationshipCandidate[] = [];
   const sourceText = `${sourceItem.title || ''} ${sourceItem.content || ''}`;
 
@@ -455,10 +457,7 @@ function detectSemanticSimilarity(
 /**
  * Detect temporal proximity between items
  */
-function detectTemporalProximity(
-  sourceItem: ContentItem,
-  targetItems: ContentItem[],
-): RelationshipCandidate[] {
+function detectTemporalProximity(sourceItem: ContentItem, targetItems: ContentItem[]): RelationshipCandidate[] {
   const candidates: RelationshipCandidate[] = [];
   const sourceTime = sourceItem.createdAtSource || sourceItem.createdAt;
 
@@ -508,10 +507,7 @@ function detectTemporalProximity(
 /**
  * Detect entity co-occurrence (shared participants, tags, etc.)
  */
-function detectEntityCoOccurrence(
-  sourceItem: ContentItem,
-  targetItems: ContentItem[],
-): RelationshipCandidate[] {
+function detectEntityCoOccurrence(sourceItem: ContentItem, targetItems: ContentItem[]): RelationshipCandidate[] {
   const candidates: RelationshipCandidate[] = [];
   const sourceTags = new Set(sourceItem.tags || []);
   const sourceAuthor = sourceItem.authorExternal || sourceItem.authorId;
@@ -656,10 +652,7 @@ export const detectRelationships = (options: DetectionOptions) =>
     return yield* detector.detectRelationships(options);
   });
 
-export const findSimilarContentItems = (
-  itemId: string,
-  options?: { limit?: number; minSimilarity?: number },
-) =>
+export const findSimilarContentItems = (itemId: string, options?: { limit?: number; minSimilarity?: number }) =>
   Effect.gen(function* () {
     const detector = yield* RelationshipDetector;
     return yield* detector.findSimilarItems(itemId, options);

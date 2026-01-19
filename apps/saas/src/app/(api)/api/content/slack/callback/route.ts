@@ -9,11 +9,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import { createFullLayer } from '@nuclom/lib/api-handler';
-import {
-  ContentRepository,
-  SlackContentAdapter,
-  exchangeSlackCode,
-} from '@nuclom/lib/effect/services/content';
+import { ContentRepository, exchangeSlackCode } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 
 interface OAuthState {
@@ -42,7 +39,7 @@ export async function GET(request: Request) {
 
   // Handle OAuth errors from Slack
   if (error) {
-    logger.error('[Slack Content OAuth Error]', { error, errorDescription });
+    logger.error('[Slack Content OAuth Error]', new Error(`${error}: ${errorDescription}`));
     return redirect('/settings/integrations?error=slack_content_oauth_failed');
   }
 
@@ -73,14 +70,23 @@ export async function GET(request: Request) {
     return redirect('/settings/integrations?error=slack_content_state_expired');
   }
 
-  const { userId, organizationId } = parsedState;
+  const { organizationId } = parsedState;
+
+  // Get credentials
+  const clientId = env.SLACK_CONTENT_CLIENT_ID;
+  const clientSecret = env.SLACK_CONTENT_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return redirect('/settings/integrations?error=slack_content_not_configured');
+  }
+
+  const redirectUri = `${getAppUrl()}/api/content/slack/callback`;
 
   const effect = Effect.gen(function* () {
-    const slackAdapter = yield* SlackContentAdapter;
     const contentRepo = yield* ContentRepository;
 
     // Exchange code for tokens
-    const tokens = yield* exchangeSlackCode(code);
+    const tokens = yield* Effect.promise(() => exchangeSlackCode(clientId, clientSecret, code, redirectUri));
 
     // Create or update content source
     const existingSources = yield* contentRepo.getSources({
@@ -88,9 +94,10 @@ export async function GET(request: Request) {
       type: 'slack',
     });
 
-    const existingSource = existingSources.find(
-      (s) => s.credentials && (s.credentials as { teamId?: string }).teamId === tokens.team.id,
-    );
+    const existingSource = existingSources.items.find((s) => {
+      const config = s.config as { settings?: { teamId?: string } } | null;
+      return config?.settings?.teamId === tokens.team.id;
+    });
 
     if (existingSource) {
       // Update existing source
@@ -98,6 +105,13 @@ export async function GET(request: Request) {
         credentials: {
           accessToken: tokens.access_token,
           scope: tokens.scope,
+        },
+        config: {
+          settings: {
+            teamId: tokens.team.id,
+            teamName: tokens.team.name,
+            authedUserId: tokens.authed_user?.id,
+          },
         },
       });
     } else {
@@ -114,7 +128,6 @@ export async function GET(request: Request) {
           settings: {
             teamId: tokens.team.id,
             teamName: tokens.team.name,
-            botUserId: tokens.bot_user_id,
             authedUserId: tokens.authed_user?.id,
           },
         },

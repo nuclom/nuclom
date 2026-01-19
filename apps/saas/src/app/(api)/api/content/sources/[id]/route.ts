@@ -37,13 +37,15 @@ const UpdateSourceSchema = Schema.Struct({
       syncInterval: Schema.optional(Schema.Number),
       filters: Schema.optional(
         Schema.Struct({
-          channels: Schema.optional(Schema.Array(Schema.String)),
-          users: Schema.optional(Schema.Array(Schema.String)),
+          channels: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
+          users: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
           dateRange: Schema.optional(
-            Schema.Struct({
-              from: Schema.optional(Schema.String),
-              to: Schema.optional(Schema.String),
-            }),
+            Schema.mutable(
+              Schema.Struct({
+                from: Schema.optional(Schema.String),
+                to: Schema.optional(Schema.String),
+              }),
+            ),
           ),
         }),
       ),

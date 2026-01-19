@@ -5,9 +5,8 @@
  */
 
 import { auth } from '@nuclom/lib/auth';
-import { SlackContentAdapter, SlackContentAdapterLive, getSlackOAuthUrl } from '@nuclom/lib/effect/services/content';
-import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { getSlackContentAuthUrl } from '@nuclom/lib/effect/services/content';
+import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -26,6 +25,11 @@ export async function GET(request: Request) {
 
   if (!session?.user) {
     return redirect('/login');
+  }
+
+  // Check if Slack content integration is configured
+  if (!env.SLACK_CONTENT_CLIENT_ID || !env.SLACK_CONTENT_CLIENT_SECRET) {
+    return new Response('Slack content integration not configured', { status: 503 });
   }
 
   // Create state with user and org info for callback
@@ -49,12 +53,8 @@ export async function GET(request: Request) {
   });
 
   // Get authorization URL
-  const effect = Effect.gen(function* () {
-    const slackAdapter = yield* SlackContentAdapter;
-    return yield* getSlackOAuthUrl(state);
-  });
-
-  const authUrl = await Effect.runPromise(Effect.provide(effect, SlackContentAdapterLive));
+  const redirectUri = `${getAppUrl()}/api/content/slack/callback`;
+  const authUrl = getSlackContentAuthUrl(env.SLACK_CONTENT_CLIENT_ID, redirectUri, state);
 
   return redirect(authUrl);
 }
