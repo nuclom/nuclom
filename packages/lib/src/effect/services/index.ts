@@ -246,13 +246,6 @@ export {
   updateVideoContentItem,
   upsertContentItem,
 } from './content';
-export type { MigrationResult } from './content';
-export {
-  cleanupDuplicates,
-  getMigrationStatus,
-  migrateAllVideos,
-  migrateOrganizationVideos,
-} from './content';
 export type { DatabaseService, DrizzleDB } from './database';
 // Database Service
 export {

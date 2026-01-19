@@ -63,14 +63,6 @@ export {
   updateContentSource,
   upsertContentItem,
 } from './content-repository';
-// Migration Utilities
-export type { MigrationResult } from './migrate-videos';
-export {
-  cleanupDuplicates,
-  getMigrationStatus,
-  migrateAllVideos,
-  migrateOrganizationVideos,
-} from './migrate-videos';
 // Types
 export type {
   AdapterFetchOptions,
