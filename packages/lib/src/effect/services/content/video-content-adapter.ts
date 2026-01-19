@@ -14,7 +14,7 @@ import { videos } from '../../../db/schema';
 import { ContentSourceSyncError } from '../../errors';
 import { Database, type DrizzleDB } from '../database';
 import { ContentRepository } from './content-repository';
-import type { ContentSource, ContentSourceAdapter, RawContentItem } from './types';
+import type { ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
 // Video to Content Item Mapping

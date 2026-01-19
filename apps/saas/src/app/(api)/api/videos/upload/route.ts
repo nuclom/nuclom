@@ -1,8 +1,8 @@
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@nuclom/lib/effect';
+import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
-import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import type { ApiResponse } from '@nuclom/lib/types';
 import {
   sanitizeDescription,

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type {
-  ContentItem,
-  ContentParticipant,
-  ContentRelationship,
   ContentRepositoryService,
-  ContentSource,
   CreateContentItemInput,
   CreateContentParticipantInput,
   CreateContentRelationshipInput,

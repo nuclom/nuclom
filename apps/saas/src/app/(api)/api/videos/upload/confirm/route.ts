@@ -8,9 +8,9 @@
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
-import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
