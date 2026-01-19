@@ -275,7 +275,7 @@ export default function PricingPage() {
               <Card
                 key={key}
                 className={cn(
-                  'relative border-2 transition-all duration-300 hover:-translate-y-1',
+                  'relative border-2 transition-all duration-300 hover:-translate-y-1 flex flex-col',
                   plan.popular
                     ? 'border-primary shadow-xl hover:shadow-2xl'
                     : 'hover:shadow-xl hover:border-primary/50',
@@ -295,10 +295,10 @@ export default function PricingPage() {
                     <plan.icon className="w-7 h-7 text-primary" />
                   </div>
                   <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                  <CardDescription className="text-base">{plan.description}</CardDescription>
+                  <CardDescription className="text-base min-h-[48px]">{plan.description}</CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 flex flex-col flex-1">
                   {/* Price */}
                   <div className="text-center">
                     <div className="text-5xl font-bold mb-1">
@@ -337,7 +337,7 @@ export default function PricingPage() {
                   </div>
 
                   {/* Features */}
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 flex-1">
                     {plan.features.map((feature) => (
                       <li key={feature.name} className="flex items-center gap-3">
                         {feature.included ? (
@@ -362,7 +362,7 @@ export default function PricingPage() {
                   </ul>
 
                   {/* CTA */}
-                  <Button className="w-full" size="lg" variant={plan.popular ? 'default' : 'outline'} asChild>
+                  <Button className="w-full mt-auto" size="lg" variant={plan.popular ? 'default' : 'outline'} asChild>
                     <Link href={plan.ctaLink}>
                       {plan.cta}
                       <ArrowRight className="ml-2 w-4 h-4" />
