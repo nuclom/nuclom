@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapteredTranscript, VideoActions, VideoEditDialog, VideoPlayerWithProgress } from '@/components/video';
 import { useToast } from '@/hooks/use-toast';
+import { useVideoProcessing } from '@/hooks/use-video-processing';
 import { refreshVideoUrl } from '../_actions/refresh-video-url';
 
 // =============================================================================
@@ -82,6 +83,61 @@ function ProcessingStatus({ status, error, createdAt, onRetry, isRetrying }: Pro
           Retry
         </Button>
       )}
+    </div>
+  );
+}
+
+// =============================================================================
+// Processing Progress Banner
+// =============================================================================
+
+interface ProcessingProgressBannerProps {
+  status: string;
+  hasTranscript: boolean;
+  hasThumbnail: boolean;
+  hasSummary: boolean;
+}
+
+function ProcessingProgressBanner({ status, hasTranscript, hasThumbnail, hasSummary }: ProcessingProgressBannerProps) {
+  if (status === 'completed' || status === 'failed') return null;
+
+  const steps = [
+    { key: 'video', label: 'Video', done: true }, // Always done if we're showing this
+    { key: 'thumbnail', label: 'Thumbnail', done: hasThumbnail },
+    { key: 'transcript', label: 'Transcript', done: hasTranscript },
+    { key: 'summary', label: 'AI Summary', done: hasSummary },
+  ];
+
+  const completedSteps = steps.filter((s) => s.done).length;
+  const progress = (completedSteps / steps.length) * 100;
+
+  return (
+    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mb-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+          Processing video... You can watch while we work
+        </span>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex-1 bg-blue-500/20 rounded-full h-1.5 overflow-hidden">
+          <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="text-xs text-blue-600 dark:text-blue-400">
+          {completedSteps}/{steps.length}
+        </span>
+      </div>
+      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+        {steps.map((step) => (
+          <span
+            key={step.key}
+            className={`flex items-center gap-1 ${step.done ? 'text-green-600 dark:text-green-400' : ''}`}
+          >
+            {step.done ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3 opacity-50" />}
+            {step.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -378,10 +434,21 @@ function getTagColor(tag: string): string {
 // Main Component
 // =============================================================================
 
-export function VideoContentClient({ video, chapters, organizationSlug, currentUser }: VideoContentClientProps) {
+export function VideoContentClient({
+  video: initialVideo,
+  chapters,
+  organizationSlug,
+  currentUser,
+}: VideoContentClientProps) {
   const searchParams = useSearchParams();
   const initialTimeFromUrl = searchParams.get('t');
   const initialSeekTime = initialTimeFromUrl ? Number.parseInt(initialTimeFromUrl, 10) : 0;
+
+  // Poll for video updates during processing (enables incremental UI updates)
+  const { video } = useVideoProcessing({
+    initialVideo,
+    pollingInterval: 3000,
+  });
 
   // Playback state
   const [currentTime, setCurrentTime] = useState(initialSeekTime);
@@ -674,6 +741,14 @@ export function VideoContentClient({ video, chapters, organizationSlug, currentU
       {/* Video Player - Right column on desktop */}
       <div className="lg:col-start-2 lg:row-start-1">
         <div className="lg:sticky lg:top-4 space-y-4">
+          {/* Processing Progress Banner */}
+          <ProcessingProgressBanner
+            status={video.processingStatus}
+            hasTranscript={Boolean(video.transcript && video.transcript.length > 0)}
+            hasThumbnail={Boolean(video.thumbnailUrl)}
+            hasSummary={Boolean(video.aiSummary)}
+          />
+
           {/* Video Player */}
           <div className="relative rounded-xl overflow-hidden bg-black">
             {video.videoUrl ? (
