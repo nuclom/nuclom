@@ -64,6 +64,13 @@
       "when": 1768842691594,
       "tag": "0008_add_content_source_abstraction",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1768846614140,
+      "tag": "0009_add_hnsw_index_content_items",
+      "breakpoints": true
     }
   ]
 }
