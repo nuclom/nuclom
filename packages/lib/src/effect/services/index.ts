@@ -775,3 +775,86 @@ export {
   Zoom,
   ZoomLive,
 } from './zoom';
+
+// =============================================================================
+// Slack, Notion, GitHub Content Adapters
+// =============================================================================
+
+export type { SlackContentAdapterService } from './content';
+export {
+  SlackContentAdapter,
+  SlackContentAdapterLive,
+  createSlackContentAdapter,
+  getSlackContentAuthUrl,
+  SLACK_CONTENT_SCOPES,
+  resolveUserMentions,
+  resolveChannelMentions,
+  formatSlackMrkdwn,
+} from './content';
+
+export type { NotionContentAdapterService } from './content';
+export {
+  NotionContentAdapter,
+  NotionContentAdapterLive,
+  createNotionContentAdapter,
+  getNotionAuthUrl,
+  exchangeNotionCode,
+} from './content';
+
+export type { GitHubContentAdapterService } from './content';
+export {
+  GitHubContentAdapter,
+  GitHubContentAdapterLive,
+  createGitHubContentAdapter,
+  getGitHubAuthUrl,
+  exchangeGitHubCode,
+  verifyGitHubWebhookSignature,
+  cleanupExpiredFileCache,
+} from './content';
+
+// =============================================================================
+// Knowledge Graph Services
+// =============================================================================
+
+export type {
+  RelationshipDetectorService,
+  RelationshipCandidate,
+  DetectionOptions,
+  DetectionResult,
+  DecisionTrackerService,
+  CreateDecisionInput as KnowledgeCreateDecisionInput,
+  UpdateDecisionInput as KnowledgeUpdateDecisionInput,
+  DecisionFilters,
+  DecisionWithRelations as KnowledgeDecisionWithRelations,
+  DecisionTimelineEntry,
+  ExtractedDecision as KnowledgeExtractedDecision,
+  DecisionStatus as KnowledgeDecisionStatus,
+  DecisionType as KnowledgeDecisionType,
+  TopicClusterService,
+  CreateTopicClusterInput,
+  TopicClusterWithMembers,
+  TopicExpertiseEntry,
+  ClusteringOptions,
+  ClusteringResult,
+} from './knowledge';
+
+export {
+  RelationshipDetector,
+  RelationshipDetectorLive,
+  detectRelationshipsForItem,
+  detectRelationships,
+  findSimilarContentItems,
+  DecisionTracker,
+  DecisionTrackerLive,
+  createDecision as createKnowledgeDecision,
+  getDecision as getKnowledgeDecision,
+  listDecisions,
+  updateDecisionStatus,
+  extractDecisions,
+  TopicCluster,
+  TopicClusterLive,
+  createTopicCluster,
+  getTopicCluster,
+  autoClusterContent,
+  getTopicExperts,
+} from './knowledge';

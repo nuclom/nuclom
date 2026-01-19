@@ -108,3 +108,38 @@ export {
   syncVideoToContent,
   updateVideoContentItem,
 } from './video-content-adapter';
+
+// Slack Content Adapter
+export type { SlackContentAdapterService } from './slack-content-adapter';
+export {
+  SlackContentAdapter,
+  SlackContentAdapterLive,
+  createSlackContentAdapter,
+  getSlackContentAuthUrl,
+  SLACK_CONTENT_SCOPES,
+  resolveUserMentions,
+  resolveChannelMentions,
+  formatSlackMrkdwn,
+} from './slack-content-adapter';
+
+// Notion Content Adapter
+export type { NotionContentAdapterService } from './notion-content-adapter';
+export {
+  NotionContentAdapter,
+  NotionContentAdapterLive,
+  createNotionContentAdapter,
+  getNotionAuthUrl,
+  exchangeNotionCode,
+} from './notion-content-adapter';
+
+// GitHub Content Adapter
+export type { GitHubContentAdapterService } from './github-content-adapter';
+export {
+  GitHubContentAdapter,
+  GitHubContentAdapterLive,
+  createGitHubContentAdapter,
+  getGitHubAuthUrl,
+  exchangeGitHubCode,
+  verifyGitHubWebhookSignature,
+  cleanupExpiredFileCache,
+} from './github-content-adapter';

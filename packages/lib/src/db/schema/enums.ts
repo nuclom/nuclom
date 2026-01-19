@@ -129,10 +129,10 @@ export const invoiceStatusEnum = pgEnum('InvoiceStatus', ['draft', 'open', 'paid
 // Knowledge Graph Enums
 // =============================================================================
 
-export const decisionStatusEnum = pgEnum('DecisionStatus', ['proposed', 'decided', 'revisited', 'superseded']);
-export const participantRoleEnum = pgEnum('ParticipantRole', ['decider', 'participant', 'mentioned']);
+export const decisionStatusEnum = pgEnum('DecisionStatus', ['proposed', 'decided', 'implemented', 'revisited', 'superseded']);
+export const participantRoleEnum = pgEnum('ParticipantRole', ['proposer', 'decider', 'approver', 'objector', 'participant', 'mentioned']);
 export const knowledgeNodeTypeEnum = pgEnum('KnowledgeNodeType', ['person', 'topic', 'artifact', 'decision', 'video']);
-export const decisionTypeEnum = pgEnum('DecisionType', ['technical', 'process', 'product', 'team', 'other']);
+export const decisionTypeEnum = pgEnum('DecisionType', ['technical', 'process', 'product', 'team', 'resource', 'other']);
 
 // =============================================================================
 // AI Insights Enums
@@ -384,6 +384,7 @@ export const contentRelationshipTypeEnum = pgEnum('ContentRelationshipType', [
   'implements',
   'supersedes',
   'relates_to',
+  'similar_to',
   'mentions',
   'derived_from',
 ]);
