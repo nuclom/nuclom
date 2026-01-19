@@ -47,7 +47,10 @@ export interface ContentRepositoryService {
   createSource(input: CreateContentSourceInput): Effect.Effect<ContentSource, DatabaseError>;
   getSource(id: string): Effect.Effect<ContentSource, ContentSourceNotFoundError | DatabaseError>;
   getSourceOption(id: string): Effect.Effect<Option.Option<ContentSource>, DatabaseError>;
-  getSources(filters: ContentSourceFilters): Effect.Effect<ContentSource[], DatabaseError>;
+  getSources(
+    filters: ContentSourceFilters,
+    pagination?: PaginationOptions,
+  ): Effect.Effect<PaginatedResult<ContentSource>, DatabaseError>;
   getSourcesWithStats(filters: ContentSourceFilters): Effect.Effect<ContentSourceWithStats[], DatabaseError>;
   updateSource(
     id: string,
@@ -185,7 +188,7 @@ const makeContentRepository = (db: DrizzleDB): ContentRepositoryService => ({
         }),
     }),
 
-  getSources: (filters) =>
+  getSources: (filters, pagination = { limit: 50, offset: 0 }) =>
     Effect.tryPromise({
       try: async () => {
         const conditions = [eq(contentSources.organizationId, filters.organizationId)];
@@ -197,10 +200,30 @@ const makeContentRepository = (db: DrizzleDB): ContentRepositoryService => ({
           conditions.push(eq(contentSources.syncStatus, filters.syncStatus));
         }
 
-        return db.query.contentSources.findMany({
+        const limit = pagination.limit ?? 50;
+        const offset = pagination.offset ?? 0;
+
+        // Get total count
+        const [{ total }] = await db
+          .select({ total: count() })
+          .from(contentSources)
+          .where(and(...conditions));
+
+        // Get items with pagination
+        const items = await db.query.contentSources.findMany({
           where: and(...conditions),
           orderBy: desc(contentSources.createdAt),
+          limit,
+          offset,
         });
+
+        return {
+          items,
+          total,
+          limit,
+          offset,
+          hasMore: offset + items.length < total,
+        };
       },
       catch: (error) =>
         new DatabaseError({
@@ -898,10 +921,10 @@ export const getContentSource = (id: string) =>
     return yield* repo.getSource(id);
   });
 
-export const getContentSources = (filters: ContentSourceFilters) =>
+export const getContentSources = (filters: ContentSourceFilters, pagination?: PaginationOptions) =>
   Effect.gen(function* () {
     const repo = yield* ContentRepository;
-    return yield* repo.getSources(filters);
+    return yield* repo.getSources(filters, pagination);
   });
 
 export const getContentSourcesWithStats = (filters: ContentSourceFilters) =>
