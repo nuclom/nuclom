@@ -5,10 +5,10 @@
  * This enables uploading videos of any size directly from the browser to cloud storage.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { Storage, ValidationError } from '@/lib/effect';
 import { checkResourceLimit, requireWriteAccess } from '@/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@/lib/effect/services/billing-repository';

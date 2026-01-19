@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apikeys, notifications, userPreferences, users, videoProgresses, videos } from '@/lib/db/schema';
 import { logger } from '@/lib/logger';

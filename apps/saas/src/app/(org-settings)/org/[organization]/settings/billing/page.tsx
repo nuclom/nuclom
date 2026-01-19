@@ -1,10 +1,10 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Exit, Layer, Option } from 'effect';
 import { Loader2 } from 'lucide-react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { BillingDashboard } from '@/components/billing';
-import { auth } from '@/lib/auth';
 import { AppLive } from '@/lib/effect';
 import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
 import { Billing } from '@/lib/effect/services/billing';

@@ -4,11 +4,11 @@
  * Endpoints for managing custom vocabulary terms to improve transcription accuracy.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Cause, Effect, Exit, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
 import { VocabularyRepository } from '@/lib/effect/services/vocabulary-repository';
 import type { ApiResponse } from '@/lib/types';

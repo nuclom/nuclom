@@ -1,3 +1,4 @@
+import { auth } from '@nuclom/lib/auth';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Camera, MonitorUp } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -6,7 +7,6 @@ import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedOrganizationBySlug } from '@/lib/effect';
 

@@ -1,3 +1,4 @@
+import { auth } from '@nuclom/lib/auth';
 import { Link } from '@vercel/microfrontends/next/client';
 import { eq } from 'drizzle-orm';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -8,7 +9,6 @@ import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UploadHub } from '@/components/upload-hub';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { organizations } from '@/lib/db/schema';
 

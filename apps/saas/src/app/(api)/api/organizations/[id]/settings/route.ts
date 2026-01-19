@@ -1,8 +1,8 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Option, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
 import { safeParse } from '@/lib/validation';
 

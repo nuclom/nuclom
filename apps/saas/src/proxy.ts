@@ -2,11 +2,11 @@
  * Next.js Middleware - Authentication, rate limiting, and request tracing
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { getSessionCookie } from 'better-auth/cookies';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { env } from '@/lib/env/server';
 import { createLogger } from '@/lib/logger';
 import {

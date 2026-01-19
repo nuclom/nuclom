@@ -1,3 +1,4 @@
+import { auth } from '@nuclom/lib/auth';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
@@ -6,7 +7,6 @@ import { ActivityFeed } from '@/components/dashboard/activity-feed';
 import { DashboardHero } from '@/components/dashboard/dashboard-hero';
 import { VideoSection } from '@/components/dashboard/video-section';
 import { GettingStartedChecklist } from '@/components/getting-started-checklist';
-import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedCollections, getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
 

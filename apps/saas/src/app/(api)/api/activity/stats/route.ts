@@ -1,6 +1,6 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer, Option } from 'effect';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { ActivityFeedRepository, ActivityFeedRepositoryLive } from '@/lib/effect/services/activity-feed-repository';
 import { DatabaseLive } from '@/lib/effect/services/database';
 import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';

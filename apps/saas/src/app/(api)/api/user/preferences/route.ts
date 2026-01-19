@@ -1,8 +1,8 @@
+import { auth } from '@nuclom/lib/auth';
 import { eq } from 'drizzle-orm';
 import { Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { userPreferences } from '@/lib/db/schema';
 import { logger } from '@/lib/logger';

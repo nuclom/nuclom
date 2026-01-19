@@ -5,12 +5,12 @@
  * including participation history and speaking patterns over time.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { and, desc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { normalizeOne } from '@/lib/db/relations';
 import { speakerProfiles, videoSpeakers } from '@/lib/db/schema';

@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer } from 'effect';
 import type { NextRequest } from 'next/server';
 import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { AppLive, NotFoundError } from '@/lib/effect';
 import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
 import { Storage } from '@/lib/effect/services/storage';

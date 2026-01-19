@@ -1,10 +1,10 @@
+import { auth } from '@nuclom/lib/auth';
 import { asc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { createPublicLayer } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { videoChapters } from '@/lib/db/schema';
 import { getCachedVideo, Storage } from '@/lib/effect';

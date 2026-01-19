@@ -5,10 +5,10 @@
  * Creates the video record in the database and triggers processing.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { Storage, ValidationError, VideoRepository } from '@/lib/effect';
 import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
 import type { ApiResponse } from '@/lib/types';

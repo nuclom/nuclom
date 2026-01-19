@@ -4,10 +4,10 @@
  * Imports a video from a remote URL by downloading and re-uploading to R2.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { CollectionRepository, Storage, ValidationError, VideoRepository } from '@/lib/effect';
 import type { ApiResponse } from '@/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@/lib/validation';

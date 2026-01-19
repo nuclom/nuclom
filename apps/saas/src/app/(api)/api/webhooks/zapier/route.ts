@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 import { handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { UnauthorizedError, ValidationError } from '@/lib/effect/errors';
 import { DatabaseLive } from '@/lib/effect/services/database';
 import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';

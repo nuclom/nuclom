@@ -8,10 +8,10 @@
  * - Reduced boilerplate in route handlers
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Cause, type Context, Effect, Exit, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 import { mapErrorToApiResponse } from '@/lib/api-errors';
-import { auth } from '@/lib/auth';
 import { AppLive, Storage } from '@/lib/effect';
 import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
 

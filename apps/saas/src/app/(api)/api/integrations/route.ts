@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 import { handleEffectExit, runApiEffect } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { UnauthorizedError } from '@/lib/effect/errors';
 import { IntegrationRepository } from '@/lib/effect/services/integration-repository';
 

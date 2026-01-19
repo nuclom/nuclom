@@ -1,8 +1,8 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { VideoRepository } from '@/lib/effect';
 import { env } from '@/lib/env/server';
 import type { ApiResponse } from '@/lib/types';

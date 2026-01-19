@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 import { handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import { UnauthorizedError, ValidationError } from '@/lib/effect/errors';
 import { DatabaseLive } from '@/lib/effect/services/database';
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from '@/lib/effect/services/zapier-webhooks';

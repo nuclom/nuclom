@@ -1,9 +1,9 @@
+import { auth } from '@nuclom/lib/auth';
 import { and, eq } from 'drizzle-orm';
 import { Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 import { type AuditLogFilters, AuditLogger } from '@/lib/audit-log';
-import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { type AuditLogCategory, type AuditLogSeverity, members } from '@/lib/db/schema';
 import { logger } from '@/lib/logger';

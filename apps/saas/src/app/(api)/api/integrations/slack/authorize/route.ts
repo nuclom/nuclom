@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
 import { Slack, SlackLive } from '@/lib/effect/services/slack';
 import { env } from '@/lib/env/server';
 

@@ -1,6 +1,6 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { DatabaseLive } from '@/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 import { Slack, SlackLive } from '@/lib/effect/services/slack';

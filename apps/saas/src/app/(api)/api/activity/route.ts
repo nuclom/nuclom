@@ -1,8 +1,8 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect, Layer, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
 import { handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
 import type { ActivityType } from '@/lib/db/schema';
 import { AppLive } from '@/lib/effect';
 import { ActivityFeedRepository, ActivityFeedRepositoryLive } from '@/lib/effect/services/activity-feed-repository';

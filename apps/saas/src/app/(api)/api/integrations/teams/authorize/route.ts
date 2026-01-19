@@ -1,7 +1,7 @@
+import { auth } from '@nuclom/lib/auth';
 import { Effect } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
 import { MicrosoftTeams, MicrosoftTeamsLive } from '@/lib/effect/services/microsoft-teams';
 import { env } from '@/lib/env/server';
 

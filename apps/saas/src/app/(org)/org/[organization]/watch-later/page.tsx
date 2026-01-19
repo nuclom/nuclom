@@ -1,9 +1,9 @@
+import { auth } from '@nuclom/lib/auth';
 import { Clock } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { auth } from '@/lib/auth';
 import type { Organization } from '@/lib/db/schema';
 import { getCachedOrganizationBySlug } from '@/lib/effect';
 

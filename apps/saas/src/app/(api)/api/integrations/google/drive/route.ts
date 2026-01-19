@@ -5,9 +5,9 @@
  * This is separate from Meet recordings - allows browsing any video files.
  */
 
+import { auth } from '@nuclom/lib/auth';
 import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
 import { DatabaseLive } from '@/lib/effect/services/database';
 import { type GoogleDriveSearchOptions, GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
