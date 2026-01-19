@@ -9,9 +9,10 @@ import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handle
 import { auth } from '@nuclom/lib/auth';
 import { Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
-import { Effect, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 import { processVideoWorkflow } from '@/workflows/video-processing';
 
@@ -147,14 +148,20 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
 
     // Track usage AFTER video creation succeeds
     // This ensures we only bill for videos that were actually created
-    yield* trackVideoUpload(organizationId, fileSize).pipe(
-      Effect.catchAll((error) => {
-        // Log billing tracking errors but don't fail the confirmation
-        // The video record exists, so continue (billing will catch up)
-        console.error('[Billing] Failed to track video upload:', error);
-        return Effect.succeed(undefined);
-      }),
-    );
+    // First check if organization has an active subscription to avoid NoSubscriptionError
+    const billingRepo = yield* BillingRepository;
+    const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
+
+    if (Option.isSome(subscriptionOption)) {
+      yield* trackVideoUpload(organizationId, fileSize).pipe(
+        Effect.catchAll((error) => {
+          // Log billing tracking errors but don't fail the confirmation
+          // The video record exists, so continue (billing will catch up)
+          console.error('[Billing] Failed to track video upload:', error);
+          return Effect.succeed(undefined);
+        }),
+      );
+    }
 
     return {
       videoId: video.id,
@@ -207,6 +214,7 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
   const effect = Effect.gen(function* () {
     const storage = yield* Storage;
     const videoRepo = yield* VideoRepository;
+    const billingRepo = yield* BillingRepository;
 
     // Check if storage is configured
     if (!storage.isConfigured) {
@@ -216,6 +224,9 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         }),
       );
     }
+
+    // Check subscription once for all uploads (more efficient)
+    const subscriptionOption = yield* billingRepo.getSubscriptionOption(organizationId);
 
     const results: BulkConfirmUploadResponse['videos'] = [];
     let succeeded = 0;
@@ -241,13 +252,16 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         });
 
         // Track usage AFTER video creation succeeds
-        yield* trackVideoUpload(organizationId, upload.fileSize).pipe(
-          Effect.catchAll((error) => {
-            // Log billing tracking errors but don't fail the confirmation
-            console.error('[Billing] Failed to track video upload:', error);
-            return Effect.succeed(undefined);
-          }),
-        );
+        // Only track if organization has an active subscription
+        if (Option.isSome(subscriptionOption)) {
+          yield* trackVideoUpload(organizationId, upload.fileSize).pipe(
+            Effect.catchAll((error) => {
+              // Log billing tracking errors but don't fail the confirmation
+              console.error('[Billing] Failed to track video upload:', error);
+              return Effect.succeed(undefined);
+            }),
+          );
+        }
 
         results.push({
           uploadId: upload.uploadId,
