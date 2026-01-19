@@ -10,7 +10,6 @@
 import { logger } from '@nuclom/lib/client-logger';
 import { CheckCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useProgressFraction, useVideoProgress } from '@/hooks/use-video-progress';
 import { type VideoChapter, VideoPlayer, type VideoProgress } from './video-player';
 
@@ -121,19 +120,9 @@ export function VideoPlayerWithProgress({
     logger.error('Video playback error', errorMsg);
   }, []);
 
-  // Show skeleton while loading progress
-  if (loading) {
-    return (
-      <div className={className}>
-        <Skeleton className="aspect-video w-full rounded-lg" />
-      </div>
-    );
-  }
-
-  // Show error but still allow playback
+  // Log warning if progress fetch failed (but don't block playback)
   if (error) {
     logger.warn('Failed to load video progress', error);
-    // Continue with video player anyway
   }
 
   return (
@@ -146,14 +135,14 @@ export function VideoPlayerWithProgress({
         </div>
       )}
 
-      {/* Video Player */}
+      {/* Video Player - show immediately, don't wait for progress to load */}
       <VideoPlayer
         url={url}
         title={title}
         videoId={videoId}
         organizationSlug={organizationSlug}
         thumbnailUrl={thumbnailUrl}
-        initialProgress={initialProgressFraction}
+        initialProgress={loading ? 0 : initialProgressFraction}
         chapters={chapters}
         onProgress={handleProgress}
         onEnded={handleEnded}
