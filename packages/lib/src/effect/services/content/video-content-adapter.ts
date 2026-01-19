@@ -219,7 +219,7 @@ export const ensureVideoContentSource = (organizationId: string) =>
     const repo = yield* ContentRepository;
 
     // Check if a video source already exists for this org
-    const existingSources = yield* repo.getSources({
+    const { items: existingSources } = yield* repo.getSources({
       organizationId,
       type: 'video',
     });
@@ -285,7 +285,7 @@ export const updateVideoContentItem = (
     const repo = yield* ContentRepository;
 
     // Find the content source for this org
-    const sources = yield* repo.getSources({
+    const { items: sources } = yield* repo.getSources({
       organizationId,
       type: 'video',
     });
