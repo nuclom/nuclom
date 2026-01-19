@@ -341,13 +341,8 @@ export default function PricingPage() {
                     {plan.features.map((feature) => (
                       <li key={feature.name} className="flex items-center gap-3">
                         {feature.included ? (
-                          <div
-                            className={cn(
-                              'w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0',
-                              feature.highlight ? 'bg-primary text-primary-foreground' : 'bg-primary/20',
-                            )}
-                          >
-                            <Check className={cn('w-3 h-3', feature.highlight ? 'text-white' : 'text-primary')} />
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-primary text-primary-foreground">
+                            <Check className="w-3 h-3 text-white" />
                           </div>
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
