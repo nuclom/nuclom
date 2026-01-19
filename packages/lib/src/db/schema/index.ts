@@ -14,6 +14,7 @@ export * from './auth-relations';
 export * from './billing';
 export * from './chat';
 export * from './clips';
+export * from './content';
 export * from './enums';
 export * from './integrations';
 export * from './knowledge';

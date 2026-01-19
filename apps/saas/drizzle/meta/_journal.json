@@ -57,6 +57,13 @@
       "when": 1768520400000,
       "tag": "0007_add_video_visibility_and_shares",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1768842691594,
+      "tag": "0008_add_content_source_abstraction",
+      "breakpoints": true
     }
   ]
 }
