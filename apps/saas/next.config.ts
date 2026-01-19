@@ -120,5 +120,4 @@ const withPostHog = (config: NextConfig) =>
       })
     : config;
 
-// withWorkflow must be the outermost wrapper to properly transform workflow functions
 export default withWorkflow(withMicrofrontends(withPostHog(withI18n)));
