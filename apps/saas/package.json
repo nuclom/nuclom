@@ -6,7 +6,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --port $(microfrontends port)",
-    "tsc": "next typegen && tsc --noEmit",
+    "tsc": "next typegen && tsgo --noEmit",
     "start": "next start -p 3091",
     "db": "drizzle-kit",
     "db:generate": "drizzle-kit generate",

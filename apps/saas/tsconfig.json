@@ -25,7 +25,6 @@
         "name": "workflow"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
