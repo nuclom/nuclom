@@ -321,13 +321,28 @@ const makeContentProcessor = (
           cursor,
         });
 
-        // Process each item
-        for (const rawItem of result.items) {
-          const itemResult = yield* processRawItem(deps, source, rawItem).pipe(Effect.either);
-          if (itemResult._tag === 'Left') {
+        // Process items with controlled concurrency
+        const itemResults = yield* Effect.forEach(
+          result.items,
+          (rawItem) =>
+            processRawItem(deps, source, rawItem).pipe(
+              Effect.map(() => ({ success: true as const, externalId: rawItem.externalId })),
+              Effect.catchAll((error) =>
+                Effect.succeed({
+                  success: false as const,
+                  externalId: rawItem.externalId,
+                  message: error.message,
+                }),
+              ),
+            ),
+          { concurrency: 5 },
+        );
+
+        for (const itemResult of itemResults) {
+          if (!itemResult.success) {
             errors.push({
-              message: itemResult.left.message,
-              itemId: rawItem.externalId,
+              message: itemResult.message,
+              itemId: itemResult.externalId,
             });
           } else {
             totalProcessed++;
