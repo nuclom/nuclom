@@ -14,7 +14,7 @@ import { videos } from '../../../db/schema';
 import { ContentSourceSyncError } from '../../errors';
 import { Database, type DrizzleDB } from '../database';
 import { ContentRepository } from './content-repository';
-import type { ContentSourceAdapter, RawContentItem } from './types';
+import type { ContentSource, ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
 // Video to Content Item Mapping
@@ -240,6 +240,89 @@ export const ensureVideoContentSource = (organizationId: string) =>
 
     return source;
   });
+
+// =============================================================================
+// Convenience Functions for Upload Integration
+// =============================================================================
+
+/**
+ * Sync a newly created video to content_items in one step.
+ * This combines ensureVideoContentSource + syncVideoToContent.
+ *
+ * Call this after creating a video in the upload routes.
+ */
+export const syncNewVideoToContent = (videoId: string, organizationId: string) =>
+  Effect.gen(function* () {
+    // Ensure video source exists for this org
+    const source = yield* ensureVideoContentSource(organizationId);
+
+    // Sync the video to content_items
+    const contentItemId = yield* syncVideoToContent(videoId, source.id);
+
+    return contentItemId;
+  }).pipe(
+    // Don't fail the upload if content sync fails - just log
+    Effect.catchAll((error) => {
+      console.error('[Content Sync] Failed to sync video to content_items:', error);
+      return Effect.succeed(Option.none<string>());
+    }),
+  );
+
+/**
+ * Update a content_item with processed video data (transcript, summary, tags).
+ * Call this after video processing completes in the workflow.
+ */
+export const updateVideoContentItem = (
+  videoId: string,
+  organizationId: string,
+  data: {
+    transcript?: string;
+    summary?: string;
+    tags?: string[];
+  },
+) =>
+  Effect.gen(function* () {
+    const repo = yield* ContentRepository;
+
+    // Find the content source for this org
+    const sources = yield* repo.getSources({
+      organizationId,
+      type: 'video',
+    });
+
+    if (sources.length === 0) {
+      // No content source exists, video wasn't synced
+      return Option.none<string>();
+    }
+
+    const source = sources[0];
+
+    // Find the content item by external_id (which is the video ID)
+    const existingItemOption = yield* repo.getItemByExternalId(source.id, videoId);
+
+    if (Option.isNone(existingItemOption)) {
+      return Option.none<string>();
+    }
+
+    const existingItem = existingItemOption.value;
+
+    // Update the content item with processed data
+    const updatedItem = yield* repo.updateItem(existingItem.id, {
+      content: data.transcript,
+      summary: data.summary,
+      tags: data.tags,
+      processingStatus: 'completed',
+      processedAt: new Date(),
+    });
+
+    return Option.some(updatedItem.id);
+  }).pipe(
+    // Don't fail the workflow if content update fails - just log
+    Effect.catchAll((error) => {
+      console.error('[Content Update] Failed to update video content_item:', error);
+      return Effect.succeed(Option.none<string>());
+    }),
+  );
 
 // =============================================================================
 // Registration Helper

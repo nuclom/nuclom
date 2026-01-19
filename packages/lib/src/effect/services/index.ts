@@ -222,8 +222,10 @@ export {
   ContentRepositoryLive,
   createContentItem,
   createContentSource,
+  createVideoContentAdapter,
   deleteContentItem,
   deleteContentSource,
+  ensureVideoContentSource,
   getContentItem,
   getContentItemByExternalId,
   getContentItems,
@@ -235,10 +237,21 @@ export {
   processContentItem,
   processContentItemsBatch,
   registerContentAdapter,
+  registerVideoAdapter,
   syncContentSource,
+  syncNewVideoToContent,
+  syncVideoToContent,
   updateContentItem,
   updateContentSource,
+  updateVideoContentItem,
   upsertContentItem,
+} from './content';
+export type { MigrationResult } from './content';
+export {
+  cleanupDuplicates,
+  getMigrationStatus,
+  migrateAllVideos,
+  migrateOrganizationVideos,
 } from './content';
 export type { DatabaseService, DrizzleDB } from './database';
 // Database Service

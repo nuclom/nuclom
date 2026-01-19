@@ -2,6 +2,7 @@ import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handle
 import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@nuclom/lib/effect';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import type { ApiResponse } from '@nuclom/lib/types';
 import {
   sanitizeDescription,
@@ -113,6 +114,10 @@ export async function POST(request: NextRequest) {
       organizationId: validatedData.organizationId,
       processingStatus: skipAIProcessing ? 'completed' : 'pending',
     });
+
+    // Sync video to content_items for unified knowledge base
+    // This is non-blocking - failures are logged but don't fail the upload
+    yield* syncNewVideoToContent(insertedVideo.id, validatedData.organizationId);
 
     return {
       videoId: insertedVideo.id,

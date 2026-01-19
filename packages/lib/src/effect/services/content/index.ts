@@ -112,5 +112,7 @@ export {
   createVideoContentAdapter,
   ensureVideoContentSource,
   registerVideoAdapter,
+  syncNewVideoToContent,
   syncVideoToContent,
+  updateVideoContentItem,
 } from './video-content-adapter';
