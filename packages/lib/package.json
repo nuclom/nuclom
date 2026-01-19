@@ -28,6 +28,7 @@
     "tsc": "tsgo --noEmit"
   },
   "dependencies": {
+    "@nuclom/auth": "workspace:*",
     "@ai-sdk/gateway": "catalog:",
     "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/lib-storage": "catalog:",

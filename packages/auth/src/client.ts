@@ -67,6 +67,39 @@ export const { useSession, signIn, signOut, signUp, useActiveOrganization, organ
 // Export admin methods
 export const { admin } = authClient;
 
+/**
+ * Unified auth hook for accessing current user state
+ * Combines session, user, and loading state into a single hook
+ */
+export function useAuth() {
+  const session = authClient.useSession();
+
+  return {
+    session: session.data,
+    user: session.data?.user ?? null,
+    isLoading: session.isPending,
+    isAuthenticated: !!session.data?.user,
+  };
+}
+
+/**
+ * Hook that throws an error if user is not authenticated
+ * Useful for protected routes/components
+ */
+export function useRequireAuth() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return { user: null, isLoading: true as const };
+  }
+
+  if (!user) {
+    throw new Error('User must be authenticated to access this resource');
+  }
+
+  return { user, isLoading: false as const };
+}
+
 // Last login method helpers
 export const { getLastUsedLoginMethod, isLastUsedLoginMethod, clearLastUsedLoginMethod } = authClient;
 

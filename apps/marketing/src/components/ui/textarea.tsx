@@ -1,1 +1,1 @@
-export * from '@nuclom/ui/textarea';
+export { Textarea } from '@nuclom/ui/textarea';

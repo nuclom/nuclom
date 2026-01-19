@@ -1,1 +1,1 @@
-export * from '@nuclom/ui/label';
+export { Label } from '@nuclom/ui/label';

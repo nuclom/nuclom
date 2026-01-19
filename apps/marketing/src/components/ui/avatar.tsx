@@ -1,1 +1,1 @@
-export * from '@nuclom/ui/avatar';
+export { Avatar, AvatarFallback, AvatarImage } from '@nuclom/ui/avatar';

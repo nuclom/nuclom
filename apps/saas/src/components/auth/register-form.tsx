@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Eye, EyeOff, Github, Loader2 } from 'lucide-react';

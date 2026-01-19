@@ -4,15 +4,13 @@ import { Brain, Download, Loader2, RefreshCw } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useState } from 'react';
 import useSWR from 'swr';
-import {
-  ActionItemTracker,
-  InsightsOverview,
-  InsightsSummary,
-  KeywordCloud,
-  MeetingEffectiveness,
-  MeetingPatterns,
-  TopicTrends,
-} from '@/components/insights';
+import { ActionItemTracker } from '@/components/insights/action-item-tracker';
+import { InsightsOverview } from '@/components/insights/insights-overview';
+import { InsightsSummary } from '@/components/insights/insights-summary';
+import { KeywordCloud } from '@/components/insights/keyword-cloud';
+import { MeetingEffectiveness } from '@/components/insights/meeting-effectiveness';
+import { MeetingPatterns } from '@/components/insights/meeting-patterns';
+import { TopicTrends } from '@/components/insights/topic-trends';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

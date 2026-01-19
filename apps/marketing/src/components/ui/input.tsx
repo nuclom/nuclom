@@ -1,1 +1,1 @@
-export * from '@nuclom/ui/input';
+export { Input } from '@nuclom/ui/input';

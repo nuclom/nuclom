@@ -15,12 +15,15 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { Streamdown } from 'streamdown';
-import { VideoDecisionsSidebar } from '@/components/knowledge';
+import { VideoDecisionsSidebar } from '@/components/knowledge/video-decisions-sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChapteredTranscript, VideoActions, VideoEditDialog, VideoPlayerWithProgress } from '@/components/video';
+import { ChapteredTranscript } from '@/components/video/chaptered-transcript';
+import { VideoActions } from '@/components/video/video-actions';
+import { VideoEditDialog } from '@/components/video/video-edit-dialog';
+import { VideoPlayerWithProgress } from '@/components/video/video-player-with-progress';
 import { useToast } from '@/hooks/use-toast';
 import { refreshVideoUrl } from '../_actions/refresh-video-url';
 

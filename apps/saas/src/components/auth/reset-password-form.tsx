@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { ResetPasswordSchema, safeParse } from '@nuclom/lib/validation';
 import { Link } from '@vercel/microfrontends/next/client';

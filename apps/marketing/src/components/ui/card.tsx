@@ -1,1 +1,8 @@
-export * from '@nuclom/ui/card';
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@nuclom/ui/card';

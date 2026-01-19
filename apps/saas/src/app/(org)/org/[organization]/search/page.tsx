@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { SearchPageContent } from '@/components/search';
+import { SearchPageContent } from '@/components/search/search-page-content';
 
 interface SearchPageProps {
   params: Promise<{ organization: string }>;

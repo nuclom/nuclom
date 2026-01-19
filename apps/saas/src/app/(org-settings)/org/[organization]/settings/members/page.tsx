@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import type { Member, Organization, User } from '@nuclom/lib/db/schema';
 import { Clock, Loader2, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
 import { useParams } from 'next/navigation';

@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from 'lucide-react';

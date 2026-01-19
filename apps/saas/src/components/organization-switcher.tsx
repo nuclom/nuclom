@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
 import { Check, ChevronsUpDown, PlusCircle } from 'lucide-react';

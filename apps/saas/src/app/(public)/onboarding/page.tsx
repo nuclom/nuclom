@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient, useAuth } from '@nuclom/auth/client';
 import { Film } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,6 @@ import { StepComplete } from '@/components/onboarding/step-complete';
 import { StepCreateOrg } from '@/components/onboarding/step-create-org';
 import { StepIntegrations } from '@/components/onboarding/step-integrations';
 import { StepWelcome } from '@/components/onboarding/step-welcome';
-import { useAuth } from '@/hooks/use-auth';
 
 const ONBOARDING_STEPS = [
   { id: 'welcome', title: 'Welcome' },

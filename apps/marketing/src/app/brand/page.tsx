@@ -1,3 +1,4 @@
+import { brand } from '@nuclom/lib/brand';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowRight, Check, X } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -7,7 +8,6 @@ import { NuclomLogo } from '@/components/nuclom-logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { brand } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Brand Guidelines',
