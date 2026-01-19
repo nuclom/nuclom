@@ -1,8 +1,8 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { NotificationRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { NotificationRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // PATCH /api/notifications/[id] - Mark notification as read

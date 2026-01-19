@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { FileText, GitPullRequest, Maximize2, Minimize2, Search, User, Video, ZoomIn, ZoomOut } from 'lucide-react';
 import type * as React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 // Types for the knowledge graph
 interface GraphNode {

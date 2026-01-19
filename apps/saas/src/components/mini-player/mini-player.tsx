@@ -1,11 +1,11 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMiniPlayer } from '@/hooks/use-mini-player';
-import { cn } from '@/lib/utils';
 
 export function MiniPlayer() {
   const router = useRouter();

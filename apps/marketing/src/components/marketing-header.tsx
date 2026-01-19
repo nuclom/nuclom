@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { LogOut, Menu, Palette, Settings, X } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { NuclomLogo } from '@/components/nuclom-logo';

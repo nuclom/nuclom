@@ -40,8 +40,8 @@ async function getOrganizationOwners(organizationId: string) {
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { members, users } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { members, users } = await import('@nuclom/lib/db/schema');
 
   return db
     .select({
@@ -69,8 +69,8 @@ async function sendSubscriptionEmail(
 ): Promise<void> {
   'use step';
 
-  const { resend } = await import('@/lib/email');
-  const { env } = await import('@/lib/env/server');
+  const { resend } = await import('@nuclom/lib/email');
+  const { env } = await import('@nuclom/lib/env/server');
   const fromEmail = env.RESEND_FROM_EMAIL ?? 'notifications@nuclom.com';
 
   await resend.emails.send({
@@ -127,7 +127,7 @@ async function sendSubscriptionEmail(
 async function getOrganizationDetails(organizationId: string) {
   'use step';
 
-  const { db } = await import('@/lib/db');
+  const { db } = await import('@nuclom/lib/db');
 
   return db.query.organizations.findFirst({
     where: (o, { eq: eqOp }) => eqOp(o.id, organizationId),
@@ -160,8 +160,8 @@ async function createInAppNotification(
 ): Promise<void> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { notifications } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { notifications } = await import('@nuclom/lib/db/schema');
 
   await db.insert(notifications).values({
     userId,
@@ -179,7 +179,7 @@ async function createInAppNotification(
 async function getSubscriptionByStripeId(stripeSubscriptionId: string) {
   'use step';
 
-  const { db } = await import('@/lib/db');
+  const { db } = await import('@nuclom/lib/db');
 
   return db.query.subscriptions.findFirst({
     where: (s, { eq: eqOp }) => eqOp(s.stripeSubscriptionId, stripeSubscriptionId),
@@ -197,8 +197,8 @@ async function updateSubscriptionStatus(
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { subscriptions } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { subscriptions } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(subscriptions)
@@ -232,7 +232,7 @@ export async function handleSubscriptionCreatedWorkflow(
   const owners = await getOrganizationOwners(organizationId);
 
   // Get base URL for links
-  const { getAppUrl } = await import('@/lib/env/server');
+  const { getAppUrl } = await import('@nuclom/lib/env/server');
   const baseUrl = getAppUrl();
 
   // Step 3: Send notifications to each owner
@@ -323,7 +323,7 @@ export async function handleSubscriptionDeletedWorkflow(
   // Step 4: Notify organization owners
   const owners = await getOrganizationOwners(organizationId);
 
-  const { getAppUrl } = await import('@/lib/env/server');
+  const { getAppUrl } = await import('@nuclom/lib/env/server');
   const baseUrl = getAppUrl();
 
   for (const owner of owners) {
@@ -405,7 +405,7 @@ export async function handleInvoiceFailedWorkflow(
   // Step 3: Notify organization owners
   const owners = await getOrganizationOwners(invoiceOrgId);
 
-  const { getAppUrl } = await import('@/lib/env/server');
+  const { getAppUrl } = await import('@nuclom/lib/env/server');
   const baseUrl = getAppUrl();
 
   for (const owner of owners) {
@@ -463,7 +463,7 @@ export async function handleTrialEndingWorkflow(
   // Step 3: Get organization owners
   const owners = await getOrganizationOwners(trialOrgId);
 
-  const { getAppUrl } = await import('@/lib/env/server');
+  const { getAppUrl } = await import('@nuclom/lib/env/server');
   const baseUrl = getAppUrl();
   const trialEndsAt = subscription.trial_end ? new Date(subscription.trial_end * 1000) : new Date();
   const daysLeft = Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));

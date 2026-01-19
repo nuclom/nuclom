@@ -1,11 +1,11 @@
+import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { videoSpeakers, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { Database } from '@nuclom/lib/effect/services/database';
+import { validateQueryParams } from '@nuclom/lib/validation';
 import { and, avg, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest } from 'next/server';
-import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { videoSpeakers, videos } from '@/lib/db/schema';
-import { DatabaseError, UnauthorizedError } from '@/lib/effect/errors';
-import { Database } from '@/lib/effect/services/database';
-import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema

@@ -1,11 +1,11 @@
 import crypto from 'node:crypto';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { env } from '@nuclom/lib/env/server';
+import { createLogger } from '@nuclom/lib/logger';
+import { triggerImportMeeting } from '@nuclom/lib/workflow/import-meeting';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { env } from '@/lib/env/server';
-import { createLogger } from '@/lib/logger';
-import { triggerImportMeeting } from '@/lib/workflow/import-meeting';
 
 const log = createLogger('zoom-webhook');
 

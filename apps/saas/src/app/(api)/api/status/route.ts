@@ -1,11 +1,11 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
+import { type HealthCheckService, type HealthCheckStatus, healthChecks } from '@nuclom/lib/db/schema';
+import { DatabaseError } from '@nuclom/lib/effect';
+import { Database, type DrizzleDB } from '@nuclom/lib/effect/services/database';
+import { logger } from '@nuclom/lib/logger';
 import { sql } from 'drizzle-orm';
 import { Effect, Exit } from 'effect';
 import { connection } from 'next/server';
-import { createPublicLayer } from '@/lib/api-handler';
-import { type HealthCheckService, type HealthCheckStatus, healthChecks } from '@/lib/db/schema';
-import { DatabaseError } from '@/lib/effect';
-import { Database, type DrizzleDB } from '@/lib/effect/services/database';
-import { logger } from '@/lib/logger';
 
 export interface ServiceStatus {
   service: HealthCheckService;

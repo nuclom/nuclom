@@ -1,10 +1,10 @@
+import { aiService } from '@nuclom/lib/ai';
+import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
+import { logger } from '@nuclom/lib/logger';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { safeParse } from '@nuclom/lib/validation';
 import { Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { aiService } from '@/lib/ai';
-import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { logger } from '@/lib/logger';
-import type { ApiResponse } from '@/lib/types';
-import { safeParse } from '@/lib/validation';
 
 const AnalyzeRequestSchema = Schema.Struct({
   transcript: Schema.String.pipe(Schema.minLength(1)),

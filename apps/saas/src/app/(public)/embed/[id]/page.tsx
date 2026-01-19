@@ -1,11 +1,11 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from 'lucide-react';
-import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

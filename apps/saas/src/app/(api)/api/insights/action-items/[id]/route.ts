@@ -1,18 +1,18 @@
-import { eq } from 'drizzle-orm';
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
 import {
   Auth,
   createFullLayer,
   generatePresignedThumbnailUrl,
   mapErrorToApiResponse,
   Storage,
-} from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { aiActionItems } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, UnauthorizedError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
-import { validateRequestBody } from '@/lib/validation';
+} from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { aiActionItems } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { eq } from 'drizzle-orm';
+import { Cause, Effect, Exit, Schema } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
 // Schemas

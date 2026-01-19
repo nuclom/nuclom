@@ -1,11 +1,11 @@
+import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { aiActionItems, decisions, videos, videoViews } from '@nuclom/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect';
+import { Database } from '@nuclom/lib/effect/services/database';
+import { validateQueryParams } from '@nuclom/lib/validation';
 import { and, avg, count, eq, gte, sql } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest } from 'next/server';
-import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { aiActionItems, decisions, videos, videoViews } from '@/lib/db/schema';
-import { DatabaseError, UnauthorizedError } from '@/lib/effect';
-import { Database } from '@/lib/effect/services/database';
-import { validateQueryParams } from '@/lib/validation';
 
 // =============================================================================
 // Query Schema

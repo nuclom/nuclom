@@ -1,5 +1,4 @@
 import 'server-only';
-import process from 'node:process';
 import { PostHog } from 'posthog-node';
 
 // Environment variables

@@ -9,7 +9,6 @@
  * - Can be easily disabled in production without code changes
  */
 
-// biome-ignore lint/correctness/noProcessGlobal: Required for client-side development detection
 const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 
 /**

@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
 import { AlertTriangle, Download, Loader2, Mail, Trash2, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -19,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { authClient } from '@/lib/auth-client';
 
 function AccountContent() {
   const { user } = useAuth();

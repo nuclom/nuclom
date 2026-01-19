@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, ArrowLeft, Mail } from 'lucide-react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';

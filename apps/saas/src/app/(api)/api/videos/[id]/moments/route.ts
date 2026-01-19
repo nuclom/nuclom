@@ -1,11 +1,11 @@
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { videos } from '@nuclom/lib/db/schema';
+import { ClipRepository, NotFoundError } from '@nuclom/lib/effect';
+import { DatabaseError } from '@nuclom/lib/effect/errors';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { videos } from '@/lib/db/schema';
-import { ClipRepository, NotFoundError } from '@/lib/effect';
-import { DatabaseError } from '@/lib/effect/errors';
-import { Database } from '@/lib/effect/services/database';
 
 // =============================================================================
 // GET /api/videos/[id]/moments - Get auto-detected moments for a video

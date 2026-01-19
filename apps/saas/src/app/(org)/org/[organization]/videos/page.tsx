@@ -1,15 +1,15 @@
+import { auth } from '@nuclom/lib/auth';
+import type { Organization } from '@nuclom/lib/db/schema';
+import { getCachedOrganizationBySlug, getCachedVideos } from '@nuclom/lib/effect';
+import { Link } from '@vercel/microfrontends/next/client';
 import { Upload, VideoOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPreviewCard } from '@/components/video-preview-card';
-import { auth } from '@/lib/auth';
-import type { Organization } from '@/lib/db/schema';
-import { getCachedOrganizationBySlug, getCachedVideos } from '@/lib/effect';
 
 export const metadata: Metadata = {
   title: 'Videos',

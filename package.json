@@ -12,22 +12,23 @@
     "lint": "biome check . --error-on-warnings",
     "lint:fix": "biome check . --write --error-on-warnings",
     "format": "biome format . --write",
-    "test": "turbo test",
-    "test:e2e": "turbo test:e2e",
+    "test": "turbo test --filter=!@nuclom/e2e",
+    "test:e2e": "pnpm --filter @nuclom/e2e test",
+    "test:e2e:saas": "pnpm --filter @nuclom/e2e test:saas",
+    "test:e2e:marketing": "pnpm --filter @nuclom/e2e test:marketing",
     "db:generate": "pnpm --filter saas db:generate",
     "db:migrate": "pnpm --filter saas db:migrate",
     "db:push": "pnpm --filter saas db:push",
     "db:studio": "pnpm --filter saas db:studio",
     "prepare": "lefthook install"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
-    "@typescript/native-preview": "^7.0.0-dev",
-    "@vercel/microfrontends": "^2.0.0",
-    "lefthook": "^2.0.15",
-    "turbo": "^2.7.4",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "catalog:",
+    "@typescript/native-preview": "catalog:",
+    "@vercel/microfrontends": "catalog:",
+    "lefthook": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
   },
   "pnpm": {
     "overrides": {

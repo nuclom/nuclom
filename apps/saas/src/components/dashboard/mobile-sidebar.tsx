@@ -1,5 +1,7 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   Clock,
   Folders,
@@ -15,14 +17,12 @@ import {
   Upload,
   Video,
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 
 interface MobileSidebarProps {
   organization: string;

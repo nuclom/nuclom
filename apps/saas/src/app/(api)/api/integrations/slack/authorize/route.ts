@@ -1,9 +1,9 @@
+import { auth } from '@nuclom/lib/auth';
+import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
+import { env } from '@nuclom/lib/env/server';
 import { Effect } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
-import { Slack, SlackLive } from '@/lib/effect/services/slack';
-import { env } from '@/lib/env/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

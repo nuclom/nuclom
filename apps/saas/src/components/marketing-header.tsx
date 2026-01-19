@@ -1,7 +1,9 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
+import { Link } from '@vercel/microfrontends/next/client';
 import { LogOut, Menu, Palette, Settings, X } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { NuclomLogo } from '@/components/nuclom-logo';
@@ -17,8 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 import { ThemeToggle } from './theme-toggle';
 
 interface MarketingHeaderProps {

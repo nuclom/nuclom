@@ -1,3 +1,6 @@
+import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { organizations } from '@nuclom/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -7,9 +10,6 @@ import { Suspense } from 'react';
 import { OrgSettingsSidebar } from '@/components/org-settings-sidebar';
 import { OrgSettingsTopNav } from '@/components/org-settings-top-nav';
 import { Skeleton } from '@/components/ui/skeleton';
-import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { organizations } from '@/lib/db/schema';
 
 function NavSkeleton() {
   return (

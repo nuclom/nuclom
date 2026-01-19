@@ -1,4 +1,3 @@
-import process from 'node:process';
 import { withPostHogConfig } from '@posthog/nextjs-config';
 import { withMicrofrontends } from '@vercel/microfrontends/next/config';
 import type { NextConfig } from 'next';

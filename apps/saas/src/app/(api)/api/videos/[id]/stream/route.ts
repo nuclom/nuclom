@@ -5,10 +5,10 @@
  * URLs are valid for 1 hour and support range requests for seeking.
  */
 
+import { handleEffectExitWithOptions, runPublicApiEffect } from '@nuclom/lib/api-handler';
+import { NotFoundError, Storage, VideoRepository } from '@nuclom/lib/effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExitWithOptions, runPublicApiEffect } from '@/lib/api-handler';
-import { NotFoundError, Storage, VideoRepository } from '@/lib/effect';
 
 // URL expiration time in seconds (1 hour)
 const PRESIGNED_URL_EXPIRY = 3600;

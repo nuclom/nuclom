@@ -1,12 +1,12 @@
+import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { type WorkflowTemplateType, workflowTemplates } from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
+import { safeParse } from '@nuclom/lib/validation';
 import { and, desc, eq } from 'drizzle-orm';
 import { Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { type WorkflowTemplateType, workflowTemplates } from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
-import { safeParse } from '@/lib/validation';
 
 const CreateTemplateSchema = Schema.Struct({
   name: Schema.String,

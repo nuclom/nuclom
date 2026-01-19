@@ -5,14 +5,14 @@
  * including getting segments and updating speaker details.
  */
 
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { normalizeOne } from '@nuclom/lib/db/relations';
+import { speakerProfiles, speakerSegments, videoSpeakers, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
 import { and, asc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { normalizeOne } from '@/lib/db/relations';
-import { speakerProfiles, speakerSegments, videoSpeakers, videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/videos/[id]/speakers/[speakerId] - Get speaker details and segments

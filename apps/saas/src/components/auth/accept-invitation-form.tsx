@@ -1,15 +1,15 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, CheckCircle2, Loader2, LogOut, UserPlus, XCircle } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 
 interface Invitation {
   id: string;

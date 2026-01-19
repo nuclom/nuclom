@@ -9,8 +9,8 @@
  * - Synced video player and transcript
  */
 
+import type { TranscriptSegment, VideoChapter } from '@nuclom/lib/db/schema';
 import { useCallback, useState } from 'react';
-import type { TranscriptSegment, VideoChapter } from '@/lib/db/schema';
 import { TranscriptDisplay } from './transcript-display';
 import { VideoPlayerWithProgress } from './video-player-with-progress';
 

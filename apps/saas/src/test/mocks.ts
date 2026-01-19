@@ -1,6 +1,6 @@
+import type { Organization, User, Video } from '@nuclom/lib/db/schema';
+import type { VideoWithAuthor } from '@nuclom/lib/types';
 import { vi } from 'vitest';
-import type { Organization, User, Video } from '@/lib/db/schema';
-import type { VideoWithAuthor } from '@/lib/types';
 
 /**
  * Creates a mock database object for testing Effect-TS services

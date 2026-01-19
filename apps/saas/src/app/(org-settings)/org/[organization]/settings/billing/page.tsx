@@ -1,15 +1,15 @@
+import { auth } from '@nuclom/lib/auth';
+import { AppLive } from '@nuclom/lib/effect';
+import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
+import { Billing } from '@nuclom/lib/effect/services/billing';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
 import { Effect, Exit, Layer, Option } from 'effect';
 import { Loader2 } from 'lucide-react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { BillingDashboard } from '@/components/billing';
-import { auth } from '@/lib/auth';
-import { AppLive } from '@/lib/effect';
-import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
-import { Billing } from '@/lib/effect/services/billing';
-import { BillingRepository } from '@/lib/effect/services/billing-repository';
-import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
 
 interface BillingPageProps {
   params: Promise<{ organization: string }>;

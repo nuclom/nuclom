@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent';
@@ -9,8 +10,6 @@ import type {
   Payload as RechartsPayload,
   ValueType,
 } from 'recharts/types/component/DefaultTooltipContent';
-
-import { cn } from '@/lib/utils';
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;

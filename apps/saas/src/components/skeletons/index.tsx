@@ -5,9 +5,9 @@
  * Each skeleton mimics the layout of its corresponding component.
  */
 
+import { cn } from '@nuclom/lib/utils';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Video Skeletons

@@ -1,5 +1,7 @@
 'use client';
 
+import type { Video } from '@nuclom/lib/db/schema';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
 import { Check, Search } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
@@ -15,8 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Video } from '@/lib/db/schema';
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
 
 interface VideoPickerProps {
   open: boolean;

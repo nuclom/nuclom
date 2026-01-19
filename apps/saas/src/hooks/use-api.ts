@@ -7,13 +7,13 @@
  * Uses Effect-TS internally for type-safe error handling.
  */
 
+import { ApiError } from '@nuclom/lib/api';
+import { isTaggedError } from '@nuclom/lib/api-errors';
+import { organizationApiEffect, runClientEffect, videoApiEffect } from '@nuclom/lib/effect/client';
+import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@nuclom/lib/types';
 import type { Effect } from 'effect';
 import { Either } from 'effect';
 import { useEffect, useState } from 'react';
-import { ApiError } from '@/lib/api';
-import { isTaggedError } from '@/lib/api-errors';
-import { organizationApiEffect, runClientEffect, videoApiEffect } from '@/lib/effect/client';
-import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '@/lib/types';
 
 // =============================================================================
 // Types

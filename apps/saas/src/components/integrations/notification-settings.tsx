@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { format } from 'date-fns';
 import { Bell, Check, Hash, Info, Loader2, RefreshCw, Shield, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
 
 interface Integration {
   id: string;

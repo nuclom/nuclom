@@ -1,14 +1,20 @@
+import { handleEffectExit } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import type { ActivityType } from '@nuclom/lib/db/schema';
+import { AppLive } from '@nuclom/lib/effect';
+import {
+  ActivityFeedRepository,
+  ActivityFeedRepositoryLive,
+} from '@nuclom/lib/effect/services/activity-feed-repository';
+import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import {
+  OrganizationRepository,
+  OrganizationRepositoryLive,
+} from '@nuclom/lib/effect/services/organization-repository';
 import { Effect, Layer, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
-import { handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import type { ActivityType } from '@/lib/db/schema';
-import { AppLive } from '@/lib/effect';
-import { ActivityFeedRepository, ActivityFeedRepositoryLive } from '@/lib/effect/services/activity-feed-repository';
-import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';
 
 // Build layers with dependencies
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));

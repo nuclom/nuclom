@@ -1,6 +1,6 @@
+import type { TranscriptSegment } from '@nuclom/lib/db/schema';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { TranscriptSegment } from '@/lib/db/schema';
 import { useTranscript } from './use-transcript';
 
 // Store original fetch to restore later

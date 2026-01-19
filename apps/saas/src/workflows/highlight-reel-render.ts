@@ -16,8 +16,8 @@
  * - No lost processing on deploy
  */
 
+import type { HighlightReelStatus } from '@nuclom/lib/db/schema';
 import { FatalError } from 'workflow';
-import type { HighlightReelStatus } from '@/lib/db/schema';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('highlight-reel-render');
@@ -66,8 +66,8 @@ async function updateReelStatus(
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { highlightReels } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { highlightReels } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(highlightReels)
@@ -84,8 +84,8 @@ async function updateReelStatus(
 async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { videoClips, videos } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videoClips, videos } = await import('@nuclom/lib/db/schema');
   const { inArray, eq } = await import('drizzle-orm');
 
   if (clipIds.length === 0) {
@@ -146,7 +146,7 @@ async function getClipSegments(clipIds: string[]): Promise<ClipSegmentInfo[]> {
 async function renderHighlightReel(segments: ClipSegmentInfo[]): Promise<RenderedVideo> {
   'use step';
 
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -218,7 +218,7 @@ async function downloadAndUploadVideo(
 ): Promise<{ storageKey: string; publicUrl: string }> {
   'use step';
 
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
 
   // Download the rendered video from the temporary URL
   const response = await fetch(videoUrl);
@@ -280,8 +280,8 @@ async function downloadAndUploadVideo(
 async function getHighlightReelData(reelId: string): Promise<{ clipIds: string[] } | null> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { highlightReels } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { highlightReels } = await import('@nuclom/lib/db/schema');
   const { eq } = await import('drizzle-orm');
 
   const reel = await db.query.highlightReels.findFirst({
@@ -303,8 +303,8 @@ async function handleReelRenderFailure(reelId: string, errorMessage: string): Pr
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { highlightReels } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { highlightReels } = await import('@nuclom/lib/db/schema');
 
   log.error({ reelId, error: errorMessage }, 'Highlight reel rendering failed');
 

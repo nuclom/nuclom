@@ -13,7 +13,6 @@
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import process from 'node:process';
 
 const AUTH_SCHEMA_PATH = path.join(process.cwd(), 'src/lib/db/schema/auth.ts');
 const TEMP_OUTPUT_PATH = path.join(process.cwd(), 'temp-auth-schema.ts');

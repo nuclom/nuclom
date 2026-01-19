@@ -1,13 +1,13 @@
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Presence } from '@nuclom/lib/effect/services/presence';
+import { validateOptional } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { Presence } from '@/lib/effect/services/presence';
-import { validateOptional } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/presence - Get all users currently watching a video

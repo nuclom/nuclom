@@ -1,14 +1,14 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import type { SearchFilters } from '@nuclom/lib/db/schema';
+import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Embedding } from '@nuclom/lib/effect/services/embedding';
+import { SemanticSearchRepository } from '@nuclom/lib/effect/services/semantic-search-repository';
+import type { VideoWithAuthor } from '@nuclom/lib/types';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import type { SearchFilters } from '@/lib/db/schema';
-import { MissingFieldError, SearchRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { Embedding } from '@/lib/effect/services/embedding';
-import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
-import type { VideoWithAuthor } from '@/lib/types';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Types

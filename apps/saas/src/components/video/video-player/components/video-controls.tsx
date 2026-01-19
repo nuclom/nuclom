@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import {
   Captions,
   CaptionsOff,
@@ -29,7 +30,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { type CaptionTrack, PLAYBACK_RATES, SKIP_SECONDS } from '../types';
 import { formatTime } from '../utils';
 

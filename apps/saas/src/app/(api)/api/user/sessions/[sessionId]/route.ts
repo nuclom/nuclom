@@ -4,13 +4,13 @@
  * DELETE /api/user/sessions/:sessionId - Revoke a specific session
  */
 
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { sessions } from '@nuclom/lib/db/schema';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { sessions } from '@/lib/db/schema';
-import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // DELETE /api/user/sessions/:sessionId - Revoke a specific session

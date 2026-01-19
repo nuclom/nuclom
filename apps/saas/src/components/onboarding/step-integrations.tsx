@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { ArrowRight, Bell, Check, ExternalLink, Sparkles, Video, Zap } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -8,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 interface StepIntegrationsProps {
   onNext: () => void;

@@ -7,13 +7,13 @@
  * Uses better-auth's built-in session management via multiSession plugin
  */
 
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { sessions } from '@nuclom/lib/db/schema';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { and, desc, eq, gt } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { sessions } from '@/lib/db/schema';
-import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // GET /api/user/sessions - List active sessions

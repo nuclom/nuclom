@@ -1,11 +1,11 @@
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import { VideoRepository } from '@nuclom/lib/effect';
+import { env } from '@nuclom/lib/env/server';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import { VideoRepository } from '@/lib/effect';
-import { env } from '@/lib/env/server';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // POST /api/videos/cleanup - Cleanup expired soft-deleted videos

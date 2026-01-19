@@ -8,13 +8,13 @@
  * GET /api/videos/[id]/subtitles/en.srt - Get English subtitles (SRT)
  */
 
+import { db } from '@nuclom/lib/db';
+import { videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { generateSRT, generateWebVTT } from '@nuclom/lib/subtitles';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
-import { generateSRT, generateWebVTT } from '@/lib/subtitles';
 
 // =============================================================================
 // GET /api/videos/[id]/subtitles/en - Get English Subtitles

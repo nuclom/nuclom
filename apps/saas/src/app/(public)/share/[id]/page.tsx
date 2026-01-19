@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, Download, Loader2, Video } from 'lucide-react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import useSWR from 'swr';

@@ -1,7 +1,7 @@
 import { gateway } from '@ai-sdk/gateway';
+import { logger } from '@nuclom/lib/logger';
 import { generateText } from 'ai';
 import { connection } from 'next/server';
-import { logger } from '@/lib/logger';
 
 export interface AIHealthStatus {
   status: 'healthy' | 'unhealthy' | 'not_configured';

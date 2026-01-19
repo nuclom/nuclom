@@ -1,13 +1,13 @@
+import { auth } from '@nuclom/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { logger } from '@nuclom/lib/logger';
+import { safeParse } from '@nuclom/lib/validation';
 import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { Zoom, ZoomLive } from '@/lib/effect/services/zoom';
-import { logger } from '@/lib/logger';
-import { safeParse } from '@/lib/validation';
 import { importMeetingWorkflow } from '@/workflows/import-meeting';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));

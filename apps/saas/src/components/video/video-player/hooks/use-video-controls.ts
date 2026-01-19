@@ -1,7 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { useCallback, useRef } from 'react';
-import { logger } from '@/lib/client-logger';
 import type { VideoRefs } from '../types';
 
 interface UseVideoControlsOptions {

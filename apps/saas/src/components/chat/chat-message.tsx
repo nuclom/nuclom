@@ -1,10 +1,10 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Bot, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
 
 export interface ChatMessageProps {
   messageRole: 'user' | 'assistant' | 'system';

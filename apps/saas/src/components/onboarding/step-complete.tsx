@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { CheckCircle2, PartyPopper, Upload, Users } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 

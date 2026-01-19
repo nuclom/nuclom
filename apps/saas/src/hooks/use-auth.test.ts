@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { useAuth, useRequireAuth } from './use-auth';
 
 // Mock the auth client
-vi.mock('@/lib/auth-client', () => ({
+vi.mock('@nuclom/lib/auth-client', () => ({
   authClient: {
     useSession: vi.fn(),
   },
 }));
 
 // Import the mocked module
-import { authClient } from '@/lib/auth-client';
+import { authClient } from '@nuclom/lib/auth-client';
 
 describe('useAuth', () => {
   it('should return session data when logged in', () => {

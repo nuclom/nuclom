@@ -1,10 +1,10 @@
+import { auth } from '@nuclom/lib/auth';
+import { HttpError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { Zoom, ZoomLive, type ZoomRecording } from '@nuclom/lib/effect/services/zoom';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { HttpError, NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { Zoom, ZoomLive, type ZoomRecording } from '@/lib/effect/services/zoom';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const RecordingsLayer = Layer.mergeAll(ZoomLive, IntegrationRepositoryWithDeps, DatabaseLive);

@@ -1,9 +1,17 @@
-import process from 'node:process';
+import path from 'node:path';
 import { routes, type VercelConfig } from '@vercel/config/v1';
 import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+
+// Resolve the drizzle migrations folder relative to this file's location
+// When Vercel compiles vercel.ts, it outputs to .vercel/vercel-temp.mjs
+// so we need to navigate up one level in that case
+const currentDir = import.meta.dirname;
+const migrationsFolder = currentDir.endsWith('.vercel')
+  ? path.join(currentDir, '..', 'drizzle')
+  : path.join(currentDir, 'drizzle');
 
 // =============================================================================
 // Pre-Build Migration Runner
@@ -41,6 +49,7 @@ async function runMigrations(): Promise<void> {
   }
 
   console.log(`[vercel.ts] Running database migrations (env: ${vercelEnv || nodeEnv})...`);
+  console.log(`[vercel.ts] Migrations folder: ${migrationsFolder}`);
 
   // Create a dedicated connection for migrations
   // Using max: 1 to ensure migrations run sequentially
@@ -53,7 +62,7 @@ async function runMigrations(): Promise<void> {
 
   try {
     const startTime = Date.now();
-    await migrate(db, { migrationsFolder: './drizzle' });
+    await migrate(db, { migrationsFolder });
     const duration = Date.now() - startTime;
     console.log(`[vercel.ts] Migrations completed successfully in ${duration}ms`);
   } catch (error) {

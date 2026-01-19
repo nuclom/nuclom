@@ -1,10 +1,16 @@
+import { auth } from '@nuclom/lib/auth';
+import {
+  ActivityFeedRepository,
+  ActivityFeedRepositoryLive,
+} from '@nuclom/lib/effect/services/activity-feed-repository';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import {
+  OrganizationRepository,
+  OrganizationRepositoryLive,
+} from '@nuclom/lib/effect/services/organization-repository';
+import { logger } from '@nuclom/lib/logger';
 import { Effect, Layer, Option } from 'effect';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { ActivityFeedRepository, ActivityFeedRepositoryLive } from '@/lib/effect/services/activity-feed-repository';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { OrganizationRepository, OrganizationRepositoryLive } from '@/lib/effect/services/organization-repository';
-import { logger } from '@/lib/logger';
 
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const OrgRepoWithDeps = OrganizationRepositoryLive.pipe(Layer.provide(DatabaseLive));

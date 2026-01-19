@@ -1,5 +1,7 @@
 'use client';
 
+import { type Locale, localeFlags, localeNames, locales } from '@nuclom/lib/i18n';
+import { setLocale } from '@nuclom/lib/i18n/actions';
 import { Check, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
@@ -10,8 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { type Locale, localeFlags, localeNames, locales } from '@/lib/i18n';
-import { setLocale } from '@/lib/i18n/actions';
 
 interface LocaleSwitcherProps {
   currentLocale: Locale;

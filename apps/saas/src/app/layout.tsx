@@ -1,11 +1,11 @@
 import { Analytics } from '@vercel/analytics/next';
+import { PrefetchCrossZoneLinks, PrefetchCrossZoneLinksProvider } from '@vercel/microfrontends/next/client';
 import type { Metadata, Viewport } from 'next';
 import type React from 'react';
 import { MiniPlayerProvider } from '@/components/mini-player';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
-import process from 'node:process';
 
 const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
@@ -71,12 +71,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <MiniPlayerProvider>
-            <div className="min-h-screen bg-background text-foreground">{children}</div>
-            <Toaster />
-          </MiniPlayerProvider>
-        </ThemeProvider>
+        <PrefetchCrossZoneLinksProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            <MiniPlayerProvider>
+              <div className="min-h-screen bg-background text-foreground">{children}</div>
+              <Toaster />
+            </MiniPlayerProvider>
+          </ThemeProvider>
+          <PrefetchCrossZoneLinks prerenderEagerness="moderate" />
+        </PrefetchCrossZoneLinksProvider>
         <Analytics />
       </body>
     </html>

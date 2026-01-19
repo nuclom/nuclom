@@ -5,11 +5,11 @@
  * using dependency injection patterns.
  */
 
+import type { User, Video } from '@nuclom/lib/db/schema';
+import type { NotificationWithActor } from '@nuclom/lib/effect/services/notification-repository';
+import type { PaginatedResponse, VideoWithAuthor } from '@nuclom/lib/types';
 import { type Context, Effect, Layer } from 'effect';
 import { vi } from 'vitest';
-import type { User, Video } from '@/lib/db/schema';
-import type { NotificationWithActor } from '@/lib/effect/services/notification-repository';
-import type { PaginatedResponse, VideoWithAuthor } from '@/lib/types';
 import { createMockOrganization, createMockUser, createMockVideo } from './mocks';
 
 // =============================================================================
@@ -92,7 +92,7 @@ export function createMockDatabaseService(): MockDatabaseService {
 }
 
 // Import Database tag from the actual service
-import { Database } from '@/lib/effect/services/database';
+import { Database } from '@nuclom/lib/effect/services/database';
 
 /**
  * Creates a mock Database layer for testing
@@ -137,7 +137,7 @@ export function createMockStorageService(): MockStorageService {
   };
 }
 
-import { Storage } from '@/lib/effect/services/storage';
+import { Storage } from '@nuclom/lib/effect/services/storage';
 
 export function createMockStorageLayer(mockStorage?: MockStorageService) {
   const storage = mockStorage ?? createMockStorageService();
@@ -148,8 +148,8 @@ export function createMockStorageLayer(mockStorage?: MockStorageService) {
 // Mock VideoRepository Service
 // =============================================================================
 
-import { DatabaseError, DeleteError, NotFoundError } from '@/lib/effect/errors';
-import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/services/video-repository';
+import { DatabaseError, DeleteError, NotFoundError } from '@nuclom/lib/effect/errors';
+import { VideoRepository, type VideoRepositoryService } from '@nuclom/lib/effect/services/video-repository';
 
 export interface MockVideoRepositoryService {
   getVideos: ReturnType<typeof vi.fn>;
@@ -207,7 +207,7 @@ export function createMockVideoRepositoryLayer(mockRepo?: MockVideoRepositorySer
 import {
   NotificationRepository,
   type NotificationRepositoryService,
-} from '@/lib/effect/services/notification-repository';
+} from '@nuclom/lib/effect/services/notification-repository';
 
 export interface MockNotificationRepositoryService {
   getNotifications: ReturnType<typeof vi.fn>;
@@ -245,7 +245,7 @@ export function createMockNotificationRepositoryLayer(mockRepo?: MockNotificatio
 import {
   OrganizationRepository,
   type OrganizationRepositoryService,
-} from '@/lib/effect/services/organization-repository';
+} from '@nuclom/lib/effect/services/organization-repository';
 
 export interface MockOrganizationRepositoryService {
   getOrganization: ReturnType<typeof vi.fn>;
@@ -286,7 +286,7 @@ export function createMockOrganizationRepositoryLayer(mockRepo?: MockOrganizatio
 // Mock Auth Service
 // =============================================================================
 
-import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
+import { Auth, type AuthServiceInterface } from '@nuclom/lib/effect/services/auth';
 
 export interface MockAuthService {
   getSession: ReturnType<typeof vi.fn>;
@@ -318,7 +318,7 @@ export function createMockAuthLayer(mockAuth?: MockAuthService) {
 // Mock AI Service
 // =============================================================================
 
-import { AI, type AIServiceInterface } from '@/lib/effect/services/ai';
+import { AI, type AIServiceInterface } from '@nuclom/lib/effect/services/ai';
 
 export interface MockAIService {
   generateVideoSummary: ReturnType<typeof vi.fn>;
@@ -355,7 +355,7 @@ export function createMockAILayer(mockAI?: MockAIService) {
 // Mock Stripe Service
 // =============================================================================
 
-import { type StripeService, StripeServiceTag } from '@/lib/effect/services/stripe';
+import { type StripeService, StripeServiceTag } from '@nuclom/lib/effect/services/stripe';
 
 export interface MockStripeService {
   createCustomer: ReturnType<typeof vi.fn>;

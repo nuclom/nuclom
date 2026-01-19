@@ -11,18 +11,18 @@
  * - Shows participants and confidence scores
  */
 
+import type { DecisionStatus, DecisionType } from '@nuclom/lib/db/schema';
+import { formatRelativeTime } from '@nuclom/lib/format-utils';
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import { Calendar, ChevronRight, Clock, Lightbulb, MessageSquare, Settings, Users, Wrench } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { DecisionStatus, DecisionType } from '@/lib/db/schema';
-import { formatRelativeTime } from '@/lib/format-utils';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

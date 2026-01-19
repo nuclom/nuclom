@@ -1,8 +1,10 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
+import { Link } from '@vercel/microfrontends/next/client';
 import type { User } from 'better-auth';
 import { ArrowLeft, Film, HelpCircle, Home, LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,8 +17,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 import { ThemeToggle } from './theme-toggle';
 
 interface UserSettingsTopNavProps {

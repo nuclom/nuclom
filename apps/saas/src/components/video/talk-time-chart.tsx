@@ -7,11 +7,11 @@
  * among speakers in a video.
  */
 
+import { cn } from '@nuclom/lib/utils';
 import { BarChart3, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { getSpeakerColor, type Speaker } from './speaker-legend';
 
 // =============================================================================

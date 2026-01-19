@@ -7,6 +7,9 @@
  * Syncs transcript highlighting with video playback time.
  */
 
+import type { ActionItem, VideoChapter } from '@nuclom/lib/db/schema';
+import { formatTime } from '@nuclom/lib/format-utils';
+import type { VideoWithDetails } from '@nuclom/lib/types';
 import { CheckCircle2, Clock, Loader2, Play, RefreshCw, Share2, Sparkles, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -19,9 +22,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapteredTranscript, VideoActions, VideoEditDialog, VideoPlayerWithProgress } from '@/components/video';
 import { useToast } from '@/hooks/use-toast';
-import type { ActionItem, VideoChapter } from '@/lib/db/schema';
-import { formatTime } from '@/lib/format-utils';
-import type { VideoWithDetails } from '@/lib/types';
 import { refreshVideoUrl } from '../_actions/refresh-video-url';
 
 // =============================================================================

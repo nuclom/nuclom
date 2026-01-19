@@ -1,8 +1,10 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, Check, CheckCheck, CreditCard, MessageSquare, Trash2, UserPlus, Video, XCircle } from 'lucide-react';
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,8 +17,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { logger } from '@/lib/client-logger';
-import { cn } from '@/lib/utils';
 
 interface NotificationActor {
   id: string;

@@ -7,11 +7,11 @@
  * Shows up to 5 avatars with a count indicator for additional viewers.
  */
 
+import { cn } from '@nuclom/lib/utils';
 import { Eye } from 'lucide-react';
 import { useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useVideoPresence } from '@/hooks/use-video-presence';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

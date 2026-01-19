@@ -1,12 +1,12 @@
+import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { userPreferences } from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
+import { safeParse } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
 import { Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { userPreferences } from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
-import { safeParse } from '@/lib/validation';
 
 const UpdatePreferencesSchema = Schema.Struct({
   emailNotifications: Schema.optional(Schema.Boolean),

@@ -1,10 +1,10 @@
 'use client';
 
+import type { VideoWithAuthor } from '@nuclom/lib/types';
+import { Link } from '@vercel/microfrontends/next/client';
 import { ChevronRight, Upload } from 'lucide-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { VideoPreviewCard } from '@/components/video-preview-card';
-import type { VideoWithAuthor } from '@/lib/types';
 
 interface VideoSectionProps {
   title: string;

@@ -1,6 +1,6 @@
+import { db } from '@nuclom/lib/db';
+import { logger } from '@nuclom/lib/logger';
 import { sql } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { logger } from '@/lib/logger';
 
 export interface DatabaseHealthStatus {
   status: 'healthy' | 'unhealthy';

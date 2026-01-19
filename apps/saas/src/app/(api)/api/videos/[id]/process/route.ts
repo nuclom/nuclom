@@ -1,17 +1,17 @@
-import { Effect, Layer } from 'effect';
-import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import { AppLive, NotFoundError } from '@/lib/effect';
-import { Auth, makeAuthLayer } from '@/lib/effect/services/auth';
-import { Storage } from '@/lib/effect/services/storage';
-import { TranscriptionLive } from '@/lib/effect/services/transcription';
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import { AppLive, NotFoundError } from '@nuclom/lib/effect';
+import { Auth, makeAuthLayer } from '@nuclom/lib/effect/services/auth';
+import { Storage } from '@nuclom/lib/effect/services/storage';
+import { TranscriptionLive } from '@nuclom/lib/effect/services/transcription';
 import {
   VideoAIProcessingError,
   VideoAIProcessor,
   VideoAIProcessorLive,
-} from '@/lib/effect/services/video-ai-processor';
-import { VideoRepository } from '@/lib/effect/services/video-repository';
+} from '@nuclom/lib/effect/services/video-ai-processor';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
+import { Effect, Layer } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // Build the layer with all required dependencies
 const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { format } from 'date-fns';
 import { Bell, Download, Info, RefreshCw, Shield } from 'lucide-react';
 import { useState } from 'react';
@@ -17,7 +18,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
 
 interface Integration {
   id: string;

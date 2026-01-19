@@ -1,5 +1,7 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   ArrowRight,
   CheckCircle2,
@@ -12,7 +14,6 @@ import {
   Settings,
   Upload,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { BulkVideoUpload } from '@/components/bulk-video-upload';
@@ -23,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { UrlVideoUpload } from '@/components/url-video-upload';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 interface UploadHubProps {
   organizationId: string;

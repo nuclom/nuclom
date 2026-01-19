@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -21,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { logger } from '@/lib/client-logger';
 
 export interface VideoActionsProps {
   videoId: string;

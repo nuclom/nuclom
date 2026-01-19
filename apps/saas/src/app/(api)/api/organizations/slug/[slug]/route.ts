@@ -1,11 +1,11 @@
+import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { organizations } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { eq } from 'drizzle-orm';
 import { Cause, Effect, Exit } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { organizations } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/organizations/slug/[slug] - Get organization by slug

@@ -1,11 +1,11 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { organizations, videoShareLinks, videos } from '@nuclom/lib/db/schema';
+import { Storage } from '@nuclom/lib/effect';
+import { logger } from '@nuclom/lib/logger';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { organizations, videoShareLinks, videos } from '@/lib/db/schema';
-import { Storage } from '@/lib/effect';
-import { logger } from '@/lib/logger';
 
 // =============================================================================
 // GET /api/embed/[id] - Get embed video data

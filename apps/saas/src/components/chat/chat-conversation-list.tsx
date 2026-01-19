@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Edit2, MessageSquare, MoreVertical, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 export interface Conversation {
   id: string;

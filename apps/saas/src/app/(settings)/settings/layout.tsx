@@ -1,3 +1,4 @@
+import { auth } from '@nuclom/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
@@ -6,7 +7,6 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserSettingsSidebar } from '@/components/user-settings-sidebar';
 import { UserSettingsTopNav } from '@/components/user-settings-top-nav';
-import { auth } from '@/lib/auth';
 
 function NavSkeleton() {
   return (

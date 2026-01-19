@@ -1,5 +1,5 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, Play } from 'lucide-react';
-import Link from 'next/link';
 import { CopyrightYear } from '@/components/copyright-year';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

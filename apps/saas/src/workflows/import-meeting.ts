@@ -18,8 +18,8 @@
  * - Built-in observability
  */
 
+import type { IntegrationProvider } from '@nuclom/lib/db/schema';
 import { FatalError } from 'workflow';
-import type { IntegrationProvider } from '@/lib/db/schema';
 import { processVideoWorkflow } from './video-processing';
 
 // =============================================================================
@@ -69,8 +69,8 @@ async function updateImportStatus(
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { importedMeetings } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { importedMeetings } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(importedMeetings)
@@ -136,7 +136,7 @@ async function uploadToR2(buffer: Buffer, key: string, contentType: string): Pro
   'use step';
 
   const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -176,7 +176,7 @@ async function generatePresignedUrl(key: string, expiresIn = 3600): Promise<stri
 
   const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
   const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
 
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -216,8 +216,8 @@ async function createSpeakerProfilesFromParticipants(
 
   if (participants.length === 0) return;
 
-  const { db } = await import('@/lib/db');
-  const { speakerProfiles, members, users } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { speakerProfiles, members, users } = await import('@nuclom/lib/db/schema');
   const { eq, and } = await import('drizzle-orm');
 
   try {
@@ -292,8 +292,8 @@ async function handleImportFailure(importedMeetingId: string, errorMessage: stri
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { importedMeetings } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { importedMeetings } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(importedMeetings)
@@ -323,8 +323,8 @@ async function createVideoRecord(
 ): Promise<{ id: string }> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
 
   const [video] = await db
     .insert(videos)

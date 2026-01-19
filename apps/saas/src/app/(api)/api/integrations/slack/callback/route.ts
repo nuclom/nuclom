@@ -1,13 +1,13 @@
-import { Effect } from 'effect';
-import { Slack } from '@/lib/effect/services/slack';
+import { Slack } from '@nuclom/lib/effect/services/slack';
 import {
   errorRedirect,
   SlackIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from '@/lib/integrations';
-import { logger } from '@/lib/logger';
+} from '@nuclom/lib/integrations';
+import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, 'slack');

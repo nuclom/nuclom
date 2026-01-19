@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { formatFileSize } from '@nuclom/lib/format-utils';
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   ArrowLeft,
@@ -32,8 +34,6 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
-import { formatFileSize } from '@/lib/format-utils';
 
 interface GoogleDriveFile {
   id: string;

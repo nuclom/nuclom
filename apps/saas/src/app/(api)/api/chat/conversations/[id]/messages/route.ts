@@ -1,12 +1,12 @@
+import { createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
+import { NotFoundError } from '@nuclom/lib/effect/errors';
+import { AIChatKB, type SourceReference } from '@nuclom/lib/effect/services/ai-chat-kb';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ChatRepository } from '@nuclom/lib/effect/services/chat-repository';
+import { Embedding } from '@nuclom/lib/effect/services/embedding';
+import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit, resolveParams } from '@/lib/api-handler';
-import { NotFoundError } from '@/lib/effect/errors';
-import { AIChatKB, type SourceReference } from '@/lib/effect/services/ai-chat-kb';
-import { Auth } from '@/lib/effect/services/auth';
-import { ChatRepository } from '@/lib/effect/services/chat-repository';
-import { Embedding } from '@/lib/effect/services/embedding';
-import { validateQueryParams, validateRequestBody } from '@/lib/validation';
 
 // Type for the sources stored in the database
 type StoredSource = {

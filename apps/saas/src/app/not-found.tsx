@@ -1,7 +1,7 @@
 'use client';
 
+import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, FileQuestion, Home } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';

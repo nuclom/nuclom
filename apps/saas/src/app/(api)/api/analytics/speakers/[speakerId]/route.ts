@@ -5,16 +5,16 @@
  * including participation history and speaking patterns over time.
  */
 
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { normalizeOne } from '@nuclom/lib/db/relations';
+import { speakerProfiles, videoSpeakers } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
 import { and, desc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { normalizeOne } from '@/lib/db/relations';
-import { speakerProfiles, videoSpeakers } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/analytics/speakers/[speakerId] - Get individual speaker analytics

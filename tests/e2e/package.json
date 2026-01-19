@@ -1,0 +1,13 @@
+{
+  "name": "@nuclom/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:saas": "playwright test --project=saas-setup --project=saas-chromium --project=saas-mobile",
+    "test:marketing": "playwright test --project=marketing-chromium --project=marketing-mobile"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:"
+  }
+}

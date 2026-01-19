@@ -7,11 +7,11 @@
  * Handles loading saved progress and saving playback position.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { CheckCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProgressFraction, useVideoProgress } from '@/hooks/use-video-progress';
-import { logger } from '@/lib/client-logger';
 import { type VideoChapter, VideoPlayer, type VideoProgress } from './video-player';
 
 // =============================================================================

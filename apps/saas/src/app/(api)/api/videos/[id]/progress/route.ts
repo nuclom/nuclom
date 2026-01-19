@@ -1,10 +1,10 @@
+import { handleEffectExit, handleEffectExitWithOptions, runApiEffect } from '@nuclom/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
+import { ValidationError, VideoProgressRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, handleEffectExitWithOptions, runApiEffect } from '@/lib/api-handler';
-import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { ValidationError, VideoProgressRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/progress - Get video progress for current user

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { useOrganizations, useVideo, useVideos } from './use-api';
 
 // Mock the Effect client
-vi.mock('@/lib/effect/client', () => ({
+vi.mock('@nuclom/lib/effect/client', () => ({
   runClientEffect: vi.fn(),
   videoApiEffect: {
     getVideos: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('@/lib/effect/client', () => ({
   },
 }));
 
-vi.mock('@/lib/api', () => ({
+vi.mock('@nuclom/lib/api', () => ({
   ApiError: class ApiError extends Error {
     status: number;
     constructor(message: string, status: number) {
@@ -25,7 +25,7 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
-import { organizationApiEffect, runClientEffect, videoApiEffect } from '@/lib/effect/client';
+import { organizationApiEffect, runClientEffect, videoApiEffect } from '@nuclom/lib/effect/client';
 
 describe('useVideos', () => {
   it('should start in loading state', async () => {

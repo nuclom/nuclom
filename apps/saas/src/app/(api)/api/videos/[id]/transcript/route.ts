@@ -7,14 +7,14 @@
  * PUT /api/videos/[id]/transcript - Update transcript segments
  */
 
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import type { TranscriptSegment } from '@nuclom/lib/db/schema';
+import { videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
 import { eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import type { TranscriptSegment } from '@/lib/db/schema';
-import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
 
 // =============================================================================
 // Validation Schemas

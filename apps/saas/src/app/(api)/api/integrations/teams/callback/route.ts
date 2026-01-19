@@ -1,13 +1,13 @@
-import { Effect } from 'effect';
-import { MicrosoftTeams } from '@/lib/effect/services/microsoft-teams';
+import { MicrosoftTeams } from '@nuclom/lib/effect/services/microsoft-teams';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
   TeamsIntegrationLayer,
   validateOAuthCallback,
-} from '@/lib/integrations';
-import { logger } from '@/lib/logger';
+} from '@nuclom/lib/integrations';
+import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, 'teams');

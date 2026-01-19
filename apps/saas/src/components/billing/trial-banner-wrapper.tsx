@@ -1,6 +1,6 @@
+import { createFullLayer } from '@nuclom/lib/api-handler';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import { Effect, Option } from 'effect';
-import { createFullLayer } from '@/lib/api-handler';
-import { BillingRepository } from '@/lib/effect/services/billing-repository';
 import { TrialBanner } from './trial-banner';
 
 interface TrialBannerWrapperProps {

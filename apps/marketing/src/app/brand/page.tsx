@@ -1,6 +1,6 @@
+import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowRight, Check, X } from 'lucide-react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { MarketingFooter } from '@/components/marketing-footer';
 import { MarketingHeader } from '@/components/marketing-header';
 import { NuclomLogo } from '@/components/nuclom-logo';

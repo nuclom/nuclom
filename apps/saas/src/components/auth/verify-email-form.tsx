@@ -1,12 +1,12 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 
 type VerificationStatus = 'loading' | 'success' | 'error' | 'no-token';
 

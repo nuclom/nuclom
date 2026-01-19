@@ -1,16 +1,16 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
+import { ResetPasswordSchema, safeParse } from '@nuclom/lib/validation';
+import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
-import { ResetPasswordSchema, safeParse } from '@/lib/validation';
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');

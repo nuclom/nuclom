@@ -1,5 +1,5 @@
+import { cn } from '@nuclom/lib/utils';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
 
 interface NuclomLogoProps {
   className?: string;

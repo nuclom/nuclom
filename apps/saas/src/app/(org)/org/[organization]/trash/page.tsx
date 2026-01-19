@@ -1,5 +1,6 @@
 'use client';
 
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Clock, Loader2, RotateCcw, Trash2 } from 'lucide-react';
 import Image from 'next/image';
@@ -18,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
 
 interface DeletedVideo {
   id: string;

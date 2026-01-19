@@ -1,7 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { logger } from '@/lib/client-logger';
 import { VIEW_TRACKING_INTERVAL } from '../types';
 
 interface UseViewTrackingOptions {

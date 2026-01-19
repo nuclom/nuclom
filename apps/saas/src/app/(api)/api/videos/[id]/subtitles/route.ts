@@ -6,14 +6,14 @@
  * GET /api/videos/[id]/subtitles - Get subtitle availability
  */
 
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // Types

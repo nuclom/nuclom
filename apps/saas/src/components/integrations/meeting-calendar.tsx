@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { Link } from '@vercel/microfrontends/next/client';
 import {
   addDays,
   addMonths,
@@ -24,7 +26,6 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
-import Link from 'next/link';
 import type * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +33,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
 
 interface Integration {
   id: string;

@@ -1,6 +1,5 @@
 'use client';
 
-import process from 'node:process';
 import { oauthProviderClient } from '@better-auth/oauth-provider/client';
 import { passkeyClient } from '@better-auth/passkey/client';
 import { ssoClient } from '@better-auth/sso/client';

@@ -1,10 +1,10 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { ArrowRight, Briefcase, Code, Film, Megaphone, Users, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 
 interface StepPersonalizeProps {
   onNext: (data: { role: string; teamSize: string; useCase: string }) => void;

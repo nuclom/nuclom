@@ -5,15 +5,15 @@
  * getting talk time distribution, and linking speakers to org members.
  */
 
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { normalizeOne } from '@nuclom/lib/db/relations';
+import { speakerProfiles, videoSpeakers, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { desc, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { normalizeOne } from '@/lib/db/relations';
-import { speakerProfiles, videoSpeakers, videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/speakers - Get speakers in a video with talk time stats

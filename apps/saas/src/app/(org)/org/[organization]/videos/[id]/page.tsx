@@ -1,13 +1,13 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { videoChapters } from '@nuclom/lib/db/schema';
+import { getCachedVideo, Storage } from '@nuclom/lib/effect';
 import { asc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { createPublicLayer } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { videoChapters } from '@/lib/db/schema';
-import { getCachedVideo, Storage } from '@/lib/effect';
 import { VideoContentClient } from './_components/video-content-client';
 
 // =============================================================================

@@ -1,9 +1,9 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { SearchRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { SearchRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // PATCH /api/search/saved/[id] - Update a saved search

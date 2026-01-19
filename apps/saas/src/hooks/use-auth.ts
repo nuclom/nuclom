@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@/lib/auth-client';
+import { authClient } from '@nuclom/lib/auth-client';
 
 export function useAuth() {
   const session = authClient.useSession();

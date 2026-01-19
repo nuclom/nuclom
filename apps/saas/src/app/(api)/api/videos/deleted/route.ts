@@ -1,11 +1,11 @@
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { auth } from '@nuclom/lib/auth';
+import { VideoRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { Effect, Option } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { auth } from '@/lib/auth';
-import { VideoRepository } from '@/lib/effect';
-import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // GET /api/videos/deleted - Get soft-deleted videos for the organization

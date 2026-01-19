@@ -1,5 +1,6 @@
 'use client';
 
+import type { SubscriptionWithPlan } from '@nuclom/lib/effect/services/billing-repository';
 import { format } from 'date-fns';
 import { AlertTriangle, Calendar, CreditCard, Loader2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
@@ -18,7 +19,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { SubscriptionWithPlan } from '@/lib/effect/services/billing-repository';
 
 interface SubscriptionCardProps {
   subscription: SubscriptionWithPlan | null;

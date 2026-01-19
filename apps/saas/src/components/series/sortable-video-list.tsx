@@ -17,14 +17,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
+import type { SeriesVideoWithDetails } from '@nuclom/lib/types';
+import { Link } from '@vercel/microfrontends/next/client';
 import { GripVertical, Play, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
-import type { SeriesVideoWithDetails } from '@/lib/types';
 
 interface SortableVideoItemProps {
   item: SeriesVideoWithDetails;

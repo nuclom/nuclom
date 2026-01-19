@@ -4,12 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./tailwind": "./tailwind.config.ts",
     "./typescript/base": "./tsconfig.base.json",
     "./typescript/nextjs": "./tsconfig.nextjs.json"
   },
   "devDependencies": {
-    "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }
 }

@@ -1,12 +1,12 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
+import { Link } from '@vercel/microfrontends/next/client';
 import { Building, Clock, Folders, History, Home, PlayCircle, Share2, Trash2, Upload, Video } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
   organization: string;

@@ -1,13 +1,13 @@
 'use client';
 
+import type { MomentType } from '@nuclom/lib/db/schema';
+import { copyToClipboard } from '@nuclom/lib/notifications';
+import { cn } from '@nuclom/lib/utils';
 import { CheckCircle, Clock, Lightbulb, Loader2, MessageSquare, Play, Plus, Share2, Target } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { MomentType } from '@/lib/db/schema';
-import { copyToClipboard } from '@/lib/notifications';
-import { cn } from '@/lib/utils';
 
 interface Moment {
   id: string;

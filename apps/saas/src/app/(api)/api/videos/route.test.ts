@@ -1,16 +1,16 @@
+import { UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { Auth, type AuthServiceInterface } from '@nuclom/lib/effect/services/auth';
+import { Storage, type StorageService } from '@nuclom/lib/effect/services/storage';
+import { VideoRepository, type VideoRepositoryService } from '@nuclom/lib/effect/services/video-repository';
 import { Effect, Layer } from 'effect';
 import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { UnauthorizedError } from '@/lib/effect/errors';
-import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
-import { Storage, type StorageService } from '@/lib/effect/services/storage';
-import { VideoRepository, type VideoRepositoryService } from '@/lib/effect/services/video-repository';
 import { createMockSession, createMockVideo } from '@/test/mocks';
 
 // Mock the api-handler module to provide test layers
 const mockCreateFullLayer = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/api-handler', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api-handler')>();
+vi.mock('@nuclom/lib/api-handler', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@nuclom/lib/api-handler')>();
   const { Effect } = await import('effect');
   return {
     ...actual,

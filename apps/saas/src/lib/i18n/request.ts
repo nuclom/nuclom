@@ -1,21 +1,21 @@
+import { defaultLocale, isValidLocale, type Locale } from '@nuclom/lib/i18n/config';
+import { logger } from '@nuclom/lib/logger';
 import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
-import { logger } from '@/lib/logger';
-import { defaultLocale, isValidLocale, type Locale } from './config';
 
 /**
  * Get messages for the requested locale
  */
 async function getMessages(locale: Locale) {
   try {
-    return (await import(`../../../messages/${locale}.json`)).default;
+    return (await import(`../../../../../messages/${locale}.json`)).default;
   } catch {
     // Fallback to English if locale file doesn't exist
     logger.warn(`Locale file for "${locale}" not found, falling back to "${defaultLocale}"`, {
       requestedLocale: locale,
       fallbackLocale: defaultLocale,
     });
-    return (await import(`../../../messages/${defaultLocale}.json`)).default;
+    return (await import(`../../../../../messages/${defaultLocale}.json`)).default;
   }
 }
 
