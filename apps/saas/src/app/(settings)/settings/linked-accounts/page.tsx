@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
+import { authClient } from '@nuclom/auth/client';
 import { Github, Link2, Loader2, Mail, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';

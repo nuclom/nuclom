@@ -1,6 +1,6 @@
 'use client';
 
-import { authClient, multiSession } from '@nuclom/lib/auth-client';
+import { authClient, multiSession } from '@nuclom/auth/client';
 import {
   AlertTriangle,
   Key,

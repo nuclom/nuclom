@@ -7,7 +7,7 @@ import {
   restoreSubscription,
   type SubscriptionPlan,
   upgradeSubscription,
-} from '@nuclom/lib/auth-client';
+} from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
 import { AlertTriangle, CheckCircle, CreditCard, Crown, Loader2, Sparkles } from 'lucide-react';

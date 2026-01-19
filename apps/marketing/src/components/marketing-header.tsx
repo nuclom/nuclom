@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient, useAuth } from '@nuclom/auth/client';
 import { Link } from '@vercel/microfrontends/next/client';
 import { LogOut, Menu, Palette, Settings, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -16,8 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/hooks/use-auth';
-import { authClient } from '@/lib/auth-client';
 import { logger } from '@/lib/client-logger';
 import { ThemeToggle } from './theme-toggle';
 

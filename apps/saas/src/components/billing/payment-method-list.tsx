@@ -1,6 +1,6 @@
 'use client';
 
-import { openBillingPortal } from '@nuclom/lib/auth-client';
+import { openBillingPortal } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import type { PaymentMethod } from '@nuclom/lib/db/schema';
 import { CreditCard, MoreVertical, Plus, Star, Trash2 } from 'lucide-react';
