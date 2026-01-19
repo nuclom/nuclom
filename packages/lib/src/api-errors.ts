@@ -169,6 +169,14 @@ const errorTagMapping: Record<AppErrorTag, ErrorMapping> = {
   PlanNotFoundError: { code: ErrorCodes.NOT_FOUND_PLAN, status: 404 },
   NoSubscriptionError: { code: ErrorCodes.BILLING_NO_SUBSCRIPTION, status: 403 },
   UsageTrackingError: { code: ErrorCodes.BILLING_STRIPE_ERROR, status: 500 },
+
+  // Content errors
+  ContentSourceNotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
+  ContentSourceSyncError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
+  ContentSourceAuthError: { code: ErrorCodes.AUTH_UNAUTHORIZED, status: 401 },
+  ContentItemNotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
+  ContentProcessingError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
+  ContentAdapterNotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
 };
 
 /**

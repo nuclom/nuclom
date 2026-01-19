@@ -305,3 +305,97 @@ export const correctionSuggestionStatusEnum = pgEnum('CorrectionSuggestionStatus
 // =============================================================================
 
 export const chatMessageRoleEnum = pgEnum('ChatMessageRole', ['user', 'assistant', 'system', 'tool']);
+
+// =============================================================================
+// Content Source Enums
+// =============================================================================
+
+/**
+ * Types of content sources that can be connected to an organization.
+ * - video: Native video recordings (internal source)
+ * - slack: Slack workspace integration
+ * - notion: Notion workspace integration
+ * - github: GitHub repository integration
+ * - google_drive: Google Drive integration
+ * - confluence: Confluence wiki integration
+ * - linear: Linear project management integration
+ */
+export const contentSourceTypeEnum = pgEnum('ContentSourceType', [
+  'video',
+  'slack',
+  'notion',
+  'github',
+  'google_drive',
+  'confluence',
+  'linear',
+]);
+
+/**
+ * Sync status for content sources.
+ */
+export const contentSourceSyncStatusEnum = pgEnum('ContentSourceSyncStatus', ['idle', 'syncing', 'error', 'disabled']);
+
+/**
+ * Types of content items from various sources.
+ * - video: Video recording
+ * - message: Chat message (Slack, Teams, etc.)
+ * - thread: Conversation thread
+ * - document: Document or page (Notion, Confluence, etc.)
+ * - issue: Issue or ticket (GitHub, Linear, etc.)
+ * - pull_request: Code review / PR
+ * - comment: Comment on any content
+ * - file: File attachment
+ */
+export const contentItemTypeEnum = pgEnum('ContentItemType', [
+  'video',
+  'message',
+  'thread',
+  'document',
+  'issue',
+  'pull_request',
+  'comment',
+  'file',
+]);
+
+/**
+ * Processing status for content items.
+ */
+export const contentProcessingStatusEnum = pgEnum('ContentProcessingStatus', [
+  'pending',
+  'processing',
+  'completed',
+  'failed',
+  'skipped',
+]);
+
+/**
+ * Types of relationships between content items.
+ * - references: One item references another
+ * - replies_to: Reply/response relationship
+ * - implements: Implementation of a decision/issue
+ * - supersedes: Replaces a previous item
+ * - relates_to: Generic relationship
+ * - mentions: Mentions another item
+ * - derived_from: Derived/summarized from another item
+ */
+export const contentRelationshipTypeEnum = pgEnum('ContentRelationshipType', [
+  'references',
+  'replies_to',
+  'implements',
+  'supersedes',
+  'relates_to',
+  'mentions',
+  'derived_from',
+]);
+
+/**
+ * Roles for content participants.
+ */
+export const contentParticipantRoleEnum = pgEnum('ContentParticipantRole', [
+  'author',
+  'speaker',
+  'participant',
+  'mentioned',
+  'assignee',
+  'reviewer',
+]);

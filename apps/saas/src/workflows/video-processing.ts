@@ -1323,6 +1323,37 @@ async function saveDecisions(
   }
 }
 
+/**
+ * Update the content_item with processed video data (transcript, summary, tags).
+ * This syncs the processed video data to the unified knowledge base.
+ */
+async function updateContentItemWithProcessedData(
+  videoId: string,
+  organizationId: string,
+  data: {
+    transcript?: string;
+    summary?: string;
+    tags?: string[];
+  },
+): Promise<void> {
+  'use step';
+
+  try {
+    const { Effect } = await import('effect');
+    const { updateVideoContentItem } = await import('@nuclom/lib/effect/services');
+    const { createPublicLayer } = await import('@nuclom/lib/api-handler');
+
+    const effect = updateVideoContentItem(videoId, organizationId, data);
+    const runnable = Effect.provide(effect, createPublicLayer());
+    await Effect.runPromise(runnable);
+
+    log.info({ videoId }, 'Updated content_item with processed video data');
+  } catch (error) {
+    // Log but don't fail - content sync is not critical to workflow completion
+    log.warn({ videoId, error }, 'Failed to update content_item with processed data');
+  }
+}
+
 async function sendCompletionNotification(
   videoId: string,
   status: 'completed' | 'failed',
@@ -1687,10 +1718,20 @@ export async function processVideoWorkflow(input: VideoProcessingInput): Promise
     await saveDecisions(videoId, effectiveOrgId, extractedDecisions);
   }
 
-  // Step 12: Update status to completed
+  // Step 12: Update content_item with processed data for unified knowledge base
+  const effectiveOrgIdForContent = organizationId || (await getVideoOrganizationId(videoId));
+  if (effectiveOrgIdForContent) {
+    await updateContentItemWithProcessedData(videoId, effectiveOrgIdForContent, {
+      transcript: transcription.transcript,
+      summary: analysis.summary,
+      tags: analysis.tags,
+    });
+  }
+
+  // Step 13: Update status to completed
   await updateProcessingStatus(videoId, 'completed');
 
-  // Step 13: Send completion notification
+  // Step 14: Send completion notification
   await sendCompletionNotification(videoId, 'completed');
 
   return {

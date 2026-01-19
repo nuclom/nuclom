@@ -8,6 +8,7 @@
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
 import type { ApiResponse } from '@nuclom/lib/types';
@@ -163,6 +164,10 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       );
     }
 
+    // Sync video to content_items for unified knowledge base
+    // This is non-blocking - failures are logged but don't fail the upload
+    yield* syncNewVideoToContent(video.id, organizationId);
+
     return {
       videoId: video.id,
       videoUrl: presignedVideoUrl, // Return presigned URL for immediate use
@@ -262,6 +267,9 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
             }),
           );
         }
+
+        // Sync video to content_items for unified knowledge base
+        yield* syncNewVideoToContent(video.id, organizationId);
 
         results.push({
           uploadId: upload.uploadId,

@@ -284,6 +284,74 @@ export type AuthError = UnauthorizedError | ForbiddenError | SessionError;
 export type InputError = ValidationError | MissingFieldError;
 
 // =============================================================================
+// Content Source Errors
+// =============================================================================
+
+/**
+ * Error when a content source is not found
+ */
+export class ContentSourceNotFoundError extends Data.TaggedError('ContentSourceNotFoundError')<{
+  readonly message: string;
+  readonly sourceId: string;
+}> {}
+
+/**
+ * Error when content source sync fails
+ */
+export class ContentSourceSyncError extends Data.TaggedError('ContentSourceSyncError')<{
+  readonly message: string;
+  readonly sourceId: string;
+  readonly sourceType: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when content source authentication fails
+ */
+export class ContentSourceAuthError extends Data.TaggedError('ContentSourceAuthError')<{
+  readonly message: string;
+  readonly sourceId: string;
+  readonly sourceType: string;
+}> {}
+
+/**
+ * Error when content item is not found
+ */
+export class ContentItemNotFoundError extends Data.TaggedError('ContentItemNotFoundError')<{
+  readonly message: string;
+  readonly itemId: string;
+}> {}
+
+/**
+ * Error when content processing fails
+ */
+export class ContentProcessingError extends Data.TaggedError('ContentProcessingError')<{
+  readonly message: string;
+  readonly itemId: string;
+  readonly stage?: 'extracting' | 'embedding' | 'summarizing' | 'linking';
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * Error when content adapter is not registered for a source type
+ */
+export class ContentAdapterNotFoundError extends Data.TaggedError('ContentAdapterNotFoundError')<{
+  readonly message: string;
+  readonly sourceType: string;
+}> {}
+
+/**
+ * All possible content source errors
+ */
+export type ContentError =
+  | ContentSourceNotFoundError
+  | ContentSourceSyncError
+  | ContentSourceAuthError
+  | ContentItemNotFoundError
+  | ContentProcessingError
+  | ContentAdapterNotFoundError;
+
+// =============================================================================
 // Billing Errors
 // =============================================================================
 
@@ -443,7 +511,14 @@ export type AppErrorUnion =
   | PaymentFailedError
   | PlanNotFoundError
   | NoSubscriptionError
-  | UsageTrackingError;
+  | UsageTrackingError
+  // Content source errors
+  | ContentSourceNotFoundError
+  | ContentSourceSyncError
+  | ContentSourceAuthError
+  | ContentItemNotFoundError
+  | ContentProcessingError
+  | ContentAdapterNotFoundError;
 
 /**
  * All possible error tags for discriminated union matching.

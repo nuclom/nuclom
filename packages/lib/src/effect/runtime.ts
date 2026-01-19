@@ -22,6 +22,8 @@ import { type BillingRepository, BillingRepositoryLive } from './services/billin
 import { type ChatRepository, ChatRepositoryLive } from './services/chat-repository';
 import { type ClipRepository, ClipRepositoryLive } from './services/clip-repository';
 import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
+import { type ContentProcessor, ContentProcessorLive } from './services/content/content-processor';
+import { type ContentRepository, ContentRepositoryLive } from './services/content/content-repository';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
@@ -145,6 +147,7 @@ const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, D
 const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
 const ChatRepositoryWithDeps = withDep(ChatRepositoryLive, DatabaseLive);
 const VideoSharesRepositoryWithDeps = withDep(VideoSharesRepositoryLive, DatabaseLive);
+const ContentRepositoryWithDeps = withDep(ContentRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
@@ -162,6 +165,11 @@ const BillingWithDeps = withDeps(
 // AIChatKB service depends on Embedding, SemanticSearchRepository, and KnowledgeGraphRepository
 const AIChatKBWithDeps = AIChatKBLive.pipe(
   Layer.provide(Layer.mergeAll(EmbeddingLive, SemanticSearchRepositoryWithDeps, KnowledgeGraphRepositoryWithDeps)),
+);
+
+// ContentProcessor depends on ContentRepository, Embedding, and AI
+const ContentProcessorWithDeps = ContentProcessorLive.pipe(
+  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
 // Combine application services that have their dependencies resolved
@@ -184,6 +192,8 @@ const AppServicesLive = Layer.mergeAll(
   VocabularyRepositoryWithDeps,
   ChatRepositoryWithDeps,
   AIChatKBWithDeps,
+  ContentRepositoryWithDeps,
+  ContentProcessorWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -218,7 +228,9 @@ export type AppServices =
   | VocabularyRepository
   | ChatRepository
   | StripeServiceTag
-  | SlackMonitoring;
+  | SlackMonitoring
+  | ContentRepository
+  | ContentProcessor;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

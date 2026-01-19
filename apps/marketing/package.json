@@ -6,7 +6,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev --port $(microfrontends port)",
-    "tsc": "tsc --noEmit",
+    "tsc": "tsgo --noEmit",
     "start": "next start -p 3090"
   },
   "dependencies": {
