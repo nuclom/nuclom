@@ -403,6 +403,9 @@ importers:
       '@nuclom/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@nuclom/lib':
+        specifier: workspace:*
+        version: link:../../packages/lib
       '@nuclom/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -922,6 +925,9 @@ importers:
       '@hookform/resolvers':
         specifier: 'catalog:'
         version: 5.2.2(react-hook-form@7.71.1(react@19.2.3))
+      '@nuclom/auth':
+        specifier: workspace:*
+        version: link:../auth
       '@upstash/ratelimit':
         specifier: 'catalog:'
         version: 2.0.8(@upstash/redis@1.36.1)

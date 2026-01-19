@@ -1,29 +1,9 @@
 'use client';
 
-import { authClient } from '@nuclom/lib/auth-client';
-
-export function useAuth() {
-  const session = authClient.useSession();
-
-  return {
-    session: session.data,
-    user: session.data?.user || null,
-    isLoading: session.isPending,
-  };
-}
-
-export function useRequireAuth() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return { user: null, isLoading: true };
-  }
-
-  if (!user) {
-    throw new Error('User must be authenticated to access this resource');
-  }
-
-  return { user, isLoading: false };
-}
-
-export { authClient };
+/**
+ * Auth hooks re-exported from @nuclom/lib/auth-client
+ *
+ * This file exists for backwards compatibility - all auth hooks
+ * are now consolidated in the @nuclom/auth package.
+ */
+export { authClient, useAuth, useRequireAuth } from '@nuclom/lib/auth-client';

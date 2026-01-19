@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuclom/auth": "workspace:*",
     "@nuclom/config": "workspace:*",
+    "@nuclom/lib": "workspace:*",
     "@nuclom/ui": "workspace:*",
     "@vercel/analytics": "catalog:",
     "@vercel/microfrontends": "catalog:",

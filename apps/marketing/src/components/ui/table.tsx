@@ -1,1 +1,10 @@
-export * from '@nuclom/ui/table';
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@nuclom/ui/table';

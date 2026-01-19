@@ -1,1 +1,1 @@
-export * from '@nuclom/ui/switch';
+export { Switch } from '@nuclom/ui/switch';
