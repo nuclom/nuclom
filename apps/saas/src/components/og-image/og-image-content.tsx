@@ -1,4 +1,4 @@
-import { brand } from '@/lib/brand';
+import { brand } from '@nuclom/lib/brand';
 
 const features = ['AI Transcription', 'Team Collaboration', 'Enterprise Security'];
 

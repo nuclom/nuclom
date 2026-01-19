@@ -1,8 +1,8 @@
+import { db } from '@nuclom/lib/db';
+import { videoShareLinks, videos, videoViews } from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
 import { eq, sql } from 'drizzle-orm';
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { videoShareLinks, videos, videoViews } from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
 
 // =============================================================================
 // POST /api/embed/[id]/view - Track embed video view

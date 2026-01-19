@@ -1,9 +1,9 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { MissingFieldError, SearchRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // GET /api/search/suggestions - Get search suggestions

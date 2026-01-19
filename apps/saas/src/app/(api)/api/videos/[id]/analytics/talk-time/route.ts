@@ -5,14 +5,14 @@
  * showing how much each speaker contributed.
  */
 
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { normalizeOne } from '@nuclom/lib/db/relations';
+import { videoSpeakers, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
 import { desc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { normalizeOne } from '@/lib/db/relations';
-import { videoSpeakers, videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/videos/[id]/analytics/talk-time - Get talk time distribution

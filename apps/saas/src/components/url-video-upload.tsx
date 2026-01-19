@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { cn } from '@nuclom/lib/utils';
 import {
   AlertCircle,
   CheckCircle,
@@ -22,8 +24,6 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
-import { cn } from '@/lib/utils';
 
 interface UrlVideoUploadProps {
   organizationId: string;

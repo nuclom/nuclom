@@ -1,7 +1,7 @@
+import { HttpError, ParseError } from '@nuclom/lib/effect/errors';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { Effect, Either } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { HttpError, ParseError } from '@/lib/effect/errors';
 import {
   getErrorStatus,
   isHttpError,
@@ -12,11 +12,11 @@ import {
 } from './use-effect';
 
 // Mock the Effect client
-vi.mock('@/lib/effect/client', () => ({
+vi.mock('@nuclom/lib/effect/client', () => ({
   runClientEffect: vi.fn(),
 }));
 
-import { runClientEffect } from '@/lib/effect/client';
+import { runClientEffect } from '@nuclom/lib/effect/client';
 
 describe('useEffectQuery', () => {
   it('should start with loading state when immediate is true', async () => {

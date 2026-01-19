@@ -1,6 +1,6 @@
+import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
 import { Effect } from 'effect';
 import { NextResponse } from 'next/server';
-import { Slack, SlackLive } from '@/lib/effect/services/slack';
 
 interface SlackEventPayload {
   type: string;

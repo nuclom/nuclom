@@ -1,11 +1,11 @@
 import { auth } from '@nuclom/lib/auth';
+import { UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { logger } from '@nuclom/lib/logger';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { logger } from '@/lib/logger';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const CalendarLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);

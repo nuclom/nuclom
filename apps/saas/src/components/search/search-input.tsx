@@ -1,12 +1,12 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { SearchSuggestion } from '@nuclom/lib/types';
 import { Loader2, Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { logger } from '@/lib/client-logger';
-import type { SearchSuggestion } from '@/lib/types';
 
 interface SearchInputProps {
   organizationId: string;

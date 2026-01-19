@@ -1,7 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { useCallback, useEffect, useState } from 'react';
-import { logger } from '@/lib/client-logger';
 import type { CaptionTrack } from '../types';
 
 interface UseCaptionsOptions {

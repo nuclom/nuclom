@@ -1,12 +1,17 @@
+import {
+  handleEffectExit,
+  handleEffectExitWithStatus,
+  runApiEffect,
+  runPublicApiEffect,
+} from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videos, videoViews } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, handleEffectExitWithStatus, runApiEffect, runPublicApiEffect } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videos, videoViews } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // POST /api/videos/[id]/views - Track view start

@@ -1,5 +1,3 @@
-import { Effect, Option } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   createFullLayer,
   generatePresignedThumbnailUrl,
@@ -7,11 +5,13 @@ import {
   handleEffectExit,
   handleEffectExitWithStatus,
   Storage,
-} from '@/lib/api-handler';
-import { ClipRepository, OrganizationRepository, ValidationError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateQueryParams, validateRequestBody } from '@/lib/validation';
-import { CreateHighlightReelSchema, PaginationSchema } from '@/lib/validation/schemas';
+} from '@nuclom/lib/api-handler';
+import { ClipRepository, OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
+import { CreateHighlightReelSchema, PaginationSchema } from '@nuclom/lib/validation/schemas';
+import { Effect, Option } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // GET /api/highlight-reels - List all highlight reels for an organization

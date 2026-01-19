@@ -1,5 +1,3 @@
-import { Effect, Option, Schema } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   Auth,
   generatePresignedThumbnailUrl,
@@ -7,12 +5,14 @@ import {
   handleEffectExitWithOptions,
   runApiEffect,
   Storage,
-} from '@/lib/api-handler';
-import { ForbiddenError, ValidationError, VideoRepository } from '@/lib/effect';
-import { releaseVideoCount } from '@/lib/effect/services/billing-middleware';
-import { BillingRepository } from '@/lib/effect/services/billing-repository';
-import type { UpdateVideoInput } from '@/lib/effect/services/video-repository';
-import { validateRequestBody } from '@/lib/validation';
+} from '@nuclom/lib/api-handler';
+import { ForbiddenError, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { releaseVideoCount } from '@nuclom/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import type { UpdateVideoInput } from '@nuclom/lib/effect/services/video-repository';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Option, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // GET /api/videos/[id] - Get video details

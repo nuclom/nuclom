@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { formatDurationHuman, formatFileSize } from '@nuclom/lib/format-utils';
 import { format, formatDistanceToNow, subDays } from 'date-fns';
 import {
   ArrowDownAZ,
@@ -41,8 +43,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
-import { formatDurationHuman, formatFileSize } from '@/lib/format-utils';
 
 interface Recording {
   id: string;

@@ -1,8 +1,8 @@
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { VideoRepository } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { VideoRepository } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // POST /api/videos/[id]/restore - Restore a soft-deleted video

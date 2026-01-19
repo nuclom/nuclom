@@ -7,6 +7,8 @@
  * Integrates with video player for seeking to decision timestamps.
  */
 
+import type { DecisionStatus, DecisionType } from '@nuclom/lib/db/schema';
+import { cn } from '@nuclom/lib/utils';
 import { ChevronDown, ChevronUp, Clock, Lightbulb, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,8 +18,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { DecisionStatus, DecisionType } from '@/lib/db/schema';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

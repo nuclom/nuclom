@@ -12,6 +12,10 @@
  * - Adjust timestamps
  */
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { TranscriptSegment } from '@nuclom/lib/db/schema';
+import { formatTimePrecise } from '@nuclom/lib/format-utils';
+import { cn } from '@nuclom/lib/utils';
 import {
   Check,
   ChevronDown,
@@ -42,10 +46,6 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { logger } from '@/lib/client-logger';
-import type { TranscriptSegment } from '@/lib/db/schema';
-import { formatTimePrecise } from '@/lib/format-utils';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

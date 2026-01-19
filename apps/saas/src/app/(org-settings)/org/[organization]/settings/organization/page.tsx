@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
@@ -19,7 +20,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { authClient } from '@/lib/auth-client';
 
 type Organization = {
   id: string;

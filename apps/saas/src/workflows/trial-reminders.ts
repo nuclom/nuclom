@@ -45,10 +45,10 @@ async function sendTrialReminder(subscriptionId: string, daysRemaining: number):
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { members, notifications, users } = await import('@/lib/db/schema');
-  const { resend } = await import('@/lib/email');
-  const { env, getAppUrl } = await import('@/lib/env/server');
+  const { db } = await import('@nuclom/lib/db');
+  const { members, notifications, users } = await import('@nuclom/lib/db/schema');
+  const { resend } = await import('@nuclom/lib/email');
+  const { env, getAppUrl } = await import('@nuclom/lib/env/server');
 
   // Get subscription details
   const subscription = await db.query.subscriptions.findFirst({
@@ -193,7 +193,7 @@ export async function trialReminderWorkflow(input: TrialReminderInput): Promise<
     await sleep(sleepDuration);
 
     // Verify subscription still exists and is still on trial
-    const { db } = await import('@/lib/db');
+    const { db } = await import('@nuclom/lib/db');
     const subscription = await db.query.subscriptions.findFirst({
       where: (s, { eq: eqOp }) => eqOp(s.id, subscriptionId),
     });

@@ -1,6 +1,6 @@
+import { getAppUrl } from '@nuclom/lib/env/server';
 import { Suspense } from 'react';
 import { AcceptInvitationForm } from '@/components/auth/accept-invitation-form';
-import { getAppUrl } from '@/lib/env/server';
 
 async function getInvitation(id: string) {
   try {

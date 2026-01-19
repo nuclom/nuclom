@@ -1,11 +1,11 @@
+import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videoShareLinks } from '@nuclom/lib/db/schema';
+import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videoShareLinks } from '@/lib/db/schema';
-import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from '@/lib/effect';
-import { validateRequestBody } from '@/lib/validation';
 
 // Hash password using Web Crypto API
 async function hashPassword(password: string): Promise<string> {

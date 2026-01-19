@@ -1,5 +1,9 @@
 'use client';
 
+import { formatRelativeTime, formatTime } from '@nuclom/lib/format-utils';
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
+import type { VideoWithAuthor } from '@nuclom/lib/types';
+import { cn } from '@nuclom/lib/utils';
 import { Clock, Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,10 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatRelativeTime, formatTime } from '@/lib/format-utils';
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
-import type { VideoWithAuthor } from '@/lib/types';
-import { cn } from '@/lib/utils';
 
 interface VideoPreviewCardProps {
   video: VideoWithAuthor & { views?: number };

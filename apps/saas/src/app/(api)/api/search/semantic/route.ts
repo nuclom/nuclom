@@ -1,12 +1,12 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { MissingFieldError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Embedding } from '@nuclom/lib/effect/services/embedding';
+import { SemanticSearchRepository } from '@nuclom/lib/effect/services/semantic-search-repository';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { MissingFieldError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { Embedding } from '@/lib/effect/services/embedding';
-import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // POST /api/search/semantic - Semantic search using embeddings

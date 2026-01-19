@@ -1,10 +1,10 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
+import { aiActionItems, decisions, videoSpeakers, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, UnauthorizedError, ValidationError } from '@nuclom/lib/effect/errors';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { and, desc, eq, gte } from 'drizzle-orm';
 import { Cause, Effect, Exit } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer } from '@/lib/api-handler';
-import { aiActionItems, decisions, videoSpeakers, videos } from '@/lib/db/schema';
-import { DatabaseError, UnauthorizedError, ValidationError } from '@/lib/effect/errors';
-import { Database } from '@/lib/effect/services/database';
 
 function validateQueryParams(searchParams: URLSearchParams) {
   const organizationId = searchParams.get('organizationId');

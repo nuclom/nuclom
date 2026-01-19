@@ -1,5 +1,8 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { VideoWithAuthor } from '@nuclom/lib/types';
+import { cn } from '@nuclom/lib/utils';
 import { FolderKanban, Home, Loader2, Plus, Search, SearchIcon, Settings, Users, Video } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -13,9 +16,6 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { logger } from '@/lib/client-logger';
-import type { VideoWithAuthor } from '@/lib/types';
-import { cn } from '@/lib/utils';
 
 interface CommandBarProps {
   organization: string;

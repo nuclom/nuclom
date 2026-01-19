@@ -1,5 +1,7 @@
 'use client';
 
+import { authClient, getLastUsedLoginMethod } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Eye, EyeOff, Github, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,8 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { authClient, getLastUsedLoginMethod } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 
 interface LoginFormProps {
   readonly redirectTo?: string;

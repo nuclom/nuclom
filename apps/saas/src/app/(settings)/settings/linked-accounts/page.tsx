@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
 import { Github, Link2, Loader2, Mail, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
@@ -7,7 +8,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { authClient } from '@/lib/auth-client';
 
 interface Account {
   id: string;

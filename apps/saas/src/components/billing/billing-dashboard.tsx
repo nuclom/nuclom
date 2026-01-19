@@ -1,11 +1,11 @@
 'use client';
 
+import type { Plan } from '@nuclom/lib/db/schema';
+import type { OrganizationBillingInfo, UsageSummary } from '@nuclom/lib/effect/services/billing-repository';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Plan } from '@/lib/db/schema';
-import type { OrganizationBillingInfo, UsageSummary } from '@/lib/effect/services/billing-repository';
 import { InvoiceList } from './invoice-list';
 import { PaymentMethodList } from './payment-method-list';
 import { SubscriptionManager } from './subscription-manager';

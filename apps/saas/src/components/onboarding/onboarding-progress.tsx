@@ -1,7 +1,7 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface OnboardingStep {
   id: string;

@@ -1,8 +1,8 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { Auth } from '@/lib/effect/services/auth';
-import { CollectionRepository } from '@/lib/effect/services/collection-repository';
 
 interface RouteContext {
   params: Promise<{ id: string; videoId: string }>;

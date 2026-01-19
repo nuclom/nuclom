@@ -1,9 +1,9 @@
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { ChatRepository } from '@nuclom/lib/effect/services/chat-repository';
+import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { Auth } from '@/lib/effect/services/auth';
-import { ChatRepository } from '@/lib/effect/services/chat-repository';
-import { validateQueryParams, validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Query/Body Schemas

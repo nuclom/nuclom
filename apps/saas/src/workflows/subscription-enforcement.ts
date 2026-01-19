@@ -37,8 +37,8 @@ async function getOrganizationOwners(organizationId: string) {
   'use step';
 
   const { and, eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { members, users } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { members, users } = await import('@nuclom/lib/db/schema');
 
   return db
     .select({
@@ -60,10 +60,10 @@ async function sendEnforcementNotification(
 ): Promise<number> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { notifications } = await import('@/lib/db/schema');
-  const { resend } = await import('@/lib/email');
-  const { env, getAppUrl } = await import('@/lib/env/server');
+  const { db } = await import('@nuclom/lib/db');
+  const { notifications } = await import('@nuclom/lib/db/schema');
+  const { resend } = await import('@nuclom/lib/email');
+  const { env, getAppUrl } = await import('@nuclom/lib/env/server');
 
   let notificationsSent = 0;
   const owners = await getOrganizationOwners(organizationId);
@@ -186,8 +186,8 @@ async function hasPaymentMethod(organizationId: string): Promise<boolean> {
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { paymentMethods } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { paymentMethods } = await import('@nuclom/lib/db/schema');
 
   const methods = await db.query.paymentMethods.findMany({
     where: eq(paymentMethods.organizationId, organizationId),
@@ -215,8 +215,8 @@ async function getOrganizationEnforcementState(organizationId: string): Promise<
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations } = await import('@nuclom/lib/db/schema');
 
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
@@ -233,8 +233,8 @@ async function updateOrganizationEnforcementState(
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations } = await import('@nuclom/lib/db/schema');
 
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
@@ -266,8 +266,8 @@ async function handleExpiredTrials(): Promise<{ handled: number; notifications: 
   'use step';
 
   const { and, eq, isNotNull, lt } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations, subscriptions } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations, subscriptions } = await import('@nuclom/lib/db/schema');
 
   const now = new Date();
   let handled = 0;
@@ -340,8 +340,8 @@ async function handlePaymentIssues(): Promise<{ suspended: number; notifications
   'use step';
 
   const { eq, or } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations, subscriptions } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations, subscriptions } = await import('@nuclom/lib/db/schema');
 
   const now = new Date();
   let suspended = 0;
@@ -407,8 +407,8 @@ async function handleDataDeletion(): Promise<{ scheduled: number; notifications:
   'use step';
 
   const { and, eq, isNull, or } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations, subscriptions, videos } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations, subscriptions, videos } = await import('@nuclom/lib/db/schema');
 
   const now = new Date();
   let scheduled = 0;
@@ -487,8 +487,8 @@ async function handleTrialsEndingSoon(): Promise<{ notifications: number; errors
   'use step';
 
   const { and, eq, isNotNull, lt, sql } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { organizations, subscriptions } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizations, subscriptions } = await import('@nuclom/lib/db/schema');
 
   const now = new Date();
   let notificationsSent = 0;

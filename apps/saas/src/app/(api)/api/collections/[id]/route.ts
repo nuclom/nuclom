@@ -1,5 +1,3 @@
-import { Effect, Schema } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   createFullLayer,
   generatePresignedThumbnailUrl,
@@ -7,11 +5,13 @@ import {
   handleEffectExit,
   handleEffectExitWithOptions,
   Storage,
-} from '@/lib/api-handler';
-import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { Auth } from '@/lib/effect/services/auth';
-import { CollectionRepository } from '@/lib/effect/services/collection-repository';
-import { validateRequestBody } from '@/lib/validation';
+} from '@nuclom/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 const UpdateCollectionSchema = Schema.Struct({
   name: Schema.optional(Schema.String.pipe(Schema.minLength(1))),

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import { cn } from '@nuclom/lib/utils';
 import { AlertCircle, CheckCircle, Upload, Video, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react';
@@ -10,8 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { logger } from '@/lib/client-logger';
-import { cn } from '@/lib/utils';
 
 interface VideoUploadProps {
   organizationId: string;

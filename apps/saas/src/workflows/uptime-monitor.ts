@@ -52,7 +52,7 @@ async function checkDatabase(): Promise<ServiceCheckResult> {
 
   try {
     const { sql } = await import('drizzle-orm');
-    const { db } = await import('@/lib/db');
+    const { db } = await import('@nuclom/lib/db');
 
     await db.execute(sql`SELECT 1`);
 
@@ -78,7 +78,7 @@ async function checkStorage(): Promise<ServiceCheckResult> {
 
   try {
     const { HeadBucketCommand, S3Client } = await import('@aws-sdk/client-s3');
-    const { env } = await import('@/lib/env/server');
+    const { env } = await import('@nuclom/lib/env/server');
 
     const isConfigured = env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_SECRET_ACCESS_KEY && env.R2_BUCKET_NAME;
 
@@ -170,8 +170,8 @@ async function checkAI(): Promise<ServiceCheckResult> {
 async function saveHealthCheckResults(results: ServiceCheckResult[]): Promise<void> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { healthChecks } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { healthChecks } = await import('@nuclom/lib/db/schema');
 
   const now = new Date();
 
@@ -193,11 +193,11 @@ async function notifyAdminsOnFailure(failedServices: ServiceCheckResult[]): Prom
   if (failedServices.length === 0) return;
 
   try {
-    const { db } = await import('@/lib/db');
-    const { notifications, users } = await import('@/lib/db/schema');
+    const { db } = await import('@nuclom/lib/db');
+    const { notifications, users } = await import('@nuclom/lib/db/schema');
     const { eq } = await import('drizzle-orm');
-    const { resend } = await import('@/lib/email');
-    const { env, getAppUrl } = await import('@/lib/env/server');
+    const { resend } = await import('@nuclom/lib/email');
+    const { env, getAppUrl } = await import('@nuclom/lib/env/server');
 
     // Get all admin users
     const adminUsers = await db.query.users.findMany({

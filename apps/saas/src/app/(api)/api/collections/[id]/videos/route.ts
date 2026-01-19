@@ -1,16 +1,16 @@
-import { Effect, Schema } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   createFullLayer,
   generatePresignedThumbnailUrl,
   handleEffectExit,
   handleEffectExitWithStatus,
   Storage,
-} from '@/lib/api-handler';
-import { MissingFieldError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { CollectionRepository } from '@/lib/effect/services/collection-repository';
-import { validateRequestBody } from '@/lib/validation';
+} from '@nuclom/lib/api-handler';
+import { MissingFieldError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 const AddVideoSchema = Schema.Struct({
   videoId: Schema.String,

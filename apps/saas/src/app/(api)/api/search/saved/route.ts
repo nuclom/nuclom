@@ -1,9 +1,9 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { MissingFieldError, SearchRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { MissingFieldError, SearchRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/search/saved - Get saved searches

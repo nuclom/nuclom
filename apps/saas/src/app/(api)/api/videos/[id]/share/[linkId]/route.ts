@@ -1,11 +1,11 @@
+import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videoShareLinks } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
 import { and, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videoShareLinks } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
 
 // =============================================================================
 // DELETE /api/videos/[id]/share/[linkId] - Revoke share link

@@ -1,10 +1,10 @@
+import { createFullLayer, createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { ClipRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { UpdateHighlightReelSchema } from '@nuclom/lib/validation/schemas';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { ClipRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
-import { UpdateHighlightReelSchema } from '@/lib/validation/schemas';
 
 // =============================================================================
 // GET /api/highlight-reels/[id] - Get a single highlight reel

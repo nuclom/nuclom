@@ -1,10 +1,10 @@
+import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@nuclom/lib/api-handler';
+import { BillingRepository, OrganizationRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { SlackMonitoring } from '@nuclom/lib/effect/services/slack-monitoring';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@/lib/api-handler';
-import { BillingRepository, OrganizationRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
-import { validateRequestBody } from '@/lib/validation';
 
 const CreateOrganizationSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),

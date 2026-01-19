@@ -1,5 +1,7 @@
 'use client';
 
+import type { Collection, User } from '@nuclom/lib/db/schema';
+import { cn } from '@nuclom/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronsUpDown, Filter, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,8 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { Collection, User } from '@/lib/db/schema';
-import { cn } from '@/lib/utils';
 
 interface SearchFiltersProps {
   organization: string;

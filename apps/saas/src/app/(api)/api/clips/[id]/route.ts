@@ -1,5 +1,3 @@
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   createFullLayer,
   createPublicLayer,
@@ -7,11 +5,13 @@ import {
   generatePresignedVideoUrl,
   handleEffectExit,
   Storage,
-} from '@/lib/api-handler';
-import { ClipRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { validateRequestBody } from '@/lib/validation';
-import { UpdateClipSchema } from '@/lib/validation/schemas';
+} from '@nuclom/lib/api-handler';
+import { ClipRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { validateRequestBody } from '@nuclom/lib/validation';
+import { UpdateClipSchema } from '@nuclom/lib/validation/schemas';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // GET /api/clips/[id] - Get a single clip

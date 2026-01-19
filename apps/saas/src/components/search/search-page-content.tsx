@@ -1,11 +1,11 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { Collection, SearchFilters as SearchFiltersType, User } from '@nuclom/lib/db/schema';
+import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from '@nuclom/lib/types';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { logger } from '@/lib/client-logger';
-import type { Collection, SearchFilters as SearchFiltersType, User } from '@/lib/db/schema';
-import type { SavedSearchWithUser, SearchHistoryWithUser, SearchResponse } from '@/lib/types';
 import { SavedSearches } from './saved-searches';
 import { SearchFilters } from './search-filters';
 import { SearchHistory } from './search-history';

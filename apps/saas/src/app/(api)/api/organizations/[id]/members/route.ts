@@ -1,14 +1,14 @@
+import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { members, users } from '@nuclom/lib/db/schema';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import { logger } from '@nuclom/lib/logger';
+import { safeParse } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { members, users } from '@/lib/db/schema';
-import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
-import { logger } from '@/lib/logger';
-import { safeParse } from '@/lib/validation';
 
 const UpdateMemberRoleSchema = Schema.Struct({
   userId: Schema.String,

@@ -1,12 +1,12 @@
+import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videoShareLinks, videos } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { Auth, createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videoShareLinks, videos } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/effect';
-import type { ApiResponse } from '@/lib/types';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // Hash Password Helper

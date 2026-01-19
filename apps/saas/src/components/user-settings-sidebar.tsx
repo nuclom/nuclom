@@ -1,9 +1,9 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Bell, Link2, Shield, User, UserCog } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 
 type NavItem = {
   href: string;

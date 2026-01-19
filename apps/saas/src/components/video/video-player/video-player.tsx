@@ -1,9 +1,9 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMiniPlayer } from '@/hooks/use-mini-player';
 import { useTouch } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 import { VideoPresence } from '../video-presence';
 import { KeyboardHelpModal } from './components/keyboard-help-modal';
 import { TouchSkipFeedback } from './components/touch-skip-feedback';

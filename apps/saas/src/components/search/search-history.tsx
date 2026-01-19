@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { SearchHistoryWithUser } from '@nuclom/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Clock, Search, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -16,8 +18,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/client-logger';
-import type { SearchHistoryWithUser } from '@/lib/types';
 
 interface SearchHistoryProps {
   history: SearchHistoryWithUser[];

@@ -1,10 +1,10 @@
 import { auth } from '@nuclom/lib/auth';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
+import { logger } from '@nuclom/lib/logger';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { Slack, SlackLive } from '@/lib/effect/services/slack';
-import { logger } from '@/lib/logger';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const ChannelsLayer = Layer.mergeAll(SlackLive, IntegrationRepositoryWithDeps, DatabaseLive);

@@ -1,5 +1,7 @@
 'use client';
 
+import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
+import type { SeriesProgressWithDetails, SeriesWithVideoCount } from '@nuclom/lib/types';
 import { Link } from '@vercel/microfrontends/next/client';
 import { MoreHorizontal, Pencil, Play, Trash2 } from 'lucide-react';
 import Image from 'next/image';
@@ -14,8 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
-import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@/lib/image-utils';
-import type { SeriesProgressWithDetails, SeriesWithVideoCount } from '@/lib/types';
 
 interface SeriesCardProps {
   series: SeriesWithVideoCount & { progress?: SeriesProgressWithDetails };

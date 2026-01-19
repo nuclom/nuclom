@@ -5,7 +5,7 @@ import type { VideoProgress } from '@/components/video/video-player';
 import { useProgressFraction, useVideoProgress } from './use-video-progress';
 
 // Mock the Effect client
-vi.mock('@/lib/effect/client', () => ({
+vi.mock('@nuclom/lib/effect/client', () => ({
   runClientEffect: vi.fn(),
   videoProgressApiEffect: {
     getProgress: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock('@/lib/effect/client', () => ({
   },
 }));
 
-import { runClientEffect, videoProgressApiEffect } from '@/lib/effect/client';
+import { runClientEffect, videoProgressApiEffect } from '@nuclom/lib/effect/client';
 
 describe('useVideoProgress', () => {
   beforeEach(() => {

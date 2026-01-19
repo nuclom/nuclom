@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -8,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { logger } from '@/lib/client-logger';
 
 export function PrivateBetaForm() {
   const [name, setName] = useState('');

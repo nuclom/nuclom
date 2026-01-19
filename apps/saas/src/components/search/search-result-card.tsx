@@ -1,5 +1,6 @@
 'use client';
 
+import type { SearchResult } from '@nuclom/lib/types';
 import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import { FileText, Sparkles } from 'lucide-react';
@@ -7,7 +8,6 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { SearchResult } from '@/lib/types';
 
 interface SearchResultCardProps {
   result: SearchResult;

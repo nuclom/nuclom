@@ -1,7 +1,7 @@
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const WebhookLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);

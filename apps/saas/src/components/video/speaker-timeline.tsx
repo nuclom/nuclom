@@ -7,11 +7,11 @@
  * Users can click on timeline segments to seek to specific moments.
  */
 
+import { cn } from '@nuclom/lib/utils';
 import { Play } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { getSpeakerColor, type Speaker } from './speaker-legend';
 
 // =============================================================================

@@ -1,5 +1,3 @@
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   generatePresignedThumbnailUrl,
   generatePresignedVideoUrl,
@@ -7,10 +5,10 @@ import {
   handleEffectExitWithStatus,
   runApiEffect,
   Storage,
-} from '@/lib/api-handler';
-import { CachePresets, getCacheControlHeader } from '@/lib/api-utils';
-import { VideoRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
+} from '@nuclom/lib/api-handler';
+import { CachePresets, getCacheControlHeader } from '@nuclom/lib/api-utils';
+import { VideoRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import {
   CreateVideoSchema,
   GetVideosSchema,
@@ -18,7 +16,9 @@ import {
   sanitizeTitle,
   validateQueryParams,
   validateRequestBody,
-} from '@/lib/validation';
+} from '@nuclom/lib/validation';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
 
 /**
  * @summary List videos

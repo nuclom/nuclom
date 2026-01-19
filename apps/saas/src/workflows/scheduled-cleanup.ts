@@ -33,9 +33,9 @@ async function cleanupExpiredVideos(): Promise<number> {
   'use step';
 
   const { and, isNotNull, lt } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
-  const { env } = await import('@/lib/env/server');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
+  const { env } = await import('@nuclom/lib/env/server');
 
   const now = new Date();
 
@@ -108,9 +108,9 @@ async function safeCleanupExpiredVideos(): Promise<number> {
   'use step';
 
   const { and, isNotNull, lt } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
-  const { env } = await import('@/lib/env/server');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
+  const { env } = await import('@nuclom/lib/env/server');
 
   try {
     const now = new Date();

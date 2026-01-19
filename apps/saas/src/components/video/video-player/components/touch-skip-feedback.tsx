@@ -1,7 +1,7 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { SkipBack, SkipForward } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { TouchFeedback } from '../hooks/use-touch-gestures';
 
 interface TouchSkipFeedbackProps {

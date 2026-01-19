@@ -1,13 +1,13 @@
-import { Effect } from 'effect';
-import { Zoom } from '@/lib/effect/services/zoom';
+import { Zoom } from '@nuclom/lib/effect/services/zoom';
 import {
   errorRedirect,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
   ZoomIntegrationLayer,
-} from '@/lib/integrations';
-import { logger } from '@/lib/logger';
+} from '@nuclom/lib/integrations';
+import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, 'zoom');

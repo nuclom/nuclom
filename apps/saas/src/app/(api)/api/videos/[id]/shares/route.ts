@@ -8,14 +8,14 @@
  * POST /api/videos/[id]/shares - Create a share with a user or team
  */
 
+import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { ForbiddenError, ValidationError } from '@nuclom/lib/effect';
+import { VideoRepository } from '@nuclom/lib/effect/services/video-repository';
+import { VideoSharesRepository } from '@nuclom/lib/effect/services/video-shares-repository';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { ForbiddenError, ValidationError } from '@/lib/effect';
-import { VideoRepository } from '@/lib/effect/services/video-repository';
-import { VideoSharesRepository } from '@/lib/effect/services/video-shares-repository';
-import type { ApiResponse } from '@/lib/types';
-import { validateRequestBody } from '@/lib/validation';
 
 // =============================================================================
 // GET /api/videos/[id]/shares - List shares for a video

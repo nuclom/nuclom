@@ -7,6 +7,8 @@
  * to known meeting participants or organization members.
  */
 
+import { formatDuration } from '@nuclom/lib/format-utils';
+import { cn } from '@nuclom/lib/utils';
 import { Check, Loader2, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,8 +27,6 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { formatDuration } from '@/lib/format-utils';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

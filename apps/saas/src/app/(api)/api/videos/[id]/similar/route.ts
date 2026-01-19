@@ -1,10 +1,10 @@
+import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { getVideo, MissingFieldError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { SemanticSearchRepository } from '@nuclom/lib/effect/services/semantic-search-repository';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
-import { createFullLayer, handleEffectExit } from '@/lib/api-handler';
-import { getVideo, MissingFieldError } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
-import { SemanticSearchRepository } from '@/lib/effect/services/semantic-search-repository';
 
 // =============================================================================
 // GET /api/videos/[id]/similar - Find similar videos

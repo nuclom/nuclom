@@ -1,9 +1,9 @@
 import { auth } from '@nuclom/lib/auth';
+import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
+import { env } from '@nuclom/lib/env/server';
 import { Effect } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { GoogleMeet, GoogleMeetLive } from '@/lib/effect/services/google-meet';
-import { env } from '@/lib/env/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -1,7 +1,7 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Check, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export interface PasswordRequirement {
   id: string;

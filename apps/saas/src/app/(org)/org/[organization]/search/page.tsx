@@ -1,12 +1,12 @@
 import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { collections, members, organizations, users, videos } from '@nuclom/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { Loader2 } from 'lucide-react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { SearchPageContent } from '@/components/search';
-import { db } from '@/lib/db';
-import { collections, members, organizations, users, videos } from '@/lib/db/schema';
 
 interface SearchPageProps {
   params: Promise<{ organization: string }>;

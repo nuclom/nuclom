@@ -1,5 +1,6 @@
 'use client';
 
+import { formatDurationHuman } from '@nuclom/lib/format-utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -19,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatDurationHuman } from '@/lib/format-utils';
 
 interface ImportedMeeting {
   id: string;

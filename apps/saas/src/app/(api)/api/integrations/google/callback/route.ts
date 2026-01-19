@@ -1,13 +1,13 @@
-import { Effect } from 'effect';
-import { GoogleMeet } from '@/lib/effect/services/google-meet';
+import { GoogleMeet } from '@nuclom/lib/effect/services/google-meet';
 import {
   errorRedirect,
   GoogleIntegrationLayer,
   saveIntegration,
   successRedirect,
   validateOAuthCallback,
-} from '@/lib/integrations';
-import { logger } from '@/lib/logger';
+} from '@nuclom/lib/integrations';
+import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
 
 export async function GET(request: Request) {
   const validation = await validateOAuthCallback(request, 'google');

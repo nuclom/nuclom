@@ -10,16 +10,16 @@
  * - Search within transcript
  */
 
+import type { TranscriptSegment } from '@nuclom/lib/db/schema';
+import { formatTime } from '@nuclom/lib/format-utils';
+import { findSegmentIndexByTime } from '@nuclom/lib/subtitles';
+import { cn } from '@nuclom/lib/utils';
 import { FileText, MessageSquarePlus, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { TranscriptSegment } from '@/lib/db/schema';
-import { formatTime } from '@/lib/format-utils';
-import { findSegmentIndexByTime } from '@/lib/subtitles';
-import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types

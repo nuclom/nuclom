@@ -1,10 +1,10 @@
 import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { apikeys, notifications, userPreferences, users, videoProgresses, videos } from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
 import { eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { apikeys, notifications, userPreferences, users, videoProgresses, videos } from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
 
 // =============================================================================
 // POST /api/user/export - Export all user data (GDPR compliance)

@@ -7,10 +7,10 @@
  * Automatically saves progress to the server and restores position on mount.
  */
 
+import { runClientEffect, videoProgressApiEffect } from '@nuclom/lib/effect/client';
 import { Either } from 'effect';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VideoProgress } from '@/components/video/video-player';
-import { runClientEffect, videoProgressApiEffect } from '@/lib/effect/client';
 
 // =============================================================================
 // Types

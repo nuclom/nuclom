@@ -1,5 +1,7 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { HelpCircle, Home, LogOut, Plus, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,8 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/use-auth';
-import { authClient } from '@/lib/auth-client';
-import { logger } from '@/lib/client-logger';
 import { CommandBar } from './command-bar';
 import { NotificationBell } from './notifications/notification-bell';
 import { OrganizationSwitcher } from './organization-switcher';

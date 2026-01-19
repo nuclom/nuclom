@@ -1,4 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
+import type { Organization } from '@nuclom/lib/db/schema';
+import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from '@nuclom/lib/effect';
 import { Share2, VideoOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
@@ -6,8 +8,6 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VideoPreviewCard } from '@/components/video-preview-card';
-import type { Organization } from '@/lib/db/schema';
-import { getCachedOrganizationBySlug, getCachedVideosSharedByOthers } from '@/lib/effect';
 
 export const metadata: Metadata = {
   title: 'Shared with Me',

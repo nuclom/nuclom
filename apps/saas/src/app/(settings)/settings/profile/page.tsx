@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient } from '@nuclom/lib/auth-client';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -22,7 +23,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
-import { authClient } from '@/lib/auth-client';
 
 interface UserData {
   id: string;

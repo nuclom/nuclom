@@ -1,8 +1,8 @@
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
+import { NotificationRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, runApiEffect } from '@/lib/api-handler';
-import { NotificationRepository } from '@/lib/effect';
-import { Auth } from '@/lib/effect/services/auth';
 
 // =============================================================================
 // GET /api/notifications - Get user's notifications

@@ -1,11 +1,11 @@
 'use client';
 
+import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import { differenceInDays, format } from 'date-fns';
 import { Clock, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 interface TrialBannerProps {
   trialEnd: Date;

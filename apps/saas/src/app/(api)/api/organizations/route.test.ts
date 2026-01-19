@@ -1,20 +1,20 @@
-import { Effect, Layer } from 'effect';
-import { NextRequest } from 'next/server';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DuplicateError, UnauthorizedError } from '@/lib/effect/errors';
-import { Auth, type AuthServiceInterface } from '@/lib/effect/services/auth';
-import { BillingRepository, type BillingRepositoryService } from '@/lib/effect/services/billing-repository';
+import { DuplicateError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { Auth, type AuthServiceInterface } from '@nuclom/lib/effect/services/auth';
+import { BillingRepository, type BillingRepositoryService } from '@nuclom/lib/effect/services/billing-repository';
 import {
   OrganizationRepository,
   type OrganizationRepositoryService,
-} from '@/lib/effect/services/organization-repository';
-import { SlackMonitoring, type SlackMonitoringServiceInterface } from '@/lib/effect/services/slack-monitoring';
+} from '@nuclom/lib/effect/services/organization-repository';
+import { SlackMonitoring, type SlackMonitoringServiceInterface } from '@nuclom/lib/effect/services/slack-monitoring';
+import { Effect, Layer } from 'effect';
+import { NextRequest } from 'next/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockOrganization, createMockSession } from '@/test/mocks';
 
 // Mock the api-handler module to provide test layers
 const mockCreateFullLayer = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/api-handler', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/api-handler')>();
+vi.mock('@nuclom/lib/api-handler', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@nuclom/lib/api-handler')>();
   const { Effect } = await import('effect');
   return {
     ...actual,

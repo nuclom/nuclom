@@ -5,14 +5,14 @@
  * Creates the video record in the database and triggers processing.
  */
 
+import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
+import { Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { Storage, ValidationError, VideoRepository } from '@/lib/effect';
-import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
-import type { ApiResponse } from '@/lib/types';
-import { sanitizeDescription, sanitizeTitle, validate } from '@/lib/validation';
 import { processVideoWorkflow } from '@/workflows/video-processing';
 
 // =============================================================================

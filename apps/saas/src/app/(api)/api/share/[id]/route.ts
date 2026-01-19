@@ -1,10 +1,10 @@
+import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videoShareLinks } from '@nuclom/lib/db/schema';
+import { DatabaseError, NotFoundError, Storage, ValidationError } from '@nuclom/lib/effect';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videoShareLinks } from '@/lib/db/schema';
-import { DatabaseError, NotFoundError, Storage, ValidationError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/share/[id] - Get share link data for public access

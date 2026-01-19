@@ -1,10 +1,10 @@
 import { auth } from '@nuclom/lib/auth';
+import { NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { safeParse } from '@nuclom/lib/validation';
 import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
-import { safeParse } from '@/lib/validation';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const SettingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);

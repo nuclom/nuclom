@@ -1,14 +1,14 @@
+import { organizationRoles } from '@nuclom/lib/access-control';
 import { auth } from '@nuclom/lib/auth';
+import { db } from '@nuclom/lib/db';
+import { members } from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { safeParse } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { organizationRoles } from '@/lib/access-control';
-import { db } from '@/lib/db';
-import { members } from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
-import type { ApiResponse } from '@/lib/types';
-import { safeParse } from '@/lib/validation';
 
 // Schema for updating member role
 const UpdateRoleSchema = Schema.Struct({

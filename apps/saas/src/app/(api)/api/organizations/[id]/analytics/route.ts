@@ -1,10 +1,10 @@
+import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@nuclom/lib/api-handler';
+import { db } from '@nuclom/lib/db';
+import { videos, videoViews } from '@nuclom/lib/db/schema';
+import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect';
 import { and, count, desc, eq, gte, sql, sum } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
-import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@/lib/api-handler';
-import { db } from '@/lib/db';
-import { videos, videoViews } from '@/lib/db/schema';
-import { DatabaseError, UnauthorizedError } from '@/lib/effect';
 
 // =============================================================================
 // GET /api/organizations/[id]/analytics - Get organization analytics

@@ -1,10 +1,10 @@
 'use client';
 
+import type { SearchResponse } from '@nuclom/lib/types';
 import { ChevronLeft, ChevronRight, Loader2, SearchX } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import type { SearchResponse } from '@/lib/types';
 import { SearchResultCard } from './search-result-card';
 
 interface SearchResultsProps {

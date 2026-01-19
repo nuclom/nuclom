@@ -1,5 +1,8 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { SearchFilters } from '@nuclom/lib/db/schema';
+import type { SavedSearchWithUser } from '@nuclom/lib/types';
 import { Bookmark, BookmarkPlus, Loader2, MoreHorizontal, Pencil, Search, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -21,9 +24,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { logger } from '@/lib/client-logger';
-import type { SearchFilters } from '@/lib/db/schema';
-import type { SavedSearchWithUser } from '@/lib/types';
 
 interface SavedSearchesProps {
   savedSearches: SavedSearchWithUser[];

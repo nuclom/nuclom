@@ -4,15 +4,15 @@
  * Endpoints for managing custom vocabulary terms to improve transcription accuracy.
  */
 
+import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import { VocabularyRepository } from '@nuclom/lib/effect/services/vocabulary-repository';
+import type { ApiResponse } from '@nuclom/lib/types';
+import { safeParse } from '@nuclom/lib/validation';
 import { Cause, Effect, Exit, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
-import { VocabularyRepository } from '@/lib/effect/services/vocabulary-repository';
-import type { ApiResponse } from '@/lib/types';
-import { safeParse } from '@/lib/validation';
 
 // =============================================================================
 // Schemas

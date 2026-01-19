@@ -1,5 +1,6 @@
 'use client';
 
+import { authClient, multiSession } from '@nuclom/lib/auth-client';
 import {
   AlertTriangle,
   Key,
@@ -33,7 +34,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { authClient, multiSession } from '@/lib/auth-client';
 
 type Session = {
   id: string;

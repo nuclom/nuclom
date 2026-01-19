@@ -1,17 +1,17 @@
-import { Cause, Effect, Option } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
-import { createPublicLayer, mapErrorToApiResponse } from '@/lib/api-handler';
-import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@/lib/effect';
-import { trackVideoUpload } from '@/lib/effect/services/billing-middleware';
-import { BillingRepository } from '@/lib/effect/services/billing-repository';
-import type { ApiResponse } from '@/lib/types';
+import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
+import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } from '@nuclom/lib/effect';
+import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
+import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import type { ApiResponse } from '@nuclom/lib/types';
 import {
   sanitizeDescription,
   sanitizeTitle,
   VideoUploadSchema,
   validateFormData,
   validateVideoFile,
-} from '@/lib/validation';
+} from '@nuclom/lib/validation';
+import { Cause, Effect, Option } from 'effect';
+import { type NextRequest, NextResponse } from 'next/server';
 import { processVideoWorkflow } from '@/workflows/video-processing';
 
 // =============================================================================

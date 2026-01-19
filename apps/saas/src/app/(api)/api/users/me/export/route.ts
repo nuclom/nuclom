@@ -1,8 +1,5 @@
 import { auth } from '@nuclom/lib/auth';
-import { and, desc, eq, gte } from 'drizzle-orm';
-import { headers } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@nuclom/lib/db';
 import {
   dataExportRequests,
   legalConsents,
@@ -12,8 +9,11 @@ import {
   users,
   videoProgresses,
   videos,
-} from '@/lib/db/schema';
-import { logger } from '@/lib/logger';
+} from '@nuclom/lib/db/schema';
+import { logger } from '@nuclom/lib/logger';
+import { and, desc, eq, gte } from 'drizzle-orm';
+import { headers } from 'next/headers';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Rate limit: 1 export per 24 hours
 const EXPORT_RATE_LIMIT_HOURS = 24;

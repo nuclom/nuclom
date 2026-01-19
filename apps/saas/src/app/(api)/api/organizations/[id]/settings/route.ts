@@ -1,10 +1,10 @@
+import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
+import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
+import { safeParse } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
-import { handleEffectExit, runPublicApiEffect } from '@/lib/api-handler';
-import { OrganizationRepository } from '@/lib/effect/services/organization-repository';
-import { safeParse } from '@/lib/validation';
 
 const UpdateOrganizationSchema = Schema.Struct({
   name: Schema.optional(Schema.String),

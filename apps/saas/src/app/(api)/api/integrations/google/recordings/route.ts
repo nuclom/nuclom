@@ -1,10 +1,10 @@
 import { auth } from '@nuclom/lib/auth';
+import { HttpError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { GoogleMeet, GoogleMeetLive, type GoogleMeetRecording } from '@nuclom/lib/effect/services/google-meet';
+import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
-import { HttpError, NotFoundError, UnauthorizedError } from '@/lib/effect/errors';
-import { DatabaseLive } from '@/lib/effect/services/database';
-import { GoogleMeet, GoogleMeetLive, type GoogleMeetRecording } from '@/lib/effect/services/google-meet';
-import { IntegrationRepository, IntegrationRepositoryLive } from '@/lib/effect/services/integration-repository';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const RecordingsLayer = Layer.mergeAll(GoogleMeetLive, IntegrationRepositoryWithDeps, DatabaseLive);

@@ -1,7 +1,7 @@
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
+import { env } from '@nuclom/lib/env/server';
+import { logger } from '@nuclom/lib/logger';
 import { connection } from 'next/server';
-import { env } from '@/lib/env/server';
-import { logger } from '@/lib/logger';
 
 export interface R2HealthStatus {
   status: 'healthy' | 'unhealthy' | 'not_configured';

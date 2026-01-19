@@ -1,5 +1,7 @@
 'use client';
 
+import type { Plan, PlanFeatures } from '@nuclom/lib/db/schema';
+import { cn } from '@nuclom/lib/utils';
 import { Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -7,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import type { Plan, PlanFeatures } from '@/lib/db/schema';
-import { cn } from '@/lib/utils';
 
 interface PlanSelectorProps {
   plans: Plan[];

@@ -7,8 +7,8 @@
  * Handles fetching, saving, and editing transcripts.
  */
 
+import type { TranscriptSegment } from '@nuclom/lib/db/schema';
 import { useCallback, useEffect, useState } from 'react';
-import type { TranscriptSegment } from '@/lib/db/schema';
 
 // =============================================================================
 // Types

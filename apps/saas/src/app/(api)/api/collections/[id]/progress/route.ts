@@ -1,9 +1,9 @@
+import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { CollectionRepository } from '@nuclom/lib/effect/services/collection-repository';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { Auth } from '@/lib/effect/services/auth';
-import { CollectionRepository } from '@/lib/effect/services/collection-repository';
-import { validateRequestBody } from '@/lib/validation';
 
 const UpdateProgressSchema = Schema.Struct({
   lastVideoId: Schema.String,

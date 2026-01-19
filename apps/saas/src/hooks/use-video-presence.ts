@@ -7,10 +7,10 @@
  * Shows who is currently watching the video with automatic heartbeat updates.
  */
 
+import { fetchEffect, runClientEffect } from '@nuclom/lib/effect/client';
+import type { UserPresenceInfo } from '@nuclom/lib/effect/services/presence';
 import { Either } from 'effect';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchEffect, runClientEffect } from '@/lib/effect/client';
-import type { UserPresenceInfo } from '@/lib/effect/services/presence';
 
 // =============================================================================
 // Types

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
+import type { Video, VideoShareLink } from '@nuclom/lib/db/schema';
 import { formatDistanceToNow } from 'date-fns';
 import { Copy, Link2, Loader2, Lock, Share2, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,8 +19,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/client-logger';
-import type { Video, VideoShareLink } from '@/lib/db/schema';
 
 interface ShareDialogProps {
   video: Pick<Video, 'id' | 'title' | 'organizationId'>;

@@ -1,7 +1,7 @@
 'use client';
 
+import { logClientError } from '@nuclom/lib/error-logging';
 import { useEffect } from 'react';
-import { logClientError } from '@/lib/error-logging';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };

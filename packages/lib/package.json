@@ -4,7 +4,25 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./src/*.ts"
+    "./*": "./src/*.ts",
+    "./db": "./src/db/index.ts",
+    "./db/*": "./src/db/*.ts",
+    "./db/schema": "./src/db/schema/index.ts",
+    "./db/schema/*": "./src/db/schema/*.ts",
+    "./effect": "./src/effect/index.ts",
+    "./effect/*": "./src/effect/*.ts",
+    "./effect/services": "./src/effect/services/index.ts",
+    "./effect/services/*": "./src/effect/services/*.ts",
+    "./env/*": "./src/env/*.ts",
+    "./validation": "./src/validation/index.ts",
+    "./validation/*": "./src/validation/*.ts",
+    "./posthog/*": "./src/posthog/*.ts",
+    "./i18n": "./src/i18n/index.ts",
+    "./i18n/*": "./src/i18n/*.ts",
+    "./integrations": "./src/integrations/index.ts",
+    "./integrations/*": "./src/integrations/*.ts",
+    "./api/*": "./src/api/*.ts",
+    "./workflow/*": "./src/workflow/*.ts"
   },
   "scripts": {
     "tsc": "tsgo --noEmit"

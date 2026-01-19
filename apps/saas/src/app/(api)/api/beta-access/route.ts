@@ -1,8 +1,8 @@
+import { createPublicLayer, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { SlackMonitoring } from '@nuclom/lib/effect/services/slack-monitoring';
+import { validateRequestBody } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
-import { createPublicLayer, handleEffectExitWithStatus } from '@/lib/api-handler';
-import { SlackMonitoring } from '@/lib/effect/services/slack-monitoring';
-import { validateRequestBody } from '@/lib/validation';
 
 const BetaAccessRequestSchema = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1)),

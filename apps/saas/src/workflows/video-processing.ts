@@ -18,8 +18,14 @@
  * - No lost processing on deploy
  */
 
+import type {
+  ActionItem,
+  DecisionStatus,
+  DecisionType,
+  ProcessingStatus,
+  TranscriptSegment,
+} from '@nuclom/lib/db/schema';
 import { FatalError, sleep } from 'workflow';
-import type { ActionItem, DecisionStatus, DecisionType, ProcessingStatus, TranscriptSegment } from '@/lib/db/schema';
 import { createWorkflowLogger } from './workflow-logger';
 
 const log = createWorkflowLogger('video-processing');
@@ -141,8 +147,8 @@ interface ExtractedDecisionResult {
 async function getVocabularyTerms(organizationId: string): Promise<string[]> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { organizationVocabulary } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizationVocabulary } = await import('@nuclom/lib/db/schema');
   const { eq } = await import('drizzle-orm');
 
   try {
@@ -168,8 +174,8 @@ async function applyVocabularyCorrections(
 ): Promise<{ transcript: string; segments: TranscriptSegment[] }> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { organizationVocabulary } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { organizationVocabulary } = await import('@nuclom/lib/db/schema');
   const { eq } = await import('drizzle-orm');
 
   try {
@@ -224,7 +230,7 @@ async function generateAndUploadThumbnail(
 ): Promise<string | null> {
   'use step';
 
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   const accountId = env.R2_ACCOUNT_ID;
   const accessKeyId = env.R2_ACCESS_KEY_ID;
@@ -317,8 +323,8 @@ async function saveThumbnailUrl(videoId: string, thumbnailUrl: string): Promise<
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(videos)
@@ -333,8 +339,8 @@ async function updateProcessingStatus(videoId: string, status: ProcessingStatus,
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
 
   await db
     .update(videos)
@@ -352,7 +358,7 @@ async function transcribeVideo(
 ): Promise<TranscriptionResult> {
   'use step';
 
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
   const replicateToken = env.REPLICATE_API_TOKEN;
   if (!replicateToken) {
     throw new FatalError('Replicate API token not configured. Please set REPLICATE_API_TOKEN.');
@@ -568,9 +574,9 @@ async function saveTranscript(
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos } = await import('@/lib/db/schema');
-  const { formatDuration } = await import('@/lib/format-utils');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos } = await import('@nuclom/lib/db/schema');
+  const { formatDuration } = await import('@nuclom/lib/format-utils');
 
   await db
     .update(videos)
@@ -705,8 +711,8 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videoMoments } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videoMoments } = await import('@nuclom/lib/db/schema');
 
   if (moments.length === 0) return;
 
@@ -736,7 +742,7 @@ async function saveKeyMoments(videoId: string, organizationId: string, moments: 
 async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null> {
   'use step';
 
-  const { env } = await import('@/lib/env/server');
+  const { env } = await import('@nuclom/lib/env/server');
   const apiKey = env.ASSEMBLYAI_API_KEY;
   if (!apiKey) {
     log.info({}, 'AssemblyAI not configured, skipping speaker diarization');
@@ -860,8 +866,8 @@ async function diarizeVideo(videoUrl: string): Promise<DiarizationResult | null>
 async function saveSpeakerData(videoId: string, organizationId: string, diarization: DiarizationResult): Promise<void> {
   'use step';
 
-  const { db } = await import('@/lib/db');
-  const { speakerProfiles, videoSpeakers, speakerSegments } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { speakerProfiles, videoSpeakers, speakerSegments } = await import('@nuclom/lib/db/schema');
 
   // Create video speakers and map speaker labels to IDs
   const speakerMap = new Map<string, string>();
@@ -921,8 +927,8 @@ async function saveAIAnalysis(videoId: string, analysis: AIAnalysisResult): Prom
   'use step';
 
   const { eq } = await import('drizzle-orm');
-  const { db } = await import('@/lib/db');
-  const { videos, videoChapters } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { videos, videoChapters } = await import('@nuclom/lib/db/schema');
 
   // Update video record
   await db
@@ -1160,8 +1166,8 @@ async function saveDecisions(
     return;
   }
 
-  const { db } = await import('@/lib/db');
-  const { decisions, decisionParticipants, decisionLinks } = await import('@/lib/db/schema');
+  const { db } = await import('@nuclom/lib/db');
+  const { decisions, decisionParticipants, decisionLinks } = await import('@nuclom/lib/db/schema');
 
   try {
     for (const extracted of extractedDecisions.decisions) {
@@ -1234,11 +1240,11 @@ async function sendCompletionNotification(
   'use step';
 
   try {
-    const { db } = await import('@/lib/db');
-    const { notifications } = await import('@/lib/db/schema');
-    const { resend } = await import('@/lib/email');
-    const { env, getAppUrl } = await import('@/lib/env/server');
-    const { notifySlackMonitoring } = await import('@/lib/effect/services/slack-monitoring');
+    const { db } = await import('@nuclom/lib/db');
+    const { notifications } = await import('@nuclom/lib/db/schema');
+    const { resend } = await import('@nuclom/lib/email');
+    const { env, getAppUrl } = await import('@nuclom/lib/env/server');
+    const { notifySlackMonitoring } = await import('@nuclom/lib/effect/services/slack-monitoring');
 
     const video = await db.query.videos.findFirst({
       where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
@@ -1318,11 +1324,11 @@ async function handleWorkflowFailure(
 
   try {
     const { eq } = await import('drizzle-orm');
-    const { db } = await import('@/lib/db');
-    const { videos, notifications } = await import('@/lib/db/schema');
-    const { resend } = await import('@/lib/email');
-    const { env, getAppUrl } = await import('@/lib/env/server');
-    const { notifySlackMonitoring } = await import('@/lib/effect/services/slack-monitoring');
+    const { db } = await import('@nuclom/lib/db');
+    const { videos, notifications } = await import('@nuclom/lib/db/schema');
+    const { resend } = await import('@nuclom/lib/email');
+    const { env, getAppUrl } = await import('@nuclom/lib/env/server');
+    const { notifySlackMonitoring } = await import('@nuclom/lib/effect/services/slack-monitoring');
 
     // Update video status to failed
     await db
@@ -1403,7 +1409,7 @@ async function handleWorkflowFailure(
 async function getVideoOrganizationId(videoId: string): Promise<string | null> {
   'use step';
 
-  const { db } = await import('@/lib/db');
+  const { db } = await import('@nuclom/lib/db');
   const video = await db.query.videos.findFirst({
     where: (v, { eq: eqOp }) => eqOp(v.id, videoId),
     columns: { organizationId: true },
