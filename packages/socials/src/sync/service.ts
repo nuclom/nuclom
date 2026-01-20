@@ -2,8 +2,8 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { Effect } from 'effect';
 import type { SocialsManager } from '../manager.ts';
-import type { Post, Profile } from '../types/provider.ts';
 import { type AnySocialError, ConfigurationError } from '../types/errors.ts';
+import type { Post, Profile } from '../types/provider.ts';
 import { DEFAULT_SYNC_CONFIG, type SyncConfig, type SyncedProfile, type SyncedTweet, type SyncState } from './types.ts';
 
 /**

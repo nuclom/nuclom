@@ -126,12 +126,12 @@ export class TwitterProvider implements SocialProvider {
         accessSecret: credentials.accessSecret,
       });
 
-      this.client = twitterClient.readWrite;
+      const client = twitterClient.readWrite;
+      this.client = client;
 
       // Verify credentials by fetching the authenticated user
-      // biome-ignore lint/style/noNonNullAssertion: client is guaranteed to be set above
       const me = yield* Effect.tryPromise({
-        try: () => this.client!.v2.me(),
+        try: () => client.v2.me(),
         catch: mapTwitterError,
       });
 
@@ -154,6 +154,20 @@ export class TwitterProvider implements SocialProvider {
         );
       }
       return this.client;
+    });
+  }
+
+  private ensureUserId(): Effect.Effect<string, AnySocialError> {
+    return Effect.gen(this, function* () {
+      if (!this.userId) {
+        return yield* Effect.fail(
+          new NotInitializedError({
+            message: 'User ID not available. Call initialize() first.',
+            provider: PROVIDER_NAME,
+          }),
+        );
+      }
+      return this.userId;
     });
   }
 
@@ -223,14 +237,15 @@ export class TwitterProvider implements SocialProvider {
 
       // Handle avatar upload
       if (update.avatarPath) {
+        const avatarPath = update.avatarPath;
         const avatarBuffer = yield* Effect.tryPromise({
           try: async () => {
-            const file = Bun.file(update.avatarPath!);
+            const file = Bun.file(avatarPath);
             return Buffer.from(await file.arrayBuffer());
           },
           catch: (e) =>
             new ValidationError({
-              message: `Failed to read avatar file: ${update.avatarPath}`,
+              message: `Failed to read avatar file: ${avatarPath}`,
               provider: PROVIDER_NAME,
               field: 'avatarPath',
               cause: e,
@@ -245,14 +260,15 @@ export class TwitterProvider implements SocialProvider {
 
       // Handle banner upload
       if (update.bannerPath) {
+        const bannerPath = update.bannerPath;
         const bannerBuffer = yield* Effect.tryPromise({
           try: async () => {
-            const file = Bun.file(update.bannerPath!);
+            const file = Bun.file(bannerPath);
             return Buffer.from(await file.arrayBuffer());
           },
           catch: (e) =>
             new ValidationError({
-              message: `Failed to read banner file: ${update.bannerPath}`,
+              message: `Failed to read banner file: ${bannerPath}`,
               provider: PROVIDER_NAME,
               field: 'bannerPath',
               cause: e,
@@ -402,15 +418,7 @@ export class TwitterProvider implements SocialProvider {
   getPosts(options?: FetchPostsOptions): Effect.Effect<Post[], AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       const params: Parameters<typeof client.v2.userTimeline>[1] = {
         max_results: options?.limit ?? 10,
@@ -429,7 +437,7 @@ export class TwitterProvider implements SocialProvider {
       }
 
       const result = yield* Effect.tryPromise({
-        try: () => client.v2.userTimeline(this.userId!, params),
+        try: () => client.v2.userTimeline(userId, params),
         catch: mapTwitterError,
       });
 
@@ -468,15 +476,7 @@ export class TwitterProvider implements SocialProvider {
   getMentions(options?: FetchMentionsOptions): Effect.Effect<Mention[], AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       const params: Parameters<typeof client.v2.userMentionTimeline>[1] = {
         max_results: options?.limit ?? 10,
@@ -490,7 +490,7 @@ export class TwitterProvider implements SocialProvider {
       }
 
       const result = yield* Effect.tryPromise({
-        try: () => client.v2.userMentionTimeline(this.userId!, params),
+        try: () => client.v2.userMentionTimeline(userId, params),
         catch: mapTwitterError,
       });
 
@@ -547,18 +547,10 @@ export class TwitterProvider implements SocialProvider {
   like(postId: string): Effect.Effect<void, AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       yield* Effect.tryPromise({
-        try: () => client.v2.like(this.userId!, postId),
+        try: () => client.v2.like(userId, postId),
         catch: mapTwitterError,
       });
     });
@@ -567,18 +559,10 @@ export class TwitterProvider implements SocialProvider {
   unlike(postId: string): Effect.Effect<void, AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       yield* Effect.tryPromise({
-        try: () => client.v2.unlike(this.userId!, postId),
+        try: () => client.v2.unlike(userId, postId),
         catch: mapTwitterError,
       });
     });
@@ -587,18 +571,10 @@ export class TwitterProvider implements SocialProvider {
   repost(postId: string): Effect.Effect<void, AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       yield* Effect.tryPromise({
-        try: () => client.v2.retweet(this.userId!, postId),
+        try: () => client.v2.retweet(userId, postId),
         catch: mapTwitterError,
       });
     });
@@ -607,18 +583,10 @@ export class TwitterProvider implements SocialProvider {
   unrepost(postId: string): Effect.Effect<void, AnySocialError> {
     return Effect.gen(this, function* () {
       const client = yield* this.ensureInitialized();
-
-      if (!this.userId) {
-        return yield* Effect.fail(
-          new NotInitializedError({
-            message: 'User ID not available',
-            provider: PROVIDER_NAME,
-          }),
-        );
-      }
+      const userId = yield* this.ensureUserId();
 
       yield* Effect.tryPromise({
-        try: () => client.v2.unretweet(this.userId!, postId),
+        try: () => client.v2.unretweet(userId, postId),
         catch: mapTwitterError,
       });
     });
