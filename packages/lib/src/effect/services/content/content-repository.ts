@@ -9,6 +9,7 @@ import { and, count, desc, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle
 import { Context, Effect, Layer, Option } from 'effect';
 import {
   type ContentChunk,
+  type ContentSourceCredentials,
   contentChunks,
   contentItems,
   contentParticipants,
@@ -16,8 +17,14 @@ import {
   contentSources,
   type NewContentChunk,
 } from '../../../db/schema';
-import { ContentItemNotFoundError, ContentSourceNotFoundError, DatabaseError } from '../../errors';
+import {
+  ContentItemNotFoundError,
+  ContentSourceNotFoundError,
+  DatabaseError,
+  type EncryptionError,
+} from '../../errors';
 import { Database, type DrizzleDB } from '../database';
+import { EncryptionService, type EncryptionServiceImpl, EncryptionServiceLive } from '../encryption';
 import type {
   ContentItem,
   ContentItemFilters,
@@ -43,19 +50,21 @@ import type {
 // =============================================================================
 
 export interface ContentRepositoryService {
-  // Content Sources
-  createSource(input: CreateContentSourceInput): Effect.Effect<ContentSource, DatabaseError>;
-  getSource(id: string): Effect.Effect<ContentSource, ContentSourceNotFoundError | DatabaseError>;
-  getSourceOption(id: string): Effect.Effect<Option.Option<ContentSource>, DatabaseError>;
+  // Content Sources (credentials are encrypted/decrypted automatically)
+  createSource(input: CreateContentSourceInput): Effect.Effect<ContentSource, DatabaseError | EncryptionError>;
+  getSource(id: string): Effect.Effect<ContentSource, ContentSourceNotFoundError | DatabaseError | EncryptionError>;
+  getSourceOption(id: string): Effect.Effect<Option.Option<ContentSource>, DatabaseError | EncryptionError>;
   getSources(
     filters: ContentSourceFilters,
     pagination?: PaginationOptions,
-  ): Effect.Effect<PaginatedResult<ContentSource>, DatabaseError>;
-  getSourcesWithStats(filters: ContentSourceFilters): Effect.Effect<ContentSourceWithStats[], DatabaseError>;
+  ): Effect.Effect<PaginatedResult<ContentSource>, DatabaseError | EncryptionError>;
+  getSourcesWithStats(
+    filters: ContentSourceFilters,
+  ): Effect.Effect<ContentSourceWithStats[], DatabaseError | EncryptionError>;
   updateSource(
     id: string,
     input: UpdateContentSourceInput,
-  ): Effect.Effect<ContentSource, ContentSourceNotFoundError | DatabaseError>;
+  ): Effect.Effect<ContentSource, ContentSourceNotFoundError | DatabaseError | EncryptionError>;
   deleteSource(id: string): Effect.Effect<void, ContentSourceNotFoundError | DatabaseError>;
 
   // Content Items
@@ -114,35 +123,101 @@ export class ContentRepository extends Context.Tag('ContentRepository')<
 >() {}
 
 // =============================================================================
+// Encryption Helpers
+// =============================================================================
+
+/**
+ * Marker type for encrypted credentials stored in the database.
+ * When credentials are encrypted, they're stored as { _encrypted: "iv:authTag:ciphertext" }
+ */
+type EncryptedCredentials = {
+  readonly _encrypted: string;
+};
+
+/**
+ * Check if credentials are in encrypted format
+ */
+const isEncryptedCredentials = (
+  credentials: ContentSourceCredentials | EncryptedCredentials | null | undefined,
+): credentials is EncryptedCredentials => {
+  return credentials !== null && credentials !== undefined && '_encrypted' in credentials;
+};
+
+/**
+ * Encrypt credentials for storage
+ */
+const encryptCredentials = (
+  credentials: ContentSourceCredentials | null | undefined,
+  encryption: EncryptionServiceImpl,
+): Effect.Effect<EncryptedCredentials | null, EncryptionError> => {
+  if (!credentials) {
+    return Effect.succeed(null);
+  }
+  return Effect.gen(function* () {
+    const encrypted = yield* encryption.encryptJson(credentials);
+    return { _encrypted: encrypted } as EncryptedCredentials;
+  });
+};
+
+/**
+ * Decrypt credentials from storage
+ */
+const decryptCredentials = (
+  credentials: ContentSourceCredentials | EncryptedCredentials | null | undefined,
+  encryption: EncryptionServiceImpl,
+): Effect.Effect<ContentSourceCredentials | null, EncryptionError> => {
+  if (!credentials) {
+    return Effect.succeed(null);
+  }
+
+  // Already decrypted (backward compatibility for existing unencrypted credentials)
+  if (!isEncryptedCredentials(credentials)) {
+    return Effect.succeed(credentials);
+  }
+
+  return encryption.decryptJson<ContentSourceCredentials>(credentials._encrypted);
+};
+
+// =============================================================================
 // Service Implementation
 // =============================================================================
 
-const makeContentRepository = (db: DrizzleDB): ContentRepositoryService => ({
+const makeContentRepository = (db: DrizzleDB, encryption: EncryptionServiceImpl): ContentRepositoryService => ({
   // -------------------------------------------------------------------------
   // Content Sources
   // -------------------------------------------------------------------------
 
   createSource: (input) =>
-    Effect.tryPromise({
-      try: async () => {
-        const [source] = await db
-          .insert(contentSources)
-          .values({
-            organizationId: input.organizationId,
-            type: input.type,
-            name: input.name,
-            config: input.config ?? {},
-            credentials: input.credentials,
-          })
-          .returning();
-        return source;
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to create content source',
-          operation: 'insert',
-          cause: error,
-        }),
+    Effect.gen(function* () {
+      // Encrypt credentials before storing
+      const encryptedCreds = yield* encryptCredentials(input.credentials, encryption);
+
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const [source] = await db
+            .insert(contentSources)
+            .values({
+              organizationId: input.organizationId,
+              type: input.type,
+              name: input.name,
+              config: input.config ?? {},
+              // Store encrypted credentials (cast needed for JSONB compatibility)
+              credentials: encryptedCreds as unknown as ContentSourceCredentials,
+            })
+            .returning();
+          return source;
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to create content source',
+            operation: 'insert',
+            cause: error,
+          }),
+      });
+
+      // Decrypt credentials for return value
+      const decryptedCreds = yield* decryptCredentials(result.credentials, encryption);
+      return { ...result, credentials: decryptedCreds };
     }),
 
   getSource: (id) =>
@@ -169,131 +244,178 @@ const makeContentRepository = (db: DrizzleDB): ContentRepositoryService => ({
         );
       }
 
-      return result;
+      // Decrypt credentials before returning
+      const decryptedCreds = yield* decryptCredentials(result.credentials, encryption);
+      return { ...result, credentials: decryptedCreds };
     }),
 
   getSourceOption: (id) =>
-    Effect.tryPromise({
-      try: async () => {
-        const result = await db.query.contentSources.findFirst({
-          where: eq(contentSources.id, id),
-        });
-        return Option.fromNullable(result);
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to get content source',
-          operation: 'select',
-          cause: error,
-        }),
+    Effect.gen(function* () {
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const source = await db.query.contentSources.findFirst({
+            where: eq(contentSources.id, id),
+          });
+          return source;
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to get content source',
+            operation: 'select',
+            cause: error,
+          }),
+      });
+
+      if (!result) {
+        return Option.none<ContentSource>();
+      }
+
+      // Decrypt credentials before returning
+      const decryptedCreds = yield* decryptCredentials(result.credentials, encryption);
+      return Option.some({ ...result, credentials: decryptedCreds });
     }),
 
   getSources: (filters, pagination = { limit: 50, offset: 0 }) =>
-    Effect.tryPromise({
-      try: async () => {
-        const conditions = [eq(contentSources.organizationId, filters.organizationId)];
+    Effect.gen(function* () {
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const conditions = [eq(contentSources.organizationId, filters.organizationId)];
 
-        if (filters.type) {
-          conditions.push(eq(contentSources.type, filters.type));
-        }
-        if (filters.syncStatus) {
-          conditions.push(eq(contentSources.syncStatus, filters.syncStatus));
-        }
+          if (filters.type) {
+            conditions.push(eq(contentSources.type, filters.type));
+          }
+          if (filters.syncStatus) {
+            conditions.push(eq(contentSources.syncStatus, filters.syncStatus));
+          }
 
-        const limit = pagination.limit ?? 50;
-        const offset = pagination.offset ?? 0;
+          const limit = pagination.limit ?? 50;
+          const offset = pagination.offset ?? 0;
 
-        // Get total count
-        const [{ total }] = await db
-          .select({ total: count() })
-          .from(contentSources)
-          .where(and(...conditions));
+          // Get total count
+          const [{ total }] = await db
+            .select({ total: count() })
+            .from(contentSources)
+            .where(and(...conditions));
 
-        // Get items with pagination
-        const items = await db.query.contentSources.findMany({
-          where: and(...conditions),
-          orderBy: desc(contentSources.createdAt),
-          limit,
-          offset,
-        });
+          // Get items with pagination
+          const items = await db.query.contentSources.findMany({
+            where: and(...conditions),
+            orderBy: desc(contentSources.createdAt),
+            limit,
+            offset,
+          });
 
-        return {
-          items,
-          total,
-          limit,
-          offset,
-          hasMore: offset + items.length < total,
-        };
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to get content sources',
-          operation: 'select',
-          cause: error,
+          return {
+            items,
+            total,
+            limit,
+            offset,
+            hasMore: offset + items.length < total,
+          };
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to get content sources',
+            operation: 'select',
+            cause: error,
+          }),
+      });
+
+      // Decrypt credentials for each source
+      const decryptedItems = yield* Effect.forEach(result.items, (source) =>
+        Effect.gen(function* () {
+          const decryptedCreds = yield* decryptCredentials(source.credentials, encryption);
+          return { ...source, credentials: decryptedCreds };
         }),
+      );
+
+      return {
+        ...result,
+        items: decryptedItems,
+      };
     }),
 
   getSourcesWithStats: (filters) =>
-    Effect.tryPromise({
-      try: async () => {
-        const conditions = [eq(contentSources.organizationId, filters.organizationId)];
+    Effect.gen(function* () {
+      const result = yield* Effect.tryPromise({
+        try: async () => {
+          const conditions = [eq(contentSources.organizationId, filters.organizationId)];
 
-        if (filters.type) {
-          conditions.push(eq(contentSources.type, filters.type));
-        }
-        if (filters.syncStatus) {
-          conditions.push(eq(contentSources.syncStatus, filters.syncStatus));
-        }
+          if (filters.type) {
+            conditions.push(eq(contentSources.type, filters.type));
+          }
+          if (filters.syncStatus) {
+            conditions.push(eq(contentSources.syncStatus, filters.syncStatus));
+          }
 
-        const sources = await db.query.contentSources.findMany({
-          where: and(...conditions),
-          orderBy: desc(contentSources.createdAt),
-        });
+          const sources = await db.query.contentSources.findMany({
+            where: and(...conditions),
+            orderBy: desc(contentSources.createdAt),
+          });
 
-        // Get stats for each source
-        const stats = await db
-          .select({
-            sourceId: contentItems.sourceId,
-            itemCount: count(),
-            pendingCount: sql<number>`COUNT(*) FILTER (WHERE ${contentItems.processingStatus} = 'pending')`,
-            failedCount: sql<number>`COUNT(*) FILTER (WHERE ${contentItems.processingStatus} = 'failed')`,
-          })
-          .from(contentItems)
-          .where(
-            inArray(
-              contentItems.sourceId,
-              sources.map((s) => s.id),
-            ),
-          )
-          .groupBy(contentItems.sourceId);
+          // Get stats for each source
+          const stats = await db
+            .select({
+              sourceId: contentItems.sourceId,
+              itemCount: count(),
+              pendingCount: sql<number>`COUNT(*) FILTER (WHERE ${contentItems.processingStatus} = 'pending')`,
+              failedCount: sql<number>`COUNT(*) FILTER (WHERE ${contentItems.processingStatus} = 'failed')`,
+            })
+            .from(contentItems)
+            .where(
+              inArray(
+                contentItems.sourceId,
+                sources.map((s) => s.id),
+              ),
+            )
+            .groupBy(contentItems.sourceId);
 
-        const statsMap = new Map(stats.map((s) => [s.sourceId, s]));
+          const statsMap = new Map(stats.map((s) => [s.sourceId, s]));
 
-        return sources.map((source) => ({
-          ...source,
-          itemCount: statsMap.get(source.id)?.itemCount ?? 0,
-          pendingCount: statsMap.get(source.id)?.pendingCount ?? 0,
-          failedCount: statsMap.get(source.id)?.failedCount ?? 0,
-        }));
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to get content sources with stats',
-          operation: 'select',
-          cause: error,
+          return sources.map((source) => ({
+            ...source,
+            itemCount: statsMap.get(source.id)?.itemCount ?? 0,
+            pendingCount: statsMap.get(source.id)?.pendingCount ?? 0,
+            failedCount: statsMap.get(source.id)?.failedCount ?? 0,
+          }));
+        },
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to get content sources with stats',
+            operation: 'select',
+            cause: error,
+          }),
+      });
+
+      // Decrypt credentials for each source
+      const decryptedItems = yield* Effect.forEach(result, (source) =>
+        Effect.gen(function* () {
+          const decryptedCreds = yield* decryptCredentials(source.credentials, encryption);
+          return { ...source, credentials: decryptedCreds };
         }),
+      );
+
+      return decryptedItems;
     }),
 
   updateSource: (id, input) =>
     Effect.gen(function* () {
+      // Encrypt credentials if provided in the update
+      const encryptedCreds = input.credentials ? yield* encryptCredentials(input.credentials, encryption) : undefined;
+
+      const updateData = {
+        ...input,
+        ...(encryptedCreds !== undefined && {
+          credentials: encryptedCreds as unknown as ContentSourceCredentials,
+        }),
+        updatedAt: new Date(),
+      };
+
       const result = yield* Effect.tryPromise({
         try: async () => {
           const [updated] = await db
             .update(contentSources)
-            .set({
-              ...input,
-              updatedAt: new Date(),
-            })
+            .set(updateData)
             .where(eq(contentSources.id, id))
             .returning();
           return updated;
@@ -315,7 +437,9 @@ const makeContentRepository = (db: DrizzleDB): ContentRepositoryService => ({
         );
       }
 
-      return result;
+      // Decrypt credentials before returning
+      const decryptedCreds = yield* decryptCredentials(result.credentials, encryption);
+      return { ...result, credentials: decryptedCreds };
     }),
 
   deleteSource: (id) =>
@@ -900,9 +1024,10 @@ export const ContentRepositoryLive = Layer.effect(
   ContentRepository,
   Effect.gen(function* () {
     const { db } = yield* Database;
-    return makeContentRepository(db);
+    const encryption = yield* EncryptionService;
+    return makeContentRepository(db, encryption);
   }),
-);
+).pipe(Layer.provide(EncryptionServiceLive));
 
 // =============================================================================
 // Convenience Functions
