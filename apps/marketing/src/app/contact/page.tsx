@@ -36,8 +36,8 @@ export default function ContactPage() {
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Sales</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Ready to transform your video workflow? Let's discuss how Nuclom can help your team collaborate more
-              effectively.
+              Ready to unify your organization's knowledge? Let's discuss how Nuclom can help your team discover
+              insights across all your tools.
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export default function ContactPage() {
                     <Label htmlFor="useCase">How do you plan to use Nuclom?</Label>
                     <Textarea
                       id="useCase"
-                      placeholder="Tell us about your video collaboration needs, current challenges, and what you're looking to achieve..."
+                      placeholder="Tell us about your knowledge management needs, which tools you want to connect (Slack, Notion, GitHub, etc.), and what insights you're looking to surface..."
                       rows={4}
                     />
                   </div>

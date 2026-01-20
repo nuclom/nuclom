@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 const pricingPlans = {
   scale: {
     name: 'Scale',
-    description: 'For growing teams that need powerful video collaboration',
+    description: 'For growing teams that need unified knowledge management',
     icon: Zap,
     monthlyPrice: 25,
     yearlyPrice: 19,
@@ -40,21 +40,21 @@ const pricingPlans = {
     ctaLink: '/register',
     limits: {
       storage: '5 GB/user',
-      videos: '25/user/month',
+      sources: '3 sources',
       members: 'Up to 25',
       bandwidth: '25 GB/month',
     },
     features: [
-      { name: 'AI-powered transcription', included: true, highlight: true },
-      { name: 'Smart summaries & chapters', included: true, highlight: true },
-      { name: 'Action item extraction', included: true, highlight: true },
-      { name: '26 subtitle languages', included: true },
-      { name: 'Knowledge graph & decisions', included: true },
-      { name: 'Highlight reels', included: true },
+      { name: 'Slack, Notion & GitHub sync', included: true, highlight: true },
+      { name: 'AI processing & summaries', included: true, highlight: true },
+      { name: 'Decision tracking', included: true, highlight: true },
+      { name: 'Unified search', included: true },
+      { name: 'Knowledge graph', included: true },
+      { name: 'Topic clustering', included: true },
       { name: 'Real-time presence', included: true },
       { name: '@mentions & notifications', included: true },
-      { name: 'Zoom, Meet & Teams', included: true },
-      { name: 'Slack', included: true },
+      { name: 'Video transcription', included: true },
+      { name: 'Expertise mapping', included: true },
       { name: 'API, webhooks & Zapier', included: true },
       { name: 'Email support', included: true },
       { name: 'Custom branding', included: false },
@@ -65,7 +65,7 @@ const pricingPlans = {
   },
   pro: {
     name: 'Pro',
-    description: 'For organizations that need premium features and higher limits',
+    description: 'For organizations that need unlimited knowledge sources and premium features',
     icon: Building2,
     monthlyPrice: 45,
     yearlyPrice: 39,
@@ -76,21 +76,21 @@ const pricingPlans = {
     ctaLink: '/register?plan=pro',
     limits: {
       storage: '25 GB/user',
-      videos: '100/user/month',
+      sources: 'Unlimited',
       members: 'Unlimited',
       bandwidth: '250 GB/month',
     },
     features: [
-      { name: 'AI-powered transcription', included: true, highlight: true },
-      { name: 'Smart summaries & chapters', included: true, highlight: true },
-      { name: 'Action item extraction', included: true, highlight: true },
-      { name: '26 subtitle languages', included: true },
-      { name: 'Knowledge graph & decisions', included: true },
-      { name: 'Highlight reels', included: true },
+      { name: 'Slack, Notion & GitHub sync', included: true, highlight: true },
+      { name: 'AI processing & summaries', included: true, highlight: true },
+      { name: 'Decision tracking', included: true, highlight: true },
+      { name: 'Unified search', included: true },
+      { name: 'Knowledge graph', included: true },
+      { name: 'Topic clustering', included: true },
       { name: 'Real-time presence', included: true },
       { name: '@mentions & notifications', included: true },
-      { name: 'Zoom, Meet & Teams', included: true },
-      { name: 'Slack', included: true },
+      { name: 'Video transcription', included: true },
+      { name: 'Expertise mapping', included: true },
       { name: 'API, webhooks & Zapier', included: true },
       { name: 'Email support', included: true },
       { name: 'Custom branding', included: true, highlight: true },
@@ -103,27 +103,40 @@ const pricingPlans = {
 
 const featureComparison = [
   {
-    category: 'AI & Automation',
-    icon: Bot,
+    category: 'Knowledge Sources',
+    icon: Globe,
     features: [
-      { name: 'Automatic transcription', scale: '60 min/user/mo', pro: '300 min/user/mo' },
-      { name: 'AI summaries', scale: true, pro: true },
-      { name: 'Chapter detection', scale: true, pro: true },
-      { name: 'Action item extraction', scale: true, pro: true },
-      { name: 'Code snippet detection', scale: true, pro: true },
-      { name: 'Semantic search', scale: true, pro: true },
-      { name: 'Knowledge graph & decisions', scale: true, pro: true },
-      { name: 'Speaker diarization', scale: true, pro: true },
+      { name: 'Slack workspace sync', scale: true, pro: true },
+      { name: 'Notion workspace sync', scale: true, pro: true },
+      { name: 'GitHub repository sync', scale: true, pro: true },
+      { name: 'Video uploads & meetings', scale: true, pro: true },
+      { name: 'Number of sources', scale: '3', pro: 'Unlimited' },
+      { name: 'Incremental sync', scale: true, pro: true },
+      { name: 'Webhook real-time updates', scale: true, pro: true },
     ],
   },
   {
-    category: 'Content Creation',
+    category: 'AI & Processing',
+    icon: Bot,
+    features: [
+      { name: 'AI processing quota', scale: '1,000/mo', pro: '10,000/mo' },
+      { name: 'AI summaries', scale: true, pro: true },
+      { name: 'Decision extraction', scale: true, pro: true },
+      { name: 'Topic clustering', scale: true, pro: true },
+      { name: 'Expertise detection', scale: true, pro: true },
+      { name: 'Semantic search', scale: true, pro: true },
+      { name: 'Video transcription', scale: '60 min/mo', pro: '300 min/mo' },
+    ],
+  },
+  {
+    category: 'Knowledge Graph',
     icon: Sparkles,
     features: [
-      { name: 'Video clipping', scale: true, pro: true },
-      { name: 'Highlight reels', scale: true, pro: true },
-      { name: 'Video export', scale: true, pro: true },
-      { name: '26 subtitle languages', scale: true, pro: true },
+      { name: 'Knowledge graph', scale: true, pro: true },
+      { name: 'Decision tracking', scale: true, pro: true },
+      { name: 'Relationship discovery', scale: true, pro: true },
+      { name: 'Cross-source linking', scale: true, pro: true },
+      { name: 'Knowledge analytics', scale: false, pro: true },
     ],
   },
   {
@@ -131,7 +144,7 @@ const featureComparison = [
     icon: HardDrive,
     features: [
       { name: 'Storage per user', scale: '5 GB', pro: '25 GB' },
-      { name: 'Video uploads', scale: '25/user/mo', pro: '100/user/mo' },
+      { name: 'Content items', scale: '10,000', pro: 'Unlimited' },
       { name: 'Max file size', scale: '500 MB', pro: '2 GB' },
       { name: 'Team members', scale: 'Up to 25', pro: 'Unlimited' },
       { name: 'Bandwidth', scale: '25 GB/mo', pro: '250 GB/mo' },
@@ -142,21 +155,8 @@ const featureComparison = [
     icon: Users,
     features: [
       { name: '@mentions & notifications', scale: true, pro: true },
-      { name: 'Channels & series', scale: true, pro: true },
+      { name: 'Activity feed', scale: true, pro: true },
       { name: 'Real-time presence', scale: true, pro: true },
-    ],
-  },
-  {
-    category: 'Integrations',
-    icon: Globe,
-    features: [
-      { name: 'Zoom import', scale: true, pro: true },
-      { name: 'Google Meet import', scale: true, pro: true },
-      { name: 'Google Drive import', scale: true, pro: true },
-      { name: 'Slack integration', scale: true, pro: true },
-      { name: 'Microsoft Teams', scale: true, pro: true },
-      { name: 'GitHub integration', scale: true, pro: true },
-      { name: 'Zapier webhooks', scale: true, pro: true },
     ],
   },
   {
@@ -323,8 +323,8 @@ export default function PricingPage() {
                       <div className="font-semibold">{plan.limits.storage}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-muted-foreground">Videos</div>
-                      <div className="font-semibold">{plan.limits.videos}</div>
+                      <div className="text-sm text-muted-foreground">Sources</div>
+                      <div className="font-semibold">{plan.limits.sources}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground">Team</div>
@@ -528,9 +528,9 @@ export default function PricingPage() {
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10" />
         <div className="w-full max-w-4xl mx-auto relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to transform your video workflow?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to unify your organization's knowledge?</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Transform your video workflow with Nuclom. Start your 14-day free trial today.
+            Connect your first knowledge source in minutes. Start your 14-day free trial today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild className="px-8">

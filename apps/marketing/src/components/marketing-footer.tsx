@@ -12,7 +12,7 @@ export function MarketingFooter() {
             <Link href="/" className="flex items-center mb-4">
               <NuclomLogo size="sm" showText />
             </Link>
-            <p className="text-sm text-muted-foreground">The modern video collaboration platform for teams.</p>
+            <p className="text-sm text-muted-foreground">The unified knowledge hub for modern teams.</p>
           </div>
 
           {/* Product */}
