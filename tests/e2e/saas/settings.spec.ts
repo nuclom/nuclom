@@ -20,17 +20,25 @@ test.describe('Settings Pages', () => {
       // Wait for page to load
       await page.waitForLoadState('networkidle');
 
-      // Look for common profile fields - the page has "Full Name" label
+      // The page uses RequireAuth which shows a loading state while auth hydrates.
+      // Wait for auth loading to complete by waiting for form elements to appear.
+      // Use poll to handle client-side hydration timing.
+      const profileTitle = page.getByText('Your Profile');
       const nameInput = page.getByLabel(/full name/i);
       const emailInput = page.getByLabel(/email/i);
-      const profileTitle = page.getByText('Your Profile');
 
-      const hasNameInput = await nameInput.isVisible().catch(() => false);
-      const hasEmailInput = await emailInput.isVisible().catch(() => false);
-      const hasProfileTitle = await profileTitle.isVisible().catch(() => false);
-
-      // At least one profile element should exist
-      expect(hasNameInput || hasEmailInput || hasProfileTitle).toBe(true);
+      // Wait for at least one profile element to appear (auth loading may take a moment)
+      await expect
+        .poll(
+          async () => {
+            const hasProfileTitle = await profileTitle.first().isVisible().catch(() => false);
+            const hasNameInput = await nameInput.isVisible().catch(() => false);
+            const hasEmailInput = await emailInput.isVisible().catch(() => false);
+            return hasProfileTitle || hasNameInput || hasEmailInput;
+          },
+          { timeout: 15000, message: 'Profile form elements should be visible after auth loading' },
+        )
+        .toBe(true);
     });
   });
 
