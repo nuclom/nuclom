@@ -5,11 +5,18 @@
  */
 
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import { ContentRepository, verifyGitHubWebhookSignature } from '@nuclom/lib/effect/services/content';
+import {
+  ContentRepository,
+  GitHubContentAdapter,
+  verifyGitHubWebhookSignature,
+} from '@nuclom/lib/effect/services/content';
+import { GitHubContentAdapterLive } from '@nuclom/lib/effect/services/content/github-content-adapter';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
+import { processContentWorkflow } from '@/workflows/content-processing';
 
 interface GitHubWebhookPayload {
   action?: string;
@@ -111,6 +118,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, message: 'Event not processed' });
   }
 
+  // Capture event type for use in Effect.gen (we've already checked it's not null above)
+  const eventType = event;
+
   // Get repository info
   const repo = payload.repository;
   if (!repo) {
@@ -129,8 +139,9 @@ export async function POST(request: Request) {
     });
 
     const relevantSources = allGitHubSources.items.filter((source) => {
-      const config = source.config as { settings?: { username?: string } } | null;
-      return config?.settings?.username === repo.owner.login;
+      const config = source.config as { settings?: { username?: string }; repositories?: string[] } | null;
+      // Match by username or if the repository is in the configured list
+      return config?.settings?.username === repo.owner.login || config?.repositories?.includes(repo.full_name);
     });
 
     if (relevantSources.length === 0) {
@@ -138,18 +149,64 @@ export async function POST(request: Request) {
       return { success: true, processed: false };
     }
 
-    // Log that we found relevant sources - actual sync can be triggered separately
     logger.info('[GitHub Webhook] Found relevant sources', {
       count: relevantSources.length,
       repo: repo.full_name,
-      event,
+      event: eventType,
     });
+
+    // Process the event for each relevant source
+    const adapter = yield* GitHubContentAdapter;
+
+    for (const source of relevantSources) {
+      const rawItem = yield* adapter
+        .handleWebhook(source, eventType, payload)
+        .pipe(Effect.catchAll(() => Effect.succeed(null)));
+
+      if (rawItem) {
+        // Save the content item (processingStatus defaults to 'pending' in schema)
+        const saved = yield* contentRepo.upsertItem({
+          organizationId: source.organizationId,
+          sourceId: source.id,
+          type: rawItem.type,
+          externalId: rawItem.externalId,
+          title: rawItem.title,
+          content: rawItem.content,
+          contentHtml: rawItem.contentHtml,
+          authorName: rawItem.authorName,
+          authorExternal: rawItem.authorExternal,
+          createdAtSource: rawItem.createdAtSource,
+          updatedAtSource: rawItem.updatedAtSource,
+          metadata: rawItem.metadata,
+        });
+
+        logger.info('[GitHub Webhook] Saved content item', {
+          contentItemId: saved.id,
+          sourceId: source.id,
+          type: rawItem.type,
+          externalId: rawItem.externalId,
+        });
+
+        // Trigger async processing (fire-and-forget)
+        processContentWorkflow({
+          contentItemId: saved.id,
+          organizationId: source.organizationId,
+          sourceType: 'github',
+        }).catch((err) => {
+          logger.error('[GitHub Webhook] Workflow failed', err instanceof Error ? err : new Error(String(err)));
+        });
+      }
+    }
 
     return { success: true, processed: true, sourceCount: relevantSources.length };
   });
 
   // Run asynchronously and return immediately
-  Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
+  // Create layer with GitHubContentAdapter
+  const GitHubAdapterWithDeps = GitHubContentAdapterLive.pipe(Layer.provide(DatabaseLive));
+  const fullLayer = Layer.merge(createPublicLayer(), GitHubAdapterWithDeps);
+
+  Effect.runPromise(Effect.provide(processEffect, fullLayer)).catch((err) => {
     logger.error('[GitHub Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
   });
 

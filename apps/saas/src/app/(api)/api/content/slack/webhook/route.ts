@@ -5,11 +5,14 @@
  */
 
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import { ContentRepository, verifySlackSignature } from '@nuclom/lib/effect/services/content';
+import { ContentRepository, SlackContentAdapter, verifySlackSignature } from '@nuclom/lib/effect/services/content';
+import { SlackContentAdapterLive } from '@nuclom/lib/effect/services/content/slack-content-adapter';
+import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
+import { processContentWorkflow } from '@/workflows/content-processing';
 
 interface SlackEventPayload {
   type: string;
@@ -93,18 +96,61 @@ export async function POST(request: Request) {
         return { success: true, processed: false };
       }
 
-      // Log the event - actual sync can be triggered separately
       logger.info('[Slack Webhook] Found relevant sources', {
         count: relevantSources.length,
         teamId,
         eventType: event.type,
       });
 
+      // Process the event for each relevant source
+      const adapter = yield* SlackContentAdapter;
+
+      for (const source of relevantSources) {
+        const rawItem = yield* adapter.handleEvent(source, event).pipe(Effect.catchAll(() => Effect.succeed(null)));
+
+        if (rawItem) {
+          // Save the content item (processingStatus defaults to 'pending' in schema)
+          const saved = yield* contentRepo.upsertItem({
+            organizationId: source.organizationId,
+            sourceId: source.id,
+            type: rawItem.type,
+            externalId: rawItem.externalId,
+            title: rawItem.title,
+            content: rawItem.content,
+            contentHtml: rawItem.contentHtml,
+            authorName: rawItem.authorName,
+            authorExternal: rawItem.authorExternal,
+            createdAtSource: rawItem.createdAtSource,
+            updatedAtSource: rawItem.updatedAtSource,
+            metadata: rawItem.metadata,
+          });
+
+          logger.info('[Slack Webhook] Saved content item', {
+            contentItemId: saved.id,
+            sourceId: source.id,
+            type: rawItem.type,
+          });
+
+          // Trigger async processing (fire-and-forget)
+          processContentWorkflow({
+            contentItemId: saved.id,
+            organizationId: source.organizationId,
+            sourceType: 'slack',
+          }).catch((err) => {
+            logger.error('[Slack Webhook] Workflow failed', err instanceof Error ? err : new Error(String(err)));
+          });
+        }
+      }
+
       return { success: true, processed: true };
     });
 
     // Run asynchronously and return immediately (Slack expects fast response)
-    Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
+    // Create layer with SlackContentAdapter
+    const SlackAdapterWithDeps = SlackContentAdapterLive.pipe(Layer.provide(DatabaseLive));
+    const fullLayer = Layer.merge(createPublicLayer(), SlackAdapterWithDeps);
+
+    Effect.runPromise(Effect.provide(processEffect, fullLayer)).catch((err) => {
       logger.error('[Slack Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
     });
 

@@ -24,6 +24,9 @@ import { type ClipRepository, ClipRepositoryLive } from './services/clip-reposit
 import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
 import { type ContentProcessor, ContentProcessorLive } from './services/content/content-processor';
 import { type ContentRepository, ContentRepositoryLive } from './services/content/content-repository';
+import { type GitHubContentAdapter, GitHubContentAdapterLive } from './services/content/github-content-adapter';
+import { type NotionContentAdapter, NotionContentAdapterLive } from './services/content/notion-content-adapter';
+import { type SlackContentAdapter, SlackContentAdapterLive } from './services/content/slack-content-adapter';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
@@ -176,6 +179,11 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
   Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
+// Content adapters depend on Database
+const SlackContentAdapterWithDeps = withDep(SlackContentAdapterLive, DatabaseLive);
+const GitHubContentAdapterWithDeps = withDep(GitHubContentAdapterLive, DatabaseLive);
+const NotionContentAdapterWithDeps = withDep(NotionContentAdapterLive, DatabaseLive);
+
 // Knowledge Graph Services - depend on ContentRepository, Embedding, and AI
 const RelationshipDetectorWithDeps = RelationshipDetectorLive.pipe(
   Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
@@ -218,6 +226,10 @@ const AppServicesLive = Layer.mergeAll(
   TopicClusterWithDeps,
   DecisionTrackerWithDeps,
   UnifiedSearchWithDeps,
+  // Content adapters for integrations
+  SlackContentAdapterWithDeps,
+  GitHubContentAdapterWithDeps,
+  NotionContentAdapterWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -258,7 +270,10 @@ export type AppServices =
   | RelationshipDetector
   | TopicCluster
   | DecisionTracker
-  | UnifiedSearch;
+  | UnifiedSearch
+  | SlackContentAdapter
+  | GitHubContentAdapter
+  | NotionContentAdapter;
 
 // =============================================================================
 // Global Runtime (for stateful layers)
