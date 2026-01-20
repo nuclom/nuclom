@@ -17,6 +17,7 @@ import {
   NotionIcon,
   SlackIcon,
 } from '@/components/integrations/content-source-card';
+import { NotionPageSelector } from '@/components/integrations/notion-page-selector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -489,17 +490,25 @@ function ContentSourceConfigDialog({
           )}
 
           {source.type === 'notion' && (
-            <div className="space-y-2">
-              <Label htmlFor="databases">Databases to Sync</Label>
-              <Input
-                id="databases"
-                value={databases}
-                onChange={(e) => setDatabases(e.target.value)}
-                placeholder="Database IDs or names"
+            <div className="space-y-4">
+              <NotionPageSelector
+                sourceId={source.id}
+                onSave={() => {
+                  // Refresh sources after saving selection
+                }}
               />
-              <p className="text-xs text-muted-foreground">
-                Comma-separated list of database IDs. Leave empty to sync all shared databases.
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="databases">Additional Database IDs</Label>
+                <Input
+                  id="databases"
+                  value={databases}
+                  onChange={(e) => setDatabases(e.target.value)}
+                  placeholder="Optional: Additional database IDs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optionally add database IDs not shown in the tree above.
+                </p>
+              </div>
             </div>
           )}
 
