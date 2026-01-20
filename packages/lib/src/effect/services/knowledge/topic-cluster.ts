@@ -13,18 +13,18 @@ import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
 import { db } from '../../../db';
 import {
+  type ContentItem,
   contentItems,
   contentSources,
+  type TopicCluster as TopicClusterType,
   topicClusterMembers,
   topicClusters,
   topicExpertise,
-  type ContentItem,
-  type TopicCluster as TopicClusterType,
 } from '../../../db/schema';
 import { ContentProcessingError, DatabaseError, NotFoundError } from '../../errors';
 import { AI } from '../ai';
-import { Embedding } from '../embedding';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Embedding } from '../embedding';
 
 // =============================================================================
 // Types

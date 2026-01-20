@@ -11,19 +11,19 @@ import { Context, Effect, Layer, Option } from 'effect';
 import { db } from '../../../db';
 import {
   contentItems,
+  type Decision,
+  type DecisionLink,
+  type DecisionParticipant,
   decisionEvidence,
   decisionLinks,
   decisionParticipants,
   decisions,
-  type Decision,
-  type DecisionLink,
-  type DecisionParticipant,
   type NewDecision,
 } from '../../../db/schema';
 import { ContentProcessingError, DatabaseError, NotFoundError } from '../../errors';
 import { AI } from '../ai';
-import { Embedding } from '../embedding';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Embedding } from '../embedding';
 
 // =============================================================================
 // Types

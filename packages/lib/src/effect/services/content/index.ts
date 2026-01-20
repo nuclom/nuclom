@@ -63,6 +63,40 @@ export {
   updateContentSource,
   upsertContentItem,
 } from './content-repository';
+// GitHub Content Adapter
+export type { GitHubContentAdapterService } from './github-content-adapter';
+export {
+  cleanupExpiredFileCache,
+  createGitHubContentAdapter,
+  exchangeGitHubCode,
+  GitHubContentAdapter,
+  GitHubContentAdapterLive,
+  getGitHubAuthUrl,
+  verifyGitHubWebhookSignature,
+} from './github-content-adapter';
+// Notion Content Adapter
+export type { NotionContentAdapterService } from './notion-content-adapter';
+export {
+  createNotionContentAdapter,
+  exchangeNotionCode,
+  getNotionAuthUrl,
+  NotionContentAdapter,
+  NotionContentAdapterLive,
+} from './notion-content-adapter';
+// Slack Content Adapter
+export type { SlackContentAdapterService } from './slack-content-adapter';
+export {
+  createSlackContentAdapter,
+  exchangeSlackCode,
+  formatSlackMrkdwn,
+  getSlackContentAuthUrl,
+  resolveChannelMentions,
+  resolveUserMentions,
+  SLACK_CONTENT_SCOPES,
+  SlackContentAdapter,
+  SlackContentAdapterLive,
+  verifySlackSignature,
+} from './slack-content-adapter';
 // Types
 export type {
   AdapterFetchOptions,
@@ -108,40 +142,3 @@ export {
   syncVideoToContent,
   updateVideoContentItem,
 } from './video-content-adapter';
-
-// Slack Content Adapter
-export type { SlackContentAdapterService } from './slack-content-adapter';
-export {
-  SlackContentAdapter,
-  SlackContentAdapterLive,
-  createSlackContentAdapter,
-  getSlackContentAuthUrl,
-  exchangeSlackCode,
-  verifySlackSignature,
-  SLACK_CONTENT_SCOPES,
-  resolveUserMentions,
-  resolveChannelMentions,
-  formatSlackMrkdwn,
-} from './slack-content-adapter';
-
-// Notion Content Adapter
-export type { NotionContentAdapterService } from './notion-content-adapter';
-export {
-  NotionContentAdapter,
-  NotionContentAdapterLive,
-  createNotionContentAdapter,
-  getNotionAuthUrl,
-  exchangeNotionCode,
-} from './notion-content-adapter';
-
-// GitHub Content Adapter
-export type { GitHubContentAdapterService } from './github-content-adapter';
-export {
-  GitHubContentAdapter,
-  GitHubContentAdapterLive,
-  createGitHubContentAdapter,
-  getGitHubAuthUrl,
-  exchangeGitHubCode,
-  verifyGitHubWebhookSignature,
-  cleanupExpiredFileCache,
-} from './github-content-adapter';

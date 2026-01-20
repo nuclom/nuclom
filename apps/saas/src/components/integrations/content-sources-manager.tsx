@@ -10,8 +10,8 @@ import { BookOpen, Loader2, Plus, RefreshCw, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   AddContentSourceCard,
-  ContentSourceCard,
   type ContentSource,
+  ContentSourceCard,
   type ContentSourceType,
   GitHubIcon,
   NotionIcon,

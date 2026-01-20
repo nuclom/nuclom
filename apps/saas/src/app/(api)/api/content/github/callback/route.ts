@@ -4,14 +4,14 @@
  * GET /api/content/github/callback - Handle OAuth callback and create content source
  */
 
-import { Effect } from 'effect';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { connection } from 'next/server';
 import { createFullLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository, exchangeGitHubCode } from '@nuclom/lib/effect/services/content';
 import { env, getAppUrl } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 
 interface OAuthState {
   userId: string;

@@ -6,9 +6,6 @@
  * DELETE /api/content/sources/[id] - Delete content source
  */
 
-import { Schema } from 'effect';
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   Auth,
   createFullLayer,
@@ -16,14 +13,16 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
+import { OrganizationRepository } from '@nuclom/lib/effect';
 import {
   ContentRepository,
   deleteContentSource,
   getContentSource,
   updateContentSource,
 } from '@nuclom/lib/effect/services/content';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas

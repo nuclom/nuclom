@@ -28,6 +28,9 @@ import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
 import { type IntegrationRepository, IntegrationRepositoryLive } from './services/integration-repository';
+import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
+import { type RelationshipDetector, RelationshipDetectorLive } from './services/knowledge/relationship-detector';
+import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from './services/knowledge-graph-repository';
 import { type NotificationRepository, NotificationRepositoryLive } from './services/notification-repository';
 import { type OrganizationRepository, OrganizationRepositoryLive } from './services/organization-repository';
@@ -43,9 +46,6 @@ import { type VideoProgressRepository, VideoProgressRepositoryLive } from './ser
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
 import { type VideoSharesRepository, VideoSharesRepositoryLive } from './services/video-shares-repository';
 import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
-import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
-import { type RelationshipDetector, RelationshipDetectorLive } from './services/knowledge/relationship-detector';
-import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 
 // =============================================================================
 // Layer Composition Utilities

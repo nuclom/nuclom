@@ -4,13 +4,12 @@
  * GET /api/knowledge/topics/[id]/experts - Get top experts for a topic
  */
 
-import { Schema } from 'effect';
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
-import { TopicCluster, getTopicCluster, getTopicExperts } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
+import { getTopicCluster, getTopicExperts, TopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { validateQueryParams } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas

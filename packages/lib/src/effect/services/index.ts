@@ -780,36 +780,28 @@ export {
 // Slack, Notion, GitHub Content Adapters
 // =============================================================================
 
-export type { SlackContentAdapterService } from './content';
+export type { GitHubContentAdapterService, NotionContentAdapterService, SlackContentAdapterService } from './content';
 export {
-  SlackContentAdapter,
-  SlackContentAdapterLive,
-  createSlackContentAdapter,
-  getSlackContentAuthUrl,
-  SLACK_CONTENT_SCOPES,
-  resolveUserMentions,
-  resolveChannelMentions,
-  formatSlackMrkdwn,
-} from './content';
-
-export type { NotionContentAdapterService } from './content';
-export {
-  NotionContentAdapter,
-  NotionContentAdapterLive,
+  cleanupExpiredFileCache,
+  createGitHubContentAdapter,
   createNotionContentAdapter,
-  getNotionAuthUrl,
+  createSlackContentAdapter,
+  exchangeGitHubCode,
   exchangeNotionCode,
-} from './content';
-
-export type { GitHubContentAdapterService } from './content';
-export {
+  formatSlackMrkdwn,
   GitHubContentAdapter,
   GitHubContentAdapterLive,
-  createGitHubContentAdapter,
   getGitHubAuthUrl,
-  exchangeGitHubCode,
+  getNotionAuthUrl,
+  getSlackContentAuthUrl,
+  NotionContentAdapter,
+  NotionContentAdapterLive,
+  resolveChannelMentions,
+  resolveUserMentions,
+  SLACK_CONTENT_SCOPES,
+  SlackContentAdapter,
+  SlackContentAdapterLive,
   verifyGitHubWebhookSignature,
-  cleanupExpiredFileCache,
 } from './content';
 
 // =============================================================================
@@ -817,44 +809,44 @@ export {
 // =============================================================================
 
 export type {
-  RelationshipDetectorService,
-  RelationshipCandidate,
-  DetectionOptions,
-  DetectionResult,
-  DecisionTrackerService,
-  CreateDecisionInput as KnowledgeCreateDecisionInput,
-  UpdateDecisionInput as KnowledgeUpdateDecisionInput,
-  DecisionFilters,
-  DecisionWithRelations as KnowledgeDecisionWithRelations,
-  DecisionTimelineEntry,
-  ExtractedDecision as KnowledgeExtractedDecision,
-  DecisionStatus as KnowledgeDecisionStatus,
-  DecisionType as KnowledgeDecisionType,
-  TopicClusterService,
-  CreateTopicClusterInput,
-  TopicClusterWithMembers,
-  TopicExpertiseEntry,
   ClusteringOptions,
   ClusteringResult,
+  CreateDecisionInput as KnowledgeCreateDecisionInput,
+  CreateTopicClusterInput,
+  DecisionFilters,
+  DecisionStatus as KnowledgeDecisionStatus,
+  DecisionTimelineEntry,
+  DecisionTrackerService,
+  DecisionType as KnowledgeDecisionType,
+  DecisionWithRelations as KnowledgeDecisionWithRelations,
+  DetectionOptions,
+  DetectionResult,
+  ExtractedDecision as KnowledgeExtractedDecision,
+  RelationshipCandidate,
+  RelationshipDetectorService,
+  TopicClusterService,
+  TopicClusterWithMembers,
+  TopicExpertiseEntry,
+  UpdateDecisionInput as KnowledgeUpdateDecisionInput,
 } from './knowledge';
 
 export {
-  RelationshipDetector,
-  RelationshipDetectorLive,
-  detectRelationshipsForItem,
-  detectRelationships,
-  findSimilarContentItems,
+  autoClusterContent,
+  createDecision as createKnowledgeDecision,
+  createTopicCluster,
   DecisionTracker,
   DecisionTrackerLive,
-  createDecision as createKnowledgeDecision,
-  getDecision as getKnowledgeDecision,
-  listDecisions,
-  updateDecisionStatus,
+  detectRelationships,
+  detectRelationshipsForItem,
   extractDecisions,
+  findSimilarContentItems,
+  getDecision as getKnowledgeDecision,
+  getTopicCluster,
+  getTopicExperts,
+  listDecisions,
+  RelationshipDetector,
+  RelationshipDetectorLive,
   TopicCluster,
   TopicClusterLive,
-  createTopicCluster,
-  getTopicCluster,
-  autoClusterContent,
-  getTopicExperts,
+  updateDecisionStatus,
 } from './knowledge';

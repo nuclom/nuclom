@@ -5,14 +5,13 @@
  * GET /api/knowledge/relationships - List relationships for an organization
  */
 
-import { Schema } from 'effect';
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import { OrganizationRepository } from '@nuclom/lib/effect';
 import { ContentRepository } from '@nuclom/lib/effect/services/content';
 import { detectRelationships } from '@nuclom/lib/effect/services/knowledge';
-import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas

@@ -12,10 +12,8 @@
 
 import { and, eq } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
+import type { ContentSource } from '../../../db/schema';
 import {
-  notionDatabaseSchemas,
-  notionPageHierarchy,
-  notionUsers,
   type NewNotionDatabaseSchemaRecord,
   type NewNotionPageHierarchyRecord,
   type NewNotionUser,
@@ -25,9 +23,11 @@ import {
   type NotionPageMetadata,
   type NotionPropertySchema,
   type NotionUser,
+  notionDatabaseSchemas,
+  notionPageHierarchy,
+  notionUsers,
 } from '../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
-import type { ContentSource } from '../../../db/schema';
 import { Database } from '../database';
 import type { AdapterFetchOptions, ContentSourceAdapter, RawContentItem } from './types';
 

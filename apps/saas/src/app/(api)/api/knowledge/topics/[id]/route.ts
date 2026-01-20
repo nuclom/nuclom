@@ -6,9 +6,6 @@
  * DELETE /api/knowledge/topics/[id] - Delete topic cluster
  */
 
-import { Schema } from 'effect';
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import {
   Auth,
   createFullLayer,
@@ -16,9 +13,11 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import { TopicCluster, getTopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
+import { getTopicCluster, TopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas

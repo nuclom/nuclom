@@ -8,11 +8,11 @@
  * For now, it just acknowledges requests and logs them.
  */
 
-import { Effect } from 'effect';
-import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository } from '@nuclom/lib/effect/services/content';
 import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
+import { NextResponse } from 'next/server';
 
 interface NotionWebhookPayload {
   type: string;

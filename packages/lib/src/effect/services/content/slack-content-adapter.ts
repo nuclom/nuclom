@@ -12,18 +12,18 @@
 
 import { and, eq } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
+import type { ContentSource } from '../../../db/schema';
 import {
-  slackChannelSync,
-  slackUsers,
   type NewSlackChannelSyncRecord,
   type NewSlackUser,
   type SlackChannelSyncRecord,
   type SlackContentConfig,
   type SlackMessageMetadata,
   type SlackUser,
+  slackChannelSync,
+  slackUsers,
 } from '../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError, HttpError } from '../../errors';
-import type { ContentSource } from '../../../db/schema';
 import { Database } from '../database';
 import type { AdapterFetchOptions, ContentSourceAdapter, RawContentItem } from './types';
 
@@ -634,10 +634,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                   return messageToRawContentItem(parentMessage, channel, usersMap, permalink || undefined);
                 }
               }
-            } catch {
-              // Message not in this channel, try next
-              continue;
-            }
+            } catch {}
           }
 
           return null;

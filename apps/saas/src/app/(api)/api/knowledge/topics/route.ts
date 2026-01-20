@@ -5,13 +5,12 @@
  * POST /api/knowledge/topics - Create a topic cluster or auto-cluster
  */
 
-import { Schema } from 'effect';
-import { Effect } from 'effect';
-import type { NextRequest } from 'next/server';
 import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { TopicCluster, autoClusterContent, createTopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { OrganizationRepository } from '@nuclom/lib/effect';
+import { autoClusterContent, createTopicCluster, TopicCluster } from '@nuclom/lib/effect/services/knowledge';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas

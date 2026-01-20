@@ -4,12 +4,12 @@
  * POST /api/content/github/webhook - Handle real-time GitHub events for content sync
  */
 
-import { Effect } from 'effect';
-import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository, verifyGitHubWebhookSignature } from '@nuclom/lib/effect/services/content';
 import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
+import { NextResponse } from 'next/server';
 
 interface GitHubWebhookPayload {
   action?: string;

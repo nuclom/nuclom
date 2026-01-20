@@ -4,12 +4,12 @@
  * POST /api/content/slack/webhook - Handle real-time Slack events for content sync
  */
 
-import { Effect } from 'effect';
-import { NextResponse } from 'next/server';
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository, verifySlackSignature } from '@nuclom/lib/effect/services/content';
 import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
+import { Effect } from 'effect';
+import { NextResponse } from 'next/server';
 
 interface SlackEventPayload {
   type: string;

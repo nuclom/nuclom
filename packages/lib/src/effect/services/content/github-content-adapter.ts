@@ -12,10 +12,8 @@
 
 import { and, eq, lte } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
+import type { ContentSource } from '../../../db/schema';
 import {
-  githubFileCache,
-  githubRepoSync,
-  githubUsers,
   type CodeContext,
   type GitHubContentConfig,
   type GitHubDiscussionMetadata,
@@ -23,12 +21,14 @@ import {
   type GitHubPRMetadata,
   type GitHubRepoSyncRecord,
   type GitHubUser,
+  githubFileCache,
+  githubRepoSync,
+  githubUsers,
   type NewGitHubFileCacheRecord,
   type NewGitHubRepoSyncRecord,
   type NewGitHubUser,
 } from '../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
-import type { ContentSource } from '../../../db/schema';
 import { Database } from '../database';
 import type { ContentSourceAdapter, RawContentItem } from './types';
 

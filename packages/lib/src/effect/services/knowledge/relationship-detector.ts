@@ -13,15 +13,15 @@ import { and, eq, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
 import { db } from '../../../db';
 import {
-  contentItems,
   type ContentItem,
   type ContentRelationship,
   type ContentRelationshipType,
+  contentItems,
 } from '../../../db/schema';
-import { ContentProcessingError, DatabaseError } from '../../errors';
+import { type ContentProcessingError, DatabaseError } from '../../errors';
 import { AI } from '../ai';
-import { Embedding } from '../embedding';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Embedding } from '../embedding';
 
 // =============================================================================
 // Types

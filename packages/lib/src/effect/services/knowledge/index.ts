@@ -7,57 +7,56 @@
  * - TopicCluster: Groups content by topic and tracks expertise
  */
 
-// Relationship Detector
-export type {
-  RelationshipDetectorService,
-  RelationshipCandidate,
-  DetectionOptions,
-  DetectionResult,
-} from './relationship-detector';
-export {
-  RelationshipDetector,
-  RelationshipDetectorLive,
-  detectRelationshipsForItem,
-  detectRelationships,
-  findSimilarContentItems,
-} from './relationship-detector';
-
 // Decision Tracker
 export type {
-  DecisionTrackerService,
   CreateDecisionInput,
-  UpdateDecisionInput,
   DecisionFilters,
-  DecisionWithRelations,
-  DecisionTimelineEntry,
-  ExtractedDecision,
   DecisionStatus,
+  DecisionTimelineEntry,
+  DecisionTrackerService,
   DecisionType,
+  DecisionWithRelations,
+  ExtractedDecision,
+  UpdateDecisionInput,
 } from './decision-tracker';
 export {
+  createDecision,
   DecisionTracker,
   DecisionTrackerLive,
-  createDecision,
+  extractDecisions,
   getDecision,
   listDecisions,
   updateDecisionStatus,
-  extractDecisions,
 } from './decision-tracker';
+// Relationship Detector
+export type {
+  DetectionOptions,
+  DetectionResult,
+  RelationshipCandidate,
+  RelationshipDetectorService,
+} from './relationship-detector';
+export {
+  detectRelationships,
+  detectRelationshipsForItem,
+  findSimilarContentItems,
+  RelationshipDetector,
+  RelationshipDetectorLive,
+} from './relationship-detector';
 
 // Topic Cluster
 export type {
-  TopicClusterService,
-  CreateTopicClusterInput,
-  TopicClusterWithMembers,
-  TopicExpertiseEntry,
   ClusteringOptions,
   ClusteringResult,
+  CreateTopicClusterInput,
+  TopicClusterService,
+  TopicClusterWithMembers,
+  TopicExpertiseEntry,
 } from './topic-cluster';
 export {
-  TopicCluster,
-  TopicClusterLive,
+  autoClusterContent,
   createTopicCluster,
   getTopicCluster,
-  autoClusterContent,
   getTopicExperts,
+  TopicCluster,
+  TopicClusterLive,
 } from './topic-cluster';
