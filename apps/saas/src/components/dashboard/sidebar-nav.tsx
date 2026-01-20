@@ -10,6 +10,7 @@ import {
   Folders,
   History,
   Home,
+  Newspaper,
   PlayCircle,
   Search,
   Share2,
@@ -39,7 +40,7 @@ export function SidebarNav({ organization }: SidebarNavProps) {
 
   const mainNavItems: NavItem[] = [
     {
-      title: 'Feed',
+      title: 'Home',
       href: `/org/${organization}`,
       icon: Home,
     },
@@ -61,6 +62,11 @@ export function SidebarNav({ organization }: SidebarNavProps) {
   ];
 
   const knowledgeNavItems: NavItem[] = [
+    {
+      title: 'Feed',
+      href: `/org/${organization}/feed`,
+      icon: Newspaper,
+    },
     {
       title: 'Sources',
       href: `/org/${organization}/sources`,

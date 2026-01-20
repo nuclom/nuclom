@@ -60,6 +60,11 @@ export type GitHubPRMetadata = {
   readonly linked_issues?: number[]; // Extracted from body/commits
   readonly url?: string;
   readonly html_url?: string;
+  // Extracted symbols from diff
+  readonly symbols_added?: string[]; // Functions, classes, etc. added
+  readonly symbols_modified?: string[]; // Functions, classes, etc. modified
+  readonly symbols_removed?: string[]; // Functions, classes, etc. removed
+  readonly components_changed?: string[]; // React components changed
 };
 
 /**

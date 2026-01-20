@@ -149,6 +149,9 @@ interface GitHubRepo {
   description: string | null;
   html_url: string;
   has_wiki: boolean;
+  stargazers_count?: number;
+  language?: string | null;
+  updated_at?: string;
 }
 
 interface GitHubWikiPage {
@@ -413,6 +416,113 @@ function extractImportsFromPatch(patch: string, language: string): string[] {
 }
 
 /**
+ * Extracted symbol changes categorized by addition/modification/removal
+ */
+interface SymbolChanges {
+  added: string[];
+  modified: string[];
+  removed: string[];
+  componentsChanged: string[];
+}
+
+/**
+ * Extract symbols from patch lines (either added or removed)
+ */
+function extractSymbolsFromLines(lines: string[], language: string): Set<string> {
+  const symbols = new Set<string>();
+
+  // Only process TypeScript/JavaScript for now (matches existing behavior)
+  if (!['TypeScript', 'JavaScript'].includes(language)) {
+    return symbols;
+  }
+
+  const content = lines.join('\n');
+
+  // Function declarations
+  const functionDeclRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
+  for (const match of content.matchAll(functionDeclRegex)) {
+    symbols.add(match[1]);
+  }
+
+  // Arrow functions
+  const arrowFunctionRegex = /(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/g;
+  for (const match of content.matchAll(arrowFunctionRegex)) {
+    symbols.add(match[1]);
+  }
+
+  // Class declarations
+  const classRegex = /(?:export\s+)?class\s+(\w+)/g;
+  for (const match of content.matchAll(classRegex)) {
+    symbols.add(match[1]);
+  }
+
+  // React.memo, forwardRef components
+  const reactWrapperRegex = /(?:export\s+)?(?:const|let)\s+([A-Z]\w+)\s*=\s*(?:React\.)?(?:memo|forwardRef)/g;
+  for (const match of content.matchAll(reactWrapperRegex)) {
+    symbols.add(match[1]);
+  }
+
+  return symbols;
+}
+
+/**
+ * Extract and categorize symbol changes from file diffs
+ * - added: symbols only in added lines
+ * - modified: symbols in both added and removed lines
+ * - removed: symbols only in removed lines
+ * - componentsChanged: all React components touched (uppercase names)
+ */
+function extractSymbolChanges(files: GitHubFile[]): SymbolChanges {
+  const allAdded = new Set<string>();
+  const allRemoved = new Set<string>();
+  const allComponents = new Set<string>();
+
+  for (const file of files) {
+    if (!file.patch) continue;
+
+    const language = detectLanguage(file.filename);
+    const lines = file.patch.split('\n');
+
+    // Split lines into added and removed
+    const addedLines = lines
+      .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+      .map((line) => line.slice(1));
+
+    const removedLines = lines
+      .filter((line) => line.startsWith('-') && !line.startsWith('---'))
+      .map((line) => line.slice(1));
+
+    // Extract symbols from each set
+    const addedSymbols = extractSymbolsFromLines(addedLines, language);
+    const removedSymbols = extractSymbolsFromLines(removedLines, language);
+
+    // Merge into global sets
+    for (const sym of addedSymbols) allAdded.add(sym);
+    for (const sym of removedSymbols) allRemoved.add(sym);
+
+    // Track all components (uppercase names)
+    for (const sym of addedSymbols) {
+      if (sym[0] === sym[0].toUpperCase()) allComponents.add(sym);
+    }
+    for (const sym of removedSymbols) {
+      if (sym[0] === sym[0].toUpperCase()) allComponents.add(sym);
+    }
+  }
+
+  // Categorize: modified = in both, added = only in added, removed = only in removed
+  const modified = [...allAdded].filter((sym) => allRemoved.has(sym));
+  const added = [...allAdded].filter((sym) => !allRemoved.has(sym));
+  const removed = [...allRemoved].filter((sym) => !allAdded.has(sym));
+
+  return {
+    added,
+    modified,
+    removed,
+    componentsChanged: [...allComponents],
+  };
+}
+
+/**
  * Extract code context from file diffs
  */
 function extractCodeContext(files: GitHubFile[]): CodeContext {
@@ -497,6 +607,7 @@ function prToRawContentItem(
   const content = sections.join('\n');
   const linkedIssues = extractIssueReferences(pr.body || '');
   const codeContext = extractCodeContext(files);
+  const symbolChanges = extractSymbolChanges(files);
 
   // Determine review state
   const approvedReviews = reviews.filter((r) => r.state === 'APPROVED');
@@ -536,6 +647,11 @@ function prToRawContentItem(
     linked_issues: linkedIssues,
     url: pr.url,
     html_url: pr.html_url,
+    // Symbol extraction from diffs
+    symbols_added: symbolChanges.added.length > 0 ? symbolChanges.added : undefined,
+    symbols_modified: symbolChanges.modified.length > 0 ? symbolChanges.modified : undefined,
+    symbols_removed: symbolChanges.removed.length > 0 ? symbolChanges.removed : undefined,
+    components_changed: symbolChanges.componentsChanged.length > 0 ? symbolChanges.componentsChanged : undefined,
   };
 
   return {
