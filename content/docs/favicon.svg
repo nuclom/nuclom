@@ -1,4 +1,14 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="6" fill="#0D9373"/>
-  <text x="6" y="24" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="white">N</text>
+  <defs>
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="32" height="32" rx="7" fill="url(#brandGradient)"/>
+  <!-- Circular progress ring (broken circle) -->
+  <circle cx="16" cy="16" r="9" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="42.4 14.1" transform="rotate(-90 16 16)"/>
+  <!-- Play button triangle -->
+  <polygon points="13,11 13,21 22,16" fill="white"/>
 </svg>
