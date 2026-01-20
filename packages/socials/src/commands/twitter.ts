@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Effect } from 'effect';
 import { createSocialsManager } from '../manager.ts';
 import type { TwitterCredentials } from '../providers/twitter/index.ts';
+import { createSyncService } from '../sync/index.ts';
 
 const manager = createSocialsManager();
 
@@ -426,6 +427,54 @@ export function createTwitterCommand(): Command {
 
         console.log(chalk.green('Authenticated as:'));
         console.log(`${chalk.bold(`@${profile.username}`)} (${profile.displayName})`);
+      });
+
+      await runEffect(effect);
+    });
+
+  // Sync command - sync tweets to git repository
+  twitter
+    .command('sync')
+    .description('Sync tweets to git repository for version control')
+    .option('-n, --limit <count>', 'Number of tweets to sync', '100')
+    .option('--output-dir <dir>', 'Output directory relative to git root', '.nuclom/socials')
+    .option('--markdown', 'Also export as markdown file', false)
+    .option('--json', 'Output result as JSON')
+    .action(async (options) => {
+      const effect = Effect.gen(function* () {
+        const syncService = createSyncService({
+          outputDir: options.outputDir,
+        });
+
+        const result = yield* syncService.syncTweets(manager, 'twitter', {
+          limit: parseInt(options.limit, 10),
+        });
+
+        if (options.markdown) {
+          const mdPath = yield* syncService.exportToMarkdown(manager, 'twitter', {
+            limit: parseInt(options.limit, 10),
+          });
+
+          if (options.json) {
+            console.log(JSON.stringify({ ...result, markdownPath: mdPath }, null, 2));
+          } else {
+            console.log(chalk.green('Tweets synced successfully!'));
+            console.log(`JSON: ${chalk.cyan(result.path)}`);
+            console.log(`Markdown: ${chalk.cyan(mdPath)}`);
+            console.log(`Tweets: ${result.tweetsCount}`);
+          }
+        } else {
+          if (options.json) {
+            console.log(JSON.stringify(result, null, 2));
+          } else {
+            console.log(chalk.green('Tweets synced successfully!'));
+            console.log(`Path: ${chalk.cyan(result.path)}`);
+            console.log(`Tweets: ${result.tweetsCount}`);
+            if (result.isNew) {
+              console.log(chalk.gray('First sync - created new state file'));
+            }
+          }
+        }
       });
 
       await runEffect(effect);

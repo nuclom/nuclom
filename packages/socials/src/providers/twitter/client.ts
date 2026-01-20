@@ -41,10 +41,10 @@ export interface TwitterCredentials extends ProviderCredentials {
 function validateCredentials(credentials: ProviderCredentials): credentials is TwitterCredentials {
   return (
     credentials.provider === 'twitter' &&
-    typeof credentials['apiKey'] === 'string' &&
-    typeof credentials['apiSecret'] === 'string' &&
-    typeof credentials['accessToken'] === 'string' &&
-    typeof credentials['accessSecret'] === 'string'
+    typeof credentials.apiKey === 'string' &&
+    typeof credentials.apiSecret === 'string' &&
+    typeof credentials.accessToken === 'string' &&
+    typeof credentials.accessSecret === 'string'
   );
 }
 
@@ -129,6 +129,7 @@ export class TwitterProvider implements SocialProvider {
       this.client = twitterClient.readWrite;
 
       // Verify credentials by fetching the authenticated user
+      // biome-ignore lint/style/noNonNullAssertion: client is guaranteed to be set above
       const me = yield* Effect.tryPromise({
         try: () => this.client!.v2.me(),
         catch: mapTwitterError,
@@ -206,11 +207,11 @@ export class TwitterProvider implements SocialProvider {
       const updateParams: Record<string, string> = {};
 
       if (update.displayName) {
-        updateParams['name'] = update.displayName;
+        updateParams.name = update.displayName;
       }
 
       if (update.bio) {
-        updateParams['description'] = update.bio;
+        updateParams.description = update.bio;
       }
 
       if (Object.keys(updateParams).length > 0) {
