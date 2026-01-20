@@ -8,7 +8,6 @@
 
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import { db } from '../../../db';
 import {
   contentItems,
   type Decision,
@@ -23,6 +22,7 @@ import {
 import { ContentProcessingError, DatabaseError, NotFoundError } from '../../errors';
 import { AI } from '../ai';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Database, type DrizzleDB } from '../database';
 import { Embedding } from '../embedding';
 
 // =============================================================================
@@ -231,6 +231,7 @@ export class DecisionTracker extends Context.Tag('DecisionTracker')<DecisionTrac
 // =============================================================================
 
 const makeDecisionTracker = (
+  db: DrizzleDB,
   contentRepository: ContentRepositoryService,
   embedding: Context.Tag.Service<Embedding>,
   ai: Context.Tag.Service<AI>,
@@ -932,11 +933,12 @@ Return a JSON array of decisions. If no decisions are found, return an empty arr
 export const DecisionTrackerLive = Layer.effect(
   DecisionTracker,
   Effect.gen(function* () {
+    const { db } = yield* Database;
     const contentRepository = yield* ContentRepository;
     const embeddingService = yield* Embedding;
     const aiService = yield* AI;
 
-    return makeDecisionTracker(contentRepository, embeddingService, aiService);
+    return makeDecisionTracker(db, contentRepository, embeddingService, aiService);
   }),
 );
 

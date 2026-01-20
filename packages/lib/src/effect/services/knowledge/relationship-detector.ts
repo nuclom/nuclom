@@ -11,7 +11,6 @@
 
 import { and, eq, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import { db } from '../../../db';
 import {
   type ContentItem,
   type ContentRelationship,
@@ -22,6 +21,7 @@ import { type ContentProcessingError, DatabaseError } from '../../errors';
 import { cosineSimilarity } from '../../vector-utils';
 import { AI } from '../ai';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Database, type DrizzleDB } from '../database';
 import { Embedding } from '../embedding';
 
 // =============================================================================
@@ -101,6 +101,7 @@ export class RelationshipDetector extends Context.Tag('RelationshipDetector')<
 // =============================================================================
 
 const makeRelationshipDetector = (
+  db: DrizzleDB,
   contentRepository: ContentRepositoryService,
   _embedding: Context.Tag.Service<Embedding>,
   _ai: Context.Tag.Service<AI>,
@@ -581,11 +582,12 @@ function deduplicateCandidates(candidates: RelationshipCandidate[]): Relationshi
 export const RelationshipDetectorLive = Layer.effect(
   RelationshipDetector,
   Effect.gen(function* () {
+    const { db } = yield* Database;
     const contentRepository = yield* ContentRepository;
     const embeddingService = yield* Embedding;
     const aiService = yield* AI;
 
-    return makeRelationshipDetector(contentRepository, embeddingService, aiService);
+    return makeRelationshipDetector(db, contentRepository, embeddingService, aiService);
   }),
 );
 

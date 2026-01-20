@@ -11,7 +11,6 @@
 
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import { db } from '../../../db';
 import {
   contentItems,
   type TopicCluster as TopicClusterType,
@@ -23,6 +22,7 @@ import { ContentProcessingError, DatabaseError, NotFoundError } from '../../erro
 import { calculateCentroid, cosineSimilarity } from '../../vector-utils';
 import { AI } from '../ai';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
+import { Database, type DrizzleDB } from '../database';
 import { Embedding } from '../embedding';
 
 // =============================================================================
@@ -177,6 +177,7 @@ export class TopicCluster extends Context.Tag('TopicCluster')<TopicCluster, Topi
 // =============================================================================
 
 const makeTopicClusterService = (
+  db: DrizzleDB,
   contentRepository: ContentRepositoryService,
   embedding: Context.Tag.Service<Embedding>,
   ai: Context.Tag.Service<AI>,
@@ -881,11 +882,12 @@ Return format: [{"topic": "topic name", "confidence": 0.9}, ...]`,
 export const TopicClusterLive = Layer.effect(
   TopicCluster,
   Effect.gen(function* () {
+    const { db } = yield* Database;
     const contentRepository = yield* ContentRepository;
     const embeddingService = yield* Embedding;
     const aiService = yield* AI;
 
-    return makeTopicClusterService(contentRepository, embeddingService, aiService);
+    return makeTopicClusterService(db, contentRepository, embeddingService, aiService);
   }),
 );
 

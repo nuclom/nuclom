@@ -177,15 +177,15 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
 
 // Knowledge Graph Services - depend on ContentRepository, Embedding, and AI
 const RelationshipDetectorWithDeps = RelationshipDetectorLive.pipe(
-  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
 const TopicClusterWithDeps = TopicClusterLive.pipe(
-  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
 const DecisionTrackerWithDeps = DecisionTrackerLive.pipe(
-  Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
 // Combine application services that have their dependencies resolved
