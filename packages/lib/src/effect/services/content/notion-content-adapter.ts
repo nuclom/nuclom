@@ -29,7 +29,7 @@ import {
 } from '../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
 import { Database } from '../database';
-import type { AdapterFetchOptions, ContentSourceAdapter, RawContentItem } from './types';
+import type { ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
 // Notion API Types
@@ -413,7 +413,7 @@ function pageToRawContentItem(page: NotionPage, content: string, breadcrumb: str
 function databaseEntryToRawContentItem(
   entry: NotionPage,
   databaseTitle: string,
-  schema: Record<string, NotionPropertySchema>,
+  _schema: Record<string, NotionPropertySchema>,
 ): RawContentItem {
   const properties: Record<string, unknown> = {};
   let title = '';

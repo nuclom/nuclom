@@ -6,7 +6,7 @@
 
 import { createFullLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository, exchangeGitHubCode } from '@nuclom/lib/effect/services/content';
-import { env, getAppUrl } from '@nuclom/lib/env/server';
+import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
 import { Effect } from 'effect';
 import { cookies } from 'next/headers';

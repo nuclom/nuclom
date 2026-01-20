@@ -11,7 +11,7 @@
  */
 
 import { and, eq } from 'drizzle-orm';
-import { Context, Effect, Layer, Option } from 'effect';
+import { Context, Effect, Layer } from 'effect';
 import type { ContentSource } from '../../../db/schema';
 import {
   type NewSlackChannelSyncRecord,
@@ -23,9 +23,9 @@ import {
   slackChannelSync,
   slackUsers,
 } from '../../../db/schema';
-import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError, HttpError } from '../../errors';
+import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
 import { Database } from '../database';
-import type { AdapterFetchOptions, ContentSourceAdapter, RawContentItem } from './types';
+import type { ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
 // Types
@@ -150,7 +150,9 @@ export const SLACK_CONTENT_SCOPES = [
 const slackFetch = async <T>(endpoint: string, accessToken: string, params?: Record<string, string>): Promise<T> => {
   const url = new URL(`${SLACK_API_BASE}/${endpoint}`);
   if (params) {
-    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
   }
 
   const response = await fetch(url.toString(), {

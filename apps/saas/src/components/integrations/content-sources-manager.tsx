@@ -6,7 +6,7 @@
  * Manages content source connections for knowledge import (Slack, Notion, GitHub).
  */
 
-import { BookOpen, Loader2, Plus, RefreshCw, Search } from 'lucide-react';
+import { BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   AddContentSourceCard,
@@ -40,15 +40,6 @@ export interface ContentSourcesManagerProps {
   organizationId: string;
 }
 
-interface SourceConfig {
-  type: ContentSourceType;
-  name: string;
-  channels?: string[];
-  users?: string[];
-  databases?: string[];
-  repositories?: string[];
-}
-
 // =============================================================================
 // Component
 // =============================================================================
@@ -60,7 +51,7 @@ export function ContentSourcesManager({ organizationId }: ContentSourcesManagerP
   const [refreshing, setRefreshing] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [configureSourceId, setConfigureSourceId] = useState<string | null>(null);
-  const [configureType, setConfigureType] = useState<ContentSourceType | null>(null);
+  const [_configureType, _setConfigureType] = useState<ContentSourceType | null>(null);
 
   // Load content sources
   const loadSources = useCallback(async () => {
@@ -403,7 +394,13 @@ interface ContentSourceConfigDialogProps {
   onSave: (config: Record<string, unknown>) => Promise<void>;
 }
 
-function ContentSourceConfigDialog({ open, onClose, sourceId, source, onSave }: ContentSourceConfigDialogProps) {
+function ContentSourceConfigDialog({
+  open,
+  onClose,
+  sourceId: _sourceId,
+  source,
+  onSave,
+}: ContentSourceConfigDialogProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
@@ -448,7 +445,7 @@ function ContentSourceConfigDialog({ open, onClose, sourceId, source, onSave }: 
       }
 
       await onSave(config);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to save configuration',

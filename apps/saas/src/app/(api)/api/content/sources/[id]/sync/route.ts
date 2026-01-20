@@ -13,13 +13,7 @@ import {
   resolveParams,
 } from '@nuclom/lib/api-handler';
 import { OrganizationRepository } from '@nuclom/lib/effect';
-import {
-  ContentProcessor,
-  getContentSource,
-  getContentSyncProgress,
-  syncContentSource,
-} from '@nuclom/lib/effect/services/content';
-import { validateRequestBody } from '@nuclom/lib/validation';
+import { getContentSource, getContentSyncProgress, syncContentSource } from '@nuclom/lib/effect/services/content';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -27,7 +21,7 @@ import type { NextRequest } from 'next/server';
 // Schemas
 // =============================================================================
 
-const SyncOptionsSchema = Schema.Struct({
+const _SyncOptionsSchema = Schema.Struct({
   since: Schema.optional(Schema.String),
   until: Schema.optional(Schema.String),
   limit: Schema.optional(Schema.Number),

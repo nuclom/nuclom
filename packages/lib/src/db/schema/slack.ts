@@ -7,7 +7,7 @@
  */
 
 import { relations } from 'drizzle-orm';
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { users } from './auth';
 import { contentSources } from './content';
 

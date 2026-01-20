@@ -275,11 +275,12 @@ const makeDecisionTracker = (
       });
 
       // Add participants if provided
-      if (input.participants && input.participants.length > 0) {
+      const participants = input.participants;
+      if (participants && participants.length > 0) {
         yield* Effect.tryPromise({
           try: () =>
             db.insert(decisionParticipants).values(
-              input.participants!.map((p) => ({
+              participants.map((p) => ({
                 decisionId: result.id,
                 userId: p.userId,
                 speakerName: p.speakerName,
@@ -297,11 +298,12 @@ const makeDecisionTracker = (
       }
 
       // Add evidence if provided
-      if (input.evidence && input.evidence.length > 0) {
+      const evidence = input.evidence;
+      if (evidence && evidence.length > 0) {
         yield* Effect.tryPromise({
           try: () =>
             db.insert(decisionEvidence).values(
-              input.evidence!.map((e) => ({
+              evidence.map((e) => ({
                 organizationId: input.organizationId,
                 decisionId: result.id,
                 contentItemId: e.contentItemId,

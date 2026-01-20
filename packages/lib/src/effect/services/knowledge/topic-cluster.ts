@@ -9,13 +9,11 @@
  * Also tracks topic expertise by identifying who contributes most to each topic.
  */
 
-import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
 import { db } from '../../../db';
 import {
-  type ContentItem,
   contentItems,
-  contentSources,
   type TopicCluster as TopicClusterType,
   topicClusterMembers,
   topicClusters,
@@ -544,7 +542,9 @@ const makeTopicClusterService = (
         if (similarItems.length >= minClusterSize - 1) {
           // Create cluster
           const clusterMembers = [item, ...similarItems];
-          clusterMembers.forEach((m) => clustered.add(m.id));
+          for (const m of clusterMembers) {
+            clustered.add(m.id);
+          }
 
           // Calculate centroid
           const centroid = calculateCentroid(clusterMembers.map((m) => m.embedding));

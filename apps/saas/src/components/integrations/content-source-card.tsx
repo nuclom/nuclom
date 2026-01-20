@@ -19,7 +19,6 @@ import {
   RefreshCw,
   Settings2,
   Trash2,
-  X,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -220,7 +219,7 @@ export function ContentSourceCard({ source, onSync, onDelete, onConfigure }: Con
         title: 'Sync Started',
         description: `${config.name} sync has been started.`,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Sync Failed',
         description: `Failed to start sync for ${config.name}.`,
@@ -239,7 +238,7 @@ export function ContentSourceCard({ source, onSync, onDelete, onConfigure }: Con
         title: 'Source Removed',
         description: `${config.name} source has been disconnected.`,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Delete Failed',
         description: `Failed to remove ${config.name} source.`,

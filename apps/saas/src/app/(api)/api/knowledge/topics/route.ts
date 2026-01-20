@@ -8,7 +8,7 @@
 import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { autoClusterContent, createTopicCluster, TopicCluster } from '@nuclom/lib/effect/services/knowledge';
-import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
+import { validateQueryParams } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -23,7 +23,7 @@ const GetTopicsQuerySchema = Schema.Struct({
   offset: Schema.optional(Schema.NumberFromString),
 });
 
-const CreateTopicSchema = Schema.Struct({
+const _CreateTopicSchema = Schema.Struct({
   organizationId: Schema.String,
   name: Schema.String,
   description: Schema.optional(Schema.String),
@@ -31,7 +31,7 @@ const CreateTopicSchema = Schema.Struct({
   parentClusterId: Schema.optional(Schema.String),
 });
 
-const AutoClusterSchema = Schema.Struct({
+const _AutoClusterSchema = Schema.Struct({
   organizationId: Schema.String,
   sourceId: Schema.optional(Schema.String),
   minClusterSize: Schema.optional(Schema.Number),

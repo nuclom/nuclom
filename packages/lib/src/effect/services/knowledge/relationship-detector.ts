@@ -100,7 +100,7 @@ export class RelationshipDetector extends Context.Tag('RelationshipDetector')<
 // =============================================================================
 
 // URL patterns for different content types
-const URL_PATTERNS = {
+const _URL_PATTERNS = {
   github_pr: /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/gi,
   github_issue: /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/gi,
   github_discussion: /github\.com\/([^/]+)\/([^/]+)\/discussions\/(\d+)/gi,
@@ -111,7 +111,7 @@ const URL_PATTERNS = {
 };
 
 // Mention patterns
-const MENTION_PATTERNS = {
+const _MENTION_PATTERNS = {
   github_mention: /@([a-zA-Z0-9_-]+)/gi,
   slack_user: /<@([A-Z0-9]+)>/gi,
   slack_channel: /<#([A-Z0-9]+)\|([^>]+)>/gi,
@@ -123,8 +123,8 @@ const MENTION_PATTERNS = {
 
 const makeRelationshipDetector = (
   contentRepository: ContentRepositoryService,
-  embedding: Context.Tag.Service<Embedding>,
-  ai: Context.Tag.Service<AI>,
+  _embedding: Context.Tag.Service<Embedding>,
+  _ai: Context.Tag.Service<AI>,
 ): RelationshipDetectorService => ({
   detectForItem: (itemId, options = {}) =>
     Effect.gen(function* () {
@@ -415,12 +415,12 @@ function detectExplicitReferences(sourceItem: ContentItem, targetItems: ContentI
  * Detect semantic similarity between items using embeddings
  */
 function detectSemanticSimilarity(
-  contentRepository: ContentRepositoryService,
+  _contentRepository: ContentRepositoryService,
   sourceItem: ContentItem,
   targetItems: ContentItem[],
   minSimilarity: number,
 ): Effect.Effect<RelationshipCandidate[], DatabaseError> {
-  return Effect.gen(function* () {
+  return Effect.sync(() => {
     const candidates: RelationshipCandidate[] = [];
 
     if (!sourceItem.embeddingVector) {

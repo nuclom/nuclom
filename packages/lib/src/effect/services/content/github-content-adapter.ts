@@ -24,7 +24,6 @@ import {
   githubFileCache,
   githubRepoSync,
   githubUsers,
-  type NewGitHubFileCacheRecord,
   type NewGitHubRepoSyncRecord,
   type NewGitHubUser,
 } from '../../../db/schema';
