@@ -3,15 +3,15 @@
   "theme": "maple",
   "name": "Nuclom",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#10B981"
+    "primary": "#5B3AFF",
+    "light": "#7B5AFF",
+    "dark": "#8B6AFF"
   },
   "background": {
     "decoration": "grid"
   },
   "fonts": {
-    "family": "Geist"
+    "family": "Inter"
   },
   "icons": {
     "library": "fontawesome"
