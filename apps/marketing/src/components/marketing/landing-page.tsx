@@ -10,11 +10,9 @@ import {
   Globe,
   Layers,
   Link2,
-  Lock,
   MessageSquare,
   Network,
   Search,
-  Share2,
   Shield,
   Sparkles,
   Star,
@@ -54,8 +52,8 @@ export function LandingPage() {
           </h2>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights surface decisions,
-            track expertise, and connect ideas across your entire organization.
+            Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights surface decisions, track
+            expertise, and connect ideas across your entire organization.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -282,8 +280,8 @@ export function LandingPage() {
               </Badge>
               <h3 className="text-4xl md:text-5xl font-bold">Let AI Connect the Dots</h3>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Our AI processes content from every source, discovers relationships, extracts decisions, and builds
-                a living knowledge graph that grows smarter over time.
+                Our AI processes content from every source, discovers relationships, extracts decisions, and builds a
+                living knowledge graph that grows smarter over time.
               </p>
 
               <ul className="space-y-4">
@@ -293,7 +291,9 @@ export function LandingPage() {
                   </div>
                   <div>
                     <span className="font-medium">Cross-Source Analysis</span>
-                    <p className="text-sm text-muted-foreground">Connect insights from Slack, Notion, GitHub, and videos</p>
+                    <p className="text-sm text-muted-foreground">
+                      Connect insights from Slack, Notion, GitHub, and videos
+                    </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -311,7 +311,9 @@ export function LandingPage() {
                   </div>
                   <div>
                     <span className="font-medium">Decision Extraction</span>
-                    <p className="text-sm text-muted-foreground">Surface decisions from meetings, chats, and documents</p>
+                    <p className="text-sm text-muted-foreground">
+                      Surface decisions from meetings, chats, and documents
+                    </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -589,8 +591,8 @@ export function LandingPage() {
                 forgotten.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                We're building the unified knowledge layer that connects everything, surfaces insights, and ensures
-                your team never loses institutional knowledge again.
+                We're building the unified knowledge layer that connects everything, surfaces insights, and ensures your
+                team never loses institutional knowledge again.
               </p>
             </div>
             <div className="relative">

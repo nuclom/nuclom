@@ -161,7 +161,8 @@ export default function SupportPage() {
                   <CardContent>
                     <p className="text-muted-foreground">
                       We support Slack messages and threads, Notion pages and databases, GitHub PRs, issues, and
-                      discussions, plus video uploads (MP4, MOV, AVI, MKV) and meeting imports from Zoom and Google Meet.
+                      discussions, plus video uploads (MP4, MOV, AVI, MKV) and meeting imports from Zoom and Google
+                      Meet.
                     </p>
                   </CardContent>
                 </Card>
@@ -185,7 +186,8 @@ export default function SupportPage() {
                   <CardContent>
                     <p className="text-muted-foreground">
                       When you connect a source, content is automatically synced and processed. AI generates embeddings
-                      for semantic search, extracts decisions, identifies topics, and discovers relationships between content.
+                      for semantic search, extracts decisions, identifies topics, and discovers relationships between
+                      content.
                     </p>
                   </CardContent>
                 </Card>

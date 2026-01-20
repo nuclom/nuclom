@@ -44,7 +44,7 @@ const featureCategories = [
   {
     id: 'knowledge-sources',
     title: 'Knowledge Sources',
-    description: 'Connect all your organization\'s knowledge in one place',
+    description: "Connect all your organization's knowledge in one place",
     icon: Layers,
     color: 'from-violet-500/20 to-violet-500/5',
     features: [
@@ -75,8 +75,7 @@ const featureCategories = [
       {
         icon: Webhook,
         title: 'Webhooks & API',
-        description:
-          'Connect any custom source via our API and webhooks. Build integrations for your unique workflow.',
+        description: 'Connect any custom source via our API and webhooks. Build integrations for your unique workflow.',
       },
       {
         icon: Clock,
@@ -114,8 +113,7 @@ const featureCategories = [
       {
         icon: Lightbulb,
         title: 'Decision Extraction',
-        description:
-          'AI surfaces decisions from meetings, chats, and documents. Never lose track of what was decided.',
+        description: 'AI surfaces decisions from meetings, chats, and documents. Never lose track of what was decided.',
       },
       {
         icon: Users,
@@ -126,20 +124,17 @@ const featureCategories = [
       {
         icon: Search,
         title: 'Semantic Search',
-        description:
-          'Find knowledge by meaning, not just keywords. AI understands what you\'re looking for.',
+        description: "Find knowledge by meaning, not just keywords. AI understands what you're looking for.",
       },
       {
         icon: Mic,
         title: 'Video Transcription',
-        description:
-          'Accurate speech-to-text with speaker diarization. Search and navigate video content like text.',
+        description: 'Accurate speech-to-text with speaker diarization. Search and navigate video content like text.',
       },
       {
         icon: Sparkles,
         title: 'Embeddings & Vectors',
-        description:
-          'All content is embedded for semantic similarity. Find related content across all your sources.',
+        description: 'All content is embedded for semantic similarity. Find related content across all your sources.',
       },
     ],
   },
@@ -153,38 +148,32 @@ const featureCategories = [
       {
         icon: Lightbulb,
         title: 'Decision Tracking',
-        description:
-          'Capture decisions from any source with full context, rationale, participants, and outcomes.',
+        description: 'Capture decisions from any source with full context, rationale, participants, and outcomes.',
       },
       {
         icon: Network,
         title: 'Relationship Discovery',
-        description:
-          'AI discovers how content relates: references, follow-ups, contradictions, and implementations.',
+        description: 'AI discovers how content relates: references, follow-ups, contradictions, and implementations.',
       },
       {
         icon: Users,
         title: 'Expertise Mapping',
-        description:
-          'See who knows what. Topic expertise scores are calculated from contributions across all sources.',
+        description: 'See who knows what. Topic expertise scores are calculated from contributions across all sources.',
       },
       {
         icon: Link2,
         title: 'Cross-Source Links',
-        description:
-          'Connect Slack discussions to Notion docs to GitHub PRs. Full traceability across your tools.',
+        description: 'Connect Slack discussions to Notion docs to GitHub PRs. Full traceability across your tools.',
       },
       {
         icon: Clock,
         title: 'Decision Timeline',
-        description:
-          'View the history of decisions on any topic. Understand how your organization\'s thinking evolved.',
+        description: "View the history of decisions on any topic. Understand how your organization's thinking evolved.",
       },
       {
         icon: BarChart3,
         title: 'Knowledge Analytics',
-        description:
-          'Identify knowledge gaps, stale documentation, and topics that need attention.',
+        description: 'Identify knowledge gaps, stale documentation, and topics that need attention.',
       },
     ],
   },
@@ -198,14 +187,12 @@ const featureCategories = [
       {
         icon: Share2,
         title: 'Smart Sharing',
-        description:
-          'Share knowledge with your team or external viewers. Control access with granular permissions.',
+        description: 'Share knowledge with your team or external viewers. Control access with granular permissions.',
       },
       {
         icon: Bell,
         title: 'Notifications & Alerts',
-        description:
-          'Stay informed about new content, decisions, and team activity with customizable notifications.',
+        description: 'Stay informed about new content, decisions, and team activity with customizable notifications.',
       },
       {
         icon: Users,
