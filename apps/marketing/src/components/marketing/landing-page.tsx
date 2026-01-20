@@ -5,18 +5,17 @@ import {
   Bot,
   Brain,
   Check,
+  FileText,
   Github,
   Globe,
-  Lock,
+  Layers,
+  Link2,
   MessageSquare,
   Network,
-  Play,
-  Scissors,
-  Share2,
+  Search,
   Shield,
   Sparkles,
   Star,
-  Upload,
   Users,
   Video,
   Webhook,
@@ -43,18 +42,18 @@ export function LandingPage() {
           <div className="flex items-center justify-center mb-6">
             <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm font-medium">
               <Star className="w-4 h-4 mr-2" />
-              Video Collaboration Platform
+              Unified Knowledge Hub
             </Badge>
           </div>
 
           <h2 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-            Collaborate on Videos
-            <span className="text-primary block mt-2">Like Never Before</span>
+            All Your Knowledge
+            <span className="text-primary block mt-2">One Intelligent Hub</span>
           </h2>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Streamline your video workflow with real-time collaboration, AI-powered insights, and seamless sharing
-            across teams and organizations.
+            Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights surface decisions, track
+            expertise, and connect ideas across your entire organization.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
@@ -76,12 +75,12 @@ export function LandingPage() {
               <span>Enterprise Security</span>
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              <span>Lightning Fast</span>
+              <Brain className="w-5 h-5 text-primary" />
+              <span>AI-Powered</span>
             </div>
             <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" />
-              <span>Global CDN</span>
+              <Layers className="w-5 h-5 text-primary" />
+              <span>Multi-Source</span>
             </div>
           </div>
         </div>
@@ -96,7 +95,7 @@ export function LandingPage() {
             </Badge>
             <h3 className="text-4xl md:text-5xl font-bold mb-6">Get Started in Minutes</h3>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From upload to collaboration, Nuclom makes video teamwork effortless
+              Connect your sources, let AI process the content, and discover insights across everything
             </p>
           </div>
 
@@ -105,33 +104,33 @@ export function LandingPage() {
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                 1
               </div>
-              <h4 className="text-xl font-semibold mb-3">Upload Your Videos</h4>
+              <h4 className="text-xl font-semibold mb-3">Connect Your Sources</h4>
               <p className="text-muted-foreground">
-                Drag and drop videos or import from your favorite cloud storage. We handle all the processing.
+                Link Slack workspaces, Notion sites, GitHub repos, and upload videos. One-click OAuth setup.
               </p>
-              <Upload className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+              <Link2 className="w-12 h-12 text-primary/20 mx-auto mt-6" />
             </div>
 
             <div className="relative text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                 2
               </div>
-              <h4 className="text-xl font-semibold mb-3">Invite Your Team</h4>
+              <h4 className="text-xl font-semibold mb-3">AI Processes Everything</h4>
               <p className="text-muted-foreground">
-                Create organizations and invite team members. Control access with granular permissions.
+                Content is automatically synced, analyzed, and connected. Decisions, topics, and expertise emerge.
               </p>
-              <Users className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+              <Brain className="w-12 h-12 text-primary/20 mx-auto mt-6" />
             </div>
 
             <div className="relative text-center">
               <div className="w-16 h-16 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold shadow-lg">
                 3
               </div>
-              <h4 className="text-xl font-semibold mb-3">Extract Insights</h4>
+              <h4 className="text-xl font-semibold mb-3">Discover & Search</h4>
               <p className="text-muted-foreground">
-                AI extracts key decisions, action items, and summaries. Build your team's knowledge base.
+                Find any knowledge instantly. See who knows what. Track decisions across all sources.
               </p>
-              <Network className="w-12 h-12 text-primary/20 mx-auto mt-6" />
+              <Search className="w-12 h-12 text-primary/20 mx-auto mt-6" />
             </div>
           </div>
         </div>
@@ -146,7 +145,7 @@ export function LandingPage() {
             </Badge>
             <h3 className="text-4xl md:text-5xl font-bold mb-6">Everything You Need</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Powerful features to transform your video collaboration workflow
+              Powerful features to unify and unlock your organization's knowledge
             </p>
           </div>
 
@@ -154,35 +153,47 @@ export function LandingPage() {
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <MessageSquare className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Slack Integration</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Sync conversations, threads, and announcements. Capture decisions made in real-time discussions.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <FileText className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Notion Integration</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Connect wikis, project notes, and documentation. Keep your knowledge graph in sync with your docs.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Github className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">GitHub Integration</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Index PRs, issues, and discussions. Link code decisions to conversations and documentation.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Video className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">Smart Video Management</CardTitle>
+                <CardTitle className="text-xl mb-3">Video & Meetings</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Organize videos with channels, series, and collections. Track watch history and bookmark content.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Users className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3">Team Collaboration</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Real-time presence, activity feeds, smart sharing, and notifications for seamless teamwork.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Brain className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3">AI-Powered Analysis</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Transcription, speaker diarization, summaries, chapters, and key moment detection.
+                  Upload recordings, import from Zoom and Meet. AI transcription extracts every insight.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -194,7 +205,7 @@ export function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Knowledge Graph</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Track decisions, link to GitHub PRs/issues, and build organizational knowledge from videos.
+                  Auto-discover relationships between content. See how ideas connect across all your sources.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -202,11 +213,35 @@ export function LandingPage() {
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Scissors className="w-8 h-8 text-primary" />
+                  <BarChart3 className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="text-xl mb-3">Clipping & Highlights</CardTitle>
+                <CardTitle className="text-xl mb-3">Decision Tracking</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  Create clips from key moments and compile highlight reels for easy sharing.
+                  Never lose a decision again. Track rationale, participants, and outcomes across all channels.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Users className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Expertise Mapping</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Discover who knows what. AI identifies subject matter experts from their contributions.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Search className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Unified Search</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Search across all sources at once. Semantic search understands what you mean, not just keywords.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -218,43 +253,7 @@ export function LandingPage() {
                 </div>
                 <CardTitle className="text-xl mb-3">Enterprise Security</CardTitle>
                 <CardDescription className="text-base leading-relaxed">
-                  SSO/SAML, 2FA, passkeys, role-based access, audit logs, and GDPR compliance.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Share2 className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3">Flexible Sharing</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Shareable links, password protection, embeddable players, and link expiration controls.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <Webhook className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3">Powerful Integrations</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  Zoom, Google Meet, Slack, Teams, GitHub, plus webhooks and comprehensive API access.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                  <BarChart3 className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="text-xl mb-3">Analytics & Insights</CardTitle>
-                <CardDescription className="text-base leading-relaxed">
-                  View counts, watch time, engagement metrics, share analytics, and team activity tracking.
+                  SSO/SAML, encrypted credentials, role-based access, audit logs, and GDPR compliance.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -279,10 +278,10 @@ export function LandingPage() {
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered
               </Badge>
-              <h3 className="text-4xl md:text-5xl font-bold">Let AI Do the Heavy Lifting</h3>
+              <h3 className="text-4xl md:text-5xl font-bold">Let AI Connect the Dots</h3>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Our AI understands your videos, generates accurate transcripts, identifies speakers, and extracts key
-                moments, saving your team hours of manual work.
+                Our AI processes content from every source, discovers relationships, extracts decisions, and builds a
+                living knowledge graph that grows smarter over time.
               </p>
 
               <ul className="space-y-4">
@@ -291,8 +290,10 @@ export function LandingPage() {
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <span className="font-medium">Automatic Transcription</span>
-                    <p className="text-sm text-muted-foreground">Accurate speech-to-text in multiple languages</p>
+                    <span className="font-medium">Cross-Source Analysis</span>
+                    <p className="text-sm text-muted-foreground">
+                      Connect insights from Slack, Notion, GitHub, and videos
+                    </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -300,8 +301,8 @@ export function LandingPage() {
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <span className="font-medium">Speaker Diarization</span>
-                    <p className="text-sm text-muted-foreground">Identify and label different speakers automatically</p>
+                    <span className="font-medium">Auto Topic Clustering</span>
+                    <p className="text-sm text-muted-foreground">Automatically group related content into topics</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -309,8 +310,10 @@ export function LandingPage() {
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <span className="font-medium">Key Moment Detection</span>
-                    <p className="text-sm text-muted-foreground">Auto-detect decisions, questions, and highlights</p>
+                    <span className="font-medium">Decision Extraction</span>
+                    <p className="text-sm text-muted-foreground">
+                      Surface decisions from meetings, chats, and documents
+                    </p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -318,8 +321,8 @@ export function LandingPage() {
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <span className="font-medium">Smart Summaries & Chapters</span>
-                    <p className="text-sm text-muted-foreground">Get the key points with auto-generated chapters</p>
+                    <span className="font-medium">Expertise Detection</span>
+                    <p className="text-sm text-muted-foreground">Know who to ask based on contribution history</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -327,8 +330,8 @@ export function LandingPage() {
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <span className="font-medium">Action Item Extraction</span>
-                    <p className="text-sm text-muted-foreground">Never miss a task or follow-up mentioned in videos</p>
+                    <span className="font-medium">Smart Summaries</span>
+                    <p className="text-sm text-muted-foreground">Get digests of activity across your organization</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -337,7 +340,7 @@ export function LandingPage() {
                   </div>
                   <div>
                     <span className="font-medium">Semantic Search</span>
-                    <p className="text-sm text-muted-foreground">Find any moment by searching what was said</p>
+                    <p className="text-sm text-muted-foreground">Find knowledge by meaning, not just keywords</p>
                   </div>
                 </li>
               </ul>
@@ -347,7 +350,7 @@ export function LandingPage() {
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shadow-2xl">
                 <div className="text-center">
                   <Bot className="w-20 h-20 text-primary mx-auto mb-4" />
-                  <p className="text-lg font-medium text-primary">AI Analysis in Action</p>
+                  <p className="text-lg font-medium text-primary">Knowledge Intelligence</p>
                 </div>
               </div>
             </div>
@@ -360,66 +363,72 @@ export function LandingPage() {
         <div className="w-full max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
-              Integrations
+              Knowledge Sources
             </Badge>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">Works With Your Tools</h3>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Connect Where Your Team Works</h3>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect Nuclom with the tools you already use for a seamless workflow
+              One-click OAuth to connect your knowledge sources. Automatic sync keeps everything up to date.
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-2 border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <Video className="w-8 h-8" />
-                </div>
-                <span className="font-medium">Zoom</span>
-              </CardContent>
-            </Card>
-
-            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <Video className="w-8 h-8" />
-                </div>
-                <span className="font-medium">Google Meet</span>
-              </CardContent>
-            </Card>
-
-            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <MessageSquare className="w-8 h-8" />
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                  <MessageSquare className="w-8 h-8 text-primary" />
                 </div>
                 <span className="font-medium">Slack</span>
+                <span className="text-xs text-muted-foreground mt-1">Conversations</span>
               </CardContent>
             </Card>
 
-            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-2 border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <Users className="w-8 h-8" />
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                  <FileText className="w-8 h-8 text-primary" />
                 </div>
-                <span className="font-medium">MS Teams</span>
+                <span className="font-medium">Notion</span>
+                <span className="text-xs text-muted-foreground mt-1">Documentation</span>
               </CardContent>
             </Card>
 
-            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-2 border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <CardContent className="flex flex-col items-center justify-center py-8">
-                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <Github className="w-8 h-8" />
+                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                  <Github className="w-8 h-8 text-primary" />
                 </div>
                 <span className="font-medium">GitHub</span>
+                <span className="text-xs text-muted-foreground mt-1">Code & Issues</span>
               </CardContent>
             </Card>
 
             <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <CardContent className="flex flex-col items-center justify-center py-8">
                 <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
-                  <Lock className="w-8 h-8" />
+                  <Video className="w-8 h-8" />
                 </div>
-                <span className="font-medium">SSO/SAML</span>
+                <span className="font-medium">Videos</span>
+                <span className="text-xs text-muted-foreground mt-1">Meetings</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <Webhook className="w-8 h-8" />
+                </div>
+                <span className="font-medium">Webhooks</span>
+                <span className="text-xs text-muted-foreground mt-1">Real-time</span>
+              </CardContent>
+            </Card>
+
+            <Card className="border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center mb-4">
+                  <Globe className="w-8 h-8" />
+                </div>
+                <span className="font-medium">API</span>
+                <span className="text-xs text-muted-foreground mt-1">Custom</span>
               </CardContent>
             </Card>
           </div>
@@ -468,19 +477,19 @@ export function LandingPage() {
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>AI transcription &amp; summaries</span>
+                    <span>3 knowledge sources</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Action item extraction</span>
+                    <span>AI processing &amp; summaries</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>API access &amp; webhooks</span>
+                    <span>Unified search</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Zoom &amp; Google Meet import</span>
+                    <span>Decision tracking</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
@@ -528,19 +537,19 @@ export function LandingPage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
+                    <span>Unlimited knowledge sources</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary" />
                     <span>SSO / SAML authentication</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Custom branding</span>
+                    <span>Knowledge graph analytics</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary" />
                     <span>Priority support &amp; SLA</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-primary" />
-                    <span>Dedicated account manager</span>
                   </li>
                 </ul>
                 <Button className="w-full mt-6" asChild>
@@ -567,9 +576,9 @@ export function LandingPage() {
             <Badge variant="outline" className="mb-4 px-4 py-2">
               About
             </Badge>
-            <h3 className="text-4xl md:text-5xl font-bold mb-6">Built for the Future of Video Collaboration</h3>
+            <h3 className="text-4xl md:text-5xl font-bold mb-6">Built for the Future of Knowledge Work</h3>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              We're reimagining how teams work with video content, making collaboration seamless and intuitive.
+              We're reimagining how teams capture, organize, and discover organizational knowledge.
             </p>
           </div>
 
@@ -577,18 +586,18 @@ export function LandingPage() {
             <div className="space-y-6">
               <h4 className="text-3xl font-bold">Our Mission</h4>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                At Nuclom, we believe that video is the future of communication. Our platform removes the barriers that
-                prevent teams from collaborating effectively on video content, enabling creativity and productivity like
-                never before.
+                At Nuclom, we believe that organizational knowledge is scattered across too many tools. Decisions get
+                lost in Slack threads, context lives in Notion pages, discussions happen on GitHub, and meetings are
+                forgotten.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Whether you're a content creator, educator, or enterprise team, our tools adapt to your workflow and
-                scale with your needs.
+                We're building the unified knowledge layer that connects everything, surfaces insights, and ensures your
+                team never loses institutional knowledge again.
               </p>
             </div>
             <div className="relative">
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shadow-xl">
-                <Play className="w-16 h-16 text-primary" />
+                <Network className="w-16 h-16 text-primary" />
               </div>
             </div>
           </div>
@@ -602,9 +611,9 @@ export function LandingPage() {
           <Badge variant="outline" className="mb-6 px-4 py-2">
             Ready to start?
           </Badge>
-          <h3 className="text-4xl md:text-5xl font-bold mb-6">Ready to Transform Your Video Workflow?</h3>
+          <h3 className="text-4xl md:text-5xl font-bold mb-6">Ready to Unify Your Organization's Knowledge?</h3>
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-            Start collaborating more effectively with Nuclom today
+            Connect your first source in minutes. Start discovering insights today.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button size="lg" asChild className="px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all">
