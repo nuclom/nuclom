@@ -1,24 +1,33 @@
 /**
- * API: Content Source Users
+ * Content Source Users API Route
  *
- * GET /api/content/sources/[id]/users - List external users from this source
- *
- * Query params:
- * - linked: 'true' | 'false' | undefined - Filter by link status
+ * GET /api/content/sources/[id]/users - List external users from a content source
  */
 
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
 import { db } from '@nuclom/lib/db';
-import { contentItems, contentParticipants, members, users } from '@nuclom/lib/db/schema';
+import { contentItems, contentParticipants, users } from '@nuclom/lib/db/schema';
+import { githubUsers } from '@nuclom/lib/db/schema/github';
+import { notionUsers } from '@nuclom/lib/db/schema/notion';
+import { slackUsers } from '@nuclom/lib/db/schema/slack';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource } from '@nuclom/lib/effect/services/content';
-import { and, eq, isNotNull } from 'drizzle-orm';
+import { and, count, eq, isNotNull, isNull } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Types
 // =============================================================================
+
+interface Suggestion {
+  userId: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  confidence: number;
+  reason: string;
+}
 
 interface ExternalUser {
   externalId: string;
@@ -29,232 +38,273 @@ interface ExternalUser {
   linkedUserName: string | null;
   linkedUserEmail: string | null;
   linkedUserImage: string | null;
-  // Suggested matches based on email/name
-  suggestions: Array<{
-    userId: string;
-    name: string | null;
-    email: string | null;
-    image: string | null;
-    confidence: number;
-    reason: string;
-  }>;
+  suggestions: Suggestion[];
+}
+
+interface UsersResponse {
+  users: ExternalUser[];
+  total: number;
+  linked: number;
+  unlinked: number;
 }
 
 // =============================================================================
-// Constants
-// =============================================================================
-
-const MAX_SUGGESTIONS = 3;
-
-// =============================================================================
-// GET /api/content/sources/[id]/users
+// GET - List External Users
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    const { id: sourceId } = yield* resolveParams(params);
-    const url = new URL(request.url);
-    const linkedFilter = url.searchParams.get('linked');
-
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Fetch source using repository service
+    // Resolve params
+    const { id: sourceId } = yield* resolveParams(params);
+
+    // Get content source
     const source = yield* getContentSource(sourceId);
 
-    // Verify user has access to the organization
+    // Verify org membership
     const orgRepo = yield* OrganizationRepository;
     yield* orgRepo.isMember(user.id, source.organizationId);
 
-    // Get unique external users from both contentItems (authorExternal) and contentParticipants (externalId)
-    // We'll use UNION to combine both sources
+    // Parse query params
+    const { searchParams } = new URL(request.url);
+    const linkedFilter = searchParams.get('linked');
 
-    // First, get external users from contentItems
-    const itemAuthors = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({
-            externalId: contentItems.authorExternal,
-            name: contentItems.authorName,
-            linkedUserId: contentItems.authorId,
-          })
-          .from(contentItems)
-          .where(and(eq(contentItems.sourceId, sourceId), isNotNull(contentItems.authorExternal))),
-      catch: (e) => new Error(`Failed to fetch item authors: ${e}`),
-    });
+    // Get external users based on source type
+    let externalUsers: ExternalUser[] = [];
 
-    // Second, get external users from contentParticipants
-    const participants = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({
-            externalId: contentParticipants.externalId,
-            name: contentParticipants.name,
-            email: contentParticipants.email,
-            linkedUserId: contentParticipants.userId,
-          })
-          .from(contentParticipants)
-          .innerJoin(contentItems, eq(contentParticipants.contentItemId, contentItems.id))
-          .where(and(eq(contentItems.sourceId, sourceId), isNotNull(contentParticipants.externalId))),
-      catch: (e) => new Error(`Failed to fetch participants: ${e}`),
-    });
-
-    // Combine and dedupe by externalId
-    const externalUserMap = new Map<
-      string,
-      { name: string; email: string | null; linkedUserId: string | null; count: number }
-    >();
-
-    for (const author of itemAuthors) {
-      if (author.externalId) {
-        const existing = externalUserMap.get(author.externalId);
-        if (existing) {
-          existing.count++;
-          // Keep the most recent linkedUserId if any
-          if (author.linkedUserId) existing.linkedUserId = author.linkedUserId;
-        } else {
-          externalUserMap.set(author.externalId, {
-            name: author.name || author.externalId,
-            email: null,
-            linkedUserId: author.linkedUserId,
-            count: 1,
-          });
-        }
-      }
+    if (source.type === 'slack') {
+      externalUsers = yield* getSlackUsers(sourceId, linkedFilter);
+    } else if (source.type === 'notion') {
+      externalUsers = yield* getNotionUsers(sourceId, linkedFilter);
+    } else if (source.type === 'github') {
+      externalUsers = yield* getGitHubUsers(sourceId, linkedFilter);
     }
 
-    for (const participant of participants) {
-      if (participant.externalId) {
-        const existing = externalUserMap.get(participant.externalId);
-        if (existing) {
-          existing.count++;
-          // Keep email if we find one
-          if (participant.email && !existing.email) existing.email = participant.email;
-          // Keep the most recent linkedUserId if any
-          if (participant.linkedUserId) existing.linkedUserId = participant.linkedUserId;
-        } else {
-          externalUserMap.set(participant.externalId, {
-            name: participant.name || participant.externalId,
-            email: participant.email,
-            linkedUserId: participant.linkedUserId,
-            count: 1,
-          });
-        }
-      }
-    }
-
-    // Apply linked filter
-    let filteredEntries = Array.from(externalUserMap.entries());
-    if (linkedFilter === 'true') {
-      filteredEntries = filteredEntries.filter(([, data]) => data.linkedUserId !== null);
-    } else if (linkedFilter === 'false') {
-      filteredEntries = filteredEntries.filter(([, data]) => data.linkedUserId === null);
-    }
-
-    // Get org members for suggestions and to resolve linked user details
+    // Get org members for suggestions
     const orgMembers = yield* Effect.tryPromise({
       try: () =>
-        db
-          .select({
-            userId: users.id,
-            name: users.name,
-            email: users.email,
-            image: users.image,
-          })
-          .from(members)
-          .innerJoin(users, eq(members.userId, users.id))
-          .where(eq(members.organizationId, source.organizationId)),
-      catch: (e) => new Error(`Failed to fetch org members: ${e}`),
-    });
+        db.query.members.findMany({
+          where: (members, { eq }) => eq(members.organizationId, source.organizationId),
+          with: { user: true },
+        }),
+      catch: () => new Error('Failed to get org members'),
+    }).pipe(
+      Effect.catchAll(() =>
+        Effect.succeed(
+          [] as {
+            userId: string;
+            user: { id: string; name: string | null; email: string | null; image: string | null };
+          }[],
+        ),
+      ),
+    );
 
-    // Build result with suggestions
-    const result: ExternalUser[] = filteredEntries.map(([externalId, data]) => {
-      // Find linked user details if any
-      const linkedUser = data.linkedUserId ? orgMembers.find((m) => m.userId === data.linkedUserId) : null;
-
-      // Generate suggestions based on email and name matching
-      const suggestions: ExternalUser['suggestions'] = [];
-
-      if (!data.linkedUserId) {
-        for (const member of orgMembers) {
-          let confidence = 0;
-          let reason = '';
-
-          // Exact email match is high confidence
-          if (data.email && member.email && data.email.toLowerCase() === member.email.toLowerCase()) {
-            confidence = 0.95;
-            reason = 'Email match';
-          }
-          // Name contains match
-          else if (
-            member.name &&
-            data.name &&
-            (member.name.toLowerCase().includes(data.name.toLowerCase()) ||
-              data.name.toLowerCase().includes(member.name.toLowerCase()))
-          ) {
-            confidence = 0.7;
-            reason = 'Name similarity';
-          }
-          // Email username matches name
-          else if (member.email && data.name) {
-            const emailUsername = member.email
-              .split('@')[0]
-              ?.toLowerCase()
-              .replace(/[^a-z]/g, '');
-            const nameLower = data.name.toLowerCase().replace(/[^a-z]/g, '');
-            if (
-              emailUsername &&
-              nameLower &&
-              (emailUsername.includes(nameLower) || nameLower.includes(emailUsername))
-            ) {
-              confidence = 0.5;
-              reason = 'Email/name correlation';
-            }
-          }
-
-          if (confidence > 0) {
-            suggestions.push({
-              userId: member.userId,
-              name: member.name,
-              email: member.email,
-              image: member.image,
-              confidence,
-              reason,
-            });
-          }
+    // Add suggestions based on email matching
+    for (const extUser of externalUsers) {
+      if (extUser.email && !extUser.linkedUserId) {
+        const emailMatch = orgMembers.find((m) => m.user.email?.toLowerCase() === extUser.email?.toLowerCase());
+        if (emailMatch) {
+          extUser.suggestions.push({
+            userId: emailMatch.userId,
+            name: emailMatch.user.name,
+            email: emailMatch.user.email,
+            image: emailMatch.user.image,
+            confidence: 0.95,
+            reason: 'Email match',
+          });
         }
-
-        // Sort suggestions by confidence
-        suggestions.sort((a, b) => b.confidence - a.confidence);
       }
+    }
 
-      return {
-        externalId,
-        name: data.name,
-        email: data.email,
-        itemCount: data.count,
-        linkedUserId: data.linkedUserId,
-        linkedUserName: linkedUser?.name || null,
-        linkedUserEmail: linkedUser?.email || null,
-        linkedUserImage: linkedUser?.image || null,
-        suggestions: suggestions.slice(0, MAX_SUGGESTIONS),
-      };
-    });
+    const linked = externalUsers.filter((u) => u.linkedUserId !== null).length;
+    const unlinked = externalUsers.filter((u) => u.linkedUserId === null).length;
 
-    // Sort by item count (most active users first)
-    result.sort((a, b) => b.itemCount - a.itemCount);
-
-    return {
-      users: result,
-      total: result.length,
-      linked: result.filter((u) => u.linkedUserId !== null).length,
-      unlinked: result.filter((u) => u.linkedUserId === null).length,
+    const response: UsersResponse = {
+      users: externalUsers,
+      total: externalUsers.length,
+      linked,
+      unlinked,
     };
+
+    return response;
   });
 
   const runnable = Effect.provide(effect, createFullLayer());
   const exit = await Effect.runPromiseExit(runnable);
-
   return handleEffectExit(exit);
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+function getSlackUsers(sourceId: string, linkedFilter: string | null) {
+  return Effect.tryPromise({
+    try: async () => {
+      // Build where clause
+      const conditions = [eq(slackUsers.sourceId, sourceId)];
+      if (linkedFilter === 'true') {
+        conditions.push(isNotNull(slackUsers.userId));
+      } else if (linkedFilter === 'false') {
+        conditions.push(isNull(slackUsers.userId));
+      }
+
+      // Get users with linked user info
+      const usersWithInfo = await db
+        .select({
+          externalId: slackUsers.slackUserId,
+          name: slackUsers.displayName,
+          email: slackUsers.email,
+          linkedUserId: slackUsers.userId,
+          linkedUser: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            image: users.image,
+          },
+        })
+        .from(slackUsers)
+        .leftJoin(users, eq(slackUsers.userId, users.id))
+        .where(and(...conditions));
+
+      // Get item counts per external user
+      const itemCounts = await db
+        .select({
+          externalId: contentParticipants.externalId,
+          count: count(),
+        })
+        .from(contentParticipants)
+        .innerJoin(contentItems, eq(contentParticipants.contentItemId, contentItems.id))
+        .where(eq(contentItems.sourceId, sourceId))
+        .groupBy(contentParticipants.externalId);
+
+      const countMap = new Map(itemCounts.map((ic) => [ic.externalId, ic.count]));
+
+      return usersWithInfo.map((u) => ({
+        externalId: u.externalId,
+        name: u.name,
+        email: u.email,
+        itemCount: countMap.get(u.externalId) || 0,
+        linkedUserId: u.linkedUserId,
+        linkedUserName: u.linkedUser?.name || null,
+        linkedUserEmail: u.linkedUser?.email || null,
+        linkedUserImage: u.linkedUser?.image || null,
+        suggestions: [] as Suggestion[],
+      }));
+    },
+    catch: (e) => new Error(`Failed to get Slack users: ${e}`),
+  });
+}
+
+function getNotionUsers(sourceId: string, linkedFilter: string | null) {
+  return Effect.tryPromise({
+    try: async () => {
+      const conditions = [eq(notionUsers.sourceId, sourceId)];
+      if (linkedFilter === 'true') {
+        conditions.push(isNotNull(notionUsers.userId));
+      } else if (linkedFilter === 'false') {
+        conditions.push(isNull(notionUsers.userId));
+      }
+
+      const usersWithInfo = await db
+        .select({
+          externalId: notionUsers.notionUserId,
+          name: notionUsers.name,
+          email: notionUsers.email,
+          linkedUserId: notionUsers.userId,
+          linkedUser: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            image: users.image,
+          },
+        })
+        .from(notionUsers)
+        .leftJoin(users, eq(notionUsers.userId, users.id))
+        .where(and(...conditions));
+
+      const itemCounts = await db
+        .select({
+          externalId: contentParticipants.externalId,
+          count: count(),
+        })
+        .from(contentParticipants)
+        .innerJoin(contentItems, eq(contentParticipants.contentItemId, contentItems.id))
+        .where(eq(contentItems.sourceId, sourceId))
+        .groupBy(contentParticipants.externalId);
+
+      const countMap = new Map(itemCounts.map((ic) => [ic.externalId, ic.count]));
+
+      return usersWithInfo.map((u) => ({
+        externalId: u.externalId,
+        name: u.name || 'Unknown',
+        email: u.email,
+        itemCount: countMap.get(u.externalId) || 0,
+        linkedUserId: u.linkedUserId,
+        linkedUserName: u.linkedUser?.name || null,
+        linkedUserEmail: u.linkedUser?.email || null,
+        linkedUserImage: u.linkedUser?.image || null,
+        suggestions: [] as Suggestion[],
+      }));
+    },
+    catch: (e) => new Error(`Failed to get Notion users: ${e}`),
+  });
+}
+
+function getGitHubUsers(sourceId: string, linkedFilter: string | null) {
+  return Effect.tryPromise({
+    try: async () => {
+      const conditions = [eq(githubUsers.sourceId, sourceId)];
+      if (linkedFilter === 'true') {
+        conditions.push(isNotNull(githubUsers.userId));
+      } else if (linkedFilter === 'false') {
+        conditions.push(isNull(githubUsers.userId));
+      }
+
+      const usersWithInfo = await db
+        .select({
+          externalId: githubUsers.githubLogin,
+          name: githubUsers.name,
+          email: githubUsers.email,
+          linkedUserId: githubUsers.userId,
+          linkedUser: {
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            image: users.image,
+          },
+        })
+        .from(githubUsers)
+        .leftJoin(users, eq(githubUsers.userId, users.id))
+        .where(and(...conditions));
+
+      const itemCounts = await db
+        .select({
+          externalId: contentParticipants.externalId,
+          count: count(),
+        })
+        .from(contentParticipants)
+        .innerJoin(contentItems, eq(contentParticipants.contentItemId, contentItems.id))
+        .where(eq(contentItems.sourceId, sourceId))
+        .groupBy(contentParticipants.externalId);
+
+      const countMap = new Map(itemCounts.map((ic) => [ic.externalId, ic.count]));
+
+      return usersWithInfo.map((u) => ({
+        externalId: u.externalId,
+        name: u.name || u.externalId,
+        email: u.email,
+        itemCount: countMap.get(u.externalId) || 0,
+        linkedUserId: u.linkedUserId,
+        linkedUserName: u.linkedUser?.name || null,
+        linkedUserEmail: u.linkedUser?.email || null,
+        linkedUserImage: u.linkedUser?.image || null,
+        suggestions: [] as Suggestion[],
+      }));
+    },
+    catch: (e) => new Error(`Failed to get GitHub users: ${e}`),
+  });
 }
