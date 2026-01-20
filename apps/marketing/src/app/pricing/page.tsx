@@ -6,6 +6,7 @@ import {
   Bot,
   Building2,
   Check,
+  Cloud,
   Crown,
   Globe,
   HardDrive,
@@ -53,7 +54,7 @@ const pricingPlans = {
       { name: 'Topic clustering', included: true },
       { name: 'Real-time presence', included: true },
       { name: '@mentions & notifications', included: true },
-      { name: 'Video transcription', included: true },
+      { name: 'Meetings (Zoom, Meet auto-import)', included: true },
       { name: 'Expertise mapping', included: true },
       { name: 'API, webhooks & Zapier', included: true },
       { name: 'Email support', included: true },
@@ -89,7 +90,7 @@ const pricingPlans = {
       { name: 'Topic clustering', included: true },
       { name: 'Real-time presence', included: true },
       { name: '@mentions & notifications', included: true },
-      { name: 'Video transcription', included: true },
+      { name: 'Meetings (Zoom, Meet auto-import)', included: true },
       { name: 'Expertise mapping', included: true },
       { name: 'API, webhooks & Zapier', included: true },
       { name: 'Email support', included: true },
@@ -106,90 +107,94 @@ const featureComparison = [
     category: 'Knowledge Sources',
     icon: Globe,
     features: [
-      { name: 'Slack workspace sync', scale: true, pro: true },
-      { name: 'Notion workspace sync', scale: true, pro: true },
-      { name: 'GitHub repository sync', scale: true, pro: true },
-      { name: 'Video uploads & meetings', scale: true, pro: true },
-      { name: 'Number of sources', scale: '3', pro: 'Unlimited' },
-      { name: 'Incremental sync', scale: true, pro: true },
-      { name: 'Webhook real-time updates', scale: true, pro: true },
+      { name: 'Slack workspace sync', scale: true, pro: true, enterprise: true },
+      { name: 'Notion workspace sync', scale: true, pro: true, enterprise: true },
+      { name: 'GitHub repository sync', scale: true, pro: true, enterprise: true },
+      { name: 'Meetings (Zoom, Meet auto-import)', scale: true, pro: true, enterprise: true },
+      { name: 'Number of sources', scale: '3', pro: 'Unlimited', enterprise: 'Unlimited' },
+      { name: 'Incremental sync', scale: true, pro: true, enterprise: true },
+      { name: 'Webhook real-time updates', scale: true, pro: true, enterprise: true },
     ],
   },
   {
     category: 'AI & Processing',
     icon: Bot,
     features: [
-      { name: 'AI processing quota', scale: '1,000/mo', pro: '10,000/mo' },
-      { name: 'AI summaries', scale: true, pro: true },
-      { name: 'Decision extraction', scale: true, pro: true },
-      { name: 'Topic clustering', scale: true, pro: true },
-      { name: 'Expertise detection', scale: true, pro: true },
-      { name: 'Semantic search', scale: true, pro: true },
-      { name: 'Video transcription', scale: '60 min/mo', pro: '300 min/mo' },
+      { name: 'AI processing quota', scale: '1,000/mo', pro: '10,000/mo', enterprise: 'Custom' },
+      { name: 'AI summaries', scale: true, pro: true, enterprise: true },
+      { name: 'Decision extraction', scale: true, pro: true, enterprise: true },
+      { name: 'Topic clustering', scale: true, pro: true, enterprise: true },
+      { name: 'Expertise detection', scale: true, pro: true, enterprise: true },
+      { name: 'Semantic search', scale: true, pro: true, enterprise: true },
+      { name: 'Meeting transcription', scale: '60 min/mo', pro: '300 min/mo', enterprise: 'Unlimited' },
     ],
   },
   {
     category: 'Knowledge Graph',
     icon: Sparkles,
     features: [
-      { name: 'Knowledge graph', scale: true, pro: true },
-      { name: 'Decision tracking', scale: true, pro: true },
-      { name: 'Relationship discovery', scale: true, pro: true },
-      { name: 'Cross-source linking', scale: true, pro: true },
-      { name: 'Knowledge analytics', scale: false, pro: true },
+      { name: 'Knowledge graph', scale: true, pro: true, enterprise: true },
+      { name: 'Decision tracking', scale: true, pro: true, enterprise: true },
+      { name: 'Relationship discovery', scale: true, pro: true, enterprise: true },
+      { name: 'Cross-source linking', scale: true, pro: true, enterprise: true },
+      { name: 'Knowledge analytics', scale: false, pro: true, enterprise: true },
     ],
   },
   {
     category: 'Storage & Limits',
     icon: HardDrive,
     features: [
-      { name: 'Storage per user', scale: '5 GB', pro: '25 GB' },
-      { name: 'Content items', scale: '10,000', pro: 'Unlimited' },
-      { name: 'Max file size', scale: '500 MB', pro: '2 GB' },
-      { name: 'Team members', scale: 'Up to 25', pro: 'Unlimited' },
-      { name: 'Bandwidth', scale: '25 GB/mo', pro: '250 GB/mo' },
+      { name: 'Storage per user', scale: '5 GB', pro: '25 GB', enterprise: 'Custom' },
+      { name: 'Content items', scale: '10,000', pro: 'Unlimited', enterprise: 'Unlimited' },
+      { name: 'Max file size', scale: '500 MB', pro: '2 GB', enterprise: 'Custom' },
+      { name: 'Team members', scale: 'Up to 25', pro: 'Unlimited', enterprise: 'Unlimited' },
+      { name: 'Bandwidth', scale: '25 GB/mo', pro: '250 GB/mo', enterprise: 'Custom' },
     ],
   },
   {
     category: 'Collaboration',
     icon: Users,
     features: [
-      { name: '@mentions & notifications', scale: true, pro: true },
-      { name: 'Activity feed', scale: true, pro: true },
-      { name: 'Real-time presence', scale: true, pro: true },
+      { name: '@mentions & notifications', scale: true, pro: true, enterprise: true },
+      { name: 'Activity feed', scale: true, pro: true, enterprise: true },
+      { name: 'Real-time presence', scale: true, pro: true, enterprise: true },
     ],
   },
   {
     category: 'Security & Compliance',
     icon: Shield,
     features: [
-      { name: 'SSO / SAML', scale: false, pro: true },
-      { name: 'Advanced permissions', scale: 'Basic', pro: 'Advanced' },
-      { name: 'Audit logs', scale: false, pro: true },
-      { name: 'Data retention controls', scale: false, pro: true },
-      { name: 'SOC 2 compliance', scale: true, pro: true },
+      { name: 'SSO / SAML', scale: false, pro: true, enterprise: true },
+      { name: 'Advanced permissions', scale: 'Basic', pro: 'Advanced', enterprise: 'Custom roles' },
+      { name: 'Audit logs', scale: false, pro: true, enterprise: true },
+      { name: 'Data retention controls', scale: false, pro: true, enterprise: true },
+      { name: 'SOC 2 compliance', scale: true, pro: true, enterprise: true },
+      { name: 'Bring your own cloud (BYOC)', scale: false, pro: false, enterprise: true },
+      { name: 'Data residency controls', scale: false, pro: false, enterprise: true },
     ],
   },
   {
     category: 'Customization & API',
     icon: Palette,
     features: [
-      { name: 'API access', scale: true, pro: true },
-      { name: 'Webhooks', scale: true, pro: true },
-      { name: 'Custom branding', scale: false, pro: true },
-      { name: 'Custom domain', scale: false, pro: true },
-      { name: 'White-label options', scale: false, pro: true },
+      { name: 'API access', scale: true, pro: true, enterprise: true },
+      { name: 'Webhooks', scale: true, pro: true, enterprise: true },
+      { name: 'Custom branding', scale: false, pro: true, enterprise: true },
+      { name: 'Custom domain', scale: false, pro: true, enterprise: true },
+      { name: 'White-label options', scale: false, pro: true, enterprise: true },
+      { name: 'Custom integrations', scale: false, pro: false, enterprise: true },
     ],
   },
   {
     category: 'Support',
     icon: Headphones,
     features: [
-      { name: 'Email support', scale: true, pro: true },
-      { name: 'Priority support', scale: false, pro: true },
-      { name: 'Dedicated account manager', scale: false, pro: true },
-      { name: 'Custom onboarding', scale: false, pro: true },
-      { name: 'SLA guarantee', scale: '99.5%', pro: '99.9%' },
+      { name: 'Email support', scale: true, pro: true, enterprise: true },
+      { name: 'Priority support', scale: false, pro: true, enterprise: true },
+      { name: 'Dedicated account manager', scale: false, pro: true, enterprise: true },
+      { name: 'Custom onboarding', scale: false, pro: true, enterprise: true },
+      { name: 'SLA guarantee', scale: '99.5%', pro: '99.9%', enterprise: '99.99%' },
+      { name: '24/7 phone support', scale: false, pro: false, enterprise: true },
     ],
   },
 ];
@@ -406,14 +411,15 @@ export default function PricingPage() {
                 <CardContent className="p-0">
                   <div className="divide-y">
                     {/* Header row */}
-                    <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 font-medium text-sm">
+                    <div className="grid grid-cols-4 gap-4 p-4 bg-muted/30 font-medium text-sm">
                       <div>Feature</div>
                       <div className="text-center">Scale</div>
                       <div className="text-center">Pro</div>
+                      <div className="text-center">Enterprise</div>
                     </div>
                     {/* Feature rows */}
                     {category.features.map((feature) => (
-                      <div key={feature.name} className="grid grid-cols-3 gap-4 p-4 items-center">
+                      <div key={feature.name} className="grid grid-cols-4 gap-4 p-4 items-center">
                         <div className="text-sm">{feature.name}</div>
                         <div className="text-center">
                           {typeof feature.scale === 'boolean' ? (
@@ -437,6 +443,17 @@ export default function PricingPage() {
                             <span className="text-sm font-medium text-primary">{feature.pro}</span>
                           )}
                         </div>
+                        <div className="text-center">
+                          {typeof feature.enterprise === 'boolean' ? (
+                            feature.enterprise ? (
+                              <Check className="w-5 h-5 text-primary mx-auto" />
+                            ) : (
+                              <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                            )
+                          ) : (
+                            <span className="text-sm font-medium text-primary">{feature.enterprise}</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -447,7 +464,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Custom Plans Callout */}
+      {/* Enterprise Callout */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-5xl mx-auto">
           <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/20">
@@ -455,30 +472,44 @@ export default function PricingPage() {
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
                   <Badge variant="outline" className="mb-4">
-                    <Building2 className="w-3 h-3 mr-1" />
+                    <Cloud className="w-3 h-3 mr-1" />
                     Enterprise
                   </Badge>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4">Need more than Pro?</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">Your Data, Your Cloud</h3>
                   <p className="text-muted-foreground mb-6">
-                    For large organizations with specific requirements, we offer custom plans with volume pricing,
-                    dedicated infrastructure, and white-glove onboarding.
+                    For organizations that require complete data ownership, we offer Bring Your Own Cloud (BYOC)
+                    deployment. Keep your knowledge in your infrastructure while leveraging Nuclom's AI processing.
                   </p>
                   <ul className="space-y-2 mb-6">
                     <li className="flex items-center gap-2 text-sm">
                       <Check className="w-4 h-4 text-primary" />
-                      Volume discounts for 100+ users
+                      <span>
+                        <strong>Bring Your Own Cloud</strong> — Deploy in your AWS, GCP, or Azure
+                      </span>
                     </li>
                     <li className="flex items-center gap-2 text-sm">
                       <Check className="w-4 h-4 text-primary" />
-                      Dedicated infrastructure options
+                      <span>
+                        <strong>Data residency controls</strong> — Choose where your data lives
+                      </span>
                     </li>
                     <li className="flex items-center gap-2 text-sm">
                       <Check className="w-4 h-4 text-primary" />
-                      Custom integrations & API development
+                      <span>
+                        <strong>Full data ownership</strong> — Your keys, your encryption
+                      </span>
                     </li>
                     <li className="flex items-center gap-2 text-sm">
                       <Check className="w-4 h-4 text-primary" />
-                      On-premise deployment available
+                      <span>
+                        <strong>Custom integrations</strong> — Connect to internal systems
+                      </span>
+                    </li>
+                    <li className="flex items-center gap-2 text-sm">
+                      <Check className="w-4 h-4 text-primary" />
+                      <span>
+                        <strong>24/7 dedicated support</strong> — SLA-backed assistance
+                      </span>
                     </li>
                   </ul>
                   <Button asChild>
@@ -490,7 +521,7 @@ export default function PricingPage() {
                 </div>
                 <div className="hidden md:flex items-center justify-center">
                   <div className="w-48 h-48 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Globe className="w-24 h-24 text-primary/50" />
+                    <Cloud className="w-24 h-24 text-primary/50" />
                   </div>
                 </div>
               </div>
