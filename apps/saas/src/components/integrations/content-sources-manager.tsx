@@ -17,7 +17,9 @@ import {
   NotionIcon,
   SlackIcon,
 } from '@/components/integrations/content-source-card';
+import { GitHubRepoSelector } from '@/components/integrations/github-repo-selector';
 import { NotionPageSelector } from '@/components/integrations/notion-page-selector';
+import { UserLinkingPanel } from '@/components/integrations/user-linking-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -355,6 +357,7 @@ export function ContentSourcesManager({ organizationId }: ContentSourcesManagerP
         }}
         sourceId={configureSourceId}
         source={sources.find((s) => s.id === configureSourceId)}
+        organizationId={organizationId}
         onSave={async (config) => {
           if (!configureSourceId) return;
 
@@ -391,14 +394,16 @@ interface ContentSourceConfigDialogProps {
   onClose: () => void;
   sourceId: string | null;
   source?: ContentSource;
+  organizationId: string;
   onSave: (config: Record<string, unknown>) => Promise<void>;
 }
 
 function ContentSourceConfigDialog({
   open,
   onClose,
-  sourceId: _sourceId,
+  sourceId,
   source,
+  organizationId,
   onSave,
 }: ContentSourceConfigDialogProps) {
   const { toast } = useToast();
@@ -460,7 +465,7 @@ function ContentSourceConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             Configure {source.type === 'slack' ? 'Slack' : source.type === 'notion' ? 'Notion' : 'GitHub'}
@@ -468,81 +473,100 @@ function ContentSourceConfigDialog({
           <DialogDescription>Customize what content to sync from this source</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Source Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Workspace" />
-          </div>
+        <Tabs defaultValue="settings" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="users">User Mapping</TabsTrigger>
+          </TabsList>
 
-          {source.type === 'slack' && (
+          <TabsContent value="settings" className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="channels">Channels to Sync</Label>
-              <Input
-                id="channels"
-                value={channels}
-                onChange={(e) => setChannels(e.target.value)}
-                placeholder="general, engineering, product"
-              />
-              <p className="text-xs text-muted-foreground">
-                Comma-separated list of channel names. Leave empty to sync all accessible channels.
-              </p>
+              <Label htmlFor="name">Source Name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Workspace" />
             </div>
-          )}
 
-          {source.type === 'notion' && (
-            <div className="space-y-4">
-              <NotionPageSelector
-                sourceId={source.id}
-                onSave={() => {
-                  // Refresh sources after saving selection
-                }}
-              />
+            {source.type === 'slack' && (
               <div className="space-y-2">
-                <Label htmlFor="databases">Additional Database IDs</Label>
+                <Label htmlFor="channels">Channels to Sync</Label>
                 <Input
-                  id="databases"
-                  value={databases}
-                  onChange={(e) => setDatabases(e.target.value)}
-                  placeholder="Optional: Additional database IDs"
+                  id="channels"
+                  value={channels}
+                  onChange={(e) => setChannels(e.target.value)}
+                  placeholder="general, engineering, product"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optionally add database IDs not shown in the tree above.
+                  Comma-separated list of channel names. Leave empty to sync all accessible channels.
                 </p>
               </div>
-            </div>
-          )}
-
-          {source.type === 'github' && (
-            <div className="space-y-2">
-              <Label htmlFor="repositories">Repositories to Sync</Label>
-              <Input
-                id="repositories"
-                value={repositories}
-                onChange={(e) => setRepositories(e.target.value)}
-                placeholder="owner/repo, org/another-repo"
-              />
-              <p className="text-xs text-muted-foreground">
-                Comma-separated list of repositories (owner/repo format). Leave empty to sync all accessible repos.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Configuration'
             )}
-          </Button>
-        </DialogFooter>
+
+            {source.type === 'notion' && (
+              <div className="space-y-4">
+                <NotionPageSelector
+                  sourceId={source.id}
+                  onSave={() => {
+                    // Refresh sources after saving selection
+                  }}
+                />
+                <div className="space-y-2">
+                  <Label htmlFor="databases">Additional Database IDs</Label>
+                  <Input
+                    id="databases"
+                    value={databases}
+                    onChange={(e) => setDatabases(e.target.value)}
+                    placeholder="Optional: Additional database IDs"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optionally add database IDs not shown in the tree above.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {source.type === 'github' && (
+              <div className="space-y-4">
+                <GitHubRepoSelector
+                  sourceId={source.id}
+                  onSave={() => {
+                    // Refresh sources after saving selection
+                  }}
+                />
+                <div className="space-y-2">
+                  <Label htmlFor="repositories">Additional Repositories</Label>
+                  <Input
+                    id="repositories"
+                    value={repositories}
+                    onChange={(e) => setRepositories(e.target.value)}
+                    placeholder="Optional: owner/repo, org/another-repo"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optionally add repositories not shown in the list above.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={onClose} disabled={saving}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Configuration'
+                )}
+              </Button>
+            </DialogFooter>
+          </TabsContent>
+
+          <TabsContent value="users" className="py-4">
+            {sourceId && <UserLinkingPanel sourceId={sourceId} organizationId={organizationId} />}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

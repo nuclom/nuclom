@@ -123,6 +123,22 @@ interface NotionDatabaseQueryResponse {
   next_cursor: string | null;
 }
 
+interface NotionComment {
+  id: string;
+  parent: { type: 'page_id' | 'block_id'; page_id?: string; block_id?: string };
+  discussion_id: string;
+  created_time: string;
+  last_edited_time: string;
+  created_by: { id: string };
+  rich_text: NotionRichText[];
+}
+
+interface NotionCommentsResponse {
+  results: NotionComment[];
+  has_more: boolean;
+  next_cursor: string | null;
+}
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -528,6 +544,11 @@ export interface NotionContentAdapterService extends ContentSourceAdapter {
    * Sync users from Notion workspace
    */
   syncUsers(source: ContentSource): Effect.Effect<NotionUser[], ContentSourceSyncError>;
+
+  /**
+   * Get comments for a page or block
+   */
+  getPageComments(source: ContentSource, pageId: string): Effect.Effect<NotionComment[], ContentSourceSyncError>;
 }
 
 export class NotionContentAdapter extends Context.Tag('NotionContentAdapter')<
@@ -654,7 +675,24 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
             // Fetch page content
             const blocks = yield* service.getPageBlocks(source, page.id);
-            const content = notionBlocksToText(blocks);
+            let content = notionBlocksToText(blocks);
+
+            // Fetch comments if enabled (defaults to true)
+            if (config?.syncComments !== false) {
+              const comments = yield* service
+                .getPageComments(source, page.id)
+                .pipe(Effect.catchAll(() => Effect.succeed([] as NotionComment[])));
+
+              if (comments.length > 0) {
+                const commentsText = comments
+                  .map((c) => {
+                    const commentText = richTextToPlain(c.rich_text);
+                    return `> ${commentText}`;
+                  })
+                  .join('\n\n');
+                content = `${content}\n\n---\n\n## Comments\n\n${commentsText}`;
+              }
+            }
 
             // Get breadcrumb (simplified - would need hierarchy traversal)
             const breadcrumb: string[] = [];
@@ -1066,6 +1104,34 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         }
 
         return savedUsers;
+      }),
+
+    getPageComments: (source, pageId) =>
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        const comments: NotionComment[] = [];
+        let cursor: string | undefined;
+
+        do {
+          const params = new URLSearchParams({ block_id: pageId });
+          if (cursor) params.append('start_cursor', cursor);
+
+          const response = yield* Effect.tryPromise({
+            try: () => notionFetch<NotionCommentsResponse>(`/comments?${params.toString()}`, accessToken),
+            catch: (e) =>
+              new ContentSourceSyncError({
+                message: `Failed to fetch comments: ${e instanceof Error ? e.message : 'Unknown'}`,
+                sourceId: source.id,
+                sourceType: 'notion',
+                cause: e,
+              }),
+          });
+
+          comments.push(...response.results);
+          cursor = response.next_cursor || undefined;
+        } while (cursor);
+
+        return comments;
       }),
   };
 

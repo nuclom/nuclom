@@ -154,6 +154,34 @@ export function formatDateTime(date: Date | string | null | undefined): string {
 }
 
 /**
+ * Format a date to a compact relative time string
+ * Used for timestamps in tight UI spaces like message previews
+ *
+ * @example
+ * formatRelativeTimeCompact(new Date(Date.now() - 60000)) // "1m ago"
+ * formatRelativeTimeCompact(new Date(Date.now() - 3600000)) // "1h ago"
+ * formatRelativeTimeCompact(new Date(Date.now() - 86400000 * 3)) // "3d ago"
+ */
+export function formatRelativeTimeCompact(date: Date | string | null | undefined): string {
+  if (!date) return '';
+
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return '';
+
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/**
  * Format a date to a relative time string
  * Used for timestamps like "2 days ago", "Today", etc.
  *
@@ -186,6 +214,29 @@ export function formatRelativeTime(date: Date | string | null | undefined): stri
 
   const years = Math.floor(days / 365);
   return years === 1 ? '1 year ago' : `${years} years ago`;
+}
+
+// =============================================================================
+// String Formatting
+// =============================================================================
+
+/**
+ * Get initials from a name string
+ * Used for avatar fallbacks
+ *
+ * @example
+ * getInitials("John Doe") // "JD"
+ * getInitials("alice") // "AL"
+ * getInitials(null) // "?"
+ */
+export function getInitials(name: string | null | undefined): string {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 }
 
 // =============================================================================

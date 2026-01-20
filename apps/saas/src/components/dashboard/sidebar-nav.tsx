@@ -2,7 +2,22 @@
 
 import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
-import { Building, Clock, Folders, History, Home, PlayCircle, Share2, Trash2, Upload, Video } from 'lucide-react';
+import {
+  Building,
+  CheckCircle,
+  Clock,
+  Database,
+  Folders,
+  History,
+  Home,
+  PlayCircle,
+  Search,
+  Share2,
+  Tags,
+  Trash2,
+  Upload,
+  Video,
+} from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,9 +39,14 @@ export function SidebarNav({ organization }: SidebarNavProps) {
 
   const mainNavItems: NavItem[] = [
     {
-      title: 'Home',
+      title: 'Feed',
       href: `/org/${organization}`,
       icon: Home,
+    },
+    {
+      title: 'Search',
+      href: `/org/${organization}/search`,
+      icon: Search,
     },
     {
       title: 'Videos',
@@ -37,6 +57,24 @@ export function SidebarNav({ organization }: SidebarNavProps) {
       title: 'Collections',
       href: `/org/${organization}/collections`,
       icon: Folders,
+    },
+  ];
+
+  const knowledgeNavItems: NavItem[] = [
+    {
+      title: 'Sources',
+      href: `/org/${organization}/sources`,
+      icon: Database,
+    },
+    {
+      title: 'Topics',
+      href: `/org/${organization}/topics`,
+      icon: Tags,
+    },
+    {
+      title: 'Decisions',
+      href: `/org/${organization}/decisions`,
+      icon: CheckCircle,
     },
   ];
 
@@ -108,6 +146,29 @@ export function SidebarNav({ organization }: SidebarNavProps) {
               )}
             </Link>
           ))}
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="py-2">
+          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Knowledge</h3>
+          <div className="space-y-1">
+            {knowledgeNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent',
+                  isActive(item.href)
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.title}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <Separator className="my-4" />
