@@ -93,13 +93,15 @@ Update docs when you:
 
 ### Documentation Locations
 
+All documentation is in `content/docs/`:
+
 | Type | Location |
 |------|----------|
-| API reference | `docs/public/api/` |
-| User guides | `docs/public/guides/` |
-| Architecture | `docs/internal/architecture/` |
-| Dev reference | `docs/internal/reference/` |
-| Database schema | `docs/internal/architecture/database.md` |
+| API reference | Auto-generated from OpenAPI spec |
+| User guides | `guides/` |
+| Architecture | `internal/architecture/` |
+| Dev reference | `internal/reference/` |
+| Database schema | `internal/architecture/database.mdx` |
 
 ### Documentation Format
 
@@ -140,7 +142,7 @@ export const newEndpoint = createRoute({
 
 2. Implement handler with proper error handling
 3. Add authentication checks
-4. Document in `docs/public/api/`
+4. API documentation is auto-generated from OpenAPI spec
 
 ### Error Handling Pattern
 
@@ -169,7 +171,7 @@ if (!result) {
 2. Export from `src/lib/db/schema/index.ts`
 3. Generate migration: `pnpm db:generate`
 4. Apply migration: `pnpm db:migrate`
-5. Update `docs/internal/architecture/database.md`
+5. Update `internal/architecture/database.mdx`
 
 ### Query Patterns
 
@@ -288,8 +290,10 @@ Before completing any task:
 
 ## Getting Help
 
-- **Architecture overview**: `docs/internal/architecture/summary.md`
-- **Component reference**: `docs/internal/reference/components.md`
-- **Database schema**: `docs/internal/architecture/database.md`
-- **API documentation**: `docs/public/api/README.md`
-- **Development setup**: `docs/internal/reference/development-setup.md`
+All documentation is in `content/docs/`:
+
+- **Architecture overview**: `internal/architecture/summary.mdx`
+- **Component reference**: `internal/reference/components.mdx`
+- **Database schema**: `internal/architecture/database.mdx`
+- **API documentation**: Auto-generated from OpenAPI at `/api-reference`
+- **Development setup**: `internal/reference/development-setup.mdx`

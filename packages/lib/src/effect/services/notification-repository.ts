@@ -98,11 +98,12 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
     page = 1,
     limit = 20,
   ): Effect.Effect<{ data: NotificationWithActor[]; unreadCount: number }, DatabaseError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const offset = (page - 1) * limit;
+    Effect.gen(function* () {
+      const offset = (page - 1) * limit;
 
-        const [notificationsData, unreadResult] = await Promise.all([
+      // Fetch notifications with actor relation
+      const notificationsData = yield* Effect.tryPromise({
+        try: () =>
           db.query.notifications.findMany({
             where: eq(notifications.userId, userId),
             with: {
@@ -112,23 +113,33 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
             limit,
             offset,
           }),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch notifications list',
+            operation: 'getNotifications.findMany',
+            cause: error,
+          }),
+      });
+
+      // Fetch unread count in parallel (but handle errors separately)
+      const unreadResult = yield* Effect.tryPromise({
+        try: () =>
           db
             .select({ count: sql<number>`count(*)::int` })
             .from(notifications)
             .where(and(eq(notifications.userId, userId), eq(notifications.read, false))),
-        ]);
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch unread notification count',
+            operation: 'getNotifications.unreadCount',
+            cause: error,
+          }),
+      });
 
-        return {
-          data: notificationsData as NotificationWithActor[],
-          unreadCount: unreadResult[0]?.count ?? 0,
-        };
-      },
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch notifications',
-          operation: 'getNotifications',
-          cause: error,
-        }),
+      return {
+        data: notificationsData as NotificationWithActor[],
+        unreadCount: unreadResult[0]?.count ?? 0,
+      };
     });
 
   const getUnreadCount = (userId: string): Effect.Effect<number, DatabaseError> =>

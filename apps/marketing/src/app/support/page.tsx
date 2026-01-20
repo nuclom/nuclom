@@ -144,24 +144,25 @@ export default function SupportPage() {
               <div className="space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">How do I upload videos to Nuclom?</CardTitle>
+                    <CardTitle className="text-lg">How do I connect my knowledge sources?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      You can upload videos by clicking the "Upload" button in your organization, then drag and drop
-                      your video files or browse to select them.
+                      Go to your organization's Sources page and click "Add Source." We support Slack, Notion, GitHub,
+                      and video uploads. OAuth makes connecting most sources a one-click process.
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">What video formats are supported?</CardTitle>
+                    <CardTitle className="text-lg">What content types are supported?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      We support most common video formats including MP4, MOV, AVI, MKV, and more. Maximum file size is
-                      5GB for Pro plans and 1GB for free accounts.
+                      We support Slack messages and threads, Notion pages and databases, GitHub PRs, issues, and
+                      discussions, plus video uploads (MP4, MOV, AVI, MKV) and meeting imports from Zoom and Google
+                      Meet.
                     </p>
                   </CardContent>
                 </Card>
@@ -180,12 +181,13 @@ export default function SupportPage() {
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Can I use Nuclom for free?</CardTitle>
+                    <CardTitle className="text-lg">How does the AI processing work?</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      Yes! Our Starter plan is completely free and includes up to 5 team members, 10GB storage, and
-                      basic collaboration features.
+                      When you connect a source, content is automatically synced and processed. AI generates embeddings
+                      for semantic search, extracts decisions, identifies topics, and discovers relationships between
+                      content.
                     </p>
                   </CardContent>
                 </Card>
@@ -196,8 +198,8 @@ export default function SupportPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      We use enterprise-grade security with end-to-end encryption, secure data centers, and strict
-                      access controls to protect your content.
+                      We use enterprise-grade security with encrypted credentials (OAuth tokens are encrypted at rest),
+                      secure data centers, and strict access controls to protect your content.
                     </p>
                   </CardContent>
                 </Card>

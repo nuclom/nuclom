@@ -221,5 +221,5 @@ export const VideoServiceLive = Layer.succeed(VideoService, {
 ## See Also
 
 - `CLAUDE.md` - Project-wide patterns
-- `docs/internal/architecture/effect-best-practices.md` - Full documentation
+- `content/docs/internal/architecture/effect-best-practices.mdx` - Full documentation
 - `src/lib/effect/services/` - Existing service implementations
