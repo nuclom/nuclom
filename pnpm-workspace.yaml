@@ -17,7 +17,9 @@ catalog:
   '@dnd-kit/core': 6.3.1
   '@dnd-kit/sortable': 10.0.0
   '@dnd-kit/utilities': 3.2.2
+  '@effect/cli': 0.73.0
   '@effect/platform': 0.94.1
+  '@effect/platform-bun': 0.87.0
   '@effect/platform-node': 0.104.0
   '@effect/sql': 0.49.0
   '@effect/sql-drizzle': 0.48.0

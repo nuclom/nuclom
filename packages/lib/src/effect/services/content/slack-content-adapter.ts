@@ -24,7 +24,7 @@ import {
   slackChannelSync,
   slackUsers,
 } from '../../../db/schema';
-import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError, UploadError } from '../../errors';
+import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
 import { Database } from '../database';
 import { Storage, type StorageService } from '../storage';
 import type { ContentSourceAdapter, RawContentItem } from './types';
@@ -371,9 +371,13 @@ async function messageToRawContentItem(
   users: Map<string, SlackUser>,
   permalink?: string,
   processingContext?: MessageProcessingContext,
+  channels?: Map<string, string>,
 ): Promise<RawContentItem> {
   const user = users.get(message.user);
   const isThread = message.reply_count && message.reply_count > 0;
+
+  // Resolve channel mentions in the message text
+  const resolvedContent = message.text ? resolveChannelMentions(message.text, channels) : message.text;
 
   // Process files if context is available
   let processedFiles: SlackFileAttachment[] | undefined;
@@ -416,7 +420,7 @@ async function messageToRawContentItem(
     externalId: message.ts,
     type: isThread ? 'thread' : 'message',
     title: generateMessageTitle(message, channel, user),
-    content: message.text,
+    content: resolvedContent,
     authorExternal: message.user,
     authorName: user?.realName || user?.displayName || message.user,
     createdAtSource: new Date(Number.parseFloat(message.ts) * 1000),
@@ -460,15 +464,17 @@ async function aggregateThread(
   users: Map<string, SlackUser>,
   permalink?: string,
   processingContext?: MessageProcessingContext,
+  channels?: Map<string, string>,
 ): Promise<RawContentItem> {
   const allMessages = [parentMessage, ...replies.toSorted((a, b) => Number.parseFloat(a.ts) - Number.parseFloat(b.ts))];
 
-  // Build readable content
+  // Build readable content with resolved channel mentions
   const contentParts = allMessages.map((msg) => {
     const user = users.get(msg.user);
     const name = user?.realName || user?.displayName || 'Unknown';
     const time = new Date(Number.parseFloat(msg.ts) * 1000).toISOString();
-    return `**${name}** (${time}):\n${msg.text}`;
+    const resolvedText = msg.text ? resolveChannelMentions(msg.text, channels) : msg.text;
+    return `**${name}** (${time}):\n${resolvedText}`;
   });
   const content = contentParts.join('\n\n---\n\n');
 
@@ -688,6 +694,37 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     }
   };
 
+  /**
+   * Fetch all channels from Slack and build a map of channelId -> channelName
+   * Used for resolving channel mentions in messages
+   */
+  const fetchChannelMap = async (accessToken: string): Promise<Map<string, string>> => {
+    const channelMap = new Map<string, string>();
+    let cursor: string | undefined;
+
+    try {
+      do {
+        const params: Record<string, string> = {
+          types: 'public_channel,private_channel',
+          limit: '1000',
+        };
+        if (cursor) params.cursor = cursor;
+
+        const response = await slackFetch<SlackChannelsListResponse>('conversations.list', accessToken, params);
+
+        for (const channel of response.channels) {
+          channelMap.set(channel.id, channel.name);
+        }
+
+        cursor = response.response_metadata?.next_cursor;
+      } while (cursor);
+    } catch {
+      // If we can't fetch channels, return empty map - mentions will fall back to IDs
+    }
+
+    return channelMap;
+  };
+
   // ==========================================================================
   // ContentSourceAdapter Interface
   // ==========================================================================
@@ -728,6 +765,9 @@ const makeSlackContentAdapter = Effect.gen(function* () {
             storage,
             syncFiles: config?.syncFiles !== false, // Default to true
           };
+
+          // Fetch channel map for resolving channel mentions
+          const channelMap = await fetchChannelMap(accessToken);
 
           const items: RawContentItem[] = [];
           let hasMore = false;
@@ -802,6 +842,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                   usersMap,
                   permalink || undefined,
                   processingContext,
+                  channelMap,
                 );
                 items.push(threadItem);
               } else {
@@ -813,6 +854,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                   usersMap,
                   permalink || undefined,
                   processingContext,
+                  channelMap,
                 );
                 items.push(item);
               }
@@ -854,6 +896,9 @@ const makeSlackContentAdapter = Effect.gen(function* () {
             syncFiles: config?.syncFiles !== false, // Default to true
           };
 
+          // Fetch channel map for resolving channel mentions
+          const channelMap = await fetchChannelMap(accessToken);
+
           // Try each channel until we find the message
           for (const channelId of channelIds) {
             try {
@@ -883,6 +928,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                     usersMap,
                     permalink || undefined,
                     processingContext,
+                    channelMap,
                   );
                 } else {
                   // Single message
@@ -893,6 +939,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                     usersMap,
                     permalink || undefined,
                     processingContext,
+                    channelMap,
                   );
                 }
               }
@@ -1127,6 +1174,9 @@ const makeSlackContentAdapter = Effect.gen(function* () {
             syncFiles: config?.syncFiles !== false, // Default to true
           };
 
+          // Fetch channel map for resolving channel mentions
+          const channelMap = await fetchChannelMap(accessToken);
+
           switch (event.type) {
             case 'message': {
               const message = event as unknown as SlackMessage & { channel: string };
@@ -1164,6 +1214,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                   usersMap,
                   permalink || undefined,
                   processingContext,
+                  channelMap,
                 );
               }
 
@@ -1173,6 +1224,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                 usersMap,
                 permalink || undefined,
                 processingContext,
+                channelMap,
               );
             }
 
@@ -1301,21 +1353,32 @@ export const resolveUserMentions = (text: string, users: Map<string, SlackUser>)
 
 /**
  * Resolve Slack channel mentions in text
- * Converts <#C123ABC|channel-name> to #channel-name
+ * Converts <#C123ABC|channel-name> or <#C123ABC> to #channel-name
+ * When the channel name isn't in the mention, looks it up in the provided map
  */
-export const resolveChannelMentions = (text: string): string => {
-  return text.replace(/<#([A-Z0-9]+)\|([^>]+)>/g, '#$2');
+export const resolveChannelMentions = (text: string, channels?: Map<string, string>): string => {
+  return text.replace(/<#([A-Z0-9]+)(?:\|([^>]+))?>/g, (_match, id, name) => {
+    if (name) {
+      return `#${name}`;
+    }
+    const channelName = channels?.get(id);
+    return channelName ? `#${channelName}` : `#${id}`;
+  });
 };
 
 /**
  * Format Slack mrkdwn to plain text
  */
-export const formatSlackMrkdwn = (text: string, users: Map<string, SlackUser>): string => {
+export const formatSlackMrkdwn = (
+  text: string,
+  users: Map<string, SlackUser>,
+  channels?: Map<string, string>,
+): string => {
   let formatted = text;
 
   // Resolve mentions
   formatted = resolveUserMentions(formatted, users);
-  formatted = resolveChannelMentions(formatted);
+  formatted = resolveChannelMentions(formatted, channels);
 
   // Convert links <url|text> to [text](url)
   formatted = formatted.replace(/<([^|>]+)\|([^>]+)>/g, '[$2]($1)');

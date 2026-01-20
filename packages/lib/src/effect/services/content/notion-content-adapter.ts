@@ -570,6 +570,17 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         const config = source.config as NotionContentConfig | undefined;
         const items: RawContentItem[] = [];
 
+        // Get selected pages/databases from config
+        // Check both direct config fields (legacy) and settings field (new format)
+        const settings = (config as Record<string, unknown> | undefined)?.settings as
+          | Record<string, unknown>
+          | undefined;
+        const rootPagesConfig = config?.rootPages || (settings?.rootPages as string[] | undefined) || [];
+        const databasesConfig = config?.databases || (settings?.databases as string[] | undefined) || [];
+        const selectedPages = new Set(rootPagesConfig);
+        const selectedDatabases = new Set(databasesConfig);
+        const hasSelection = selectedPages.size > 0 || selectedDatabases.size > 0;
+
         // Use Notion's search API to find recently edited content
         const searchBody: Record<string, unknown> = {
           sort: {
@@ -614,6 +625,29 @@ const makeNotionContentAdapter = Effect.gen(function* () {
             // Skip archived pages
             if (page.archived) continue;
 
+            // Check if page is in selection (if selection is configured)
+            if (hasSelection) {
+              // Check if page itself is selected
+              const isDirectlySelected = selectedPages.has(page.id);
+
+              // Check if page's parent database is selected
+              const isFromSelectedDatabase =
+                page.parent.type === 'database' &&
+                page.parent.database_id &&
+                selectedDatabases.has(page.parent.database_id);
+
+              // Check if page is a child of a selected page (by checking hierarchy)
+              const hierarchy = yield* service
+                .getPageHierarchy(source.id, page.id)
+                .pipe(Effect.catchTag('DatabaseError', () => Effect.succeed(null)));
+              const isChildOfSelected = hierarchy?.path?.some((ancestorId) => selectedPages.has(ancestorId)) || false;
+
+              // Skip if not in selection
+              if (!isDirectlySelected && !isFromSelectedDatabase && !isChildOfSelected) {
+                continue;
+              }
+            }
+
             // Check max depth
             const depth = 0; // Would need to calculate from hierarchy
             if (config?.maxDepth !== undefined && depth > config.maxDepth) continue;
@@ -630,6 +664,20 @@ const makeNotionContentAdapter = Effect.gen(function* () {
           } else if (result.object === 'database') {
             // For databases, fetch entries
             const database = result as NotionDatabase;
+
+            // Check if database is in selection (if selection is configured)
+            if (hasSelection && !selectedDatabases.has(database.id)) {
+              // Also check if database is a child of a selected page
+              const hierarchy = yield* service
+                .getPageHierarchy(source.id, database.id)
+                .pipe(Effect.catchTag('DatabaseError', () => Effect.succeed(null)));
+              const isChildOfSelected = hierarchy?.path?.some((ancestorId) => selectedPages.has(ancestorId)) || false;
+
+              if (!isChildOfSelected) {
+                continue;
+              }
+            }
+
             const databaseTitle = richTextToPlain(database.title);
 
             // Convert property definitions to schema
