@@ -93,14 +93,15 @@ Update docs when you:
 
 ### Documentation Locations
 
+All documentation is in `content/docs/`:
+
 | Type | Location |
 |------|----------|
 | API reference | Auto-generated from OpenAPI spec |
-| User guides | `content/docs/guides/` |
-| Architecture | `content/docs/internal/architecture/` |
-| Dev reference | `content/docs/internal/reference/` |
-| Database schema | `content/docs/internal/architecture/database.mdx` |
-| Feature docs | `docs/internal/architecture/` |
+| User guides | `guides/` |
+| Architecture | `internal/architecture/` |
+| Dev reference | `internal/reference/` |
+| Database schema | `internal/architecture/database.mdx` |
 
 ### Documentation Format
 
@@ -170,7 +171,7 @@ if (!result) {
 2. Export from `src/lib/db/schema/index.ts`
 3. Generate migration: `pnpm db:generate`
 4. Apply migration: `pnpm db:migrate`
-5. Update `content/docs/internal/architecture/database.mdx`
+5. Update `internal/architecture/database.mdx`
 
 ### Query Patterns
 
@@ -289,8 +290,10 @@ Before completing any task:
 
 ## Getting Help
 
-- **Architecture overview**: `content/docs/internal/architecture/summary.mdx`
-- **Component reference**: `content/docs/internal/reference/components.mdx`
-- **Database schema**: `content/docs/internal/architecture/database.mdx`
+All documentation is in `content/docs/`:
+
+- **Architecture overview**: `internal/architecture/summary.mdx`
+- **Component reference**: `internal/reference/components.mdx`
+- **Database schema**: `internal/architecture/database.mdx`
 - **API documentation**: Auto-generated from OpenAPI at `/api-reference`
-- **Development setup**: `content/docs/internal/reference/development-setup.mdx`
+- **Development setup**: `internal/reference/development-setup.mdx`

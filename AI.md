@@ -1,10 +1,6 @@
 # Nuclom - Video Collaboration Platform
 
-Documentation is organized in two locations:
-- `content/docs/` - Comprehensive documentation served via Mintlify (architecture, guides, reference)
-- `docs/` - Feature-specific internal documentation (e.g., content source abstraction, credential encryption)
-
-Always keep documentation up to date after making changes to the code.
+All documentation is in `content/docs/` and served via Mintlify. Always keep documentation up to date after making changes to the code.
 
 ## Commands
 
@@ -444,11 +440,12 @@ pnpm lint         # Check for linting issues
 
 ## Documentation
 
-- **Architecture**: `content/docs/internal/architecture/` - Database, Effect-TS, deployment, security
-- **User Guides**: `content/docs/guides/` - Getting started, collaboration, team management
-- **Development Reference**: `content/docs/internal/reference/` - Setup, testing, migrations
-- **AI/LLM Instructions**: `content/docs/AGENTS.md`
-- **Feature Docs**: `docs/internal/architecture/` - Feature-specific documentation (content sources, encryption)
+All documentation is in `content/docs/`:
+
+- **Architecture**: `internal/architecture/` - Database, Effect-TS, deployment, security
+- **User Guides**: `guides/` - Getting started, collaboration, team management
+- **Development Reference**: `internal/reference/` - Setup, testing, migrations
+- **AI/LLM Instructions**: `AGENTS.md`
 
 ### Claude Skills (LLM Guidelines)
 
