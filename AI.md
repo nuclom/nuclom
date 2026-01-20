@@ -1,6 +1,10 @@
 # Nuclom - Video Collaboration Platform
 
-Use docs/ folder for documentation, make sure you look there for any guidance and always keep it up to date after making changes to the code.
+Documentation is organized in two locations:
+- `content/docs/` - Comprehensive documentation served via Mintlify (architecture, guides, reference)
+- `docs/` - Feature-specific internal documentation (e.g., content source abstraction, credential encryption)
+
+Always keep documentation up to date after making changes to the code.
 
 ## Commands
 
@@ -169,7 +173,7 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 - `notifications.ts` - User notifications
 - `billing.ts` - Subscriptions and payments
 - `clips.ts` - Video clips and highlights
-- See `docs/internal/architecture/database.md` for full schema docs
+- See `content/docs/internal/architecture/database.mdx` for full schema docs
 
 **Important**: Store application user data in `userExtensions` table, not `users`. The `users` table is managed by better-auth.
 
@@ -180,7 +184,7 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 1. Create route handler in `src/app/api/[resource]/route.ts` (following Next.js App Router conventions)
 2. Use Effect-TS pattern with `createFullLayer()` and `handleEffectExit()` helpers
 3. Use repository services for database operations (e.g., `VideoRepository`, `OrganizationRepository`)
-4. Add to API documentation in `docs/public/api/`
+4. Update API route documentation (OpenAPI spec is auto-generated)
 
 ### Adding a New Database Table
 
@@ -188,7 +192,7 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 2. Add relations in `src/lib/db/schema/relations.ts`
 3. Run `pnpm db:generate` to create migration
 4. Run `pnpm db:migrate` to apply
-5. Update `docs/internal/architecture/database.md`
+5. Update `content/docs/internal/architecture/database.mdx`
 
 ### Adding a New Component
 
@@ -234,7 +238,7 @@ Required variables (see `.env.example`):
 
 ## Effect-TS Patterns
 
-This codebase uses Effect-TS for type-safe error handling and dependency injection. See `docs/internal/architecture/effect-best-practices.md` for comprehensive patterns.
+This codebase uses Effect-TS for type-safe error handling and dependency injection. See `content/docs/internal/architecture/effect-best-practices.mdx` for comprehensive patterns.
 
 ### Core Principles
 
@@ -440,11 +444,11 @@ pnpm lint         # Check for linting issues
 
 ## Documentation
 
-- **Architecture**: `docs/internal/architecture/`
-- **API Reference**: `docs/public/api/`
-- **User Guides**: `docs/public/guides/`
-- **Development**: `docs/internal/reference/`
-- **AI/LLM Instructions**: `docs/AGENTS.md`
+- **Architecture**: `content/docs/internal/architecture/` - Database, Effect-TS, deployment, security
+- **User Guides**: `content/docs/guides/` - Getting started, collaboration, team management
+- **Development Reference**: `content/docs/internal/reference/` - Setup, testing, migrations
+- **AI/LLM Instructions**: `content/docs/AGENTS.md`
+- **Feature Docs**: `docs/internal/architecture/` - Feature-specific documentation (content sources, encryption)
 
 ### Claude Skills (LLM Guidelines)
 
