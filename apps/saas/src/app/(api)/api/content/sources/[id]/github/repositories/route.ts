@@ -207,12 +207,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
 
-    // Update repo-specific sync settings if provided
+    // Update repo-specific sync settings if provided (using parallel execution)
     if (data.repoSettings && data.repoSettings.length > 0) {
-      for (const setting of data.repoSettings) {
-        // Only update if the repo is selected
-        if (data.selectedRepos.includes(setting.fullName)) {
-          yield* Effect.tryPromise({
+      const selectedSettings = data.repoSettings.filter((setting) => data.selectedRepos.includes(setting.fullName));
+
+      yield* Effect.forEach(
+        selectedSettings,
+        (setting) =>
+          Effect.tryPromise({
             try: () =>
               db
                 .update(githubRepoSync)
@@ -224,9 +226,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                 })
                 .where(eq(githubRepoSync.repoFullName, setting.fullName)),
             catch: (e) => new Error(`Failed to update repo settings: ${e}`),
-          });
-        }
-      }
+          }),
+        { concurrency: 'unbounded' },
+      );
     }
 
     return {

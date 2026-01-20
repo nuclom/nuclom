@@ -5,10 +5,17 @@
  * DELETE /api/content/sources/[id]/users/[externalId]/link - Unlink an external user
  */
 
-import { Auth, createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
+import {
+  Auth,
+  createFullLayer,
+  handleEffectExit,
+  handleEffectExitWithStatus,
+  resolveParams,
+} from '@nuclom/lib/api-handler';
 import { db } from '@nuclom/lib/db';
-import { contentItems, contentParticipants, contentSources, members } from '@nuclom/lib/db/schema';
+import { contentItems, contentParticipants, members } from '@nuclom/lib/db/schema';
 import { OrganizationRepository } from '@nuclom/lib/effect';
+import { getContentSource } from '@nuclom/lib/effect/services/content';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { and, eq, inArray } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
@@ -28,7 +35,7 @@ const LinkUserSchema = Schema.Struct({
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string; externalId: string }> }) {
   const effect = Effect.gen(function* () {
-    const { id: sourceId, externalId } = yield* Effect.promise(() => params);
+    const { id: sourceId, externalId } = yield* resolveParams(params);
     const decodedExternalId = decodeURIComponent(externalId);
 
     // Authenticate
@@ -38,18 +45,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Validate request body
     const body = yield* validateRequestBody(LinkUserSchema, request);
 
-    // Fetch source first
-    const source = yield* Effect.tryPromise({
-      try: () =>
-        db.query.contentSources.findFirst({
-          where: eq(contentSources.id, sourceId),
-        }),
-      catch: (e) => new Error(`Failed to fetch source: ${e}`),
-    });
-
-    if (!source) {
-      return yield* Effect.fail(new Error('Source not found'));
-    }
+    // Fetch source using repository service
+    const source = yield* getContentSource(sourceId);
 
     // Verify user has access to the organization
     const orgRepo = yield* OrganizationRepository;
@@ -132,25 +129,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; externalId: string }> },
 ) {
   const effect = Effect.gen(function* () {
-    const { id: sourceId, externalId } = yield* Effect.promise(() => params);
+    const { id: sourceId, externalId } = yield* resolveParams(params);
     const decodedExternalId = decodeURIComponent(externalId);
 
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Fetch source first
-    const source = yield* Effect.tryPromise({
-      try: () =>
-        db.query.contentSources.findFirst({
-          where: eq(contentSources.id, sourceId),
-        }),
-      catch: (e) => new Error(`Failed to fetch source: ${e}`),
-    });
-
-    if (!source) {
-      return yield* Effect.fail(new Error('Source not found'));
-    }
+    // Fetch source using repository service
+    const source = yield* getContentSource(sourceId);
 
     // Verify user has access to the organization
     const orgRepo = yield* OrganizationRepository;

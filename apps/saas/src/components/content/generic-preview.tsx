@@ -23,7 +23,6 @@ import { InteractiveCard } from './interactive-card';
 export interface GenericContentPreviewProps {
   item: ContentItem;
   variant?: ContentPreviewVariant;
-  showSource?: boolean;
   showAuthor?: boolean;
   showTimestamp?: boolean;
   className?: string;
@@ -59,7 +58,6 @@ function getTypeLabel(type: string): string {
 export function GenericContentPreview({
   item,
   variant = 'default',
-  showSource: _showSource = true,
   showAuthor = true,
   showTimestamp = true,
   className,

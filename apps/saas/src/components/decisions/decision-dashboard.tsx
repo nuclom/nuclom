@@ -2,7 +2,7 @@
 
 import { cn } from '@nuclom/lib/utils';
 import { Loader2, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -45,14 +45,14 @@ const fetcher = async (url: string): Promise<DecisionsResponse> => {
 export function DecisionDashboard({ organizationId, className }: DecisionDashboardProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  // Build URL with filters
-  const buildUrl = () => {
+  // Build URL with filters - using useCallback for consistent SWR cache keys
+  const buildUrl = useCallback(() => {
     const params = new URLSearchParams({ organizationId, limit: '50' });
     if (statusFilter !== 'all') {
       params.set('status', statusFilter);
     }
     return `/api/knowledge/decisions?${params.toString()}`;
-  };
+  }, [organizationId, statusFilter]);
 
   const { data, error, isLoading, mutate } = useSWR<DecisionsResponse>(buildUrl(), fetcher);
 

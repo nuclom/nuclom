@@ -7,10 +7,11 @@
  * - linked: 'true' | 'false' | undefined - Filter by link status
  */
 
-import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
+import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
 import { db } from '@nuclom/lib/db';
-import { contentItems, contentParticipants, contentSources, members, users } from '@nuclom/lib/db/schema';
+import { contentItems, contentParticipants, members, users } from '@nuclom/lib/db/schema';
 import { OrganizationRepository } from '@nuclom/lib/effect';
+import { getContentSource } from '@nuclom/lib/effect/services/content';
 import { and, eq, isNotNull } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -40,12 +41,18 @@ interface ExternalUser {
 }
 
 // =============================================================================
+// Constants
+// =============================================================================
+
+const MAX_SUGGESTIONS = 3;
+
+// =============================================================================
 // GET /api/content/sources/[id]/users
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    const { id: sourceId } = yield* Effect.promise(() => params);
+    const { id: sourceId } = yield* resolveParams(params);
     const url = new URL(request.url);
     const linkedFilter = url.searchParams.get('linked');
 
@@ -53,18 +60,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Fetch source first
-    const source = yield* Effect.tryPromise({
-      try: () =>
-        db.query.contentSources.findFirst({
-          where: eq(contentSources.id, sourceId),
-        }),
-      catch: (e) => new Error(`Failed to fetch source: ${e}`),
-    });
-
-    if (!source) {
-      return yield* Effect.fail(new Error('Source not found'));
-    }
+    // Fetch source using repository service
+    const source = yield* getContentSource(sourceId);
 
     // Verify user has access to the organization
     const orgRepo = yield* OrganizationRepository;
@@ -241,7 +238,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         linkedUserName: linkedUser?.name || null,
         linkedUserEmail: linkedUser?.email || null,
         linkedUserImage: linkedUser?.image || null,
-        suggestions: suggestions.slice(0, 3), // Top 3 suggestions
+        suggestions: suggestions.slice(0, MAX_SUGGESTIONS),
       };
     });
 
