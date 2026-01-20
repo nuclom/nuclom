@@ -12,10 +12,12 @@
  */
 
 import type { ContentItem, ContentItemMetadata } from '@nuclom/lib/db/schema';
+import { formatRelativeTimeCompact } from '@nuclom/lib/format-utils';
 import { cn } from '@nuclom/lib/utils';
 import { ChevronRight, Database, FileText, PenLine } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ContentPreviewVariant } from './content-preview';
+import { InteractiveCard } from './interactive-card';
 
 // =============================================================================
 // Types
@@ -46,22 +48,6 @@ export interface NotionPreviewProps {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-function formatRelativeTime(date: Date | string | null): string {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
 
 /**
  * Render an icon from Notion's icon format
@@ -97,7 +83,7 @@ function truncateContent(content: string | null, maxLength: number): string {
   if (content.length <= maxLength) return content;
   const truncated = content.slice(0, maxLength);
   const lastSpace = truncated.lastIndexOf(' ');
-  return (lastSpace > maxLength * 0.7 ? truncated.slice(0, lastSpace) : truncated) + '...';
+  return `${lastSpace > maxLength * 0.7 ? truncated.slice(0, lastSpace) : truncated}...`;
 }
 
 // =============================================================================
@@ -120,13 +106,7 @@ export function NotionPreview({
   // Compact variant
   if (variant === 'compact') {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer',
-          className,
-        )}
-        onClick={onClick}
-      >
+      <InteractiveCard variant="compact" onClick={onClick} className={className}>
         <div className="h-6 w-6 flex items-center justify-center">
           {metadata.icon ? (
             renderIcon(metadata.icon, 'sm')
@@ -139,28 +119,27 @@ export function NotionPreview({
         <div className="flex-1 min-w-0">
           <p className="text-sm truncate">{item.title || 'Untitled'}</p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {isDatabase && <Badge variant="outline" className="text-xs px-1 py-0">Database</Badge>}
-            {showTimestamp && item.updatedAtSource && <span>Edited {formatRelativeTime(item.updatedAtSource)}</span>}
+            {isDatabase && (
+              <Badge variant="outline" className="text-xs px-1 py-0">
+                Database
+              </Badge>
+            )}
+            {showTimestamp && item.updatedAtSource && (
+              <span>Edited {formatRelativeTimeCompact(item.updatedAtSource)}</span>
+            )}
           </div>
         </div>
-      </div>
+      </InteractiveCard>
     );
   }
 
   // Default and expanded variants
   return (
-    <div
-      className={cn(
-        'p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors',
-        onClick && 'cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-    >
+    <InteractiveCard onClick={onClick} className={className}>
       {/* Breadcrumbs */}
       {hasBreadcrumbs && showSource && (
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2 flex-wrap">
-          {metadata.breadcrumbs!.map((crumb, idx) => (
+          {metadata.breadcrumbs?.map((crumb, idx) => (
             <span key={idx} className="flex items-center">
               {idx > 0 && <ChevronRight className="h-3 w-3 mx-0.5" />}
               <span className="truncate max-w-[120px]">{crumb}</span>
@@ -194,7 +173,7 @@ export function NotionPreview({
             {showTimestamp && item.updatedAtSource && (
               <span className="flex items-center gap-1">
                 <PenLine className="h-3 w-3" />
-                Edited {formatRelativeTime(item.updatedAtSource)}
+                Edited {formatRelativeTimeCompact(item.updatedAtSource)}
               </span>
             )}
             {showAuthor && metadata.lastEditedBy && <span>by {metadata.lastEditedBy}</span>}
@@ -216,12 +195,14 @@ export function NotionPreview({
         <div className="mt-4 pt-3 border-t">
           <p className="text-xs font-medium text-muted-foreground mb-2">Properties</p>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(metadata.properties).slice(0, 6).map(([key, value]) => (
-              <Badge key={key} variant="outline" className="text-xs">
-                <span className="font-medium">{key}:</span>
-                <span className="ml-1">{String(value)}</span>
-              </Badge>
-            ))}
+            {Object.entries(metadata.properties)
+              .slice(0, 6)
+              .map(([key, value]) => (
+                <Badge key={key} variant="outline" className="text-xs">
+                  <span className="font-medium">{key}:</span>
+                  <span className="ml-1">{String(value)}</span>
+                </Badge>
+              ))}
           </div>
         </div>
       )}
@@ -248,7 +229,7 @@ export function NotionPreview({
           </ul>
         </div>
       )}
-    </div>
+    </InteractiveCard>
   );
 }
 

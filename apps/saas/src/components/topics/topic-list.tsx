@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import { Loader2, Plus, RefreshCw, Sparkles } from 'lucide-react';
+import { Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -51,10 +51,12 @@ export function TopicList({ organizationId, organizationSlug, className }: Topic
   const router = useRouter();
   const [isAutoClustering, setIsAutoClustering] = useState(false);
 
-  const { data: topics, error, isLoading, mutate } = useSWR<TopicsResponse>(
-    `/api/knowledge/topics?organizationId=${organizationId}`,
-    fetcher,
-  );
+  const {
+    data: topics,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<TopicsResponse>(`/api/knowledge/topics?organizationId=${organizationId}`, fetcher);
 
   const handleAutoCluster = async () => {
     setIsAutoClustering(true);
@@ -89,9 +91,7 @@ export function TopicList({ organizationId, organizationSlug, className }: Topic
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Topics</h1>
-          <p className="text-muted-foreground">
-            Explore topics discovered from your content
-          </p>
+          <p className="text-muted-foreground">Explore topics discovered from your content</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => mutate()} disabled={isLoading}>
@@ -139,11 +139,7 @@ export function TopicList({ organizationId, organizationSlug, className }: Topic
       {!isLoading && !error && topics && topics.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {topics.map((topic) => (
-            <TopicCard
-              key={topic.id}
-              topic={topic}
-              onClick={() => handleTopicClick(topic)}
-            />
+            <TopicCard key={topic.id} topic={topic} onClick={() => handleTopicClick(topic)} />
           ))}
         </div>
       )}

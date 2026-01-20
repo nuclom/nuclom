@@ -294,7 +294,10 @@ function detectLanguage(filename: string): string {
 /**
  * Extract symbols (functions, components, classes) from a diff patch
  */
-function extractSymbolsFromPatch(patch: string, language: string): {
+function extractSymbolsFromPatch(
+  patch: string,
+  language: string,
+): {
   functions: string[];
   components: string[];
   classes: string[];
@@ -424,12 +427,12 @@ function extractCodeContext(files: GitHubFile[]): CodeContext {
     // Only extract symbols if we have a patch
     if (file.patch) {
       const symbols = extractSymbolsFromPatch(file.patch, language);
-      symbols.functions.forEach((f) => allFunctions.add(f));
-      symbols.components.forEach((c) => allComponents.add(c));
-      symbols.classes.forEach((c) => allClasses.add(c));
+      for (const f of symbols.functions) allFunctions.add(f);
+      for (const c of symbols.components) allComponents.add(c);
+      for (const c of symbols.classes) allClasses.add(c);
 
       const imports = extractImportsFromPatch(file.patch, language);
-      imports.forEach((i) => allImports.add(i));
+      for (const i of imports) allImports.add(i);
     }
   }
 
@@ -637,8 +640,7 @@ function wikiToRawContentItem(page: GitHubWikiContent, repo: string, htmlUrl: st
   const pageName = page.name.replace(/\.md$/i, '').replace(/-/g, ' ');
 
   // Decode content if base64 encoded
-  const content =
-    page.encoding === 'base64' ? Buffer.from(page.content, 'base64').toString('utf-8') : page.content;
+  const content = page.encoding === 'base64' ? Buffer.from(page.content, 'base64').toString('utf-8') : page.content;
 
   return {
     externalId: `${repo}/wiki/${page.path}`,

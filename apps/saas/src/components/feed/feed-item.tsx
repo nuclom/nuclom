@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 import {
   CheckCircle,
   Clock,
@@ -12,9 +13,8 @@ import {
   Tags,
   Video,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 
 // =============================================================================
 // Types
@@ -104,13 +104,7 @@ export function FeedItem({ item, onClick, className }: FeedItemProps) {
     const externalUrl = item.metadata?.externalUrl as string | undefined;
 
     return (
-      <Card
-        className={cn(
-          'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
-          className,
-        )}
-        onClick={onClick}
-      >
+      <Card className={cn('p-4 hover:bg-accent/50 transition-colors cursor-pointer', className)} onClick={onClick}>
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-muted">
             <Icon className="h-4 w-4 text-muted-foreground" />
@@ -143,9 +137,7 @@ export function FeedItem({ item, onClick, className }: FeedItemProps) {
                 item.title
               )}
             </h3>
-            {item.summary && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>
-            )}
+            {item.summary && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>}
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
               {authorName && <span>{authorName}</span>}
               <span className="flex items-center gap-1">
@@ -194,9 +186,7 @@ export function FeedItem({ item, onClick, className }: FeedItemProps) {
               )}
             </div>
             <h3 className="font-medium text-sm line-clamp-2">{item.title}</h3>
-            {item.summary && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>
-            )}
+            {item.summary && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               {tags && tags.length > 0 && (
                 <div className="flex items-center gap-1">
@@ -226,10 +216,7 @@ export function FeedItem({ item, onClick, className }: FeedItemProps) {
 
     return (
       <Card
-        className={cn(
-          'p-4 hover:bg-accent/50 transition-colors cursor-pointer border-l-4',
-          className,
-        )}
+        className={cn('p-4 hover:bg-accent/50 transition-colors cursor-pointer border-l-4', className)}
         style={{ borderLeftColor: color || '#6366f1' }}
         onClick={onClick}
       >
@@ -250,9 +237,7 @@ export function FeedItem({ item, onClick, className }: FeedItemProps) {
               )}
             </div>
             <h3 className="font-medium text-sm">{item.title}</h3>
-            {item.summary && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>
-            )}
+            {item.summary && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.summary}</p>}
             {keywords && keywords.length > 0 && (
               <div className="flex items-center gap-1 mt-2 flex-wrap">
                 {keywords.slice(0, 5).map((keyword) => (

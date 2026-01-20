@@ -8,7 +8,7 @@
  */
 
 import { cn } from '@nuclom/lib/utils';
-import { AlertCircle, Check, GitBranch, Lock, Loader2, RefreshCw, Search, Star } from 'lucide-react';
+import { AlertCircle, Check, GitBranch, Loader2, Lock, RefreshCw, Search, Star } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
@@ -389,9 +389,7 @@ function RepoItem({ repo, isSelected, onSelect }: RepoItemProps) {
           {repo.isPrivate && <Lock className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
         </div>
 
-        {repo.description && (
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{repo.description}</p>
-        )}
+        {repo.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{repo.description}</p>}
 
         <div className="flex items-center gap-3 mt-1.5">
           {repo.language && (

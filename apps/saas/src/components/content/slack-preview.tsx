@@ -12,11 +12,13 @@
  */
 
 import type { ContentItem, ContentItemMetadata } from '@nuclom/lib/db/schema';
+import { formatRelativeTimeCompact, getInitials } from '@nuclom/lib/format-utils';
 import { cn } from '@nuclom/lib/utils';
 import { Hash, MessageSquare, Paperclip, Reply } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { ContentPreviewVariant } from './content-preview';
+import { InteractiveCard } from './interactive-card';
 
 // =============================================================================
 // Types
@@ -43,36 +45,6 @@ export interface SlackPreviewProps {
 }
 
 // =============================================================================
-// Helper Functions
-// =============================================================================
-
-function formatRelativeTime(date: Date | string | null): string {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-function getInitials(name: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-// =============================================================================
 // Component
 // =============================================================================
 
@@ -92,13 +64,7 @@ export function SlackPreview({
   // Compact variant
   if (variant === 'compact') {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer',
-          className,
-        )}
-        onClick={onClick}
-      >
+      <InteractiveCard variant="compact" onClick={onClick} className={className}>
         {showAuthor && (
           <Avatar className="h-6 w-6">
             <AvatarImage src={metadata.authorAvatar} alt={item.authorName || 'User'} />
@@ -114,7 +80,7 @@ export function SlackPreview({
                 {metadata.channelName}
               </span>
             )}
-            {showTimestamp && item.createdAtSource && <span>{formatRelativeTime(item.createdAtSource)}</span>}
+            {showTimestamp && item.createdAtSource && <span>{formatRelativeTimeCompact(item.createdAtSource)}</span>}
           </div>
         </div>
         {isThread && (
@@ -123,20 +89,13 @@ export function SlackPreview({
             {metadata.replyCount}
           </Badge>
         )}
-      </div>
+      </InteractiveCard>
     );
   }
 
   // Default and expanded variants
   return (
-    <div
-      className={cn(
-        'p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors',
-        onClick && 'cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-    >
+    <InteractiveCard onClick={onClick} className={className}>
       {/* Header */}
       <div className="flex items-start gap-3">
         {showAuthor && (
@@ -155,7 +114,7 @@ export function SlackPreview({
               </Badge>
             )}
             {showTimestamp && item.createdAtSource && (
-              <span className="text-xs text-muted-foreground">{formatRelativeTime(item.createdAtSource)}</span>
+              <span className="text-xs text-muted-foreground">{formatRelativeTimeCompact(item.createdAtSource)}</span>
             )}
           </div>
 
@@ -164,9 +123,7 @@ export function SlackPreview({
             {item.title && item.title !== item.content?.slice(0, 100) && (
               <p className="font-medium text-sm mb-1">{item.title}</p>
             )}
-            <p className={cn('text-sm text-foreground/90', variant === 'default' && 'line-clamp-3')}>
-              {item.content}
-            </p>
+            <p className={cn('text-sm text-foreground/90', variant === 'default' && 'line-clamp-3')}>{item.content}</p>
           </div>
 
           {/* Attachments */}
@@ -174,7 +131,7 @@ export function SlackPreview({
             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
               <Paperclip className="h-3 w-3" />
               <span>
-                {metadata.files!.length} attachment{metadata.files!.length !== 1 ? 's' : ''}
+                {metadata.files?.length ?? 0} attachment{metadata.files?.length !== 1 ? 's' : ''}
               </span>
             </div>
           )}
@@ -210,7 +167,7 @@ export function SlackPreview({
           <p className="text-sm">{item.summary}</p>
         </div>
       )}
-    </div>
+    </InteractiveCard>
   );
 }
 

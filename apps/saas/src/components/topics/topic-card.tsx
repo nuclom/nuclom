@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import { Hash, Tags } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Hash, Tags } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // =============================================================================
 // Types
@@ -35,13 +35,7 @@ export function TopicCard({ topic, onClick, className }: TopicCardProps) {
   const createdAt = typeof topic.createdAt === 'string' ? new Date(topic.createdAt) : topic.createdAt;
 
   return (
-    <Card
-      className={cn(
-        'hover:bg-accent/50 transition-colors cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-    >
+    <Card className={cn('hover:bg-accent/50 transition-colors cursor-pointer', className)} onClick={onClick}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -57,9 +51,7 @@ export function TopicCard({ topic, onClick, className }: TopicCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {topic.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{topic.description}</p>
-        )}
+        {topic.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{topic.description}</p>}
         {topic.keywords.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {topic.keywords.slice(0, 5).map((keyword) => (
@@ -74,9 +66,7 @@ export function TopicCard({ topic, onClick, className }: TopicCardProps) {
             )}
           </div>
         )}
-        <p className="text-xs text-muted-foreground">
-          Created {formatDistanceToNow(createdAt, { addSuffix: true })}
-        </p>
+        <p className="text-xs text-muted-foreground">Created {formatDistanceToNow(createdAt, { addSuffix: true })}</p>
       </CardContent>
     </Card>
   );

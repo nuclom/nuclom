@@ -679,9 +679,9 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
             // Fetch comments if enabled (defaults to true)
             if (config?.syncComments !== false) {
-              const comments = yield* service.getPageComments(source, page.id).pipe(
-                Effect.catchAll(() => Effect.succeed([] as NotionComment[])),
-              );
+              const comments = yield* service
+                .getPageComments(source, page.id)
+                .pipe(Effect.catchAll(() => Effect.succeed([] as NotionComment[])));
 
               if (comments.length > 0) {
                 const commentsText = comments

@@ -7,24 +7,17 @@
  * them to Nuclom organization members.
  */
 
+import { cn } from '@nuclom/lib/utils';
+import { AlertCircle, Check, ChevronDown, Link2, Link2Off, Loader2, User } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import useSWR, { mutate } from 'swr';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@nuclom/lib/utils';
-import { AlertCircle, Check, ChevronDown, Link2, Link2Off, Loader2, RefreshCw, User } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import useSWR, { mutate } from 'swr';
 
 // =============================================================================
 // Types
@@ -284,11 +277,7 @@ function UserLinkingRow({ user, members, isLinking, onLink, onUnlink }: UserLink
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" disabled={isLinking}>
-                {isLinking ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : (
-                  <Link2 className="h-4 w-4 mr-1" />
-                )}
+                {isLinking ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Link2 className="h-4 w-4 mr-1" />}
                 Link
                 <ChevronDown className="h-3 w-3 ml-1" />
               </Button>

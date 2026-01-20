@@ -74,9 +74,7 @@ export function KnowledgeFeed({ organizationId, className }: KnowledgeFeedProps)
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Knowledge Feed</h2>
-          <p className="text-sm text-muted-foreground">
-            Recent activity from all your sources
-          </p>
+          <p className="text-sm text-muted-foreground">Recent activity from all your sources</p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => mutate()} disabled={isLoading}>
           <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />

@@ -564,12 +564,7 @@ function ContentSourceConfigDialog({
           </TabsContent>
 
           <TabsContent value="users" className="py-4">
-            {sourceId && (
-              <UserLinkingPanel
-                sourceId={sourceId}
-                organizationId={organizationId}
-              />
-            )}
+            {sourceId && <UserLinkingPanel sourceId={sourceId} organizationId={organizationId} />}
           </TabsContent>
         </Tabs>
       </DialogContent>

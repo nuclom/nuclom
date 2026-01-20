@@ -8,11 +8,13 @@
  */
 
 import type { ContentItem } from '@nuclom/lib/db/schema';
+import { formatRelativeTimeCompact, getInitials } from '@nuclom/lib/format-utils';
 import { cn } from '@nuclom/lib/utils';
 import { FileText } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { ContentPreviewVariant } from './content-preview';
+import { InteractiveCard } from './interactive-card';
 
 // =============================================================================
 // Types
@@ -31,32 +33,6 @@ export interface GenericContentPreviewProps {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-function formatRelativeTime(date: Date | string | null): string {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-function getInitials(name: string | null): string {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 function getTypeLabel(type: string): string {
   const labels: Record<string, string> = {
@@ -83,7 +59,7 @@ function getTypeLabel(type: string): string {
 export function GenericContentPreview({
   item,
   variant = 'default',
-  showSource = true,
+  showSource: _showSource = true,
   showAuthor = true,
   showTimestamp = true,
   className,
@@ -94,45 +70,31 @@ export function GenericContentPreview({
   // Compact variant
   if (variant === 'compact') {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer',
-          className,
-        )}
-        onClick={onClick}
-      >
+      <InteractiveCard variant="compact" onClick={onClick} className={className}>
         <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
           <FileText className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm truncate">{item.title || item.content?.slice(0, 80) || 'Untitled'}</p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="outline" className="text-xs">{getTypeLabel(item.type)}</Badge>
-            {showTimestamp && item.createdAtSource && <span>{formatRelativeTime(item.createdAtSource)}</span>}
+            <Badge variant="outline" className="text-xs">
+              {getTypeLabel(item.type)}
+            </Badge>
+            {showTimestamp && item.createdAtSource && <span>{formatRelativeTimeCompact(item.createdAtSource)}</span>}
           </div>
         </div>
-      </div>
+      </InteractiveCard>
     );
   }
 
   // Default and expanded variants
   return (
-    <div
-      className={cn(
-        'p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors',
-        onClick && 'cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-    >
+    <InteractiveCard onClick={onClick} className={className}>
       {/* Header */}
       <div className="flex items-start gap-3">
         {showAuthor && item.authorName ? (
           <Avatar className="h-10 w-10">
-            <AvatarImage
-              src={(metadata as { authorAvatar?: string }).authorAvatar}
-              alt={item.authorName}
-            />
+            <AvatarImage src={(metadata as { authorAvatar?: string }).authorAvatar} alt={item.authorName} />
             <AvatarFallback>{getInitials(item.authorName)}</AvatarFallback>
           </Avatar>
         ) : (
@@ -149,7 +111,7 @@ export function GenericContentPreview({
               {getTypeLabel(item.type)}
             </Badge>
             {showAuthor && item.authorName && <span>{item.authorName}</span>}
-            {showTimestamp && item.createdAtSource && <span>{formatRelativeTime(item.createdAtSource)}</span>}
+            {showTimestamp && item.createdAtSource && <span>{formatRelativeTimeCompact(item.createdAtSource)}</span>}
           </div>
         </div>
       </div>
@@ -157,9 +119,7 @@ export function GenericContentPreview({
       {/* Content preview */}
       {item.content && (
         <div className="mt-3">
-          <p className={cn('text-sm text-muted-foreground', variant === 'default' && 'line-clamp-3')}>
-            {item.content}
-          </p>
+          <p className={cn('text-sm text-muted-foreground', variant === 'default' && 'line-clamp-3')}>{item.content}</p>
         </div>
       )}
 
@@ -220,7 +180,7 @@ export function GenericContentPreview({
           </Badge>
         </div>
       )}
-    </div>
+    </InteractiveCard>
   );
 }
 

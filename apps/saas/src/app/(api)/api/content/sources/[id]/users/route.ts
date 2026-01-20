@@ -201,9 +201,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
           // Email username matches name
           else if (member.email && data.name) {
-            const emailUsername = member.email.split('@')[0]?.toLowerCase().replace(/[^a-z]/g, '');
+            const emailUsername = member.email
+              .split('@')[0]
+              ?.toLowerCase()
+              .replace(/[^a-z]/g, '');
             const nameLower = data.name.toLowerCase().replace(/[^a-z]/g, '');
-            if (emailUsername && nameLower && (emailUsername.includes(nameLower) || nameLower.includes(emailUsername))) {
+            if (
+              emailUsername &&
+              nameLower &&
+              (emailUsername.includes(nameLower) || nameLower.includes(emailUsername))
+            ) {
               confidence = 0.5;
               reason = 'Email/name correlation';
             }

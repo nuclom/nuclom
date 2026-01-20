@@ -10,7 +10,7 @@ import { db } from '@nuclom/lib/db';
 import { contentItems, contentParticipants, contentSources, members } from '@nuclom/lib/db/schema';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -26,10 +26,7 @@ const LinkUserSchema = Schema.Struct({
 // POST /api/content/sources/[id]/users/[externalId]/link
 // =============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; externalId: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string; externalId: string }> }) {
   const effect = Effect.gen(function* () {
     const { id: sourceId, externalId } = yield* Effect.promise(() => params);
     const decodedExternalId = decodeURIComponent(externalId);
@@ -95,15 +92,14 @@ export async function POST(
 
         const sourceItemIds = sourceItems.map((i) => i.id);
 
-        // Update participants in batches (Drizzle doesn't support IN with array directly)
+        // Update participants where contentItemId is in the list of source items
         const updated = await db
           .update(contentParticipants)
           .set({ userId: body.userId })
           .where(
             and(
               eq(contentParticipants.externalId, decodedExternalId),
-              // Use SQL to check if contentItemId is in the list
-              // This is a workaround since we can't easily use IN clause
+              inArray(contentParticipants.contentItemId, sourceItemIds),
             ),
           )
           .returning({ id: contentParticipants.id });

@@ -14,7 +14,6 @@ import { DecisionCard, type DecisionData } from './decision-card';
 
 interface DecisionDashboardProps {
   organizationId: string;
-  organizationSlug: string;
   className?: string;
 }
 
@@ -43,7 +42,7 @@ const fetcher = async (url: string): Promise<DecisionsResponse> => {
 // Component
 // =============================================================================
 
-export function DecisionDashboard({ organizationId, organizationSlug, className }: DecisionDashboardProps) {
+export function DecisionDashboard({ organizationId, className }: DecisionDashboardProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   // Build URL with filters
@@ -69,9 +68,7 @@ export function DecisionDashboard({ organizationId, organizationSlug, className 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Decisions</h1>
-          <p className="text-muted-foreground">
-            Track and manage decisions made across your organization
-          </p>
+          <p className="text-muted-foreground">Track and manage decisions made across your organization</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => mutate()} disabled={isLoading}>
           <RefreshCw className={cn('h-4 w-4 mr-2', isLoading && 'animate-spin')} />
@@ -111,9 +108,7 @@ export function DecisionDashboard({ organizationId, organizationSlug, className 
                   {proposedDecisions.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No proposed decisions</p>
                   ) : (
-                    proposedDecisions.map((decision) => (
-                      <DecisionCard key={decision.id} decision={decision} />
-                    ))
+                    proposedDecisions.map((decision) => <DecisionCard key={decision.id} decision={decision} />)
                   )}
                 </div>
               </div>
@@ -128,9 +123,7 @@ export function DecisionDashboard({ organizationId, organizationSlug, className 
                   {decidedDecisions.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No decided items</p>
                   ) : (
-                    decidedDecisions.map((decision) => (
-                      <DecisionCard key={decision.id} decision={decision} />
-                    ))
+                    decidedDecisions.map((decision) => <DecisionCard key={decision.id} decision={decision} />)
                   )}
                 </div>
               </div>
@@ -145,9 +138,7 @@ export function DecisionDashboard({ organizationId, organizationSlug, className 
                   {revisitedDecisions.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No revisited items</p>
                   ) : (
-                    revisitedDecisions.map((decision) => (
-                      <DecisionCard key={decision.id} decision={decision} />
-                    ))
+                    revisitedDecisions.map((decision) => <DecisionCard key={decision.id} decision={decision} />)
                   )}
                 </div>
               </div>
@@ -162,9 +153,7 @@ export function DecisionDashboard({ organizationId, organizationSlug, className 
                   {supersededDecisions.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No superseded items</p>
                   ) : (
-                    supersededDecisions.map((decision) => (
-                      <DecisionCard key={decision.id} decision={decision} />
-                    ))
+                    supersededDecisions.map((decision) => <DecisionCard key={decision.id} decision={decision} />)
                   )}
                 </div>
               </div>

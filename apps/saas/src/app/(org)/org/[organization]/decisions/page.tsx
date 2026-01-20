@@ -55,12 +55,7 @@ async function DecisionsLoader({ params }: { params: Promise<{ organization: str
     notFound();
   }
 
-  return (
-    <DecisionDashboard
-      organizationId={organization.id}
-      organizationSlug={organizationSlug}
-    />
-  );
+  return <DecisionDashboard organizationId={organization.id} />;
 }
 
 // =============================================================================

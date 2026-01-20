@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@nuclom/lib/utils';
-import { CheckCircle, Clock, HelpCircle, RotateCcw, XCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, Clock, HelpCircle, RotateCcw, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // =============================================================================
 // Types
@@ -132,9 +132,7 @@ export function DecisionCard({ decision, onClick, className }: DecisionCardProps
             {decision.decisionType}
           </Badge>
         </div>
-        {decision.context && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{decision.context}</p>
-        )}
+        {decision.context && <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{decision.context}</p>}
         {decision.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {decision.tags.slice(0, 3).map((tag) => (

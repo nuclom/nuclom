@@ -12,18 +12,13 @@
  */
 
 import type { ContentItem, ContentItemMetadata } from '@nuclom/lib/db/schema';
+import { formatRelativeTimeCompact, getInitials } from '@nuclom/lib/format-utils';
 import { cn } from '@nuclom/lib/utils';
-import {
-  Check,
-  CircleDot,
-  GitMerge,
-  GitPullRequest,
-  MessageSquare,
-  X,
-} from 'lucide-react';
+import { Check, CircleDot, GitMerge, GitPullRequest, MessageSquare, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { ContentPreviewVariant } from './content-preview';
+import { InteractiveCard } from './interactive-card';
 
 // =============================================================================
 // Types
@@ -61,27 +56,6 @@ export interface GitHubPreviewProps {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-function formatRelativeTime(date: Date | string | null): string {
-  if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-function getInitials(name: string | null): string {
-  if (!name) return '?';
-  return name.slice(0, 2).toUpperCase();
-}
 
 /**
  * Get the state icon and color for a PR/Issue
@@ -173,7 +147,6 @@ export function GitHubPreview({
 }: GitHubPreviewProps) {
   const metadata = item.metadata as GitHubMetadata;
   const isPR = item.type === 'pull_request';
-  const isIssue = item.type === 'issue';
   const number = metadata.prNumber || metadata.issueNumber;
   const stateInfo = getStateInfo(item.type, metadata.state, metadata.isDraft);
   const repoPath = metadata.repoOwner && metadata.repoName ? `${metadata.repoOwner}/${metadata.repoName}` : null;
@@ -181,13 +154,7 @@ export function GitHubPreview({
   // Compact variant
   if (variant === 'compact') {
     return (
-      <div
-        className={cn(
-          'flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer',
-          className,
-        )}
-        onClick={onClick}
-      >
+      <InteractiveCard variant="compact" onClick={onClick} className={className}>
         <div className={cn('p-1 rounded', stateInfo.color)}>{stateInfo.icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-sm truncate">
@@ -196,13 +163,13 @@ export function GitHubPreview({
           </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {showSource && repoPath && <span>{repoPath}</span>}
-            {showTimestamp && item.createdAtSource && <span>{formatRelativeTime(item.createdAtSource)}</span>}
+            {showTimestamp && item.createdAtSource && <span>{formatRelativeTimeCompact(item.createdAtSource)}</span>}
           </div>
         </div>
         <Badge variant="secondary" className="text-xs">
           {stateInfo.label}
         </Badge>
-      </div>
+      </InteractiveCard>
     );
   }
 
@@ -211,14 +178,7 @@ export function GitHubPreview({
   const hasChanges = isPR && (metadata.additions !== undefined || metadata.deletions !== undefined);
 
   return (
-    <div
-      className={cn(
-        'p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors',
-        onClick && 'cursor-pointer',
-        className,
-      )}
-      onClick={onClick}
-    >
+    <InteractiveCard onClick={onClick} className={className}>
       {/* Repo path */}
       {showSource && repoPath && <p className="text-xs text-muted-foreground mb-2">{repoPath}</p>}
 
@@ -245,7 +205,7 @@ export function GitHubPreview({
                 {item.authorName}
               </span>
             )}
-            {showTimestamp && item.createdAtSource && <span>{formatRelativeTime(item.createdAtSource)}</span>}
+            {showTimestamp && item.createdAtSource && <span>{formatRelativeTimeCompact(item.createdAtSource)}</span>}
           </div>
         </div>
       </div>
@@ -363,7 +323,7 @@ export function GitHubPreview({
           )}
         </>
       )}
-    </div>
+    </InteractiveCard>
   );
 }
 

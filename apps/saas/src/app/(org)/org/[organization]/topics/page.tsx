@@ -1,7 +1,6 @@
 import { auth } from '@nuclom/lib/auth';
 import type { Organization } from '@nuclom/lib/db/schema';
 import { getCachedOrganizationBySlug } from '@nuclom/lib/effect';
-import { Loader2 } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
@@ -53,12 +52,7 @@ async function TopicsLoader({ params }: { params: Promise<{ organization: string
     notFound();
   }
 
-  return (
-    <TopicList
-      organizationId={organization.id}
-      organizationSlug={organizationSlug}
-    />
-  );
+  return <TopicList organizationId={organization.id} organizationSlug={organizationSlug} />;
 }
 
 // =============================================================================
