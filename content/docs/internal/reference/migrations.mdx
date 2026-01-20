@@ -21,6 +21,47 @@ drizzle/
     └── 0002_rollback_add_series_tables.sql
 ```
 
+## Generating Migrations
+
+When modifying database schema files in `packages/lib/src/db/schema/`, you must generate and commit migrations.
+
+### Creating a Migration
+
+Always use the `--name` flag to provide a descriptive name:
+
+```bash
+pnpm db:generate --name <descriptive-name>
+```
+
+**Examples:**
+
+```bash
+pnpm db:generate --name add-user-preferences
+pnpm db:generate --name remove-legacy-comments
+pnpm db:generate --name update-video-schema
+```
+
+This generates migration files with meaningful names like `0011_add-user-preferences.sql` instead of generic numbered files.
+
+### Pre-commit Hook
+
+A pre-commit hook automatically enforces migration best practices:
+
+1. **Schema changes require migrations**: If you modify schema files, you must generate corresponding migrations
+2. **Migrations need descriptive names**: Migration files must have meaningful names (not just numbers)
+3. **All migration files must be staged**: Both `.sql` files and `meta/*.json` files must be committed together
+
+If the hook fails, follow the error message instructions to:
+1. Generate migrations with `pnpm db:generate --name <name>`
+2. Stage the generated files with `git add apps/saas/drizzle/`
+
+<Warning>
+The pre-commit hook will block commits that:
+- Modify schema files without including migration files
+- Include migration files without descriptive names
+- Miss the meta files that track migration state
+</Warning>
+
 ## Production Migration Workflow
 
 ### Pre-Migration Checklist

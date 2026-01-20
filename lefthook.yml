@@ -14,3 +14,6 @@ pre-commit:
     openapi:
       glob: "src/app/api/**/route.ts"
       run: pnpm openapi && git add public/openapi.json public/openapi.yaml
+    migrations:
+      glob: "packages/lib/src/db/schema/**/*.ts"
+      run: bash scripts/check-migrations.sh
