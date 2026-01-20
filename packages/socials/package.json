@@ -1,0 +1,30 @@
+{
+  "name": "@nuclom/socials",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "nuclom-socials": "./src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
+    "./providers/*": "./src/providers/*/index.ts"
+  },
+  "scripts": {
+    "cli": "bun run src/cli.ts",
+    "tsc": "bun x tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "chalk": "catalog:",
+    "commander": "catalog:",
+    "date-fns": "catalog:",
+    "effect": "catalog:",
+    "twitter-api-v2": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}
