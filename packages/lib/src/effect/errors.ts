@@ -352,6 +352,35 @@ export type ContentError =
   | ContentAdapterNotFoundError;
 
 // =============================================================================
+// Encryption Errors
+// =============================================================================
+
+/**
+ * Error when encryption key is not configured
+ */
+export class EncryptionKeyNotConfiguredError extends Data.TaggedError('EncryptionKeyNotConfiguredError')<{
+  readonly message: string;
+}> {
+  static readonly default = new EncryptionKeyNotConfiguredError({
+    message: 'Encryption key not configured. Please set CREDENTIALS_ENCRYPTION_KEY environment variable.',
+  });
+}
+
+/**
+ * Error when encryption operation fails
+ */
+export class EncryptionError extends Data.TaggedError('EncryptionError')<{
+  readonly message: string;
+  readonly operation: 'encrypt' | 'decrypt';
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * All possible encryption errors
+ */
+export type CryptoError = EncryptionKeyNotConfiguredError | EncryptionError;
+
+// =============================================================================
 // Billing Errors
 // =============================================================================
 
@@ -518,7 +547,10 @@ export type AppErrorUnion =
   | ContentSourceAuthError
   | ContentItemNotFoundError
   | ContentProcessingError
-  | ContentAdapterNotFoundError;
+  | ContentAdapterNotFoundError
+  // Encryption errors
+  | EncryptionKeyNotConfiguredError
+  | EncryptionError;
 
 /**
  * All possible error tags for discriminated union matching.

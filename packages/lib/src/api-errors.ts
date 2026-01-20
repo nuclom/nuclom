@@ -177,6 +177,10 @@ const errorTagMapping: Record<AppErrorTag, ErrorMapping> = {
   ContentItemNotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
   ContentProcessingError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
   ContentAdapterNotFoundError: { code: ErrorCodes.NOT_FOUND_RESOURCE, status: 404 },
+
+  // Encryption errors
+  EncryptionKeyNotConfiguredError: { code: ErrorCodes.INTERNAL_CONFIGURATION_ERROR, status: 503 },
+  EncryptionError: { code: ErrorCodes.INTERNAL_ERROR, status: 500 },
 };
 
 /**

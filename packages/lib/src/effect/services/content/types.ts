@@ -28,6 +28,7 @@ import type {
   ContentSourceNotFoundError,
   ContentSourceSyncError,
   DatabaseError,
+  EncryptionError,
 } from '../../errors';
 
 // =============================================================================
@@ -338,7 +339,11 @@ export interface ContentSourceAdapter {
 /**
  * Content repository service errors
  */
-export type ContentRepositoryError = DatabaseError | ContentSourceNotFoundError | ContentItemNotFoundError;
+export type ContentRepositoryError =
+  | DatabaseError
+  | ContentSourceNotFoundError
+  | ContentItemNotFoundError
+  | EncryptionError;
 
 /**
  * Content processor service errors

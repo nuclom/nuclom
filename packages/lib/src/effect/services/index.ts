@@ -312,6 +312,18 @@ export {
   generateEmbeddings,
   processTranscript,
 } from './embedding';
+// Encryption Service
+export type { EncryptionServiceImpl } from './encryption';
+export {
+  decrypt,
+  decryptJson,
+  EncryptionService,
+  EncryptionServiceLive,
+  EncryptionServiceTest,
+  encrypt,
+  encryptJson,
+  isEncrypted,
+} from './encryption';
 // Google Meet Service
 export type {
   GoogleConfig,
