@@ -1,17 +1,28 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "maple",
   "name": "Nuclom",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+    "primary": "#5B3AFF",
+    "light": "#7B5AFF",
+    "dark": "#8B6AFF"
+  },
+  "background": {
+    "decoration": "grid"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "icons": {
+    "library": "fontawesome"
   },
   "favicon": "/docs/favicon.svg",
   "navigation": {
     "dropdowns": [
       {
         "dropdown": "Documentation",
+        "icon": "book",
+        "description": "Learn how to use Nuclom",
         "groups": [
           {
             "group": "Get Started",
@@ -60,6 +71,8 @@
       },
       {
         "dropdown": "Internal Docs",
+        "icon": "lock",
+        "description": "Internal development documentation",
         "hidden": true,
         "groups": [
           {
@@ -138,17 +151,27 @@
     "dark": "/docs/logo/dark.svg"
   },
   "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://nuclom.com"
+    },
     "links": [
       {
         "label": "Support",
         "href": "mailto:support@nuclom.com"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://nuclom.com"
-    }
+    ]
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
