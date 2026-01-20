@@ -17,14 +17,14 @@
     "test": "bun test"
   },
   "dependencies": {
-    "commander": "^13.1.0",
-    "twitter-api-v2": "^1.21.0",
-    "effect": "catalog:",
+    "chalk": "catalog:",
+    "commander": "catalog:",
     "date-fns": "catalog:",
-    "chalk": "^5.4.1"
+    "effect": "catalog:",
+    "twitter-api-v2": "catalog:"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.11",
+    "@types/bun": "catalog:",
     "typescript": "catalog:"
   }
 }

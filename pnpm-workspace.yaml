@@ -4,15 +4,15 @@ packages:
   - tests/*
 
 catalog:
-  '@ai-sdk/gateway': 3.0.16
-  '@ai-sdk/react': 3.0.41
+  '@ai-sdk/gateway': 3.0.17
+  '@ai-sdk/react': 3.0.44
   '@aws-sdk/client-s3': 3.971.0
   '@aws-sdk/lib-storage': 3.971.0
   '@aws-sdk/s3-request-presigner': 3.971.0
-  '@better-auth/oauth-provider': 1.4.15
-  '@better-auth/passkey': 1.4.15
-  '@better-auth/sso': 1.4.15
-  '@better-auth/stripe': 1.4.15
+  '@better-auth/oauth-provider': 1.4.16
+  '@better-auth/passkey': 1.4.16
+  '@better-auth/sso': 1.4.16
+  '@better-auth/stripe': 1.4.16
   '@biomejs/biome': 2.3.11
   '@dnd-kit/core': 6.3.1
   '@dnd-kit/sortable': 10.0.0
@@ -24,9 +24,9 @@ catalog:
   '@effect/sql-pg': 0.50.1
   '@effect/vitest': 0.27.0
   '@hookform/resolvers': 5.2.2
-  '@next/env': 16.1.3
+  '@next/env': 16.1.4
   '@playwright/test': 1.57.0
-  '@posthog/nextjs-config': 1.7.6
+  '@posthog/nextjs-config': 1.8.1
   '@radix-ui/react-accordion': 1.2.12
   '@radix-ui/react-alert-dialog': 1.1.15
   '@radix-ui/react-aspect-ratio': 1.1.8
@@ -54,15 +54,16 @@ catalog:
   '@radix-ui/react-toggle': 1.1.10
   '@radix-ui/react-toggle-group': 1.1.11
   '@radix-ui/react-tooltip': 1.2.8
-  '@stripe/stripe-js': 8.6.1
+  '@stripe/stripe-js': 8.6.3
   '@tailwindcss/postcss': 4.1.18
   '@testing-library/jest-dom': 6.9.1
-  '@testing-library/react': 16.3.1
+  '@testing-library/react': 16.3.2
   '@testing-library/user-event': 14.6.1
+  '@types/bun': ^1.3.6
   '@types/node': 25.0.9
   '@types/react': 19.2.8
   '@types/react-dom': 19.2.3
-  '@typescript/native-preview': 7.0.0-dev.20260118.1
+  '@typescript/native-preview': 7.0.0-dev.20260120.1
   '@upstash/ratelimit': 2.0.8
   '@upstash/redis': 1.36.1
   '@vercel/analytics': 1.6.1
@@ -70,13 +71,15 @@ catalog:
   '@vercel/microfrontends': 2.2.2
   '@vitejs/plugin-react': 5.1.2
   '@vitest/coverage-v8': 4.0.17
-  ai: 6.0.39
+  ai: 6.0.42
   autoprefixer: 10.4.23
   bash-tool: 1.3.6
-  better-auth: 1.4.15
+  better-auth: 1.4.16
+  chalk: ^5.6.2
   class-variance-authority: 0.7.1
   clsx: 2.1.1
   cmdk: 1.1.1
+  commander: ^14.0.2
   date-fns: 4.1.0
   dotenv: 17.2.3
   drizzle-kit: 0.31.8
@@ -87,14 +90,14 @@ catalog:
   jsdom: 27.4.0
   lefthook: 2.0.15
   lucide-react: 0.562.0
-  next: 16.1.3
+  next: 16.1.4
   next-intl: 4.7.0
   next-themes: 0.4.6
   openai: 6.16.0
   postcss: ~8.5.6
   postgres: 3.4.8
-  posthog-js: 1.328.0
-  posthog-node: 5.21.1
+  posthog-js: 1.331.0
+  posthog-node: 5.23.0
   react: 19.2.3
   react-day-picker: 9.13.0
   react-dom: 19.2.3
@@ -106,10 +109,10 @@ catalog:
   rehype-highlight: 7.0.2
   remark-gfm: 4.0.1
   replicate: 1.4.0
-  resend: 6.7.0
+  resend: 6.8.0
   server-only: 0.0.1
   sonner: 2.0.7
-  streamdown: 2.0.1
+  streamdown: 2.1.0
   stripe: 20.2.0
   swr: 2.3.8
   tailwind-merge: 3.4.0
@@ -118,6 +121,7 @@ catalog:
   tslog: 4.10.2
   tsx: 4.21.0
   turbo: 2.7.5
+  twitter-api-v2: ^1.29.0
   typescript: 5.9.3
   uuid: 13.0.0
   vaul: 1.1.2

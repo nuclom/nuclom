@@ -128,19 +128,10 @@ export class ContentRepository extends Context.Tag('ContentRepository')<
 
 /**
  * Marker type for encrypted credentials stored in the database.
- * When credentials are encrypted, they're stored as { _encrypted: "iv:authTag:ciphertext" }
+ * Credentials are stored as { _encrypted: "iv:authTag:ciphertext" }
  */
 type EncryptedCredentials = {
   readonly _encrypted: string;
-};
-
-/**
- * Check if credentials are in encrypted format
- */
-const isEncryptedCredentials = (
-  credentials: ContentSourceCredentials | EncryptedCredentials | null | undefined,
-): credentials is EncryptedCredentials => {
-  return credentials !== null && credentials !== undefined && '_encrypted' in credentials;
 };
 
 /**
@@ -160,22 +151,20 @@ const encryptCredentials = (
 };
 
 /**
- * Decrypt credentials from storage
+ * Decrypt credentials from storage.
+ * Note: Database returns ContentSourceCredentials type but actual data is EncryptedCredentials.
  */
 const decryptCredentials = (
-  credentials: ContentSourceCredentials | EncryptedCredentials | null | undefined,
+  credentials: ContentSourceCredentials | null | undefined,
   encryption: EncryptionServiceImpl,
 ): Effect.Effect<ContentSourceCredentials | null, EncryptionError> => {
   if (!credentials) {
     return Effect.succeed(null);
   }
 
-  // Already decrypted (backward compatibility for existing unencrypted credentials)
-  if (!isEncryptedCredentials(credentials)) {
-    return Effect.succeed(credentials);
-  }
-
-  return encryption.decryptJson<ContentSourceCredentials>(credentials._encrypted);
+  // Cast to EncryptedCredentials - all credentials in database are encrypted
+  const encrypted = credentials as unknown as EncryptedCredentials;
+  return encryption.decryptJson<ContentSourceCredentials>(encrypted._encrypted);
 };
 
 // =============================================================================
