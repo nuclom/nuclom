@@ -6,11 +6,9 @@
 
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { ContentRepository, SlackContentAdapter, verifySlackSignature } from '@nuclom/lib/effect/services/content';
-import { SlackContentAdapterLive } from '@nuclom/lib/effect/services/content/slack-content-adapter';
-import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { env } from '@nuclom/lib/env/server';
 import { logger } from '@nuclom/lib/logger';
-import { Effect, Layer } from 'effect';
+import { Effect } from 'effect';
 import { NextResponse } from 'next/server';
 import { processContentWorkflow } from '@/workflows/content-processing';
 
@@ -146,11 +144,8 @@ export async function POST(request: Request) {
     });
 
     // Run asynchronously and return immediately (Slack expects fast response)
-    // Create layer with SlackContentAdapter
-    const SlackAdapterWithDeps = SlackContentAdapterLive.pipe(Layer.provide(DatabaseLive));
-    const fullLayer = Layer.merge(createPublicLayer(), SlackAdapterWithDeps);
-
-    Effect.runPromise(Effect.provide(processEffect, fullLayer)).catch((err) => {
+    // createPublicLayer() already includes SlackContentAdapter with all dependencies (Database, Storage)
+    Effect.runPromise(Effect.provide(processEffect, createPublicLayer())).catch((err) => {
       logger.error('[Slack Content Webhook Process Error]', err instanceof Error ? err : new Error(String(err)));
     });
 
