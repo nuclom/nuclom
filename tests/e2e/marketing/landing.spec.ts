@@ -20,7 +20,8 @@ test.describe('Landing Page', () => {
     });
 
     test('should display hero section', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' })).toBeVisible();
+      // Hero heading with span inside - use regex for flexible matching
+      await expect(page.getByRole('heading', { name: /Collaborate on Videos.*Like Never Before/i })).toBeVisible();
       // Use first() as there are multiple "Start Free Trial" links on the page
       await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
     });
@@ -30,7 +31,7 @@ test.describe('Landing Page', () => {
       await page.locator('section#features').first().scrollIntoViewIfNeeded();
       // Use first() as text may appear multiple times on the page
       await expect(page.getByText('Smart Video Management').first()).toBeVisible();
-      await expect(page.getByText('Real-Time Collaboration').first()).toBeVisible();
+      await expect(page.getByText('Team Collaboration').first()).toBeVisible();
       await expect(page.getByText('AI-Powered Analysis').first()).toBeVisible();
     });
 
@@ -124,7 +125,7 @@ test.describe('Landing Page - Mobile', () => {
     // Header should still be visible
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
-    // Hero content should be visible
-    await expect(page.getByRole('heading', { name: 'Collaborate on Videos Like Never Before' })).toBeVisible();
+    // Hero content should be visible - use regex for flexible matching
+    await expect(page.getByRole('heading', { name: /Collaborate on Videos.*Like Never Before/i })).toBeVisible();
   });
 });
