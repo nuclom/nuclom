@@ -36,6 +36,7 @@ import { type NotificationRepository, NotificationRepositoryLive } from './servi
 import { type OrganizationRepository, OrganizationRepositoryLive } from './services/organization-repository';
 import { type Presence, PresenceLive } from './services/presence';
 import { type ReplicateAPI, ReplicateLive } from './services/replicate';
+import { type UnifiedSearch, UnifiedSearchLive } from './services/search/unified-search';
 import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
@@ -188,6 +189,9 @@ const DecisionTrackerWithDeps = DecisionTrackerLive.pipe(
   Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
+// UnifiedSearch depends on Database and Embedding
+const UnifiedSearchWithDeps = withDeps2(UnifiedSearchLive, DatabaseLive, EmbeddingLive);
+
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
@@ -213,6 +217,7 @@ const AppServicesLive = Layer.mergeAll(
   RelationshipDetectorWithDeps,
   TopicClusterWithDeps,
   DecisionTrackerWithDeps,
+  UnifiedSearchWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -252,7 +257,8 @@ export type AppServices =
   | ContentProcessor
   | RelationshipDetector
   | TopicCluster
-  | DecisionTracker;
+  | DecisionTracker
+  | UnifiedSearch;
 
 // =============================================================================
 // Global Runtime (for stateful layers)
