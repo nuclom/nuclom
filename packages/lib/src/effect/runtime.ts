@@ -179,8 +179,8 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
   Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
-// Content adapters depend on Database
-const SlackContentAdapterWithDeps = withDep(SlackContentAdapterLive, DatabaseLive);
+// Content adapters depend on Database (Slack also needs Storage for file downloads)
+const SlackContentAdapterWithDeps = withDeps2(SlackContentAdapterLive, DatabaseLive, StorageLive);
 const GitHubContentAdapterWithDeps = withDep(GitHubContentAdapterLive, DatabaseLive);
 const NotionContentAdapterWithDeps = withDep(NotionContentAdapterLive, DatabaseLive);
 

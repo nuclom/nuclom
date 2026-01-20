@@ -29,6 +29,20 @@ export type SlackContentConfig = {
 };
 
 /**
+ * File attachment metadata stored in Slack message metadata
+ */
+export type SlackFileAttachment = {
+  readonly id: string;
+  readonly name: string;
+  readonly mimetype: string;
+  readonly url: string; // Original Slack URL (requires auth)
+  readonly size: number;
+  readonly storageKey?: string; // R2 storage key (if downloaded)
+  readonly skipped?: boolean; // True if file was too large to download
+  readonly skipReason?: string; // Reason for skipping (e.g., "File exceeds 10MB limit")
+};
+
+/**
  * Slack message metadata stored in content_items.metadata
  */
 export type SlackMessageMetadata = {
@@ -39,13 +53,7 @@ export type SlackMessageMetadata = {
   readonly thread_ts?: string; // Parent thread timestamp
   readonly parent_ts?: string; // If this is a reply
   readonly reactions?: Array<{ name: string; count: number; users: string[] }>;
-  readonly files?: Array<{
-    id: string;
-    name: string;
-    mimetype: string;
-    url: string;
-    size: number;
-  }>;
+  readonly files?: SlackFileAttachment[];
   readonly blocks?: unknown[]; // Original Slack blocks for rich rendering
   readonly edited?: { user: string; ts: string };
   readonly reply_count?: number;

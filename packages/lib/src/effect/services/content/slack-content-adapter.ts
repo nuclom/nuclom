@@ -18,13 +18,15 @@ import {
   type NewSlackUser,
   type SlackChannelSyncRecord,
   type SlackContentConfig,
+  type SlackFileAttachment,
   type SlackMessageMetadata,
   type SlackUser,
   slackChannelSync,
   slackUsers,
 } from '../../../db/schema';
-import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
+import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError, UploadError } from '../../errors';
 import { Database } from '../database';
+import { Storage, type StorageService } from '../storage';
 import type { ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
@@ -143,6 +145,177 @@ export const SLACK_CONTENT_SCOPES = [
   'files:read', // Access shared files
 ];
 
+/**
+ * Maximum file size to download (10MB)
+ */
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Storage path prefix for Slack files
+ */
+const SLACK_FILES_PREFIX = 'slack-files';
+
+// =============================================================================
+// File Download/Upload Helpers
+// =============================================================================
+
+/**
+ * Download a file from Slack using the bot token
+ */
+const downloadSlackFile = async (
+  fileUrl: string,
+  accessToken: string,
+): Promise<{ buffer: Buffer; contentType: string }> => {
+  const response = await fetch(fileUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+  }
+
+  const contentType = response.headers.get('content-type') || 'application/octet-stream';
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  return { buffer, contentType };
+};
+
+/**
+ * Generate a storage key for a Slack file
+ * Format: slack-files/{sourceId}/{fileId}/{filename}
+ */
+const generateSlackFileKey = (sourceId: string, fileId: string, filename: string): string => {
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+  return `${SLACK_FILES_PREFIX}/${sourceId}/${fileId}/${sanitizedFilename}`;
+};
+
+/**
+ * Process a single Slack file: download and upload to R2
+ * Returns the file attachment with storage key if successful
+ */
+const processSlackFile = async (
+  file: { id: string; name: string; mimetype: string; url_private: string; size: number },
+  sourceId: string,
+  accessToken: string,
+  storage: StorageService,
+): Promise<SlackFileAttachment> => {
+  // Check file size limit
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return {
+      id: file.id,
+      name: file.name,
+      mimetype: file.mimetype,
+      url: file.url_private,
+      size: file.size,
+      skipped: true,
+      skipReason: `File exceeds ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB limit`,
+    };
+  }
+
+  // Check if storage is configured
+  if (!storage.isConfigured) {
+    return {
+      id: file.id,
+      name: file.name,
+      mimetype: file.mimetype,
+      url: file.url_private,
+      size: file.size,
+      skipped: true,
+      skipReason: 'Storage not configured',
+    };
+  }
+
+  try {
+    // Download the file from Slack
+    const { buffer } = await downloadSlackFile(file.url_private, accessToken);
+
+    // Generate storage key
+    const storageKey = generateSlackFileKey(sourceId, file.id, file.name);
+
+    // Upload to R2
+    const uploadEffect = storage.uploadFile(buffer, storageKey, {
+      contentType: file.mimetype,
+      metadata: {
+        sourceId,
+        slackFileId: file.id,
+        originalName: file.name,
+      },
+    });
+
+    const exit = await Effect.runPromiseExit(uploadEffect);
+
+    if (exit._tag === 'Success') {
+      return {
+        id: file.id,
+        name: file.name,
+        mimetype: file.mimetype,
+        url: file.url_private,
+        size: file.size,
+        storageKey,
+      };
+    } else {
+      // Upload failed, return file without storage key
+      const error = exit.cause;
+      return {
+        id: file.id,
+        name: file.name,
+        mimetype: file.mimetype,
+        url: file.url_private,
+        size: file.size,
+        skipped: true,
+        skipReason: `Upload failed: ${error}`,
+      };
+    }
+  } catch (error) {
+    // Download or upload failed
+    return {
+      id: file.id,
+      name: file.name,
+      mimetype: file.mimetype,
+      url: file.url_private,
+      size: file.size,
+      skipped: true,
+      skipReason: `Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+};
+
+/**
+ * Process multiple Slack files concurrently
+ */
+const processSlackFiles = async (
+  files: Array<{ id: string; name: string; mimetype: string; url_private: string; size: number }> | undefined,
+  sourceId: string,
+  accessToken: string,
+  storage: StorageService,
+  syncFiles: boolean,
+): Promise<SlackFileAttachment[] | undefined> => {
+  if (!files || files.length === 0) {
+    return undefined;
+  }
+
+  // If syncFiles is disabled, just store metadata without downloading
+  if (!syncFiles) {
+    return files.map((f) => ({
+      id: f.id,
+      name: f.name,
+      mimetype: f.mimetype,
+      url: f.url_private,
+      size: f.size,
+      skipped: true,
+      skipReason: 'File sync disabled',
+    }));
+  }
+
+  // Process files concurrently (limit concurrency to avoid rate limits)
+  const results = await Promise.all(files.map((file) => processSlackFile(file, sourceId, accessToken, storage)));
+
+  return results;
+};
+
 // =============================================================================
 // Slack API Helpers
 // =============================================================================
@@ -179,16 +352,49 @@ const slackFetch = async <T>(endpoint: string, accessToken: string, params?: Rec
 // =============================================================================
 
 /**
- * Convert a Slack message to a RawContentItem
+ * Context for processing Slack messages with file attachments
  */
-function messageToRawContentItem(
+interface MessageProcessingContext {
+  readonly sourceId: string;
+  readonly accessToken: string;
+  readonly storage: StorageService;
+  readonly syncFiles: boolean;
+}
+
+/**
+ * Convert a Slack message to a RawContentItem
+ * Optionally downloads and stores file attachments if context is provided
+ */
+async function messageToRawContentItem(
   message: SlackMessage,
   channel: SlackChannelInfo,
   users: Map<string, SlackUser>,
   permalink?: string,
-): RawContentItem {
+  processingContext?: MessageProcessingContext,
+): Promise<RawContentItem> {
   const user = users.get(message.user);
   const isThread = message.reply_count && message.reply_count > 0;
+
+  // Process files if context is available
+  let processedFiles: SlackFileAttachment[] | undefined;
+  if (processingContext && message.files && message.files.length > 0) {
+    processedFiles = await processSlackFiles(
+      message.files,
+      processingContext.sourceId,
+      processingContext.accessToken,
+      processingContext.storage,
+      processingContext.syncFiles,
+    );
+  } else if (message.files) {
+    // No processing context, just store metadata
+    processedFiles = message.files.map((f) => ({
+      id: f.id,
+      name: f.name,
+      mimetype: f.mimetype,
+      url: f.url_private,
+      size: f.size,
+    }));
+  }
 
   const metadata: SlackMessageMetadata = {
     channel_id: channel.id,
@@ -197,13 +403,7 @@ function messageToRawContentItem(
     message_ts: message.ts,
     thread_ts: message.thread_ts,
     reactions: message.reactions,
-    files: message.files?.map((f) => ({
-      id: f.id,
-      name: f.name,
-      mimetype: f.mimetype,
-      url: f.url_private,
-      size: f.size,
-    })),
+    files: processedFiles,
     blocks: message.blocks,
     edited: message.edited,
     reply_count: message.reply_count,
@@ -251,14 +451,16 @@ function generateMessageTitle(message: SlackMessage, channel: SlackChannelInfo, 
 
 /**
  * Aggregate thread messages into a single content item
+ * Optionally downloads and stores file attachments if context is provided
  */
-function aggregateThread(
+async function aggregateThread(
   parentMessage: SlackMessage,
   replies: SlackMessage[],
   channel: SlackChannelInfo,
   users: Map<string, SlackUser>,
   permalink?: string,
-): RawContentItem {
+  processingContext?: MessageProcessingContext,
+): Promise<RawContentItem> {
   const allMessages = [parentMessage, ...replies.toSorted((a, b) => Number.parseFloat(a.ts) - Number.parseFloat(b.ts))];
 
   // Build readable content
@@ -295,6 +497,30 @@ function aggregateThread(
     }
   }
 
+  // Collect all files from all messages
+  const allFilesRaw = allMessages.flatMap((m) => m.files || []);
+
+  // Process files if context is available
+  let processedFiles: SlackFileAttachment[] | undefined;
+  if (processingContext && allFilesRaw.length > 0) {
+    processedFiles = await processSlackFiles(
+      allFilesRaw,
+      processingContext.sourceId,
+      processingContext.accessToken,
+      processingContext.storage,
+      processingContext.syncFiles,
+    );
+  } else if (allFilesRaw.length > 0) {
+    // No processing context, just store metadata
+    processedFiles = allFilesRaw.map((f) => ({
+      id: f.id,
+      name: f.name,
+      mimetype: f.mimetype,
+      url: f.url_private,
+      size: f.size,
+    }));
+  }
+
   const latestMessage = allMessages[allMessages.length - 1];
   const user = users.get(parentMessage.user);
 
@@ -309,16 +535,7 @@ function aggregateThread(
       count: data.count,
       users: Array.from(data.users),
     })),
-    files: allMessages.flatMap(
-      (m) =>
-        m.files?.map((f) => ({
-          id: f.id,
-          name: f.name,
-          mimetype: f.mimetype,
-          url: f.url_private,
-          size: f.size,
-        })) || [],
-    ),
+    files: processedFiles,
     reply_count: replies.length,
     reply_users_count: participantIds.length,
     permalink,
@@ -403,6 +620,7 @@ export class SlackContentAdapter extends Context.Tag('SlackContentAdapter')<
 
 const makeSlackContentAdapter = Effect.gen(function* () {
   const { db } = yield* Database;
+  const storage = yield* Storage;
 
   // ==========================================================================
   // Helper Functions
@@ -503,6 +721,14 @@ const makeSlackContentAdapter = Effect.gen(function* () {
           // Get user mapping for name resolution
           const usersMap = await getSlackUsers(source.id);
 
+          // Create processing context for file downloads
+          const processingContext: MessageProcessingContext = {
+            sourceId: source.id,
+            accessToken,
+            storage,
+            syncFiles: config?.syncFiles !== false, // Default to true
+          };
+
           const items: RawContentItem[] = [];
           let hasMore = false;
 
@@ -569,12 +795,25 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                 const repliesResponse = await fetchThreadReplies(accessToken, channelId, message.ts);
                 const replies = repliesResponse.messages.filter((m) => m.ts !== message.ts); // Remove parent
                 const permalink = await fetchPermalink(accessToken, channelId, message.ts);
-                const threadItem = aggregateThread(message, replies, channel, usersMap, permalink || undefined);
+                const threadItem = await aggregateThread(
+                  message,
+                  replies,
+                  channel,
+                  usersMap,
+                  permalink || undefined,
+                  processingContext,
+                );
                 items.push(threadItem);
               } else {
                 // Single message
                 const permalink = await fetchPermalink(accessToken, channelId, message.ts);
-                const item = messageToRawContentItem(message, channel, usersMap, permalink || undefined);
+                const item = await messageToRawContentItem(
+                  message,
+                  channel,
+                  usersMap,
+                  permalink || undefined,
+                  processingContext,
+                );
                 items.push(item);
               }
             }
@@ -607,6 +846,14 @@ const makeSlackContentAdapter = Effect.gen(function* () {
 
           const usersMap = await getSlackUsers(source.id).catch(() => new Map<string, SlackUser>());
 
+          // Create processing context for file downloads
+          const processingContext: MessageProcessingContext = {
+            sourceId: source.id,
+            accessToken,
+            storage,
+            syncFiles: config?.syncFiles !== false, // Default to true
+          };
+
           // Try each channel until we find the message
           for (const channelId of channelIds) {
             try {
@@ -629,11 +876,24 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                   // It's a thread
                   const replies = response.messages.slice(1);
                   const permalink = await fetchPermalink(accessToken, channelId, externalId);
-                  return aggregateThread(parentMessage, replies, channel, usersMap, permalink || undefined);
+                  return await aggregateThread(
+                    parentMessage,
+                    replies,
+                    channel,
+                    usersMap,
+                    permalink || undefined,
+                    processingContext,
+                  );
                 } else {
                   // Single message
                   const permalink = await fetchPermalink(accessToken, channelId, externalId);
-                  return messageToRawContentItem(parentMessage, channel, usersMap, permalink || undefined);
+                  return await messageToRawContentItem(
+                    parentMessage,
+                    channel,
+                    usersMap,
+                    permalink || undefined,
+                    processingContext,
+                  );
                 }
               }
             } catch {}
@@ -856,7 +1116,16 @@ const makeSlackContentAdapter = Effect.gen(function* () {
       return Effect.tryPromise({
         try: async () => {
           const accessToken = getAccessToken(source);
+          const config = source.config as SlackContentConfig | undefined;
           const usersMap = await getSlackUsers(source.id).catch(() => new Map<string, SlackUser>());
+
+          // Create processing context for file downloads
+          const processingContext: MessageProcessingContext = {
+            sourceId: source.id,
+            accessToken,
+            storage,
+            syncFiles: config?.syncFiles !== false, // Default to true
+          };
 
           switch (event.type) {
             case 'message': {
@@ -888,10 +1157,23 @@ const makeSlackContentAdapter = Effect.gen(function* () {
                 const repliesResponse = await fetchThreadReplies(accessToken, message.channel, message.thread_ts);
                 const parentMessage = repliesResponse.messages[0];
                 const replies = repliesResponse.messages.slice(1);
-                return aggregateThread(parentMessage, replies, channel, usersMap, permalink || undefined);
+                return await aggregateThread(
+                  parentMessage,
+                  replies,
+                  channel,
+                  usersMap,
+                  permalink || undefined,
+                  processingContext,
+                );
               }
 
-              return messageToRawContentItem(message, channel, usersMap, permalink || undefined);
+              return await messageToRawContentItem(
+                message,
+                channel,
+                usersMap,
+                permalink || undefined,
+                processingContext,
+              );
             }
 
             default:
