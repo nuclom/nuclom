@@ -51,7 +51,6 @@ export function ContentSourcesManager({ organizationId }: ContentSourcesManagerP
   const [refreshing, setRefreshing] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [configureSourceId, setConfigureSourceId] = useState<string | null>(null);
-  const [_configureType, _setConfigureType] = useState<ContentSourceType | null>(null);
 
   // Load content sources
   const loadSources = useCallback(async () => {

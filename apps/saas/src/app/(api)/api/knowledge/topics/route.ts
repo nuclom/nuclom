@@ -23,24 +23,6 @@ const GetTopicsQuerySchema = Schema.Struct({
   offset: Schema.optional(Schema.NumberFromString),
 });
 
-const _CreateTopicSchema = Schema.Struct({
-  organizationId: Schema.String,
-  name: Schema.String,
-  description: Schema.optional(Schema.String),
-  keywords: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
-  parentClusterId: Schema.optional(Schema.String),
-});
-
-const _AutoClusterSchema = Schema.Struct({
-  organizationId: Schema.String,
-  sourceId: Schema.optional(Schema.String),
-  minClusterSize: Schema.optional(Schema.Number),
-  maxClusters: Schema.optional(Schema.Number),
-  similarityThreshold: Schema.optional(Schema.Number),
-  useAI: Schema.optional(Schema.Boolean),
-  autoCreate: Schema.optional(Schema.Boolean), // Create clusters automatically
-});
-
 // =============================================================================
 // GET - List Topic Clusters
 // =============================================================================

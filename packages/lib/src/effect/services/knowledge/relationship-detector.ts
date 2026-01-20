@@ -19,6 +19,7 @@ import {
   contentItems,
 } from '../../../db/schema';
 import { type ContentProcessingError, DatabaseError } from '../../errors';
+import { cosineSimilarity } from '../../vector-utils';
 import { AI } from '../ai';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
 import { Embedding } from '../embedding';
@@ -94,28 +95,6 @@ export class RelationshipDetector extends Context.Tag('RelationshipDetector')<
   RelationshipDetector,
   RelationshipDetectorService
 >() {}
-
-// =============================================================================
-// Reference Patterns
-// =============================================================================
-
-// URL patterns for different content types
-const _URL_PATTERNS = {
-  github_pr: /github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/gi,
-  github_issue: /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/gi,
-  github_discussion: /github\.com\/([^/]+)\/([^/]+)\/discussions\/(\d+)/gi,
-  notion_page: /notion\.so\/(?:[^/]+\/)?([a-f0-9]{32})/gi,
-  slack_message: /slack\.com\/archives\/([A-Z0-9]+)\/p(\d+)/gi,
-  jira_issue: /([A-Z]+-\d+)/gi,
-  linear_issue: /([A-Z]+-\d+)/gi,
-};
-
-// Mention patterns
-const _MENTION_PATTERNS = {
-  github_mention: /@([a-zA-Z0-9_-]+)/gi,
-  slack_user: /<@([A-Z0-9]+)>/gi,
-  slack_channel: /<#([A-Z0-9]+)\|([^>]+)>/gi,
-};
 
 // =============================================================================
 // Service Implementation
@@ -577,29 +556,6 @@ function extractUrls(item: ContentItem): string[] {
 
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) {
-    return 0;
-  }
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
-  if (magnitude === 0) {
-    return 0;
-  }
-
-  return dotProduct / magnitude;
 }
 
 function deduplicateCandidates(candidates: RelationshipCandidate[]): RelationshipCandidate[] {

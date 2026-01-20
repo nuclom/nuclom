@@ -20,6 +20,7 @@ import {
   topicExpertise,
 } from '../../../db/schema';
 import { ContentProcessingError, DatabaseError, NotFoundError } from '../../errors';
+import { calculateCentroid, cosineSimilarity } from '../../vector-utils';
 import { AI } from '../ai';
 import { ContentRepository, type ContentRepositoryService } from '../content/content-repository';
 import { Embedding } from '../embedding';
@@ -872,46 +873,6 @@ Return format: [{"topic": "topic name", "confidence": 0.9}, ...]`,
       }
     }),
 });
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) return 0;
-
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
-  return magnitude === 0 ? 0 : dotProduct / magnitude;
-}
-
-function calculateCentroid(embeddings: number[][]): number[] {
-  if (embeddings.length === 0) return [];
-
-  const dim = embeddings[0].length;
-  const centroid = new Array(dim).fill(0);
-
-  for (const embedding of embeddings) {
-    for (let i = 0; i < dim; i++) {
-      centroid[i] += embedding[i];
-    }
-  }
-
-  for (let i = 0; i < dim; i++) {
-    centroid[i] /= embeddings.length;
-  }
-
-  return centroid;
-}
 
 // =============================================================================
 // Layer
