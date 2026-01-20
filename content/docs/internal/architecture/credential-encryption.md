@@ -32,12 +32,6 @@ Encrypted credentials are stored as JSON in the `credentials` column:
 
 Where `iv`, `authTag`, and `ciphertext` are base64-encoded.
 
-### Backward Compatibility
-
-The system automatically handles:
-- **Unencrypted credentials**: Read as-is (legacy support during migration)
-- **Encrypted credentials**: Detected by `_encrypted` field, decrypted on read
-
 ## Environment Variable
 
 ```bash
@@ -71,16 +65,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    - Primary key for new encryptions
    - Legacy key for decrypting existing data
 
-3. **Re-encrypt all credentials**:
-   ```bash
-   # First, do a dry run
-   DATABASE_URL=... CREDENTIALS_ENCRYPTION_KEY=<new-key> \
-     npx tsx scripts/migrate-encrypt-credentials.ts --dry-run
-
-   # Then apply (this will re-encrypt with the new key)
-   DATABASE_URL=... CREDENTIALS_ENCRYPTION_KEY=<new-key> \
-     npx tsx scripts/migrate-encrypt-credentials.ts
-   ```
+3. **Re-encrypt all credentials** via a database script or application logic
 
 4. **Remove legacy key support** after verifying all credentials are re-encrypted
 
@@ -99,27 +84,7 @@ Where `v2` indicates the key version. The service would:
 2. Fall back to previous keys if needed
 3. Re-encrypt with the current key on next update
 
-## Migration
-
-### Initial Migration
-
-Run the migration script to encrypt existing plaintext credentials:
-
-```bash
-# Preview changes
-DATABASE_URL=... CREDENTIALS_ENCRYPTION_KEY=... \
-  npx tsx scripts/migrate-encrypt-credentials.ts --dry-run
-
-# Apply changes
-DATABASE_URL=... CREDENTIALS_ENCRYPTION_KEY=... \
-  npx tsx scripts/migrate-encrypt-credentials.ts
-```
-
-Options:
-- `--dry-run`: Preview without making changes
-- `--verbose`: Show detailed output for each source
-
-### Verifying Encryption
+## Verifying Encryption
 
 Query the database to verify credentials are encrypted:
 
@@ -172,7 +137,6 @@ WHERE credentials IS NOT NULL;
 - `packages/lib/src/effect/services/encryption.ts` - Encryption service
 - `packages/lib/src/effect/services/encryption.test.ts` - Tests
 - `packages/lib/src/effect/services/content/content-repository.ts` - Repository with encryption
-- `scripts/migrate-encrypt-credentials.ts` - Migration script
 
 ## Related
 

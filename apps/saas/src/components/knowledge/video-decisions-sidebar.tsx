@@ -82,12 +82,14 @@ const decisionTypeColors: Record<DecisionType, string> = {
   process: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   product: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   team: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  resource: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
   other: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
 };
 
 const statusColors: Record<DecisionStatus, string> = {
   proposed: 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20',
   decided: 'border-green-400 bg-green-50 dark:bg-green-900/20',
+  implemented: 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
   revisited: 'border-blue-400 bg-blue-50 dark:bg-blue-900/20',
   superseded: 'border-gray-400 bg-gray-50 dark:bg-gray-800/50',
 };

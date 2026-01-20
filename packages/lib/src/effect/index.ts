@@ -87,7 +87,6 @@ export {
   runServerEffectSafe,
   updateVideo as serverUpdateVideo,
 } from './server';
-
 export type {
   // AI
   AIServiceInterface,
@@ -95,6 +94,8 @@ export type {
   AuthServiceInterface,
   // ClipRepository
   ClipRepositoryService,
+  ClusteringOptions,
+  ClusteringResult,
   // CollectionRepository
   CollectionRepositoryService,
   CreateClipInput,
@@ -108,11 +109,16 @@ export type {
   CreateOrganizationInput,
   CreateSavedSearchInput,
   CreateSearchHistoryInput,
+  CreateTopicClusterInput,
   DatabaseService,
+  DecisionFilters,
   // Knowledge Graph
   DecisionQueryOptions,
   DecisionTimelineItem,
+  DecisionTrackerService,
   DecisionWithRelations,
+  DetectionOptions,
+  DetectionResult,
   // Database
   DrizzleDB,
   GoogleDriveFilesResponse,
@@ -125,8 +131,11 @@ export type {
   // Integration Repository
   IntegrationRepositoryService,
   IntegrationWithUser,
+  KnowledgeCreateDecisionInput,
+  KnowledgeDecisionWithRelations,
   KnowledgeGraphRepositoryInterface,
   KnowledgeNodeWithEdges,
+  KnowledgeUpdateDecisionInput,
   // NotificationRepository
   NotificationRepositoryService,
   NotificationType,
@@ -136,6 +145,8 @@ export type {
   OrganizationWithRole,
   ProcessingProgress,
   ProcessingResult,
+  RelationshipCandidate,
+  RelationshipDetectorService,
   // Replicate API
   ReplicateService,
   ReplicateTranscriptionResult as TranscriptionResult,
@@ -148,6 +159,9 @@ export type {
   // Storage
   StorageService,
   ThumbnailResult,
+  TopicClusterService,
+  TopicClusterWithMembers,
+  TopicExpertiseEntry,
   UpdateClipInput,
   UpdateCollectionInput,
   UpdateHighlightReelInput,
@@ -174,7 +188,6 @@ export type {
   // Zoom
   ZoomServiceInterface,
 } from './services';
-
 // Services - explicitly export to avoid conflicts
 export {
   // AI
@@ -183,6 +196,7 @@ export {
   // Auth
   Auth,
   addVideoToCollection,
+  autoClusterContent,
   // BillingRepository
   BillingRepository,
   BillingRepositoryLive,
@@ -198,16 +212,20 @@ export {
   createHighlightReel,
   createImportedMeeting,
   createIntegration as createIntegrationRecord,
+  createKnowledgeDecision,
   createMoment,
   createMomentsBatch,
   createNotification,
   createOrganization,
   createSavedSearch,
   createSummaryStream,
+  createTopicCluster,
   createVideo,
   // Database
   Database,
   DatabaseLive,
+  DecisionTracker,
+  DecisionTrackerLive,
   DrizzleLive,
   deleteClip,
   deleteCollection,
@@ -218,13 +236,17 @@ export {
   deleteNotification,
   deleteSavedSearch,
   deleteVideoProgress,
+  detectRelationships,
+  detectRelationshipsForItem,
   downloadGoogleFile,
   exchangeGoogleCodeForToken,
   exchangeZoomCodeForToken,
   extractActionItems,
+  extractDecisions,
   extractKeyFromUrl,
   extractMetadata,
   findOneOrFail,
+  findSimilarContentItems,
   // Google Meet
   GoogleMeet,
   GoogleMeetLive,
@@ -254,6 +276,7 @@ export {
   getIntegration,
   getIntegrationByProvider,
   getIntegrations,
+  getKnowledgeDecision,
   getMaxFileSize,
   getMoments,
   getMomentsByType,
@@ -265,6 +288,8 @@ export {
   getSession,
   getSessionOption,
   getSuggestions,
+  getTopicCluster,
+  getTopicExperts,
   getUnreadCount,
   getUserIntegrations,
   getUserOrganizations,
@@ -287,6 +312,7 @@ export {
   // Knowledge Graph Repository
   KnowledgeGraphRepository,
   KnowledgeGraphRepositoryLive,
+  listDecisions,
   listGoogleMeetRecordings,
   listZoomRecordings,
   makeAuthLayer,
@@ -304,6 +330,8 @@ export {
   processVideo,
   query,
   quickSearch,
+  RelationshipDetector,
+  RelationshipDetectorLive,
   // Replicate API
   ReplicateAPI,
   ReplicateLive,
@@ -323,11 +351,14 @@ export {
   saveSearchHistory,
   saveVideoProgress,
   search,
+  TopicCluster,
+  TopicClusterLive,
   transaction,
   transcribe,
   updateClip,
   updateCollection,
   updateCollectionProgress,
+  updateDecisionStatus,
   updateHighlightReel,
   updateImportedMeeting,
   updateIntegration as updateIntegrationRecord,
@@ -348,7 +379,25 @@ export {
   Zoom,
   ZoomLive,
 } from './services';
-
+// Unified Search
+export type {
+  ContentItemType,
+  ContentItemWithSource,
+  ContentSourceType,
+  SearchFacets,
+  SearchSuggestion,
+  UnifiedSearchParams,
+  UnifiedSearchResult,
+  UnifiedSearchResultItem,
+  UnifiedSearchService,
+} from './services/search';
+export {
+  getSearchFacets,
+  searchContentItems,
+  UnifiedSearch,
+  UnifiedSearchLive,
+  unifiedSearch,
+} from './services/search';
 export type { StreamChunk } from './streaming';
 // Streaming utilities
 export {

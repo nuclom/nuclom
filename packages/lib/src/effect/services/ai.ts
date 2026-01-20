@@ -72,6 +72,11 @@ export interface AIServiceInterface {
    * Create a streaming summary (returns Effect Stream)
    */
   readonly createSummaryStream: (transcript: string) => Stream.Stream<string, AIServiceError>;
+
+  /**
+   * Generate text from a prompt (generic text generation)
+   */
+  readonly generateText: (prompt: string) => Effect.Effect<string, AIServiceError>;
 }
 
 // =============================================================================
@@ -325,6 +330,23 @@ Ensure chapters cover the entire video duration without gaps.`,
       Effect.catchAll(() => Effect.succeed([] as ReadonlyArray<ChapterResult>)),
     );
 
+  const generateTextFn = (prompt: string): Effect.Effect<string, AIServiceError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const { text } = await generateText({
+          model,
+          prompt,
+        });
+        return text;
+      },
+      catch: (error) =>
+        new AIServiceError({
+          message: 'Failed to generate text',
+          operation: 'generateText',
+          cause: error,
+        }),
+    });
+
   return {
     generateVideoSummary,
     generateVideoTags,
@@ -332,6 +354,7 @@ Ensure chapters cover the entire video duration without gaps.`,
     extractActionItemsWithTimestamps,
     generateChapters,
     createSummaryStream,
+    generateText: generateTextFn,
   } satisfies AIServiceInterface;
 });
 

@@ -20,8 +20,18 @@ export const ServerEnv = Schema.Struct({
   RESEND_FROM_EMAIL: Schema.optional(Schema.String),
   GITHUB_CLIENT_ID: Schema.String,
   GITHUB_CLIENT_SECRET: Schema.String,
+  GITHUB_CONTENT_CLIENT_ID: Schema.optional(Schema.String),
+  GITHUB_CONTENT_CLIENT_SECRET: Schema.optional(Schema.String),
+  GITHUB_WEBHOOK_SECRET: Schema.optional(Schema.String),
   GOOGLE_CLIENT_ID: Schema.String,
   GOOGLE_CLIENT_SECRET: Schema.String,
+  // Slack content integration
+  SLACK_CONTENT_CLIENT_ID: Schema.optional(Schema.String),
+  SLACK_CONTENT_CLIENT_SECRET: Schema.optional(Schema.String),
+  SLACK_CONTENT_SIGNING_SECRET: Schema.optional(Schema.String),
+  // Notion content integration
+  NOTION_CLIENT_ID: Schema.optional(Schema.String),
+  NOTION_CLIENT_SECRET: Schema.optional(Schema.String),
   ZOOM_CLIENT_ID: Schema.optional(Schema.String),
   ZOOM_CLIENT_SECRET: Schema.optional(Schema.String),
   R2_ACCOUNT_ID: Schema.String,

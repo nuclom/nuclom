@@ -9,6 +9,12 @@
  * - Resource-efficient sleep for scheduled operations
  */
 
+// Content Processing (Knowledge Hub)
+export {
+  type ContentProcessingInput,
+  type ContentProcessingResult,
+  processContentWorkflow,
+} from './content-processing';
 // Highlight Reel Rendering
 export {
   type HighlightReelRenderInput,

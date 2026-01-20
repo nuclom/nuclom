@@ -48,7 +48,7 @@ jobs:
         if: always()
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: "Vercel - nuclom: CI Checks"
+          name: "Vercel - nuclom-saas: CI Checks"
 
   unit-tests:
     name: Unit Tests & Coverage

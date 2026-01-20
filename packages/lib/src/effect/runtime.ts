@@ -24,15 +24,22 @@ import { type ClipRepository, ClipRepositoryLive } from './services/clip-reposit
 import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
 import { type ContentProcessor, ContentProcessorLive } from './services/content/content-processor';
 import { type ContentRepository, ContentRepositoryLive } from './services/content/content-repository';
+import { type GitHubContentAdapter, GitHubContentAdapterLive } from './services/content/github-content-adapter';
+import { type NotionContentAdapter, NotionContentAdapterLive } from './services/content/notion-content-adapter';
+import { type SlackContentAdapter, SlackContentAdapterLive } from './services/content/slack-content-adapter';
 import { type Database, DatabaseLive } from './services/database';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
 import { type IntegrationRepository, IntegrationRepositoryLive } from './services/integration-repository';
+import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
+import { type RelationshipDetector, RelationshipDetectorLive } from './services/knowledge/relationship-detector';
+import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from './services/knowledge-graph-repository';
 import { type NotificationRepository, NotificationRepositoryLive } from './services/notification-repository';
 import { type OrganizationRepository, OrganizationRepositoryLive } from './services/organization-repository';
 import { type Presence, PresenceLive } from './services/presence';
 import { type ReplicateAPI, ReplicateLive } from './services/replicate';
+import { type UnifiedSearch, UnifiedSearchLive } from './services/search/unified-search';
 import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
@@ -172,6 +179,27 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
   Layer.provide(Layer.mergeAll(ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
+// Content adapters depend on Database
+const SlackContentAdapterWithDeps = withDep(SlackContentAdapterLive, DatabaseLive);
+const GitHubContentAdapterWithDeps = withDep(GitHubContentAdapterLive, DatabaseLive);
+const NotionContentAdapterWithDeps = withDep(NotionContentAdapterLive, DatabaseLive);
+
+// Knowledge Graph Services - depend on ContentRepository, Embedding, and AI
+const RelationshipDetectorWithDeps = RelationshipDetectorLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
+const TopicClusterWithDeps = TopicClusterLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
+const DecisionTrackerWithDeps = DecisionTrackerLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
+);
+
+// UnifiedSearch depends on Database and Embedding
+const UnifiedSearchWithDeps = withDeps2(UnifiedSearchLive, DatabaseLive, EmbeddingLive);
+
 // Combine application services that have their dependencies resolved
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
@@ -194,6 +222,14 @@ const AppServicesLive = Layer.mergeAll(
   AIChatKBWithDeps,
   ContentRepositoryWithDeps,
   ContentProcessorWithDeps,
+  RelationshipDetectorWithDeps,
+  TopicClusterWithDeps,
+  DecisionTrackerWithDeps,
+  UnifiedSearchWithDeps,
+  // Content adapters for integrations
+  SlackContentAdapterWithDeps,
+  GitHubContentAdapterWithDeps,
+  NotionContentAdapterWithDeps,
 );
 
 // Full application layer - merge base and app services
@@ -230,7 +266,14 @@ export type AppServices =
   | StripeServiceTag
   | SlackMonitoring
   | ContentRepository
-  | ContentProcessor;
+  | ContentProcessor
+  | RelationshipDetector
+  | TopicCluster
+  | DecisionTracker
+  | UnifiedSearch
+  | SlackContentAdapter
+  | GitHubContentAdapter
+  | NotionContentAdapter;
 
 // =============================================================================
 // Global Runtime (for stateful layers)

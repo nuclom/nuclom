@@ -79,7 +79,7 @@ export type ContentItemMetadata = {
   // Generic
   readonly url?: string;
   readonly attachments?: Array<{ name: string; url: string; type: string }>;
-  readonly reactions?: Array<{ emoji: string; count: number }>;
+  readonly reactions?: Array<{ emoji?: string; name?: string; count: number; users?: string[] }>;
   readonly [key: string]: unknown;
 };
 
