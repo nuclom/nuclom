@@ -109,6 +109,7 @@ export type CodeContext = {
   readonly components?: string[];
   readonly functions?: string[];
   readonly imports?: string[];
+  readonly classes?: string[];
 };
 
 // =============================================================================

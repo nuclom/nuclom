@@ -148,6 +148,27 @@ interface GitHubRepo {
   default_branch: string;
   description: string | null;
   html_url: string;
+  has_wiki: boolean;
+}
+
+interface GitHubWikiPage {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  url: string;
+  html_url: string;
+  download_url: string;
+  type: 'file' | 'dir';
+}
+
+interface GitHubWikiContent {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  content: string;
+  encoding: string;
 }
 
 // =============================================================================
@@ -271,16 +292,155 @@ function detectLanguage(filename: string): string {
 }
 
 /**
+ * Extract symbols (functions, components, classes) from a diff patch
+ */
+function extractSymbolsFromPatch(patch: string, language: string): {
+  functions: string[];
+  components: string[];
+  classes: string[];
+} {
+  const functions = new Set<string>();
+  const components = new Set<string>();
+  const classes = new Set<string>();
+
+  // Only process TypeScript/JavaScript files for now
+  if (!['TypeScript', 'JavaScript'].includes(language)) {
+    return { functions: [], components: [], classes: [] };
+  }
+
+  // Extract only added lines from the patch (lines starting with +)
+  const addedLines = patch
+    .split('\n')
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .map((line) => line.slice(1)); // Remove the leading +
+
+  const content = addedLines.join('\n');
+
+  // Function declarations: function foo() or async function foo()
+  const functionDeclRegex = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
+  for (const match of content.matchAll(functionDeclRegex)) {
+    const name = match[1];
+    // Check if it's a React component (starts with uppercase)
+    if (name[0] === name[0].toUpperCase()) {
+      components.add(name);
+    } else {
+      functions.add(name);
+    }
+  }
+
+  // Arrow functions: const foo = () => or const foo = async () =>
+  const arrowFunctionRegex = /(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/g;
+  for (const match of content.matchAll(arrowFunctionRegex)) {
+    const name = match[1];
+    // Check if it's a React component (starts with uppercase)
+    if (name[0] === name[0].toUpperCase()) {
+      components.add(name);
+    } else {
+      functions.add(name);
+    }
+  }
+
+  // Class declarations
+  const classRegex = /(?:export\s+)?class\s+(\w+)/g;
+  for (const match of content.matchAll(classRegex)) {
+    classes.add(match[1]);
+  }
+
+  // React.memo, forwardRef components: const Foo = React.memo(() => ...)
+  const reactWrapperRegex = /(?:export\s+)?(?:const|let)\s+([A-Z]\w+)\s*=\s*(?:React\.)?(?:memo|forwardRef)/g;
+  for (const match of content.matchAll(reactWrapperRegex)) {
+    components.add(match[1]);
+  }
+
+  // Method definitions within classes: methodName() { or async methodName() {
+  const methodRegex = /^\s+(?:async\s+)?(\w+)\s*\([^)]*\)\s*[{:]/gm;
+  for (const match of content.matchAll(methodRegex)) {
+    const name = match[1];
+    // Skip constructor and common lifecycle methods
+    if (!['constructor', 'render', 'componentDidMount', 'componentWillUnmount', 'componentDidUpdate'].includes(name)) {
+      functions.add(name);
+    }
+  }
+
+  return {
+    functions: [...functions],
+    components: [...components],
+    classes: [...classes],
+  };
+}
+
+/**
+ * Extract import statements from a diff patch
+ */
+function extractImportsFromPatch(patch: string, language: string): string[] {
+  const imports = new Set<string>();
+
+  // Only process TypeScript/JavaScript files
+  if (!['TypeScript', 'JavaScript'].includes(language)) {
+    return [];
+  }
+
+  // Extract only added lines from the patch
+  const addedLines = patch
+    .split('\n')
+    .filter((line) => line.startsWith('+') && !line.startsWith('+++'))
+    .map((line) => line.slice(1));
+
+  const content = addedLines.join('\n');
+
+  // ES6 imports: import { foo } from 'bar' or import foo from 'bar'
+  const importRegex = /import\s+(?:{[^}]+}|\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  for (const match of content.matchAll(importRegex)) {
+    imports.add(match[1]);
+  }
+
+  // Dynamic imports: import('foo')
+  const dynamicImportRegex = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  for (const match of content.matchAll(dynamicImportRegex)) {
+    imports.add(match[1]);
+  }
+
+  // require statements: require('foo')
+  const requireRegex = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  for (const match of content.matchAll(requireRegex)) {
+    imports.add(match[1]);
+  }
+
+  return [...imports];
+}
+
+/**
  * Extract code context from file diffs
  */
 function extractCodeContext(files: GitHubFile[]): CodeContext {
+  const allFunctions = new Set<string>();
+  const allComponents = new Set<string>();
+  const allClasses = new Set<string>();
+  const allImports = new Set<string>();
+
+  for (const file of files) {
+    const language = detectLanguage(file.filename);
+
+    // Only extract symbols if we have a patch
+    if (file.patch) {
+      const symbols = extractSymbolsFromPatch(file.patch, language);
+      symbols.functions.forEach((f) => allFunctions.add(f));
+      symbols.components.forEach((c) => allComponents.add(c));
+      symbols.classes.forEach((c) => allClasses.add(c));
+
+      const imports = extractImportsFromPatch(file.patch, language);
+      imports.forEach((i) => allImports.add(i));
+    }
+  }
+
   return {
     languages: [...new Set(files.map((f) => detectLanguage(f.filename)))],
     files: files.map((f) => f.filename),
     directories: [...new Set(files.map((f) => f.filename.split('/').slice(0, -1).join('/')).filter(Boolean))],
-    components: [], // Would need more sophisticated parsing
-    functions: [], // Would need more sophisticated parsing
-    imports: [], // Would need more sophisticated parsing
+    components: [...allComponents],
+    functions: [...allFunctions],
+    imports: [...allImports],
+    classes: [...allClasses],
   };
 }
 
@@ -470,6 +630,38 @@ function issueToRawContentItem(issue: GitHubIssue, comments: GitHubComment[]): R
 }
 
 /**
+ * Convert a GitHub Wiki page to a RawContentItem
+ */
+function wikiToRawContentItem(page: GitHubWikiContent, repo: string, htmlUrl: string): RawContentItem {
+  // Remove .md extension from page name for display
+  const pageName = page.name.replace(/\.md$/i, '').replace(/-/g, ' ');
+
+  // Decode content if base64 encoded
+  const content =
+    page.encoding === 'base64' ? Buffer.from(page.content, 'base64').toString('utf-8') : page.content;
+
+  return {
+    externalId: `${repo}/wiki/${page.path}`,
+    type: 'document',
+    title: `Wiki: ${pageName}`,
+    content,
+    authorExternal: undefined, // Wiki API doesn't provide author info
+    authorName: undefined,
+    createdAtSource: undefined, // Wiki API doesn't provide timestamps
+    updatedAtSource: undefined,
+    metadata: {
+      repo,
+      wikiPath: page.path,
+      sha: page.sha,
+      size: page.size,
+      url: htmlUrl,
+      html_url: htmlUrl,
+    },
+    participants: [],
+  };
+}
+
+/**
  * Convert a GitHub Discussion to a RawContentItem
  */
 function discussionToRawContentItem(discussion: GitHubDiscussion, repo: string): RawContentItem {
@@ -577,6 +769,11 @@ export interface GitHubContentAdapterService extends ContentSourceAdapter {
     event: string,
     payload: unknown,
   ): Effect.Effect<RawContentItem | null, ContentSourceSyncError>;
+
+  /**
+   * Sync wiki pages from a repository
+   */
+  syncWiki(source: ContentSource, repo: string): Effect.Effect<RawContentItem[], ContentSourceSyncError>;
 }
 
 export class GitHubContentAdapter extends Context.Tag('GitHubContentAdapter')<
@@ -635,6 +832,12 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
           if (config?.syncDiscussions !== false) {
             const discussions = yield* service.syncDiscussions(source, repo, options?.since);
             items.push(...discussions);
+          }
+
+          // Sync Wiki pages
+          if (config?.syncWiki === true) {
+            const wikiPages = yield* service.syncWiki(source, repo);
+            items.push(...wikiPages);
           }
         }
 
@@ -1235,6 +1438,106 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             }),
         ),
       ),
+
+    syncWiki: (source, repo) =>
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        const items: RawContentItem[] = [];
+        const [owner, name] = repo.split('/');
+
+        // First check if the repo has a wiki enabled
+        const repoInfo = yield* Effect.tryPromise({
+          try: () => githubFetch<GitHubRepo>(`/repos/${repo}`, accessToken),
+          catch: (e) =>
+            new ContentSourceSyncError({
+              message: `Failed to fetch repo info: ${e instanceof Error ? e.message : 'Unknown'}`,
+              sourceId: source.id,
+              sourceType: 'github',
+              cause: e,
+            }),
+        });
+
+        if (!repoInfo.has_wiki) {
+          // Wiki not enabled for this repo
+          return [];
+        }
+
+        // List wiki pages using the Contents API on the wiki repo
+        // Wiki repos are accessible at {owner}/{repo}.wiki
+        const wikiRepoPath = `${owner}/${name}.wiki`;
+
+        // Try to list wiki contents (root level)
+        const wikiPages = yield* Effect.tryPromise({
+          try: () => githubFetch<GitHubWikiPage[]>(`/repos/${wikiRepoPath}/contents`, accessToken),
+          catch: (e) =>
+            new ContentSourceSyncError({
+              message: `Failed to list wiki pages: ${e instanceof Error ? e.message : 'Unknown'}`,
+              sourceId: source.id,
+              sourceType: 'github',
+              cause: e,
+            }),
+        }).pipe(
+          // Wiki might not exist even if has_wiki is true
+          Effect.catchAll(() => Effect.succeed(null as GitHubWikiPage[] | null)),
+        );
+
+        if (!wikiPages || !Array.isArray(wikiPages)) {
+          // No wiki content or wiki doesn't exist
+          return [];
+        }
+
+        // Filter to markdown files only
+        const markdownPages = wikiPages.filter(
+          (p) => p.type === 'file' && (p.name.endsWith('.md') || p.name.endsWith('.markdown')),
+        );
+
+        // Fetch each wiki page content
+        for (const page of markdownPages) {
+          const pageContent = yield* Effect.tryPromise({
+            try: () => githubFetch<GitHubWikiContent>(`/repos/${wikiRepoPath}/contents/${page.path}`, accessToken),
+            catch: (e) => new Error(String(e)),
+          }).pipe(Effect.catchAll(() => Effect.succeed(null as GitHubWikiContent | null)));
+
+          if (pageContent) {
+            // Construct the HTML URL for the wiki page
+            const pageSlug = page.name.replace(/\.(md|markdown)$/i, '');
+            const htmlUrl = `https://github.com/${repo}/wiki/${pageSlug}`;
+
+            items.push(wikiToRawContentItem(pageContent, repo, htmlUrl));
+          }
+        }
+
+        // Also check for wiki pages in subdirectories (limited to one level)
+        const directories = wikiPages.filter((p) => p.type === 'dir');
+        for (const dir of directories.slice(0, 10)) {
+          // Limit to 10 directories
+          const subPages = yield* Effect.tryPromise({
+            try: () => githubFetch<GitHubWikiPage[]>(`/repos/${wikiRepoPath}/contents/${dir.path}`, accessToken),
+            catch: (e) => new Error(String(e)),
+          }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubWikiPage[])));
+
+          const subMarkdownPages = subPages.filter(
+            (p) => p.type === 'file' && (p.name.endsWith('.md') || p.name.endsWith('.markdown')),
+          );
+
+          for (const page of subMarkdownPages.slice(0, 50)) {
+            // Limit per directory
+            const pageContent = yield* Effect.tryPromise({
+              try: () => githubFetch<GitHubWikiContent>(`/repos/${wikiRepoPath}/contents/${page.path}`, accessToken),
+              catch: (e) => new Error(String(e)),
+            }).pipe(Effect.catchAll(() => Effect.succeed(null as GitHubWikiContent | null)));
+
+            if (pageContent) {
+              const pageSlug = page.path.replace(/\.(md|markdown)$/i, '');
+              const htmlUrl = `https://github.com/${repo}/wiki/${pageSlug}`;
+
+              items.push(wikiToRawContentItem(pageContent, repo, htmlUrl));
+            }
+          }
+        }
+
+        return items;
+      }),
   };
 
   return service;
