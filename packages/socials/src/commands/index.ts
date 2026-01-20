@@ -1,1 +1,1 @@
-export { createTwitterCommand } from './twitter.ts';
+export { twitterCommand } from './twitter/index.ts';
