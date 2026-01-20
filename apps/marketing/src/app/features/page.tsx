@@ -42,122 +42,167 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const featureCategories = [
   {
+    id: 'knowledge-sources',
+    title: 'Knowledge Sources',
+    description: "Connect all your organization's knowledge in one place",
+    icon: Layers,
+    color: 'from-violet-500/20 to-violet-500/5',
+    features: [
+      {
+        icon: MessageSquare,
+        title: 'Slack Integration',
+        description:
+          'Sync conversations, threads, and announcements from your Slack workspace. Capture decisions made in real-time discussions.',
+      },
+      {
+        icon: FileText,
+        title: 'Notion Integration',
+        description:
+          'Connect wikis, project notes, and documentation. Keep your knowledge graph in sync with your Notion pages and databases.',
+      },
+      {
+        icon: Github,
+        title: 'GitHub Integration',
+        description:
+          'Index PRs, issues, and discussions. Link code decisions to conversations and documentation across your repos.',
+      },
+      {
+        icon: Video,
+        title: 'Video & Meetings',
+        description:
+          'Upload recordings or import from Zoom and Google Meet. AI transcription extracts every insight from meetings.',
+      },
+      {
+        icon: Webhook,
+        title: 'Webhooks & API',
+        description: 'Connect any custom source via our API and webhooks. Build integrations for your unique workflow.',
+      },
+      {
+        icon: Clock,
+        title: 'Automatic Sync',
+        description:
+          'Content syncs automatically with incremental updates. Your knowledge base stays current without manual effort.',
+      },
+    ],
+  },
+  {
     id: 'ai-insights',
-    title: 'AI-Powered Insights',
-    description: 'Let AI understand your videos and extract valuable insights automatically',
+    title: 'AI-Powered Processing',
+    description: 'Let AI understand your content and extract valuable insights automatically',
     icon: Brain,
     color: 'from-purple-500/20 to-purple-500/5',
     features: [
       {
-        icon: Mic,
-        title: 'Automatic Transcription',
+        icon: Network,
+        title: 'Cross-Source Analysis',
         description:
-          'Convert video audio to accurate, searchable text using state-of-the-art speech recognition with support for multiple languages.',
+          'AI connects insights across Slack, Notion, GitHub, and videos. Discover relationships you never knew existed.',
       },
       {
-        icon: Users,
-        title: 'Speaker Diarization',
+        icon: Layers,
+        title: 'Auto Topic Clustering',
         description:
-          'Automatically identify and label different speakers in your videos, making it easy to follow who said what.',
+          'Content is automatically grouped into topics. See what your organization is discussing and documenting.',
       },
       {
         icon: FileText,
         title: 'Smart Summaries',
         description:
-          'Get AI-generated summaries that capture the key points of any video, saving hours of review time.',
-      },
-      {
-        icon: BookOpen,
-        title: 'Automatic Chapters',
-        description:
-          'Videos are automatically divided into logical chapters with timestamps and summaries for easy navigation.',
+          'Get AI-generated summaries of any content source. Catch up on what happened without reading everything.',
       },
       {
         icon: Lightbulb,
-        title: 'Action Item Extraction',
-        description:
-          'Never miss a task or follow-up. AI automatically identifies and extracts action items from meeting recordings.',
+        title: 'Decision Extraction',
+        description: 'AI surfaces decisions from meetings, chats, and documents. Never lose track of what was decided.',
       },
       {
-        icon: Star,
-        title: 'Key Moment Detection',
+        icon: Users,
+        title: 'Expertise Detection',
         description:
-          'Automatically identify important moments like decisions, questions, answers, and highlights in your videos.',
-      },
-      {
-        icon: Code,
-        title: 'Code Snippet Detection',
-        description: 'Identify and extract code snippets mentioned in technical videos for easy reference and sharing.',
+          'Know who to ask based on contribution history. AI identifies subject matter experts across your organization.',
       },
       {
         icon: Search,
         title: 'Semantic Search',
-        description:
-          'Find any moment by searching what was said. AI understands context and meaning, not just keywords.',
+        description: "Find knowledge by meaning, not just keywords. AI understands what you're looking for.",
+      },
+      {
+        icon: Mic,
+        title: 'Video Transcription',
+        description: 'Accurate speech-to-text with speaker diarization. Search and navigate video content like text.',
+      },
+      {
+        icon: Sparkles,
+        title: 'Embeddings & Vectors',
+        description: 'All content is embedded for semantic similarity. Find related content across all your sources.',
       },
     ],
   },
   {
     id: 'knowledge-graph',
     title: 'Knowledge Graph & Decisions',
-    description: 'Build an organizational knowledge base from your video content',
+    description: 'Build an organizational knowledge base that connects everything',
     icon: Network,
     color: 'from-blue-500/20 to-blue-500/5',
     features: [
       {
         icon: Lightbulb,
         title: 'Decision Tracking',
-        description:
-          'Automatically capture and track decisions made during video discussions with full context and participants.',
+        description: 'Capture decisions from any source with full context, rationale, participants, and outcomes.',
       },
       {
         icon: Network,
-        title: 'Knowledge Nodes',
-        description:
-          'Create interconnected knowledge entities linking people, topics, artifacts, decisions, and videos.',
+        title: 'Relationship Discovery',
+        description: 'AI discovers how content relates: references, follow-ups, contradictions, and implementations.',
+      },
+      {
+        icon: Users,
+        title: 'Expertise Mapping',
+        description: 'See who knows what. Topic expertise scores are calculated from contributions across all sources.',
       },
       {
         icon: Link2,
-        title: 'External Links',
-        description:
-          'Connect decisions to external entities like GitHub PRs, issues, code files, and documents for full traceability.',
+        title: 'Cross-Source Links',
+        description: 'Connect Slack discussions to Notion docs to GitHub PRs. Full traceability across your tools.',
       },
       {
         icon: Clock,
         title: 'Decision Timeline',
-        description:
-          'View when decisions were made in relation to video timeline, providing historical context for your team.',
+        description: "View the history of decisions on any topic. Understand how your organization's thinking evolved.",
+      },
+      {
+        icon: BarChart3,
+        title: 'Knowledge Analytics',
+        description: 'Identify knowledge gaps, stale documentation, and topics that need attention.',
       },
     ],
   },
   {
     id: 'collaboration',
     title: 'Team Collaboration',
-    description: 'Work together seamlessly on video content with your team',
+    description: 'Work together seamlessly on knowledge across your organization',
     icon: Users,
     color: 'from-green-500/20 to-green-500/5',
     features: [
       {
         icon: Share2,
         title: 'Smart Sharing',
-        description:
-          'Share videos with your team or external viewers. Control access with granular permissions and expiration.',
+        description: 'Share knowledge with your team or external viewers. Control access with granular permissions.',
       },
       {
         icon: Bell,
         title: 'Notifications & Alerts',
-        description:
-          'Stay informed about new videos, processing completion, and team activity with customizable notifications.',
+        description: 'Stay informed about new content, decisions, and team activity with customizable notifications.',
       },
       {
         icon: Users,
         title: 'Real-Time Presence',
-        description: "See who's currently watching or working on videos. Collaborate in real-time with your team.",
+        description: "See who's currently viewing content. Collaborate in real-time with your team.",
       },
       {
         icon: Share2,
         title: 'Activity Feed',
-        description: 'Track team activity and engagement across all videos and channels in a unified activity stream.',
+        description: 'Track team activity across all knowledge sources in a unified activity stream.',
       },
     ],
   },
@@ -268,42 +313,41 @@ const featureCategories = [
     ],
   },
   {
-    id: 'integrations',
-    title: 'Integrations',
-    description: 'Connect with the tools you already use',
-    icon: Webhook,
+    id: 'unified-search',
+    title: 'Unified Search',
+    description: 'Find any knowledge instantly across all your sources',
+    icon: Search,
     color: 'from-indigo-500/20 to-indigo-500/5',
     features: [
       {
-        icon: Video,
-        title: 'Zoom Integration',
-        description: 'Automatically import and process Zoom recordings. Sync meeting metadata and participants.',
+        icon: Search,
+        title: 'Cross-Source Search',
+        description: 'Search across Slack, Notion, GitHub, and videos in one query. Find knowledge wherever it lives.',
       },
       {
-        icon: Video,
-        title: 'Google Meet',
-        description: 'Import Google Meet recordings directly from Google Drive with full meeting context.',
+        icon: Brain,
+        title: 'Semantic Understanding',
+        description: 'AI understands what you mean, not just keywords. Find content by concept and context.',
       },
       {
-        icon: MessageSquare,
-        title: 'Slack Integration',
-        description:
-          'Share videos and receive notifications in Slack channels. Collaborate where your team already works.',
+        icon: FileText,
+        title: 'Full-Text Search',
+        description: 'Search across all content including transcripts, documents, messages, and code.',
       },
       {
-        icon: Users,
-        title: 'Microsoft Teams',
-        description: 'Integrate with Teams channels for seamless video sharing and collaboration.',
+        icon: Layers,
+        title: 'Faceted Filtering',
+        description: 'Filter results by source type, date, author, topic, or any metadata. Drill down quickly.',
       },
       {
-        icon: Github,
-        title: 'GitHub Integration',
-        description: 'Link videos to GitHub PRs, issues, commits, and files. Connect discussions to your codebase.',
+        icon: Star,
+        title: 'Relevance Ranking',
+        description: 'Results ranked by relevance combining semantic similarity, recency, and engagement.',
       },
       {
-        icon: Webhook,
-        title: 'Webhooks & API',
-        description: 'Build custom integrations with our comprehensive API and webhook support for any workflow.',
+        icon: Clock,
+        title: 'Search History',
+        description: 'Your search history and bookmarks help you return to important knowledge quickly.',
       },
     ],
   },
@@ -425,12 +469,12 @@ export default function FeaturesPage() {
 
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Everything You Need for
-            <span className="text-primary block mt-2">Video Collaboration</span>
+            <span className="text-primary block mt-2">Unified Knowledge</span>
           </h1>
 
           <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">
-            From AI-powered transcription to enterprise security, Nuclom provides a complete platform for teams to
-            collaborate on video content.
+            Connect Slack, Notion, GitHub, and videos. AI-powered processing builds your knowledge graph automatically.
+            Find any insight instantly.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -510,12 +554,12 @@ export default function FeaturesPage() {
         <div className="w-full max-w-7xl mx-auto text-center">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">50+</div>
-              <p className="text-muted-foreground">Platform Features</p>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">4</div>
+              <p className="text-muted-foreground">Knowledge Sources</p>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">6+</div>
-              <p className="text-muted-foreground">Integrations</p>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">50+</div>
+              <p className="text-muted-foreground">Platform Features</p>
             </div>
             <div>
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">10+</div>

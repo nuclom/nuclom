@@ -20,8 +20,8 @@ test.describe('Landing Page', () => {
     });
 
     test('should display hero section', async ({ page }) => {
-      // Hero heading with span inside - use regex for flexible matching
-      await expect(page.getByRole('heading', { name: /Collaborate on Videos.*Like Never Before/i })).toBeVisible();
+      // New knowledge hub headline
+      await expect(page.getByRole('heading', { name: /All Your Knowledge/i })).toBeVisible();
       // Use first() as there are multiple "Start Free Trial" links on the page
       await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
     });
@@ -29,17 +29,17 @@ test.describe('Landing Page', () => {
     test('should display features section', async ({ page }) => {
       // Scroll to features section first to ensure it's visible
       await page.locator('section#features').first().scrollIntoViewIfNeeded();
-      // Use first() as text may appear multiple times on the page
-      await expect(page.getByText('Smart Video Management').first()).toBeVisible();
-      await expect(page.getByText('Team Collaboration').first()).toBeVisible();
-      await expect(page.getByText('AI-Powered Analysis').first()).toBeVisible();
+      // Use first() as text may appear multiple times on the page - updated for knowledge hub
+      await expect(page.getByText('Slack Integration').first()).toBeVisible();
+      await expect(page.getByText('Knowledge Graph').first()).toBeVisible();
+      await expect(page.getByText('Unified Search').first()).toBeVisible();
     });
 
     test('should display trust badges', async ({ page }) => {
-      // Use first() to get the trust badge in the hero section (not the features section)
+      // Use first() to get the trust badge in the hero section - updated for knowledge hub
       await expect(page.getByText('Enterprise Security').first()).toBeVisible();
-      await expect(page.getByText('Lightning Fast').first()).toBeVisible();
-      await expect(page.getByText('Global CDN').first()).toBeVisible();
+      await expect(page.getByText('AI-Powered').first()).toBeVisible();
+      await expect(page.getByText('Multi-Source').first()).toBeVisible();
     });
 
     test('should display how it works section', async ({ page }) => {
@@ -49,9 +49,10 @@ test.describe('Landing Page', () => {
         .first();
       await howItWorksSection.scrollIntoViewIfNeeded();
       await expect(howItWorksSection.getByRole('heading', { name: 'Get Started in Minutes' })).toBeVisible();
-      await expect(howItWorksSection.getByRole('heading', { name: 'Upload Your Videos' })).toBeVisible();
-      await expect(howItWorksSection.getByRole('heading', { name: 'Invite Your Team' })).toBeVisible();
-      await expect(howItWorksSection.getByRole('heading', { name: 'Extract Insights' })).toBeVisible();
+      // Updated for knowledge hub flow
+      await expect(howItWorksSection.getByRole('heading', { name: 'Connect Your Sources' })).toBeVisible();
+      await expect(howItWorksSection.getByRole('heading', { name: 'AI Processes Everything' })).toBeVisible();
+      await expect(howItWorksSection.getByRole('heading', { name: 'Discover & Search' })).toBeVisible();
     });
 
     test('should display footer with links', async ({ page }) => {
@@ -125,7 +126,7 @@ test.describe('Landing Page - Mobile', () => {
     // Header should still be visible
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
-    // Hero content should be visible - use regex for flexible matching
-    await expect(page.getByRole('heading', { name: /Collaborate on Videos.*Like Never Before/i })).toBeVisible();
+    // Hero content should be visible - updated for knowledge hub
+    await expect(page.getByRole('heading', { name: /All Your Knowledge/i })).toBeVisible();
   });
 });

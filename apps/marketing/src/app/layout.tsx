@@ -12,22 +12,22 @@ const siteUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Nuclom - Video Collaboration Platform',
+    default: 'Nuclom - Unified Knowledge Hub',
     template: '%s | Nuclom',
   },
   description:
-    'Streamline your video workflow with real-time collaboration, AI-powered transcription, and seamless sharing. Nuclom helps teams collaborate on video content like never before.',
+    'Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights surface decisions, track expertise, and connect ideas across your organization.',
   keywords: [
-    'video collaboration',
-    'video platform',
+    'knowledge management',
+    'knowledge hub',
     'team collaboration',
-    'video transcription',
-    'AI video analysis',
-    'video sharing',
-    'meeting recordings',
-    'video comments',
-    'enterprise video',
-    'video management',
+    'Slack integration',
+    'Notion integration',
+    'GitHub integration',
+    'AI knowledge graph',
+    'decision tracking',
+    'enterprise knowledge',
+    'unified search',
   ],
   authors: [{ name: 'Nuclom' }],
   creator: 'Nuclom',
@@ -57,15 +57,15 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteUrl,
     siteName: 'Nuclom',
-    title: 'Nuclom - Video Collaboration Platform',
+    title: 'Nuclom - Unified Knowledge Hub',
     description:
-      'Streamline your video workflow with real-time collaboration, AI-powered transcription, and seamless sharing.',
+      'Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights for your organization.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nuclom - Video Collaboration Platform',
+    title: 'Nuclom - Unified Knowledge Hub',
     description:
-      'Streamline your video workflow with real-time collaboration, AI-powered transcription, and seamless sharing.',
+      'Aggregate knowledge from Slack, Notion, GitHub, and videos. AI-powered insights for your organization.',
     creator: '@nuclom',
   },
   alternates: {
