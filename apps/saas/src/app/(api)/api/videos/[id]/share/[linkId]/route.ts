@@ -1,7 +1,7 @@
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { videoShareLinks } from '@nuclom/lib/db/schema';
 import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { Database } from '@nuclom/lib/effect/services/database';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { and, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
@@ -13,6 +13,7 @@ import type { NextRequest } from 'next/server';
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; linkId: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate user
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);

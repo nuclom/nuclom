@@ -1,18 +1,8 @@
-import {
-  Auth,
-  createFullLayer,
-  generatePresignedThumbnailUrl,
-  mapErrorToApiResponse,
-  Storage,
-} from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { aiActionItems } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect';
-import type { ApiResponse } from '@nuclom/lib/types';
+import { Auth, generatePresignedThumbnailUrl, handleEffectExit, runApiEffect, Storage } from '@nuclom/lib/api-handler';
+import { ActionItemRepository, OrganizationRepository } from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
-import { eq } from 'drizzle-orm';
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Schemas
@@ -33,8 +23,6 @@ const updateActionItemSchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const FullLayer = createFullLayer();
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const actionItemId = resolvedParams.id;
@@ -44,95 +32,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { user } = yield* authService.getSession(request.headers);
 
     // Get action item with video info
-    const actionItem = yield* Effect.tryPromise({
-      try: () =>
-        db.query.aiActionItems.findFirst({
-          where: eq(aiActionItems.id, actionItemId),
-          with: {
-            video: {
-              columns: {
-                id: true,
-                title: true,
-                thumbnailUrl: true,
-              },
-            },
-          },
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to fetch action item',
-          operation: 'getActionItem',
-        }),
-    });
-
-    if (!actionItem) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Action item not found',
-          entity: 'ActionItem',
-          id: actionItemId,
-        }),
-      );
-    }
+    const actionItemRepo = yield* ActionItemRepository;
+    const { actionItem, video } = yield* actionItemRepo.getActionItem(actionItemId);
 
     // Verify user belongs to organization
-    const isMember = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findFirst({
-          where: (members, { and, eq }) =>
-            and(eq(members.userId, user.id), eq(members.organizationId, actionItem.organizationId)),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to verify membership',
-          operation: 'checkMembership',
-        }),
-    });
-
-    if (!isMember) {
-      return yield* Effect.fail(
-        new UnauthorizedError({
-          message: 'You are not a member of this organization',
-        }),
-      );
-    }
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, actionItem.organizationId);
 
     // Generate presigned URL for video thumbnail
     const storage = yield* Storage;
-    const presignedThumbnailUrl = actionItem.video?.thumbnailUrl
-      ? yield* generatePresignedThumbnailUrl(storage, actionItem.video.thumbnailUrl)
+    const presignedThumbnailUrl = video?.thumbnailUrl
+      ? yield* generatePresignedThumbnailUrl(storage, video.thumbnailUrl)
       : null;
 
     return {
       ...actionItem,
-      video: actionItem.video
+      video: video
         ? {
-            ...actionItem.video,
+            ...video,
             thumbnailUrl: presignedThumbnailUrl,
           }
         : null,
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -140,8 +65,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // =============================================================================
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const FullLayer = createFullLayer();
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const actionItemId = resolvedParams.id;
@@ -150,123 +73,33 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Get existing action item
-    const existingItem = yield* Effect.tryPromise({
-      try: () =>
-        db.query.aiActionItems.findFirst({
-          where: eq(aiActionItems.id, actionItemId),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to fetch action item',
-          operation: 'getActionItem',
-        }),
-    });
-
-    if (!existingItem) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Action item not found',
-          entity: 'ActionItem',
-          id: actionItemId,
-        }),
-      );
-    }
+    // Get existing action item to verify ownership
+    const actionItemRepo = yield* ActionItemRepository;
+    const { actionItem: existingItem } = yield* actionItemRepo.getActionItem(actionItemId);
 
     // Verify user belongs to organization
-    const isMember = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findFirst({
-          where: (members, { and, eq }) =>
-            and(eq(members.userId, user.id), eq(members.organizationId, existingItem.organizationId)),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to verify membership',
-          operation: 'checkMembership',
-        }),
-    });
-
-    if (!isMember) {
-      return yield* Effect.fail(
-        new UnauthorizedError({
-          message: 'You are not a member of this organization',
-        }),
-      );
-    }
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, existingItem.organizationId);
 
     // Validate request body
     const data = yield* validateRequestBody(updateActionItemSchema, request);
 
-    // Build update object
-    const updateData: Record<string, unknown> = {
-      updatedAt: new Date(),
-    };
-
-    if (data.title !== undefined) {
-      updateData.title = data.title;
-    }
-    if (data.description !== undefined) {
-      updateData.description = data.description;
-    }
-    if (data.assignee !== undefined) {
-      updateData.assignee = data.assignee;
-    }
-    if (data.assigneeUserId !== undefined) {
-      updateData.assigneeUserId = data.assigneeUserId;
-    }
-    if (data.priority !== undefined) {
-      updateData.priority = data.priority;
-    }
-    if (data.dueDate !== undefined) {
-      updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
-    }
-    if (data.status !== undefined) {
-      updateData.status = data.status;
-
-      // If marking as completed, set completion metadata
-      if (data.status === 'completed') {
-        updateData.completedAt = new Date();
-        updateData.completedById = user.id;
-      } else if (existingItem.status === 'completed') {
-        // If unmarking from completed, clear completion metadata
-        updateData.completedAt = null;
-        updateData.completedById = null;
-      }
-    }
-
     // Update action item
-    const updatedItem = yield* Effect.tryPromise({
-      try: () => db.update(aiActionItems).set(updateData).where(eq(aiActionItems.id, actionItemId)).returning(),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to update action item',
-          operation: 'updateActionItem',
-        }),
+    const updatedItem = yield* actionItemRepo.updateActionItem(actionItemId, {
+      title: data.title,
+      description: data.description ?? undefined,
+      assignee: data.assignee ?? undefined,
+      assigneeUserId: data.assigneeUserId ?? undefined,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.dueDate ? new Date(data.dueDate) : data.dueDate === null ? null : undefined,
     });
 
-    return updatedItem[0];
+    return updatedItem;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -274,8 +107,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 // =============================================================================
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const FullLayer = createFullLayer();
-
   const effect = Effect.gen(function* () {
     const resolvedParams = yield* Effect.promise(() => params);
     const actionItemId = resolvedParams.id;
@@ -284,81 +115,20 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
-    // Get existing action item
-    const existingItem = yield* Effect.tryPromise({
-      try: () =>
-        db.query.aiActionItems.findFirst({
-          where: eq(aiActionItems.id, actionItemId),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to fetch action item',
-          operation: 'getActionItem',
-        }),
-    });
-
-    if (!existingItem) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Action item not found',
-          entity: 'ActionItem',
-          id: actionItemId,
-        }),
-      );
-    }
+    // Get existing action item to verify ownership
+    const actionItemRepo = yield* ActionItemRepository;
+    const { actionItem: existingItem } = yield* actionItemRepo.getActionItem(actionItemId);
 
     // Verify user belongs to organization
-    const isMember = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findFirst({
-          where: (members, { and, eq }) =>
-            and(eq(members.userId, user.id), eq(members.organizationId, existingItem.organizationId)),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to verify membership',
-          operation: 'checkMembership',
-        }),
-    });
-
-    if (!isMember) {
-      return yield* Effect.fail(
-        new UnauthorizedError({
-          message: 'You are not a member of this organization',
-        }),
-      );
-    }
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, existingItem.organizationId);
 
     // Delete action item
-    yield* Effect.tryPromise({
-      try: () => db.delete(aiActionItems).where(eq(aiActionItems.id, actionItemId)),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to delete action item',
-          operation: 'deleteActionItem',
-        }),
-    });
+    yield* actionItemRepo.deleteActionItem(actionItemId);
 
     return { deleted: true };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

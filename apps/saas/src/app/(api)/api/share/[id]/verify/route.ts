@@ -1,10 +1,13 @@
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { videoShareLinks } from '@nuclom/lib/db/schema';
-import { DatabaseError, MissingFieldError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import {
+  DatabaseError,
+  MissingFieldError,
+  NotFoundError,
+  ValidationError,
+  VideoShareLinksRepository,
+} from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
-import { eq } from 'drizzle-orm';
-import { Effect, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
 // Hash password using Web Crypto API
@@ -28,6 +31,7 @@ const VerifyPasswordBodySchema = Schema.Struct({
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
+    const shareLinkRepo = yield* VideoShareLinksRepository;
 
     // Parse request body
     const body = yield* validateRequestBody(VerifyPasswordBodySchema, request);
@@ -42,20 +46,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Get share link
-    const shareLink = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoShareLinks.findFirst({
-          where: eq(videoShareLinks.id, id),
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch share link',
-          operation: 'getShareLink',
-          cause: error,
-        }),
-    });
-
-    if (!shareLink) {
+    const shareLinkOption = yield* shareLinkRepo.getShareLinkOption(id);
+    if (Option.isNone(shareLinkOption)) {
       return yield* Effect.fail(
         new NotFoundError({
           message: 'Share link not found',
@@ -64,6 +56,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }),
       );
     }
+    const shareLink = shareLinkOption.value;
 
     if (!shareLink.password) {
       return yield* Effect.fail(

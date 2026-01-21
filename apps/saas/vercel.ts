@@ -141,5 +141,15 @@ export const config: VercelConfig = {
       path: '/api/cron?workflow=uptime',
       schedule: '*/5 * * * *',
     },
+    // Daily topic clustering - runs at 3 AM UTC
+    {
+      path: '/api/cron?workflow=topic-clustering',
+      schedule: '0 3 * * *',
+    },
+    // Weekly expertise score updates - runs Sundays at 4 AM UTC
+    {
+      path: '/api/cron?workflow=expertise-update',
+      schedule: '0 4 * * 0',
+    },
   ],
 };

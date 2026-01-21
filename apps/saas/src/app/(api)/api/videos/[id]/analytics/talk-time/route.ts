@@ -5,12 +5,9 @@
  * showing how much each speaker contributed.
  */
 
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { normalizeOne } from '@nuclom/lib/db/relations';
-import { videoSpeakers, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
-import { desc, eq } from 'drizzle-orm';
+import { SpeakerRepository, VideoRepository } from '@nuclom/lib/effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -23,58 +20,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 
-    // Get video with duration
-    const video = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-          columns: { id: true, duration: true, title: true },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
+    // Get video with duration using VideoRepository
+    const videoRepo = yield* VideoRepository;
+    const video = yield* videoRepo.getVideo(videoId);
 
-    if (!video) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: videoId,
-        }),
-      );
-    }
-
-    // Get all speakers with profiles
-    const speakers = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoSpeakers.findMany({
-          where: eq(videoSpeakers.videoId, videoId),
-          with: {
-            speakerProfile: {
-              with: {
-                user: {
-                  columns: {
-                    id: true,
-                    name: true,
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: [desc(videoSpeakers.totalSpeakingTime)],
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch speakers',
-          operation: 'getSpeakers',
-          cause: error,
-        }),
-    });
+    // Get all speakers with profiles using SpeakerRepository
+    const speakerRepo = yield* SpeakerRepository;
+    const speakers = yield* speakerRepo.getVideoSpeakers(videoId);
 
     if (speakers.length === 0) {
       return {
@@ -165,8 +117,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 

@@ -5,9 +5,9 @@
  */
 
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { sessions } from '@nuclom/lib/db/schema';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -20,6 +20,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { sessionId } = await params;
 
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const authService = yield* Auth;
     const { user, session: currentSession } = yield* authService.getSession(request.headers);
 

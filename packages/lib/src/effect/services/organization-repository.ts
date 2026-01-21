@@ -6,7 +6,7 @@
 
 import { and, eq, ne } from 'drizzle-orm';
 import { Context, Effect, Layer, Option } from 'effect';
-import { members, organizations, users } from '../../db/schema';
+import { invitations, members, organizations, users } from '../../db/schema';
 import { DatabaseError, ForbiddenError, NotFoundError, TransactionError, ValidationError } from '../errors';
 import { Database } from './database';
 
@@ -47,6 +47,42 @@ export interface OrganizationMember {
     readonly id: string;
     readonly name: string;
     readonly email: string;
+    readonly image: string | null;
+  };
+}
+
+export interface PendingInvitation {
+  readonly id: string;
+  readonly email: string;
+  readonly role: string | null;
+  readonly status: string;
+  readonly expiresAt: Date;
+  readonly createdAt: Date;
+  readonly inviter: {
+    readonly id: string;
+    readonly name: string;
+    readonly email: string;
+    readonly image: string | null;
+  };
+}
+
+export interface InvitationDetails {
+  readonly id: string;
+  readonly email: string;
+  readonly role: string | null;
+  readonly status: string;
+  readonly expiresAt: Date;
+  readonly organizationId: string;
+  readonly inviterId: string;
+  readonly organization: {
+    readonly id: string;
+    readonly name: string;
+    readonly slug: string | null;
+    readonly logo: string | null;
+  };
+  readonly inviter: {
+    readonly id: string;
+    readonly name: string;
     readonly image: string | null;
   };
 }
@@ -129,6 +165,27 @@ export interface OrganizationRepositoryService {
     newRole: 'owner' | 'member',
     requesterId: string,
   ) => Effect.Effect<typeof members.$inferSelect, DatabaseError | NotFoundError | ForbiddenError>;
+
+  /**
+   * Get pending invitations for an organization
+   */
+  readonly getPendingInvitations: (
+    organizationId: string,
+  ) => Effect.Effect<ReadonlyArray<PendingInvitation>, DatabaseError>;
+
+  /**
+   * Cancel an invitation (owner only)
+   */
+  readonly cancelInvitation: (
+    organizationId: string,
+    invitationId: string,
+    requesterId: string,
+  ) => Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError>;
+
+  /**
+   * Get invitation details by ID (for accept flow)
+   */
+  readonly getInvitationById: (invitationId: string) => Effect.Effect<InvitationDetails, DatabaseError | NotFoundError>;
 }
 
 // =============================================================================
@@ -592,6 +649,201 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
       return result[0];
     });
 
+  const getPendingInvitations = (
+    organizationId: string,
+  ): Effect.Effect<ReadonlyArray<PendingInvitation>, DatabaseError> =>
+    Effect.tryPromise({
+      try: async () => {
+        const pendingInvitations = await db
+          .select({
+            id: invitations.id,
+            email: invitations.email,
+            role: invitations.role,
+            status: invitations.status,
+            expiresAt: invitations.expiresAt,
+            createdAt: invitations.createdAt,
+            inviter: {
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              image: users.image,
+            },
+          })
+          .from(invitations)
+          .innerJoin(users, eq(invitations.inviterId, users.id))
+          .where(and(eq(invitations.organizationId, organizationId), eq(invitations.status, 'pending')));
+
+        return pendingInvitations as ReadonlyArray<PendingInvitation>;
+      },
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to fetch pending invitations',
+          operation: 'getPendingInvitations',
+          cause: error,
+        }),
+    });
+
+  const cancelInvitation = (
+    organizationId: string,
+    invitationId: string,
+    requesterId: string,
+  ): Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError> =>
+    Effect.gen(function* () {
+      // Check requester's role
+      const requesterRole = yield* getUserRole(requesterId, organizationId);
+
+      if (Option.isNone(requesterRole) || requesterRole.value !== 'owner') {
+        return yield* Effect.fail(
+          new ForbiddenError({
+            message: 'Only organization owners can cancel invitations',
+            resource: 'Invitation',
+          }),
+        );
+      }
+
+      // Verify the invitation belongs to this organization and is pending
+      const invitation = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select()
+            .from(invitations)
+            .where(
+              and(
+                eq(invitations.id, invitationId),
+                eq(invitations.organizationId, organizationId),
+                eq(invitations.status, 'pending'),
+              ),
+            )
+            .limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch invitation',
+            operation: 'cancelInvitation.fetch',
+            cause: error,
+          }),
+      });
+
+      if (!invitation.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: 'Invitation not found or already processed',
+            entity: 'Invitation',
+            id: invitationId,
+          }),
+        );
+      }
+
+      // Cancel the invitation by deleting it
+      yield* Effect.tryPromise({
+        try: () => db.delete(invitations).where(eq(invitations.id, invitationId)),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to cancel invitation',
+            operation: 'cancelInvitation.delete',
+            cause: error,
+          }),
+      });
+    });
+
+  const getInvitationById = (invitationId: string): Effect.Effect<InvitationDetails, DatabaseError | NotFoundError> =>
+    Effect.gen(function* () {
+      // Get invitation
+      const invitation = yield* Effect.tryPromise({
+        try: () => db.select().from(invitations).where(eq(invitations.id, invitationId)).limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch invitation',
+            operation: 'getInvitationById',
+            cause: error,
+          }),
+      });
+
+      if (!invitation.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: 'Invitation not found',
+            entity: 'Invitation',
+            id: invitationId,
+          }),
+        );
+      }
+
+      const inv = invitation[0];
+
+      // Get organization
+      const org = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select({
+              id: organizations.id,
+              name: organizations.name,
+              slug: organizations.slug,
+              logo: organizations.logo,
+            })
+            .from(organizations)
+            .where(eq(organizations.id, inv.organizationId))
+            .limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch organization',
+            operation: 'getInvitationById.organization',
+            cause: error,
+          }),
+      });
+
+      if (!org.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: 'Organization not found',
+            entity: 'Organization',
+            id: inv.organizationId,
+          }),
+        );
+      }
+
+      // Get inviter
+      const inviter = yield* Effect.tryPromise({
+        try: () =>
+          db
+            .select({
+              id: users.id,
+              name: users.name,
+              image: users.image,
+            })
+            .from(users)
+            .where(eq(users.id, inv.inviterId))
+            .limit(1),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to fetch inviter',
+            operation: 'getInvitationById.inviter',
+            cause: error,
+          }),
+      });
+
+      if (!inviter.length) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: 'Inviter not found',
+            entity: 'User',
+            id: inv.inviterId,
+          }),
+        );
+      }
+
+      return {
+        id: inv.id,
+        email: inv.email,
+        role: inv.role,
+        status: inv.status,
+        expiresAt: inv.expiresAt,
+        organizationId: inv.organizationId,
+        inviterId: inv.inviterId,
+        organization: org[0],
+        inviter: inviter[0],
+      };
+    });
+
   return {
     createOrganization,
     updateOrganization,
@@ -604,6 +856,9 @@ const makeOrganizationRepositoryService = Effect.gen(function* () {
     getOrganizationMembers,
     removeMember,
     updateMemberRole,
+    getPendingInvitations,
+    cancelInvitation,
+    getInvitationById,
   } satisfies OrganizationRepositoryService;
 });
 
@@ -715,4 +970,30 @@ export const updateMemberRole = (
   Effect.gen(function* () {
     const repo = yield* OrganizationRepository;
     return yield* repo.updateMemberRole(organizationId, userId, newRole, requesterId);
+  });
+
+export const getPendingInvitations = (
+  organizationId: string,
+): Effect.Effect<ReadonlyArray<PendingInvitation>, DatabaseError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.getPendingInvitations(organizationId);
+  });
+
+export const cancelInvitation = (
+  organizationId: string,
+  invitationId: string,
+  requesterId: string,
+): Effect.Effect<void, DatabaseError | NotFoundError | ForbiddenError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.cancelInvitation(organizationId, invitationId, requesterId);
+  });
+
+export const getInvitationById = (
+  invitationId: string,
+): Effect.Effect<InvitationDetails, DatabaseError | NotFoundError, OrganizationRepository> =>
+  Effect.gen(function* () {
+    const repo = yield* OrganizationRepository;
+    return yield* repo.getInvitationById(invitationId);
   });

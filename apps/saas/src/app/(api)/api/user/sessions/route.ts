@@ -8,9 +8,9 @@
  */
 
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { sessions } from '@nuclom/lib/db/schema';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { and, desc, eq, gt } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -21,6 +21,7 @@ import type { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const authService = yield* Auth;
     const { user, session } = yield* authService.getSession(request.headers);
 
@@ -68,6 +69,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const authService = yield* Auth;
     const { user, session } = yield* authService.getSession(request.headers);
 

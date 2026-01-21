@@ -1,10 +1,7 @@
 import { createPublicLayer } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { organizations, videoShareLinks, videos } from '@nuclom/lib/db/schema';
-import { Storage } from '@nuclom/lib/effect';
+import { Storage, VideoRepository, VideoShareLinksRepository } from '@nuclom/lib/effect';
 import { logger } from '@nuclom/lib/logger';
-import { eq } from 'drizzle-orm';
-import { Effect } from 'effect';
+import { Effect, Option } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
@@ -15,23 +12,26 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   await connection();
 
   const { id } = await params;
+  const PublicLayer = createPublicLayer();
 
   try {
-    // First try to find as a share link
-    const [shareLink] = await db
-      .select({
-        id: videoShareLinks.id,
-        videoId: videoShareLinks.videoId,
-        accessLevel: videoShareLinks.accessLevel,
-        status: videoShareLinks.status,
-        expiresAt: videoShareLinks.expiresAt,
-        maxViews: videoShareLinks.maxViews,
-        viewCount: videoShareLinks.viewCount,
-      })
-      .from(videoShareLinks)
-      .where(eq(videoShareLinks.id, id));
+    const { shareLink, video } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          const shareLinkRepo = yield* VideoShareLinksRepository;
+          const videoRepo = yield* VideoRepository;
 
-    let videoId = id;
+          const shareLinkOption = yield* shareLinkRepo.getShareLinkOption(id);
+          const resolvedShareLink = Option.isSome(shareLinkOption) ? shareLinkOption.value : null;
+          const videoId = resolvedShareLink ? resolvedShareLink.videoId : id;
+          const resolvedVideo = yield* videoRepo.getVideo(videoId);
+
+          return { shareLink: resolvedShareLink, video: resolvedVideo };
+        }),
+        PublicLayer,
+      ),
+    );
+
     let isShareLink = false;
 
     if (shareLink) {
@@ -48,35 +48,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         return NextResponse.json({ success: false, error: 'This video has reached its view limit' }, { status: 410 });
       }
 
-      videoId = shareLink.videoId;
       isShareLink = true;
     }
 
-    // Get video data
-    const [video] = await db
-      .select({
-        id: videos.id,
-        title: videos.title,
-        videoUrl: videos.videoUrl,
-        thumbnailUrl: videos.thumbnailUrl,
-        duration: videos.duration,
-        organizationId: videos.organizationId,
-      })
-      .from(videos)
-      .where(eq(videos.id, videoId));
-
-    if (!video || !video.videoUrl) {
+    if (!video.videoUrl) {
       return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
     }
-
-    // Get organization
-    const [org] = await db
-      .select({
-        name: organizations.name,
-        slug: organizations.slug,
-      })
-      .from(organizations)
-      .where(eq(organizations.id, video.organizationId));
 
     // Capture video URL (we've already validated it's not null above)
     // TypeScript doesn't narrow after the early return, so we assert
@@ -118,7 +95,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return { videoUrl: presignedVideoUrl, thumbnailUrl: presignedThumbnailUrl };
     });
 
-    const runnable = Effect.provide(presignedUrlEffect, createPublicLayer());
+    const runnable = Effect.provide(presignedUrlEffect, PublicLayer);
     const presignedUrls = await Effect.runPromise(runnable);
 
     if (!presignedUrls.videoUrl) {
@@ -135,8 +112,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         thumbnailUrl: presignedUrls.thumbnailUrl,
         duration: video.duration,
         organization: {
-          name: org?.name || 'Unknown',
-          slug: org?.slug || '',
+          name: video.organization?.name || 'Unknown',
+          slug: video.organization?.slug || '',
         },
         isShareLink,
       },
@@ -149,6 +126,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     return response;
   } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      '_tag' in error &&
+      (error as { _tag?: string })._tag === 'NotFoundError'
+    ) {
+      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
+    }
     logger.error('Embed API error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }

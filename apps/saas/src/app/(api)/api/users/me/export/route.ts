@@ -1,5 +1,5 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import {
   dataExportRequests,
   legalConsents,
@@ -10,8 +10,10 @@ import {
   videoProgresses,
   videos,
 } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { and, desc, eq, gte } from 'drizzle-orm';
+import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -30,6 +32,14 @@ export async function GET(_request: NextRequest) {
     }
 
     const userId = session.user.id;
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     // Check rate limit - look for exports in the last 24 hours
     const twentyFourHoursAgo = new Date(Date.now() - EXPORT_RATE_LIMIT_HOURS * 60 * 60 * 1000);

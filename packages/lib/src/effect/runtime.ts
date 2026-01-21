@@ -14,6 +14,7 @@ const log = createLogger('effect-runtime');
 
 import { env } from '../env/server';
 // Services
+import { ActionItemRepositoryLive } from './services/action-item-repository';
 import { type AI, AILive } from './services/ai';
 import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';
 import { makeAuthLayer } from './services/auth';
@@ -28,11 +29,16 @@ import { type GitHubContentAdapter, GitHubContentAdapterLive } from './services/
 import { type NotionContentAdapter, NotionContentAdapterLive } from './services/content/notion-content-adapter';
 import { type SlackContentAdapter, SlackContentAdapterLive } from './services/content/slack-content-adapter';
 import { type Database, DatabaseLive } from './services/database';
+import { type Discovery, DiscoveryLive } from './services/discovery';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
 import { type IntegrationRepository, IntegrationRepositoryLive } from './services/integration-repository';
 import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
+import { type KnowledgeGapDetector, KnowledgeGapDetectorLive } from './services/knowledge/knowledge-gap-detector';
+import { type KnowledgeQA, KnowledgeQALive } from './services/knowledge/knowledge-qa';
+import { type ProactiveInsight, ProactiveInsightLive } from './services/knowledge/proactive-insight';
 import { type RelationshipDetector, RelationshipDetectorLive } from './services/knowledge/relationship-detector';
+import { type SmartSummary, SmartSummaryLive } from './services/knowledge/smart-summary';
 import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from './services/knowledge-graph-repository';
 import { type NotificationRepository, NotificationRepositoryLive } from './services/notification-repository';
@@ -45,9 +51,11 @@ import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './s
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
 import { type Storage, StorageLive } from './services/storage';
 import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
+import { VideoAnalyticsRepositoryLive } from './services/video-analytics-repository';
 import { type VideoProcessor, VideoProcessorLive } from './services/video-processor';
 import { type VideoProgressRepository, VideoProgressRepositoryLive } from './services/video-progress-repository';
 import { type VideoRepository, VideoRepositoryLive } from './services/video-repository';
+import { type VideoShareLinksRepository, VideoShareLinksRepositoryLive } from './services/video-share-links-repository';
 import { type VideoSharesRepository, VideoSharesRepositoryLive } from './services/video-shares-repository';
 import { type VocabularyRepository, VocabularyRepositoryLive } from './services/vocabulary-repository';
 
@@ -143,6 +151,8 @@ const VideoProcessorWithDeps = withDep(VideoProcessorLive, StorageLive);
 // Repositories with Database dependency only
 const OrganizationRepositoryWithDeps = withDep(OrganizationRepositoryLive, DatabaseLive);
 const VideoProgressRepositoryWithDeps = withDep(VideoProgressRepositoryLive, DatabaseLive);
+const VideoAnalyticsRepositoryWithDeps = withDep(VideoAnalyticsRepositoryLive, DatabaseLive);
+const ActionItemRepositoryWithDeps = withDep(ActionItemRepositoryLive, DatabaseLive);
 const PresenceWithDeps = withDep(PresenceLive, DatabaseLive);
 const NotificationRepositoryWithDeps = withDep(NotificationRepositoryLive, DatabaseLive);
 const IntegrationRepositoryWithDeps = withDep(IntegrationRepositoryLive, DatabaseLive);
@@ -154,6 +164,7 @@ const SemanticSearchRepositoryWithDeps = withDep(SemanticSearchRepositoryLive, D
 const VocabularyRepositoryWithDeps = withDep(VocabularyRepositoryLive, DatabaseLive);
 const ChatRepositoryWithDeps = withDep(ChatRepositoryLive, DatabaseLive);
 const VideoSharesRepositoryWithDeps = withDep(VideoSharesRepositoryLive, DatabaseLive);
+const VideoShareLinksRepositoryWithDeps = withDep(VideoShareLinksRepositoryLive, DatabaseLive);
 const ContentRepositoryWithDeps = withDep(ContentRepositoryLive, DatabaseLive);
 
 // Repositories with Database + Storage dependencies
@@ -197,6 +208,22 @@ const DecisionTrackerWithDeps = DecisionTrackerLive.pipe(
   Layer.provide(Layer.mergeAll(DatabaseLive, ContentRepositoryWithDeps, EmbeddingLive, AILive)),
 );
 
+// AI Knowledge Services - KnowledgeQA, SmartSummary, KnowledgeGapDetector, ProactiveInsight
+const KnowledgeQAWithDeps = KnowledgeQALive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, EmbeddingLive, SemanticSearchRepositoryWithDeps)),
+);
+
+const SmartSummaryWithDeps = withDep(SmartSummaryLive, DatabaseLive);
+
+const KnowledgeGapDetectorWithDeps = KnowledgeGapDetectorLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, EmbeddingLive)),
+);
+
+const ProactiveInsightWithDeps = withDep(ProactiveInsightLive, DatabaseLive);
+
+// Discovery service depends on Database and Embedding
+const DiscoveryWithDeps = withDeps2(DiscoveryLive, DatabaseLive, EmbeddingLive);
+
 // UnifiedSearch depends on Database and Embedding
 const UnifiedSearchWithDeps = withDeps2(UnifiedSearchLive, DatabaseLive, EmbeddingLive);
 
@@ -204,7 +231,10 @@ const UnifiedSearchWithDeps = withDeps2(UnifiedSearchLive, DatabaseLive, Embeddi
 const AppServicesLive = Layer.mergeAll(
   VideoProcessorWithDeps,
   VideoRepositoryWithDeps,
+  VideoShareLinksRepositoryWithDeps,
   VideoSharesRepositoryWithDeps,
+  VideoAnalyticsRepositoryWithDeps,
+  ActionItemRepositoryWithDeps,
   OrganizationRepositoryWithDeps,
   VideoProgressRepositoryWithDeps,
   PresenceWithDeps,
@@ -226,6 +256,12 @@ const AppServicesLive = Layer.mergeAll(
   TopicClusterWithDeps,
   DecisionTrackerWithDeps,
   UnifiedSearchWithDeps,
+  // AI Knowledge Services
+  KnowledgeQAWithDeps,
+  SmartSummaryWithDeps,
+  KnowledgeGapDetectorWithDeps,
+  ProactiveInsightWithDeps,
+  DiscoveryWithDeps,
   // Content adapters for integrations
   SlackContentAdapterWithDeps,
   GitHubContentAdapterWithDeps,
@@ -247,6 +283,7 @@ export type AppServices =
   | ReplicateAPI
   | VideoProcessor
   | VideoRepository
+  | VideoShareLinksRepository
   | VideoSharesRepository
   | OrganizationRepository
   | VideoProgressRepository
@@ -271,6 +308,11 @@ export type AppServices =
   | TopicCluster
   | DecisionTracker
   | UnifiedSearch
+  | KnowledgeQA
+  | SmartSummary
+  | KnowledgeGapDetector
+  | ProactiveInsight
+  | Discovery
   | SlackContentAdapter
   | GitHubContentAdapter
   | NotionContentAdapter;

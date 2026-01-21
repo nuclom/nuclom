@@ -673,29 +673,31 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           }),
       });
 
-      let deletedCount = 0;
+      // Process deletions with bounded concurrency to avoid overwhelming resources
+      yield* Effect.forEach(
+        expiredVideos,
+        (video) =>
+          Effect.gen(function* () {
+            // Delete files from R2 storage
+            yield* deleteVideoFiles(video);
 
-      for (const video of expiredVideos) {
-        // Delete files from R2 storage
-        yield* deleteVideoFiles(video);
+            // Delete the database record
+            yield* Effect.tryPromise({
+              try: async () => {
+                await db.delete(videos).where(eq(videos.id, video.id));
+              },
+              catch: (error) =>
+                new DatabaseError({
+                  message: `Failed to delete expired video ${video.id}`,
+                  operation: 'cleanupExpiredVideos.delete',
+                  cause: error,
+                }),
+            });
+          }),
+        { concurrency: 5 },
+      );
 
-        // Delete the database record
-        yield* Effect.tryPromise({
-          try: async () => {
-            await db.delete(videos).where(eq(videos.id, video.id));
-          },
-          catch: (error) =>
-            new DatabaseError({
-              message: `Failed to delete expired video ${video.id}`,
-              operation: 'cleanupExpiredVideos.delete',
-              cause: error,
-            }),
-        });
-
-        deletedCount++;
-      }
-
-      return deletedCount;
+      return expiredVideos.length;
     });
 
   const searchVideos = (input: VideoSearchInput): Effect.Effect<PaginatedResponse<VideoWithAuthor>, DatabaseError> =>

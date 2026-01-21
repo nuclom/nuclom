@@ -88,6 +88,12 @@ export {
   updateVideo as serverUpdateVideo,
 } from './server';
 export type {
+  // ActionItemRepository
+  ActionItemPriority,
+  ActionItemRepositoryService,
+  ActionItemStats,
+  ActionItemStatus,
+  ActionItemWithVideo,
   // AI
   AIServiceInterface,
   // Auth
@@ -98,6 +104,7 @@ export type {
   ClusteringResult,
   // CollectionRepository
   CollectionRepositoryService,
+  CreateActionItemInput,
   CreateClipInput,
   // CollectionRepository
   CreateCollectionInput,
@@ -121,6 +128,7 @@ export type {
   DetectionResult,
   // Database
   DrizzleDB,
+  GetActionItemsParams,
   GoogleDriveFilesResponse,
   GoogleMeetRecording,
   // Google Meet
@@ -162,6 +170,8 @@ export type {
   TopicClusterService,
   TopicClusterWithMembers,
   TopicExpertiseEntry,
+  TopVideo,
+  UpdateActionItemInput,
   UpdateClipInput,
   UpdateCollectionInput,
   UpdateHighlightReelInput,
@@ -172,7 +182,12 @@ export type {
   UploadProgress,
   UploadResult,
   UserSession,
+  // VideoAnalyticsRepository
+  VideoAnalyticsOverview,
+  VideoAnalyticsParams,
+  VideoAnalyticsRepositoryService,
   VideoClipWithCreator,
+  VideoDetails,
   VideoInfo,
   VideoMomentWithVideo,
   // VideoProcessor
@@ -182,7 +197,13 @@ export type {
   VideoProgressRepositoryService,
   // VideoRepository
   VideoRepositoryService,
+  // VideoShareLinksRepository
+  VideoShareLinkStatus,
+  VideoShareLinksRepositoryService,
+  VideoShareLinkWithVideo,
+  VideoShareLinkWithVideoAndOrganization,
   VideoSummary,
+  ViewsByDay,
   ZoomRecording,
   ZoomRecordingsResponse,
   // Zoom
@@ -190,6 +211,10 @@ export type {
 } from './services';
 // Services - explicitly export to avoid conflicts
 export {
+  // ActionItemRepository
+  ActionItemRepository,
+  ActionItemRepositoryError,
+  ActionItemRepositoryLive,
   // AI
   AI,
   AILive,
@@ -207,6 +232,7 @@ export {
   CollectionRepository,
   CollectionRepositoryLive,
   clearSearchHistory,
+  createActionItem,
   createClip,
   createCollection,
   createHighlightReel,
@@ -227,6 +253,7 @@ export {
   DecisionTracker,
   DecisionTrackerLive,
   DrizzleLive,
+  deleteActionItem,
   deleteClip,
   deleteCollection,
   deleteFile,
@@ -257,8 +284,14 @@ export {
   generateThumbnails,
   generateVideoSummary,
   generateVideoTags,
+  getActionItem,
+  getActionItemStats,
+  getActionItems,
   getActiveOrganization,
+  getAnalyticsOverview,
+  getAnalyticsVideoCount,
   getAvailableVideosForCollection,
+  getAvgCompletionPercent,
   getClip,
   getClips,
   getClipsByOrganization,
@@ -287,18 +320,28 @@ export {
   getSavedSearches,
   getSession,
   getSessionOption,
+  getShareLink,
+  getShareLinkOption,
+  getShareLinkWithVideoAndOrganization,
+  getShareLinkWithVideoAndOrganizationOption,
   getSuggestions,
   getTopicCluster,
   getTopicExperts,
+  getTopVideos,
+  getTotalViews,
+  getTotalWatchTime,
+  getUniqueViewers,
   getUnreadCount,
   getUserIntegrations,
   getUserOrganizations,
   getUserRole,
   getUserVideoProgress,
   getVideo,
+  getVideoDetailsByIds,
   getVideoInfo,
   getVideoProgress,
   getVideos,
+  getViewsByDay,
   getZoomAuthorizationUrl,
   getZoomMeetingRecordings,
   getZoomUserInfo,
@@ -306,6 +349,7 @@ export {
   // Integration Repository
   IntegrationRepository,
   IntegrationRepositoryLive,
+  incrementShareLinkView,
   insertUnique,
   isMember,
   isSupportedVideoFormat,
@@ -345,6 +389,9 @@ export {
   // Search Repository
   SearchRepository,
   SearchRepositoryLive,
+  // Speaker Repository
+  SpeakerRepository,
+  SpeakerRepositoryLive,
   // Storage
   Storage,
   StorageLive,
@@ -355,6 +402,7 @@ export {
   TopicClusterLive,
   transaction,
   transcribe,
+  updateActionItem,
   updateClip,
   updateCollection,
   updateCollectionProgress,
@@ -363,8 +411,13 @@ export {
   updateImportedMeeting,
   updateIntegration as updateIntegrationRecord,
   updateSavedSearch,
+  updateShareLinkStatus,
   updateVideo,
   uploadFile,
+  // VideoAnalyticsRepository
+  VideoAnalyticsError,
+  VideoAnalyticsRepository,
+  VideoAnalyticsRepositoryLive,
   // VideoProcessor
   VideoProcessor,
   VideoProcessorLive,
@@ -374,6 +427,9 @@ export {
   // VideoRepository
   VideoRepository,
   VideoRepositoryLive,
+  // VideoShareLinksRepository
+  VideoShareLinksRepository,
+  VideoShareLinksRepositoryLive,
   validateVideo,
   // Zoom
   Zoom,

@@ -1,12 +1,13 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { type AuditLogFilters, AuditLogger } from '@nuclom/lib/audit-log';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { type AuditLogCategory, type AuditLogSeverity, members } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { safeParse } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
-import { Schema } from 'effect';
+import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -39,6 +40,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id: organizationId } = await params;
+  const { db } = await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        return yield* Database;
+      }),
+      createPublicLayer(),
+    ),
+  );
 
   // Check if user has permission to view audit logs
   const membership = await db.query.members.findFirst({
@@ -151,6 +160,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const { id: organizationId } = await params;
+  const { db } = await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        return yield* Database;
+      }),
+      createPublicLayer(),
+    ),
+  );
 
   // Check if user has permission to download audit logs
   const membership = await db.query.members.findFirst({

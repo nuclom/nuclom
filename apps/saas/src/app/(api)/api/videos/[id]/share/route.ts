@@ -1,7 +1,7 @@
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { videoShareLinks, videos } from '@nuclom/lib/db/schema';
 import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { Database } from '@nuclom/lib/effect/services/database';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
@@ -28,6 +28,7 @@ async function hashPassword(password: string): Promise<string> {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate user
     const authService = yield* Auth;
     yield* authService.getSession(request.headers);
@@ -86,6 +87,7 @@ const CreateShareLinkBodySchema = Schema.Struct({
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate user
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);

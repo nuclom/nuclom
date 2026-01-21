@@ -5,23 +5,27 @@
  * The Workflow DevKit handles durability - workflows will resume from where they
  * left off if interrupted.
  *
- * Cron schedules are configured in vercel.ts at the project root.
+ * Cron schedules are configured in vercel.ts at the application root.
  *
  * Security: Set CRON_SECRET environment variable in Vercel.
  * Vercel automatically sends it as Authorization header.
  *
  * Workflows:
- * - subscriptionEnforcementWorkflow: Daily billing policy enforcement
- * - scheduledCleanupWorkflow: Daily cleanup of expired videos
+ * - subscriptionEnforcementWorkflow: Daily billing policy enforcement (midnight)
+ * - scheduledCleanupWorkflow: Daily cleanup of expired videos (2 AM)
  * - uptimeMonitorWorkflow: Continuous health monitoring (5-min intervals)
+ * - topicClusteringWorkflow: Daily auto-clustering of content into topics (3 AM)
+ * - expertiseUpdateWorkflow: Weekly expertise score updates (Sunday 4 AM)
  */
 
 import { env } from '@nuclom/lib/env/server';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { start } from 'workflow/api';
+import { expertiseUpdateWorkflow } from '@/workflows/expertise-update';
 import { scheduledCleanupWorkflow } from '@/workflows/scheduled-cleanup';
 import { subscriptionEnforcementWorkflow } from '@/workflows/subscription-enforcement';
+import { topicClusteringWorkflow } from '@/workflows/topic-clustering';
 import { uptimeMonitorWorkflow } from '@/workflows/uptime-monitor';
 
 export async function GET(request: Request) {
@@ -62,6 +66,16 @@ export async function GET(request: Request) {
     if (!workflow || workflow === 'uptime') {
       await start(uptimeMonitorWorkflow, [{ intervalMs: 5 * 60 * 1000 }]);
       results.uptime = 'started';
+    }
+
+    if (workflow === 'topic-clustering') {
+      await start(topicClusteringWorkflow, []);
+      results['topic-clustering'] = 'started';
+    }
+
+    if (workflow === 'expertise-update') {
+      await start(expertiseUpdateWorkflow, []);
+      results['expertise-update'] = 'started';
     }
 
     return NextResponse.json({

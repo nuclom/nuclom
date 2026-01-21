@@ -1,8 +1,5 @@
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { videoChapters, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
-import { asc, eq } from 'drizzle-orm';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
+import { VideoRepository } from '@nuclom/lib/effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -15,42 +12,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 
-    // Check if video exists
-    const video = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-          columns: { id: true },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
+    // Verify video exists and get chapters using repository
+    const videoRepo = yield* VideoRepository;
+    yield* videoRepo.getVideo(videoId); // Throws NotFoundError if video doesn't exist
 
-    if (!video) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: videoId,
-        }),
-      );
-    }
-
-    // Get chapters
-    const chapters = yield* Effect.tryPromise({
-      try: () =>
-        db.select().from(videoChapters).where(eq(videoChapters.videoId, videoId)).orderBy(asc(videoChapters.startTime)),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch chapters',
-          operation: 'getChapters',
-          cause: error,
-        }),
-    });
+    const chapters = yield* videoRepo.getVideoChapters(videoId);
 
     return {
       success: true,
@@ -62,7 +28,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }

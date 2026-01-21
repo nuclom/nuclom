@@ -6,12 +6,9 @@
  * GET /api/videos/[id]/subtitles - Get subtitle availability
  */
 
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
+import { VideoRepository } from '@nuclom/lib/effect';
 import type { ApiResponse } from '@nuclom/lib/types';
-import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -43,34 +40,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 
-    // Fetch video with transcript
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, id),
-          columns: {
-            id: true,
-            transcriptSegments: true,
-            processingStatus: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getSubtitleLanguages',
-          cause: error,
-        }),
-    });
-
-    if (!videoData) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id,
-        }),
-      );
-    }
+    // Fetch video using repository
+    const videoRepo = yield* VideoRepository;
+    const videoData = yield* videoRepo.getVideo(id);
 
     const hasTranscript = !!videoData.transcriptSegments && videoData.transcriptSegments.length > 0;
 
@@ -101,8 +73,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return response;
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runPublicApiEffect(effect);
   return handleEffectExit(exit);
 }
