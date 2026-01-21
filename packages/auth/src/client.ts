@@ -4,6 +4,7 @@ import { oauthProviderClient } from '@better-auth/oauth-provider/client';
 import { passkeyClient } from '@better-auth/passkey/client';
 import { ssoClient } from '@better-auth/sso/client';
 import { stripeClient } from '@better-auth/stripe/client';
+// Client plugins don't have dedicated exports, must use barrel file
 import {
   adminClient,
   apiKeyClient,

@@ -4,17 +4,15 @@ import { sso } from '@better-auth/sso';
 import { stripe } from '@better-auth/stripe';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import {
-  admin,
-  apiKey,
-  jwt,
-  lastLoginMethod,
-  multiSession,
-  oAuthProxy,
-  openAPI,
-  organization,
-  twoFactor,
-} from 'better-auth/plugins';
+// These plugins don't have dedicated exports, must use barrel
+import { apiKey, lastLoginMethod, openAPI } from 'better-auth/plugins';
+// Import plugins from dedicated paths for tree-shaking where available (best practice)
+import { admin } from 'better-auth/plugins/admin';
+import { jwt } from 'better-auth/plugins/jwt';
+import { multiSession } from 'better-auth/plugins/multi-session';
+import { oAuthProxy } from 'better-auth/plugins/oauth-proxy';
+import { organization } from 'better-auth/plugins/organization';
+import { twoFactor } from 'better-auth/plugins/two-factor';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { ac, organizationRoles } from './access-control';
