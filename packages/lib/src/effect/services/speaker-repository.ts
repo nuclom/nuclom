@@ -17,6 +17,7 @@ import type {
   VideoSpeaker,
 } from '../../db/schema';
 import { speakerAnalytics, speakerProfiles, speakerSegments, videoSpeakers, videos } from '../../db/schema';
+import { NotFoundError } from '../errors';
 import { Database } from './database';
 
 // =============================================================================
@@ -46,7 +47,7 @@ export interface CreateSpeakerProfileInput {
 
 export interface UpdateSpeakerProfileInput {
   readonly displayName?: string;
-  readonly userId?: string;
+  readonly userId?: string | null; // null to unlink user from profile
   readonly metadata?: {
     readonly jobTitle?: string;
     readonly department?: string;
@@ -73,7 +74,16 @@ export interface CreateSpeakerSegmentInput {
 }
 
 export interface VideoSpeakerWithProfile extends VideoSpeaker {
-  readonly speakerProfile: SpeakerProfile | null;
+  readonly speakerProfile:
+    | (SpeakerProfile & {
+        readonly user: {
+          readonly id: string;
+          readonly name: string;
+          readonly email: string;
+          readonly image: string | null;
+        } | null;
+      })
+    | null;
 }
 
 export interface SpeakerProfileWithUser extends SpeakerProfile {
@@ -139,6 +149,11 @@ export interface SpeakerRepositoryService {
   ) => Effect.Effect<VideoSpeaker[], SpeakerRepositoryError>;
 
   readonly getVideoSpeakers: (videoId: string) => Effect.Effect<VideoSpeakerWithProfile[], SpeakerRepositoryError>;
+
+  readonly getVideoSpeaker: (
+    videoId: string,
+    speakerId: string,
+  ) => Effect.Effect<VideoSpeakerWithProfile, SpeakerRepositoryError | NotFoundError>;
 
   readonly linkVideoSpeakerToProfile: (
     videoSpeakerId: string,
@@ -416,7 +431,18 @@ const makeService = Effect.gen(function* () {
         const speakers = await db.query.videoSpeakers.findMany({
           where: eq(videoSpeakers.videoId, videoId),
           with: {
-            speakerProfile: true,
+            speakerProfile: {
+              with: {
+                user: {
+                  columns: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    image: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: [desc(videoSpeakers.totalSpeakingTime)],
         });
@@ -428,6 +454,53 @@ const makeService = Effect.gen(function* () {
           operation: 'getVideoSpeakers',
           cause: error,
         }),
+    });
+
+  const getVideoSpeaker = (
+    videoId: string,
+    speakerId: string,
+  ): Effect.Effect<VideoSpeakerWithProfile, SpeakerRepositoryError | NotFoundError> =>
+    Effect.gen(function* () {
+      const speaker = yield* Effect.tryPromise({
+        try: async () => {
+          const result = await db.query.videoSpeakers.findFirst({
+            where: and(eq(videoSpeakers.id, speakerId), eq(videoSpeakers.videoId, videoId)),
+            with: {
+              speakerProfile: {
+                with: {
+                  user: {
+                    columns: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      image: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+          return result as VideoSpeakerWithProfile | undefined;
+        },
+        catch: (error) =>
+          new SpeakerRepositoryError({
+            message: 'Failed to get video speaker',
+            operation: 'getVideoSpeaker',
+            cause: error,
+          }),
+      });
+
+      if (!speaker) {
+        return yield* Effect.fail(
+          new NotFoundError({
+            message: 'Speaker not found in this video',
+            entity: 'VideoSpeaker',
+            id: speakerId,
+          }),
+        );
+      }
+
+      return speaker;
     });
 
   const linkVideoSpeakerToProfile = (
@@ -736,6 +809,7 @@ const makeService = Effect.gen(function* () {
     createVideoSpeaker,
     createVideoSpeakers,
     getVideoSpeakers,
+    getVideoSpeaker,
     linkVideoSpeakerToProfile,
     updateVideoSpeakerLabel,
     createSpeakerSegments,
@@ -777,6 +851,18 @@ export const getVideoSpeakers = (
   videoId: string,
 ): Effect.Effect<VideoSpeakerWithProfile[], SpeakerRepositoryError, SpeakerRepository> =>
   Effect.flatMap(SpeakerRepository, (repo) => repo.getVideoSpeakers(videoId));
+
+export const getVideoSpeaker = (
+  videoId: string,
+  speakerId: string,
+): Effect.Effect<VideoSpeakerWithProfile, SpeakerRepositoryError | NotFoundError, SpeakerRepository> =>
+  Effect.flatMap(SpeakerRepository, (repo) => repo.getVideoSpeaker(videoId, speakerId));
+
+export const getSpeakerSegments = (
+  videoId: string,
+  speakerId?: string,
+): Effect.Effect<SpeakerSegmentRow[], SpeakerRepositoryError, SpeakerRepository> =>
+  Effect.flatMap(SpeakerRepository, (repo) => repo.getSpeakerSegments(videoId, speakerId));
 
 export const getTalkTimeDistribution = (
   videoId: string,

@@ -3,6 +3,7 @@
 import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
+  AlertTriangle,
   Building,
   CheckCircle,
   Clock,
@@ -10,6 +11,9 @@ import {
   Folders,
   History,
   Home,
+  Lightbulb,
+  MessageSquareText,
+  Network,
   Newspaper,
   PlayCircle,
   Search,
@@ -68,6 +72,11 @@ export function SidebarNav({ organization }: SidebarNavProps) {
       icon: Newspaper,
     },
     {
+      title: 'Ask',
+      href: `/org/${organization}/ask`,
+      icon: MessageSquareText,
+    },
+    {
       title: 'Sources',
       href: `/org/${organization}/sources`,
       icon: Database,
@@ -81,6 +90,21 @@ export function SidebarNav({ organization }: SidebarNavProps) {
       title: 'Decisions',
       href: `/org/${organization}/decisions`,
       icon: CheckCircle,
+    },
+    {
+      title: 'Gaps',
+      href: `/org/${organization}/gaps`,
+      icon: AlertTriangle,
+    },
+    {
+      title: 'Insights',
+      href: `/org/${organization}/insights`,
+      icon: Lightbulb,
+    },
+    {
+      title: 'Graph',
+      href: `/org/${organization}/graph`,
+      icon: Network,
     },
   ];
 

@@ -4,6 +4,28 @@
  * All Effect-TS services are exported from this file.
  */
 
+// Action Item Repository
+export type {
+  ActionItemPriority,
+  ActionItemRepositoryService,
+  ActionItemStats,
+  ActionItemStatus,
+  ActionItemWithVideo,
+  CreateActionItemInput,
+  GetActionItemsParams,
+  UpdateActionItemInput,
+} from './action-item-repository';
+export {
+  ActionItemRepository,
+  ActionItemRepositoryError,
+  ActionItemRepositoryLive,
+  createActionItem,
+  deleteActionItem,
+  getActionItem,
+  getActionItemStats,
+  getActionItems,
+  updateActionItem,
+} from './action-item-repository';
 // Activity Feed Repository
 export type {
   ActivityFeedFilters,
@@ -424,20 +446,29 @@ export {
 } from './notification-repository';
 export type {
   CreateOrganizationInput,
+  InvitationDetails,
+  OrganizationMember,
   OrganizationRepositoryService,
   OrganizationWithRole,
+  PendingInvitation,
 } from './organization-repository';
 // Organization Repository
 export {
+  cancelInvitation,
   createOrganization,
   getActiveOrganization,
+  getInvitationById,
   getOrganization,
   getOrganizationBySlug,
+  getOrganizationMembers,
+  getPendingInvitations,
   getUserOrganizations,
   getUserRole,
   isMember,
   OrganizationRepository,
   OrganizationRepositoryLive,
+  removeMember,
+  updateMemberRole,
 } from './organization-repository';
 // Performance Monitoring Service
 export type {
@@ -625,7 +656,9 @@ export {
   createSpeakerProfile,
   getSpeakerProfile,
   getSpeakerProfiles,
+  getSpeakerSegments,
   getTalkTimeDistribution,
+  getVideoSpeaker,
   getVideoSpeakers,
   linkVideoSpeakerToProfile,
   SpeakerRepository,
@@ -668,6 +701,29 @@ export {
   VideoAIProcessor,
   VideoAIProcessorLive,
 } from './video-ai-processor';
+// Video Analytics Repository
+export type {
+  TopVideo,
+  VideoAnalyticsOverview,
+  VideoAnalyticsParams,
+  VideoAnalyticsRepositoryService,
+  VideoDetails,
+  ViewsByDay,
+} from './video-analytics-repository';
+export {
+  getAnalyticsOverview,
+  getAnalyticsVideoCount,
+  getAvgCompletionPercent,
+  getTopVideos,
+  getTotalViews,
+  getTotalWatchTime,
+  getUniqueViewers,
+  getVideoDetailsByIds,
+  getViewsByDay,
+  VideoAnalyticsError,
+  VideoAnalyticsRepository,
+  VideoAnalyticsRepositoryLive,
+} from './video-analytics-repository';
 export type {
   ProcessingProgress,
   ProcessingResult,
@@ -712,6 +768,23 @@ export {
   VideoRepository,
   VideoRepositoryLive,
 } from './video-repository';
+// Video Share Links Repository
+export type {
+  VideoShareLinkStatus,
+  VideoShareLinksRepositoryService,
+  VideoShareLinkWithVideo,
+  VideoShareLinkWithVideoAndOrganization,
+} from './video-share-links-repository';
+export {
+  getShareLink,
+  getShareLinkOption,
+  getShareLinkWithVideoAndOrganization,
+  getShareLinkWithVideoAndOrganizationOption,
+  incrementShareLinkView,
+  updateShareLinkStatus,
+  VideoShareLinksRepository,
+  VideoShareLinksRepositoryLive,
+} from './video-share-links-repository';
 // Vocabulary Repository
 export type {
   CreateCorrectionSuggestionInput,
@@ -861,4 +934,65 @@ export {
   TopicCluster,
   TopicClusterLive,
   updateDecisionStatus,
+} from './knowledge';
+
+// =============================================================================
+// AI Knowledge Services (Q&A, Summaries, Gaps, Insights)
+// =============================================================================
+
+export type {
+  // Knowledge Gap Detector
+  ConflictType,
+  // Smart Summary
+  DailyDigest,
+  DecisionConflict,
+  GapSeverity,
+  GapType,
+  // Proactive Insight
+  ImpactLevel,
+  InsightType,
+  // Knowledge Q&A
+  KnowledgeChatMessage,
+  KnowledgeChatResponse,
+  KnowledgeGapDetectorServiceInterface,
+  KnowledgeQAServiceInterface,
+  MeetingPrepMaterial,
+  ProactiveInsightResult,
+  ProactiveInsightServiceInterface,
+  QuestionAnswerResult,
+  QuestionSource,
+  Recommendation,
+  SmartSummaryServiceInterface,
+  SourceBreakdown,
+  SummaryDepth,
+  TopicCoverageGap,
+  TopicSummary,
+  TrendAnalysis,
+  UndocumentedDecision,
+} from './knowledge';
+
+export {
+  // Knowledge Gap Detector
+  analyzeTopicCoverage,
+  // Proactive Insight
+  analyzeTrends,
+  // Knowledge Q&A
+  answerQuestion,
+  chatWithKnowledge,
+  detectConflicts,
+  findUndocumentedDecisions,
+  // Smart Summary
+  generateDailyDigest,
+  generateInsights,
+  generateMeetingPrep,
+  generateTopicSummary,
+  getRecommendations as getProactiveRecommendations,
+  KnowledgeGapDetector,
+  KnowledgeGapDetectorLive,
+  KnowledgeQA,
+  KnowledgeQALive,
+  ProactiveInsight,
+  ProactiveInsightLive,
+  SmartSummary,
+  SmartSummaryLive,
 } from './knowledge';

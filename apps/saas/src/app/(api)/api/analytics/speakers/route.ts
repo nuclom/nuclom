@@ -7,10 +7,10 @@
 
 import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { normalizeOne } from '@nuclom/lib/db/relations';
 import { speakerProfiles, videoSpeakers } from '@nuclom/lib/db/schema';
 import { DatabaseError } from '@nuclom/lib/effect';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { desc, eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
   const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Get all speaker profiles for the organization
     const profiles = yield* Effect.tryPromise({
       try: () =>

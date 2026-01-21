@@ -1,8 +1,10 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { apikeys, notifications, userPreferences, users, videoProgresses, videos } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { eq } from 'drizzle-orm';
+import { Effect } from 'effect';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -21,6 +23,14 @@ export async function POST() {
     }
 
     const userId = session.user.id;
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     // Gather all user data
     const [userData, userPrefs, userVideos, userProgress, userNotifications, userApiKeys] = await Promise.all([

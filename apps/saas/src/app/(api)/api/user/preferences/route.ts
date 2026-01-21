@@ -1,12 +1,12 @@
-import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { userPreferences } from '@nuclom/lib/db/schema';
-import { logger } from '@nuclom/lib/logger';
+import { DatabaseError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { safeParse } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
-import { Schema } from 'effect';
-import { headers } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 const UpdatePreferencesSchema = Schema.Struct({
   emailNotifications: Schema.optional(Schema.Boolean),
@@ -20,45 +20,53 @@ const UpdatePreferencesSchema = Schema.Struct({
   showActivityStatus: Schema.optional(Schema.Boolean),
 });
 
+// Default preferences
+const DEFAULT_PREFERENCES = {
+  emailNotifications: true,
+  emailCommentReplies: true,
+  emailMentions: true,
+  emailVideoProcessing: true,
+  emailWeeklyDigest: false,
+  emailProductUpdates: true,
+  pushNotifications: true,
+  theme: 'system' as const,
+  showActivityStatus: true,
+};
+
 // =============================================================================
 // GET /api/user/preferences - Get user notification preferences
 // =============================================================================
 
-export async function GET() {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export async function GET(request: NextRequest) {
+  const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
     // Get user preferences or return defaults
-    const preferences = await db.query.userPreferences.findFirst({
-      where: eq(userPreferences.userId, session.user.id),
+    const preferences = yield* Effect.tryPromise({
+      try: () =>
+        db.query.userPreferences.findFirst({
+          where: eq(userPreferences.userId, user.id),
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to fetch preferences',
+          operation: 'getUserPreferences',
+          cause: error,
+        }),
     });
 
     if (!preferences) {
-      // Return defaults if no preferences exist
-      return NextResponse.json({
-        emailNotifications: true,
-        emailCommentReplies: true,
-        emailMentions: true,
-        emailVideoProcessing: true,
-        emailWeeklyDigest: false,
-        emailProductUpdates: true,
-        pushNotifications: true,
-        theme: 'system',
-        showActivityStatus: true,
-      });
+      return DEFAULT_PREFERENCES;
     }
 
-    return NextResponse.json(preferences);
-  } catch (error) {
-    logger.error('Error fetching user preferences', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Failed to fetch preferences' }, { status: 500 });
-  }
+    return preferences;
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -66,20 +74,31 @@ export async function GET() {
 // =============================================================================
 
 export async function PUT(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
+  const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    const rawBody = yield* Effect.tryPromise({
+      try: () => request.json(),
+      catch: () =>
+        new DatabaseError({
+          message: 'Invalid request body',
+          operation: 'parseBody',
+        }),
     });
 
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const rawBody = await request.json();
     const result = safeParse(UpdatePreferencesSchema, rawBody);
     if (!result.success) {
-      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
+      return yield* Effect.fail(
+        new DatabaseError({
+          message: 'Invalid request format',
+          operation: 'validatePreferences',
+        }),
+      );
     }
+
     const {
       emailNotifications,
       emailCommentReplies,
@@ -93,8 +112,17 @@ export async function PUT(request: NextRequest) {
     } = result.data;
 
     // Check if preferences exist
-    const existing = await db.query.userPreferences.findFirst({
-      where: eq(userPreferences.userId, session.user.id),
+    const existing = yield* Effect.tryPromise({
+      try: () =>
+        db.query.userPreferences.findFirst({
+          where: eq(userPreferences.userId, user.id),
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to check existing preferences',
+          operation: 'checkPreferences',
+          cause: error,
+        }),
     });
 
     const updateData = {
@@ -112,19 +140,36 @@ export async function PUT(request: NextRequest) {
 
     if (existing) {
       // Update existing preferences
-      await db.update(userPreferences).set(updateData).where(eq(userPreferences.userId, session.user.id));
+      yield* Effect.tryPromise({
+        try: () => db.update(userPreferences).set(updateData).where(eq(userPreferences.userId, user.id)),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to update preferences',
+            operation: 'updatePreferences',
+            cause: error,
+          }),
+      });
     } else {
       // Create new preferences
-      await db.insert(userPreferences).values({
-        userId: session.user.id,
-        ...updateData,
-        createdAt: new Date(),
+      yield* Effect.tryPromise({
+        try: () =>
+          db.insert(userPreferences).values({
+            userId: user.id,
+            ...updateData,
+            createdAt: new Date(),
+          }),
+        catch: (error) =>
+          new DatabaseError({
+            message: 'Failed to create preferences',
+            operation: 'createPreferences',
+            cause: error,
+          }),
       });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    logger.error('Error updating user preferences', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Failed to update preferences' }, { status: 500 });
-  }
+    return { success: true };
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

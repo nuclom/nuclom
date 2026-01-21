@@ -1,10 +1,11 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { type ConsentAction, consentAuditLog, userExtensions, users } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { safeParse } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';
-import { Schema } from 'effect';
+import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -31,6 +32,14 @@ export async function GET(_request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     const [userData] = await db
       .select({
@@ -76,6 +85,14 @@ export async function PATCH(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     const rawBody = await request.json();
     const result = safeParse(UpdateUserSchema, rawBody);
@@ -146,6 +163,15 @@ export async function DELETE(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     const userId = session.user.id;
 
@@ -222,6 +248,15 @@ export async function POST(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     const rawBody = await request.json();
     const result = safeParse(UserActionSchema, rawBody);

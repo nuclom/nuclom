@@ -1,7 +1,9 @@
-import { db } from '@nuclom/lib/db';
-import { videoShareLinks, videos, videoViews } from '@nuclom/lib/db/schema';
+import { createPublicLayer } from '@nuclom/lib/api-handler';
+import { videoViews } from '@nuclom/lib/db/schema';
+import { VideoRepository, VideoShareLinksRepository } from '@nuclom/lib/effect';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
-import { eq, sql } from 'drizzle-orm';
+import { Effect, Option } from 'effect';
 import { connection, type NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
@@ -12,51 +14,36 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await connection();
 
   const { id } = await params;
+  const PublicLayer = createPublicLayer();
 
   try {
+    const { db, video } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          const database = yield* Database;
+          const shareLinkRepo = yield* VideoShareLinksRepository;
+          const videoRepo = yield* VideoRepository;
+
+          const shareLinkOption = yield* shareLinkRepo.getShareLinkOption(id);
+          let videoId = id;
+
+          if (Option.isSome(shareLinkOption)) {
+            videoId = shareLinkOption.value.videoId;
+            yield* shareLinkRepo.incrementShareLinkView(id);
+          }
+
+          const resolvedVideo = yield* videoRepo.getVideo(videoId);
+          return { db: database.db, video: resolvedVideo };
+        }),
+        PublicLayer,
+      ),
+    );
+
     // Generate a session ID from request fingerprint
     const userAgent = request.headers.get('user-agent') || '';
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const sessionId = Buffer.from(`${ip}:${userAgent}`).toString('base64').slice(0, 64);
     const referrer = request.headers.get('referer') || null;
-
-    // Check if this is a share link
-    const [shareLink] = await db
-      .select({
-        id: videoShareLinks.id,
-        videoId: videoShareLinks.videoId,
-        viewCount: videoShareLinks.viewCount,
-      })
-      .from(videoShareLinks)
-      .where(eq(videoShareLinks.id, id));
-
-    let videoId = id;
-
-    if (shareLink) {
-      videoId = shareLink.videoId;
-
-      // Increment share link view count
-      await db
-        .update(videoShareLinks)
-        .set({
-          viewCount: sql`${videoShareLinks.viewCount} + 1`,
-          lastAccessedAt: new Date(),
-        })
-        .where(eq(videoShareLinks.id, id));
-    }
-
-    // Get video details
-    const [video] = await db
-      .select({
-        id: videos.id,
-        organizationId: videos.organizationId,
-      })
-      .from(videos)
-      .where(eq(videos.id, videoId));
-
-    if (!video) {
-      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
-    }
 
     // Record the view (upsert to handle duplicate sessions)
     await db
@@ -85,6 +72,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     return response;
   } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      '_tag' in error &&
+      (error as { _tag?: string })._tag === 'NotFoundError'
+    ) {
+      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 });
+    }
     logger.error('Embed view tracking error', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }

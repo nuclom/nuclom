@@ -6,11 +6,11 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { type NotionPageHierarchyRecord, notionPageHierarchy } from '@nuclom/lib/db/schema';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource, updateContentSource } from '@nuclom/lib/effect/services/content';
 import { NotionContentAdapter } from '@nuclom/lib/effect/services/content/notion-content-adapter';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
 import { asc, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
@@ -56,6 +56,7 @@ const UpdateSelectionSchema = Schema.Struct({
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
@@ -220,6 +221,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);

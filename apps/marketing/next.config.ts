@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   // Enable compression for API responses
   compress: true,
 
+  // Optimize barrel file imports for better bundle size and faster builds
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+
   // Image optimization configuration
   images: {
     formats: ['image/avif', 'image/webp'],

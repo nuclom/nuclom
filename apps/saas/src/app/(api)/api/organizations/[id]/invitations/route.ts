@@ -1,63 +1,42 @@
-import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
-import { invitations, members, users } from '@nuclom/lib/db/schema';
-import { logger } from '@nuclom/lib/logger';
-import { and, eq } from 'drizzle-orm';
-import { headers } from 'next/headers';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
+import { ForbiddenError, OrganizationRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
 // GET /api/organizations/[id]/invitations - Get pending invitations
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id: organizationId } = await params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const effect = Effect.gen(function* () {
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    // Authenticate and verify membership
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const orgRepo = yield* OrganizationRepository;
 
-    // Check if user has access to this organization
-    const userMembership = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.organizationId, organizationId), eq(members.userId, session.user.id)))
-      .limit(1);
-
-    if (userMembership.length === 0) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    // Check if user is a member of this organization
+    const membershipCheck = yield* orgRepo.isMember(user.id, organizationId);
+    if (!membershipCheck) {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: 'Access denied',
+          resource: 'Organization',
+        }),
+      );
     }
 
     // Get all pending invitations for the organization
-    const pendingInvitations = await db
-      .select({
-        id: invitations.id,
-        email: invitations.email,
-        role: invitations.role,
-        status: invitations.status,
-        expiresAt: invitations.expiresAt,
-        createdAt: invitations.createdAt,
-        inviter: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(invitations)
-      .innerJoin(users, eq(invitations.inviterId, users.id))
-      .where(and(eq(invitations.organizationId, organizationId), eq(invitations.status, 'pending')));
+    const pendingInvitations = yield* orgRepo.getPendingInvitations(organizationId);
 
-    return NextResponse.json(pendingInvitations);
-  } catch (error) {
-    logger.error('Failed to fetch organization invitations', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Failed to fetch organization invitations' }, { status: 500 });
-  }
+    return pendingInvitations;
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -65,64 +44,28 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id: organizationId } = await params;
+  const url = new URL(request.url);
+  const invitationId = url.searchParams.get('invitationId');
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const url = new URL(request.url);
-    const invitationId = url.searchParams.get('invitationId');
-
-    if (!invitationId) {
-      return NextResponse.json({ error: 'invitationId query parameter is required' }, { status: 400 });
-    }
-
-    // Check if user is an owner of this organization
-    const userMembership = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.organizationId, organizationId), eq(members.userId, session.user.id)))
-      .limit(1);
-
-    if (userMembership.length === 0) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
-
-    if (userMembership[0].role !== 'owner') {
-      return NextResponse.json({ error: 'Only owners can cancel invitations' }, { status: 403 });
-    }
-
-    // Verify the invitation belongs to this organization and is pending
-    const invitation = await db
-      .select()
-      .from(invitations)
-      .where(
-        and(
-          eq(invitations.id, invitationId),
-          eq(invitations.organizationId, organizationId),
-          eq(invitations.status, 'pending'),
-        ),
-      )
-      .limit(1);
-
-    if (invitation.length === 0) {
-      return NextResponse.json({ error: 'Invitation not found or already processed' }, { status: 404 });
-    }
-
-    // Cancel the invitation by deleting it
-    await db.delete(invitations).where(eq(invitations.id, invitationId));
-
-    logger.info(`Invitation ${invitationId} cancelled by user ${session.user.id}`);
-
-    return NextResponse.json({ message: 'Invitation cancelled successfully' });
-  } catch (error) {
-    logger.error('Failed to cancel invitation', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Failed to cancel invitation' }, { status: 500 });
+  if (!invitationId) {
+    return NextResponse.json({ success: false, error: 'invitationId query parameter is required' }, { status: 400 });
   }
+
+  const effect = Effect.gen(function* () {
+    const { id: organizationId } = yield* Effect.promise(() => params);
+
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    const orgRepo = yield* OrganizationRepository;
+
+    // cancelInvitation checks ownership and deletes the invitation
+    yield* orgRepo.cancelInvitation(organizationId, invitationId, user.id);
+
+    return { message: 'Invitation cancelled successfully' };
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

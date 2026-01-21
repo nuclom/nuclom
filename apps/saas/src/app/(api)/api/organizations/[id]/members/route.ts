@@ -1,13 +1,8 @@
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
-import { members, users } from '@nuclom/lib/db/schema';
-import { OrganizationRepository } from '@nuclom/lib/effect/services/organization-repository';
-import { logger } from '@nuclom/lib/logger';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
+import { OrganizationRepository } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { safeParse } from '@nuclom/lib/validation';
-import { and, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
-import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const UpdateMemberRoleSchema = Schema.Struct({
@@ -19,53 +14,27 @@ const UpdateMemberRoleSchema = Schema.Struct({
 // GET /api/organizations/[id]/members - Get organization members
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id: organizationId } = await params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const effect = Effect.gen(function* () {
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    // Authenticate and verify membership
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const orgRepo = yield* OrganizationRepository;
 
-    // Check if user has access to this organization
-    const userMembership = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.organizationId, organizationId), eq(members.userId, session.user.id)))
-      .limit(1);
-
-    if (userMembership.length === 0) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
+    // isMember throws ForbiddenError if user is not a member
+    yield* orgRepo.isMember(user.id, organizationId);
 
     // Get all members of the organization
-    const organizationMembers = await db
-      .select({
-        id: members.id,
-        organizationId: members.organizationId,
-        userId: members.userId,
-        role: members.role,
-        createdAt: members.createdAt,
-        user: {
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          image: users.image,
-        },
-      })
-      .from(members)
-      .innerJoin(users, eq(members.userId, users.id))
-      .where(eq(members.organizationId, organizationId));
+    const organizationMembers = yield* orgRepo.getOrganizationMembers(organizationId);
 
-    return NextResponse.json(organizationMembers);
-  } catch (error) {
-    logger.error('Failed to fetch organization members', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ error: 'Failed to fetch organization members' }, { status: 500 });
-  }
+    return organizationMembers;
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -73,14 +42,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
   const url = new URL(request.url);
   const userIdToRemove = url.searchParams.get('userId');
 
@@ -89,17 +50,19 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   const effect = Effect.gen(function* () {
-    const resolvedParams = yield* Effect.promise(() => params);
-    const orgRepo = yield* OrganizationRepository;
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-    yield* orgRepo.removeMember(resolvedParams.id, userIdToRemove, session.user.id);
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.removeMember(organizationId, userIdToRemove, user.id);
 
     return { message: 'Member removed successfully' };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -108,14 +71,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 // =============================================================================
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
   const rawBody = await request.json();
   const result = safeParse(UpdateMemberRoleSchema, rawBody);
   if (!result.success) {
@@ -127,16 +82,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { userId, role } = result.data;
 
   const effect = Effect.gen(function* () {
-    const resolvedParams = yield* Effect.promise(() => params);
-    const orgRepo = yield* OrganizationRepository;
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-    const updatedMember = yield* orgRepo.updateMemberRole(resolvedParams.id, userId, role, session.user.id);
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
+
+    const orgRepo = yield* OrganizationRepository;
+    const updatedMember = yield* orgRepo.updateMemberRole(organizationId, userId, role, user.id);
 
     return { message: 'Member role updated successfully', member: updatedMember };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }

@@ -4,10 +4,10 @@ import {
   runApiEffect,
   runPublicApiEffect,
 } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { videos, videoViews } from '@nuclom/lib/db/schema';
 import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Effect, Option, Schema } from 'effect';
@@ -25,6 +25,7 @@ type TrackViewBody = Schema.Schema.Type<typeof TrackViewBodySchema>;
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 
@@ -134,6 +135,7 @@ const UpdateViewBodySchema = Schema.Struct({
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 
@@ -208,6 +210,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 

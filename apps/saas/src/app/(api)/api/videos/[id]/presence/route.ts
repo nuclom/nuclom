@@ -1,11 +1,8 @@
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
+import { handleEffectExit, handleEffectExitWithStatus, runApiEffect } from '@nuclom/lib/api-handler';
+import { ValidationError, VideoRepository } from '@nuclom/lib/effect';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Presence } from '@nuclom/lib/effect/services/presence';
 import { validateOptional } from '@nuclom/lib/validation';
-import { eq } from 'drizzle-orm';
 import { Effect, Option, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -28,8 +25,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -64,28 +60,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Get video to ensure it exists and get organizationId
-    const video = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
-
-    if (!video) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: videoId,
-        }),
-      );
-    }
+    const videoRepo = yield* VideoRepository;
+    const video = yield* videoRepo.getVideo(videoId);
 
     // Parse request body (optional)
     const bodyOption = yield* Effect.tryPromise({
@@ -115,7 +91,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExitWithStatus(exit, 201);
 }

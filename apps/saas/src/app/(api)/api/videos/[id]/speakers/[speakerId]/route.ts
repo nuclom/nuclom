@@ -5,12 +5,9 @@
  * including getting segments and updating speaker details.
  */
 
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
+import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
 import { normalizeOne } from '@nuclom/lib/db/relations';
-import { speakerProfiles, speakerSegments, videoSpeakers, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
-import { and, asc, eq } from 'drizzle-orm';
+import { SpeakerRepository, VideoRepository } from '@nuclom/lib/effect';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -23,83 +20,16 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const resolvedParams = yield* Effect.promise(() => params);
     const { id: videoId, speakerId } = resolvedParams;
 
-    // Check if video exists
-    const video = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-          columns: { id: true, duration: true },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
-
-    if (!video) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: videoId,
-        }),
-      );
-    }
+    // Verify video exists
+    const videoRepo = yield* VideoRepository;
+    yield* videoRepo.getVideo(videoId);
 
     // Get the video speaker with profile
-    const videoSpeaker = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoSpeakers.findFirst({
-          where: and(eq(videoSpeakers.id, speakerId), eq(videoSpeakers.videoId, videoId)),
-          with: {
-            speakerProfile: {
-              with: {
-                user: {
-                  columns: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch speaker',
-          operation: 'getSpeaker',
-          cause: error,
-        }),
-    });
-
-    if (!videoSpeaker) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Speaker not found in this video',
-          entity: 'VideoSpeaker',
-          id: speakerId,
-        }),
-      );
-    }
+    const speakerRepo = yield* SpeakerRepository;
+    const videoSpeaker = yield* speakerRepo.getVideoSpeaker(videoId, speakerId);
 
     // Get all segments for this speaker
-    const segments = yield* Effect.tryPromise({
-      try: () =>
-        db.query.speakerSegments.findMany({
-          where: eq(speakerSegments.videoSpeakerId, speakerId),
-          orderBy: [asc(speakerSegments.startTime)],
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch segments',
-          operation: 'getSegments',
-          cause: error,
-        }),
-    });
+    const segments = yield* speakerRepo.getSpeakerSegments(videoId, speakerId);
 
     const speakerProfile = normalizeOne(videoSpeaker.speakerProfile);
     const linkedUser = normalizeOne(speakerProfile?.user);
@@ -133,8 +63,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runPublicApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -150,46 +79,14 @@ export async function DELETE(
     const resolvedParams = yield* Effect.promise(() => params);
     const { id: videoId, speakerId } = resolvedParams;
 
-    // Get the video speaker with profile
-    const videoSpeaker = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoSpeakers.findFirst({
-          where: and(eq(videoSpeakers.id, speakerId), eq(videoSpeakers.videoId, videoId)),
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch speaker',
-          operation: 'getSpeaker',
-          cause: error,
-        }),
-    });
-
-    if (!videoSpeaker) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Speaker not found in this video',
-          entity: 'VideoSpeaker',
-          id: speakerId,
-        }),
-      );
-    }
+    // Get the video speaker
+    const speakerRepo = yield* SpeakerRepository;
+    const videoSpeaker = yield* speakerRepo.getVideoSpeaker(videoId, speakerId);
 
     // Unlink user from speaker profile (keep profile but remove user association)
     const profileId = videoSpeaker.speakerProfileId;
     if (profileId) {
-      yield* Effect.tryPromise({
-        try: () =>
-          db
-            .update(speakerProfiles)
-            .set({ userId: null, updatedAt: new Date() })
-            .where(eq(speakerProfiles.id, profileId)),
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to unlink speaker',
-            operation: 'unlinkSpeaker',
-            cause: error,
-          }),
-      });
+      yield* speakerRepo.updateSpeakerProfile(profileId, { userId: null });
     }
 
     return {
@@ -201,7 +98,6 @@ export async function DELETE(
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runPublicApiEffect(effect);
   return handleEffectExit(exit);
 }

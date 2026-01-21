@@ -1,11 +1,12 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { members } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { safeParse } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
-import { Schema } from 'effect';
+import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -28,6 +29,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 
   const { id: organizationId, roleId } = await params;
+  const { db } = await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        return yield* Database;
+      }),
+      createPublicLayer(),
+    ),
+  );
 
   // Check if user is a member
   const membership = await db.query.members.findFirst({
@@ -79,6 +88,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const { id: organizationId, roleId } = await params;
+  const { db } = await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        return yield* Database;
+      }),
+      createPublicLayer(),
+    ),
+  );
 
   // Check if user is an owner
   const membership = await db.query.members.findFirst({
@@ -141,6 +158,14 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   }
 
   const { id: organizationId, roleId } = await params;
+  const { db } = await Effect.runPromise(
+    Effect.provide(
+      Effect.gen(function* () {
+        return yield* Database;
+      }),
+      createPublicLayer(),
+    ),
+  );
 
   // Check if user is an owner
   const membership = await db.query.members.findFirst({

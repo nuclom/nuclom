@@ -1,53 +1,42 @@
+import { Auth, handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { AuditLogger } from '@nuclom/lib/audit-log';
-import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
-import { members } from '@nuclom/lib/db/schema';
-import { logger } from '@nuclom/lib/logger';
-import type { ApiResponse } from '@nuclom/lib/types';
-import { and, eq } from 'drizzle-orm';
-import { headers } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
+import { OrganizationRepository } from '@nuclom/lib/effect';
+import { Effect } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // GET /api/organizations/[id]/audit-logs/exports/[exportId] - Get export status
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string; exportId: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string; exportId: string }> }) {
+  const effect = Effect.gen(function* () {
+    const resolvedParams = yield* Effect.promise(() => params);
+    const { id: organizationId, exportId } = resolvedParams;
 
-  if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-  const { id: organizationId, exportId } = await params;
+    // Verify user is a member of the organization
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, organizationId);
 
-  // Check if user is a member
-  const membership = await db.query.members.findFirst({
-    where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
-  });
-
-  if (!membership) {
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: 'Not a member of this organization' },
-      { status: 403 },
-    );
-  }
-
-  try {
-    const exportStatus = await AuditLogger.getExportStatus(exportId);
+    // Get export status
+    const exportStatus = yield* Effect.tryPromise({
+      try: () => AuditLogger.getExportStatus(exportId),
+      catch: (error) => new Error(error instanceof Error ? error.message : 'Failed to get export status'),
+    });
 
     if (!exportStatus) {
-      return NextResponse.json<ApiResponse>({ success: false, error: 'Export not found' }, { status: 404 });
+      return yield* Effect.fail(new Error('Export not found'));
     }
 
     // Verify the export belongs to this organization
     if (exportStatus.organizationId !== organizationId) {
-      return NextResponse.json<ApiResponse>({ success: false, error: 'Export not found' }, { status: 404 });
+      return yield* Effect.fail(new Error('Export not found'));
     }
 
-    return NextResponse.json<ApiResponse>({
+    return {
       success: true,
       data: {
         id: exportStatus.id,
@@ -60,12 +49,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         createdAt: exportStatus.createdAt,
         completedAt: exportStatus.completedAt,
       },
-    });
-  } catch (error) {
-    logger.error('[Audit] Export status error', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to get export status' },
-      { status: 500 },
-    );
-  }
+    };
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

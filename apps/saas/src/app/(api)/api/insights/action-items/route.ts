@@ -1,18 +1,15 @@
 import {
   Auth,
-  createFullLayer,
   generatePresignedThumbnailUrl,
-  mapErrorToApiResponse,
+  handleEffectExit,
+  handleEffectExitWithStatus,
+  runApiEffect,
   Storage,
 } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { aiActionItems, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, UnauthorizedError } from '@nuclom/lib/effect';
-import type { ApiResponse } from '@nuclom/lib/types';
+import { ActionItemRepository, OrganizationRepository } from '@nuclom/lib/effect';
 import { validateQueryParams, validateRequestBody } from '@nuclom/lib/validation';
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
-import { Cause, Effect, Exit, Schema } from 'effect';
-import { type NextRequest, NextResponse } from 'next/server';
+import { Effect, Schema } from 'effect';
+import type { NextRequest } from 'next/server';
 
 // =============================================================================
 // Query Schema
@@ -51,8 +48,6 @@ const createActionItemSchema = Schema.Struct({
 // =============================================================================
 
 export async function GET(request: NextRequest) {
-  const FullLayer = createFullLayer();
-
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
@@ -63,25 +58,8 @@ export async function GET(request: NextRequest) {
     const { organizationId, period, status, priority, assigneeUserId, videoId, page, limit } = params;
 
     // Verify user belongs to organization
-    const isMember = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findFirst({
-          where: (members, { and, eq }) => and(eq(members.userId, user.id), eq(members.organizationId, organizationId)),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to verify membership',
-          operation: 'checkMembership',
-        }),
-    });
-
-    if (!isMember) {
-      return yield* Effect.fail(
-        new UnauthorizedError({
-          message: 'You are not a member of this organization',
-        }),
-      );
-    }
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, organizationId);
 
     // Calculate date ranges
     const now = new Date();
@@ -100,91 +78,25 @@ export async function GET(request: NextRequest) {
         startDate = new Date(0); // All time
     }
 
-    // Build where conditions
-    const conditions = [eq(aiActionItems.organizationId, organizationId), gte(aiActionItems.createdAt, startDate)];
+    // Get action items and stats using the repository
+    const actionItemRepo = yield* ActionItemRepository;
 
-    if (status) {
-      conditions.push(eq(aiActionItems.status, status));
-    }
-    if (priority) {
-      conditions.push(eq(aiActionItems.priority, priority));
-    }
-    if (assigneeUserId) {
-      conditions.push(eq(aiActionItems.assigneeUserId, assigneeUserId));
-    }
-    if (videoId) {
-      conditions.push(eq(aiActionItems.videoId, videoId));
-    }
-
-    const offset = (page - 1) * limit;
-
-    // Get action items with video info
-    const actionItemsResult = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({
-            actionItem: aiActionItems,
-            video: {
-              id: videos.id,
-              title: videos.title,
-              thumbnailUrl: videos.thumbnailUrl,
-            },
-          })
-          .from(aiActionItems)
-          .leftJoin(videos, eq(aiActionItems.videoId, videos.id))
-          .where(and(...conditions))
-          .orderBy(
-            // Sort by priority (high first) then by creation date
-            sql`CASE
-              WHEN ${aiActionItems.priority} = 'high' THEN 1
-              WHEN ${aiActionItems.priority} = 'medium' THEN 2
-              ELSE 3
-            END`,
-            desc(aiActionItems.createdAt),
-          )
-          .limit(limit)
-          .offset(offset),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to fetch action items',
-          operation: 'getActionItems',
+    const [{ items: actionItemsResult, totalCount }, stats] = yield* Effect.all(
+      [
+        actionItemRepo.getActionItems({
+          organizationId,
+          startDate,
+          status,
+          priority,
+          assigneeUserId,
+          videoId,
+          page,
+          limit,
         }),
-    });
-
-    // Get total count for pagination
-    const countResult = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({ count: sql<number>`count(*)` })
-          .from(aiActionItems)
-          .where(and(...conditions)),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to count action items',
-          operation: 'countActionItems',
-        }),
-    });
-    const totalCount = Number(countResult[0]?.count) || 0;
-
-    // Get stats by status
-    const statsResult = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .select({
-            status: aiActionItems.status,
-            count: sql<number>`count(*)`,
-          })
-          .from(aiActionItems)
-          .where(and(eq(aiActionItems.organizationId, organizationId), gte(aiActionItems.createdAt, startDate)))
-          .groupBy(aiActionItems.status),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to fetch action items stats',
-          operation: 'getActionItemsStats',
-        }),
-    });
-
-    const statsByStatus = Object.fromEntries(statsResult.map((s) => [s.status, Number(s.count)]));
+        actionItemRepo.getActionItemStats(organizationId, startDate),
+      ],
+      { concurrency: 2 },
+    );
 
     // Generate presigned URLs for video thumbnails
     const storage = yield* Storage;
@@ -217,36 +129,13 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(totalCount / limit),
         hasMore: page * limit < totalCount,
       },
-      stats: {
-        pending: statsByStatus.pending || 0,
-        inProgress: statsByStatus.in_progress || 0,
-        completed: statsByStatus.completed || 0,
-        cancelled: statsByStatus.cancelled || 0,
-        total: Object.values(statsByStatus).reduce((a, b) => a + b, 0),
-      },
+      stats,
       period,
     };
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response);
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -254,8 +143,6 @@ export async function GET(request: NextRequest) {
 // =============================================================================
 
 export async function POST(request: NextRequest) {
-  const FullLayer = createFullLayer();
-
   const effect = Effect.gen(function* () {
     // Authenticate
     const authService = yield* Auth;
@@ -265,74 +152,29 @@ export async function POST(request: NextRequest) {
     const data = yield* validateRequestBody(createActionItemSchema, request);
 
     // Verify user belongs to organization
-    const isMember = yield* Effect.tryPromise({
-      try: () =>
-        db.query.members.findFirst({
-          where: (members, { and, eq }) =>
-            and(eq(members.userId, user.id), eq(members.organizationId, data.organizationId)),
-        }),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to verify membership',
-          operation: 'checkMembership',
-        }),
-    });
-
-    if (!isMember) {
-      return yield* Effect.fail(
-        new UnauthorizedError({
-          message: 'You are not a member of this organization',
-        }),
-      );
-    }
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, data.organizationId);
 
     // Create action item
-    const actionItem = yield* Effect.tryPromise({
-      try: () =>
-        db
-          .insert(aiActionItems)
-          .values({
-            organizationId: data.organizationId,
-            videoId: data.videoId,
-            title: data.title,
-            description: data.description ?? null,
-            assignee: data.assignee ?? null,
-            assigneeUserId: data.assigneeUserId ?? null,
-            priority: data.priority,
-            dueDate: data.dueDate ? new Date(data.dueDate) : null,
-            timestampStart: data.timestampStart ?? null,
-            timestampEnd: data.timestampEnd ?? null,
-            confidence: data.confidence ?? null,
-            extractedFrom: data.extractedFrom ?? null,
-          })
-          .returning(),
-      catch: () =>
-        new DatabaseError({
-          message: 'Failed to create action item',
-          operation: 'createActionItem',
-        }),
+    const actionItemRepo = yield* ActionItemRepository;
+    const actionItem = yield* actionItemRepo.createActionItem({
+      organizationId: data.organizationId,
+      videoId: data.videoId,
+      title: data.title,
+      description: data.description,
+      assignee: data.assignee,
+      assigneeUserId: data.assigneeUserId,
+      priority: data.priority,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      timestampStart: data.timestampStart,
+      timestampEnd: data.timestampEnd,
+      confidence: data.confidence,
+      extractedFrom: data.extractedFrom,
     });
 
-    return actionItem[0];
+    return actionItem;
   });
 
-  const runnable = Effect.provide(effect, FullLayer);
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return Exit.match(exit, {
-    onFailure: (cause) => {
-      const error = Cause.failureOption(cause);
-      if (error._tag === 'Some') {
-        return mapErrorToApiResponse(error.value);
-      }
-      return mapErrorToApiResponse(new Error('Internal server error'));
-    },
-    onSuccess: (data) => {
-      const response: ApiResponse = {
-        success: true,
-        data,
-      };
-      return NextResponse.json(response, { status: 201 });
-    },
-  });
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithStatus(exit, 201);
 }

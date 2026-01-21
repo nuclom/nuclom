@@ -1,10 +1,11 @@
+import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
 import { workflowTemplates } from '@nuclom/lib/db/schema';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { safeParse } from '@nuclom/lib/validation';
 import { eq, sql } from 'drizzle-orm';
-import { Schema } from 'effect';
+import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -27,6 +28,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
 
   try {
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
     const [template] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
 
     if (!template) {
@@ -55,6 +64,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     // Check if template exists and user has permission
     const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
@@ -111,6 +128,14 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
 
     // Check if template exists and user has permission
     const [existing] = await db.select().from(workflowTemplates).where(eq(workflowTemplates.id, id));
@@ -141,6 +166,14 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const { id } = await params;
 
   try {
+    const { db } = await Effect.runPromise(
+      Effect.provide(
+        Effect.gen(function* () {
+          return yield* Database;
+        }),
+        createPublicLayer(),
+      ),
+    );
     const session = await auth.api.getSession({
       headers: await headers(),
     });

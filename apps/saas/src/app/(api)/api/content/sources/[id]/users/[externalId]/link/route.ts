@@ -12,12 +12,12 @@ import {
   handleEffectExitWithStatus,
   resolveParams,
 } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { githubUsers } from '@nuclom/lib/db/schema/github';
 import { notionUsers } from '@nuclom/lib/db/schema/notion';
 import { slackUsers } from '@nuclom/lib/db/schema/slack';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource } from '@nuclom/lib/effect/services/content';
+import { Database } from '@nuclom/lib/effect/services/database';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { and, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
@@ -37,6 +37,7 @@ const LinkUserSchema = Schema.Struct({
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string; externalId: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
@@ -104,6 +105,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; externalId: string }> },
 ) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);

@@ -8,11 +8,9 @@
  * GET /api/videos/[id]/subtitles/en.srt - Get English subtitles (SRT)
  */
 
-import { db } from '@nuclom/lib/db';
-import { videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { runApiEffect } from '@nuclom/lib/api-handler';
+import { NotFoundError, VideoRepository } from '@nuclom/lib/effect';
 import { generateSRT, generateWebVTT } from '@nuclom/lib/subtitles';
-import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -29,33 +27,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const pathname = url.pathname;
     const format = pathname.endsWith('.srt') ? 'srt' : 'vtt';
 
-    // Fetch video with transcript
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, id),
-          columns: {
-            id: true,
-            transcriptSegments: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getEnglishSubtitles',
-          cause: error,
-        }),
-    });
-
-    if (!videoData) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id,
-        }),
-      );
-    }
+    // Fetch video with transcript using repository
+    const videoRepo = yield* VideoRepository;
+    const videoData = yield* videoRepo.getVideo(id);
 
     if (!videoData.transcriptSegments || videoData.transcriptSegments.length === 0) {
       return yield* Effect.fail(
@@ -79,7 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return { content, contentType, filename };
   });
 
-  const exit = await Effect.runPromiseExit(effect);
+  const exit = await runApiEffect(effect);
 
   if (exit._tag === 'Failure') {
     const error = exit.cause;

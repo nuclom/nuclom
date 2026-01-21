@@ -5,13 +5,10 @@
  * getting talk time distribution, and linking speakers to org members.
  */
 
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { normalizeOne } from '@nuclom/lib/db/relations';
-import { speakerProfiles, videoSpeakers, videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError } from '@nuclom/lib/effect';
+import { DatabaseError, NotFoundError, SpeakerRepository, VideoRepository } from '@nuclom/lib/effect';
 import { validateRequestBody } from '@nuclom/lib/validation';
-import { desc, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -24,63 +21,20 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const resolvedParams = yield* Effect.promise(() => params);
     const videoId = resolvedParams.id;
 
-    // Check if video exists and get duration
-    const video = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, videoId),
-          columns: { id: true, duration: true },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'getVideo',
-          cause: error,
-        }),
-    });
+    // Check if video exists and get duration using repository
+    const videoRepo = yield* VideoRepository;
+    const video = yield* videoRepo.getVideo(videoId);
 
-    if (!video) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id: videoId,
-        }),
-      );
-    }
+    // Get speakers with their profiles using repository
+    const speakerRepo = yield* SpeakerRepository;
+    const speakers = yield* speakerRepo.getVideoSpeakers(videoId);
 
-    // Get speakers with their profiles
-    const speakers = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoSpeakers.findMany({
-          where: eq(videoSpeakers.videoId, videoId),
-          with: {
-            speakerProfile: {
-              with: {
-                user: {
-                  columns: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    image: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: [desc(videoSpeakers.totalSpeakingTime)],
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch speakers',
-          operation: 'getSpeakers',
-          cause: error,
-        }),
-    });
+    // Sort by total speaking time (descending)
+    const sortedSpeakers = [...speakers].sort((a, b) => (b.totalSpeakingTime || 0) - (a.totalSpeakingTime || 0));
 
     // Calculate balance score
-    const percentages = speakers.map((s) => s.speakingPercentage || 0);
-    const speakerCount = speakers.length;
+    const percentages = sortedSpeakers.map((s) => s.speakingPercentage || 0);
+    const speakerCount = sortedSpeakers.length;
     let balanceScore = 100;
 
     if (speakerCount > 1) {
@@ -96,7 +50,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
         videoId,
         duration: video.duration,
         speakerCount,
-        speakers: speakers.map((s) => {
+        speakers: sortedSpeakers.map((s) => {
           const speakerProfile = normalizeOne(s.speakerProfile);
           const linkedUser = normalizeOne(speakerProfile?.user);
 
@@ -123,8 +77,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -157,24 +110,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    // Get the video speaker record
-    const videoSpeaker = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoSpeakers.findFirst({
-          where: eq(videoSpeakers.id, speakerId),
-          with: {
-            speakerProfile: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch speaker',
-          operation: 'getSpeaker',
-          cause: error,
-        }),
-    });
+    // Get the video speakers using repository
+    const speakerRepo = yield* SpeakerRepository;
+    const videoSpeakers = yield* speakerRepo.getVideoSpeakers(videoId);
 
-    if (!videoSpeaker || videoSpeaker.videoId !== videoId) {
+    const videoSpeaker = videoSpeakers.find((s) => s.id === speakerId);
+
+    if (!videoSpeaker) {
       return yield* Effect.fail(
         new NotFoundError({
           message: 'Speaker not found in this video',
@@ -187,9 +129,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // Update speaker profile if it exists
     const profileId = videoSpeaker.speakerProfileId;
     if (profileId) {
-      const updates: { displayName?: string; userId?: string; updatedAt: Date } = {
-        updatedAt: new Date(),
-      };
+      const updates: { displayName?: string; userId?: string } = {};
 
       if (displayName) {
         updates.displayName = displayName;
@@ -198,15 +138,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         updates.userId = userId;
       }
 
-      yield* Effect.tryPromise({
-        try: () => db.update(speakerProfiles).set(updates).where(eq(speakerProfiles.id, profileId)),
-        catch: (error) =>
-          new DatabaseError({
-            message: 'Failed to update speaker profile',
-            operation: 'updateProfile',
-            cause: error,
-          }),
-      });
+      if (Object.keys(updates).length > 0) {
+        yield* speakerRepo.updateSpeakerProfile(profileId, updates);
+      }
     }
 
     return {
@@ -218,7 +152,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }

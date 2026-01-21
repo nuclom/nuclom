@@ -5,13 +5,13 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
 import { contentItems, contentParticipants, users } from '@nuclom/lib/db/schema';
 import { githubUsers } from '@nuclom/lib/db/schema/github';
 import { notionUsers } from '@nuclom/lib/db/schema/notion';
 import { slackUsers } from '@nuclom/lib/db/schema/slack';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource } from '@nuclom/lib/effect/services/content';
+import { Database, type DrizzleDB } from '@nuclom/lib/effect/services/database';
 import { and, count, eq, isNotNull, isNull } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -54,6 +54,7 @@ interface UsersResponse {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
+    const { db } = yield* Database;
     // Authenticate
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
@@ -76,11 +77,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     let externalUsers: ExternalUser[] = [];
 
     if (source.type === 'slack') {
-      externalUsers = yield* getSlackUsers(sourceId, linkedFilter);
+      externalUsers = yield* getSlackUsers(db, sourceId, linkedFilter);
     } else if (source.type === 'notion') {
-      externalUsers = yield* getNotionUsers(sourceId, linkedFilter);
+      externalUsers = yield* getNotionUsers(db, sourceId, linkedFilter);
     } else if (source.type === 'github') {
-      externalUsers = yield* getGitHubUsers(sourceId, linkedFilter);
+      externalUsers = yield* getGitHubUsers(db, sourceId, linkedFilter);
     }
 
     // Get org members for suggestions
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // Helper Functions
 // =============================================================================
 
-function getSlackUsers(sourceId: string, linkedFilter: string | null) {
+function getSlackUsers(db: DrizzleDB, sourceId: string, linkedFilter: string | null) {
   return Effect.tryPromise({
     try: async () => {
       // Build where clause
@@ -199,7 +200,7 @@ function getSlackUsers(sourceId: string, linkedFilter: string | null) {
   });
 }
 
-function getNotionUsers(sourceId: string, linkedFilter: string | null) {
+function getNotionUsers(db: DrizzleDB, sourceId: string, linkedFilter: string | null) {
   return Effect.tryPromise({
     try: async () => {
       const conditions = [eq(notionUsers.sourceId, sourceId)];
@@ -254,7 +255,7 @@ function getNotionUsers(sourceId: string, linkedFilter: string | null) {
   });
 }
 
-function getGitHubUsers(sourceId: string, linkedFilter: string | null) {
+function getGitHubUsers(db: DrizzleDB, sourceId: string, linkedFilter: string | null) {
   return Effect.tryPromise({
     try: async () => {
       const conditions = [eq(githubUsers.sourceId, sourceId)];

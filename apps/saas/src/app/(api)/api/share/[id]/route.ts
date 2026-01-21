@@ -1,9 +1,6 @@
 import { handleEffectExit, runPublicApiEffect } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
-import { videoShareLinks } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, Storage, ValidationError } from '@nuclom/lib/effect';
-import { eq } from 'drizzle-orm';
-import { Effect } from 'effect';
+import { NotFoundError, Storage, ValidationError, VideoShareLinksRepository } from '@nuclom/lib/effect';
+import { Effect, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 
 // =============================================================================
@@ -13,36 +10,26 @@ import type { NextRequest } from 'next/server';
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
+    const shareLinkRepo = yield* VideoShareLinksRepository;
 
     // Get share link with video details
-    const shareLink = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoShareLinks.findFirst({
-          where: eq(videoShareLinks.id, id),
-          with: {
-            video: {
-              with: {
-                organization: {
-                  columns: { id: true, name: true, slug: true },
-                },
-              },
-            },
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch share link',
-          operation: 'getShareLink',
-          cause: error,
-        }),
-    });
-
-    if (!shareLink) {
+    const shareLinkOption = yield* shareLinkRepo.getShareLinkWithVideoAndOrganizationOption(id);
+    if (Option.isNone(shareLinkOption)) {
       return yield* Effect.fail(
         new NotFoundError({
           message: 'Share link not found or has been revoked',
           entity: 'VideoShareLink',
           id,
+        }),
+      );
+    }
+    const shareLink = shareLinkOption.value;
+    if (!shareLink.video) {
+      return yield* Effect.fail(
+        new NotFoundError({
+          message: 'Video not found',
+          entity: 'Video',
+          id: shareLink.videoId,
         }),
       );
     }
@@ -59,14 +46,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     // Check expiration
     if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
       // Update status to expired
-      yield* Effect.tryPromise({
-        try: () => db.update(videoShareLinks).set({ status: 'expired' }).where(eq(videoShareLinks.id, id)),
-        catch: () =>
-          new DatabaseError({
-            message: 'Failed to update status',
-            operation: 'updateStatus',
-          }),
-      });
+      yield* shareLinkRepo.updateShareLinkStatus(id, 'expired');
 
       return yield* Effect.fail(
         new ValidationError({
@@ -148,22 +128,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
+    const shareLinkRepo = yield* VideoShareLinksRepository;
 
     // Get share link
-    const shareLink = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videoShareLinks.findFirst({
-          where: eq(videoShareLinks.id, id),
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch share link',
-          operation: 'getShareLink',
-          cause: error,
-        }),
-    });
-
-    if (!shareLink) {
+    const shareLinkOption = yield* shareLinkRepo.getShareLinkOption(id);
+    if (Option.isNone(shareLinkOption)) {
       return yield* Effect.fail(
         new NotFoundError({
           message: 'Share link not found',
@@ -174,23 +143,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     }
 
     // Increment view count and update last accessed
-    const currentViewCount = shareLink.viewCount ?? 0;
-    yield* Effect.tryPromise({
-      try: () =>
-        db
-          .update(videoShareLinks)
-          .set({
-            viewCount: currentViewCount + 1,
-            lastAccessedAt: new Date(),
-          })
-          .where(eq(videoShareLinks.id, id)),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to track view',
-          operation: 'trackView',
-          cause: error,
-        }),
-    });
+    yield* shareLinkRepo.incrementShareLinkView(id);
 
     return { tracked: true };
   });

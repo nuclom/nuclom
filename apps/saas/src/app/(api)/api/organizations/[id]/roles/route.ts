@@ -1,13 +1,11 @@
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
-import { db } from '@nuclom/lib/db';
-import { members } from '@nuclom/lib/db/schema';
-import { logger } from '@nuclom/lib/logger';
-import type { ApiResponse } from '@nuclom/lib/types';
+import { DatabaseError, ForbiddenError, OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
+import { Auth } from '@nuclom/lib/effect/services/auth';
 import { safeParse } from '@nuclom/lib/validation';
-import { and, eq } from 'drizzle-orm';
-import { Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { headers } from 'next/headers';
-import { type NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 // Schema for creating a role
 const CreateRoleSchema = Schema.Struct({
@@ -19,47 +17,40 @@ const CreateRoleSchema = Schema.Struct({
 // GET /api/organizations/[id]/roles - Get all roles
 // =============================================================================
 
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const effect = Effect.gen(function* () {
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-  if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+    // Authenticate and verify membership
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-  const { id: organizationId } = await params;
+    const orgRepo = yield* OrganizationRepository;
+    yield* orgRepo.isMember(user.id, organizationId);
 
-  // Check if user is a member
-  const membership = await db.query.members.findFirst({
-    where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
-  });
-
-  if (!membership) {
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: 'Not a member of this organization' },
-      { status: 403 },
-    );
-  }
-
-  try {
     // Use Better Auth's dynamic role listing
-    const roles = await auth.api.listOrgRoles({
-      query: { organizationId },
-      headers: await headers(),
+    const roles = yield* Effect.tryPromise({
+      try: async () =>
+        auth.api.listOrgRoles({
+          query: { organizationId },
+          headers: await headers(),
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to get roles',
+          operation: 'listOrgRoles',
+          cause: error,
+        }),
     });
 
-    return NextResponse.json<ApiResponse>({
+    return {
       success: true,
       data: roles,
-    });
-  } catch (error) {
-    logger.error('[RBAC] Get roles error', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to get roles' },
-      { status: 500 },
-    );
-  }
+    };
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }
 
 // =============================================================================
@@ -67,36 +58,43 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // =============================================================================
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const effect = Effect.gen(function* () {
+    const { id: organizationId } = yield* Effect.promise(() => params);
 
-  if (!session) {
-    return NextResponse.json<ApiResponse>({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+    // Authenticate
+    const authService = yield* Auth;
+    const { user } = yield* authService.getSession(request.headers);
 
-  const { id: organizationId } = await params;
+    // Check if user is an owner
+    const orgRepo = yield* OrganizationRepository;
+    const roleOption = yield* orgRepo.getUserRole(user.id, organizationId);
 
-  // Check if user is an owner
-  const membership = await db.query.members.findFirst({
-    where: and(eq(members.userId, session.user.id), eq(members.organizationId, organizationId)),
-  });
+    if (Option.isNone(roleOption) || roleOption.value !== 'owner') {
+      return yield* Effect.fail(
+        new ForbiddenError({
+          message: 'Only owners can create roles',
+        }),
+      );
+    }
 
-  if (!membership || membership.role !== 'owner') {
-    return NextResponse.json<ApiResponse>({ success: false, error: 'Only owners can create roles' }, { status: 403 });
-  }
+    const rawBody = yield* Effect.tryPromise({
+      try: () => request.json(),
+      catch: () =>
+        new ValidationError({
+          message: 'Invalid request body',
+        }),
+    });
 
-  try {
-    const rawBody = await request.json();
     const result = safeParse(CreateRoleSchema, rawBody);
-    if (!result.success) {
-      return NextResponse.json<ApiResponse>({ success: false, error: 'Role name is required' }, { status: 400 });
+    if (!result.success || !result.data.name) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: 'Role name is required',
+        }),
+      );
     }
-    const { name, permissions } = result.data;
 
-    if (!name) {
-      return NextResponse.json<ApiResponse>({ success: false, error: 'Role name is required' }, { status: 400 });
-    }
+    const { name, permissions } = result.data;
 
     // Convert readonly record to mutable
     const mutablePermissions = permissions
@@ -104,24 +102,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       : undefined;
 
     // Use Better Auth's dynamic role creation
-    const role = await auth.api.createOrgRole({
-      body: {
-        role: name,
-        permission: mutablePermissions ?? {},
-        organizationId,
-      },
-      headers: await headers(),
+    const createdRole = yield* Effect.tryPromise({
+      try: async () =>
+        auth.api.createOrgRole({
+          body: {
+            role: name,
+            permission: mutablePermissions ?? {},
+            organizationId,
+          },
+          headers: await headers(),
+        }),
+      catch: (error) =>
+        new DatabaseError({
+          message: 'Failed to create role',
+          operation: 'createOrgRole',
+          cause: error,
+        }),
     });
 
-    return NextResponse.json<ApiResponse>({
+    return {
       success: true,
-      data: role,
-    });
-  } catch (error) {
-    logger.error('[RBAC] Create role error', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json<ApiResponse>(
-      { success: false, error: error instanceof Error ? error.message : 'Failed to create role' },
-      { status: 500 },
-    );
-  }
+      data: createdRole,
+    };
+  });
+
+  const exit = await runApiEffect(effect);
+  return handleEffectExit(exit);
 }

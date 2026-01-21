@@ -7,12 +7,9 @@
  * PUT /api/videos/[id]/transcript - Update transcript segments
  */
 
-import { createPublicLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { db } from '@nuclom/lib/db';
+import { handleEffectExit, runApiEffect } from '@nuclom/lib/api-handler';
 import type { TranscriptSegment } from '@nuclom/lib/db/schema';
-import { videos } from '@nuclom/lib/db/schema';
-import { DatabaseError, NotFoundError, ValidationError } from '@nuclom/lib/effect';
-import { eq } from 'drizzle-orm';
+import { ValidationError, VideoRepository } from '@nuclom/lib/effect';
 import { Effect, Schema } from 'effect';
 import type { NextRequest } from 'next/server';
 
@@ -39,36 +36,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const effect = Effect.gen(function* () {
     const { id } = yield* Effect.promise(() => params);
 
-    // Fetch video with transcript
-    const videoData = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, id),
-          columns: {
-            id: true,
-            title: true,
-            transcript: true,
-            transcriptSegments: true,
-            processingStatus: true,
-          },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video transcript',
-          operation: 'getTranscript',
-          cause: error,
-        }),
-    });
-
-    if (!videoData) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id,
-        }),
-      );
-    }
+    // Fetch video with transcript using repository
+    const videoRepo = yield* VideoRepository;
+    const videoData = yield* videoRepo.getVideo(id);
 
     return {
       success: true,
@@ -82,8 +52,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
 
@@ -153,51 +122,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    // Check video exists
-    const existingVideo = yield* Effect.tryPromise({
-      try: () =>
-        db.query.videos.findFirst({
-          where: eq(videos.id, id),
-          columns: { id: true },
-        }),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to fetch video',
-          operation: 'updateTranscript',
-          cause: error,
-        }),
-    });
-
-    if (!existingVideo) {
-      return yield* Effect.fail(
-        new NotFoundError({
-          message: 'Video not found',
-          entity: 'Video',
-          id,
-        }),
-      );
-    }
-
     // Generate full transcript text from segments
     const fullTranscript = segments.map((s) => s.text).join(' ');
 
-    // Update video with new transcript
-    yield* Effect.tryPromise({
-      try: () =>
-        db
-          .update(videos)
-          .set({
-            transcript: fullTranscript,
-            transcriptSegments: segments as TranscriptSegment[],
-            updatedAt: new Date(),
-          })
-          .where(eq(videos.id, id)),
-      catch: (error) =>
-        new DatabaseError({
-          message: 'Failed to update transcript',
-          operation: 'updateTranscript',
-          cause: error,
-        }),
+    // Update video with new transcript using repository
+    const videoRepo = yield* VideoRepository;
+    yield* videoRepo.updateVideo(id, {
+      transcript: fullTranscript,
+      transcriptSegments: segments as TranscriptSegment[],
     });
 
     return {
@@ -210,7 +142,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
   });
 
-  const runnable = Effect.provide(effect, createPublicLayer());
-  const exit = await Effect.runPromiseExit(runnable);
+  const exit = await runApiEffect(effect);
   return handleEffectExit(exit);
 }
