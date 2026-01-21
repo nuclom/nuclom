@@ -4,9 +4,7 @@ import { sso } from '@better-auth/sso';
 import { stripe } from '@better-auth/stripe';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-// These plugins don't have dedicated exports, must use barrel
 import { apiKey, lastLoginMethod, openAPI } from 'better-auth/plugins';
-// Import plugins from dedicated paths for tree-shaking where available (best practice)
 import { admin } from 'better-auth/plugins/admin';
 import { jwt } from 'better-auth/plugins/jwt';
 import { multiSession } from 'better-auth/plugins/multi-session';
