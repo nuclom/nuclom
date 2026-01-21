@@ -5,7 +5,7 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
 import { ProactiveInsight } from '@nuclom/lib/effect/services/knowledge';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const timeWindowParam = searchParams.get('timeWindow');
 
     if (!organizationId) {
-      return yield* Effect.fail(new Error('organizationId is required'));
+      return yield* Effect.fail(new ValidationError({ message: 'organizationId is required' }));
     }
 
     // Verify user has access to the organization

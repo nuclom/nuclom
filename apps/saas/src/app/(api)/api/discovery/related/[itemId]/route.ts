@@ -5,7 +5,7 @@
  */
 
 import { Auth, createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
-import { OrganizationRepository } from '@nuclom/lib/effect';
+import { OrganizationRepository, ValidationError } from '@nuclom/lib/effect';
 import { type ContentType, Discovery } from '@nuclom/lib/effect/services/discovery';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -30,11 +30,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const limitParam = searchParams.get('limit');
 
     if (!organizationId) {
-      return yield* Effect.fail(new Error('organizationId is required'));
+      return yield* Effect.fail(new ValidationError({ message: 'organizationId is required' }));
     }
 
     if (!itemType) {
-      return yield* Effect.fail(new Error('itemType is required'));
+      return yield* Effect.fail(new ValidationError({ message: 'itemType is required' }));
     }
 
     // Verify user has access to the organization
