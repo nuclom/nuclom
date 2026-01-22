@@ -28,29 +28,16 @@
             "group": "Get Started",
             "pages": [
               "docs/introduction",
-              "docs/quickstart",
-              "docs/support"
+              "docs/quickstart"
             ]
           },
           {
-            "group": "User Guides",
+            "group": "Guides",
             "pages": [
-              "docs/guides/getting-started",
-              "docs/guides/organization-management",
-              "docs/guides/video-organization",
-              "docs/guides/collaboration",
-              "docs/guides/team-management",
-              "docs/guides/settings-preferences",
-              "docs/guides/workflow-templates",
-              "docs/guides/troubleshooting"
-            ]
-          },
-          {
-            "group": "Enterprise",
-            "pages": [
-              "docs/enterprise/overview",
-              "docs/support-tiers",
-              "docs/sla"
+              "docs/guides/features",
+              "docs/guides/team",
+              "docs/guides/troubleshooting",
+              "docs/enterprise"
             ]
           }
         ]
