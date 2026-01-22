@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, Download, Loader2, Video } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -96,7 +97,7 @@ function SharePageContent() {
       await fetch(`/api/share/${shareLinkId}/view`, { method: 'POST' });
       setHasTrackedView(true);
     } catch (error) {
-      console.error('Failed to track view:', error);
+      logger.error('Failed to track video view', error);
     }
   }, [shareLinkId, hasTrackedView]);
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { formatDate } from '@nuclom/lib/format-utils';
 import { Check, Copy, Eye, EyeOff, Key, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -62,7 +63,7 @@ function ApiKeysContent() {
         setApiKeys(data as ApiKey[]);
       }
     } catch (error) {
-      console.error('Error loading API keys:', error);
+      logger.error('Failed to load API keys', error);
       toast({
         title: 'Error',
         description: 'Failed to load API keys',
@@ -107,7 +108,7 @@ function ApiKeysContent() {
         await loadApiKeys();
       }
     } catch (error) {
-      console.error('Error creating API key:', error);
+      logger.error('Failed to create API key', error);
       toast({
         title: 'Error',
         description: 'Failed to create API key',
@@ -154,7 +155,7 @@ function ApiKeysContent() {
       setKeyToDelete(null);
       await loadApiKeys();
     } catch (error) {
-      console.error('Error deleting API key:', error);
+      logger.error('Failed to delete API key', error);
       toast({
         title: 'Error',
         description: 'Failed to delete API key',

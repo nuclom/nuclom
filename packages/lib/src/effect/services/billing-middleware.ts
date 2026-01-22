@@ -14,9 +14,12 @@
 
 import { Effect, Option } from 'effect';
 import type { PlanFeatures, PlanLimits } from '../../db/schema';
+import { createLogger } from '../../logger';
 import { type DatabaseError, ForbiddenError, NoSubscriptionError, PlanLimitExceededError } from '../errors';
 import { Billing, type LimitResource } from './billing';
 import { BillingRepository } from './billing-repository';
+
+const log = createLogger('billing');
 
 // =============================================================================
 // Types
@@ -469,9 +472,13 @@ export const checkAndSendUsageAlerts = (
 
     // Log the alert (in production, this would queue a notification job)
     const resourceLabel = resource.replace('_', ' ');
-    console.info(
-      `[Usage Alert] Organization ${organizationId} has reached ${threshold}% of their ${resourceLabel} limit (${currentUsage}/${limit})`,
-    );
+    log.info('Usage alert triggered', {
+      organizationId,
+      resource: resourceLabel,
+      threshold,
+      currentUsage,
+      limit,
+    });
 
     // Queue notification for organization owners
     // In production, this would use a durable workflow to send emails
@@ -506,7 +513,7 @@ export const checkAndSendUsageAlerts = (
         }
       },
       catch: (error) => {
-        console.error('[Usage Alert] Failed to create notifications:', error);
+        log.warn('Failed to create usage alert notifications', { error: String(error) });
         return null;
       },
     }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
@@ -706,9 +713,12 @@ export const trackBandwidthUsage = (organizationId: string, bytes: number) =>
       }
 
       // 100-200%: Warning logged, usage still allowed (grace period)
-      console.warn(
-        `[Billing] Organization ${organizationId} is exceeding bandwidth limit: ${currentUsage.bandwidthUsed}/${limit} (${percentage}%)`,
-      );
+      log.warn('Organization exceeding bandwidth limit', {
+        organizationId,
+        bandwidthUsed: currentUsage.bandwidthUsed,
+        limit,
+        percentage,
+      });
     }
 
     // Store previous usage for alerts

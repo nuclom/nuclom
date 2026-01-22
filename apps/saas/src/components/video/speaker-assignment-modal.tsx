@@ -7,6 +7,7 @@
  * to known meeting participants or organization members.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { formatDuration } from '@nuclom/lib/format-utils';
 import { cn } from '@nuclom/lib/utils';
 import { Check, Loader2, Users } from 'lucide-react';
@@ -150,7 +151,7 @@ export function SpeakerAssignmentModal({
 
       onOpenChange(false);
     } catch (error) {
-      console.error('Error saving speaker assignments:', error);
+      logger.error('Error saving speaker assignments', error);
       toast({
         title: 'Error',
         description: 'Failed to save speaker assignments. Please try again.',

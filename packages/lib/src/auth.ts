@@ -19,7 +19,10 @@ import { members, notifications, users } from './db/schema';
 import { notifySlackMonitoring } from './effect/services/slack-monitoring';
 import { resend } from './email';
 import { env, getAppUrl } from './env/server';
+import { createLogger } from './logger';
 import { captureServerEvent, identifyUser as identifyPostHogUser } from './posthog/server';
+
+const log = createLogger('auth');
 
 // Initialize Stripe client
 const stripeClient = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -229,7 +232,7 @@ export const auth = betterAuth({
             name: user.name,
           });
 
-          console.log(`[Auth] New user created: ${user.id} (${user.email})`);
+          log.info('New user created', { userId: user.id, email: user.email });
         },
       },
     },
@@ -315,7 +318,7 @@ export const auth = betterAuth({
       // Organization Lifecycle Hooks
       // =============================================================================
       async beforeCreateOrganization(ctx: { organization: { name: string }; user: { id: string } }) {
-        console.log(`[Auth] Creating organization "${ctx.organization.name}" by user ${ctx.user.id}`);
+        log.info('Creating organization', { name: ctx.organization.name, userId: ctx.user.id });
         // Validate organization name
         if (ctx.organization.name.length < 2) {
           throw new Error('Organization name must be at least 2 characters');
@@ -323,7 +326,11 @@ export const auth = betterAuth({
         return { data: ctx.organization };
       },
       async afterCreateOrganization(ctx: { organization: { id: string; name: string }; member: { userId: string } }) {
-        console.log(`[Auth] Organization "${ctx.organization.name}" created with member ${ctx.member.userId}`);
+        log.info('Organization created', {
+          name: ctx.organization.name,
+          userId: ctx.member.userId,
+          organizationId: ctx.organization.id,
+        });
         // Create notification for the creator
         await db.insert(notifications).values({
           userId: ctx.member.userId,
@@ -341,24 +348,28 @@ export const auth = betterAuth({
         });
       },
       async beforeUpdateOrganization(ctx: { organization: { id: string } }) {
-        console.log(`[Auth] Updating organization ${ctx.organization.id}`);
+        log.info('Updating organization', { organizationId: ctx.organization.id });
         return { data: ctx.organization };
       },
       async afterUpdateOrganization(ctx: { organization: { id: string } }) {
-        console.log(`[Auth] Organization ${ctx.organization.id} updated`);
+        log.info('Organization updated', { organizationId: ctx.organization.id });
       },
       // =============================================================================
       // Member Lifecycle Hooks
       // =============================================================================
       async beforeAddMember(ctx: { member: { userId: string; organizationId: string } }) {
-        console.log(`[Auth] Adding member ${ctx.member.userId} to organization ${ctx.member.organizationId}`);
+        log.info('Adding member', { userId: ctx.member.userId, organizationId: ctx.member.organizationId });
         return { data: ctx.member };
       },
       async afterAddMember(ctx: {
         member: { userId: string; role: string };
         organization: { id: string; name: string };
       }) {
-        console.log(`[Auth] Member ${ctx.member.userId} added to organization ${ctx.organization.name}`);
+        log.info('Member added', {
+          userId: ctx.member.userId,
+          organizationId: ctx.organization.id,
+          organizationName: ctx.organization.name,
+        });
         // Create notification for the new member
         await db.insert(notifications).values({
           userId: ctx.member.userId,
@@ -370,11 +381,15 @@ export const auth = betterAuth({
         });
       },
       async beforeRemoveMember(ctx: { member: { userId: string; organizationId: string } }) {
-        console.log(`[Auth] Removing member ${ctx.member.userId} from organization ${ctx.member.organizationId}`);
+        log.info('Removing member', { userId: ctx.member.userId, organizationId: ctx.member.organizationId });
         return { data: ctx.member };
       },
       async afterRemoveMember(ctx: { member: { userId: string }; organization: { id: string; name: string } }) {
-        console.log(`[Auth] Member ${ctx.member.userId} removed from organization ${ctx.organization.name}`);
+        log.info('Member removed', {
+          userId: ctx.member.userId,
+          organizationId: ctx.organization.id,
+          organizationName: ctx.organization.name,
+        });
         // Create notification for the removed member
         await db.insert(notifications).values({
           userId: ctx.member.userId,
@@ -386,7 +401,7 @@ export const auth = betterAuth({
         });
       },
       async beforeUpdateMemberRole(ctx: { member: { userId: string }; role: string }) {
-        console.log(`[Auth] Updating member ${ctx.member.userId} role to ${ctx.role}`);
+        log.info('Updating member role', { userId: ctx.member.userId, role: ctx.role });
         return { data: ctx.member };
       },
       async afterUpdateMemberRole(ctx: {
@@ -394,7 +409,11 @@ export const auth = betterAuth({
         organization: { id: string; name: string };
         role: string;
       }) {
-        console.log(`[Auth] Member ${ctx.member.userId} role updated to ${ctx.role}`);
+        log.info('Member role updated', {
+          userId: ctx.member.userId,
+          organizationId: ctx.organization.id,
+          role: ctx.role,
+        });
         // Create notification for role change
         await db.insert(notifications).values({
           userId: ctx.member.userId,
@@ -409,18 +428,22 @@ export const auth = betterAuth({
       // Invitation Lifecycle Hooks
       // =============================================================================
       async beforeCreateInvitation(ctx: { invitation: { email: string } }) {
-        console.log(`[Auth] Creating invitation for ${ctx.invitation.email}`);
+        log.info('Creating invitation', { email: ctx.invitation.email });
         return { data: ctx.invitation };
       },
       async afterCreateInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
-        console.log(`[Auth] Invitation created for ${ctx.invitation.email} to ${ctx.organization.name}`);
+        log.info('Invitation created', { email: ctx.invitation.email, organizationName: ctx.organization.name });
       },
       async afterAcceptInvitation(ctx: {
         invitation: { email: string };
         organization: { id: string; name: string };
         member: { userId: string };
       }) {
-        console.log(`[Auth] Invitation accepted by ${ctx.member.userId} for ${ctx.organization.name}`);
+        log.info('Invitation accepted', {
+          userId: ctx.member.userId,
+          organizationId: ctx.organization.id,
+          organizationName: ctx.organization.name,
+        });
         // Send Slack notification for monitoring
         await notifySlackMonitoring('invitation_accepted', {
           organizationId: ctx.organization.id,
@@ -430,33 +453,33 @@ export const auth = betterAuth({
         });
       },
       async afterRejectInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
-        console.log(`[Auth] Invitation rejected for ${ctx.invitation.email} to ${ctx.organization.name}`);
+        log.info('Invitation rejected', { email: ctx.invitation.email, organizationName: ctx.organization.name });
       },
       async afterCancelInvitation(ctx: { invitation: { email: string }; organization: { name: string } }) {
-        console.log(`[Auth] Invitation cancelled for ${ctx.invitation.email} to ${ctx.organization.name}`);
+        log.info('Invitation cancelled', { email: ctx.invitation.email, organizationName: ctx.organization.name });
       },
       // =============================================================================
       // Team Lifecycle Hooks
       // =============================================================================
       async beforeCreateTeam(ctx: { team: { name: string } }) {
-        console.log(`[Auth] Creating team "${ctx.team.name}"`);
+        log.info('Creating team', { name: ctx.team.name });
         return { data: ctx.team };
       },
       async afterCreateTeam(ctx: { team: { name: string }; organization: { name: string } }) {
-        console.log(`[Auth] Team "${ctx.team.name}" created in ${ctx.organization.name}`);
+        log.info('Team created', { name: ctx.team.name, organizationName: ctx.organization.name });
       },
       async beforeUpdateTeam(ctx: { team: { id: string } }) {
-        console.log(`[Auth] Updating team ${ctx.team.id}`);
+        log.info('Updating team', { teamId: ctx.team.id });
         return { data: ctx.team };
       },
       async afterUpdateTeam(ctx: { team: { id: string }; organization: { name: string } }) {
-        console.log(`[Auth] Team ${ctx.team.id} updated in ${ctx.organization.name}`);
+        log.info('Team updated', { teamId: ctx.team.id, organizationName: ctx.organization.name });
       },
       async beforeRemoveTeam(ctx: { teamId: string }) {
-        console.log(`[Auth] Removing team ${ctx.teamId}`);
+        log.info('Removing team', { teamId: ctx.teamId });
       },
       async afterRemoveTeam(ctx: { teamId: string; organization: { name: string } }) {
-        console.log(`[Auth] Team ${ctx.teamId} removed from ${ctx.organization.name}`);
+        log.info('Team removed', { teamId: ctx.teamId, organizationName: ctx.organization.name });
       },
       async sendInvitationEmail(data) {
         // Always use production URL for invitation links (not preview URLs)
@@ -736,17 +759,17 @@ export const auth = betterAuth({
         switch (event.type) {
           case 'invoice.paid': {
             const invoice = event.data.object as Stripe.Invoice;
-            console.log(`[Better Auth Stripe] Invoice paid: ${invoice.id}`);
+            log.info('Invoice paid', { invoiceId: invoice.id });
             break;
           }
           case 'invoice.payment_failed': {
             const invoice = event.data.object as Stripe.Invoice;
-            console.log(`[Better Auth Stripe] Invoice payment failed: ${invoice.id}`);
+            log.warn('Invoice payment failed', { invoiceId: invoice.id });
             // Additional handling for failed payments
             break;
           }
           default:
-            console.log(`[Better Auth Stripe] Unhandled event: ${event.type}`);
+            log.debug('Unhandled Stripe event', { eventType: event.type });
         }
       },
     }),

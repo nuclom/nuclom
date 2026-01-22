@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient, multiSession } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import {
   AlertTriangle,
   Key,
@@ -147,7 +148,7 @@ function SecurityContent() {
         // Multi-session might not be available
       }
     } catch (error) {
-      console.error('Error loading security data:', error);
+      logger.error('Failed to load security settings', error);
       toast({
         title: 'Error',
         description: 'Failed to load security settings',
@@ -171,7 +172,7 @@ function SecurityContent() {
       });
       await loadSecurityData();
     } catch (error) {
-      console.error('Error revoking session:', error);
+      logger.error('Failed to revoke session', error);
       toast({
         title: 'Error',
         description: 'Failed to revoke session',
@@ -189,7 +190,7 @@ function SecurityContent() {
       });
       await loadSecurityData();
     } catch (error) {
-      console.error('Error revoking sessions:', error);
+      logger.error('Failed to revoke sessions', error);
       toast({
         title: 'Error',
         description: 'Failed to revoke sessions',
@@ -209,7 +210,7 @@ function SecurityContent() {
       // Reload the page to reflect the new session
       window.location.reload();
     } catch (error) {
-      console.error('Error switching session:', error);
+      logger.error('Failed to switch account', error);
       toast({
         title: 'Error',
         description: 'Failed to switch account',
@@ -229,7 +230,7 @@ function SecurityContent() {
       });
       await loadSecurityData();
     } catch (error) {
-      console.error('Error revoking device session:', error);
+      logger.error('Failed to revoke session', error);
       toast({
         title: 'Error',
         description: 'Failed to revoke session',
@@ -250,7 +251,7 @@ function SecurityContent() {
         setSetupStep('qr');
       }
     } catch (error) {
-      console.error('Error starting 2FA setup:', error);
+      logger.error('Failed to start 2FA setup', error);
       toast({
         title: 'Error',
         description: 'Failed to start 2FA setup. Please enter your password.',
@@ -280,7 +281,7 @@ function SecurityContent() {
         description: 'Two-factor authentication has been enabled',
       });
     } catch (error) {
-      console.error('Error verifying 2FA:', error);
+      logger.error('Failed to verify 2FA code', error);
       toast({
         title: 'Error',
         description: 'Failed to verify code',
@@ -313,7 +314,7 @@ function SecurityContent() {
         description: 'Two-factor authentication has been disabled',
       });
     } catch (error) {
-      console.error('Error disabling 2FA:', error);
+      logger.error('Failed to disable 2FA', error);
       toast({
         title: 'Error',
         description: 'Failed to disable 2FA',
@@ -358,7 +359,7 @@ function SecurityContent() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      console.error('Error changing password:', error);
+      logger.error('Failed to change password', error);
       toast({
         title: 'Error',
         description: 'Failed to change password',
@@ -391,7 +392,7 @@ function SecurityContent() {
       setPasskeyName('');
       await loadSecurityData();
     } catch (error) {
-      console.error('Error adding passkey:', error);
+      logger.error('Failed to add passkey', error);
       toast({
         title: 'Error',
         description: 'Failed to add passkey. Make sure your browser supports WebAuthn.',
@@ -421,7 +422,7 @@ function SecurityContent() {
       });
       await loadSecurityData();
     } catch (error) {
-      console.error('Error deleting passkey:', error);
+      logger.error('Failed to delete passkey', error);
       toast({
         title: 'Error',
         description: 'Failed to delete passkey',

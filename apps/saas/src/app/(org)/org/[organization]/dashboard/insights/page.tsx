@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Brain, Download, Loader2, RefreshCw } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useState } from 'react';
@@ -37,7 +38,7 @@ function InsightsSkeleton() {
           <div className="h-9 w-56 bg-muted animate-pulse rounded" />
           <div className="h-4 w-80 bg-muted animate-pulse rounded mt-2" />
         </div>
-        <div className="h-10 w-[150px] bg-muted animate-pulse rounded" />
+        <div className="h-10 w-37.5 bg-muted animate-pulse rounded" />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -193,7 +194,7 @@ function InsightsContent() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Failed to export insights', error);
     } finally {
       setIsExporting(false);
     }
@@ -212,7 +213,7 @@ function InsightsContent() {
         mutateOverview();
       }
     } catch (error) {
-      console.error('Failed to update action item:', error);
+      logger.error('Failed to update action item status', error);
     }
   };
 
@@ -228,7 +229,7 @@ function InsightsContent() {
 
   if (isOrgLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -260,7 +261,7 @@ function InsightsContent() {
           </Button>
 
           <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-37.5">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>

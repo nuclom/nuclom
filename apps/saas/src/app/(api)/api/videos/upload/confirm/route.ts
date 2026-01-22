@@ -11,9 +11,13 @@ import { Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
 import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { createLogger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
 import { Effect, Option, Schema } from 'effect';
+
+const log = createLogger('video-upload');
+
 import { connection, type NextRequest, NextResponse } from 'next/server';
 import { processVideoWorkflow } from '@/workflows/video-processing';
 
@@ -156,9 +160,10 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
     if (Option.isSome(subscriptionOption)) {
       yield* trackVideoUpload(organizationId, fileSize).pipe(
         Effect.catchAll((error) => {
-          // Log billing tracking errors but don't fail the confirmation
-          // The video record exists, so continue (billing will catch up)
-          console.error('[Billing] Failed to track video upload:', error);
+          log.error('Failed to track video upload usage', error instanceof Error ? error : undefined, {
+            organizationId,
+            fileSize,
+          });
           return Effect.succeed(undefined);
         }),
       );
@@ -196,7 +201,9 @@ async function handleSingleConfirmation(body: ConfirmUploadRequest) {
       videoTitle: data.videoTitle,
       organizationId: body.organizationId,
     }).catch((err) => {
-      console.error('[Video Processing Workflow Error]', err);
+      log.error('Failed to start video processing workflow', err instanceof Error ? err : undefined, {
+        videoId: data.videoId,
+      });
     });
   }
 
@@ -261,8 +268,10 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
         if (Option.isSome(subscriptionOption)) {
           yield* trackVideoUpload(organizationId, upload.fileSize).pipe(
             Effect.catchAll((error) => {
-              // Log billing tracking errors but don't fail the confirmation
-              console.error('[Billing] Failed to track video upload:', error);
+              log.error('Failed to track video upload usage', error instanceof Error ? error : undefined, {
+                organizationId,
+                fileSize: upload.fileSize,
+              });
               return Effect.succeed(undefined);
             }),
           );
@@ -286,13 +295,17 @@ async function handleBulkConfirmation(body: BulkConfirmUploadRequest) {
             videoTitle: sanitizedTitle,
             organizationId,
           }).catch((err) => {
-            console.error(`[Video Processing Workflow Error for ${video.id}]`, err);
+            log.error('Failed to start video processing workflow', err instanceof Error ? err : undefined, {
+              videoId: video.id,
+            });
           });
         }
 
         succeeded++;
       } catch (err) {
-        console.error(`[Bulk Confirm Error for ${upload.uploadId}]`, err);
+        log.error('Failed to confirm video upload', err instanceof Error ? err : undefined, {
+          uploadId: upload.uploadId,
+        });
         failed++;
       }
     }

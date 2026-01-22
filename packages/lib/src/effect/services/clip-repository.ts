@@ -19,10 +19,13 @@ import {
   videoClips,
   videoMoments,
 } from '../../db/schema';
+import { createLogger } from '../../logger';
 import type { PaginatedResponse } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 import { Storage } from './storage';
+
+const log = createLogger('clip-repository');
 
 // =============================================================================
 // Types
@@ -641,7 +644,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (clip.storageKey) {
         yield* storage.deleteFile(clip.storageKey).pipe(
           Effect.catchAll((error) => {
-            console.error(`Failed to delete clip file ${clip.storageKey}:`, error);
+            log.warn('Failed to delete clip file', { storageKey: clip.storageKey, error: String(error) });
             return Effect.void;
           }),
         );
@@ -919,7 +922,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
       if (reel.storageKey) {
         yield* storage.deleteFile(reel.storageKey).pipe(
           Effect.catchAll((error) => {
-            console.error(`Failed to delete highlight reel file ${reel.storageKey}:`, error);
+            log.warn('Failed to delete highlight reel file', { storageKey: reel.storageKey, error: String(error) });
             return Effect.void;
           }),
         );

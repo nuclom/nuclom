@@ -9,7 +9,7 @@ import { Auth, createFullLayer, handleEffectExit, resolveParams } from '@nuclom/
 import { type GitHubRepoSyncRecord, githubRepoSync } from '@nuclom/lib/db/schema';
 import { OrganizationRepository } from '@nuclom/lib/effect';
 import { getContentSource, updateContentSource } from '@nuclom/lib/effect/services/content';
-import { GitHubContentAdapter } from '@nuclom/lib/effect/services/content/github-content-adapter';
+import { GitHubContentAdapter } from '@nuclom/lib/effect/services/content/github';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { validateRequestBody } from '@nuclom/lib/validation';
 import { eq } from 'drizzle-orm';

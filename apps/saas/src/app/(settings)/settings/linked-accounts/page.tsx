@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Github, Link2, Loader2, Mail, Unlink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
@@ -78,7 +79,7 @@ function LinkedAccountsContent() {
           setAccounts(result.data as Account[]);
         }
       } catch (error) {
-        console.error('Failed to fetch accounts:', error);
+        logger.error('Failed to load linked accounts', error);
         toast({
           title: 'Error',
           description: 'Failed to load linked accounts',
@@ -100,7 +101,7 @@ function LinkedAccountsContent() {
         callbackURL: window.location.href,
       });
     } catch (error) {
-      console.error(`Failed to link ${providerId}:`, error);
+      logger.error(`Failed to link ${providers[providerId].name} account`, error);
       toast({
         title: 'Error',
         description: `Failed to link ${providers[providerId].name} account`,
@@ -135,7 +136,7 @@ function LinkedAccountsContent() {
         description: `Your ${providers[providerId as ProviderId]?.name || providerId} account has been unlinked`,
       });
     } catch (error) {
-      console.error(`Failed to unlink ${providerId}:`, error);
+      logger.error('Failed to unlink account', error);
       toast({
         title: 'Error',
         description: 'Failed to unlink account. You must have at least one way to sign in.',

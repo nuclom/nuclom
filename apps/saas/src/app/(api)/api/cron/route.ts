@@ -19,9 +19,13 @@
  */
 
 import { env } from '@nuclom/lib/env/server';
+import { createLogger } from '@nuclom/lib/logger';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { start } from 'workflow/api';
+
+const log = createLogger('cron');
+
 import { expertiseUpdateWorkflow } from '@/workflows/expertise-update';
 import { scheduledCleanupWorkflow } from '@/workflows/scheduled-cleanup';
 import { subscriptionEnforcementWorkflow } from '@/workflows/subscription-enforcement';
@@ -84,7 +88,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[Cron] Failed to start workflows:', error);
+    log.error('Failed to start workflows', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         success: false,

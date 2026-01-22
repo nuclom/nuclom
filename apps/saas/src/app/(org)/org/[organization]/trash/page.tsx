@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { IMAGE_SIZES, VIDEO_THUMBNAIL_BLUR_DATA_URL } from '@nuclom/lib/image-utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Clock, Loader2, RotateCcw, Trash2 } from 'lucide-react';
@@ -246,8 +247,8 @@ export default function TrashPage() {
       // Remove from list
       setVideos((prev) => prev.filter((v) => v.id !== videoId));
       router.refresh();
-    } catch (err) {
-      console.error('Failed to restore video:', err);
+    } catch (error) {
+      logger.error('Failed to restore video', error);
     }
   };
 
@@ -263,8 +264,8 @@ export default function TrashPage() {
 
       // Remove from list
       setVideos((prev) => prev.filter((v) => v.id !== videoId));
-    } catch (err) {
-      console.error('Failed to delete video:', err);
+    } catch (error) {
+      logger.error('Failed to permanently delete video', error);
     }
   };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
@@ -55,7 +56,7 @@ function OrganizationSettingsContent() {
         });
       }
     } catch (error) {
-      console.error('Error loading organization:', error);
+      logger.error('Failed to load organization details', error);
       toast({
         title: 'Error',
         description: 'Failed to load organization details',
@@ -92,7 +93,7 @@ function OrganizationSettingsContent() {
         router.push(`/org/${formData.slug}/settings/organization`);
       }
     } catch (error) {
-      console.error('Error updating organization:', error);
+      logger.error('Failed to update organization', error);
       toast({
         title: 'Error',
         description: 'Failed to update organization',
@@ -120,7 +121,7 @@ function OrganizationSettingsContent() {
       // Redirect to home or organization list
       router.push('/');
     } catch (error) {
-      console.error('Error deleting organization:', error);
+      logger.error('Failed to delete organization', error);
       toast({
         title: 'Error',
         description: 'Failed to delete organization',

@@ -1,8 +1,11 @@
 import { auth } from '@nuclom/lib/auth';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { ZapierWebhooksService, ZapierWebhooksServiceLive } from '@nuclom/lib/effect/services/zapier-webhooks';
+import { createLogger } from '@nuclom/lib/logger';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
+
+const log = createLogger('zapier-deliveries');
 
 const ZapierWebhooksWithDeps = ZapierWebhooksServiceLive.pipe(Layer.provide(DatabaseLive));
 const DeliveriesLayer = Layer.mergeAll(ZapierWebhooksWithDeps, DatabaseLive);
@@ -42,7 +45,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const result = await Effect.runPromise(Effect.provide(effect, DeliveriesLayer));
     return NextResponse.json(result);
   } catch (err) {
-    console.error('[Zapier Deliveries GET Error]', err);
+    log.error('Failed to fetch deliveries', err instanceof Error ? err : undefined, { webhookId });
     return NextResponse.json({ error: 'Failed to fetch deliveries' }, { status: 500 });
   }
 }
@@ -80,7 +83,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const result = await Effect.runPromise(Effect.provide(effect, DeliveriesLayer));
     return NextResponse.json(result);
   } catch (err) {
-    console.error('[Zapier Retry Delivery Error]', err);
+    log.error('Failed to retry delivery', err instanceof Error ? err : undefined, { deliveryId: body.deliveryId });
     return NextResponse.json({ error: 'Failed to retry delivery' }, { status: 500 });
   }
 }

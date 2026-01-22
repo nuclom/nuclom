@@ -7,6 +7,7 @@
  * Syncs transcript highlighting with video playback time.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import type { ActionItem, VideoChapter } from '@nuclom/lib/db/schema';
 import { formatTime } from '@nuclom/lib/format-utils';
 import type { VideoWithDetails } from '@nuclom/lib/types';
@@ -251,7 +252,7 @@ function ActionItemsList({ videoId, organizationId, onSeek }: ActionItemsListPro
           setActionItems(data.data?.actionItems || []);
         }
       } catch (error) {
-        console.error('Failed to fetch action items:', error);
+        logger.error('Failed to fetch action items', error);
       } finally {
         setIsLoading(false);
       }
@@ -274,7 +275,7 @@ function ActionItemsList({ videoId, organizationId, onSeek }: ActionItemsListPro
         setActionItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, status: newStatus } : i)));
       }
     } catch (error) {
-      console.error('Failed to update action item:', error);
+      logger.error('Failed to update action item', error);
     } finally {
       setUpdatingId(null);
     }

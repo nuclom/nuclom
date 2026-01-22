@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Check, Copy, Key, Loader2, Lock, Plus, Shield, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -67,7 +68,7 @@ function SSOContent() {
       // In a production app, you'd fetch providers from the database
       setProviders([]);
     } catch (error) {
-      console.error('Error loading SSO providers:', error);
+      logger.error('Failed to load SSO configuration', error);
       toast({
         title: 'Error',
         description: 'Failed to load SSO configuration',
@@ -183,7 +184,7 @@ function SSOContent() {
 
       await loadProviders();
     } catch (error) {
-      console.error('Error registering SSO provider:', error);
+      logger.error('Failed to register SSO provider', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to register SSO provider',
@@ -218,7 +219,7 @@ function SSOContent() {
       resetForm();
       await loadProviders();
     } catch (error) {
-      console.error('Error verifying domain:', error);
+      logger.error('Domain verification failed', error);
       toast({
         title: 'Verification Failed',
         description: error instanceof Error ? error.message : 'Domain verification failed. Check your DNS records.',
@@ -244,7 +245,7 @@ function SSOContent() {
       setSelectedProvider(null);
       await loadProviders();
     } catch (error) {
-      console.error('Error deleting SSO provider:', error);
+      logger.error('Failed to delete SSO provider', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete provider',

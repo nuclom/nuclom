@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Check, Copy, ExternalLink, Eye, EyeOff, Globe, Loader2, Plus, Settings2, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
@@ -122,7 +123,7 @@ function OAuthAppsContent() {
         setAuthorizedApps(consents);
       }
     } catch (error) {
-      console.error('Error loading OAuth apps:', error);
+      logger.error('Failed to load OAuth applications', error);
       toast({
         title: 'Error',
         description: 'Failed to load OAuth applications',
@@ -187,7 +188,7 @@ function OAuthAppsContent() {
       });
       await loadOAuthApps();
     } catch (error) {
-      console.error('Error creating OAuth app:', error);
+      logger.error('Failed to create OAuth application', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to create OAuth application',
@@ -231,7 +232,7 @@ function OAuthAppsContent() {
       resetForm();
       await loadOAuthApps();
     } catch (error) {
-      console.error('Error updating OAuth app:', error);
+      logger.error('Failed to update OAuth application', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to update OAuth application',
@@ -263,7 +264,7 @@ function OAuthAppsContent() {
       setAppToDelete(null);
       await loadOAuthApps();
     } catch (error) {
-      console.error('Error deleting OAuth app:', error);
+      logger.error('Failed to delete OAuth application', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete OAuth application',
@@ -295,7 +296,7 @@ function OAuthAppsContent() {
       setRevokeApp(null);
       await loadOAuthApps();
     } catch (error) {
-      console.error('Error revoking consent:', error);
+      logger.error('Failed to revoke OAuth application access', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to revoke application access',

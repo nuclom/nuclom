@@ -7,6 +7,7 @@
  * them to Nuclom organization members.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
 import { AlertCircle, Check, ChevronDown, Link2, Link2Off, Loader2, User } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -107,7 +108,7 @@ export function UserLinkingPanel({ sourceId, organizationId, className }: UserLi
         // Refresh the users list
         await mutate(usersUrl);
       } catch (error) {
-        console.error('Failed to link user:', error);
+        logger.error('Failed to link user', error);
       } finally {
         setLinkingUser(null);
       }
@@ -130,7 +131,7 @@ export function UserLinkingPanel({ sourceId, organizationId, className }: UserLi
         // Refresh the users list
         await mutate(usersUrl);
       } catch (error) {
-        console.error('Failed to unlink user:', error);
+        logger.error('Failed to unlink user', error);
       } finally {
         setLinkingUser(null);
       }
@@ -195,7 +196,7 @@ export function UserLinkingPanel({ sourceId, organizationId, className }: UserLi
       </div>
 
       {/* Users list */}
-      <ScrollArea className="h-[400px]">
+      <ScrollArea className="h-100">
         <div className="space-y-2 pr-4">
           {users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -282,7 +283,7 @@ function UserLinkingRow({ user, members, isLinking, onLink, onUnlink }: UserLink
                 <ChevronDown className="h-3 w-3 ml-1" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0 w-[280px]" align="end">
+            <PopoverContent className="p-0 w-70" align="end">
               <Command>
                 <CommandInput placeholder="Search members..." />
                 <CommandList>

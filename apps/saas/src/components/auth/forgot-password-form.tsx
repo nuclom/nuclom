@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { ForgotPasswordSchema, safeParse } from '@nuclom/lib/validation';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, CheckCircle2, Loader2, Mail } from 'lucide-react';
@@ -42,8 +43,9 @@ export function ForgotPasswordForm() {
       // Always show success regardless of whether email exists (security best practice)
       // The API returns success even if the email doesn't exist to prevent enumeration
       setIsSuccess(true);
-    } catch (_err) {
-      // Don't reveal if the email exists or not
+    } catch (err) {
+      // Log error but don't reveal if the email exists or not (security best practice)
+      logger.error('Password reset request failed', err);
       setIsSuccess(true);
     } finally {
       setIsLoading(false);

@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import type { ReportCategory, ReportResolution, ReportResourceType, ReportStatus } from '@nuclom/lib/db/schema';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -157,7 +158,7 @@ function ModerationDashboard() {
       setReports(data.reports);
       setPagination(data.pagination);
     } catch (error) {
-      console.error('Fetch reports error:', error);
+      logger.error('Failed to load reports', error);
       toast({
         title: 'Error',
         description: 'Failed to load reports. Please try again.',
@@ -231,7 +232,7 @@ function ModerationDashboard() {
       // Refresh reports
       fetchReports();
     } catch (error) {
-      console.error('Action error:', error);
+      logger.error('Failed to update report', error);
       toast({
         title: 'Error',
         description: 'Failed to update report. Please try again.',

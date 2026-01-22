@@ -6,6 +6,7 @@
  * Manages content source connections for knowledge import (Slack, Notion, GitHub).
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -64,7 +65,7 @@ export function ContentSourcesManager({ organizationId }: ContentSourcesManagerP
         setSources(data.items || []);
       }
     } catch (error) {
-      console.error('Failed to load content sources:', error);
+      logger.error('Failed to load content sources', error);
       toast({
         title: 'Error',
         description: 'Failed to load content sources',
@@ -450,7 +451,8 @@ function ContentSourceConfigDialog({
       }
 
       await onSave(config);
-    } catch (_error) {
+    } catch (error) {
+      logger.error('Failed to save configuration', error);
       toast({
         title: 'Error',
         description: 'Failed to save configuration',
@@ -465,7 +467,7 @@ function ContentSourceConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>
             Configure {source.type === 'slack' ? 'Slack' : source.type === 'notion' ? 'Notion' : 'GitHub'}
