@@ -927,16 +927,58 @@ const getFacetsInternal = (
         .orderBy(desc(count()))
         .limit(20);
 
+      // Get participant counts - aggregate by author name/id
+      const participantCounts = await db.execute<{
+        author_name: string | null;
+        author_id: string | null;
+        count: string;
+      }>(sql`
+        SELECT
+          ci.author_name,
+          ci.author_id,
+          COUNT(*) as count
+        FROM content_items ci
+        WHERE ci.organization_id = ${organizationId}
+          AND (ci.author_name IS NOT NULL OR ci.author_id IS NOT NULL)
+        GROUP BY ci.author_name, ci.author_id
+        ORDER BY count DESC
+        LIMIT 20
+      `);
+
+      // Get date histogram - group by week for the last 12 weeks
+      const dateHistogramData = await db.execute<{
+        week_start: string;
+        count: string;
+      }>(sql`
+        SELECT
+          DATE_TRUNC('week', COALESCE(ci.created_at_source, ci.created_at)) as week_start,
+          COUNT(*) as count
+        FROM content_items ci
+        WHERE ci.organization_id = ${organizationId}
+          AND COALESCE(ci.created_at_source, ci.created_at) >= NOW() - INTERVAL '12 weeks'
+        GROUP BY week_start
+        ORDER BY week_start DESC
+      `);
+
       return {
         sources: sourceCounts.map((s) => ({ source: s.source, count: Number(s.count) })),
         contentTypes: typeCounts.map((t) => ({ type: t.type, count: Number(t.count) })),
-        participants: [], // TODO: Implement participant aggregation
+        participants: participantCounts
+          .filter((p) => p.author_name || p.author_id)
+          .map((p) => ({
+            name: p.author_name || 'Unknown',
+            userId: p.author_id || undefined,
+            count: Number(p.count),
+          })),
         topics: topicCounts.map((t) => ({
           name: t.name,
           clusterId: t.clusterId,
           count: Number(t.count),
         })),
-        dateHistogram: [], // TODO: Implement date histogram
+        dateHistogram: dateHistogramData.map((d) => ({
+          date: new Date(d.week_start).toISOString().split('T')[0],
+          count: Number(d.count),
+        })),
       };
     },
     catch: (error) =>
