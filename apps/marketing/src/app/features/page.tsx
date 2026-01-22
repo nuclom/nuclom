@@ -17,11 +17,13 @@ import {
   Lightbulb,
   Link2,
   Lock,
+  MessageCircle,
   MessageSquare,
   Mic,
   Network,
   Palette,
   Play,
+  Rss,
   Scissors,
   Search,
   Settings,
@@ -30,6 +32,7 @@ import {
   Smartphone,
   Sparkles,
   Star,
+  Tags,
   Users,
   Video,
   Webhook,
@@ -41,6 +44,51 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const featureCategories = [
+  {
+    id: 'ask-ai',
+    title: 'Ask AI & Knowledge Hub',
+    description: 'Chat with your knowledge base and explore insights across all your sources',
+    icon: MessageCircle,
+    color: 'from-emerald-500/20 to-emerald-500/5',
+    features: [
+      {
+        icon: MessageCircle,
+        title: 'Ask AI Chat',
+        description:
+          'Chat with your knowledge base using natural language. Get instant answers with sources cited from all your connected content.',
+      },
+      {
+        icon: Rss,
+        title: 'Knowledge Feed',
+        description:
+          'Stay updated with a unified activity feed across all sources. See new content, decisions, and updates in one place.',
+      },
+      {
+        icon: Tags,
+        title: 'Topic Explorer',
+        description:
+          'Discover and navigate auto-clustered topics. See what your organization is discussing across Slack, Notion, GitHub, and videos.',
+      },
+      {
+        icon: Lightbulb,
+        title: 'Decision Dashboard',
+        description:
+          'Track decisions across your organization with Kanban and list views. Filter by status, source, and participants.',
+      },
+      {
+        icon: Brain,
+        title: 'Knowledge Gaps Analysis',
+        description:
+          'AI identifies areas where documentation is missing or outdated. Proactively fill knowledge gaps before they become problems.',
+      },
+      {
+        icon: Network,
+        title: 'Knowledge Graph Visualization',
+        description:
+          'Explore your organizational knowledge as an interactive graph. See connections between topics, people, and decisions.',
+      },
+    ],
+  },
   {
     id: 'knowledge-sources',
     title: 'Knowledge Sources',
@@ -558,7 +606,7 @@ export default function FeaturesPage() {
               <p className="text-muted-foreground">Knowledge Sources</p>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">50+</div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">60+</div>
               <p className="text-muted-foreground">Platform Features</p>
             </div>
             <div>
