@@ -324,18 +324,6 @@ export const ReorderCollectionVideosSchema = Schema.Struct({
   videoIds: Schema.Array(UuidSchema).pipe(Schema.minItems(1, { message: () => 'At least one video ID is required' })),
 });
 
-// Legacy aliases for backward compatibility
-/** @deprecated Use CreateCollectionSchema instead */
-export const CreateSeriesSchema = CreateCollectionSchema;
-/** @deprecated Use UpdateCollectionSchema instead */
-export const UpdateSeriesSchema = UpdateCollectionSchema;
-/** @deprecated Use GetCollectionsSchema instead */
-export const GetSeriesSchema = GetCollectionsSchema;
-/** @deprecated Use AddVideoToCollectionSchema instead */
-export const AddVideoToSeriesSchema = AddVideoToCollectionSchema;
-/** @deprecated Use ReorderCollectionVideosSchema instead */
-export const ReorderSeriesVideosSchema = ReorderCollectionVideosSchema;
-
 // =============================================================================
 // Organization Schemas
 // =============================================================================
@@ -414,9 +402,6 @@ export const UpdateCollectionProgressSchema = Schema.Struct({
   lastPosition: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.nonNegative())),
   completedVideoIds: Schema.optional(Schema.Array(UuidSchema)),
 });
-
-/** @deprecated Use UpdateCollectionProgressSchema instead */
-export const UpdateSeriesProgressSchema = UpdateCollectionProgressSchema;
 
 // =============================================================================
 // Notification Schemas
@@ -592,20 +577,6 @@ export type GetCollectionsInput = typeof GetCollectionsSchema.Type;
 export type AddVideoToCollectionInput = typeof AddVideoToCollectionSchema.Type;
 export type ReorderCollectionVideosInput = typeof ReorderCollectionVideosSchema.Type;
 export type UpdateCollectionProgressInput = typeof UpdateCollectionProgressSchema.Type;
-
-// Legacy series type aliases
-/** @deprecated Use CreateCollectionInput instead */
-export type CreateSeriesInput = CreateCollectionInput;
-/** @deprecated Use UpdateCollectionInput instead */
-export type UpdateSeriesInput = UpdateCollectionInput;
-/** @deprecated Use GetCollectionsInput instead */
-export type GetSeriesInput = GetCollectionsInput;
-/** @deprecated Use AddVideoToCollectionInput instead */
-export type AddVideoToSeriesInput = AddVideoToCollectionInput;
-/** @deprecated Use ReorderCollectionVideosInput instead */
-export type ReorderSeriesVideosInput = ReorderCollectionVideosInput;
-/** @deprecated Use UpdateCollectionProgressInput instead */
-export type UpdateSeriesProgressInput = UpdateCollectionProgressInput;
 
 export type CreateOrganizationInput = typeof CreateOrganizationSchema.Type;
 export type UpdateOrganizationInput = typeof UpdateOrganizationSchema.Type;

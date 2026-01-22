@@ -77,16 +77,6 @@ export type CollectionWithProgress = CollectionWithVideoCount & {
   progress?: CollectionProgressWithDetails;
 };
 
-// Legacy type aliases for backwards compatibility during migration
-/** @deprecated Use CollectionWithVideoCount instead */
-export type SeriesWithVideoCount = CollectionWithVideoCount;
-/** @deprecated Use CollectionVideoWithDetails instead */
-export type SeriesVideoWithDetails = CollectionVideoWithDetails;
-/** @deprecated Use CollectionWithVideos instead */
-export type SeriesWithVideos = CollectionWithVideos;
-/** @deprecated Use CollectionProgressWithDetails instead */
-export type SeriesProgressWithDetails = CollectionProgressWithDetails;
-
 // Search types
 export type SearchResult = {
   video: VideoWithAuthor;

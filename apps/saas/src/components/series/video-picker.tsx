@@ -22,11 +22,11 @@ interface VideoPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId: string;
-  seriesId: string;
+  collectionId: string;
   onVideosAdded?: () => void;
 }
 
-export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVideosAdded }: VideoPickerProps) {
+export function VideoPicker({ open, onOpenChange, organizationId, collectionId, onVideosAdded }: VideoPickerProps) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +38,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/series/${seriesId}/videos?organizationId=${organizationId}`);
+      const response = await fetch(`/api/collections/${collectionId}/videos?organizationId=${organizationId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch videos');
       }
@@ -49,7 +49,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
     } finally {
       setIsLoading(false);
     }
-  }, [seriesId, organizationId]);
+  }, [collectionId, organizationId]);
 
   useEffect(() => {
     if (open) {
@@ -88,7 +88,7 @@ export function VideoPicker({ open, onOpenChange, organizationId, seriesId, onVi
     try {
       // Add videos one by one
       for (const videoId of selectedIds) {
-        const response = await fetch(`/api/series/${seriesId}/videos`, {
+        const response = await fetch(`/api/collections/${collectionId}/videos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ videoId }),

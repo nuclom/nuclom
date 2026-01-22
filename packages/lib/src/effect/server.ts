@@ -375,25 +375,6 @@ export const getCollectionProgress = cache(
   },
 );
 
-// Legacy aliases for backward compatibility during migration
-/** @deprecated Use getCollections instead */
-export const getSeries = (organizationId: string, page = 1, limit = 20) =>
-  getCollections(organizationId, { type: 'playlist', page, limit });
-
-/** @deprecated Use getCollectionWithVideos instead */
-export const getSeriesWithVideos = getCollectionWithVideos;
-
-/** @deprecated Use getCollectionsWithProgress instead */
-export const getSeriesWithProgress = (organizationId: string, userId: string) =>
-  getCollectionsWithProgress(organizationId, userId, 'playlist');
-
-/** @deprecated Use getCollectionProgress instead */
-export const getSeriesProgress = getCollectionProgress;
-
-/** @deprecated Use getCollections with type: 'folder' instead */
-export const getChannels = (organizationId: string, page = 1, limit = 20) =>
-  getCollections(organizationId, { type: 'folder', page, limit });
-
 // =============================================================================
 // Collection Revalidation Helpers
 // =============================================================================
@@ -422,14 +403,6 @@ export const revalidateCollectionProgress = (collectionId: string, userId: strin
   revalidateTag(`collection-progress:${collectionId}:${userId}`, 'max');
   revalidateTag(`collection-progress:user:${userId}`, 'max');
 };
-
-// Legacy aliases
-/** @deprecated Use revalidateCollections instead */
-export const revalidateSeries = revalidateCollections;
-/** @deprecated Use revalidateCollectionById instead */
-export const revalidateSeriesById = revalidateCollectionById;
-/** @deprecated Use revalidateCollectionProgress instead */
-export const revalidateSeriesProgress = revalidateCollectionProgress;
 
 // =============================================================================
 // User's Own Videos Queries (Cached)

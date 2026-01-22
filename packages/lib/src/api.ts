@@ -55,7 +55,7 @@ const effectToPromise = async <T>(effect: Effect.Effect<T, HttpError | ParseErro
 
 export const videoApi = {
   async getVideos(
-    params: { organizationId?: string; channelId?: string; seriesId?: string; page?: number; limit?: number } = {},
+    params: { organizationId?: string; channelId?: string; collectionId?: string; page?: number; limit?: number } = {},
   ): Promise<PaginatedResponse<VideoWithAuthor>> {
     return effectToPromise(videoApiEffect.getVideos(params));
   },
@@ -73,7 +73,7 @@ export const videoApi = {
     authorId: string;
     organizationId: string;
     channelId?: string;
-    seriesId?: string;
+    collectionId?: string;
   }): Promise<VideoWithDetails> {
     return effectToPromise(videoApiEffect.createVideo(data));
   },
@@ -87,7 +87,7 @@ export const videoApi = {
       thumbnailUrl: string;
       videoUrl: string;
       channelId: string;
-      seriesId: string;
+      collectionId: string;
     }>,
   ): Promise<VideoWithDetails> {
     return effectToPromise(videoApiEffect.updateVideo(id, data));
@@ -105,7 +105,7 @@ export const videoApi = {
       organizationId: string;
       authorId: string;
       channelId?: string;
-      seriesId?: string;
+      collectionId?: string;
     },
     onProgress?: (progress: number) => void,
   ): Promise<UploadResult> {
