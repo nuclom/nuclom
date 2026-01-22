@@ -125,11 +125,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Generate full transcript text from segments
     const fullTranscript = segments.map((s) => s.text).join(' ');
 
+    // Map validated segments to TranscriptSegment type
+    const transcriptSegments: TranscriptSegment[] = segments.map((s) => ({
+      startTime: s.startTime,
+      endTime: s.endTime,
+      text: s.text,
+      confidence: s.confidence,
+    }));
+
     // Update video with new transcript using repository
     const videoRepo = yield* VideoRepository;
     yield* videoRepo.updateVideo(id, {
       transcript: fullTranscript,
-      transcriptSegments: segments as TranscriptSegment[],
+      transcriptSegments,
     });
 
     return {

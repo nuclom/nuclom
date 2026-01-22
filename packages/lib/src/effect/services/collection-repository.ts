@@ -29,6 +29,7 @@ import type {
 } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
+import { isArray } from './type-mappers';
 
 // =============================================================================
 // Types
@@ -238,6 +239,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
               banReason: users.banReason,
               banExpires: users.banExpires,
               twoFactorEnabled: users.twoFactorEnabled,
+              lastLoginMethod: users.lastLoginMethod,
+              stripeCustomerId: users.stripeCustomerId,
             },
           })
           .from(collections)
@@ -252,11 +255,24 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
           .from(collections)
           .where(and(...conditions));
 
+        // Map collections with proper type handling for createdBy field
+        const mappedData: CollectionWithVideoCount[] = collectionsData.map((c) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          thumbnailUrl: c.thumbnailUrl,
+          organizationId: c.organizationId,
+          type: c.type,
+          isPublic: c.isPublic,
+          createdById: c.createdById,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          videoCount: c.videoCount,
+          createdBy: c.createdBy?.id ? c.createdBy : null,
+        }));
+
         return {
-          data: collectionsData.map((c) => ({
-            ...c,
-            createdBy: c.createdBy?.id ? c.createdBy : null,
-          })) as CollectionWithVideoCount[],
+          data: mappedData,
           pagination: {
             page,
             limit,
@@ -303,6 +319,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
                 banReason: users.banReason,
                 banExpires: users.banExpires,
                 twoFactorEnabled: users.twoFactorEnabled,
+                lastLoginMethod: users.lastLoginMethod,
+                stripeCustomerId: users.stripeCustomerId,
               },
             })
             .from(collections)
@@ -354,6 +372,7 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
                 aiSummary: videos.aiSummary,
                 aiTags: videos.aiTags,
                 aiActionItems: videos.aiActionItems,
+                visibility: videos.visibility,
                 createdAt: videos.createdAt,
                 updatedAt: videos.updatedAt,
               },
@@ -370,6 +389,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
                 banReason: users.banReason,
                 banExpires: users.banExpires,
                 twoFactorEnabled: users.twoFactorEnabled,
+                lastLoginMethod: users.lastLoginMethod,
+                stripeCustomerId: users.stripeCustomerId,
               },
             })
             .from(collectionVideos)
@@ -378,7 +399,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
             .where(eq(collectionVideos.collectionId, id))
             .orderBy(asc(collectionVideos.position));
 
-          return result.map((cv) => ({
+          // Map collection videos with proper type structure
+          const mappedVideos: CollectionVideoWithDetails[] = result.map((cv) => ({
             id: cv.id,
             collectionId: cv.collectionId,
             videoId: cv.videoId,
@@ -388,7 +410,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
               ...cv.video,
               author: cv.author,
             },
-          })) as CollectionVideoWithDetails[];
+          }));
+          return mappedVideos;
         },
         catch: (error) =>
           new DatabaseError({
@@ -399,7 +422,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
       });
 
       const collection = collectionData[0];
-      return {
+      // Construct CollectionWithVideos with explicit type annotation
+      const result: CollectionWithVideos = {
         id: collection.id,
         name: collection.name,
         description: collection.description,
@@ -413,7 +437,8 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
         createdBy: collection.createdBy?.id ? collection.createdBy : null,
         videos: collectionVideosData,
         videoCount: collectionVideosData.length,
-      } as CollectionWithVideos;
+      };
+      return result;
     });
 
   const getCollection = (id: string): Effect.Effect<Collection, DatabaseError | NotFoundError> =>
@@ -699,6 +724,10 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
               aiSummary: videos.aiSummary,
               aiTags: videos.aiTags,
               aiActionItems: videos.aiActionItems,
+              visibility: videos.visibility,
+              searchVector: videos.searchVector,
+              deletedAt: videos.deletedAt,
+              retentionUntil: videos.retentionUntil,
               createdAt: videos.createdAt,
               updatedAt: videos.updatedAt,
             },
@@ -720,16 +749,20 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
           .where(eq(collectionVideos.collectionId, collectionId));
 
         const progress = progressData[0];
-        const completedCount = (progress.completedVideoIds as string[]).length;
+        // Safely get completed video IDs with type guard
+        const completedVideoIds = isArray(progress.completedVideoIds) ? progress.completedVideoIds : [];
+        const completedCount = completedVideoIds.length;
         const total = totalCount[0].count;
 
-        return {
+        // Construct CollectionProgressWithDetails with explicit type annotation
+        const result: CollectionProgressWithDetails = {
           ...progress,
           lastVideo: progress.lastVideo?.id ? progress.lastVideo : null,
           completedCount,
           totalCount: total,
           progressPercentage: total > 0 ? Math.round((completedCount / total) * 100) : 0,
-        } as CollectionProgressWithDetails;
+        };
+        return result;
       },
       catch: (error) =>
         new DatabaseError({
@@ -802,7 +835,9 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
           .limit(1);
 
         if (existing.length) {
-          const completedVideoIds = existing[0].completedVideoIds as string[];
+          // Safely get and modify completed video IDs with type guard
+          const existingIds = isArray(existing[0].completedVideoIds) ? existing[0].completedVideoIds : [];
+          const completedVideoIds = [...existingIds].filter((id): id is string => typeof id === 'string');
           if (!completedVideoIds.includes(videoId)) {
             completedVideoIds.push(videoId);
           }
@@ -868,18 +903,24 @@ const makeCollectionRepositoryService = Effect.gen(function* () {
           return collection;
         }
 
-        const completedCount = (progress.completedVideoIds as string[]).length;
+        // Safely get completed video IDs with type guard
+        const completedIds = isArray(progress.completedVideoIds) ? progress.completedVideoIds : [];
+        const completedCount = completedIds.length;
+
+        // Construct progress with explicit type annotation
+        const progressWithDetails: CollectionProgressWithDetails = {
+          ...progress,
+          collection: collection,
+          lastVideo: null,
+          completedCount,
+          totalCount: collection.videoCount,
+          progressPercentage:
+            collection.videoCount > 0 ? Math.round((completedCount / collection.videoCount) * 100) : 0,
+        };
+
         return {
           ...collection,
-          progress: {
-            ...progress,
-            collection: collection,
-            lastVideo: null,
-            completedCount,
-            totalCount: collection.videoCount,
-            progressPercentage:
-              collection.videoCount > 0 ? Math.round((completedCount / collection.videoCount) * 100) : 0,
-          } as CollectionProgressWithDetails,
+          progress: progressWithDetails,
         };
       });
     });

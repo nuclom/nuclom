@@ -1,6 +1,7 @@
 import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { type WorkflowTemplateType, workflowTemplates } from '@nuclom/lib/db/schema';
+import { workflowTemplateTypeEnum } from '@nuclom/lib/db/schema/enums';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import { safeParse } from '@nuclom/lib/validation';
@@ -8,6 +9,12 @@ import { and, desc, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+
+// Type guard for WorkflowTemplateType
+const VALID_WORKFLOW_TEMPLATE_TYPES = new Set<string>(workflowTemplateTypeEnum.enumValues);
+function isWorkflowTemplateType(value: string): value is WorkflowTemplateType {
+  return VALID_WORKFLOW_TEMPLATE_TYPES.has(value);
+}
 
 const CreateTemplateSchema = Schema.Struct({
   name: Schema.String,
@@ -197,8 +204,8 @@ export async function GET(request: NextRequest) {
     // Build query conditions
     const conditions = [eq(workflowTemplates.isActive, true)];
 
-    if (type) {
-      conditions.push(eq(workflowTemplates.type, type as WorkflowTemplateType));
+    if (type && isWorkflowTemplateType(type)) {
+      conditions.push(eq(workflowTemplates.type, type));
     }
 
     // Get custom templates for the organization if authenticated
@@ -212,7 +219,7 @@ export async function GET(request: NextRequest) {
             eq(workflowTemplates.organizationId, organizationId),
             eq(workflowTemplates.isActive, true),
             eq(workflowTemplates.isSystem, false),
-            type ? eq(workflowTemplates.type, type as WorkflowTemplateType) : undefined,
+            type && isWorkflowTemplateType(type) ? eq(workflowTemplates.type, type) : undefined,
           ),
         )
         .orderBy(desc(workflowTemplates.usageCount));
@@ -228,7 +235,7 @@ export async function GET(request: NextRequest) {
           and(
             eq(workflowTemplates.isSystem, true),
             eq(workflowTemplates.isActive, true),
-            type ? eq(workflowTemplates.type, type as WorkflowTemplateType) : undefined,
+            type && isWorkflowTemplateType(type) ? eq(workflowTemplates.type, type) : undefined,
           ),
         )
         .orderBy(desc(workflowTemplates.usageCount));

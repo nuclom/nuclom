@@ -15,6 +15,7 @@ import { formatDuration } from '../../format-utils';
 import type { VideoWithAuthor } from '../../types';
 import { DatabaseError } from '../errors';
 import { Database } from './database';
+import { mapToVideoWithAuthor, mapToVideoWithAuthorArray } from './type-mappers';
 
 // =============================================================================
 // Types
@@ -245,7 +246,7 @@ const makeRecommendationsService = Effect.gen(function* () {
 
         // Sort by score and return top results
         scoredRecommendations.sort((a, b) => b.score - a.score);
-        return scoredRecommendations.slice(0, limit).map((r) => r.video as VideoWithAuthor);
+        return scoredRecommendations.slice(0, limit).map((r) => mapToVideoWithAuthor(r.video));
       },
       catch: (error) =>
         new DatabaseError({
@@ -325,7 +326,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           const remainingSeconds = Math.max(0, totalSeconds - currentSeconds);
 
           return {
-            video: {
+            video: mapToVideoWithAuthor({
               id: item.id,
               title: item.title,
               description: item.description,
@@ -342,12 +343,10 @@ const makeRecommendationsService = Effect.gen(function* () {
               aiTags: item.aiTags,
               aiActionItems: item.aiActionItems,
               visibility: item.visibility,
-              deletedAt: item.deletedAt,
-              retentionUntil: item.retentionUntil,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
               author: item.author,
-            } as VideoWithAuthor,
+            }),
             progress,
             lastWatchedAt: item.lastWatchedAt,
             remainingTime: formatDuration(remainingSeconds),
@@ -447,7 +446,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           const trendingScore = viewCount * recencyMultiplier;
 
           return {
-            video: video as VideoWithAuthor,
+            video: mapToVideoWithAuthor(video),
             viewCount,
             trendingScore,
           };
@@ -554,7 +553,7 @@ const makeRecommendationsService = Effect.gen(function* () {
         });
 
         scored.sort((a, b) => b.score - a.score);
-        return scored.slice(0, limit).map((s) => s.video as VideoWithAuthor);
+        return scored.slice(0, limit).map((s) => mapToVideoWithAuthor(s.video));
       },
       catch: (error) =>
         new DatabaseError({
@@ -623,7 +622,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           .orderBy(desc(videoProgresses.lastWatchedAt))
           .limit(limit);
 
-        return recentVideos as VideoWithAuthor[];
+        return mapToVideoWithAuthorArray(recentVideos);
       },
       catch: (error) =>
         new DatabaseError({
@@ -703,7 +702,7 @@ const makeRecommendationsService = Effect.gen(function* () {
           .orderBy(desc(videos.createdAt))
           .limit(limit);
 
-        return popularVideos as VideoWithAuthor[];
+        return mapToVideoWithAuthorArray(popularVideos);
       },
       catch: (error) =>
         new DatabaseError({

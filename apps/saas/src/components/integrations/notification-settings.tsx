@@ -57,7 +57,13 @@ interface NotificationSettingsProps {
   organizationSlug: string;
 }
 
-const EVENT_OPTIONS = [
+type NotificationEventId = 'notifyOnVideoUpload' | 'notifyOnVideoShared' | 'notifyOnComment' | 'notifyOnMention';
+
+const EVENT_OPTIONS: ReadonlyArray<{
+  id: NotificationEventId;
+  label: string;
+  description: string;
+}> = [
   {
     id: 'notifyOnVideoUpload',
     label: 'Video uploaded',
@@ -78,7 +84,7 @@ const EVENT_OPTIONS = [
     label: 'Mentions',
     description: 'When you are mentioned in a comment',
   },
-] as const;
+];
 
 export function NotificationSettings({
   provider,
@@ -184,7 +190,7 @@ export function NotificationSettings({
     }
   };
 
-  const handleEventToggle = (eventId: string, checked: boolean) => {
+  const handleEventToggle = (eventId: NotificationEventId, checked: boolean) => {
     setSettings((prev) => ({
       ...prev,
       [eventId]: checked,
@@ -351,8 +357,10 @@ export function NotificationSettings({
                 >
                   <Checkbox
                     id={event.id}
-                    checked={settings[event.id as keyof typeof settings] as boolean}
-                    onCheckedChange={(checked) => handleEventToggle(event.id, checked as boolean)}
+                    checked={settings[event.id]}
+                    onCheckedChange={(checked) => {
+                      if (typeof checked === 'boolean') handleEventToggle(event.id, checked);
+                    }}
                     disabled={settings.notificationMuted}
                     className="mt-0.5"
                   />
@@ -365,7 +373,7 @@ export function NotificationSettings({
                     </label>
                     <p className="text-xs text-muted-foreground">{event.description}</p>
                   </div>
-                  {settings[event.id as keyof typeof settings] && !settings.notificationMuted && (
+                  {settings[event.id] && !settings.notificationMuted && (
                     <Check className="h-4 w-4 text-emerald-500 ml-auto shrink-0" />
                   )}
                 </div>

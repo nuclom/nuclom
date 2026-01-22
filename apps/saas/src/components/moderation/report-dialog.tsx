@@ -29,6 +29,12 @@ interface ReportDialogProps {
   onReportSubmitted?: () => void;
 }
 
+const REPORT_CATEGORIES: ReportCategory[] = ['inappropriate', 'spam', 'copyright', 'harassment', 'other'];
+
+function isReportCategory(value: string): value is ReportCategory {
+  return REPORT_CATEGORIES.includes(value as ReportCategory);
+}
+
 const categoryLabels: Record<ReportCategory, { label: string; description: string }> = {
   inappropriate: {
     label: 'Inappropriate Content',
@@ -157,17 +163,24 @@ export function ReportDialog({ resourceType, resourceId, trigger, onReportSubmit
           {/* Category Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium">What's the issue?</Label>
-            <RadioGroup value={category || ''} onValueChange={(value) => setCategory(value as ReportCategory)}>
+            <RadioGroup
+              value={category || ''}
+              onValueChange={(value) => {
+                if (isReportCategory(value)) setCategory(value);
+              }}
+            >
               {Object.entries(categoryLabels).map(([key, { label, description }]) => (
                 <div
                   key={key}
                   role="button"
                   tabIndex={0}
                   className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => setCategory(key as ReportCategory)}
+                  onClick={() => {
+                    if (isReportCategory(key)) setCategory(key);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      setCategory(key as ReportCategory);
+                      if (isReportCategory(key)) setCategory(key);
                     }
                   }}
                 >

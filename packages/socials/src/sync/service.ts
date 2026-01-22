@@ -1,10 +1,48 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { Effect } from 'effect';
+import { Effect, Schema } from 'effect';
 import type { SocialsManager } from '../manager.ts';
 import { type AnySocialError, ConfigurationError } from '../types/errors.ts';
 import type { Post, Profile } from '../types/provider.ts';
 import { DEFAULT_SYNC_CONFIG, type SyncConfig, type SyncedProfile, type SyncedTweet, type SyncState } from './types.ts';
+
+// Schema for runtime validation of persisted sync state
+// Uses NullOr to match the SyncState type which uses `string | null`
+const SyncedTweetSchema = Schema.Struct({
+  id: Schema.String,
+  text: Schema.String,
+  createdAt: Schema.String,
+  url: Schema.String,
+  metrics: Schema.Struct({
+    likes: Schema.Number,
+    retweets: Schema.Number,
+    replies: Schema.Number,
+  }),
+  inReplyToId: Schema.NullOr(Schema.String),
+  quotedId: Schema.NullOr(Schema.String),
+});
+
+const SyncedProfileSchema = Schema.Struct({
+  id: Schema.String,
+  username: Schema.String,
+  displayName: Schema.String,
+  bio: Schema.NullOr(Schema.String),
+  avatarUrl: Schema.NullOr(Schema.String),
+  metrics: Schema.Struct({
+    followers: Schema.Number,
+    following: Schema.Number,
+    tweets: Schema.Number,
+  }),
+  url: Schema.String,
+  lastSynced: Schema.String,
+});
+
+const SyncStateSchema = Schema.Struct({
+  provider: Schema.String,
+  lastSyncedAt: Schema.String,
+  profile: SyncedProfileSchema,
+  tweets: Schema.Array(SyncedTweetSchema),
+});
 
 /**
  * Convert a Post to SyncedTweet format
@@ -117,17 +155,30 @@ export class SyncService {
           }),
       });
 
-      try {
-        return JSON.parse(content) as SyncState;
-      } catch (e) {
-        return yield* Effect.fail(
+      // Parse JSON and validate with Effect Schema
+      const parseResult = yield* Effect.try({
+        try: (): unknown => JSON.parse(content),
+        catch: (e) =>
           new ConfigurationError({
-            message: `Failed to parse sync state: ${statePath}`,
+            message: `Failed to parse sync state JSON: ${statePath}`,
             provider,
             cause: e,
           }),
+      });
+
+      // Validate the parsed data against the schema
+      const decoded = Schema.decodeUnknownEither(SyncStateSchema)(parseResult);
+      if (decoded._tag === 'Left') {
+        return yield* Effect.fail(
+          new ConfigurationError({
+            message: `Invalid sync state format: ${statePath}`,
+            provider,
+            cause: decoded.left,
+          }),
         );
       }
+
+      return decoded.right;
     });
   }
 

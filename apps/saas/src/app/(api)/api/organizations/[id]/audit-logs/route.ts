@@ -2,6 +2,7 @@ import { createPublicLayer } from '@nuclom/lib/api-handler';
 import { type AuditLogFilters, AuditLogger } from '@nuclom/lib/audit-log';
 import { auth } from '@nuclom/lib/auth';
 import { type AuditLogCategory, type AuditLogSeverity, members } from '@nuclom/lib/db/schema';
+import { auditLogCategoryEnum, auditLogSeverityEnum } from '@nuclom/lib/db/schema/enums';
 import { Database } from '@nuclom/lib/effect/services/database';
 import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
@@ -10,6 +11,26 @@ import { and, eq } from 'drizzle-orm';
 import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
+
+// Type guards for audit log enums
+const VALID_AUDIT_LOG_CATEGORIES = new Set<string>(auditLogCategoryEnum.enumValues);
+function isAuditLogCategory(value: string): value is AuditLogCategory {
+  return VALID_AUDIT_LOG_CATEGORIES.has(value);
+}
+
+const VALID_AUDIT_LOG_SEVERITIES = new Set<string>(auditLogSeverityEnum.enumValues);
+function isAuditLogSeverity(value: string): value is AuditLogSeverity {
+  return VALID_AUDIT_LOG_SEVERITIES.has(value);
+}
+
+// Filter function to get only valid enum values from a comma-separated string
+function parseValidCategories(input: string): AuditLogCategory[] {
+  return input.split(',').filter(isAuditLogCategory);
+}
+
+function parseValidSeverities(input: string): AuditLogSeverity[] {
+  return input.split(',').filter(isAuditLogSeverity);
+}
 
 // Schema for export request
 const ExportRequestSchema = Schema.Struct({
@@ -92,7 +113,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Parse category filter
     const categories = searchParams.get('categories');
     if (categories) {
-      filters.categories = categories.split(',') as AuditLogCategory[];
+      filters.categories = parseValidCategories(categories);
     }
 
     // Parse action filter
@@ -110,7 +131,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Parse severity filter
     const severity = searchParams.get('severity');
     if (severity) {
-      filters.severity = severity.split(',') as AuditLogSeverity[];
+      filters.severity = parseValidSeverities(severity);
     }
 
     // Parse resource filter
@@ -214,10 +235,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (filters) {
       if (filters.startDate) exportFilters.startDate = new Date(filters.startDate);
       if (filters.endDate) exportFilters.endDate = new Date(filters.endDate);
-      if (filters.categories) exportFilters.categories = [...filters.categories] as AuditLogCategory[];
+      if (filters.categories) exportFilters.categories = filters.categories.filter(isAuditLogCategory);
       if (filters.actions) exportFilters.actions = [...filters.actions];
       if (filters.actorIds) exportFilters.actorIds = [...filters.actorIds];
-      if (filters.severity) exportFilters.severity = [...filters.severity] as AuditLogSeverity[];
+      if (filters.severity) exportFilters.severity = filters.severity.filter(isAuditLogSeverity);
     }
 
     const exportId = await AuditLogger.requestExport(organizationId, session.user.id, {

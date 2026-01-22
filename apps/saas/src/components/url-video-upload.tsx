@@ -231,8 +231,8 @@ export function UrlVideoUpload({
         if (text.includes('.') && (text.startsWith('http') || text.includes('://'))) {
           // Delay to allow state update
           setTimeout(() => {
-            const urlInput = document.getElementById('video-url-input') as HTMLInputElement;
-            if (urlInput) {
+            const urlInput = document.getElementById('video-url-input');
+            if (urlInput instanceof HTMLInputElement) {
               urlInput.focus();
             }
           }, 100);

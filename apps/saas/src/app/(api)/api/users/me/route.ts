@@ -9,6 +9,13 @@ import { Effect, Schema } from 'effect';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
+// Type-safe consent action constants
+const CONSENT_ACTIONS = {
+  granted: 'granted',
+  withdrawn: 'withdrawn',
+  updated: 'updated',
+} as const satisfies Record<string, ConsentAction>;
+
 // Schema for PATCH request - update user settings
 const UpdateUserSchema = Schema.Struct({
   marketingConsent: Schema.optional(Schema.Boolean),
@@ -135,7 +142,7 @@ export async function PATCH(request: NextRequest) {
       // Log the consent change
       await db.insert(consentAuditLog).values({
         userId,
-        action: (body.marketingConsent ? 'granted' : 'withdrawn') as ConsentAction,
+        action: body.marketingConsent ? CONSENT_ACTIONS.granted : CONSENT_ACTIONS.withdrawn,
         details: {
           consentType: 'marketing',
           previousValue,
@@ -217,7 +224,7 @@ export async function DELETE(request: NextRequest) {
     // Log the deletion request
     await db.insert(consentAuditLog).values({
       userId,
-      action: 'withdrawn' as ConsentAction,
+      action: CONSENT_ACTIONS.withdrawn,
       details: {
         consentType: 'account',
       },
@@ -302,7 +309,7 @@ export async function POST(request: NextRequest) {
       // Log the cancellation
       await db.insert(consentAuditLog).values({
         userId,
-        action: 'updated' as ConsentAction,
+        action: CONSENT_ACTIONS.updated,
         details: {
           consentType: 'account',
         },

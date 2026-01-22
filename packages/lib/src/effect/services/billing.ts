@@ -37,6 +37,7 @@ import {
 import { Database } from './database';
 import { EmailNotifications } from './email-notifications';
 import { StripeServiceTag } from './stripe';
+import { getStripeCustomerId } from './type-mappers';
 
 // =============================================================================
 // Types
@@ -576,7 +577,7 @@ const makeBillingService = Effect.gen(function* () {
           id: crypto.randomUUID(),
           plan: localPlan.name.toLowerCase(), // e.g., "pro", "enterprise"
           referenceId: organizationId,
-          stripeCustomerId: stripeSubscription.customer as string,
+          stripeCustomerId: getStripeCustomerId(stripeSubscription.customer),
           stripeSubscriptionId: stripeSubscription.id,
           status: mapStripeStatus(stripeSubscription.status),
           periodStart: periodStartDate,

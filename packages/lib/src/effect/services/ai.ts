@@ -10,6 +10,7 @@ import { generateText, streamText } from 'ai';
 import { Context, Effect, Layer, pipe, Stream } from 'effect';
 import type { TranscriptSegment } from '../../db/schema';
 import { AIServiceError } from '../errors';
+import { type ActionItemResult, type ChapterResult, parseActionItems, parseChapters } from './type-mappers';
 
 // =============================================================================
 // Types
@@ -21,18 +22,8 @@ export interface VideoSummary {
   readonly actionItems: ReadonlyArray<string>;
 }
 
-export interface ChapterResult {
-  readonly title: string;
-  readonly summary?: string;
-  readonly startTime: number;
-  readonly endTime?: number;
-}
-
-export interface ActionItemResult {
-  readonly text: string;
-  readonly timestamp?: number;
-  readonly priority?: 'high' | 'medium' | 'low';
-}
+// Re-export types from type-mappers
+export type { ActionItemResult, ChapterResult } from './type-mappers';
 
 export interface AIServiceInterface {
   /**
@@ -241,16 +232,8 @@ Priority should be "high", "medium", or "low" based on urgency.
 If no action items are found, return an empty array: []`,
           });
 
-          try {
-            // Extract JSON from response (handle potential markdown code blocks)
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-              return JSON.parse(jsonMatch[0]) as ActionItemResult[];
-            }
-            return [];
-          } catch {
-            return [];
-          }
+          // Parse and validate action items using type-safe parser
+          return parseActionItems(text);
         },
         catch: (error) =>
           new AIServiceError({
@@ -310,15 +293,8 @@ Return as JSON array:
 Ensure chapters cover the entire video duration without gaps.`,
           });
 
-          try {
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-              return JSON.parse(jsonMatch[0]) as ChapterResult[];
-            }
-            return [];
-          } catch {
-            return [];
-          }
+          // Parse and validate chapters using type-safe parser
+          return parseChapters(text);
         },
         catch: (error) =>
           new AIServiceError({

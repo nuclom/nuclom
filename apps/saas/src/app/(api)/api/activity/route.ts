@@ -1,6 +1,7 @@
 import { handleEffectExit } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import type { ActivityType } from '@nuclom/lib/db/schema';
+import { activityTypeEnum } from '@nuclom/lib/db/schema/enums';
 import { AppLive } from '@nuclom/lib/effect';
 import {
   ActivityFeedRepository,
@@ -15,6 +16,16 @@ import {
 import { Effect, Layer, Option } from 'effect';
 import type { NextRequest } from 'next/server';
 import { connection } from 'next/server';
+
+// Type guard for ActivityType
+const VALID_ACTIVITY_TYPES = new Set<string>(activityTypeEnum.enumValues);
+function isActivityType(value: string): value is ActivityType {
+  return VALID_ACTIVITY_TYPES.has(value);
+}
+
+function parseValidActivityTypes(input: string): ActivityType[] {
+  return input.split(',').filter(isActivityType);
+}
 
 // Build layers with dependencies
 const ActivityFeedRepoWithDeps = ActivityFeedRepositoryLive.pipe(Layer.provide(DatabaseLive));
@@ -33,7 +44,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Number.parseInt(searchParams.get('page') ?? '1', 10);
     const limit = Number.parseInt(searchParams.get('limit') ?? '20', 10);
-    const types = searchParams.get('types')?.split(',') as ActivityType[] | undefined;
+    const typesParam = searchParams.get('types');
+    const types = typesParam ? parseValidActivityTypes(typesParam) : undefined;
     const actorId = searchParams.get('actorId') ?? undefined;
     const resourceType = searchParams.get('resourceType') ?? undefined;
     const resourceId = searchParams.get('resourceId') ?? undefined;

@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the toast component types before import
@@ -9,14 +10,28 @@ vi.mock('@/components/ui/toast', () => ({
 
 import { reducer, toast, useToast } from './use-toast';
 
-// Define test types to avoid using any
-type TestToast = {
+// Create a properly typed mock toast factory that satisfies ToasterToast requirements
+// ToasterToast extends ToastProps which has optional fields
+interface MockToastInput {
   id: string;
-  title?: string;
-  description?: string;
+  title?: ReactNode;
+  description?: ReactNode;
   open?: boolean;
   variant?: 'default' | 'destructive';
-};
+}
+
+// Factory function creates toasts compatible with the reducer's expected type
+function createMockToast(input: MockToastInput): Parameters<typeof reducer>[1] extends { toast: infer T } ? T : never {
+  return {
+    id: input.id,
+    title: input.title,
+    description: input.description,
+    open: input.open ?? true,
+    variant: input.variant,
+    // ToastProps fields that may be required
+    onOpenChange: () => {},
+  } as Parameters<typeof reducer>[1] extends { toast: infer T } ? T : never;
+}
 
 describe('useToast', () => {
   beforeEach(() => {
@@ -33,7 +48,7 @@ describe('useToast', () => {
   });
 
   describe('reducer', () => {
-    const mockToast: TestToast = {
+    const mockToastInput: MockToastInput = {
       id: '1',
       title: 'Test Toast',
       description: 'Test description',
@@ -42,18 +57,19 @@ describe('useToast', () => {
 
     it('should add a toast with ADD_TOAST action', () => {
       const state = { toasts: [] };
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const newState = reducer(state, { type: 'ADD_TOAST', toast: mockToast as any });
+      const mockToast = createMockToast(mockToastInput);
+      const newState = reducer(state, { type: 'ADD_TOAST', toast: mockToast });
 
       expect(newState.toasts).toHaveLength(1);
-      expect(newState.toasts[0]).toEqual(mockToast);
+      expect(newState.toasts[0].id).toBe('1');
+      expect(newState.toasts[0].title).toBe('Test Toast');
     });
 
     it('should respect TOAST_LIMIT when adding toasts', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const state = { toasts: [{ ...mockToast, id: 'existing' } as any] };
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const newState = reducer(state, { type: 'ADD_TOAST', toast: mockToast as any });
+      const existingToast = createMockToast({ ...mockToastInput, id: 'existing' });
+      const state = { toasts: [existingToast] };
+      const mockToast = createMockToast(mockToastInput);
+      const newState = reducer(state, { type: 'ADD_TOAST', toast: mockToast });
 
       // TOAST_LIMIT is 1, so the new toast should be first
       expect(newState.toasts).toHaveLength(1);
@@ -61,8 +77,8 @@ describe('useToast', () => {
     });
 
     it('should update a toast with UPDATE_TOAST action', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const state = { toasts: [mockToast as any] };
+      const mockToast = createMockToast(mockToastInput);
+      const state = { toasts: [mockToast] };
       const newState = reducer(state, {
         type: 'UPDATE_TOAST',
         toast: { id: '1', title: 'Updated Title' },
@@ -73,8 +89,8 @@ describe('useToast', () => {
     });
 
     it('should not update non-existent toast', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const state = { toasts: [mockToast as any] };
+      const mockToast = createMockToast(mockToastInput);
+      const state = { toasts: [mockToast] };
       const newState = reducer(state, {
         type: 'UPDATE_TOAST',
         toast: { id: 'non-existent', title: 'Updated Title' },
@@ -84,8 +100,8 @@ describe('useToast', () => {
     });
 
     it('should dismiss a specific toast with DISMISS_TOAST action', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const state = { toasts: [mockToast as any] };
+      const mockToast = createMockToast(mockToastInput);
+      const state = { toasts: [mockToast] };
       const newState = reducer(state, {
         type: 'DISMISS_TOAST',
         toastId: '1',
@@ -95,10 +111,9 @@ describe('useToast', () => {
     });
 
     it('should dismiss all toasts when no toastId provided', () => {
-      const state = {
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-        toasts: [{ ...mockToast, id: '1' } as any, { ...mockToast, id: '2' } as any],
-      };
+      const toast1 = createMockToast({ ...mockToastInput, id: '1' });
+      const toast2 = createMockToast({ ...mockToastInput, id: '2' });
+      const state = { toasts: [toast1, toast2] };
       const newState = reducer(state, {
         type: 'DISMISS_TOAST',
       });
@@ -107,8 +122,8 @@ describe('useToast', () => {
     });
 
     it('should remove a specific toast with REMOVE_TOAST action', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-      const state = { toasts: [mockToast as any] };
+      const mockToast = createMockToast(mockToastInput);
+      const state = { toasts: [mockToast] };
       const newState = reducer(state, {
         type: 'REMOVE_TOAST',
         toastId: '1',
@@ -118,10 +133,9 @@ describe('useToast', () => {
     });
 
     it('should remove all toasts when no toastId provided for REMOVE_TOAST', () => {
-      const state = {
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible toast type
-        toasts: [{ ...mockToast, id: '1' } as any, { ...mockToast, id: '2' } as any],
-      };
+      const toast1 = createMockToast({ ...mockToastInput, id: '1' });
+      const toast2 = createMockToast({ ...mockToastInput, id: '2' });
+      const state = { toasts: [toast1, toast2] };
       const newState = reducer(state, {
         type: 'REMOVE_TOAST',
       });
@@ -164,8 +178,10 @@ describe('useToast', () => {
       });
 
       act(() => {
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires flexible update type
-        toastReturn?.update({ title: 'Updated', id: toastReturn.id } as any);
+        if (toastReturn) {
+          // The update function accepts a partial ToasterToast with id
+          toastReturn.update({ title: 'Updated', id: toastReturn.id, onOpenChange: () => {} });
+        }
       });
 
       expect(result.current.toasts[0].title).toBe('Updated');

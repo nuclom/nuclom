@@ -51,6 +51,10 @@ interface StreamEvent {
   error?: string;
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
 export function ChatContainer({
   conversationId,
   organizationId: _organizationId,
@@ -162,7 +166,7 @@ export function ChatContainer({
         }
       }
     } catch (error) {
-      if ((error as Error).name === 'AbortError') {
+      if (isAbortError(error)) {
         // User stopped the generation
         if (streamingContent) {
           setMessages((prev) => [

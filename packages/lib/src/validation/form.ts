@@ -10,7 +10,44 @@ import { useCallback, useState } from 'react';
 import type { DefaultValues, FieldError, FieldValues, Path } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type ApiErrorResponse, type ErrorCode, getErrorMessage, isApiError } from '../api-errors';
+import { type ErrorCode, errorMessages, getErrorMessage, isApiError, isRecord } from '../api-errors';
+
+// =============================================================================
+// Type Guards
+// =============================================================================
+
+/**
+ * Type guard to check if a value is a valid ErrorCode
+ */
+function isErrorCode(value: unknown): value is ErrorCode {
+  return typeof value === 'string' && value in errorMessages;
+}
+
+/**
+ * Type guard for field error details
+ */
+function hasFieldDetail(details: Record<string, unknown>): details is { field: string } {
+  return typeof details.field === 'string';
+}
+
+/**
+ * Type guard for fields array details
+ */
+function hasFieldsDetail(
+  details: Record<string, unknown>,
+): details is { fields: Array<{ field: string; message: string }> } {
+  if (!Array.isArray(details.fields)) return false;
+  return details.fields.every(
+    (item) => isRecord(item) && typeof item.field === 'string' && typeof item.message === 'string',
+  );
+}
+
+/**
+ * Type guard for ParseResult.ParseError
+ */
+function isParseError(error: unknown): error is ParseResult.ParseError {
+  return error instanceof Error && 'issue' in error && typeof (error as { issue?: unknown }).issue === 'object';
+}
 
 // =============================================================================
 // Types
@@ -67,10 +104,16 @@ export function useValidatedForm<TInput extends FieldValues, I>({
 }: UseValidatedFormOptions<TInput, I>) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Use type assertion to work around Effect Schema / hookform resolver type compatibility
-  // The resolver will still validate correctly at runtime
+  // SAFETY: Type assertion is required here due to a known incompatibility between
+  // Effect Schema's type system and @hookform/resolvers/effect-ts.
+  // The effectTsResolver expects Schema.Schema<A, I> where I extends FieldValues,
+  // but our schema may have a different input type. The resolver performs runtime
+  // validation correctly regardless of the compile-time types.
+  // See: https://github.com/react-hook-form/resolvers/issues/595
+  // biome-ignore lint/suspicious/noExplicitAny: Required for library interoperability - resolver types are incompatible
+  const resolver = effectTsResolver(schema as Schema.Schema<TInput, FieldValues>) as any;
   const form = useForm<TInput>({
-    resolver: effectTsResolver(schema as unknown as Schema.Schema<TInput, FieldValues>) as never,
+    resolver,
     defaultValues,
     mode: 'onBlur',
   });
@@ -133,22 +176,23 @@ function handleSubmitError<TInput extends FieldValues>(
 ): void {
   // Handle API error responses
   if (isApiError(error)) {
-    const apiError = error as ApiErrorResponse;
-    const message = getErrorMessage(apiError.error.code as ErrorCode);
+    const errorCode = error.error.code;
+    const message = isErrorCode(errorCode) ? getErrorMessage(errorCode) : 'An unexpected error occurred';
 
     // Set field-specific errors if provided
-    if (apiError.error.details?.field) {
-      const field = apiError.error.details.field as Path<TInput>;
-      setError(field, {
+    const details = error.error.details;
+    if (details && hasFieldDetail(details)) {
+      // Note: Path<TInput> cast is necessary as we can't statically verify the field name matches the form schema
+      setError(details.field as Path<TInput>, {
         type: 'server',
-        message: apiError.error.message,
+        message: error.error.message,
       });
-    } else if (apiError.error.details?.fields) {
-      const fields = apiError.error.details.fields as Array<{ field: string; message: string }>;
-      for (const { field, message } of fields) {
-        setError(field as Path<TInput>, {
+    } else if (details && hasFieldsDetail(details)) {
+      for (const fieldError of details.fields) {
+        // Note: Path<TInput> cast is necessary as we can't statically verify the field name matches the form schema
+        setError(fieldError.field as Path<TInput>, {
           type: 'server',
-          message,
+          message: fieldError.message,
         });
       }
     } else {
@@ -160,11 +204,11 @@ function handleSubmitError<TInput extends FieldValues>(
   }
 
   // Handle Effect Schema validation errors (ParseError)
-  if (error instanceof Error && 'issue' in error) {
+  if (isParseError(error)) {
     try {
-      const parseError = error as ParseResult.ParseError;
-      const issues = ParseResult.ArrayFormatter.formatErrorSync(parseError);
+      const issues = ParseResult.ArrayFormatter.formatErrorSync(error);
       for (const issue of issues) {
+        // Note: Path<TInput> cast is necessary as we can't statically verify the path matches the form schema
         const path = issue.path.join('.') as Path<TInput>;
         setError(path, {
           type: 'validation',

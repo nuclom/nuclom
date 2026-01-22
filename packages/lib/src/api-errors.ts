@@ -287,16 +287,17 @@ export function mapErrorToApiResponse(error: unknown): NextResponse<ApiErrorResp
   }
 
   // Handle unknown tagged errors (errors from libraries or legacy code)
-  if (isRecord(error) && typeof error._tag === 'string' && typeof error.message === 'string') {
-    const err = new Error(error.message as string);
+  if (isTaggedError(error)) {
+    const errorMessage = error.message;
+    const err = new Error(errorMessage);
     logger.error(`Unknown tagged error: ${error._tag}`, err, {
       errorTag: error._tag,
     });
     notifySlackMonitoring('api_error', {
-      errorMessage: error.message as string,
+      errorMessage,
       errorCode: `Unknown: ${error._tag}`,
       httpStatus: 500,
-      stackTrace: typeof error.stack === 'string' ? error.stack : err.stack,
+      stackTrace: err.stack,
     }).catch(() => {});
     return createErrorResponse(ErrorCodes.INTERNAL_ERROR, 'An unexpected error occurred', 500);
   }

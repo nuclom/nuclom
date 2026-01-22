@@ -40,6 +40,12 @@ interface SubscriptionData {
   seats: number | null;
 }
 
+const SUBSCRIPTION_PLANS: SubscriptionPlan[] = ['scale', 'pro'];
+
+function isSubscriptionPlan(value: string): value is SubscriptionPlan {
+  return SUBSCRIPTION_PLANS.includes(value as SubscriptionPlan);
+}
+
 // Helper to safely convert subscription response to our data type
 function mapSubscriptionData(sub: {
   id: string;
@@ -51,10 +57,13 @@ function mapSubscriptionData(sub: {
   trialStart?: Date | string | null;
   trialEnd?: Date | string | null;
   seats?: number | null;
-}): SubscriptionData {
+}): SubscriptionData | null {
+  if (!isSubscriptionPlan(sub.plan)) {
+    return null;
+  }
   return {
     id: sub.id,
-    plan: sub.plan as SubscriptionPlan,
+    plan: sub.plan,
     status: sub.status,
     cancelAtPeriodEnd: sub.cancelAtPeriodEnd ?? false,
     periodStart: sub.periodStart ? new Date(sub.periodStart) : null,
@@ -92,7 +101,7 @@ export function SubscriptionManager({
       try {
         const result = await listSubscriptions(organizationId);
         if (result.data) {
-          setSubscriptions(result.data.map(mapSubscriptionData));
+          setSubscriptions(result.data.map(mapSubscriptionData).filter((sub): sub is SubscriptionData => sub !== null));
         }
       } catch (error) {
         logger.error('Failed to fetch subscriptions', error);

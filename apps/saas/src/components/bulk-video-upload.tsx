@@ -70,6 +70,10 @@ const MAX_FILES = 20;
 // Concurrent uploads
 const CONCURRENT_UPLOADS = 3;
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && (error.name === 'AbortError' || error.message === 'Upload aborted');
+}
+
 export function BulkVideoUpload({
   organizationId,
   authorId,
@@ -300,7 +304,7 @@ export function BulkVideoUpload({
         ),
       );
     } catch (error) {
-      if ((error as Error).name === 'AbortError' || (error as Error).message === 'Upload aborted') {
+      if (isAbortError(error)) {
         setUploads((prev) =>
           prev.map((u) => (u.id === upload.id ? { ...u, status: 'pending' as const, progress: 0 } : u)),
         );

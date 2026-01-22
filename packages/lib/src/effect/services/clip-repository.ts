@@ -24,6 +24,12 @@ import type { PaginatedResponse } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
 import { Storage } from './storage';
+import {
+  mapToHighlightReelWithCreator,
+  mapToHighlightReelWithCreatorArray,
+  mapToVideoClipWithCreator,
+  mapToVideoClipWithCreatorArray,
+} from './type-mappers';
 
 const log = createLogger('clip-repository');
 
@@ -358,7 +364,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
         const total = Number(totalCount[0]?.count ?? 0);
 
         return {
-          data: clipsData as VideoClipWithCreator[],
+          data: mapToVideoClipWithCreatorArray(clipsData) as VideoClipWithCreator[],
           pagination: {
             page,
             limit,
@@ -436,7 +442,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
         const total = Number(totalCount[0]?.count ?? 0);
 
         return {
-          data: clipsData as VideoClipWithCreator[],
+          data: mapToVideoClipWithCreatorArray(clipsData) as VideoClipWithCreator[],
           pagination: {
             page,
             limit,
@@ -517,7 +523,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
         );
       }
 
-      return clipData[0] as VideoClipWithCreator;
+      return mapToVideoClipWithCreator(clipData[0]) as VideoClipWithCreator;
     });
 
   const createClip = (data: CreateClipInput): Effect.Effect<VideoClipWithCreator, DatabaseError> =>
@@ -568,7 +574,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
           .where(eq(videoClips.id, clip.id))
           .limit(1);
 
-        return clipWithCreator as VideoClipWithCreator;
+        return mapToVideoClipWithCreator(clipWithCreator) as VideoClipWithCreator;
       },
       catch: (error) =>
         new DatabaseError({
@@ -724,7 +730,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
         const total = Number(totalCount[0]?.count ?? 0);
 
         return {
-          data: reelsData as HighlightReelWithCreator[],
+          data: mapToHighlightReelWithCreatorArray(reelsData) as HighlightReelWithCreator[],
           pagination: {
             page,
             limit,
@@ -800,7 +806,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
         );
       }
 
-      return reelData[0] as HighlightReelWithCreator;
+      return mapToHighlightReelWithCreator(reelData[0]) as HighlightReelWithCreator;
     });
 
   const createHighlightReel = (
@@ -848,7 +854,7 @@ const makeClipRepositoryService = Effect.gen(function* () {
           .where(eq(highlightReels.id, reel.id))
           .limit(1);
 
-        return reelWithCreator as HighlightReelWithCreator;
+        return mapToHighlightReelWithCreator(reelWithCreator) as HighlightReelWithCreator;
       },
       catch: (error) =>
         new DatabaseError({
