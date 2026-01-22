@@ -3,13 +3,23 @@
 import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, Download, Loader2, Video } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PasswordProtectedVideo } from '@/components/video/password-protected-video';
-import { VideoPlayer } from '@/components/video/video-player';
+
+// Dynamic import for video player - reduces initial bundle size
+const VideoPlayer = dynamic(() => import('@/components/video/video-player').then((m) => m.VideoPlayer), {
+  ssr: false,
+  loading: () => (
+    <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+    </div>
+  ),
+});
 
 interface ShareLinkData {
   id: string;

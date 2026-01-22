@@ -3,9 +3,10 @@
 import { authClient } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
 import type { Member, Organization, User } from '@nuclom/lib/db/schema';
-import { Clock, Loader2, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Mail, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,15 @@ function MembersSettingsContent() {
     role: 'member',
   });
   const [inviting, setInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    type: 'remove_member' | 'cancel_invitation' | null;
+    memberId?: string;
+    memberName?: string;
+    invitationId?: string;
+    email?: string;
+  }>({ open: false, type: null });
 
   const loadOrganizationAndMembers = useCallback(async () => {
     try {
@@ -132,13 +142,20 @@ function MembersSettingsContent() {
         role: inviteData.role,
       });
 
+      // Show success state in dialog
+      setInviteSuccess(inviteData.email);
+
       toast({
-        title: 'Success',
-        description: `Invitation sent to ${inviteData.email}`,
+        title: 'Invitation sent',
+        description: `${inviteData.email} will receive an email with instructions to join.`,
       });
 
-      setInviteDialogOpen(false);
-      setInviteData({ email: '', role: 'member' });
+      // Close dialog after showing success briefly
+      setTimeout(() => {
+        setInviteDialogOpen(false);
+        setInviteData({ email: '', role: 'member' });
+        setInviteSuccess(null);
+      }, 1500);
 
       // Reload members
       await loadOrganizationAndMembers();
@@ -146,7 +163,7 @@ function MembersSettingsContent() {
       logger.error('Failed to send invitation', error);
       toast({
         title: 'Error',
-        description: 'Failed to send invitation',
+        description: 'Failed to send invitation. Please check the email and try again.',
         variant: 'destructive',
       });
     } finally {
@@ -180,20 +197,26 @@ function MembersSettingsContent() {
     }
   };
 
-  const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!organization) return;
+  const openRemoveMemberDialog = (memberId: string, memberName: string) => {
+    setConfirmDialog({
+      open: true,
+      type: 'remove_member',
+      memberId,
+      memberName,
+    });
+  };
 
-    const confirmed = confirm(`Are you sure you want to remove ${memberName} from the organization?`);
-    if (!confirmed) return;
+  const handleRemoveMember = async () => {
+    if (!organization || !confirmDialog.memberId) return;
 
     try {
       await authClient.organization.removeMember({
-        memberIdOrEmail: memberId,
+        memberIdOrEmail: confirmDialog.memberId,
       });
 
       toast({
-        title: 'Success',
-        description: `${memberName} has been removed from the organization`,
+        title: 'Member removed',
+        description: `${confirmDialog.memberName} has been removed from the organization`,
       });
 
       // Reload members
@@ -208,24 +231,33 @@ function MembersSettingsContent() {
     }
   };
 
-  const handleCancelInvitation = async (invitationId: string, email: string) => {
-    if (!organization) return;
+  const openCancelInvitationDialog = (invitationId: string, email: string) => {
+    setConfirmDialog({
+      open: true,
+      type: 'cancel_invitation',
+      invitationId,
+      email,
+    });
+  };
 
-    const confirmed = confirm(`Are you sure you want to cancel the invitation for ${email}?`);
-    if (!confirmed) return;
+  const handleCancelInvitation = async () => {
+    if (!organization || !confirmDialog.invitationId) return;
 
     try {
-      const response = await fetch(`/api/organizations/${organization.id}/invitations?invitationId=${invitationId}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/organizations/${organization.id}/invitations?invitationId=${confirmDialog.invitationId}`,
+        {
+          method: 'DELETE',
+        },
+      );
 
       if (!response.ok) {
         throw new Error('Failed to cancel invitation');
       }
 
       toast({
-        title: 'Success',
-        description: `Invitation for ${email} has been cancelled`,
+        title: 'Invitation cancelled',
+        description: `The invitation for ${confirmDialog.email} has been cancelled`,
       });
 
       // Reload data
@@ -303,47 +335,88 @@ function MembersSettingsContent() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite Member</DialogTitle>
-                <DialogDescription>Send an invitation to join {organization?.name}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter email address"
-                    value={inviteData.email}
-                    onChange={(e) =>
-                      setInviteData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                  />
+              {inviteSuccess ? (
+                <div className="flex flex-col items-center py-6 text-center">
+                  <div className="rounded-full bg-green-100 p-3 mb-4">
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  </div>
+                  <DialogTitle className="mb-2">Invitation Sent</DialogTitle>
+                  <DialogDescription>
+                    We've sent an invitation email to{' '}
+                    <span className="font-medium text-foreground">{inviteSuccess}</span>
+                  </DialogDescription>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select
-                    value={inviteData.role}
-                    onValueChange={(value: 'member' | 'owner') => setInviteData((prev) => ({ ...prev, role: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="owner">Owner</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
-                  {inviting ? 'Sending...' : 'Send Invitation'}
-                </Button>
-              </DialogFooter>
+              ) : (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>Invite Member</DialogTitle>
+                    <DialogDescription>Send an invitation to join {organization?.name}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="colleague@company.com"
+                          value={inviteData.email}
+                          className="pl-9"
+                          onChange={(e) =>
+                            setInviteData((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <Select
+                        value={inviteData.role}
+                        onValueChange={(value: 'member' | 'owner') =>
+                          setInviteData((prev) => ({ ...prev, role: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">
+                            <div className="flex flex-col items-start">
+                              <span>Member</span>
+                              <span className="text-xs text-muted-foreground">Can view and comment on videos</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="owner">
+                            <div className="flex flex-col items-start">
+                              <span>Owner</span>
+                              <span className="text-xs text-muted-foreground">Full access including settings</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setInviteDialogOpen(false)} disabled={inviting}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleInviteMember} disabled={inviting || !inviteData.email.trim()}>
+                      {inviting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Invitation'
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         </CardHeader>
@@ -391,7 +464,7 @@ function MembersSettingsContent() {
                               {member.role === 'member' ? 'Make Owner' : 'Make Member'}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleRemoveMember(member.id, member.user.name)}
+                              onClick={() => openRemoveMemberDialog(member.id, member.user.name)}
                               className="text-destructive"
                             >
                               <UserMinus className="h-4 w-4 mr-2" />
@@ -461,7 +534,7 @@ function MembersSettingsContent() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCancelInvitation(invitation.id, invitation.email)}
+                        onClick={() => openCancelInvitationDialog(invitation.id, invitation.email)}
                         className="text-destructive hover:text-destructive"
                       >
                         <MailX className="h-4 w-4 mr-1" />
@@ -475,6 +548,37 @@ function MembersSettingsContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        open={confirmDialog.open && confirmDialog.type === 'remove_member'}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title="Remove member"
+        description={
+          <>
+            Are you sure you want to remove <strong>{confirmDialog.memberName}</strong> from this organization? They
+            will lose access to all organization resources.
+          </>
+        }
+        actionLabel="Remove member"
+        onConfirm={handleRemoveMember}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={confirmDialog.open && confirmDialog.type === 'cancel_invitation'}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        title="Cancel invitation"
+        description={
+          <>
+            Are you sure you want to cancel the invitation for <strong>{confirmDialog.email}</strong>? They will no
+            longer be able to join using the invitation link.
+          </>
+        }
+        actionLabel="Cancel invitation"
+        onConfirm={handleCancelInvitation}
+        variant="warning"
+      />
     </div>
   );
 }

@@ -23,14 +23,13 @@ import { createLogger } from '@nuclom/lib/logger';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { start } from 'workflow/api';
-
-const log = createLogger('cron');
-
 import { expertiseUpdateWorkflow } from '@/workflows/expertise-update';
 import { scheduledCleanupWorkflow } from '@/workflows/scheduled-cleanup';
 import { subscriptionEnforcementWorkflow } from '@/workflows/subscription-enforcement';
 import { topicClusteringWorkflow } from '@/workflows/topic-clustering';
 import { uptimeMonitorWorkflow } from '@/workflows/uptime-monitor';
+
+const log = createLogger('cron');
 
 export async function GET(request: Request) {
   // Verify the request is from Vercel Cron or has valid authorization

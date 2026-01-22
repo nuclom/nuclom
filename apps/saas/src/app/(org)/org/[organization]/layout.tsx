@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { TrialBannerWrapper } from '@/components/billing/trial-banner-wrapper';
 import { MobileSidebar } from '@/components/dashboard/mobile-sidebar';
 import { SidebarNav } from '@/components/dashboard/sidebar-nav';
+import { KeyboardShortcutsDialog } from '@/components/keyboard-shortcuts-dialog';
 import { TopNav } from '@/components/top-nav';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -50,6 +51,8 @@ async function LayoutContent({ children, params }: LayoutProps) {
           <div className="w-full max-w-screen-xl p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
       </div>
+      {/* Global keyboard shortcuts dialog - press ? to open */}
+      <KeyboardShortcutsDialog />
     </div>
   );
 }

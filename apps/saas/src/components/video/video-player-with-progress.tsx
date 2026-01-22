@@ -8,10 +8,21 @@
  */
 
 import { logger } from '@nuclom/lib/client-logger';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
 import { useProgressFraction, useVideoProgress } from '@/hooks/use-video-progress';
-import { type VideoChapter, VideoPlayer, type VideoProgress } from './video-player';
+import type { VideoChapter, VideoProgress } from './video-player';
+
+// Dynamic import for the video player - reduces initial bundle size
+const VideoPlayer = dynamic(() => import('./video-player').then((m) => m.VideoPlayer), {
+  ssr: false,
+  loading: () => (
+    <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+    </div>
+  ),
+});
 
 // =============================================================================
 // Types

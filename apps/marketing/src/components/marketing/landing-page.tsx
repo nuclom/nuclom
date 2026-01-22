@@ -10,12 +10,15 @@ import {
   Globe,
   Layers,
   Link2,
+  MessageCircle,
   MessageSquare,
   Network,
+  Rss,
   Search,
   Shield,
   Sparkles,
   Star,
+  Tags,
   Users,
   Video,
   Webhook,
@@ -150,6 +153,32 @@ export function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-primary">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <MessageCircle className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Ask AI</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Chat with your knowledge base. Ask questions and get instant answers with sources from all your
+                  connected content.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Rss className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Knowledge Feed</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Stay updated with a unified feed of activity across all sources. See new content, decisions, and
+                  updates in one place.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
@@ -249,6 +278,18 @@ export function LandingPage() {
             <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                  <Tags className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl mb-3">Topic Explorer</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Discover and navigate auto-clustered topics. See what your organization is discussing and documenting.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background/50 backdrop-blur hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mb-6">
                   <Shield className="w-8 h-8 text-primary" />
                 </div>
                 <CardTitle className="text-xl mb-3">Enterprise Security</CardTitle>
@@ -262,7 +303,7 @@ export function LandingPage() {
           {/* View All Features Link */}
           <div className="mt-12 text-center">
             <Link href="/features" className="text-primary hover:underline font-medium inline-flex items-center gap-2">
-              View all 50+ features
+              View all 60+ features
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

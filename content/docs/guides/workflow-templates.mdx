@@ -1,246 +1,43 @@
 ---
 title: 'Workflow Templates'
-description: 'Streamline video processing with pre-configured workflow templates'
+description: 'Standardize AI processing and sharing rules with reusable templates'
 icon: 'wand-magic-sparkles'
 ---
 
-Workflow templates help you streamline video processing by applying pre-configured settings automatically.
+Workflow templates let you apply consistent AI processing and sharing rules to videos. Templates are currently available via the API for automation and integrations.
 
-## Overview
-
-Workflow templates define:
+## What Templates Include
 
 <CardGroup cols={2}>
   <Card title="AI Processing" icon="brain">
-    Transcription, summaries, chapters, action items
+    Transcription, summaries, chapters, action items, and speaker detection.
+  </Card>
+  <Card title="Sharing Rules" icon="share">
+    Default share link access levels and expiration windows.
   </Card>
   <Card title="Subtitles" icon="closed-captioning">
-    Which languages to generate subtitles for
-  </Card>
-  <Card title="Sharing" icon="share">
-    Auto-generate share links with specific permissions
+    Generate subtitle tracks in multiple languages.
   </Card>
   <Card title="Custom Prompts" icon="message">
-    Tailor AI output to your specific needs
+    Tailor summaries or action item extraction to your team’s needs.
   </Card>
 </CardGroup>
 
-## Built-in Templates
+## When to Use Templates
 
 <AccordionGroup>
-  <Accordion title="Meeting Recap" icon="users">
-    Perfect for team meetings, standups, and client calls.
-
-    **Features:**
-    - Extracts action items with owners
-    - Identifies key decisions
-    - Creates chapter markers for topics
-    - Single language subtitles (English)
-
-    **Best for:** Internal meetings, client calls, standups, retrospectives
+  <Accordion title="Recurring meeting types">
+    Apply consistent summaries for weekly syncs or retrospectives.
   </Accordion>
-
-  <Accordion title="Tutorial / How-To" icon="graduation-cap">
-    Optimized for step-by-step instructional content.
-
-    **Features:**
-    - Chapter detection for steps
-    - Code snippet detection
-    - Multi-language subtitles (5 languages)
-    - Summary focused on learning objectives
-
-    **Best for:** Software tutorials, how-to guides, educational content
+  <Accordion title="Customer calls">
+    Extract action items and follow-ups automatically.
   </Accordion>
-
-  <Accordion title="Product Demo" icon="presentation">
-    Designed for promotional and sales content.
-
-    **Features:**
-    - Feature highlights in chapters
-    - Auto-generated share link (30 days)
-    - Marketing-friendly summaries
-    - Call-to-action extraction
-
-    **Best for:** Sales demos, feature walkthroughs, product launches
-  </Accordion>
-
-  <Accordion title="Training Session" icon="chalkboard">
-    Comprehensive template for educational content.
-
-    **Features:**
-    - Learning objectives extraction
-    - Exercise and homework detection
-    - 8 language subtitle support
-    - Code snippet detection
-
-    **Best for:** Employee training, courses, workshops
-  </Accordion>
-
-  <Accordion title="Team Onboarding" icon="user-plus">
-    Welcome videos for new team members.
-
-    **Features:**
-    - Setup task extraction
-    - Resource list detection
-    - Auto-shareable with view access
-    - Chapter markers for topics
-
-    **Best for:** Welcome videos, process documentation, orientation content
-  </Accordion>
-
-  <Accordion title="Marketing Content" icon="bullhorn">
-    Promotional videos for external sharing.
-
-    **Features:**
-    - SEO-optimized summaries
-    - 5 language subtitles
-    - Auto-share enabled
-    - Hashtag suggestions
-
-    **Best for:** Social media, promotional videos, announcements
+  <Accordion title="Training content">
+    Generate chapters and multi-language subtitles in one pass.
   </Accordion>
 </AccordionGroup>
 
-## Using Templates
-
-### When Uploading
-
-<Steps>
-  <Step title="Start Upload">
-    Click **New Video** in your dashboard
-  </Step>
-  <Step title="Select File">
-    Select or drag your video file
-  </Step>
-  <Step title="Choose Template">
-    Choose a **Workflow Template** from the dropdown
-  </Step>
-  <Step title="Upload">
-    Template settings will be applied automatically
-  </Step>
-</Steps>
-
-### Apply to Existing Video
-
-<Steps>
-  <Step title="Open Video">
-    Navigate to the video you want to process
-  </Step>
-  <Step title="Settings">
-    Click the **Settings** icon (gear)
-  </Step>
-  <Step title="Apply">
-    Select **Apply Template** and choose your template
-  </Step>
-</Steps>
-
-## Creating Custom Templates
-
-### Step 1: Access Template Settings
-
-<Steps>
-  <Step title="Navigate">
-    Go to **Settings** → **Workflow Templates**
-  </Step>
-  <Step title="Create">
-    Click **Create Template**
-  </Step>
-</Steps>
-
-### Step 2: Configure Settings
-
-<Tabs>
-  <Tab title="Basic Info">
-    | Field | Description |
-    | ----- | ----------- |
-    | **Name** | Descriptive template name |
-    | **Description** | What this template is for |
-    | **Type** | Category (meeting, tutorial, demo, etc.) |
-    | **Icon** | Visual identifier |
-  </Tab>
-  <Tab title="AI Processing">
-    | Setting | Description |
-    | ------- | ----------- |
-    | **Auto-transcribe** | Generate transcript automatically |
-    | **Generate summary** | Create AI summary |
-    | **Extract chapters** | Detect key moments |
-    | **Extract action items** | Find tasks and to-dos |
-    | **Detect code snippets** | Identify code blocks |
-  </Tab>
-  <Tab title="Sharing">
-    | Setting | Description |
-    | ------- | ----------- |
-    | **Auto-share** | Create share link on completion |
-    | **Access level** | View, comment, or download |
-    | **Expiration** | Days until link expires |
-  </Tab>
-</Tabs>
-
-## Template Settings Reference
-
-### AI Processing Options
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `autoTranscribe` | Generate transcript from audio | `true` |
-| `generateSummary` | Create AI-powered summary | `true` |
-| `extractChapters` | Detect chapter markers | `true` |
-| `extractActionItems` | Find tasks and action items | Varies |
-| `detectCodeSnippets` | Identify code in video | `false` |
-
-### Subtitle Languages
-
-Available languages:
-- English (en), Spanish (es), French (fr), German (de)
-- Portuguese (pt), Japanese (ja), Chinese (zh), Korean (ko)
-- Italian (it), Dutch (nl)
-
-### Auto-Share Settings
-
-| Setting | Options |
-|---------|---------|
-| `enabled` | `true` / `false` |
-| `accessLevel` | `view`, `comment`, `download` |
-| `expiresInDays` | Number or `null` (never) |
-
-### Custom Prompts
-
-Customize AI behavior with specific instructions:
-
-**Summary Prompt Example:**
-
-```
-Generate a meeting summary that includes:
-1. Key decisions made
-2. Action items with owners
-3. Topics discussed
-4. Next steps and deadlines
-```
-
-**Action Items Prompt Example:**
-
-```
-Extract all action items, including:
-- The specific task
-- Who is responsible
-- Due date if mentioned
-- Priority if indicated
-```
-
-## API Reference
-
-### List Templates
-
-```http
-GET /api/workflow-templates
-```
-
-Query parameters:
-- `organizationId` - Filter by organization
-- `type` - Filter by template type
-- `system` - Include system templates (`true`/`false`)
-
-### Create Template
+## Create a Template (API)
 
 ```http
 POST /api/workflow-templates
@@ -248,66 +45,37 @@ POST /api/workflow-templates
 
 ```json
 {
-  "name": "My Custom Template",
-  "description": "For weekly team updates",
+  "name": "Weekly Leadership Sync",
+  "description": "Summary + action items",
   "type": "meeting_recap",
-  "icon": "Users",
   "organizationId": "org_xxx",
   "config": {
     "autoTranscribe": true,
     "generateSummary": true,
     "extractChapters": true,
     "extractActionItems": true,
-    "subtitleLanguages": ["en", "es"]
+    "subtitleLanguages": ["en"]
   }
 }
 ```
 
-### Apply Template
+## Apply a Template (API)
 
 ```http
 POST /api/workflow-templates/:id
 ```
 
-## Best Practices
-
-<CardGroup cols={2}>
-  <Card title="Template Naming" icon="tag">
-    Use descriptive names like "Weekly Sales Call" instead of "Template 1"
-  </Card>
-  <Card title="Subtitle Strategy" icon="language">
-    Start with your primary audience language, then add based on viewer demographics
-  </Card>
-  <Card title="Custom Prompts" icon="message">
-    Be specific about what you want extracted and test with sample videos first
-  </Card>
-  <Card title="Share Settings" icon="lock">
-    Use expiration for sensitive content and choose minimum access level needed
-  </Card>
-</CardGroup>
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Template not applying">
-    - Ensure correct organization is selected
-    - Check that the template is active
-    - Verify processing credits are available
-  </Accordion>
-  <Accordion title="Custom prompts not working">
-    - Prompts should be clear and specific
-    - Avoid conflicting instructions
-    - Test with shorter videos first
-  </Accordion>
-  <Accordion title="Missing features in output">
-    - Some features require longer videos
-    - Code detection needs visible code
-    - Action items require spoken tasks
-  </Accordion>
-</AccordionGroup>
+<Note>
+  UI support for workflow templates is on the roadmap. For now, use the API or automation tools like Zapier.
+</Note>
 
 ## Next Steps
 
-<Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
-  Solutions for common issues
-</Card>
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore endpoints for automation.
+  </Card>
+  <Card title="Integrations" icon="plug" href="/guides/settings-preferences">
+    Connect Nuclom to external tools.
+  </Card>
+</CardGroup>

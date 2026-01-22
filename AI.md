@@ -27,78 +27,87 @@ All documentation is in `content/docs/` and served via Mintlify. Always keep doc
 
 ## Project Structure
 
+This is a monorepo with shared packages:
+
 ```
-src/
-├── app/                    # Next.js App Router pages and layouts
-│   ├── (app)/             # Authenticated app routes
-│   ├── (auth)/            # Authentication pages
-│   ├── (marketing)/       # Public marketing pages
-│   └── api/               # API route handlers
-├── components/            # React components
-│   ├── ui/               # shadcn/ui primitives
-│   └── [feature]/        # Feature-specific components
-├── lib/                   # Core utilities and services
-│   ├── auth/             # Authentication configuration
-│   ├── db/               # Database schema and queries
-│   ├── effect/           # Effect-TS services and layers
-│   │   ├── services/    # Repository and service implementations
-│   │   ├── runtime.ts   # Application layer composition
-│   │   └── server.ts    # Server-side Effect utilities
-│   ├── api-handler.ts   # Standardized API route helpers
-│   ├── api-errors.ts    # Error codes and response mapping
-│   ├── validation/      # Effect Schema validation utilities
-│   └── utils/            # Shared utilities
-├── hooks/                # Custom React hooks
-├── workflows/            # Background job workflows
-└── middleware.ts         # Next.js middleware
+apps/
+├── saas/                      # Main SaaS application (Next.js)
+│   └── src/
+│       ├── app/               # Next.js App Router pages and layouts
+│       │   ├── (app)/         # Authenticated app routes
+│       │   ├── (auth)/        # Authentication pages
+│       │   ├── (org)/         # Organization-scoped routes
+│       │   ├── (api)/         # API route handlers
+│       │   └── (marketing)/   # Public marketing pages
+│       ├── components/        # React components
+│       ├── hooks/             # Custom React hooks
+│       ├── lib/               # App-specific utilities
+│       └── workflows/         # Background job workflows
+└── marketing/                 # Marketing site
+
+packages/
+├── lib/                       # Shared library (imported as @lib)
+│   └── src/
+│       ├── db/                # Database schema and queries
+│       │   └── schema/        # Drizzle ORM schema files
+│       ├── effect/            # Effect-TS services and layers
+│       │   └── services/      # Repository and service implementations
+│       ├── api-handler.ts     # Standardized API route helpers
+│       ├── api-errors.ts      # Error codes and response mapping
+│       └── validation/        # Effect Schema validation utilities
+├── ui/                        # Shared UI components (shadcn/ui based)
+├── auth/                      # Shared authentication utilities
+├── config/                    # Shared configuration
+└── socials/                   # Social media integrations
 ```
 
 ## Code Patterns
 
 ### API Routes
 
-API routes use Effect-TS with dependency injection layers for type-safe error handling. Use the standardized helpers from `@/lib/api-handler`:
+API routes use Effect-TS with dependency injection layers for type-safe error handling. Use the standardized helpers from `@nuclom/lib`:
 
 ```typescript
 import { Effect } from "effect";
 import type { NextRequest } from "next/server";
-import { createFullLayer, handleEffectExit, handleEffectExitWithStatus } from "@/lib/api-handler";
-import { Auth } from "@/lib/effect/services/auth";
+import { Auth, handleEffectExitWithOptions, runApiEffect } from "@nuclom/lib/api-handler";
+import { VideoRepository } from "@nuclom/lib/effect";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const effect = Effect.gen(function* () {
-    // Authenticate
+    const resolvedParams = yield* Effect.promise(() => params);
+
+    // Authenticate (optional - can also check access without auth)
     const authService = yield* Auth;
     const { user } = yield* authService.getSession(request.headers);
 
     // Use repository services for database operations
-    const repo = yield* SomeRepository;
-    return yield* repo.getData(user.id);
+    const videoRepo = yield* VideoRepository;
+    return yield* videoRepo.getVideo(resolvedParams.id);
   });
 
-  const runnable = Effect.provide(effect, createFullLayer());
-  const exit = await Effect.runPromiseExit(runnable);
-
-  return handleEffectExit(exit); // For GET requests
-  // return handleEffectExitWithStatus(exit, 201); // For POST (201 Created)
+  // Run effect with full application layer
+  const exit = await runApiEffect(effect);
+  return handleEffectExitWithOptions(exit);
+  // For POST: return handleEffectExitWithOptions(exit, { status: 201 });
 }
 ```
 
 **Key helpers:**
-- `createFullLayer()` - Creates the full application layer with authentication
-- `handleEffectExit(exit)` - Standard response handling for GET/PUT/DELETE
-- `handleEffectExitWithStatus(exit, 201)` - For POST requests returning 201
-- `mapErrorToApiResponse(error)` - Maps Effect errors to standardized API responses
+- `runApiEffect(effect)` - Provides full application layer and executes the effect
+- `handleEffectExitWithOptions(exit)` - Standard response handling with optional config
+- `handleEffectExitWithOptions(exit, { status: 201 })` - For POST requests returning 201
+- `validateRequestBody(schema, request)` - Validates request body with Effect Schema
 
 > **Important**: Do NOT use `export const dynamic = "force-dynamic"` - this pattern no longer works on Vercel deployments. The Effect layer system handles database connections automatically.
 
 ### Database Queries
 
-Use Drizzle ORM with the query builder pattern:
+Use Drizzle ORM with the query builder pattern (via repository services in API routes):
 
 ```typescript
-import { db } from "@/lib/db"
-import { videos, users } from "@/lib/db/schema"
+import { db } from "@nuclom/lib/db"
+import { videos, users } from "@nuclom/lib/db/schema"
 
 // Query with relations
 const video = await db.query.videos.findFirst({
@@ -111,11 +120,13 @@ await db.insert(videos).values({...})
 await db.update(videos).set({...}).where(eq(videos.id, id))
 ```
 
+**Note**: In API routes, always use repository services (e.g., `VideoRepository`) instead of direct `db` access.
+
 ### Component Structure
 
 Components follow this pattern:
-- UI primitives in `src/components/ui/` (shadcn/ui based)
-- Feature components colocated with their routes
+- UI primitives in `packages/ui/` (shadcn/ui based, imported as `@ui`)
+- Feature components in `apps/saas/src/components/[feature]/`
 - Use `cn()` utility for conditional classNames
 - Prefer Server Components, add `"use client"` only when needed
 
@@ -126,7 +137,7 @@ Use react-hook-form with Effect Schema validation:
 ```typescript
 import { useForm } from "react-hook-form"
 import { Schema } from "effect"
-import { validateRequestBody, validateQueryParams } from "@/lib/validation"
+import { validateRequestBody, validateQueryParams } from "@nuclom/lib/validation"
 
 // Define schema with Effect Schema (recommended for API routes)
 const createVideoSchema = Schema.Struct({
@@ -161,14 +172,32 @@ const result = await generateObject({
 
 ## Database Schema
 
-Schema is organized in `src/lib/db/schema/` with domain-specific files:
+Schema is organized in `packages/lib/src/db/schema/` with domain-specific files:
 - `auth.ts` - Better-auth managed tables (DO NOT EDIT directly)
+- `auth-relations.ts` - Relations for auth tables
 - `user-extensions.ts` - App-specific user data (decoupled from auth)
 - `videos.ts` - Video metadata and storage refs
-- `comments.ts` - Video comments and reactions
 - `notifications.ts` - User notifications
 - `billing.ts` - Subscriptions and payments
 - `clips.ts` - Video clips and highlights
+- `knowledge.ts` - Knowledge graph tables
+- `knowledge-extended.ts` - Extended knowledge features
+- `content.ts` - Content source abstraction
+- `github.ts` - GitHub integration tables
+- `notion.ts` - Notion integration tables
+- `slack.ts` - Slack integration tables
+- `chat.ts` - AI chat knowledge base
+- `ai-insights.ts` - AI-extracted topics and action items
+- `analytics.ts` - Video analytics and metrics
+- `speakers.ts` - Speaker diarization tables
+- `search.ts` - Semantic search tables
+- `sharing.ts` - Video sharing links
+- `workflows.ts` - Workflow templates
+- `integrations.ts` - External service integrations
+- `activity.ts` - Activity feed and webhooks
+- `audit-logs.ts` - Audit logging
+- `legal.ts` - Legal compliance
+- `vocabulary.ts` - Custom vocabulary for transcription
 - See `content/docs/internal/architecture/database.mdx` for full schema docs
 
 **Important**: Store application user data in `userExtensions` table, not `users`. The `users` table is managed by better-auth.
@@ -177,32 +206,33 @@ Schema is organized in `src/lib/db/schema/` with domain-specific files:
 
 ### Adding a New API Endpoint
 
-1. Create route handler in `src/app/api/[resource]/route.ts` (following Next.js App Router conventions)
+1. Create route handler in `apps/saas/src/app/(api)/api/[resource]/route.ts` (following Next.js App Router conventions)
 2. Use Effect-TS pattern with `createFullLayer()` and `handleEffectExit()` helpers
 3. Use repository services for database operations (e.g., `VideoRepository`, `OrganizationRepository`)
 4. Update API route documentation (OpenAPI spec is auto-generated)
 
 ### Adding a New Database Table
 
-1. Add table in the appropriate domain file in `src/lib/db/schema/`
-2. Add relations in `src/lib/db/schema/relations.ts`
+1. Add table in the appropriate domain file in `packages/lib/src/db/schema/`
+2. Add relations in `packages/lib/src/db/schema/auth-relations.ts` or create a new relations file
 3. Run `pnpm db:generate` to create migration
 4. Run `pnpm db:migrate` to apply
 5. Update `content/docs/internal/architecture/database.mdx`
 
 ### Adding a New Component
 
-1. Create in `src/components/[feature]/`
-2. Use existing UI primitives from `src/components/ui/`
+1. Create feature components in `apps/saas/src/components/[feature]/`
+2. Use shared UI primitives from `packages/ui/` (imported as `@ui`)
 3. Follow existing patterns for props and styling
 4. Add Storybook story if complex
 
 ### Adding a New Page
 
-1. Create route in `src/app/(app)/[route]/page.tsx`
-2. Add layout if needed: `layout.tsx`
-3. Implement loading state: `loading.tsx`
-4. Handle errors: `error.tsx`
+1. Create route in `apps/saas/src/app/(org)/org/[organization]/[route]/page.tsx` (for org-scoped pages)
+2. Or in `apps/saas/src/app/(app)/[route]/page.tsx` (for app-level pages)
+3. Add layout if needed: `layout.tsx`
+4. Implement loading state: `loading.tsx`
+5. Handle errors: `error.tsx`
 
 ## Testing
 
@@ -221,7 +251,7 @@ pnpm test:e2e --ui     # Interactive mode
 
 Test files:
 - Unit tests: `*.test.ts` next to source files
-- E2E tests: `src/test/e2e/`
+- E2E tests: `apps/saas/src/test/e2e/` or `playwright/`
 
 ## Environment Variables
 
@@ -289,10 +319,10 @@ const result = program.pipe(
 ### API Route Checklist
 
 1. Use `Effect.gen` for business logic
-2. Authenticate with `Auth` service
+2. Authenticate with `Auth` service from `@nuclom/lib/api-handler`
 3. Use repository services (not direct `db` access)
-4. Provide layer with `createFullLayer()` or `createPublicLayer()`
-5. Handle exit with `handleEffectExit()` or `handleEffectExitWithStatus()`
+4. Execute with `runApiEffect(effect)` which provides the full layer
+5. Handle exit with `handleEffectExitWithOptions(exit)` or `handleEffectExitWithOptions(exit, { status: 201 })`
 
 ## Best Practices
 

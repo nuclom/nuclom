@@ -28,7 +28,7 @@ Nuclom uses [Effect-TS](https://effect.website/) as its core functional programm
 ## Directory Structure
 
 ```
-src/lib/effect/
+packages/lib/src/effect/
 ├── common.ts           # Common Effect exports
 ├── errors.ts           # Custom error types
 ├── config.ts           # Configuration with Effect Config
@@ -37,21 +37,71 @@ src/lib/effect/
 ├── retry.ts            # Retry utilities with exponential backoff
 ├── index.ts            # Main export file
 └── services/
-    ├── index.ts              # Services export
-    ├── database.ts           # Database service (Drizzle)
-    ├── storage.ts            # Storage service (R2/S3)
-    ├── auth.ts               # Authentication service wrapper
-    ├── ai.ts                 # AI service (Vercel AI SDK)
-    ├── ai-structured.ts      # AI with structured outputs (Effect Schema)
-    ├── video-processor.ts    # Video processing service
-    ├── video-repository.ts   # Video data access
-    ├── video-ai-processor.ts # AI video analysis pipeline
-    ├── recommendations.ts    # Personalized video recommendations
-    ├── presence.ts           # Real-time user presence
-    ├── watch-later.ts        # Watch later/bookmarks
-    ├── comment-reactions.ts  # Comment reactions
-    ├── performance-monitoring.ts  # Performance metrics
-    └── organization-repository.ts  # Organization data access
+    ├── index.ts                    # Services export
+    ├── database.ts                 # Database service (Drizzle)
+    ├── storage.ts                  # Storage service (R2/S3)
+    ├── auth.ts                     # Authentication service wrapper
+    ├── ai.ts                       # AI service (Vercel AI SDK)
+    ├── ai-structured.ts            # AI with structured outputs (Effect Schema)
+    ├── ai-chat-kb.ts               # AI chat knowledge base
+    ├── video-processor.ts          # Video processing service
+    ├── video-repository.ts         # Video data access
+    ├── video-ai-processor.ts       # AI video analysis pipeline
+    ├── video-analytics-repository.ts # Video analytics
+    ├── video-shares-repository.ts  # Video sharing
+    ├── video-share-links-repository.ts # Share link management
+    ├── video-progress-repository.ts # Watch progress tracking
+    ├── recommendations.ts          # Personalized recommendations
+    ├── discovery.ts                # Content discovery
+    ├── presence.ts                 # Real-time user presence
+    ├── watch-later.ts              # Watch later/bookmarks
+    ├── organization-repository.ts  # Organization data access
+    ├── billing.ts                  # Billing service
+    ├── billing-repository.ts       # Billing data access
+    ├── billing-middleware.ts       # Billing middleware
+    ├── stripe.ts                   # Stripe integration
+    ├── embedding.ts                # Vector embeddings
+    ├── semantic-search-repository.ts # Semantic search
+    ├── search-repository.ts        # Full-text search
+    ├── chat-repository.ts          # Chat messages
+    ├── clip-repository.ts          # Video clips
+    ├── collection-repository.ts    # Collections
+    ├── speaker-repository.ts       # Speaker management
+    ├── speaker-diarization.ts      # Speaker diarization
+    ├── notification-repository.ts  # Notifications
+    ├── action-item-repository.ts   # Action items
+    ├── activity-feed-repository.ts # Activity feed
+    ├── integration-repository.ts   # External integrations
+    ├── knowledge-graph-repository.ts # Knowledge graph
+    ├── vocabulary-repository.ts    # Custom vocabulary
+    ├── transcription.ts            # Transcription service
+    ├── replicate.ts                # Replicate API integration
+    ├── encryption.ts               # Data encryption
+    ├── email-notifications.ts      # Email service
+    ├── performance-monitoring.ts   # Performance metrics
+    ├── slack.ts                    # Slack integration
+    ├── slack-monitoring.ts         # Slack monitoring
+    ├── zoom.ts                     # Zoom integration
+    ├── google-meet.ts              # Google Meet integration
+    ├── microsoft-teams.ts          # Microsoft Teams integration
+    ├── zapier-webhooks.ts          # Zapier webhooks
+    ├── knowledge/                  # Knowledge services
+    │   ├── decision-tracker.ts     # Decision tracking
+    │   ├── knowledge-qa.ts         # Q&A service
+    │   ├── knowledge-gap-detector.ts # Gap detection
+    │   ├── proactive-insight.ts    # Proactive insights
+    │   ├── relationship-detector.ts # Relationship detection
+    │   ├── smart-summary.ts        # Smart summaries
+    │   └── topic-cluster.ts        # Topic clustering
+    ├── content/                    # Content adapters
+    │   ├── content-repository.ts   # Content abstraction
+    │   ├── content-processor.ts    # Content processing
+    │   ├── video-content-adapter.ts
+    │   ├── github-content-adapter.ts
+    │   ├── notion-content-adapter.ts
+    │   └── slack-content-adapter.ts
+    └── search/                     # Search services
+        └── unified-search.ts       # Unified search
 ```
 
 ## Error Types

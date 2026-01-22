@@ -67,7 +67,7 @@ Videos in Nuclom go through a multi-stage processing pipeline:
 
 ### VideoProcessor
 
-Located at `src/lib/effect/services/video-processor.ts`
+Located at `packages/lib/src/effect/services/video-processor.ts`
 
 Handles the initial video upload:
 
@@ -91,7 +91,7 @@ interface VideoProcessorService {
 
 ### ReplicateAPI
 
-Located at `src/lib/effect/services/replicate.ts`
+Located at `packages/lib/src/effect/services/replicate.ts`
 
 Provides AI-powered video processing:
 
@@ -110,7 +110,7 @@ interface ReplicateService {
 
 ### Workflow
 
-Located at `src/workflows/video-processing.ts`
+Located at `apps/saas/src/workflows/video-processing.ts`
 
 Uses Workflow DevKit (useworkflow.dev) for durable processing:
 
@@ -302,7 +302,7 @@ ALTER TABLE videos ADD COLUMN processed_at TIMESTAMP;
 
 ### ProcessingStatus
 
-Located at `src/components/video/processing-status.tsx`
+Located at `apps/saas/src/components/video/processing-status.tsx`
 
 Shows current processing status with appropriate icons and animations:
 
