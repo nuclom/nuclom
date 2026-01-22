@@ -28,6 +28,10 @@ export interface QAResult {
 
 type ErrorType = 'network' | 'empty_knowledge_base' | 'rate_limit' | 'server' | 'unknown';
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -146,17 +150,15 @@ export function KnowledgeQAContainer({ organizationId, className }: KnowledgeQAC
         setMessages((prev) => [...prev, assistantMessage]);
         setTimeout(scrollToBottom, 100);
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if (!isAbortError(error)) {
           const errorMessage = getErrorMessage(error);
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: errorMessage.message,
-              errorType: errorMessage.type,
-            } as Message,
-          ]);
+          const errorMsg: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: errorMessage.message,
+            errorType: errorMessage.type,
+          };
+          setMessages((prev) => [...prev, errorMsg]);
         }
       } finally {
         setIsLoading(false);

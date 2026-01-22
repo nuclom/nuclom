@@ -69,6 +69,22 @@ type SortField = 'date' | 'name' | 'duration' | 'size';
 type SortOrder = 'asc' | 'desc';
 type DateRange = '7' | '30' | '90' | 'all';
 
+const SORT_FIELDS: SortField[] = ['date', 'name', 'duration', 'size'];
+const SORT_ORDERS: SortOrder[] = ['asc', 'desc'];
+const DATE_RANGES: DateRange[] = ['7', '30', '90', 'all'];
+
+function isSortField(value: string): value is SortField {
+  return SORT_FIELDS.includes(value as SortField);
+}
+
+function isSortOrder(value: string): value is SortOrder {
+  return SORT_ORDERS.includes(value as SortOrder);
+}
+
+function isDateRange(value: string): value is DateRange {
+  return DATE_RANGES.includes(value as DateRange);
+}
+
 export function RecordingBrowser({
   provider,
   open,
@@ -332,7 +348,12 @@ export function RecordingBrowser({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Date Range</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+                <DropdownMenuRadioGroup
+                  value={dateRange}
+                  onValueChange={(v) => {
+                    if (isDateRange(v)) setDateRange(v);
+                  }}
+                >
                   <DropdownMenuRadioItem value="7">Last 7 days</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="30">Last 30 days</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="90">Last 90 days</DropdownMenuRadioItem>
@@ -352,7 +373,12 @@ export function RecordingBrowser({
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Sort by</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                <DropdownMenuRadioGroup
+                  value={sortField}
+                  onValueChange={(v) => {
+                    if (isSortField(v)) setSortField(v);
+                  }}
+                >
                   <DropdownMenuRadioItem value="date">Date</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="duration">Duration</DropdownMenuRadioItem>
@@ -360,7 +386,12 @@ export function RecordingBrowser({
                 </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Order</DropdownMenuLabel>
-                <DropdownMenuRadioGroup value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+                <DropdownMenuRadioGroup
+                  value={sortOrder}
+                  onValueChange={(v) => {
+                    if (isSortOrder(v)) setSortOrder(v);
+                  }}
+                >
                   <DropdownMenuRadioItem value="desc">Newest first</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="asc">Oldest first</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>

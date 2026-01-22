@@ -148,9 +148,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Hash password if provided
     let hashedPassword: string | null = null;
-    if (body.password?.trim()) {
+    const passwordToHash = body.password?.trim();
+    if (passwordToHash) {
       hashedPassword = yield* Effect.tryPromise({
-        try: () => hashPassword(body.password as string),
+        try: () => hashPassword(passwordToHash),
         catch: () =>
           new DatabaseError({
             message: 'Failed to hash password',

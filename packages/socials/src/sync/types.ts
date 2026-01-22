@@ -45,12 +45,13 @@ export interface SyncedProfile {
 
 /**
  * Complete sync state for a provider
+ * Note: Arrays are readonly since synced data should not be mutated
  */
 export interface SyncState {
   provider: string;
   lastSyncedAt: string;
   profile: SyncedProfile;
-  tweets: SyncedTweet[];
+  tweets: readonly SyncedTweet[];
 }
 
 /**

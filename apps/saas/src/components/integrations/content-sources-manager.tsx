@@ -44,6 +44,16 @@ export interface ContentSourcesManagerProps {
   organizationId: string;
 }
 
+// Helper to safely extract string arrays from config
+function getConfigStringArray(config: unknown, key: string): string[] {
+  if (typeof config !== 'object' || config === null) return [];
+  const value = (config as Record<string, unknown>)[key];
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
+    return value;
+  }
+  return [];
+}
+
 // =============================================================================
 // Component
 // =============================================================================
@@ -418,10 +428,9 @@ function ContentSourceConfigDialog({
   useEffect(() => {
     if (source) {
       setName(source.name);
-      const config = source.config as Record<string, unknown>;
-      setChannels(((config.channels as string[]) || []).join(', '));
-      setDatabases(((config.databases as string[]) || []).join(', '));
-      setRepositories(((config.repositories as string[]) || []).join(', '));
+      setChannels(getConfigStringArray(source.config, 'channels').join(', '));
+      setDatabases(getConfigStringArray(source.config, 'databases').join(', '));
+      setRepositories(getConfigStringArray(source.config, 'repositories').join(', '));
     }
   }, [source]);
 

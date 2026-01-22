@@ -136,8 +136,14 @@ const makeNotificationRepositoryService = Effect.gen(function* () {
           }),
       });
 
+      // Map notifications to ensure proper type structure
+      const mappedNotifications: NotificationWithActor[] = notificationsData.map((notification) => ({
+        ...notification,
+        actor: notification.actor ?? null,
+      }));
+
       return {
-        data: notificationsData as NotificationWithActor[],
+        data: mappedNotifications,
         unreadCount: unreadResult[0]?.count ?? 0,
       };
     });

@@ -24,6 +24,12 @@ import type {
 } from '../../types';
 import { DatabaseError, NotFoundError } from '../errors';
 import { Database } from './database';
+import {
+  mapToSavedSearchWithUserArray,
+  mapToSearchHistoryWithUserArray,
+  mapToVideoWithAuthor,
+  mapToVideoWithAuthorArray,
+} from './type-mappers';
 
 // =============================================================================
 // Types
@@ -319,7 +325,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
                 stripeCustomerId: row.author_stripe_customer_id,
                 lastLoginMethod: row.author_last_login_method,
               },
-            } as VideoWithAuthor,
+            },
             rank: row.rank,
             highlights: {
               title: row.headline_title || undefined,
@@ -405,7 +411,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
             .offset(offset);
 
           results = videosData.map((v) => ({
-            video: v as VideoWithAuthor,
+            video: mapToVideoWithAuthor(v),
             rank: 0,
           }));
 
@@ -560,7 +566,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
           .orderBy(desc(searchHistory.createdAt))
           .limit(limit);
 
-        return results as SearchHistoryWithUser[];
+        return mapToSearchHistoryWithUserArray(results);
       },
       catch: (error) =>
         new DatabaseError({
@@ -645,7 +651,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
           .where(and(eq(savedSearches.userId, userId), eq(savedSearches.organizationId, organizationId)))
           .orderBy(desc(savedSearches.updatedAt));
 
-        return results as SavedSearchWithUser[];
+        return mapToSavedSearchWithUserArray(results);
       },
       catch: (error) =>
         new DatabaseError({
@@ -807,7 +813,7 @@ const makeSearchRepositoryService = Effect.gen(function* () {
           .orderBy(desc(videos.createdAt))
           .limit(limit);
 
-        return results as VideoWithAuthor[];
+        return mapToVideoWithAuthorArray(results);
       },
       catch: (error) =>
         new DatabaseError({

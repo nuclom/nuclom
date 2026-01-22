@@ -56,13 +56,23 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
       // Try to parse error body, fall back to empty object if parsing fails
       const errorBody = yield* pipe(
         Effect.tryPromise({
-          try: () => response.json() as Promise<{ error?: string }>,
+          try: async (): Promise<{ error?: string }> => {
+            const json: unknown = await response.json();
+            // Type guard for error response
+            if (typeof json === 'object' && json !== null && 'error' in json) {
+              const errorValue = (json as { error: unknown }).error;
+              if (typeof errorValue === 'string') {
+                return { error: errorValue };
+              }
+            }
+            return {};
+          },
           catch: () =>
             new ParseError({
               message: 'Failed to parse error response',
             }),
         }),
-        Effect.catchAll(() => Effect.succeed({} as { error?: string })),
+        Effect.catchAll(() => Effect.succeed({ error: undefined })),
       );
 
       return yield* Effect.fail(
@@ -83,7 +93,7 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
         }),
     });
 
-    if (!data.success) {
+    if (!data.success || data.data === undefined) {
       return yield* Effect.fail(
         new HttpError({
           message: data.error || 'API request failed',
@@ -92,7 +102,10 @@ export const fetchEffect = <T>(endpoint: string, options?: FetchOptions): Effect
       );
     }
 
-    return data.data as T;
+    // At this point, data.success is true and data.data is defined
+    // The type assertion is safe because the API contract guarantees
+    // that successful responses contain data of type T
+    return data.data;
   });
 
 /**

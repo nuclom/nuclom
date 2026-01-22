@@ -12,6 +12,7 @@ import type { PaginatedResponse, VideoWithAuthor, VideoWithDetails } from '../..
 import { DatabaseError, type DeleteError, NotFoundError } from '../errors';
 import { Database } from './database';
 import { Storage } from './storage';
+import { mapToVideoWithAuthorArray, mapToVideoWithDetails } from './type-mappers';
 import type {
   CreateVideoInput,
   SoftDeleteOptions,
@@ -144,7 +145,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           .where(and(eq(videos.organizationId, organizationId), isNull(videos.deletedAt)));
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit,
@@ -223,7 +224,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           .where(and(eq(videos.organizationId, organizationId), isNotNull(videos.deletedAt)));
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit,
@@ -313,10 +314,11 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         );
       }
 
+      const video = videoData[0];
       return {
-        ...videoData[0],
+        ...mapToVideoWithDetails(video),
         comments: [],
-      } as VideoWithDetails;
+      };
     });
 
   const createVideo = (data: CreateVideoInput): Effect.Effect<typeof videos.$inferSelect, DatabaseError> =>
@@ -613,7 +615,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         const total = totalCountResult[0]?.count ?? 0;
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit,
@@ -713,7 +715,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           );
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit,
@@ -793,7 +795,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
           .where(and(ne(videos.authorId, userId), eq(videos.organizationId, organizationId), isNull(videos.deletedAt)));
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit,
@@ -1053,7 +1055,7 @@ const makeVideoRepositoryService = Effect.gen(function* () {
         const total = totalCountResult[0]?.count ?? 0;
 
         return {
-          data: videosData as VideoWithAuthor[],
+          data: mapToVideoWithAuthorArray(videosData),
           pagination: {
             page,
             limit: itemsLimit,

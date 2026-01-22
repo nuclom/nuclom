@@ -10,6 +10,23 @@ import { type ContentType, Discovery } from '@nuclom/lib/effect/services/discove
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
 
+// Valid content types for discovery
+const VALID_CONTENT_TYPES: ReadonlySet<string> = new Set([
+  'decision',
+  'document',
+  'video',
+  'topic_cluster',
+  'content_item',
+]);
+
+function isContentType(value: string): value is ContentType {
+  return VALID_CONTENT_TYPES.has(value);
+}
+
+function parseValidContentTypes(input: string): ContentType[] {
+  return input.split(',').filter(isContentType);
+}
+
 // =============================================================================
 // GET - Get Personalized Recommendations
 // =============================================================================
@@ -40,7 +57,7 @@ export async function GET(request: NextRequest) {
       organizationId,
       userId: user.id,
       limit: limitParam ? parseInt(limitParam, 10) : undefined,
-      contentTypes: contentTypesParam ? (contentTypesParam.split(',') as ContentType[]) : undefined,
+      contentTypes: contentTypesParam ? parseValidContentTypes(contentTypesParam) : undefined,
     });
 
     return result;
