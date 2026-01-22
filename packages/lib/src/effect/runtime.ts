@@ -17,6 +17,7 @@ import { env } from '../env/server';
 import { ActionItemRepositoryLive } from './services/action-item-repository';
 import { type AI, AILive } from './services/ai';
 import { type AIChatKB, AIChatKBLive } from './services/ai-chat-kb';
+import { AssemblyAIClientLive } from './services/assemblyai-client';
 import { makeAuthLayer } from './services/auth';
 import { type Billing, BillingLive } from './services/billing';
 import { type BillingRepository, BillingRepositoryLive } from './services/billing-repository';
@@ -32,6 +33,7 @@ import { type Database, DatabaseLive } from './services/database';
 import { type Discovery, DiscoveryLive } from './services/discovery';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';
 import { type Embedding, EmbeddingLive } from './services/embedding';
+import { GitHubClientLive } from './services/github-client';
 import { type IntegrationRepository, IntegrationRepositoryLive } from './services/integration-repository';
 import { type DecisionTracker, DecisionTrackerLive } from './services/knowledge/decision-tracker';
 import { type KnowledgeGapDetector, KnowledgeGapDetectorLive } from './services/knowledge/knowledge-gap-detector';
@@ -42,12 +44,14 @@ import { type SmartSummary, SmartSummaryLive } from './services/knowledge/smart-
 import { type TopicCluster, TopicClusterLive } from './services/knowledge/topic-cluster';
 import { type KnowledgeGraphRepository, KnowledgeGraphRepositoryLive } from './services/knowledge-graph-repository';
 import { type NotificationRepository, NotificationRepositoryLive } from './services/notification-repository';
+import { NotionClientLive } from './services/notion-client';
 import { type OrganizationRepository, OrganizationRepositoryLive } from './services/organization-repository';
 import { type Presence, PresenceLive } from './services/presence';
 import { type ReplicateAPI, ReplicateLive } from './services/replicate';
 import { type UnifiedSearch, UnifiedSearchLive } from './services/search/unified-search';
 import { type SearchRepository, SearchRepositoryLive } from './services/search-repository';
 import { type SemanticSearchRepository, SemanticSearchRepositoryLive } from './services/semantic-search-repository';
+import { SlackClientLive, SlackWebhookClientLive } from './services/slack-client';
 import { type SlackMonitoring, SlackMonitoringLive } from './services/slack-monitoring';
 import { type Storage, StorageLive } from './services/storage';
 import { StripeServiceLive, type StripeServiceTag } from './services/stripe';
@@ -136,9 +140,13 @@ const BaseServicesLive = Layer.mergeAll(
   AILive,
   EmbeddingLive,
   ReplicateLive,
+  AssemblyAIClientLive,
+  GitHubClientLive,
+  NotionClientLive,
   StripeServiceLive,
   EmailNotificationsLive,
-  SlackMonitoringLive,
+  SlackClientLive,
+  SlackWebhookClientLive,
 );
 
 // =============================================================================
@@ -167,6 +175,9 @@ const VideoSharesRepositoryWithDeps = withDep(VideoSharesRepositoryLive, Databas
 const VideoShareLinksRepositoryWithDeps = withDep(VideoShareLinksRepositoryLive, DatabaseLive);
 const ContentRepositoryWithDeps = withDep(ContentRepositoryLive, DatabaseLive);
 
+// SlackMonitoring depends on SlackWebhookClient
+const SlackMonitoringWithDeps = withDep(SlackMonitoringLive, SlackWebhookClientLive);
+
 // Repositories with Database + Storage dependencies
 const VideoRepositoryWithDeps = withDeps2(VideoRepositoryLive, DatabaseLive, StorageLive);
 const ClipRepositoryWithDeps = withDeps2(ClipRepositoryLive, DatabaseLive, StorageLive);
@@ -191,9 +202,15 @@ const ContentProcessorWithDeps = ContentProcessorLive.pipe(
 );
 
 // Content adapters depend on Database (Slack also needs Storage for file downloads)
-const SlackContentAdapterWithDeps = withDeps2(SlackContentAdapterLive, DatabaseLive, StorageLive);
-const GitHubContentAdapterWithDeps = withDep(GitHubContentAdapterLive, DatabaseLive);
-const NotionContentAdapterWithDeps = withDep(NotionContentAdapterLive, DatabaseLive);
+const SlackContentAdapterWithDeps = SlackContentAdapterLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, StorageLive, SlackClientLive)),
+);
+const GitHubContentAdapterWithDeps = GitHubContentAdapterLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, GitHubClientLive)),
+);
+const NotionContentAdapterWithDeps = NotionContentAdapterLive.pipe(
+  Layer.provide(Layer.mergeAll(DatabaseLive, NotionClientLive)),
+);
 
 // Knowledge Graph Services - depend on ContentRepository, Embedding, and AI
 const RelationshipDetectorWithDeps = RelationshipDetectorLive.pipe(
@@ -262,6 +279,7 @@ const AppServicesLive = Layer.mergeAll(
   KnowledgeGapDetectorWithDeps,
   ProactiveInsightWithDeps,
   DiscoveryWithDeps,
+  SlackMonitoringWithDeps,
   // Content adapters for integrations
   SlackContentAdapterWithDeps,
   GitHubContentAdapterWithDeps,
@@ -334,13 +352,13 @@ export const AppRuntime = globalValue('@nuclom/effect-runtime', () => ManagedRun
 /**
  * Run an Effect using the global runtime
  */
-export const runEffect = <A, E>(effect: Effect.Effect<A, E>): Promise<A> =>
+export const runEffect = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
   AppRuntime.runPromise(effect as Effect.Effect<A, E, never>) as Promise<A>;
 
 /**
  * Run an Effect with exit handling
  */
-export const runEffectExit = <A, E>(effect: Effect.Effect<A, E>): Promise<Exit.Exit<A, E>> =>
+export const runEffectExit = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<Exit.Exit<A, E>> =>
   AppRuntime.runPromiseExit(effect as Effect.Effect<A, E, never>) as Promise<Exit.Exit<A, E>>;
 
 /**

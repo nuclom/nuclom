@@ -85,7 +85,7 @@ export async function GET(request: Request) {
     const contentRepo = yield* ContentRepository;
 
     // Exchange code for tokens
-    const tokens = yield* Effect.promise(() => exchangeNotionCode(clientId, clientSecret, code, redirectUri));
+    const tokens = yield* exchangeNotionCode(clientId, clientSecret, code, redirectUri);
 
     // Create or update content source
     const existingSources = yield* contentRepo.getSources({

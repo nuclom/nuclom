@@ -24,6 +24,7 @@ import {
 } from '../../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../../errors';
 import { Database } from '../../database';
+import { SlackClient } from '../../slack-client';
 import { Storage } from '../../storage';
 import type { ContentSourceAdapter, RawContentItem } from '../types';
 import { slackFetch } from './api-client';
@@ -33,6 +34,7 @@ import type {
   SlackChannelInfo,
   SlackChannelsListResponse,
   SlackConversationHistoryResponse,
+  SlackConversationInfoResponse,
   SlackConversationRepliesResponse,
   SlackMessage,
   SlackPermalinkResponse,
@@ -89,6 +91,12 @@ export class SlackContentAdapter extends Context.Tag('SlackContentAdapter')<
 const makeSlackContentAdapter = Effect.gen(function* () {
   const { db } = yield* Database;
   const storage = yield* Storage;
+  const slackClient = yield* SlackClient;
+  const slackFetchWithClient = <T>(
+    endpoint: string,
+    accessToken: string,
+    params?: Record<string, string | number | boolean>,
+  ) => slackFetch<T>(endpoint, accessToken, params).pipe(Effect.provideService(SlackClient, slackClient));
 
   // ==========================================================================
   // Helper Functions
@@ -102,21 +110,25 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     return credentials.accessToken;
   };
 
-  const getSlackUsers = async (sourceId: string): Promise<Map<string, SlackUser>> => {
-    const users = await db.query.slackUsers.findMany({
-      where: eq(slackUsers.sourceId, sourceId),
+  const getSlackUsers = (sourceId: string): Effect.Effect<Map<string, SlackUser>, Error> =>
+    Effect.tryPromise({
+      try: async () => {
+        const users = await db.query.slackUsers.findMany({
+          where: eq(slackUsers.sourceId, sourceId),
+        });
+        return new Map(users.map((u) => [u.slackUserId, u]));
+      },
+      catch: (error) => new Error(`Failed to fetch Slack users: ${error instanceof Error ? error.message : 'Unknown'}`),
     });
-    return new Map(users.map((u) => [u.slackUserId, u]));
-  };
 
-  const fetchChannelHistory = async (
+  const fetchChannelHistory = (
     accessToken: string,
     channelId: string,
     cursor?: string,
     oldest?: string,
     latest?: string,
     limit = 100,
-  ): Promise<SlackConversationHistoryResponse> => {
+  ): Effect.Effect<SlackConversationHistoryResponse, Error> => {
     const params: Record<string, string> = {
       channel: channelId,
       limit: String(limit),
@@ -125,15 +137,15 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     if (oldest) params.oldest = oldest;
     if (latest) params.latest = latest;
 
-    return slackFetch<SlackConversationHistoryResponse>('conversations.history', accessToken, params);
+    return slackFetchWithClient<SlackConversationHistoryResponse>('conversations.history', accessToken, params);
   };
 
-  const fetchThreadReplies = async (
+  const fetchThreadReplies = (
     accessToken: string,
     channelId: string,
     threadTs: string,
     cursor?: string,
-  ): Promise<SlackConversationRepliesResponse> => {
+  ): Effect.Effect<SlackConversationRepliesResponse, Error> => {
     const params: Record<string, string> = {
       channel: channelId,
       ts: threadTs,
@@ -141,30 +153,31 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     };
     if (cursor) params.cursor = cursor;
 
-    return slackFetch<SlackConversationRepliesResponse>('conversations.replies', accessToken, params);
+    return slackFetchWithClient<SlackConversationRepliesResponse>('conversations.replies', accessToken, params);
   };
 
-  const fetchPermalink = async (accessToken: string, channelId: string, messageTs: string): Promise<string | null> => {
-    try {
-      const response = await slackFetch<SlackPermalinkResponse>('chat.getPermalink', accessToken, {
-        channel: channelId,
-        message_ts: messageTs,
-      });
-      return response.permalink;
-    } catch {
-      return null;
-    }
-  };
+  const fetchPermalink = (
+    accessToken: string,
+    channelId: string,
+    messageTs: string,
+  ): Effect.Effect<string | null, never> =>
+    slackFetchWithClient<SlackPermalinkResponse>('chat.getPermalink', accessToken, {
+      channel: channelId,
+      message_ts: messageTs,
+    }).pipe(
+      Effect.map((response) => response.permalink ?? null),
+      Effect.catchAll(() => Effect.succeed(null)),
+    );
 
   /**
    * Fetch all channels from Slack and build a map of channelId -> channelName
    * Used for resolving channel mentions in messages
    */
-  const fetchChannelMap = async (accessToken: string): Promise<Map<string, string>> => {
-    const channelMap = new Map<string, string>();
-    let cursor: string | undefined;
+  const fetchChannelMap = (accessToken: string): Effect.Effect<Map<string, string>, never> =>
+    Effect.gen(function* () {
+      const channelMap = new Map<string, string>();
+      let cursor: string | undefined;
 
-    try {
       do {
         const params: Record<string, string> = {
           types: 'public_channel,private_channel',
@@ -172,20 +185,42 @@ const makeSlackContentAdapter = Effect.gen(function* () {
         };
         if (cursor) params.cursor = cursor;
 
-        const response = await slackFetch<SlackChannelsListResponse>('conversations.list', accessToken, params);
+        const response = yield* slackFetchWithClient<SlackChannelsListResponse>(
+          'conversations.list',
+          accessToken,
+          params,
+        );
 
-        for (const channel of response.channels) {
-          channelMap.set(channel.id, channel.name);
+        for (const channel of response.channels ?? []) {
+          if (!channel.id) continue;
+          channelMap.set(channel.id, channel.name ?? channel.id);
         }
 
         cursor = response.response_metadata?.next_cursor;
       } while (cursor);
-    } catch {
-      // If we can't fetch channels, return empty map - mentions will fall back to IDs
-    }
 
-    return channelMap;
+      return channelMap;
+    }).pipe(Effect.catchAll(() => Effect.succeed(new Map<string, string>())));
+
+  const isSlackMessageEvent = (
+    event: unknown,
+  ): event is SlackMessage & { channel: string; ts: string; type: string } => {
+    if (typeof event !== 'object' || event === null) {
+      return false;
+    }
+    const record = event as Record<string, unknown>;
+    return record.type === 'message' && typeof record.channel === 'string' && typeof record.ts === 'string';
   };
+
+  const isSlackReactionEvent = (event: {
+    type: string;
+    [key: string]: unknown;
+  }): event is { type: 'reaction_added' | 'reaction_removed'; item: { channel: string; ts: string } } =>
+    (event.type === 'reaction_added' || event.type === 'reaction_removed') &&
+    typeof event.item === 'object' &&
+    event.item !== null &&
+    typeof (event.item as { channel?: unknown }).channel === 'string' &&
+    typeof (event.item as { ts?: unknown }).ts === 'string';
 
   // ==========================================================================
   // ContentSourceAdapter Interface
@@ -195,229 +230,263 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     sourceType: 'slack',
 
     validateCredentials: (source) =>
-      Effect.tryPromise({
-        try: async () => {
-          const accessToken = getAccessToken(source);
-          // Try to call a simple API endpoint to verify credentials
-          await slackFetch<{ ok: boolean }>('auth.test', accessToken);
-          return true;
-        },
-        catch: () => false,
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        yield* slackFetchWithClient<{ ok: boolean }>('auth.test', accessToken);
+        return true;
       }).pipe(Effect.catchAll(() => Effect.succeed(false))),
 
     fetchContent: (source, options) =>
-      Effect.tryPromise({
-        try: async () => {
-          const accessToken = getAccessToken(source);
-          const config = source.config as SlackContentConfig | undefined;
-          const channelIds = config?.channels || [];
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        const config = source.config as SlackContentConfig | undefined;
+        const channelIds = config?.channels || [];
 
-          if (channelIds.length === 0) {
-            // No channels configured, return empty
-            return { items: [] as RawContentItem[], hasMore: false };
+        if (channelIds.length === 0) {
+          // No channels configured, return empty
+          return { items: [] as RawContentItem[], hasMore: false };
+        }
+
+        // Get user mapping for name resolution
+        const usersMap = yield* getSlackUsers(source.id).pipe(
+          Effect.catchAll(() => Effect.succeed(new Map<string, SlackUser>())),
+        );
+
+        // Create processing context for file downloads
+        const processingContext: MessageProcessingContext = {
+          sourceId: source.id,
+          accessToken,
+          storage,
+          syncFiles: config?.syncFiles !== false, // Default to true
+        };
+
+        // Fetch channel map for resolving channel mentions
+        const channelMap = yield* fetchChannelMap(accessToken);
+
+        const items: RawContentItem[] = [];
+        let hasMore = false;
+
+        // Fetch from each configured channel
+        for (const channelId of channelIds) {
+          // Get channel info
+          let channel: SlackChannelInfo;
+          try {
+            const channelsResponse = yield* slackFetchWithClient<SlackConversationInfoResponse>(
+              'conversations.info',
+              accessToken,
+              {
+                channel: channelId,
+              },
+            );
+            if (!channelsResponse.channel) {
+              continue;
+            }
+            channel = channelsResponse.channel;
+          } catch {
+            // Skip channel if we can't get info
+            continue;
           }
 
-          // Get user mapping for name resolution
-          const usersMap = await getSlackUsers(source.id);
+          // Parse cursor (format: channelId:timestamp)
+          let oldest: string | undefined;
+          if (options?.cursor) {
+            const [cursorChannel, cursorTs] = options.cursor.split(':');
+            if (cursorChannel === channelId) {
+              oldest = cursorTs;
+            }
+          }
 
-          // Create processing context for file downloads
-          const processingContext: MessageProcessingContext = {
-            sourceId: source.id,
+          // If we have a since date, use that as oldest
+          if (options?.since) {
+            const sinceTs = String(options.since.getTime() / 1000);
+            if (!oldest || Number.parseFloat(sinceTs) > Number.parseFloat(oldest)) {
+              oldest = sinceTs;
+            }
+          }
+
+          const limit = options?.limit || 50;
+
+          // Fetch messages
+          const historyResponse = yield* fetchChannelHistory(
             accessToken,
-            storage,
-            syncFiles: config?.syncFiles !== false, // Default to true
-          };
+            channelId,
+            undefined,
+            oldest,
+            undefined,
+            limit,
+          );
 
-          // Fetch channel map for resolving channel mentions
-          const channelMap = await fetchChannelMap(accessToken);
+          hasMore = hasMore || (historyResponse.has_more ?? false);
 
-          const items: RawContentItem[] = [];
-          let hasMore = false;
+          const historyMessages = historyResponse.messages ?? [];
 
-          // Fetch from each configured channel
-          for (const channelId of channelIds) {
-            // Get channel info
-            let channel: SlackChannelInfo;
-            try {
-              const channelsResponse = await slackFetch<SlackChannelsListResponse>('conversations.info', accessToken, {
-                channel: channelId,
-              });
-              channel = (channelsResponse as unknown as { channel: SlackChannelInfo }).channel;
-            } catch {
-              // Skip channel if we can't get info
+          // Process messages
+          for (const message of historyMessages) {
+            if (!message.ts) {
+              continue;
+            }
+            // Skip bot messages if configured
+            if (config?.excludeBots && message.bot_id) {
               continue;
             }
 
-            // Parse cursor (format: channelId:timestamp)
-            let oldest: string | undefined;
-            if (options?.cursor) {
-              const [cursorChannel, cursorTs] = options.cursor.split(':');
-              if (cursorChannel === channelId) {
-                oldest = cursorTs;
-              }
+            // Skip subtypes like channel_join, channel_leave, etc.
+            if (message.subtype && message.subtype !== 'thread_broadcast') {
+              continue;
             }
 
-            // If we have a since date, use that as oldest
-            if (options?.since) {
-              const sinceTs = String(options.since.getTime() / 1000);
-              if (!oldest || Number.parseFloat(sinceTs) > Number.parseFloat(oldest)) {
-                oldest = sinceTs;
-              }
-            }
-
-            const limit = options?.limit || 50;
-
-            // Fetch messages
-            const historyResponse = await fetchChannelHistory(
-              accessToken,
-              channelId,
-              undefined,
-              oldest,
-              undefined,
-              limit,
-            );
-
-            hasMore = hasMore || historyResponse.has_more;
-
-            // Process messages
-            for (const message of historyResponse.messages) {
-              // Skip bot messages if configured
-              if (config?.excludeBots && message.bot_id) {
-                continue;
-              }
-
-              // Skip subtypes like channel_join, channel_leave, etc.
-              if (message.subtype && message.subtype !== 'thread_broadcast') {
-                continue;
-              }
-
-              // Check for thread
-              if (message.reply_count && message.reply_count > 0 && config?.syncThreads !== false) {
-                // Fetch thread replies and aggregate
-                const repliesResponse = await fetchThreadReplies(accessToken, channelId, message.ts);
-                const replies = repliesResponse.messages.filter((m) => m.ts !== message.ts); // Remove parent
-                const permalink = await fetchPermalink(accessToken, channelId, message.ts);
-                const threadItem = await aggregateThread(
-                  message,
-                  replies,
-                  channel,
-                  usersMap,
-                  permalink || undefined,
-                  processingContext,
-                  channelMap,
-                );
-                items.push(threadItem);
-              } else {
-                // Single message
-                const permalink = await fetchPermalink(accessToken, channelId, message.ts);
-                const item = await messageToRawContentItem(
-                  message,
-                  channel,
-                  usersMap,
-                  permalink || undefined,
-                  processingContext,
-                  channelMap,
-                );
-                items.push(item);
-              }
-            }
-          }
-
-          return {
-            items,
-            hasMore,
-            nextCursor:
-              hasMore && items.length > 0 ? `${channelIds[0]}:${items[items.length - 1].externalId}` : undefined,
-          };
-        },
-        catch: (e) =>
-          new ContentSourceSyncError({
-            message: e instanceof Error ? e.message : 'Unknown error',
-            sourceId: source.id,
-            sourceType: 'slack',
-            cause: e,
-          }),
-      }),
-
-    fetchItem: (source, externalId) =>
-      Effect.tryPromise({
-        try: async () => {
-          // externalId is the message timestamp
-          // We need to find which channel it's in from the sync state
-          const accessToken = getAccessToken(source);
-          const config = source.config as SlackContentConfig | undefined;
-          const channelIds = config?.channels || [];
-
-          const usersMap = await getSlackUsers(source.id).catch(() => new Map<string, SlackUser>());
-
-          // Create processing context for file downloads
-          const processingContext: MessageProcessingContext = {
-            sourceId: source.id,
-            accessToken,
-            storage,
-            syncFiles: config?.syncFiles !== false, // Default to true
-          };
-
-          // Fetch channel map for resolving channel mentions
-          const channelMap = await fetchChannelMap(accessToken);
-
-          // Try each channel until we find the message
-          for (const channelId of channelIds) {
-            try {
-              // Try to get the message as a thread parent
-              const response = await fetchThreadReplies(accessToken, channelId, externalId);
-              if (response.messages.length > 0) {
-                const parentMessage = response.messages[0];
-
-                // Get channel info
-                const channelsResponse = await slackFetch<SlackChannelsListResponse>(
-                  'conversations.info',
-                  accessToken,
-                  {
-                    channel: channelId,
-                  },
-                );
-                const channel = (channelsResponse as unknown as { channel: SlackChannelInfo }).channel;
-
-                if (response.messages.length > 1) {
-                  // It's a thread
-                  const replies = response.messages.slice(1);
-                  const permalink = await fetchPermalink(accessToken, channelId, externalId);
-                  return await aggregateThread(
-                    parentMessage,
+            // Check for thread
+            if (message.reply_count && message.reply_count > 0 && config?.syncThreads !== false) {
+              // Fetch thread replies and aggregate
+              const repliesResponse = yield* fetchThreadReplies(accessToken, channelId, message.ts);
+              const replies = (repliesResponse.messages ?? []).filter((m) => m.ts !== message.ts); // Remove parent
+              const permalink = yield* fetchPermalink(accessToken, channelId, message.ts);
+              const threadItem = yield* Effect.tryPromise({
+                try: () =>
+                  aggregateThread(
+                    message,
                     replies,
                     channel,
                     usersMap,
                     permalink || undefined,
                     processingContext,
                     channelMap,
-                  );
-                } else {
-                  // Single message
-                  const permalink = await fetchPermalink(accessToken, channelId, externalId);
-                  return await messageToRawContentItem(
-                    parentMessage,
+                  ),
+                catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+              });
+              items.push(threadItem);
+            } else {
+              // Single message
+              const permalink = yield* fetchPermalink(accessToken, channelId, message.ts);
+              const item = yield* Effect.tryPromise({
+                try: () =>
+                  messageToRawContentItem(
+                    message,
                     channel,
                     usersMap,
                     permalink || undefined,
                     processingContext,
                     channelMap,
-                  );
-                }
-              }
-            } catch {}
+                  ),
+                catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+              });
+              items.push(item);
+            }
           }
+        }
 
-          return null;
-        },
-        catch: (e) =>
-          new ContentSourceSyncError({
-            message: e instanceof Error ? e.message : 'Unknown error',
-            sourceId: source.id,
-            sourceType: 'slack',
-            cause: e,
-          }),
-      }),
+        return {
+          items,
+          hasMore,
+          nextCursor:
+            hasMore && items.length > 0 ? `${channelIds[0]}:${items[items.length - 1].externalId}` : undefined,
+        };
+      }).pipe(
+        Effect.mapError(
+          (e) =>
+            new ContentSourceSyncError({
+              message: e instanceof Error ? e.message : 'Unknown error',
+              sourceId: source.id,
+              sourceType: 'slack',
+              cause: e,
+            }),
+        ),
+      ),
+
+    fetchItem: (source, externalId) =>
+      Effect.gen(function* () {
+        // externalId is the message timestamp
+        // We need to find which channel it's in from the sync state
+        const accessToken = getAccessToken(source);
+        const config = source.config as SlackContentConfig | undefined;
+        const channelIds = config?.channels || [];
+
+        const usersMap = yield* getSlackUsers(source.id).pipe(
+          Effect.catchAll(() => Effect.succeed(new Map<string, SlackUser>())),
+        );
+
+        // Create processing context for file downloads
+        const processingContext: MessageProcessingContext = {
+          sourceId: source.id,
+          accessToken,
+          storage,
+          syncFiles: config?.syncFiles !== false, // Default to true
+        };
+
+        // Fetch channel map for resolving channel mentions
+        const channelMap = yield* fetchChannelMap(accessToken);
+
+        // Try each channel until we find the message
+        for (const channelId of channelIds) {
+          try {
+            // Try to get the message as a thread parent
+            const response = yield* fetchThreadReplies(accessToken, channelId, externalId);
+            const responseMessages = response.messages ?? [];
+            if (responseMessages.length > 0) {
+              const parentMessage = responseMessages[0];
+
+              // Get channel info
+              const channelsResponse = yield* slackFetchWithClient<SlackConversationInfoResponse>(
+                'conversations.info',
+                accessToken,
+                {
+                  channel: channelId,
+                },
+              );
+              if (!channelsResponse.channel) {
+                continue;
+              }
+              const channel = channelsResponse.channel;
+
+              if (responseMessages.length > 1) {
+                // It's a thread
+                const replies = responseMessages.slice(1);
+                const permalink = yield* fetchPermalink(accessToken, channelId, externalId);
+                return yield* Effect.tryPromise({
+                  try: () =>
+                    aggregateThread(
+                      parentMessage,
+                      replies,
+                      channel,
+                      usersMap,
+                      permalink || undefined,
+                      processingContext,
+                      channelMap,
+                    ),
+                  catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+                });
+              } else {
+                // Single message
+                const permalink = yield* fetchPermalink(accessToken, channelId, externalId);
+                return yield* Effect.tryPromise({
+                  try: () =>
+                    messageToRawContentItem(
+                      parentMessage,
+                      channel,
+                      usersMap,
+                      permalink || undefined,
+                      processingContext,
+                      channelMap,
+                    ),
+                  catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+                });
+              }
+            }
+          } catch {}
+        }
+
+        return null;
+      }).pipe(
+        Effect.mapError(
+          (e) =>
+            new ContentSourceSyncError({
+              message: e instanceof Error ? e.message : 'Unknown error',
+              sourceId: source.id,
+              sourceType: 'slack',
+              cause: e,
+            }),
+        ),
+      ),
 
     refreshAuth: (source) =>
       Effect.gen(function* () {
@@ -458,18 +527,23 @@ const makeSlackContentAdapter = Effect.gen(function* () {
           };
           if (cursor) params.cursor = cursor;
 
-          const response = yield* Effect.tryPromise({
-            try: () => slackFetch<SlackChannelsListResponse>('conversations.list', accessToken, params),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list channels: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'slack',
-                cause: e,
-              }),
-          });
+          const response = yield* slackFetchWithClient<SlackChannelsListResponse>(
+            'conversations.list',
+            accessToken,
+            params,
+          ).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list channels: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'slack',
+                  cause: e,
+                }),
+            ),
+          );
 
-          channels.push(...response.channels);
+          channels.push(...(response.channels ?? []));
           cursor = response.response_metadata?.next_cursor;
         } while (cursor);
 
@@ -479,7 +553,7 @@ const makeSlackContentAdapter = Effect.gen(function* () {
     syncUsers: (source) =>
       Effect.gen(function* () {
         const accessToken = getAccessToken(source);
-        const slackUsersList: SlackUsersListResponse['members'] = [];
+        const slackUsersList: NonNullable<SlackUsersListResponse['members']> = [];
         let cursor: string | undefined;
 
         // Fetch all users from Slack
@@ -487,40 +561,46 @@ const makeSlackContentAdapter = Effect.gen(function* () {
           const params: Record<string, string> = { limit: '200' };
           if (cursor) params.cursor = cursor;
 
-          const response = yield* Effect.tryPromise({
-            try: () => slackFetch<SlackUsersListResponse>('users.list', accessToken, params),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list users: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'slack',
-                cause: e,
-              }),
-          });
+          const response = yield* slackFetchWithClient<SlackUsersListResponse>('users.list', accessToken, params).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list users: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'slack',
+                  cause: e,
+                }),
+            ),
+          );
 
-          slackUsersList.push(...response.members);
+          slackUsersList.push(...(response.members ?? []));
           cursor = response.response_metadata?.next_cursor;
         } while (cursor);
 
         // Upsert users to database
         const savedUsers: SlackUser[] = [];
         for (const slackUser of slackUsersList) {
+          if (!slackUser.id) {
+            continue;
+          }
+          const slackUserId = slackUser.id;
+          const profile = slackUser.profile;
           const userData: NewSlackUser = {
             sourceId: source.id,
-            slackUserId: slackUser.id,
-            displayName: slackUser.profile.display_name || slackUser.name,
+            slackUserId,
+            displayName: profile?.display_name || slackUser.name || slackUser.real_name || slackUserId,
             realName: slackUser.real_name,
-            email: slackUser.profile.email,
-            avatarUrl: slackUser.profile.image_48,
-            isBot: slackUser.is_bot,
-            isAdmin: slackUser.is_admin || false,
+            email: profile?.email,
+            avatarUrl: profile?.image_48,
+            isBot: Boolean(slackUser.is_bot),
+            isAdmin: Boolean(slackUser.is_admin),
             timezone: slackUser.tz,
           };
 
           const [saved] = yield* Effect.tryPromise({
             try: async () => {
               const existing = await db.query.slackUsers.findFirst({
-                where: and(eq(slackUsers.sourceId, source.id), eq(slackUsers.slackUserId, slackUser.id)),
+                where: and(eq(slackUsers.sourceId, source.id), eq(slackUsers.slackUserId, slackUserId)),
               });
 
               if (existing) {
@@ -602,13 +682,9 @@ const makeSlackContentAdapter = Effect.gen(function* () {
 
     handleEvent: (source, event) => {
       // Handle reaction events differently as they need to call fetchItem
-      if (event.type === 'reaction_added' || event.type === 'reaction_removed') {
-        const item = event as unknown as { item: { channel: string; ts: string } };
-        if (!item.item?.channel || !item.item?.ts) {
-          return Effect.succeed(null);
-        }
+      if (isSlackReactionEvent(event)) {
         // Map auth errors to sync errors for consistent error type
-        return service.fetchItem(source, item.item.ts).pipe(
+        return service.fetchItem(source, event.item.ts).pipe(
           Effect.mapError((e) =>
             e._tag === 'ContentSourceAuthError'
               ? new ContentSourceSyncError({
@@ -622,86 +698,102 @@ const makeSlackContentAdapter = Effect.gen(function* () {
         );
       }
 
-      return Effect.tryPromise({
-        try: async () => {
-          const accessToken = getAccessToken(source);
-          const config = source.config as SlackContentConfig | undefined;
-          const usersMap = await getSlackUsers(source.id).catch(() => new Map<string, SlackUser>());
+      return Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        const config = source.config as SlackContentConfig | undefined;
+        const usersMap = yield* getSlackUsers(source.id).pipe(
+          Effect.catchAll(() => Effect.succeed(new Map<string, SlackUser>())),
+        );
 
-          // Create processing context for file downloads
-          const processingContext: MessageProcessingContext = {
-            sourceId: source.id,
-            accessToken,
-            storage,
-            syncFiles: config?.syncFiles !== false, // Default to true
-          };
+        // Create processing context for file downloads
+        const processingContext: MessageProcessingContext = {
+          sourceId: source.id,
+          accessToken,
+          storage,
+          syncFiles: config?.syncFiles !== false, // Default to true
+        };
 
-          // Fetch channel map for resolving channel mentions
-          const channelMap = await fetchChannelMap(accessToken);
+        // Fetch channel map for resolving channel mentions
+        const channelMap = yield* fetchChannelMap(accessToken);
 
-          switch (event.type) {
-            case 'message': {
-              const message = event as unknown as SlackMessage & { channel: string };
-              if (!message.channel || !message.ts) return null;
+        switch (event.type) {
+          case 'message': {
+            if (!isSlackMessageEvent(event)) return null;
+            const message = event;
 
-              // Skip subtypes we don't care about
-              if (message.subtype && message.subtype !== 'thread_broadcast') {
+            // Skip subtypes we don't care about
+            if (message.subtype && message.subtype !== 'thread_broadcast') {
+              return null;
+            }
+
+            // Get channel info
+            let channel: SlackChannelInfo;
+            try {
+              const channelsResponse = yield* slackFetchWithClient<SlackConversationInfoResponse>(
+                'conversations.info',
+                accessToken,
+                { channel: message.channel },
+              );
+              if (!channelsResponse.channel) {
                 return null;
               }
+              channel = channelsResponse.channel;
+            } catch {
+              return null;
+            }
 
-              // Get channel info
-              let channel: SlackChannelInfo;
-              try {
-                const channelsResponse = await slackFetch<SlackChannelsListResponse>(
-                  'conversations.info',
-                  accessToken,
-                  { channel: message.channel },
-                );
-                channel = (channelsResponse as unknown as { channel: SlackChannelInfo }).channel;
-              } catch {
-                return null;
-              }
+            const permalink = yield* fetchPermalink(accessToken, message.channel, message.ts);
 
-              const permalink = await fetchPermalink(accessToken, message.channel, message.ts);
+            // If it's a thread reply, we need to re-aggregate the whole thread
+            if (message.thread_ts && message.thread_ts !== message.ts) {
+              const repliesResponse = yield* fetchThreadReplies(accessToken, message.channel, message.thread_ts);
+              const repliesMessages = repliesResponse.messages ?? [];
+              const parentMessage = repliesMessages[0];
+              if (!parentMessage) return null;
+              const replies = repliesMessages.slice(1);
+              return yield* Effect.tryPromise({
+                try: () =>
+                  aggregateThread(
+                    parentMessage,
+                    replies,
+                    channel,
+                    usersMap,
+                    permalink || undefined,
+                    processingContext,
+                    channelMap,
+                  ),
+                catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+              });
+            }
 
-              // If it's a thread reply, we need to re-aggregate the whole thread
-              if (message.thread_ts && message.thread_ts !== message.ts) {
-                const repliesResponse = await fetchThreadReplies(accessToken, message.channel, message.thread_ts);
-                const parentMessage = repliesResponse.messages[0];
-                const replies = repliesResponse.messages.slice(1);
-                return await aggregateThread(
-                  parentMessage,
-                  replies,
+            return yield* Effect.tryPromise({
+              try: () =>
+                messageToRawContentItem(
+                  message,
                   channel,
                   usersMap,
                   permalink || undefined,
                   processingContext,
                   channelMap,
-                );
-              }
-
-              return await messageToRawContentItem(
-                message,
-                channel,
-                usersMap,
-                permalink || undefined,
-                processingContext,
-                channelMap,
-              );
-            }
-
-            default:
-              return null;
+                ),
+              catch: (error) => (error instanceof Error ? error : new Error(String(error))),
+            });
           }
-        },
-        catch: (e) =>
-          new ContentSourceSyncError({
-            message: e instanceof Error ? e.message : 'Unknown error',
-            sourceId: source.id,
-            sourceType: 'slack',
-            cause: e,
-          }),
-      });
+
+          default:
+            return null;
+        }
+      }).pipe(
+        Effect.mapError(
+          (e) =>
+            new ContentSourceSyncError({
+              message: e instanceof Error ? e.message : 'Unknown error',
+              sourceId: source.id,
+              sourceType: 'slack',
+              cause: e,
+            }),
+        ),
+      );
     },
   };
 

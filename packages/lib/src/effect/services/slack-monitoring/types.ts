@@ -4,6 +4,7 @@
  * Type definitions for Slack monitoring events and payloads.
  */
 
+import type { KnownBlock, MessageAttachment } from '@slack/web-api';
 import type { Effect } from 'effect';
 
 // =============================================================================
@@ -47,47 +48,10 @@ export interface MonitoringEvent {
   readonly userEmail?: string;
 }
 
-// =============================================================================
-// Slack Block Types
-// =============================================================================
-
-export interface SlackTextElement {
-  readonly type: string;
-  readonly text?:
-    | string
-    | {
-        readonly type: string;
-        readonly text: string;
-        readonly emoji?: boolean;
-      };
-  readonly url?: string;
-  readonly action_id?: string;
-}
-
-export interface SlackBlock {
-  readonly type: string;
-  readonly text?: {
-    readonly type: string;
-    readonly text: string;
-    readonly emoji?: boolean;
-  };
-  readonly fields?: Array<{
-    readonly type: string;
-    readonly text: string;
-  }>;
-  readonly elements?: SlackTextElement[];
-}
-
-export interface SlackAttachment {
-  readonly color?: string;
-  readonly blocks?: SlackBlock[];
-  readonly fallback?: string;
-}
-
 export interface SlackWebhookPayload {
   readonly text: string;
-  readonly blocks?: SlackBlock[];
-  readonly attachments?: SlackAttachment[];
+  readonly blocks?: KnownBlock[];
+  readonly attachments?: MessageAttachment[];
   readonly unfurl_links?: boolean;
   readonly unfurl_media?: boolean;
 }

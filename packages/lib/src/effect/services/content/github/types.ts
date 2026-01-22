@@ -4,70 +4,14 @@
  * Type definitions for GitHub API responses and internal structures.
  */
 
+import type { Endpoints } from '@octokit/types';
+
 // =============================================================================
 // GitHub API Types
 // =============================================================================
 
-export interface GitHubPR {
-  id: number;
-  node_id: string;
-  number: number;
-  title: string;
-  body: string | null;
-  state: 'open' | 'closed';
-  draft: boolean;
-  merged: boolean;
-  merged_at: string | null;
-  merged_by: { login: string } | null;
-  user: { id: number; login: string; avatar_url: string };
-  base: { ref: string; sha: string; repo: { full_name: string } };
-  head: { ref: string; sha: string };
-  merge_commit_sha: string | null;
-  labels: Array<{ name: string }>;
-  assignees: Array<{ login: string }>;
-  requested_reviewers: Array<{ login: string }>;
-  changed_files: number;
-  additions: number;
-  deletions: number;
-  commits: number;
-  comments: number;
-  review_comments: number;
-  html_url: string;
-  url: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface GitHubIssue {
-  id: number;
-  node_id: string;
-  number: number;
-  title: string;
-  body: string | null;
-  state: 'open' | 'closed';
-  state_reason: 'completed' | 'not_planned' | 'reopened' | null;
-  user: { id: number; login: string; avatar_url: string };
-  labels: Array<{ name: string }>;
-  assignees: Array<{ login: string }>;
-  milestone: { title: string } | null;
-  comments: number;
-  pull_request?: { url: string };
-  reactions: {
-    total_count: number;
-    '+1': number;
-    '-1': number;
-    laugh: number;
-    hooray: number;
-    confused: number;
-    heart: number;
-    rocket: number;
-    eyes: number;
-  };
-  html_url: string;
-  url: string;
-  created_at: string;
-  updated_at: string;
-}
+export type GitHubPR = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}']['response']['data'];
+export type GitHubIssue = Endpoints['GET /repos/{owner}/{repo}/issues/{issue_number}']['response']['data'];
 
 export interface GitHubDiscussion {
   id: string;
@@ -85,47 +29,12 @@ export interface GitHubDiscussion {
   updatedAt: string;
 }
 
-export interface GitHubReview {
-  id: number;
-  user: { login: string };
-  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'PENDING' | 'DISMISSED';
-  body: string | null;
-  submitted_at: string;
-}
-
-export interface GitHubComment {
-  id: number;
-  user: { login: string };
-  body: string;
-  created_at: string;
-  updated_at: string;
-  path?: string;
-  line?: number;
-}
-
-export interface GitHubFile {
-  filename: string;
-  status: string;
-  additions: number;
-  deletions: number;
-  changes: number;
-  patch?: string;
-}
-
-export interface GitHubRepo {
-  id: number;
-  full_name: string;
-  name: string;
-  owner: { login: string };
-  private: boolean;
-  default_branch: string;
-  description: string | null;
-  html_url: string;
-  has_wiki: boolean;
-  stargazers_count?: number;
-  language?: string | null;
-  updated_at?: string;
-}
+export type GitHubReview =
+  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
+export type GitHubComment =
+  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/comments']['response']['data'][number];
+export type GitHubFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
+export type GitHubRepo = Endpoints['GET /repos/{owner}/{repo}']['response']['data'];
 
 export interface GitHubWikiPage {
   name: string;
@@ -147,19 +56,8 @@ export interface GitHubWikiContent {
   encoding: string;
 }
 
-export interface GitHubContributor {
-  id: number;
-  login: string;
-  avatar_url: string;
-  type: string;
-}
-
-export interface GitHubFileContent {
-  content: string;
-  encoding: string;
-  sha: string;
-  size: number;
-}
+export type GitHubContributor = Endpoints['GET /repos/{owner}/{repo}/contributors']['response']['data'][number];
+export type GitHubFileContent = Endpoints['GET /repos/{owner}/{repo}/contents/{path}']['response']['data'];
 
 // =============================================================================
 // Internal Types

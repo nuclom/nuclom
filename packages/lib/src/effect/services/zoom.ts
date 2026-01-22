@@ -1,72 +1,31 @@
 /**
  * Zoom Integration Service using Effect-TS
  *
- * Provides type-safe Zoom API operations for OAuth and recordings.
+ * Provides Zoom API operations for OAuth and recordings via the official SDK.
  */
 
-import { Config, Context, Effect, Layer, Option } from 'effect';
+import type {
+  CloudRecordingGetMeetingRecordingsResponse,
+  CloudRecordingListAllRecordingsResponse,
+  MeetingsListMeetingsQueryParams,
+  MeetingsListMeetingsResponse,
+  MeetingsOAuthClient,
+  OAuthToken as MeetingsOAuthToken,
+  TokenStore as MeetingsTokenStore,
+} from '@zoom/rivet/meetings';
+import type {
+  UsersGetUserResponse,
+  UsersOAuthClient,
+  OAuthToken as UsersOAuthToken,
+  TokenStore as UsersTokenStore,
+} from '@zoom/rivet/users';
+import { Context, Effect, Layer } from 'effect';
 import { HttpError } from '../errors';
+import { ZoomClient } from './zoom-client';
 
 // =============================================================================
 // Types
 // =============================================================================
-
-export interface ZoomConfig {
-  readonly clientId: string;
-  readonly clientSecret: string;
-  readonly redirectUri: string;
-}
-
-export interface ZoomTokenResponse {
-  readonly access_token: string;
-  readonly token_type: string;
-  readonly refresh_token: string;
-  readonly expires_in: number;
-  readonly scope: string;
-}
-
-export interface ZoomUserInfo {
-  readonly id: string;
-  readonly email: string;
-  readonly first_name: string;
-  readonly last_name: string;
-  readonly account_id: string;
-}
-
-export interface ZoomRecordingFile {
-  readonly id: string;
-  readonly meeting_id: string;
-  readonly recording_start: string;
-  readonly recording_end: string;
-  readonly file_type: string;
-  readonly file_extension: string;
-  readonly file_size: number;
-  readonly download_url: string;
-  readonly status: string;
-  readonly recording_type: string;
-}
-
-export interface ZoomMeeting {
-  readonly id: number;
-  readonly uuid: string;
-  readonly host_id: string;
-  readonly topic: string;
-  readonly start_time: string;
-  readonly duration: number;
-  readonly total_size: number;
-  readonly recording_count: number;
-  readonly recording_files: ZoomRecordingFile[];
-}
-
-export interface ZoomRecordingsResponse {
-  readonly from: string;
-  readonly to: string;
-  readonly page_count: number;
-  readonly page_size: number;
-  readonly total_records: number;
-  readonly next_page_token?: string;
-  readonly meetings: ZoomMeeting[];
-}
 
 export interface ZoomRecording {
   readonly id: string;
@@ -97,33 +56,62 @@ export interface ZoomServiceInterface {
   /**
    * Exchange authorization code for access token
    */
-  readonly exchangeCodeForToken: (code: string) => Effect.Effect<ZoomTokenResponse, HttpError>;
+  readonly exchangeCodeForToken: (code: string) => Effect.Effect<MeetingsOAuthToken, HttpError>;
 
   /**
    * Refresh an access token
    */
-  readonly refreshAccessToken: (refreshToken: string) => Effect.Effect<ZoomTokenResponse, HttpError>;
+  readonly refreshAccessToken: (refreshToken: string) => Effect.Effect<MeetingsOAuthToken, HttpError>;
 
   /**
    * Get the current user's info
    */
-  readonly getUserInfo: (accessToken: string) => Effect.Effect<ZoomUserInfo, HttpError>;
+  readonly getUserInfo: (token: UsersOAuthToken) => Effect.Effect<UsersGetUserResponse, HttpError>;
 
   /**
    * List recordings for the authenticated user
    */
   readonly listRecordings: (
-    accessToken: string,
+    token: MeetingsOAuthToken,
     from: string,
     to: string,
     pageSize?: number,
     nextPageToken?: string,
-  ) => Effect.Effect<ZoomRecordingsResponse, HttpError>;
+  ) => Effect.Effect<
+    {
+      response: CloudRecordingListAllRecordingsResponse;
+      refreshedToken?: MeetingsOAuthToken;
+    },
+    HttpError
+  >;
 
   /**
    * Get a specific meeting's recordings
    */
-  readonly getMeetingRecordings: (accessToken: string, meetingId: string) => Effect.Effect<ZoomMeeting, HttpError>;
+  readonly getMeetingRecordings: (
+    token: MeetingsOAuthToken,
+    meetingId: string,
+  ) => Effect.Effect<
+    {
+      response: CloudRecordingGetMeetingRecordingsResponse;
+      refreshedToken?: MeetingsOAuthToken;
+    },
+    HttpError
+  >;
+
+  /**
+   * List meetings for the authenticated user
+   */
+  readonly listMeetings: (
+    token: MeetingsOAuthToken,
+    query: MeetingsListMeetingsQueryParams,
+  ) => Effect.Effect<
+    {
+      response: MeetingsListMeetingsResponse;
+      refreshedToken?: MeetingsOAuthToken;
+    },
+    HttpError
+  >;
 
   /**
    * Get download URL with access token appended
@@ -133,7 +121,7 @@ export interface ZoomServiceInterface {
   /**
    * Parse recordings response into a simplified format
    */
-  readonly parseRecordings: (response: ZoomRecordingsResponse) => ZoomRecording[];
+  readonly parseRecordings: (response: CloudRecordingListAllRecordingsResponse) => ZoomRecording[];
 }
 
 // =============================================================================
@@ -143,35 +131,104 @@ export interface ZoomServiceInterface {
 export class Zoom extends Context.Tag('Zoom')<Zoom, ZoomServiceInterface>() {}
 
 // =============================================================================
-// Zoom Configuration
+// Zoom Helpers
 // =============================================================================
 
-const ZOOM_API_BASE = 'https://api.zoom.us/v2';
 const ZOOM_AUTH_BASE = 'https://zoom.us';
 
-const ZoomConfigEffect = Config.all({
-  clientId: Config.string('ZOOM_CLIENT_ID').pipe(Config.option),
-  clientSecret: Config.string('ZOOM_CLIENT_SECRET').pipe(Config.option),
-  baseUrl: Config.string('NEXT_PUBLIC_URL').pipe(Config.option),
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+
+const getString = (record: Record<string, unknown>, key: string): string | undefined => {
+  const value = record[key];
+  return typeof value === 'string' ? value : undefined;
+};
+
+const getNumber = (record: Record<string, unknown>, key: string): number | undefined => {
+  const value = record[key];
+  return typeof value === 'number' ? value : undefined;
+};
+
+const mapOAuthTokenResponse = (raw: unknown, fallbackRefreshToken?: string): MeetingsOAuthToken => {
+  if (!isRecord(raw)) {
+    throw new Error('Invalid Zoom OAuth response');
+  }
+
+  const accessToken = getString(raw, 'access_token');
+  const refreshToken = getString(raw, 'refresh_token') ?? fallbackRefreshToken;
+  const expiresIn = getNumber(raw, 'expires_in');
+  const scope = getString(raw, 'scope');
+
+  if (!accessToken || !expiresIn || !refreshToken) {
+    throw new Error('Zoom OAuth response missing required fields');
+  }
+
+  const scopes = scope ? scope.split(' ') : [];
+
+  return {
+    accessToken,
+    refreshToken,
+    expirationTimeIso: new Date(Date.now() + expiresIn * 1000).toISOString(),
+    scopes,
+  };
+};
+
+const createTokenStore = <
+  Token extends { accessToken: string; expirationTimeIso: string; refreshToken: string; scopes: string[] },
+>(
+  token: Token,
+  onStore?: (token: Token) => void,
+) => {
+  let current = token;
+
+  return {
+    getLatestToken: () => current,
+    storeToken: (nextToken: Token) => {
+      current = nextToken;
+      onStore?.(nextToken);
+    },
+  };
+};
+
+const createMeetingsTokenStore = (
+  token: MeetingsOAuthToken,
+  onStore?: (token: MeetingsOAuthToken) => void,
+): MeetingsTokenStore<MeetingsOAuthToken> => createTokenStore(token, onStore);
+
+const createUsersTokenStore = (
+  token: UsersOAuthToken,
+  onStore?: (token: UsersOAuthToken) => void,
+): UsersTokenStore<UsersOAuthToken> => createTokenStore(token, onStore);
+
+export const buildZoomOAuthToken = (params: {
+  accessToken: string;
+  refreshToken?: string | null;
+  expiresAt?: Date | null;
+  scope?: string | null;
+}): MeetingsOAuthToken => ({
+  accessToken: params.accessToken,
+  refreshToken: params.refreshToken ?? '',
+  expirationTimeIso: (params.expiresAt ?? new Date(0)).toISOString(),
+  scopes: params.scope ? params.scope.split(' ') : [],
 });
+
+const toHttpError = (message: string, error: unknown) =>
+  new HttpError({
+    message: `${message}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    status: 500,
+  });
 
 // =============================================================================
 // Zoom Service Implementation
 // =============================================================================
 
 const makeZoomService = Effect.gen(function* () {
-  const config = yield* ZoomConfigEffect;
+  const zoomClient = yield* ZoomClient;
 
-  const isConfigured =
-    Option.isSome(config.clientId) && Option.isSome(config.clientSecret) && Option.isSome(config.baseUrl);
-
-  const getConfig = (): ZoomConfig | null => {
-    if (!isConfigured) return null;
-    return {
-      clientId: Option.getOrThrow(config.clientId),
-      clientSecret: Option.getOrThrow(config.clientSecret),
-      redirectUri: `${Option.getOrThrow(config.baseUrl)}/api/integrations/zoom/callback`,
-    };
+  const getConfig = () => {
+    if (!zoomClient.isConfigured || !zoomClient.config) {
+      return null;
+    }
+    return zoomClient.config;
   };
 
   const getAuthorizationUrl = (state: string): Effect.Effect<string, never> =>
@@ -191,7 +248,7 @@ const makeZoomService = Effect.gen(function* () {
       return `${ZOOM_AUTH_BASE}/oauth/authorize?${params.toString()}`;
     });
 
-  const exchangeCodeForToken = (code: string): Effect.Effect<ZoomTokenResponse, HttpError> =>
+  const exchangeCodeForToken = (code: string): Effect.Effect<MeetingsOAuthToken, HttpError> =>
     Effect.gen(function* () {
       const cfg = getConfig();
       if (!cfg) {
@@ -205,7 +262,7 @@ const makeZoomService = Effect.gen(function* () {
 
       const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64');
 
-      const response = yield* Effect.tryPromise({
+      const token = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${ZOOM_AUTH_BASE}/oauth/token`, {
             method: 'POST',
@@ -225,19 +282,16 @@ const makeZoomService = Effect.gen(function* () {
             throw new Error(`Zoom token exchange failed: ${res.status} - ${error}`);
           }
 
-          return res.json() as Promise<ZoomTokenResponse>;
+          const raw = (await res.json()) as unknown;
+          return mapOAuthTokenResponse(raw);
         },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        catch: (error) => toHttpError('Failed to exchange code for token', error),
       });
 
-      return response;
+      return token;
     });
 
-  const refreshAccessToken = (refreshToken: string): Effect.Effect<ZoomTokenResponse, HttpError> =>
+  const refreshAccessToken = (refreshToken: string): Effect.Effect<MeetingsOAuthToken, HttpError> =>
     Effect.gen(function* () {
       const cfg = getConfig();
       if (!cfg) {
@@ -251,7 +305,7 @@ const makeZoomService = Effect.gen(function* () {
 
       const credentials = Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString('base64');
 
-      const response = yield* Effect.tryPromise({
+      const token = yield* Effect.tryPromise({
         try: async () => {
           const res = await fetch(`${ZOOM_AUTH_BASE}/oauth/token`, {
             method: 'POST',
@@ -270,101 +324,128 @@ const makeZoomService = Effect.gen(function* () {
             throw new Error(`Zoom token refresh failed: ${res.status} - ${error}`);
           }
 
-          return res.json() as Promise<ZoomTokenResponse>;
+          const raw = (await res.json()) as unknown;
+          return mapOAuthTokenResponse(raw, refreshToken);
         },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        catch: (error) => toHttpError('Failed to refresh access token', error),
       });
 
-      return response;
+      return token;
     });
 
-  const getUserInfo = (accessToken: string): Effect.Effect<ZoomUserInfo, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${ZOOM_API_BASE}/users/me`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+  const withMeetingsClient = <T>(
+    token: MeetingsOAuthToken,
+    request: (client: MeetingsOAuthClient) => Promise<{ data?: T }>,
+  ): Effect.Effect<{ response: T; refreshedToken?: MeetingsOAuthToken }, HttpError> =>
+    Effect.gen(function* () {
+      let refreshedToken: MeetingsOAuthToken | undefined;
+      const tokenStore = createMeetingsTokenStore(token, (next) => {
+        refreshedToken = next;
+      });
 
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Zoom API error: ${res.status} - ${error}`);
-        }
+      const client = yield* zoomClient.createMeetingsClient(tokenStore);
+      const response = yield* Effect.tryPromise({
+        try: () => request(client),
+        catch: (error) => toHttpError('Zoom API error', error),
+      });
 
-        return res.json() as Promise<ZoomUserInfo>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
+      if (!response.data) {
+        return yield* Effect.fail(new HttpError({ message: 'Zoom API response missing data', status: 500 }));
+      }
+
+      return { response: response.data, refreshedToken };
+    });
+
+  const withUsersClient = <T>(
+    token: UsersOAuthToken,
+    request: (client: UsersOAuthClient) => Promise<{ data?: T }>,
+  ): Effect.Effect<{ response: T; refreshedToken?: UsersOAuthToken }, HttpError> =>
+    Effect.gen(function* () {
+      let refreshedToken: UsersOAuthToken | undefined;
+      const tokenStore = createUsersTokenStore(token, (next) => {
+        refreshedToken = next;
+      });
+
+      const client = yield* zoomClient.createUsersClient(tokenStore);
+      const response = yield* Effect.tryPromise({
+        try: () => request(client),
+        catch: (error) => toHttpError('Zoom API error', error),
+      });
+
+      if (!response.data) {
+        return yield* Effect.fail(new HttpError({ message: 'Zoom API response missing data', status: 500 }));
+      }
+
+      return { response: response.data, refreshedToken };
+    });
+
+  const getUserInfo = (token: UsersOAuthToken): Effect.Effect<UsersGetUserResponse, HttpError> =>
+    Effect.gen(function* () {
+      const result = yield* withUsersClient(token, (client) =>
+        client.endpoints.users.getUser({
+          path: { userId: 'me' },
         }),
+      );
+
+      return result.response;
     });
 
   const listRecordings = (
-    accessToken: string,
+    token: MeetingsOAuthToken,
     from: string,
     to: string,
     pageSize = 30,
     nextPageToken?: string,
-  ): Effect.Effect<ZoomRecordingsResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const params = new URLSearchParams({
-          from,
-          to,
-          page_size: pageSize.toString(),
-        });
-
-        if (nextPageToken) {
-          params.set('next_page_token', nextPageToken);
-        }
-
-        const res = await fetch(`${ZOOM_API_BASE}/users/me/recordings?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
+  ): Effect.Effect<
+    { response: CloudRecordingListAllRecordingsResponse; refreshedToken?: MeetingsOAuthToken },
+    HttpError
+  > =>
+    Effect.gen(function* () {
+      const result = yield* withMeetingsClient(token, (client) =>
+        client.endpoints.cloudRecording.listAllRecordings({
+          path: { userId: 'me' },
+          query: {
+            from,
+            to,
+            page_size: pageSize,
+            next_page_token: nextPageToken,
           },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Zoom API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<ZoomRecordingsResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
         }),
+      );
+
+      return { response: result.response, refreshedToken: result.refreshedToken };
     });
 
-  const getMeetingRecordings = (accessToken: string, meetingId: string): Effect.Effect<ZoomMeeting, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${ZOOM_API_BASE}/meetings/${meetingId}/recordings`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Zoom API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<ZoomMeeting>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get meeting recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
+  const getMeetingRecordings = (
+    token: MeetingsOAuthToken,
+    meetingId: string,
+  ): Effect.Effect<
+    { response: CloudRecordingGetMeetingRecordingsResponse; refreshedToken?: MeetingsOAuthToken },
+    HttpError
+  > =>
+    Effect.gen(function* () {
+      const result = yield* withMeetingsClient(token, (client) =>
+        client.endpoints.cloudRecording.getMeetingRecordings({
+          path: { meetingId },
         }),
+      );
+
+      return { response: result.response, refreshedToken: result.refreshedToken };
+    });
+
+  const listMeetings = (
+    token: MeetingsOAuthToken,
+    query: MeetingsListMeetingsQueryParams,
+  ): Effect.Effect<{ response: MeetingsListMeetingsResponse; refreshedToken?: MeetingsOAuthToken }, HttpError> =>
+    Effect.gen(function* () {
+      const result = yield* withMeetingsClient(token, (client) =>
+        client.endpoints.meetings.listMeetings({
+          path: { userId: 'me' },
+          query,
+        }),
+      );
+
+      return { response: result.response, refreshedToken: result.refreshedToken };
     });
 
   const getDownloadUrl = (downloadUrl: string, accessToken: string): string => {
@@ -373,41 +454,55 @@ const makeZoomService = Effect.gen(function* () {
     return url.toString();
   };
 
-  const parseRecordings = (response: ZoomRecordingsResponse): ZoomRecording[] => {
+  const parseRecordings = (response: CloudRecordingListAllRecordingsResponse): ZoomRecording[] => {
     const recordings: ZoomRecording[] = [];
 
-    for (const meeting of response.meetings) {
-      // Find the MP4 file (main video recording)
+    for (const meeting of response.meetings ?? []) {
+      const files = meeting.recording_files ?? [];
       const videoFile =
-        meeting.recording_files.find(
-          (f) => f.file_type === 'MP4' && f.recording_type === 'shared_screen_with_speaker_view',
-        ) || meeting.recording_files.find((f) => f.file_type === 'MP4');
+        files.find((file) => file.file_type === 'MP4' && file.recording_type === 'shared_screen_with_speaker_view') ??
+        files.find((file) => file.file_type === 'MP4');
 
-      if (videoFile) {
-        recordings.push({
-          id: videoFile.id,
-          meetingId: meeting.uuid,
-          topic: meeting.topic,
-          startTime: new Date(meeting.start_time),
-          duration: meeting.duration,
-          fileSize: videoFile.file_size,
-          downloadUrl: videoFile.download_url,
-          fileType: videoFile.file_type,
-        });
+      if (!videoFile || !videoFile.id || !videoFile.download_url) {
+        continue;
       }
+
+      const meetingId = meeting.uuid ?? (meeting.id ? String(meeting.id) : undefined);
+      if (
+        !meetingId ||
+        !meeting.topic ||
+        !meeting.start_time ||
+        !meeting.duration ||
+        !videoFile.file_size ||
+        !videoFile.file_type
+      ) {
+        continue;
+      }
+
+      recordings.push({
+        id: videoFile.id,
+        meetingId,
+        topic: meeting.topic,
+        startTime: new Date(meeting.start_time),
+        duration: meeting.duration,
+        fileSize: videoFile.file_size,
+        downloadUrl: videoFile.download_url,
+        fileType: videoFile.file_type,
+      });
     }
 
     return recordings;
   };
 
   return {
-    isConfigured,
+    isConfigured: zoomClient.isConfigured,
     getAuthorizationUrl,
     exchangeCodeForToken,
     refreshAccessToken,
     getUserInfo,
     listRecordings,
     getMeetingRecordings,
+    listMeetings,
     getDownloadUrl,
     parseRecordings,
   } satisfies ZoomServiceInterface;
@@ -429,41 +524,55 @@ export const getZoomAuthorizationUrl = (state: string): Effect.Effect<string, ne
     return yield* zoom.getAuthorizationUrl(state);
   });
 
-export const exchangeZoomCodeForToken = (code: string): Effect.Effect<ZoomTokenResponse, HttpError, Zoom> =>
+export const exchangeZoomCodeForToken = (code: string): Effect.Effect<MeetingsOAuthToken, HttpError, Zoom> =>
   Effect.gen(function* () {
     const zoom = yield* Zoom;
     return yield* zoom.exchangeCodeForToken(code);
   });
 
-export const refreshZoomAccessToken = (refreshToken: string): Effect.Effect<ZoomTokenResponse, HttpError, Zoom> =>
+export const refreshZoomAccessToken = (refreshToken: string): Effect.Effect<MeetingsOAuthToken, HttpError, Zoom> =>
   Effect.gen(function* () {
     const zoom = yield* Zoom;
     return yield* zoom.refreshAccessToken(refreshToken);
   });
 
-export const getZoomUserInfo = (accessToken: string): Effect.Effect<ZoomUserInfo, HttpError, Zoom> =>
+export const getZoomUserInfo = (token: UsersOAuthToken): Effect.Effect<UsersGetUserResponse, HttpError, Zoom> =>
   Effect.gen(function* () {
     const zoom = yield* Zoom;
-    return yield* zoom.getUserInfo(accessToken);
+    return yield* zoom.getUserInfo(token);
   });
 
 export const listZoomRecordings = (
-  accessToken: string,
+  token: MeetingsOAuthToken,
   from: string,
   to: string,
   pageSize?: number,
   nextPageToken?: string,
-): Effect.Effect<ZoomRecordingsResponse, HttpError, Zoom> =>
+): Effect.Effect<
+  {
+    response: CloudRecordingListAllRecordingsResponse;
+    refreshedToken?: MeetingsOAuthToken;
+  },
+  HttpError,
+  Zoom
+> =>
   Effect.gen(function* () {
     const zoom = yield* Zoom;
-    return yield* zoom.listRecordings(accessToken, from, to, pageSize, nextPageToken);
+    return yield* zoom.listRecordings(token, from, to, pageSize, nextPageToken);
   });
 
 export const getZoomMeetingRecordings = (
-  accessToken: string,
+  token: MeetingsOAuthToken,
   meetingId: string,
-): Effect.Effect<ZoomMeeting, HttpError, Zoom> =>
+): Effect.Effect<
+  {
+    response: CloudRecordingGetMeetingRecordingsResponse;
+    refreshedToken?: MeetingsOAuthToken;
+  },
+  HttpError,
+  Zoom
+> =>
   Effect.gen(function* () {
     const zoom = yield* Zoom;
-    return yield* zoom.getMeetingRecordings(accessToken, meetingId);
+    return yield* zoom.getMeetingRecordings(token, meetingId);
   });

@@ -5,8 +5,11 @@
  * Google Meet recordings are stored in Google Drive.
  */
 
+import { Readable } from 'node:stream';
 import { Config, Context, Effect, Layer, Option } from 'effect';
+import type { calendar_v3, drive_v3, oauth2_v2 } from 'googleapis';
 import { HttpError } from '../errors';
+import { GoogleClient, type GoogleClientConfig } from './google-client';
 
 // =============================================================================
 // Types
@@ -27,52 +30,11 @@ export interface GoogleTokenResponse {
   readonly id_token?: string;
 }
 
-export interface GoogleUserInfo {
-  readonly id: string;
-  readonly email: string;
-  readonly name: string;
-  readonly picture?: string;
-}
-
-export interface GoogleDriveFile {
-  readonly id: string;
-  readonly name: string;
-  readonly mimeType: string;
-  readonly createdTime: string;
-  readonly modifiedTime: string;
-  readonly size?: string;
-  readonly webViewLink?: string;
-  readonly webContentLink?: string;
-  readonly thumbnailLink?: string;
-  readonly parents?: string[];
-}
-
-export interface GoogleDriveFilesResponse {
-  readonly kind: string;
-  readonly nextPageToken?: string;
-  readonly incompleteSearch?: boolean;
-  readonly files: GoogleDriveFile[];
-}
-
-export interface GoogleCalendarEvent {
-  readonly id: string;
-  readonly summary: string;
-  readonly description?: string;
-  readonly start: { dateTime?: string; date?: string; timeZone?: string };
-  readonly end: { dateTime?: string; date?: string; timeZone?: string };
-  readonly attendees?: Array<{ email: string; displayName?: string; responseStatus?: string }>;
-  readonly hangoutLink?: string;
-  readonly conferenceData?: {
-    conferenceId?: string;
-    conferenceSolution?: { name: string; key: { type: string } };
-  };
-}
-
-export interface GoogleCalendarEventsResponse {
-  readonly kind: string;
-  readonly nextPageToken?: string;
-  readonly items: GoogleCalendarEvent[];
-}
+export type GoogleUserInfo = oauth2_v2.Schema$Userinfo;
+export type GoogleDriveFile = drive_v3.Schema$File;
+export type GoogleDriveFilesResponse = drive_v3.Schema$FileList;
+export type GoogleCalendarEvent = calendar_v3.Schema$Event;
+export type GoogleCalendarEventsResponse = calendar_v3.Schema$Events;
 
 export interface GoogleMeetRecording {
   readonly id: string;
@@ -232,9 +194,6 @@ export class GoogleMeet extends Context.Tag('GoogleMeet')<GoogleMeet, GoogleMeet
 // Google Configuration
 // =============================================================================
 
-const GOOGLE_AUTH_BASE = 'https://accounts.google.com';
-const GOOGLE_API_BASE = 'https://www.googleapis.com';
-
 // Scopes needed for Google Meet recordings
 const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
@@ -255,11 +214,12 @@ const GoogleConfigEffect = Config.all({
 
 const makeGoogleMeetService = Effect.gen(function* () {
   const config = yield* GoogleConfigEffect;
+  const googleClient = yield* GoogleClient;
 
   const isConfigured =
     Option.isSome(config.clientId) && Option.isSome(config.clientSecret) && Option.isSome(config.baseUrl);
 
-  const getConfig = (): GoogleConfig | null => {
+  const getConfig = (): GoogleClientConfig | null => {
     if (!isConfigured) return null;
     return {
       clientId: Option.getOrThrow(config.clientId),
@@ -269,23 +229,19 @@ const makeGoogleMeetService = Effect.gen(function* () {
   };
 
   const getAuthorizationUrl = (state: string): Effect.Effect<string, never> =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       const cfg = getConfig();
       if (!cfg) {
         throw new Error('Google is not configured');
       }
 
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: cfg.clientId,
-        redirect_uri: cfg.redirectUri,
-        scope: GOOGLE_SCOPES,
+      const client = yield* googleClient.createOAuthClient(cfg);
+      return client.generateAuthUrl({
         access_type: 'offline',
         prompt: 'consent',
+        scope: GOOGLE_SCOPES,
         state,
       });
-
-      return `${GOOGLE_AUTH_BASE}/o/oauth2/v2/auth?${params.toString()}`;
     });
 
   const exchangeCodeForToken = (code: string): Effect.Effect<GoogleTokenResponse, HttpError> =>
@@ -300,34 +256,31 @@ const makeGoogleMeetService = Effect.gen(function* () {
         );
       }
 
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(`${GOOGLE_AUTH_BASE}/o/oauth2/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              grant_type: 'authorization_code',
-              code,
-              redirect_uri: cfg.redirectUri,
-              client_id: cfg.clientId,
-              client_secret: cfg.clientSecret,
+      const response = yield* Effect.gen(function* () {
+        const client = yield* googleClient.createOAuthClient(cfg);
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const { tokens } = await client.getToken(code);
+
+            if (!tokens.access_token || !tokens.token_type || !tokens.scope || !tokens.expiry_date) {
+              throw new Error('Missing token fields in Google OAuth response');
+            }
+
+            return {
+              access_token: tokens.access_token,
+              token_type: tokens.token_type,
+              refresh_token: tokens.refresh_token ?? undefined,
+              expires_in: Math.max(0, Math.floor((tokens.expiry_date - Date.now()) / 1000)),
+              scope: Array.isArray(tokens.scope) ? tokens.scope.join(' ') : tokens.scope,
+              id_token: tokens.id_token ?? undefined,
+            } satisfies GoogleTokenResponse;
+          },
+          catch: (error) =>
+            new HttpError({
+              message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              status: 500,
             }),
-          });
-
-          if (!res.ok) {
-            const error = await res.text();
-            throw new Error(`Google token exchange failed: ${res.status} - ${error}`);
-          }
-
-          return res.json() as Promise<GoogleTokenResponse>;
-        },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        });
       });
 
       return response;
@@ -345,59 +298,63 @@ const makeGoogleMeetService = Effect.gen(function* () {
         );
       }
 
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(`${GOOGLE_AUTH_BASE}/o/oauth2/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              grant_type: 'refresh_token',
-              refresh_token: refreshToken,
-              client_id: cfg.clientId,
-              client_secret: cfg.clientSecret,
+      const response = yield* Effect.gen(function* () {
+        const client = yield* googleClient.createOAuthClient(cfg);
+        return yield* Effect.tryPromise({
+          try: async () => {
+            client.setCredentials({ refresh_token: refreshToken });
+            const { credentials } = await client.refreshAccessToken();
+            const tokens = credentials;
+
+            if (!tokens.access_token || !tokens.token_type || !tokens.scope || !tokens.expiry_date) {
+              throw new Error('Missing token fields in Google OAuth response');
+            }
+
+            return {
+              access_token: tokens.access_token,
+              token_type: tokens.token_type,
+              refresh_token: tokens.refresh_token ?? refreshToken,
+              expires_in: Math.max(0, Math.floor((tokens.expiry_date - Date.now()) / 1000)),
+              scope: Array.isArray(tokens.scope) ? tokens.scope.join(' ') : tokens.scope,
+              id_token: tokens.id_token ?? undefined,
+            } satisfies GoogleTokenResponse;
+          },
+          catch: (error) =>
+            new HttpError({
+              message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              status: 500,
             }),
-          });
-
-          if (!res.ok) {
-            const error = await res.text();
-            throw new Error(`Google token refresh failed: ${res.status} - ${error}`);
-          }
-
-          return res.json() as Promise<GoogleTokenResponse>;
-        },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        });
       });
 
       return response;
     });
 
   const getUserInfo = (accessToken: string): Effect.Effect<GoogleUserInfo, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${GOOGLE_API_BASE}/oauth2/v2/userinfo`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google API error: ${res.status} - ${error}`);
-        }
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const oauth2 = yield* googleClient.createOauth2Api(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await oauth2.userinfo.get();
 
-        return res.json() as Promise<GoogleUserInfo>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          if (!res.data) {
+            throw new Error('Google userinfo response missing data');
+          }
+
+          return res.data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listMeetRecordings = (
@@ -405,99 +362,141 @@ const makeGoogleMeetService = Effect.gen(function* () {
     pageSize = 50,
     pageToken?: string,
   ): Effect.Effect<GoogleDriveFilesResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        // Search for Meet recording files in Google Drive
-        // Meet recordings have specific naming patterns and are stored as MP4
-        const query = "mimeType='video/mp4' and name contains 'Meet Recording'";
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        const params = new URLSearchParams({
-          q: query,
-          fields:
-            'kind,nextPageToken,incompleteSearch,files(id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents)',
-          orderBy: 'createdTime desc',
-          pageSize: pageSize.toString(),
-        });
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
 
-        if (pageToken) {
-          params.set('pageToken', pageToken);
-        }
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.list({
+            q: "mimeType='video/mp4' and name contains 'Meet Recording'",
+            orderBy: 'createdTime desc',
+            pageSize,
+            pageToken,
+            fields:
+              'kind,nextPageToken,incompleteSearch,files(id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents)',
+          });
 
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<GoogleDriveFilesResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          if (!res.data) {
+            const empty: GoogleDriveFilesResponse = { files: [] };
+            return empty;
+          }
+          return res.data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list recordings: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const getFile = (accessToken: string, fileId: string): Effect.Effect<GoogleDriveFile, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const params = new URLSearchParams({
-          fields: 'id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents',
-        });
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files/${fileId}?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.get({
+            fileId,
+            fields: 'id,name,mimeType,createdTime,modifiedTime,size,webViewLink,webContentLink,parents',
+          });
 
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<GoogleDriveFile>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          if (!res.data) {
+            throw new Error('Google Drive file response missing data');
+          }
+          return res.data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to get file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const getDownloadUrl = (accessToken: string, fileId: string): Effect.Effect<string, HttpError> =>
-    Effect.succeed(`${GOOGLE_API_BASE}/drive/v3/files/${fileId}?alt=media&access_token=${accessToken}`);
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
+
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.get({
+            fileId,
+            fields: 'webContentLink',
+          });
+
+          if (res.data.webContentLink) {
+            return res.data.webContentLink;
+          }
+
+          return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&access_token=${accessToken}`;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to get download URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
+    });
 
   const downloadFile = (accessToken: string, fileId: string): Effect.Effect<ReadableStream<Uint8Array>, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files/${fileId}?alt=media`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.get(
+            {
+              fileId,
+              alt: 'media',
+            },
+            { responseType: 'stream' },
+          );
 
-        if (!res.body) {
-          throw new Error('No response body');
-        }
-
-        return res.body;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          const stream = res.data;
+          if (!(stream instanceof Readable)) {
+            throw new Error('Unexpected stream response');
+          }
+          return new ReadableStream<Uint8Array>({
+            start(controller) {
+              stream.on('data', (chunk) => {
+                controller.enqueue(chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk));
+              });
+              stream.on('end', () => controller.close());
+              stream.on('error', (err) => controller.error(err));
+            },
+            cancel() {
+              stream.destroy();
+            },
+          });
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listCalendarEvents = (
@@ -507,58 +506,60 @@ const makeGoogleMeetService = Effect.gen(function* () {
     pageSize = 50,
     pageToken?: string,
   ): Effect.Effect<GoogleCalendarEventsResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const params = new URLSearchParams({
-          timeMin,
-          timeMax,
-          singleEvents: 'true',
-          orderBy: 'startTime',
-          maxResults: pageSize.toString(),
-        });
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        if (pageToken) {
-          params.set('pageToken', pageToken);
-        }
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const calendar = yield* googleClient.createCalendarApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await calendar.events.list({
+            calendarId: 'primary',
+            timeMin,
+            timeMax,
+            singleEvents: true,
+            orderBy: 'startTime',
+            maxResults: pageSize,
+            pageToken,
+          });
 
-        const res = await fetch(`${GOOGLE_API_BASE}/calendar/v3/calendars/primary/events?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Calendar API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<GoogleCalendarEventsResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          if (!res.data) {
+            const empty: GoogleCalendarEventsResponse = { items: [] };
+            return empty;
+          }
+          return res.data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const parseRecordings = (response: GoogleDriveFilesResponse): GoogleMeetRecording[] => {
-    return response.files.map((file) => {
+    const files = response.files ?? [];
+    return files.map((file) => {
       // Extract meeting title from filename
       // Format is typically: "Meeting Recording - Topic (YYYY-MM-DD at HH_MM_SS GMT-X).mp4"
-      let meetingTitle = file.name;
-      const meetingMatch = file.name.match(/^(.+?)\s*\(/);
+      const fileName = file.name ?? 'Meeting Recording';
+      let meetingTitle = fileName;
+      const meetingMatch = fileName.match(/^(.+?)\s*\(/);
       if (meetingMatch) {
         meetingTitle = meetingMatch[1].replace('Meeting Recording - ', '').trim();
       }
 
       return {
-        id: file.id,
-        name: file.name,
+        id: file.id ?? '',
+        name: fileName,
         meetingTitle,
-        createdTime: new Date(file.createdTime),
+        createdTime: new Date(file.createdTime ?? new Date().toISOString()),
         fileSize: file.size ? Number.parseInt(file.size, 10) : 0,
         downloadUrl: file.webContentLink || '',
-        mimeType: file.mimeType,
+        mimeType: file.mimeType ?? 'video/mp4',
       };
     });
   };
@@ -581,68 +582,59 @@ const makeGoogleMeetService = Effect.gen(function* () {
     accessToken: string,
     options: GoogleDriveSearchOptions = {},
   ): Effect.Effect<GoogleDriveVideosResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const { folderId, pageSize = 50, pageToken, orderBy = 'modifiedTime', orderDirection = 'desc' } = options;
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        // Build query for all video files
-        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
-        let query = `(${mimeTypeQuery}) and trashed=false`;
+      const { folderId, pageSize = 50, pageToken, orderBy = 'modifiedTime', orderDirection = 'desc' } = options;
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
 
-        // Add folder filter if specified
-        if (folderId) {
-          query += ` and '${folderId}' in parents`;
-        }
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
+          let query = `(${mimeTypeQuery}) and trashed=false`;
 
-        const params = new URLSearchParams({
-          q: query,
-          fields:
-            'kind,nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
-          orderBy: `${orderBy} ${orderDirection}`,
-          pageSize: pageSize.toString(),
-          supportsAllDrives: 'true',
-          includeItemsFromAllDrives: 'true',
-        });
+          if (folderId) {
+            query += ` and '${folderId}' in parents`;
+          }
 
-        if (pageToken) {
-          params.set('pageToken', pageToken);
-        }
+          const res = await drive.files.list({
+            q: query,
+            orderBy: `${orderBy} ${orderDirection}`,
+            pageSize,
+            pageToken,
+            fields:
+              'kind,nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
+            supportsAllDrives: true,
+            includeItemsFromAllDrives: true,
+          });
 
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
-
-        const response = (await res.json()) as GoogleDriveFilesResponse & {
-          files: Array<GoogleDriveFile & { thumbnailLink?: string }>;
-        };
-
-        return {
-          files: response.files.map((file) => ({
-            id: file.id,
-            name: file.name,
-            mimeType: file.mimeType,
-            size: file.size ? Number.parseInt(file.size, 10) : 0,
-            createdTime: file.createdTime,
-            modifiedTime: file.modifiedTime,
-            thumbnailLink: file.thumbnailLink,
-            webViewLink: file.webViewLink,
-            parentId: file.parents?.[0],
-          })),
-          nextPageToken: response.nextPageToken,
-        };
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list video files: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          const response = (res.data ?? { files: [] }) satisfies GoogleDriveFilesResponse;
+          const files = response.files ?? [];
+          return {
+            files: files.map((file) => ({
+              id: file.id ?? '',
+              name: file.name ?? 'Untitled',
+              mimeType: file.mimeType ?? 'application/octet-stream',
+              size: file.size ? Number.parseInt(file.size, 10) : 0,
+              createdTime: file.createdTime ?? new Date().toISOString(),
+              modifiedTime: file.modifiedTime ?? new Date().toISOString(),
+              thumbnailLink: file.thumbnailLink ?? undefined,
+              webViewLink: file.webViewLink ?? undefined,
+              parentId: file.parents?.[0],
+            })),
+            nextPageToken: response.nextPageToken ?? undefined,
+          };
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list video files: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listFolders = (
@@ -651,57 +643,51 @@ const makeGoogleMeetService = Effect.gen(function* () {
     pageSize = 100,
     pageToken?: string,
   ): Effect.Effect<GoogleDriveFoldersResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        let query = "mimeType='application/vnd.google-apps.folder' and trashed=false";
-        if (parentId) {
-          query += ` and '${parentId}' in parents`;
-        } else {
-          // Root level folders
-          query += " and 'root' in parents";
-        }
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        const params = new URLSearchParams({
-          q: query,
-          fields: 'nextPageToken,files(id,name,modifiedTime,parents)',
-          orderBy: 'name',
-          pageSize: pageSize.toString(),
-          supportsAllDrives: 'true',
-          includeItemsFromAllDrives: 'true',
-        });
+      let query = "mimeType='application/vnd.google-apps.folder' and trashed=false";
+      if (parentId) {
+        query += ` and '${parentId}' in parents`;
+      } else {
+        query += " and 'root' in parents";
+      }
 
-        if (pageToken) {
-          params.set('pageToken', pageToken);
-        }
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.list({
+            q: query,
+            orderBy: 'name',
+            pageSize,
+            pageToken,
+            fields: 'nextPageToken,files(id,name,modifiedTime,parents)',
+            supportsAllDrives: true,
+            includeItemsFromAllDrives: true,
+          });
 
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
-
-        const response = (await res.json()) as { files: GoogleDriveFile[]; nextPageToken?: string };
-
-        return {
-          folders: response.files.map((file) => ({
-            id: file.id,
-            name: file.name,
-            parentId: file.parents?.[0],
-            modifiedTime: file.modifiedTime,
-          })),
-          nextPageToken: response.nextPageToken,
-        };
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list folders: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          const response = res.data ?? { files: [] };
+          const files = response.files ?? [];
+          return {
+            folders: files.map((file) => ({
+              id: file.id ?? '',
+              name: file.name ?? 'Untitled',
+              parentId: file.parents?.[0],
+              modifiedTime: file.modifiedTime ?? new Date().toISOString(),
+            })),
+            nextPageToken: response.nextPageToken ?? undefined,
+          };
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list folders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const searchVideos = (
@@ -710,62 +696,54 @@ const makeGoogleMeetService = Effect.gen(function* () {
     pageSize = 50,
     pageToken?: string,
   ): Effect.Effect<GoogleDriveVideosResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        // Build query for video files matching search term
-        const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
-        const escapedQuery = searchQuery.replace(/'/g, "\\'");
-        const query = `(${mimeTypeQuery}) and trashed=false and name contains '${escapedQuery}'`;
+    Effect.gen(function* () {
+      const cfg = getConfig();
+      if (!cfg) {
+        throw new Error('Google is not configured');
+      }
 
-        const params = new URLSearchParams({
-          q: query,
-          fields:
-            'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
-          orderBy: 'modifiedTime desc',
-          pageSize: pageSize.toString(),
-          supportsAllDrives: 'true',
-          includeItemsFromAllDrives: 'true',
-        });
+      const mimeTypeQuery = VIDEO_MIME_TYPES.map((m) => `mimeType='${m}'`).join(' or ');
+      const escapedQuery = searchQuery.replace(/'/g, "\\'");
+      const query = `(${mimeTypeQuery}) and trashed=false and name contains '${escapedQuery}'`;
 
-        if (pageToken) {
-          params.set('pageToken', pageToken);
-        }
+      const authClient = yield* googleClient.createAuthedClient(cfg, accessToken);
+      const drive = yield* googleClient.createDriveApi(authClient);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const res = await drive.files.list({
+            q: query,
+            orderBy: 'modifiedTime desc',
+            pageSize,
+            pageToken,
+            fields:
+              'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,size,thumbnailLink,webViewLink,parents)',
+            supportsAllDrives: true,
+            includeItemsFromAllDrives: true,
+          });
 
-        const res = await fetch(`${GOOGLE_API_BASE}/drive/v3/files?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Google Drive API error: ${res.status} - ${error}`);
-        }
-
-        const response = (await res.json()) as GoogleDriveFilesResponse & {
-          files: Array<GoogleDriveFile & { thumbnailLink?: string }>;
-        };
-
-        return {
-          files: response.files.map((file) => ({
-            id: file.id,
-            name: file.name,
-            mimeType: file.mimeType,
-            size: file.size ? Number.parseInt(file.size, 10) : 0,
-            createdTime: file.createdTime,
-            modifiedTime: file.modifiedTime,
-            thumbnailLink: file.thumbnailLink,
-            webViewLink: file.webViewLink,
-            parentId: file.parents?.[0],
-          })),
-          nextPageToken: response.nextPageToken,
-        };
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to search videos: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          const response = (res.data ?? { files: [] }) satisfies GoogleDriveFilesResponse;
+          const files = response.files ?? [];
+          return {
+            files: files.map((file) => ({
+              id: file.id ?? '',
+              name: file.name ?? 'Untitled',
+              mimeType: file.mimeType ?? 'application/octet-stream',
+              size: file.size ? Number.parseInt(file.size, 10) : 0,
+              createdTime: file.createdTime ?? new Date().toISOString(),
+              modifiedTime: file.modifiedTime ?? new Date().toISOString(),
+              thumbnailLink: file.thumbnailLink ?? undefined,
+              webViewLink: file.webViewLink ?? undefined,
+              parentId: file.parents?.[0],
+            })),
+            nextPageToken: response.nextPageToken ?? undefined,
+          };
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to search videos: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   return {

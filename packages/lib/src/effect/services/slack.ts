@@ -4,8 +4,17 @@
  * Provides type-safe Slack API operations for OAuth and messaging.
  */
 
+import type {
+  ChatPostMessageArguments,
+  ChatPostMessageResponse,
+  ConversationsListResponse,
+  KnownBlock,
+  OauthV2AccessResponse,
+  UsersIdentityResponse,
+} from '@slack/web-api';
 import { Config, Context, Effect, Layer, Option } from 'effect';
 import { HttpError } from '../errors';
+import { SlackClient } from './slack-client';
 
 // =============================================================================
 // Types
@@ -18,122 +27,11 @@ export interface SlackConfig {
   readonly signingSecret: string;
 }
 
-export interface SlackTokenResponse {
-  readonly ok: boolean;
-  readonly access_token: string;
-  readonly token_type: string;
-  readonly scope: string;
-  readonly bot_user_id?: string;
-  readonly app_id: string;
-  readonly team: {
-    readonly id: string;
-    readonly name: string;
-  };
-  readonly authed_user: {
-    readonly id: string;
-    readonly scope: string;
-    readonly access_token: string;
-    readonly token_type: string;
-  };
-  readonly incoming_webhook?: {
-    readonly channel: string;
-    readonly channel_id: string;
-    readonly configuration_url: string;
-    readonly url: string;
-  };
-}
-
-export interface SlackUserInfo {
-  readonly ok: boolean;
-  readonly user: {
-    readonly id: string;
-    readonly team_id: string;
-    readonly name: string;
-    readonly real_name: string;
-    readonly profile: {
-      readonly email?: string;
-      readonly image_48?: string;
-      readonly image_72?: string;
-      readonly image_192?: string;
-    };
-  };
-}
-
-export interface SlackChannel {
-  readonly id: string;
-  readonly name: string;
-  readonly is_private: boolean;
-  readonly is_member: boolean;
-}
-
-export interface SlackChannelsResponse {
-  readonly ok: boolean;
-  readonly channels: SlackChannel[];
-  readonly response_metadata?: {
-    readonly next_cursor?: string;
-  };
-}
-
-export interface SlackMessagePayload {
-  readonly channel: string;
-  readonly text?: string;
-  readonly blocks?: SlackBlock[];
-  readonly attachments?: SlackAttachment[];
-  readonly thread_ts?: string;
-  readonly unfurl_links?: boolean;
-  readonly unfurl_media?: boolean;
-}
-
-export interface SlackBlock {
-  readonly type: string;
-  readonly text?: {
-    readonly type: string;
-    readonly text: string;
-    readonly emoji?: boolean;
-  };
-  readonly accessory?: Record<string, unknown>;
-  readonly elements?: SlackBlockElement[];
-}
-
-export interface SlackBlockElement {
-  readonly type: string;
-  readonly text?: {
-    readonly type: string;
-    readonly text: string;
-    readonly emoji?: boolean;
-  };
-  readonly url?: string;
-  readonly action_id?: string;
-  readonly value?: string;
-}
-
-export interface SlackAttachment {
-  readonly color?: string;
-  readonly pretext?: string;
-  readonly title?: string;
-  readonly title_link?: string;
-  readonly text?: string;
-  readonly fields?: {
-    readonly title: string;
-    readonly value: string;
-    readonly short?: boolean;
-  }[];
-  readonly image_url?: string;
-  readonly thumb_url?: string;
-  readonly footer?: string;
-  readonly ts?: number;
-}
-
-export interface SlackMessageResponse {
-  readonly ok: boolean;
-  readonly channel: string;
-  readonly ts: string;
-  readonly message: {
-    readonly text: string;
-    readonly user: string;
-    readonly ts: string;
-  };
-}
+export type SlackTokenResponse = OauthV2AccessResponse;
+export type SlackUserInfo = UsersIdentityResponse;
+export type SlackChannelsResponse = ConversationsListResponse;
+export type SlackMessagePayload = ChatPostMessageArguments;
+export type SlackMessageResponse = ChatPostMessageResponse;
 
 // =============================================================================
 // Slack Service Interface
@@ -201,7 +99,6 @@ export class Slack extends Context.Tag('Slack')<Slack, SlackServiceInterface>() 
 // Slack Configuration
 // =============================================================================
 
-const SLACK_API_BASE = 'https://slack.com/api';
 const SLACK_AUTH_BASE = 'https://slack.com';
 
 const SlackConfigEffect = Config.all({
@@ -217,6 +114,7 @@ const SlackConfigEffect = Config.all({
 
 const makeSlackService = Effect.gen(function* () {
   const config = yield* SlackConfigEffect;
+  const slackClient = yield* SlackClient;
 
   const isConfigured =
     Option.isSome(config.clientId) &&
@@ -265,141 +163,99 @@ const makeSlackService = Effect.gen(function* () {
         );
       }
 
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(`${SLACK_API_BASE}/oauth.v2.access`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
+      const response = yield* Effect.gen(function* () {
+        const client = yield* slackClient.create();
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const data = await client.oauth.v2.access({
               client_id: cfg.clientId,
               client_secret: cfg.clientSecret,
               code,
               redirect_uri: cfg.redirectUri,
+            });
+
+            if (!data.ok) {
+              throw new Error(`Slack token exchange failed: ${data.error || 'Unknown error'}`);
+            }
+
+            return data;
+          },
+          catch: (error) =>
+            new HttpError({
+              message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              status: 500,
             }),
-          });
-
-          if (!res.ok) {
-            const error = await res.text();
-            throw new Error(`Slack token exchange failed: ${res.status} - ${error}`);
-          }
-
-          const data = (await res.json()) as SlackTokenResponse;
-          if (!data.ok) {
-            throw new Error(`Slack token exchange failed: ${JSON.stringify(data)}`);
-          }
-
-          return data;
-        },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        });
       });
 
       return response;
     });
 
   const getUserInfo = (accessToken: string): Effect.Effect<SlackUserInfo, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${SLACK_API_BASE}/users.identity`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Slack API error: ${res.status} - ${error}`);
-        }
-
-        const data = (await res.json()) as SlackUserInfo;
-        if (!data.ok) {
-          throw new Error(`Slack API error: ${JSON.stringify(data)}`);
-        }
-
-        return data;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* slackClient.create(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const data = await client.users.identity({});
+          if (!data.ok) {
+            throw new Error(`Slack API error: ${JSON.stringify(data)}`);
+          }
+          return data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listChannels = (accessToken: string, cursor?: string): Effect.Effect<SlackChannelsResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const params = new URLSearchParams({
-          types: 'public_channel,private_channel',
-          exclude_archived: 'true',
-          limit: '100',
-        });
+    Effect.gen(function* () {
+      const client = yield* slackClient.create(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const data = await client.conversations.list({
+            types: 'public_channel,private_channel',
+            exclude_archived: true,
+            limit: 100,
+            cursor,
+          });
 
-        if (cursor) {
-          params.set('cursor', cursor);
-        }
+          if (!data.ok) {
+            throw new Error(`Slack API error: ${JSON.stringify(data)}`);
+          }
 
-        const res = await fetch(`${SLACK_API_BASE}/conversations.list?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Slack API error: ${res.status} - ${error}`);
-        }
-
-        const data = (await res.json()) as SlackChannelsResponse;
-        if (!data.ok) {
-          throw new Error(`Slack API error: ${JSON.stringify(data)}`);
-        }
-
-        return data;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+          return data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const sendMessage = (
     accessToken: string,
     payload: SlackMessagePayload,
   ): Effect.Effect<SlackMessageResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${SLACK_API_BASE}/chat.postMessage`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Slack API error: ${res.status} - ${error}`);
-        }
-
-        const data = (await res.json()) as SlackMessageResponse;
-        if (!data.ok) {
-          throw new Error(`Slack API error: ${JSON.stringify(data)}`);
-        }
-
-        return data;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* slackClient.create(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => {
+          const data = await client.chat.postMessage(payload);
+          if (!data.ok) {
+            throw new Error(`Slack API error: ${JSON.stringify(data)}`);
+          }
+          return data;
+        },
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const sendVideoNotification = (
@@ -410,7 +266,7 @@ const makeSlackService = Effect.gen(function* () {
     thumbnailUrl?: string,
     authorName?: string,
   ): Effect.Effect<SlackMessageResponse, HttpError> => {
-    const blocks: SlackBlock[] = [
+    const blocks: KnownBlock[] = [
       {
         type: 'section',
         text: {

@@ -86,7 +86,12 @@ export async function GET(request: Request) {
     const contentRepo = yield* ContentRepository;
 
     // Exchange code for tokens
-    const tokens = yield* Effect.promise(() => exchangeSlackCode(clientId, clientSecret, code, redirectUri));
+    const tokens = yield* exchangeSlackCode(clientId, clientSecret, code, redirectUri);
+    if (!tokens.team?.id || !tokens.team?.name) {
+      return yield* Effect.fail(new Error('Slack OAuth response missing team info'));
+    }
+    const teamId = tokens.team.id;
+    const teamName = tokens.team.name;
 
     // Create or update content source
     const existingSources = yield* contentRepo.getSources({
@@ -96,7 +101,7 @@ export async function GET(request: Request) {
 
     const existingSource = existingSources.items.find((s) => {
       const config = s.config as { settings?: { teamId?: string } } | null;
-      return config?.settings?.teamId === tokens.team.id;
+      return config?.settings?.teamId === teamId;
     });
 
     if (existingSource) {
@@ -108,8 +113,8 @@ export async function GET(request: Request) {
         },
         config: {
           settings: {
-            teamId: tokens.team.id,
-            teamName: tokens.team.name,
+            teamId,
+            teamName,
             authedUserId: tokens.authed_user?.id,
           },
         },
@@ -119,15 +124,15 @@ export async function GET(request: Request) {
       yield* contentRepo.createSource({
         organizationId,
         type: 'slack',
-        name: `Slack - ${tokens.team.name}`,
+        name: `Slack - ${teamName}`,
         credentials: {
           accessToken: tokens.access_token,
           scope: tokens.scope,
         },
         config: {
           settings: {
-            teamId: tokens.team.id,
-            teamName: tokens.team.name,
+            teamId,
+            teamName,
             authedUserId: tokens.authed_user?.id,
           },
         },

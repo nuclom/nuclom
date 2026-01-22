@@ -4,8 +4,6 @@
  * Configuration constants and OAuth scopes for Slack integration.
  */
 
-export const SLACK_API_BASE = 'https://slack.com/api';
-
 /**
  * OAuth scopes for content access (in addition to notification scopes)
  */

@@ -4,6 +4,7 @@ import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/ef
 import { env } from '@nuclom/lib/env/server';
 import { createLogger } from '@nuclom/lib/logger';
 import { triggerImportMeeting } from '@nuclom/lib/workflow/import-meeting';
+import type { MeetingsEvents, RecordingCompletedEvent } from '@zoom/rivet/meetings';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -12,45 +13,21 @@ const log = createLogger('zoom-webhook');
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const WebhookLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive);
 
-// Zoom webhook event types
-type ZoomWebhookEvent =
-  | 'recording.completed'
-  | 'recording.started'
-  | 'recording.stopped'
-  | 'recording.deleted'
-  | 'meeting.started'
-  | 'meeting.ended';
-
-interface ZoomWebhookPayload {
-  event: ZoomWebhookEvent;
-  event_ts: number;
+type EndpointUrlValidationEvent = {
+  event: 'endpoint.url_validation';
   payload: {
-    account_id: string;
-    object: {
-      uuid: string;
-      id: number;
-      host_id: string;
-      host_email: string;
-      topic: string;
-      type: number;
-      start_time: string;
-      duration: number;
-      timezone: string;
-      recording_files?: Array<{
-        id: string;
-        meeting_id: string;
-        recording_start: string;
-        recording_end: string;
-        file_type: string;
-        file_extension: string;
-        file_size: number;
-        download_url: string;
-        status: string;
-        recording_type: string;
-      }>;
-    };
+    plainToken: string;
   };
-}
+};
+
+type ZoomWebhookPayload = MeetingsEvents | EndpointUrlValidationEvent;
+type RecordingFile = NonNullable<RecordingCompletedEvent['payload']['object']['recording_files']>[number];
+
+const isEndpointValidationEvent = (payload: ZoomWebhookPayload): payload is EndpointUrlValidationEvent =>
+  payload.event === 'endpoint.url_validation';
+
+const isRecordingCompletedEvent = (payload: ZoomWebhookPayload): payload is RecordingCompletedEvent =>
+  payload.event === 'recording.completed';
 
 // Verify Zoom webhook signature
 function verifyZoomWebhook(request: NextRequest, body: string): boolean {
@@ -94,8 +71,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Handle Zoom URL verification challenge
-  if ((payload as unknown as { event: string; payload: { plainToken: string } }).event === 'endpoint.url_validation') {
-    const plainToken = (payload as unknown as { payload: { plainToken: string } }).payload.plainToken;
+  if (isEndpointValidationEvent(payload)) {
+    const { plainToken } = payload.payload;
     const webhookSecret = env.ZOOM_WEBHOOK_SECRET || '';
     const encryptedToken = crypto.createHmac('sha256', webhookSecret).update(plainToken).digest('hex');
 
@@ -108,7 +85,7 @@ export async function POST(request: NextRequest) {
   log.info({ event: payload.event }, 'Received webhook event');
 
   // Handle recording completed event for auto-import
-  if (payload.event === 'recording.completed') {
+  if (isRecordingCompletedEvent(payload)) {
     const effect = Effect.gen(function* () {
       const integrationRepo = yield* IntegrationRepository;
 
@@ -140,10 +117,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Find the main video recording
+      const recordingFiles = object.recording_files ?? [];
       const videoFile =
-        object.recording_files?.find(
-          (f) => f.file_type === 'MP4' && f.recording_type === 'shared_screen_with_speaker_view',
-        ) || object.recording_files?.find((f) => f.file_type === 'MP4');
+        recordingFiles.find(
+          (file: RecordingFile) =>
+            file.file_type === 'MP4' && file.recording_type === 'shared_screen_with_speaker_view',
+        ) || recordingFiles.find((file: RecordingFile) => file.file_type === 'MP4');
 
       if (!videoFile) {
         log.debug({ meetingId: object.id }, 'No video file found in recording');

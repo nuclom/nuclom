@@ -205,9 +205,6 @@ export type {
   VideoSummary,
   ViewsByDay,
   ZoomRecording,
-  ZoomRecordingsResponse,
-  // Zoom
-  ZoomServiceInterface,
 } from './services';
 // Services - explicitly export to avoid conflicts
 export {
@@ -225,6 +222,7 @@ export {
   // BillingRepository
   BillingRepository,
   BillingRepositoryLive,
+  buildZoomOAuthToken,
   // ClipRepository
   ClipRepository,
   ClipRepositoryLive,
@@ -431,8 +429,10 @@ export {
   VideoShareLinksRepository,
   VideoShareLinksRepositoryLive,
   validateVideo,
-  // Zoom
   Zoom,
+  // Zoom
+  ZoomClient,
+  ZoomClientLive,
   ZoomLive,
 } from './services';
 // Unified Search

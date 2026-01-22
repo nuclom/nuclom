@@ -22,6 +22,14 @@ export async function GET(request: Request) {
 
     // Exchange code for tokens
     const tokens = yield* slack.exchangeCodeForToken(code);
+    if (!tokens.access_token || !tokens.team?.id || !tokens.team?.name || !tokens.authed_user?.id) {
+      return yield* Effect.fail(new Error('Slack OAuth response missing team or user info'));
+    }
+    const accessToken = tokens.access_token;
+    const teamId = tokens.team.id;
+    const teamName = tokens.team.name;
+    const authedUserId = tokens.authed_user.id;
+    const scope = tokens.scope ?? '';
 
     // Save integration
     yield* saveIntegration({
@@ -29,13 +37,13 @@ export async function GET(request: Request) {
       organizationId,
       provider: 'slack',
       tokens: {
-        access_token: tokens.access_token,
-        scope: tokens.scope,
+        access_token: accessToken,
+        scope,
       },
       metadata: {
-        teamId: tokens.team.id,
-        teamName: tokens.team.name,
-        userId: tokens.authed_user.id,
+        teamId,
+        teamName,
+        userId: authedUserId,
         botUserId: tokens.bot_user_id,
         webhookUrl: tokens.incoming_webhook?.url,
       },

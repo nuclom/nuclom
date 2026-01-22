@@ -25,8 +25,9 @@ import {
 } from '../../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../../errors';
 import { Database } from '../../database';
+import { GitHubClient } from '../../github-client';
 import type { ContentSourceAdapter, RawContentItem } from '../types';
-import { githubFetch, githubGraphQL } from './api-client';
+import { githubFetch as githubFetchApi, githubGraphQL as githubGraphQLApi } from './api-client';
 import {
   detectLanguage,
   discussionToRawContentItem,
@@ -136,6 +137,11 @@ export class GitHubContentAdapter extends Context.Tag('GitHubContentAdapter')<
 
 const makeGitHubContentAdapter = Effect.gen(function* () {
   const { db } = yield* Database;
+  const gitHubClient = yield* GitHubClient;
+  const githubFetch = <T>(endpoint: string, accessToken: string, options?: { method?: string; body?: unknown }) =>
+    githubFetchApi<T>(endpoint, accessToken, options).pipe(Effect.provideService(GitHubClient, gitHubClient));
+  const githubGraphQL = <T>(accessToken: string, query: string, variables?: Record<string, unknown>) =>
+    githubGraphQLApi<T>(accessToken, query, variables).pipe(Effect.provideService(GitHubClient, gitHubClient));
 
   const getAccessToken = (source: ContentSource): string => {
     const credentials = source.credentials;
@@ -149,13 +155,10 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
     sourceType: 'github',
 
     validateCredentials: (source) =>
-      Effect.tryPromise({
-        try: async () => {
-          const accessToken = getAccessToken(source);
-          await githubFetch<{ login: string }>('/user', accessToken);
-          return true;
-        },
-        catch: () => false,
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        yield* githubFetch<{ login: string }>('/user', accessToken);
+        return true;
       }).pipe(Effect.catchAll(() => Effect.succeed(false))),
 
     fetchContent: (source, options) =>
@@ -205,47 +208,41 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         const prMatch = externalId.match(/^([^#]+)#(\d+)$/);
         if (prMatch) {
           const [, repo, number] = prMatch;
-          try {
-            const pr = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubPR>(`/repos/${repo}/pulls/${number}`, accessToken),
-              catch: () => null,
-            });
-            if (!pr) return null;
+          const pr = yield* githubFetch<GitHubPR>(`/repos/${repo}/pulls/${number}`, accessToken).pipe(
+            Effect.catchAll(() => Effect.succeed(null)),
+          );
+          if (!pr) return null;
 
-            const reviews = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubReview[]>(`/repos/${repo}/pulls/${number}/reviews`, accessToken),
-              catch: () => [],
-            });
+          const reviews = yield* githubFetch<GitHubReview[]>(
+            `/repos/${repo}/pulls/${number}/reviews`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubReview[])));
 
-            const reviewComments = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/pulls/${number}/comments`, accessToken),
-              catch: () => [],
-            });
+          const reviewComments = yield* githubFetch<GitHubComment[]>(
+            `/repos/${repo}/pulls/${number}/comments`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
 
-            const files = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${number}/files`, accessToken),
-              catch: () => [],
-            });
+          const files = yield* githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${number}/files`, accessToken).pipe(
+            Effect.catchAll(() => Effect.succeed([] as GitHubFile[])),
+          );
 
-            return prToRawContentItem(pr, reviews, reviewComments, files);
-          } catch {
-            return null;
-          }
+          return prToRawContentItem(pr, reviews, reviewComments, files);
         }
 
         // Try as issue node_id
         // For now, return null for non-PR lookups
         return null;
       }).pipe(
-        Effect.mapError(
-          (e) =>
-            new ContentSourceSyncError({
-              message: e instanceof Error ? e.message : 'Unknown error',
-              sourceId: source.id,
-              sourceType: 'github',
-              cause: e,
-            }),
-        ),
+        Effect.mapError((e: unknown) => {
+          const message = e instanceof Error ? e.message : 'Unknown error';
+          return new ContentSourceSyncError({
+            message,
+            sourceId: source.id,
+            sourceType: 'github',
+            cause: e,
+          });
+        }),
       ),
 
     refreshAuth: (source) =>
@@ -277,16 +274,20 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         let page = 1;
 
         do {
-          const response = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubRepo[]>(`/user/repos?per_page=100&page=${page}&sort=updated`, accessToken),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list repositories: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'github',
-                cause: e,
-              }),
-          });
+          const response = yield* githubFetch<GitHubRepo[]>(
+            `/user/repos?per_page=100&page=${page}&sort=updated`,
+            accessToken,
+          ).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list repositories: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'github',
+                  cause: e,
+                }),
+            ),
+          );
 
           repos.push(...response);
           if (response.length < 100) break;
@@ -361,16 +362,17 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             page: String(page),
           });
 
-          const prs = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubPR[]>(`/repos/${repo}/pulls?${params}`, accessToken),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to fetch PRs: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'github',
-                cause: e,
-              }),
-          });
+          const prs = yield* githubFetch<GitHubPR[]>(`/repos/${repo}/pulls?${params}`, accessToken).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to fetch PRs: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'github',
+                  cause: e,
+                }),
+            ),
+          );
 
           for (const pr of prs) {
             // Check if we've gone past our sync window
@@ -395,20 +397,19 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             }
 
             // Fetch additional PR data
-            const reviews = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubReview[]>(`/repos/${repo}/pulls/${pr.number}/reviews`, accessToken),
-              catch: (e) => new Error(String(e)),
-            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubReview[])));
+            const reviews = yield* githubFetch<GitHubReview[]>(
+              `/repos/${repo}/pulls/${pr.number}/reviews`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubReview[])));
 
-            const reviewComments = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/pulls/${pr.number}/comments`, accessToken),
-              catch: (e) => new Error(String(e)),
-            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
+            const reviewComments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/pulls/${pr.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
 
-            const files = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken),
-              catch: (e) => new Error(String(e)),
-            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubFile[])));
+            const files = yield* githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken).pipe(
+              Effect.catchAll(() => Effect.succeed([] as GitHubFile[])),
+            );
 
             items.push(prToRawContentItem(pr, reviews, reviewComments, files));
           }
@@ -440,16 +441,17 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             params.set('since', since.toISOString());
           }
 
-          const issues = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubIssue[]>(`/repos/${repo}/issues?${params}`, accessToken),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to fetch issues: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'github',
-                cause: e,
-              }),
-          });
+          const issues = yield* githubFetch<GitHubIssue[]>(`/repos/${repo}/issues?${params}`, accessToken).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to fetch issues: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'github',
+                  cause: e,
+                }),
+            ),
+          );
 
           for (const issue of issues) {
             // Skip PRs (they show up in issues endpoint)
@@ -457,17 +459,19 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
             // Apply label filters
             if (config?.labelFilters?.length) {
-              const issueLabels = issue.labels.map((l) => l.name);
+              const issueLabels = issue.labels
+                .map((label) => (typeof label === 'string' ? label : label.name))
+                .filter((label): label is string => Boolean(label));
               if (!config.labelFilters.some((f) => issueLabels.includes(f))) {
                 continue;
               }
             }
 
             // Fetch comments
-            const comments = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/issues/${issue.number}/comments`, accessToken),
-              catch: (e) => new Error(String(e)),
-            }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
+            const comments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/issues/${issue.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubComment[])));
 
             items.push(issueToRawContentItem(issue, comments));
           }
@@ -517,26 +521,34 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         let page = 0;
 
         do {
-          const result = yield* Effect.tryPromise({
-            try: () =>
-              githubGraphQL<{
-                repository: {
-                  discussions: {
-                    pageInfo: { hasNextPage: boolean; endCursor: string };
-                    nodes: GitHubDiscussion[];
-                  };
-                };
-              }>(accessToken, query, { owner, name, cursor }),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to fetch discussions: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'github',
-                cause: e,
-              }),
-          });
+          const result: {
+            repository: {
+              discussions: {
+                pageInfo: { hasNextPage: boolean; endCursor: string };
+                nodes: GitHubDiscussion[];
+              };
+            };
+          } = yield* githubGraphQL<{
+            repository: {
+              discussions: {
+                pageInfo: { hasNextPage: boolean; endCursor: string };
+                nodes: GitHubDiscussion[];
+              };
+            };
+          }>(accessToken, query, { owner, name, cursor }).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to fetch discussions: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'github',
+                  cause: e,
+                }),
+            ),
+          );
 
-          const discussions = result.repository.discussions;
+          const discussions: { pageInfo: { hasNextPage: boolean; endCursor: string }; nodes: GitHubDiscussion[] } =
+            result.repository.discussions;
 
           for (const discussion of discussions.nodes) {
             // Check sync window
@@ -563,15 +575,19 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         // Get unique users from repos
         for (const repo of config?.repositories || []) {
           // Fetch contributors
-          const contributors = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubContributor[]>(`/repos/${repo}/contributors?per_page=100`, accessToken),
-            catch: (e) => new Error(String(e)),
-          }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubContributor[])));
+          const contributors = yield* githubFetch<GitHubContributor[]>(
+            `/repos/${repo}/contributors?per_page=100`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubContributor[])));
 
           for (const contributor of contributors) {
+            if (contributor.id == null || !contributor.login) {
+              continue;
+            }
+            const contributorId = contributor.id;
             const userData: NewGitHubUser = {
               sourceId: source.id,
-              githubUserId: contributor.id,
+              githubUserId: contributorId,
               githubLogin: contributor.login,
               avatarUrl: contributor.avatar_url,
               type: contributor.type,
@@ -580,7 +596,7 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
             yield* Effect.tryPromise({
               try: async () => {
                 const existing = await db.query.githubUsers.findFirst({
-                  where: and(eq(githubUsers.sourceId, source.id), eq(githubUsers.githubUserId, contributor.id)),
+                  where: and(eq(githubUsers.sourceId, source.id), eq(githubUsers.githubUserId, contributorId)),
                 });
 
                 if (existing) {
@@ -624,18 +640,16 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
         // Fetch from GitHub
         try {
-          const response = yield* Effect.tryPromise({
-            try: () =>
-              githubFetch<GitHubFileContent>(`/repos/${repo}/contents/${path}${ref ? `?ref=${ref}` : ''}`, accessToken),
-            catch: () => null,
-          });
+          const response = yield* githubFetch<GitHubFileContent>(
+            `/repos/${repo}/contents/${path}${ref ? `?ref=${ref}` : ''}`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed(null)));
 
-          if (!response) return null;
+          if (!response || Array.isArray(response) || !('content' in response)) return null;
 
+          const rawContent = response.content ?? '';
           const content =
-            response.encoding === 'base64'
-              ? Buffer.from(response.content, 'base64').toString('utf-8')
-              : response.content;
+            response.encoding === 'base64' ? Buffer.from(rawContent, 'base64').toString('utf-8') : rawContent;
 
           // Cache the content
           yield* Effect.tryPromise({
@@ -647,8 +661,8 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
                 ref: ref || 'HEAD',
                 content,
                 language: detectLanguage(path),
-                size: response.size,
-                sha: response.sha,
+                size: typeof response.size === 'number' ? response.size : 0,
+                sha: response.sha ?? '',
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
               });
             },
@@ -673,92 +687,107 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
     handleWebhook: (source, event, payload) =>
       Effect.gen(function* () {
-        const data = payload as Record<string, unknown>;
+        const isRecord = (value: unknown): value is Record<string, unknown> =>
+          typeof value === 'object' && value !== null;
+
+        // PR guard: PRs have head/base refs for branches, title, and state
+        const isGitHubPR = (value: unknown): value is GitHubPR =>
+          isRecord(value) &&
+          typeof value.number === 'number' &&
+          typeof value.title === 'string' &&
+          isRecord(value.head) &&
+          typeof (value.head as Record<string, unknown>).ref === 'string';
+
+        // Issue guard: Issues have number, title, state, and assignees array
+        const isGitHubIssue = (value: unknown): value is GitHubIssue =>
+          isRecord(value) &&
+          typeof value.number === 'number' &&
+          typeof value.title === 'string' &&
+          typeof value.state === 'string' &&
+          Array.isArray(value.assignees);
+
+        if (!isRecord(payload)) return null;
+
+        const action = typeof payload.action === 'string' ? payload.action : null;
+        const repo =
+          isRecord(payload.repository) && typeof payload.repository.full_name === 'string'
+            ? payload.repository.full_name
+            : null;
 
         switch (event) {
           case 'pull_request': {
-            const action = data.action as string;
-            if (['opened', 'edited', 'closed', 'reopened', 'synchronize'].includes(action)) {
-              const pr = data.pull_request as GitHubPR;
-              const repo = (data.repository as { full_name: string }).full_name;
-              const accessToken = getAccessToken(source);
-
-              const reviews = yield* Effect.tryPromise({
-                try: () => githubFetch<GitHubReview[]>(`/repos/${repo}/pulls/${pr.number}/reviews`, accessToken),
-                catch: () => [],
-              });
-
-              const reviewComments = yield* Effect.tryPromise({
-                try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/pulls/${pr.number}/comments`, accessToken),
-                catch: () => [],
-              });
-
-              const files = yield* Effect.tryPromise({
-                try: () => githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken),
-                catch: () => [],
-              });
-
-              return prToRawContentItem(pr, reviews, reviewComments, files);
+            if (!action || !['opened', 'edited', 'closed', 'reopened', 'synchronize'].includes(action)) {
+              return null;
             }
-            break;
+            const pr = isGitHubPR(payload.pull_request) ? payload.pull_request : null;
+            if (!pr || !repo) return null;
+            const accessToken = getAccessToken(source);
+
+            const reviews = yield* githubFetch<GitHubReview[]>(
+              `/repos/${repo}/pulls/${pr.number}/reviews`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
+
+            const reviewComments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/pulls/${pr.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
+
+            const files = yield* githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken).pipe(
+              Effect.catchAll(() => Effect.succeed([])),
+            );
+
+            return prToRawContentItem(pr, reviews, reviewComments, files);
           }
 
           case 'issues': {
-            const action = data.action as string;
-            if (['opened', 'edited', 'closed', 'reopened'].includes(action)) {
-              const issue = data.issue as GitHubIssue;
-              if (issue.pull_request) return null; // Skip PR issues
-
-              const repo = (data.repository as { full_name: string }).full_name;
-              const accessToken = getAccessToken(source);
-
-              const comments = yield* Effect.tryPromise({
-                try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/issues/${issue.number}/comments`, accessToken),
-                catch: () => [],
-              });
-
-              return issueToRawContentItem(issue, comments);
+            if (!action || !['opened', 'edited', 'closed', 'reopened'].includes(action)) {
+              return null;
             }
-            break;
+            const issue = isGitHubIssue(payload.issue) ? payload.issue : null;
+            if (!issue || issue.pull_request || !repo) return null;
+
+            const accessToken = getAccessToken(source);
+            const comments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/issues/${issue.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
+
+            return issueToRawContentItem(issue, comments);
           }
 
           case 'issue_comment': {
-            // Re-fetch the issue with updated comments
-            const issue = data.issue as GitHubIssue;
-            if (issue.pull_request) return null;
+            const issue = isGitHubIssue(payload.issue) ? payload.issue : null;
+            if (!issue || issue.pull_request || !repo) return null;
 
-            const repo = (data.repository as { full_name: string }).full_name;
             const accessToken = getAccessToken(source);
-
-            const comments = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/issues/${issue.number}/comments`, accessToken),
-              catch: () => [],
-            });
+            const comments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/issues/${issue.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
 
             return issueToRawContentItem(issue, comments);
           }
 
           case 'pull_request_review':
           case 'pull_request_review_comment': {
-            // Re-fetch the PR with updated reviews
-            const pr = data.pull_request as GitHubPR;
-            const repo = (data.repository as { full_name: string }).full_name;
+            const pr = isGitHubPR(payload.pull_request) ? payload.pull_request : null;
+            if (!pr || !repo) return null;
             const accessToken = getAccessToken(source);
 
-            const reviews = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubReview[]>(`/repos/${repo}/pulls/${pr.number}/reviews`, accessToken),
-              catch: () => [],
-            });
+            const reviews = yield* githubFetch<GitHubReview[]>(
+              `/repos/${repo}/pulls/${pr.number}/reviews`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
 
-            const reviewComments = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubComment[]>(`/repos/${repo}/pulls/${pr.number}/comments`, accessToken),
-              catch: () => [],
-            });
+            const reviewComments = yield* githubFetch<GitHubComment[]>(
+              `/repos/${repo}/pulls/${pr.number}/comments`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed([])));
 
-            const files = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken),
-              catch: () => [],
-            });
+            const files = yield* githubFetch<GitHubFile[]>(`/repos/${repo}/pulls/${pr.number}/files`, accessToken).pipe(
+              Effect.catchAll(() => Effect.succeed([])),
+            );
 
             return prToRawContentItem(pr, reviews, reviewComments, files);
           }
@@ -766,15 +795,15 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
         return null;
       }).pipe(
-        Effect.mapError(
-          (e) =>
-            new ContentSourceSyncError({
-              message: e instanceof Error ? e.message : 'Unknown error',
-              sourceId: source.id,
-              sourceType: 'github',
-              cause: e,
-            }),
-        ),
+        Effect.mapError((e: unknown) => {
+          const message = e instanceof Error ? e.message : 'Unknown error';
+          return new ContentSourceSyncError({
+            message,
+            sourceId: source.id,
+            sourceType: 'github',
+            cause: e,
+          });
+        }),
       ),
 
     syncWiki: (source, repo) =>
@@ -784,16 +813,17 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         const [owner, name] = repo.split('/');
 
         // First check if the repo has a wiki enabled
-        const repoInfo = yield* Effect.tryPromise({
-          try: () => githubFetch<GitHubRepo>(`/repos/${repo}`, accessToken),
-          catch: (e) =>
-            new ContentSourceSyncError({
-              message: `Failed to fetch repo info: ${e instanceof Error ? e.message : 'Unknown'}`,
-              sourceId: source.id,
-              sourceType: 'github',
-              cause: e,
-            }),
-        });
+        const repoInfo = yield* githubFetch<GitHubRepo>(`/repos/${repo}`, accessToken).pipe(
+          Effect.mapError(
+            (e) =>
+              new ContentSourceSyncError({
+                message: `Failed to fetch repo info: ${e instanceof Error ? e.message : 'Unknown'}`,
+                sourceId: source.id,
+                sourceType: 'github',
+                cause: e,
+              }),
+          ),
+        );
 
         if (!repoInfo.has_wiki) {
           // Wiki not enabled for this repo
@@ -805,18 +835,18 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         const wikiRepoPath = `${owner}/${name}.wiki`;
 
         // Try to list wiki contents (root level)
-        const wikiPages = yield* Effect.tryPromise({
-          try: () => githubFetch<GitHubWikiPage[]>(`/repos/${wikiRepoPath}/contents`, accessToken),
-          catch: (e) =>
-            new ContentSourceSyncError({
-              message: `Failed to list wiki pages: ${e instanceof Error ? e.message : 'Unknown'}`,
-              sourceId: source.id,
-              sourceType: 'github',
-              cause: e,
-            }),
-        }).pipe(
+        const wikiPages = yield* githubFetch<GitHubWikiPage[]>(`/repos/${wikiRepoPath}/contents`, accessToken).pipe(
+          Effect.mapError(
+            (e) =>
+              new ContentSourceSyncError({
+                message: `Failed to list wiki pages: ${e instanceof Error ? e.message : 'Unknown'}`,
+                sourceId: source.id,
+                sourceType: 'github',
+                cause: e,
+              }),
+          ),
           // Wiki might not exist even if has_wiki is true
-          Effect.catchAll(() => Effect.succeed(null as GitHubWikiPage[] | null)),
+          Effect.catchAll(() => Effect.succeed<GitHubWikiPage[] | null>(null)),
         );
 
         if (!wikiPages || !Array.isArray(wikiPages)) {
@@ -831,10 +861,10 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
         // Fetch each wiki page content
         for (const page of markdownPages) {
-          const pageContent = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubWikiContent>(`/repos/${wikiRepoPath}/contents/${page.path}`, accessToken),
-            catch: (e) => new Error(String(e)),
-          }).pipe(Effect.catchAll(() => Effect.succeed(null as GitHubWikiContent | null)));
+          const pageContent = yield* githubFetch<GitHubWikiContent>(
+            `/repos/${wikiRepoPath}/contents/${page.path}`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed<GitHubWikiContent | null>(null)));
 
           if (pageContent) {
             // Construct the HTML URL for the wiki page
@@ -849,10 +879,10 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
         const directories = wikiPages.filter((p) => p.type === 'dir');
         for (const dir of directories.slice(0, 10)) {
           // Limit to 10 directories
-          const subPages = yield* Effect.tryPromise({
-            try: () => githubFetch<GitHubWikiPage[]>(`/repos/${wikiRepoPath}/contents/${dir.path}`, accessToken),
-            catch: (e) => new Error(String(e)),
-          }).pipe(Effect.catchAll(() => Effect.succeed([] as GitHubWikiPage[])));
+          const subPages = yield* githubFetch<GitHubWikiPage[]>(
+            `/repos/${wikiRepoPath}/contents/${dir.path}`,
+            accessToken,
+          ).pipe(Effect.catchAll(() => Effect.succeed<GitHubWikiPage[]>([])));
 
           const subMarkdownPages = subPages.filter(
             (p) => p.type === 'file' && (p.name.endsWith('.md') || p.name.endsWith('.markdown')),
@@ -860,10 +890,10 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
 
           for (const page of subMarkdownPages.slice(0, 50)) {
             // Limit per directory
-            const pageContent = yield* Effect.tryPromise({
-              try: () => githubFetch<GitHubWikiContent>(`/repos/${wikiRepoPath}/contents/${page.path}`, accessToken),
-              catch: (e) => new Error(String(e)),
-            }).pipe(Effect.catchAll(() => Effect.succeed(null as GitHubWikiContent | null)));
+            const pageContent = yield* githubFetch<GitHubWikiContent>(
+              `/repos/${wikiRepoPath}/contents/${page.path}`,
+              accessToken,
+            ).pipe(Effect.catchAll(() => Effect.succeed<GitHubWikiContent | null>(null)));
 
             if (pageContent) {
               const pageSlug = page.path.replace(/\.(md|markdown)$/i, '');

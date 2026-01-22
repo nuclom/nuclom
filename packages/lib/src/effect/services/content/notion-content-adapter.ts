@@ -10,6 +10,21 @@
  * - Incremental polling (webhooks limited)
  */
 
+import type {
+  BlockObjectResponse,
+  CommentObjectResponse,
+  DataSourceObjectResponse,
+  ListBlockChildrenResponse,
+  ListCommentsResponse,
+  PageObjectResponse,
+  PartialBlockObjectResponse,
+  PartialDataSourceObjectResponse,
+  PartialPageObjectResponse,
+  QueryDataSourceResponse,
+  RichTextItemResponse,
+  SearchResponse,
+  UserObjectResponse,
+} from '@notionhq/client/build/src/api-endpoints';
 import { and, eq } from 'drizzle-orm';
 import { Context, Effect, Layer } from 'effect';
 import type { ContentSource } from '../../../db/schema';
@@ -29,149 +44,78 @@ import {
 } from '../../../db/schema';
 import { ContentSourceAuthError, ContentSourceSyncError, DatabaseError } from '../../errors';
 import { Database } from '../database';
+import { NotionClient } from '../notion-client';
 import type { ContentSourceAdapter, RawContentItem } from './types';
 
 // =============================================================================
 // Notion API Types
 // =============================================================================
 
-interface NotionBlock {
-  id: string;
-  type: string;
-  has_children: boolean;
-  [key: string]: unknown;
-}
-
-interface NotionRichText {
-  type: 'text' | 'mention' | 'equation';
-  plain_text: string;
-  href: string | null;
-  annotations: {
-    bold: boolean;
-    italic: boolean;
-    strikethrough: boolean;
-    underline: boolean;
-    code: boolean;
-    color: string;
-  };
-}
-
-interface NotionPage {
-  id: string;
-  object: 'page';
-  parent: { type: string; page_id?: string; database_id?: string; workspace?: boolean };
-  created_time: string;
-  last_edited_time: string;
-  created_by: { id: string };
-  last_edited_by: { id: string };
-  archived: boolean;
-  url: string;
-  icon?: { type: 'emoji'; emoji: string } | { type: 'external'; external: { url: string } };
-  cover?: { type: 'external'; external: { url: string } };
-  properties: Record<string, NotionProperty>;
-}
-
-interface NotionDatabase {
-  id: string;
-  object: 'database';
-  title: NotionRichText[];
-  description: NotionRichText[];
-  parent: { type: string; page_id?: string; workspace?: boolean };
-  created_time: string;
-  last_edited_time: string;
-  url: string;
-  properties: Record<string, NotionPropertyDefinition>;
-}
-
-interface NotionProperty {
-  id: string;
-  type: string;
-  [key: string]: unknown;
-}
-
-interface NotionPropertyDefinition {
-  id: string;
-  name: string;
-  type: string;
-  [key: string]: unknown;
-}
-
-interface NotionApiUser {
-  id: string;
-  object: 'user';
-  type?: 'person' | 'bot';
-  name?: string;
-  avatar_url?: string;
-  person?: { email: string };
-}
-
-interface NotionSearchResponse {
-  results: Array<NotionPage | NotionDatabase>;
-  has_more: boolean;
-  next_cursor: string | null;
-}
-
-interface NotionBlocksResponse {
-  results: NotionBlock[];
-  has_more: boolean;
-  next_cursor: string | null;
-}
-
-interface NotionDatabaseQueryResponse {
-  results: NotionPage[];
-  has_more: boolean;
-  next_cursor: string | null;
-}
-
-interface NotionComment {
-  id: string;
-  parent: { type: 'page_id' | 'block_id'; page_id?: string; block_id?: string };
-  discussion_id: string;
-  created_time: string;
-  last_edited_time: string;
-  created_by: { id: string };
-  rich_text: NotionRichText[];
-}
-
-interface NotionCommentsResponse {
-  results: NotionComment[];
-  has_more: boolean;
-  next_cursor: string | null;
-}
+type NotionBlock = BlockObjectResponse;
+type NotionBlockWithChildren = NotionBlock & { children?: NotionBlock[] };
+type NotionRichText = RichTextItemResponse;
+type NotionPage = PageObjectResponse;
+type NotionDatabase = DataSourceObjectResponse;
+type NotionProperty = PageObjectResponse['properties'][string];
+type NotionApiUser = UserObjectResponse;
+type NotionSearchResponse = SearchResponse;
+type NotionSearchResult = NotionSearchResponse['results'][number];
+type NotionBlocksResponse = ListBlockChildrenResponse;
+type NotionDatabaseQueryResponse = QueryDataSourceResponse;
+type NotionComment = CommentObjectResponse;
+type NotionCommentsResponse = ListCommentsResponse;
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const NOTION_API_BASE = 'https://api.notion.com/v1';
 const NOTION_API_VERSION = '2022-06-28';
 
 // =============================================================================
 // Notion API Helpers
 // =============================================================================
 
-const notionFetch = async <T>(
+const notionFetch = <T>(
   endpoint: string,
   accessToken: string,
-  options?: { method?: string; body?: unknown },
-): Promise<T> => {
-  const response = await fetch(`${NOTION_API_BASE}${endpoint}`, {
-    method: options?.method || 'GET',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Notion-Version': NOTION_API_VERSION,
-      'Content-Type': 'application/json',
-    },
-    body: options?.body ? JSON.stringify(options.body) : undefined,
+  options?: { method?: 'get' | 'post' | 'patch' | 'delete'; body?: unknown },
+): Effect.Effect<T, Error, NotionClient> =>
+  Effect.gen(function* () {
+    const notionClient = yield* NotionClient;
+    const notion = yield* notionClient.create(accessToken, NOTION_API_VERSION);
+    return yield* Effect.tryPromise({
+      try: async () => {
+        const response = await notion.request({
+          path: endpoint,
+          method: options?.method ?? 'get',
+          ...(options?.body ? { body: options.body as Record<string, unknown> } : {}),
+        });
+
+        return response as T;
+      },
+      catch: (error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return new Error(`Notion API error: ${message}`);
+      },
+    });
   });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Notion API error: ${response.status} - ${error}`);
-  }
+const isNotionPage = (result: NotionSearchResult): result is NotionPage =>
+  result.object === 'page' && 'properties' in result;
 
-  return (await response.json()) as T;
+const isNotionDatabase = (result: NotionSearchResult): result is NotionDatabase => {
+  // The SDK types use 'data_source' but the actual API may return 'database'
+  // Use type assertion to handle both cases for compatibility
+  const objectType = result.object as string;
+  return (objectType === 'database' || objectType === 'data_source') && 'title' in result;
 };
+
+const isNotionBlock = (block: NotionBlock | PartialBlockObjectResponse): block is NotionBlock =>
+  block.object === 'block' && 'type' in block;
+
+const isFullPage = (
+  page: PageObjectResponse | PartialPageObjectResponse | DataSourceObjectResponse | PartialDataSourceObjectResponse,
+): page is PageObjectResponse => page.object === 'page' && 'properties' in page;
 
 // =============================================================================
 // Block-to-Text Conversion
@@ -203,104 +147,82 @@ function richTextToPlain(richText: NotionRichText[]): string {
  * Convert a single Notion block to text
  */
 function convertBlock(block: NotionBlock): string {
-  const type = block.type;
-  const data = block[type] as Record<string, unknown> | undefined;
-
-  if (!data) return '';
-
-  switch (type) {
+  switch (block.type) {
     case 'paragraph':
-      return richTextToPlain((data.rich_text as NotionRichText[]) || []);
-
+      return richTextToPlain(block.paragraph.rich_text);
     case 'heading_1':
-      return `# ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      return `# ${richTextToPlain(block.heading_1.rich_text)}`;
     case 'heading_2':
-      return `## ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      return `## ${richTextToPlain(block.heading_2.rich_text)}`;
     case 'heading_3':
-      return `### ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
-
+      return `### ${richTextToPlain(block.heading_3.rich_text)}`;
     case 'bulleted_list_item':
-      return `• ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      return `• ${richTextToPlain(block.bulleted_list_item.rich_text)}`;
     case 'numbered_list_item':
-      return `1. ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      return `1. ${richTextToPlain(block.numbered_list_item.rich_text)}`;
     case 'to_do': {
-      const checked = (data.checked as boolean) ? '[x]' : '[ ]';
-      return `${checked} ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      const checked = block.to_do.checked ? '[x]' : '[ ]';
+      return `${checked} ${richTextToPlain(block.to_do.rich_text)}`;
     }
-
     case 'code': {
-      const language = (data.language as string) || '';
-      return `\`\`\`${language}\n${richTextToPlain((data.rich_text as NotionRichText[]) || [])}\n\`\`\``;
+      const language = block.code.language ?? '';
+      return `\`\`\`${language}\n${richTextToPlain(block.code.rich_text)}\n\`\`\``;
     }
-
     case 'quote':
-      return `> ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
-
+      return `> ${richTextToPlain(block.quote.rich_text)}`;
     case 'callout': {
-      const icon = (data.icon as { emoji?: string })?.emoji || 'i';
-      return `[${icon}] ${richTextToPlain((data.rich_text as NotionRichText[]) || [])}`;
+      const icon = block.callout.icon?.type === 'emoji' ? block.callout.icon.emoji : 'i';
+      return `[${icon}] ${richTextToPlain(block.callout.rich_text)}`;
     }
-
     case 'toggle':
-      return richTextToPlain((data.rich_text as NotionRichText[]) || []);
-
+      return richTextToPlain(block.toggle.rich_text);
     case 'divider':
       return '---';
-
     case 'child_page':
-      return `[${(data.title as string) || 'Page'}]`;
-
+      return `[${block.child_page.title ?? 'Page'}]`;
     case 'child_database':
-      return `[${(data.title as string) || 'Database'}]`;
-
+      return `[${block.child_database.title ?? 'Database'}]`;
     case 'image': {
-      const caption = (data.caption as NotionRichText[])?.length
-        ? richTextToPlain(data.caption as NotionRichText[])
-        : 'Image';
+      const caption = block.image.caption.length ? richTextToPlain(block.image.caption) : 'Image';
       return `[Image: ${caption}]`;
     }
-
     case 'bookmark':
-      return `[${(data.url as string) || 'Bookmark'}]`;
-
+      return `[${block.bookmark.url ?? 'Bookmark'}]`;
     case 'equation':
-      return `$$${(data.expression as string) || ''}$$`;
-
+      return `$$${block.equation.expression ?? ''}$$`;
     case 'table_of_contents':
       return '[Table of Contents]';
-
     case 'breadcrumb':
       return '[Breadcrumb]';
-
     case 'column_list':
     case 'column':
-      return ''; // Container blocks, content comes from children
-
+      return '';
     case 'synced_block':
-      return ''; // Content comes from children
-
+      return '';
     case 'template':
-      return ''; // Template blocks
-
+      return '';
     case 'link_preview':
-      return `[${(data.url as string) || 'Link'}]`;
-
-    case 'file':
-    case 'pdf': {
-      const file = data.file as { url: string } | undefined;
-      const external = data.external as { url: string } | undefined;
-      const url = file?.url || external?.url || '';
-      const name = (data.name as string) || 'File';
+      return `[${block.link_preview.url ?? 'Link'}]`;
+    case 'file': {
+      const url = block.file.type === 'external' ? block.file.external.url : block.file.file.url;
+      const name = block.file.name || 'File';
       return `[${name}](${url})`;
     }
-
-    case 'video':
-    case 'audio':
-    case 'embed': {
-      const url = (data.external as { url: string })?.url || '';
-      return `[${type}: ${url}]`;
+    case 'pdf': {
+      const url = block.pdf.type === 'external' ? block.pdf.external.url : block.pdf.file.url;
+      const caption = block.pdf.caption.length ? richTextToPlain(block.pdf.caption) : 'PDF';
+      return `[${caption}](${url})`;
     }
-
+    case 'video': {
+      const url = block.video.type === 'external' ? block.video.external.url : block.video.file.url;
+      return `[video: ${url}]`;
+    }
+    case 'audio': {
+      const url = block.audio.type === 'external' ? block.audio.external.url : block.audio.file.url;
+      return `[audio: ${url}]`;
+    }
+    case 'embed':
+      return `[embed: ${block.embed.url ?? ''}]`;
     default:
       return '';
   }
@@ -323,10 +245,7 @@ function extractPageTitle(properties: Record<string, NotionProperty>): string {
   // Find the title property
   for (const prop of Object.values(properties)) {
     if (prop.type === 'title') {
-      const titleValue = prop.title as NotionRichText[] | undefined;
-      if (titleValue) {
-        return richTextToPlain(titleValue);
-      }
+      return richTextToPlain(prop.title);
     }
   }
   return 'Untitled';
@@ -336,45 +255,66 @@ function extractPageTitle(properties: Record<string, NotionProperty>): string {
  * Extract property value from Notion property
  */
 function extractPropertyValue(prop: NotionProperty): unknown {
-  const type = prop.type;
-  const data = prop[type];
-
-  switch (type) {
+  switch (prop.type) {
     case 'title':
     case 'rich_text':
-      return richTextToPlain((data as NotionRichText[]) || []);
+      return richTextToPlain(prop.type === 'title' ? prop.title : prop.rich_text);
     case 'number':
-      return data;
+      return prop.number;
     case 'select':
-      return (data as { name: string } | null)?.name;
+      return prop.select?.name ?? null;
     case 'multi_select':
-      return (data as Array<{ name: string }>)?.map((s) => s.name);
+      return prop.multi_select.map((s) => s.name);
     case 'date':
-      return (data as { start: string } | null)?.start;
+      return prop.date?.start ?? null;
     case 'checkbox':
-      return data;
+      return prop.checkbox;
     case 'url':
+      return prop.url;
     case 'email':
+      return prop.email;
     case 'phone_number':
-      return data;
+      return prop.phone_number;
     case 'people':
-      return (data as Array<{ name?: string; id: string }>)?.map((p) => p.name || p.id);
+      return prop.people.map((p) => {
+        if ('name' in p && p.name) {
+          return p.name;
+        }
+        return p.id;
+      });
     case 'files':
-      return (data as Array<{ name: string }>)?.map((f) => f.name);
+      return prop.files.map((f) => f.name);
     case 'relation':
-      return (data as Array<{ id: string }>)?.map((r) => r.id);
+      return prop.relation.map((r) => r.id);
     case 'status':
-      return (data as { name: string } | null)?.name;
+      return prop.status?.name ?? null;
     case 'formula':
-      return (data as { string?: string; number?: number })?.string ?? (data as { number?: number })?.number;
+      return prop.formula.type === 'string'
+        ? prop.formula.string
+        : prop.formula.type === 'number'
+          ? prop.formula.number
+          : prop.formula.type === 'boolean'
+            ? prop.formula.boolean
+            : (prop.formula.date?.start ?? null);
     case 'rollup':
-      return (data as { string?: string; number?: number })?.string ?? (data as { number?: number })?.number;
+      switch (prop.rollup.type) {
+        case 'array':
+          return prop.rollup.array.map((item) => item.type);
+        case 'number':
+          return prop.rollup.number;
+        case 'date':
+          return prop.rollup.date?.start ?? null;
+        default:
+          return null;
+      }
     case 'created_time':
+      return prop.created_time;
     case 'last_edited_time':
-      return data;
+      return prop.last_edited_time;
     case 'created_by':
+      return prop.created_by.id ?? null;
     case 'last_edited_by':
-      return (data as { name?: string; id: string })?.name || (data as { id: string })?.id;
+      return prop.last_edited_by.id ?? null;
     default:
       return null;
   }
@@ -389,17 +329,41 @@ function extractPropertyValue(prop: NotionProperty): unknown {
  */
 function pageToRawContentItem(page: NotionPage, content: string, breadcrumb: string[], depth: number): RawContentItem {
   const title = extractPageTitle(page.properties);
+  const parentType =
+    page.parent.type === 'data_source_id' || page.parent.type === 'database_id'
+      ? 'database'
+      : page.parent.type === 'page_id' || page.parent.type === 'block_id'
+        ? 'page'
+        : 'workspace';
+  const parentId =
+    page.parent.type === 'data_source_id'
+      ? page.parent.data_source_id
+      : page.parent.type === 'database_id'
+        ? page.parent.database_id
+        : page.parent.type === 'page_id'
+          ? page.parent.page_id
+          : page.parent.type === 'block_id'
+            ? page.parent.block_id
+            : null;
 
   const metadata: NotionPageMetadata = {
     page_id: page.id,
-    parent_type: page.parent.type as 'workspace' | 'page' | 'database',
-    parent_id: page.parent.page_id || page.parent.database_id || null,
+    parent_type: parentType,
+    parent_id: parentId,
     icon: page.icon
       ? page.icon.type === 'emoji'
         ? { type: 'emoji', emoji: page.icon.emoji }
-        : { type: 'external', url: page.icon.external.url }
+        : page.icon.type === 'external'
+          ? { type: 'external', url: page.icon.external.url }
+          : page.icon.type === 'file'
+            ? { type: 'external', url: page.icon.file.url }
+            : null
       : null,
-    cover: page.cover ? { type: 'external', url: page.cover.external.url } : null,
+    cover: page.cover
+      ? page.cover.type === 'external'
+        ? { type: 'external', url: page.cover.external.url }
+        : { type: 'external', url: page.cover.file.url }
+      : null,
     created_time: page.created_time,
     last_edited_time: page.last_edited_time,
     created_by: { id: page.created_by.id, name: '' },
@@ -407,8 +371,13 @@ function pageToRawContentItem(page: NotionPage, content: string, breadcrumb: str
     url: page.url,
     breadcrumb,
     depth,
-    is_database_entry: page.parent.type === 'database',
-    database_id: page.parent.database_id,
+    is_database_entry: page.parent.type === 'data_source_id' || page.parent.type === 'database_id',
+    database_id:
+      page.parent.type === 'data_source_id'
+        ? page.parent.data_source_id
+        : page.parent.type === 'database_id'
+          ? page.parent.database_id
+          : undefined,
   };
 
   return {
@@ -440,8 +409,8 @@ function databaseEntryToRawContentItem(
     properties[key] = value;
 
     // Identify title property
-    if (prop.type === 'title') {
-      title = value as string;
+    if (prop.type === 'title' && typeof value === 'string') {
+      title = value;
     }
   }
 
@@ -457,7 +426,12 @@ function databaseEntryToRawContentItem(
   const metadata: NotionPageMetadata = {
     page_id: entry.id,
     parent_type: 'database',
-    parent_id: entry.parent.database_id || null,
+    parent_id:
+      entry.parent.type === 'data_source_id'
+        ? entry.parent.data_source_id
+        : entry.parent.type === 'database_id'
+          ? entry.parent.database_id
+          : null,
     properties,
     created_time: entry.created_time,
     last_edited_time: entry.last_edited_time,
@@ -465,7 +439,12 @@ function databaseEntryToRawContentItem(
     last_edited_by: { id: entry.last_edited_by.id, name: '' },
     url: entry.url,
     is_database_entry: true,
-    database_id: entry.parent.database_id,
+    database_id:
+      entry.parent.type === 'data_source_id'
+        ? entry.parent.data_source_id
+        : entry.parent.type === 'database_id'
+          ? entry.parent.database_id
+          : undefined,
   };
 
   return {
@@ -562,6 +541,12 @@ export class NotionContentAdapter extends Context.Tag('NotionContentAdapter')<
 
 const makeNotionContentAdapter = Effect.gen(function* () {
   const { db } = yield* Database;
+  const notionClient = yield* NotionClient;
+  const notionFetchWithClient = <T>(
+    endpoint: string,
+    accessToken: string,
+    options?: { method?: 'get' | 'post' | 'patch' | 'delete'; body?: unknown },
+  ) => notionFetch<T>(endpoint, accessToken, options).pipe(Effect.provideService(NotionClient, notionClient));
 
   const getAccessToken = (source: ContentSource): string => {
     const credentials = source.credentials;
@@ -575,14 +560,11 @@ const makeNotionContentAdapter = Effect.gen(function* () {
     sourceType: 'notion',
 
     validateCredentials: (source) =>
-      Effect.tryPromise({
-        try: async () => {
-          const accessToken = getAccessToken(source);
-          // Try to call a simple API endpoint to verify credentials
-          await notionFetch<{ bot: { owner: { type: string } } }>('/users/me', accessToken);
-          return true;
-        },
-        catch: () => false,
+      Effect.gen(function* () {
+        const accessToken = getAccessToken(source);
+        // Try to call a simple API endpoint to verify credentials
+        yield* notionFetchWithClient<{ bot: { owner: { type: string } } }>('/users/me', accessToken);
+        return true;
       }).pipe(Effect.catchAll(() => Effect.succeed(false))),
 
     fetchContent: (source, options) =>
@@ -623,25 +605,25 @@ const makeNotionContentAdapter = Effect.gen(function* () {
           };
         }
 
-        const searchResult = yield* Effect.tryPromise({
-          try: () =>
-            notionFetch<NotionSearchResponse>('/search', accessToken, {
-              method: 'POST',
-              body: searchBody,
-            }),
-          catch: (e) =>
-            new ContentSourceSyncError({
-              message: `Failed to search Notion: ${e instanceof Error ? e.message : 'Unknown'}`,
-              sourceId: source.id,
-              sourceType: 'notion',
-              cause: e,
-            }),
-        });
+        const searchResult = yield* notionFetchWithClient<NotionSearchResponse>('/search', accessToken, {
+          method: 'post',
+          body: searchBody,
+        }).pipe(
+          Effect.mapError(
+            (e) =>
+              new ContentSourceSyncError({
+                message: `Failed to search Notion: ${e instanceof Error ? e.message : 'Unknown'}`,
+                sourceId: source.id,
+                sourceType: 'notion',
+                cause: e,
+              }),
+          ),
+        );
 
         // Process each result
         for (const result of searchResult.results) {
-          if (result.object === 'page') {
-            const page = result as NotionPage;
+          if (isNotionPage(result)) {
+            const page = result;
 
             // Skip archived pages
             if (page.archived) continue;
@@ -653,9 +635,8 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
               // Check if page's parent database is selected
               const isFromSelectedDatabase =
-                page.parent.type === 'database' &&
-                page.parent.database_id &&
-                selectedDatabases.has(page.parent.database_id);
+                (page.parent.type === 'data_source_id' && selectedDatabases.has(page.parent.data_source_id)) ||
+                (page.parent.type === 'database_id' && selectedDatabases.has(page.parent.database_id));
 
               // Check if page is a child of a selected page (by checking hierarchy)
               const hierarchy = yield* service
@@ -681,7 +662,7 @@ const makeNotionContentAdapter = Effect.gen(function* () {
             if (config?.syncComments !== false) {
               const comments = yield* service
                 .getPageComments(source, page.id)
-                .pipe(Effect.catchAll(() => Effect.succeed([] as NotionComment[])));
+                .pipe(Effect.catchAll(() => Effect.succeed<NotionComment[]>([])));
 
               if (comments.length > 0) {
                 const commentsText = comments
@@ -699,9 +680,9 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
             const item = pageToRawContentItem(page, content, breadcrumb, depth);
             items.push(item);
-          } else if (result.object === 'database') {
+          } else if (isNotionDatabase(result)) {
             // For databases, fetch entries
-            const database = result as NotionDatabase;
+            const database = result;
 
             // Check if database is in selection (if selection is configured)
             if (hasSelection && !selectedDatabases.has(database.id)) {
@@ -752,10 +733,9 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
         try {
           // Fetch the page
-          const page = yield* Effect.tryPromise({
-            try: () => notionFetch<NotionPage>(`/pages/${externalId}`, accessToken),
-            catch: () => null,
-          });
+          const page = yield* notionFetchWithClient<NotionPage>(`/pages/${externalId}`, accessToken).pipe(
+            Effect.catchAll(() => Effect.succeed(null)),
+          );
 
           if (!page) return null;
 
@@ -819,22 +799,22 @@ const makeNotionContentAdapter = Effect.gen(function* () {
           };
           if (cursor) body.start_cursor = cursor;
 
-          const response = yield* Effect.tryPromise({
-            try: () =>
-              notionFetch<NotionSearchResponse>('/search', accessToken, {
-                method: 'POST',
-                body,
-              }),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list pages: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'notion',
-                cause: e,
-              }),
-          });
+          const response = yield* notionFetchWithClient<NotionSearchResponse>('/search', accessToken, {
+            method: 'post',
+            body,
+          }).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list pages: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'notion',
+                  cause: e,
+                }),
+            ),
+          );
 
-          pages.push(...(response.results.filter((r) => r.object === 'page') as NotionPage[]));
+          pages.push(...response.results.filter(isNotionPage));
           cursor = response.next_cursor || undefined;
         } while (cursor);
 
@@ -849,27 +829,28 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
         do {
           const body: Record<string, unknown> = {
+            // The Notion REST API uses 'database' as the filter value
             filter: { property: 'object', value: 'database' },
             page_size: 100,
           };
           if (cursor) body.start_cursor = cursor;
 
-          const response = yield* Effect.tryPromise({
-            try: () =>
-              notionFetch<NotionSearchResponse>('/search', accessToken, {
-                method: 'POST',
-                body,
-              }),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list databases: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'notion',
-                cause: e,
-              }),
-          });
+          const response = yield* notionFetchWithClient<NotionSearchResponse>('/search', accessToken, {
+            method: 'post',
+            body,
+          }).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list databases: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'notion',
+                  cause: e,
+                }),
+            ),
+          );
 
-          databases.push(...(response.results.filter((r) => r.object === 'database') as NotionDatabase[]));
+          databases.push(...response.results.filter(isNotionDatabase));
           cursor = response.next_cursor || undefined;
         } while (cursor);
 
@@ -879,24 +860,25 @@ const makeNotionContentAdapter = Effect.gen(function* () {
     getPageBlocks: (source, pageId) =>
       Effect.gen(function* () {
         const accessToken = getAccessToken(source);
-        const blocks: NotionBlock[] = [];
+        const blocks: NotionBlockWithChildren[] = [];
         let cursor: string | undefined;
 
         do {
           const endpoint = `/blocks/${pageId}/children${cursor ? `?start_cursor=${cursor}` : ''}`;
 
-          const response = yield* Effect.tryPromise({
-            try: () => notionFetch<NotionBlocksResponse>(endpoint, accessToken),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to get page blocks: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'notion',
-                cause: e,
-              }),
-          });
+          const response = yield* notionFetchWithClient<NotionBlocksResponse>(endpoint, accessToken).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to get page blocks: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'notion',
+                  cause: e,
+                }),
+            ),
+          );
 
-          blocks.push(...response.results);
+          blocks.push(...response.results.filter(isNotionBlock));
           cursor = response.next_cursor || undefined;
         } while (cursor);
 
@@ -904,7 +886,7 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         for (const block of blocks) {
           if (block.has_children) {
             const children = yield* service.getPageBlocks(source, block.id);
-            (block as Record<string, unknown>).children = children;
+            block.children = children;
           }
         }
 
@@ -1019,23 +1001,28 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         };
         if (cursor) body.start_cursor = cursor;
 
-        const response = yield* Effect.tryPromise({
-          try: () =>
-            notionFetch<NotionDatabaseQueryResponse>(`/databases/${databaseId}/query`, accessToken, {
-              method: 'POST',
-              body,
-            }),
-          catch: (e) =>
-            new ContentSourceSyncError({
-              message: `Failed to query database: ${e instanceof Error ? e.message : 'Unknown'}`,
-              sourceId: source.id,
-              sourceType: 'notion',
-              cause: e,
-            }),
-        });
+        // The Notion REST API uses /databases/ endpoint
+        const response = yield* notionFetchWithClient<NotionDatabaseQueryResponse>(
+          `/databases/${databaseId}/query`,
+          accessToken,
+          {
+            method: 'post',
+            body,
+          },
+        ).pipe(
+          Effect.mapError(
+            (e) =>
+              new ContentSourceSyncError({
+                message: `Failed to query database: ${e instanceof Error ? e.message : 'Unknown'}`,
+                sourceId: source.id,
+                sourceType: 'notion',
+                cause: e,
+              }),
+          ),
+        );
 
         return {
-          entries: response.results,
+          entries: response.results.filter(isFullPage),
           hasMore: response.has_more,
           nextCursor: response.next_cursor,
         };
@@ -1050,20 +1037,21 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         do {
           const endpoint = `/users${cursor ? `?start_cursor=${cursor}` : ''}`;
 
-          const response = yield* Effect.tryPromise({
-            try: () =>
-              notionFetch<{ results: NotionApiUser[]; has_more: boolean; next_cursor: string | null }>(
-                endpoint,
-                accessToken,
-              ),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to list users: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'notion',
-                cause: e,
-              }),
-          });
+          const response = yield* notionFetchWithClient<{
+            results: NotionApiUser[];
+            has_more: boolean;
+            next_cursor: string | null;
+          }>(endpoint, accessToken).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to list users: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'notion',
+                  cause: e,
+                }),
+            ),
+          );
 
           users.push(...response.results);
           cursor = response.next_cursor || undefined;
@@ -1075,9 +1063,9 @@ const makeNotionContentAdapter = Effect.gen(function* () {
           const userData: NewNotionUser = {
             sourceId: source.id,
             notionUserId: user.id,
-            name: user.name,
+            name: user.name ?? null,
             avatarUrl: user.avatar_url,
-            email: user.person?.email,
+            email: user.type === 'person' ? user.person?.email : undefined,
             type: user.type,
           };
 
@@ -1116,16 +1104,20 @@ const makeNotionContentAdapter = Effect.gen(function* () {
           const params = new URLSearchParams({ block_id: pageId });
           if (cursor) params.append('start_cursor', cursor);
 
-          const response = yield* Effect.tryPromise({
-            try: () => notionFetch<NotionCommentsResponse>(`/comments?${params.toString()}`, accessToken),
-            catch: (e) =>
-              new ContentSourceSyncError({
-                message: `Failed to fetch comments: ${e instanceof Error ? e.message : 'Unknown'}`,
-                sourceId: source.id,
-                sourceType: 'notion',
-                cause: e,
-              }),
-          });
+          const response = yield* notionFetchWithClient<NotionCommentsResponse>(
+            `/comments?${params.toString()}`,
+            accessToken,
+          ).pipe(
+            Effect.mapError(
+              (e) =>
+                new ContentSourceSyncError({
+                  message: `Failed to fetch comments: ${e instanceof Error ? e.message : 'Unknown'}`,
+                  sourceId: source.id,
+                  sourceType: 'notion',
+                  cause: e,
+                }),
+            ),
+          );
 
           comments.push(...response.results);
           cursor = response.next_cursor || undefined;
@@ -1174,29 +1166,30 @@ export const getNotionAuthUrl = (clientId: string, redirectUri: string, state: s
 /**
  * Exchange Notion OAuth code for access token
  */
-export const exchangeNotionCode = async (
+export const exchangeNotionCode = (
   clientId: string,
   clientSecret: string,
   code: string,
   redirectUri: string,
-): Promise<{ access_token: string; workspace_id: string; workspace_name?: string }> => {
-  const response = await fetch('https://api.notion.com/v1/oauth/token', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: redirectUri,
-    }),
+): Effect.Effect<{ access_token: string; workspace_id: string; workspace_name?: string }, Error, NotionClient> =>
+  Effect.gen(function* () {
+    const notionClient = yield* NotionClient;
+    const notion = yield* notionClient.create(undefined, NOTION_API_VERSION);
+    return yield* Effect.tryPromise({
+      try: async () => {
+        const response = await notion.oauth.token({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        });
+
+        return response as { access_token: string; workspace_id: string; workspace_name?: string };
+      },
+      catch: (error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return new Error(`Notion OAuth error: ${message}`);
+      },
+    });
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Notion OAuth error: ${error}`);
-  }
-
-  return (await response.json()) as { access_token: string; workspace_id: string; workspace_name?: string };
-};

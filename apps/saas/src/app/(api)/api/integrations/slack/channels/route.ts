@@ -2,12 +2,14 @@ import { auth } from '@nuclom/lib/auth';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
+import { SlackClientLive } from '@nuclom/lib/effect/services/slack-client';
 import { logger } from '@nuclom/lib/logger';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ChannelsLayer = Layer.mergeAll(SlackLive, IntegrationRepositoryWithDeps, DatabaseLive);
+const SlackWithDeps = SlackLive.pipe(Layer.provide(SlackClientLive));
+const ChannelsLayer = Layer.mergeAll(SlackWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 export async function GET(request: Request) {
   // Verify the user is authenticated

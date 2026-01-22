@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const tokens = yield* zoom.exchangeCodeForToken(code);
 
     // Get user info from Zoom
-    const userInfo = yield* zoom.getUserInfo(tokens.access_token);
+    const userInfo = yield* zoom.getUserInfo(tokens);
 
     // Save integration
     yield* saveIntegration({
@@ -32,10 +32,10 @@ export async function GET(request: Request) {
       organizationId,
       provider: 'zoom',
       tokens: {
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expires_in: tokens.expires_in,
-        scope: tokens.scope,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        expires_in: Math.max(0, Math.floor((Date.parse(tokens.expirationTimeIso) - Date.now()) / 1000)),
+        scope: tokens.scopes.join(' '),
       },
       metadata: {
         accountId: userInfo.account_id,

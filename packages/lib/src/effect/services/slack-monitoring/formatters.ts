@@ -4,14 +4,13 @@
  * Functions for formatting Slack webhook payloads and event messages.
  */
 
+import type { KnownBlock } from '@slack/web-api';
 import type {
   ErrorSeverity,
   EventCategory,
   MonitoringEvent,
   MonitoringEventType,
-  SlackBlock,
   SlackMonitoringServiceInterface,
-  SlackTextElement,
   SlackWebhookPayload,
 } from './types';
 
@@ -192,11 +191,11 @@ export const formatStackTrace = (stackTrace: string, maxLines: number = 10): str
 // Slack Block Builders
 // =============================================================================
 
-export const buildEventBlocks = (event: MonitoringEvent, appUrl: string): SlackBlock[] => {
+export const buildEventBlocks = (event: MonitoringEvent, appUrl: string): KnownBlock[] => {
   const emoji = getEventEmoji(event.type);
   const title = getEventTitle(event.type);
 
-  const blocks: SlackBlock[] = [
+  const blocks: KnownBlock[] = [
     {
       type: 'header',
       text: {
@@ -208,7 +207,7 @@ export const buildEventBlocks = (event: MonitoringEvent, appUrl: string): SlackB
   ];
 
   // Build context fields based on event type
-  const fields: Array<{ type: string; text: string }> = [];
+  const fields: Array<{ type: 'mrkdwn'; text: string }> = [];
 
   if (event.organizationName) {
     fields.push({
@@ -335,7 +334,7 @@ export const buildEventBlocks = (event: MonitoringEvent, appUrl: string): SlackB
         text: `<!date^${Math.floor(event.timestamp.getTime() / 1000)}^{date_short_pretty} at {time}|${event.timestamp.toISOString()}>`,
       },
     ],
-  } as SlackBlock);
+  } as KnownBlock);
 
   // Add action buttons for certain events
   if (event.organizationId) {
@@ -374,7 +373,7 @@ export const buildErrorEventPayload = (
   const title = getEventTitle(type);
 
   // Header block with severity indicator
-  const headerBlocks: SlackBlock[] = [
+  const headerBlocks: KnownBlock[] = [
     {
       type: 'header',
       text: {
@@ -394,10 +393,10 @@ export const buildErrorEventPayload = (
         text: `*Severity:* \`${severityLabel}\`${data.httpStatus ? ` • *Status:* \`${data.httpStatus}\`` : ''}${data.httpMethod ? ` • *Method:* \`${data.httpMethod}\`` : ''}`,
       },
     ],
-  } as SlackBlock);
+  } as KnownBlock);
 
   // Main error details in attachment (with color bar)
-  const attachmentBlocks: SlackBlock[] = [];
+  const attachmentBlocks: KnownBlock[] = [];
 
   // Error message section with better formatting
   if (data.errorMessage) {
@@ -408,11 +407,11 @@ export const buildErrorEventPayload = (
         type: 'mrkdwn',
         text: `*Error Message:*\n\`\`\`${truncatedMessage}\`\`\``,
       },
-    } as SlackBlock);
+    } as KnownBlock);
   }
 
   // Context fields in a structured grid
-  const contextFields: Array<{ type: string; text: string }> = [];
+  const contextFields: Array<{ type: 'mrkdwn'; text: string }> = [];
 
   if (data.endpoint) {
     contextFields.push({
@@ -491,7 +490,7 @@ export const buildErrorEventPayload = (
         type: 'mrkdwn',
         text: `*Stack Trace:*\n\`\`\`${formattedStack}\`\`\``,
       },
-    } as SlackBlock);
+    } as KnownBlock);
   }
 
   // Timestamp
@@ -503,10 +502,15 @@ export const buildErrorEventPayload = (
         text: `<!date^${Math.floor(timestamp.getTime() / 1000)}^{date_short_pretty} at {time}|${timestamp.toISOString()}>`,
       },
     ],
-  } as SlackBlock);
+  } as KnownBlock);
 
   // Action buttons
-  const actionElements: SlackTextElement[] = [];
+  const actionElements: Array<{
+    type: 'button';
+    text: { type: 'plain_text'; text: string; emoji?: boolean };
+    url: string;
+    action_id: string;
+  }> = [];
 
   if (data.organizationId) {
     actionElements.push({

@@ -1,7 +1,8 @@
 import { auth } from '@nuclom/lib/auth';
+import { GoogleClientLive } from '@nuclom/lib/effect/services/google-client';
 import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
 import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -47,7 +48,8 @@ export async function GET(request: Request) {
     return yield* google.getAuthorizationUrl(state);
   });
 
-  const authUrl = await Effect.runPromise(Effect.provide(effect, GoogleMeetLive));
+  const googleLayer = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+  const authUrl = await Effect.runPromise(Effect.provide(effect, googleLayer));
 
   return redirect(authUrl);
 }

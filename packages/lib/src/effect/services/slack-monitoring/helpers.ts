@@ -4,9 +4,11 @@
  * Effect helper functions and standalone notification functions.
  */
 
+import type { KnownBlock } from '@slack/web-api';
 import { Effect } from 'effect';
 import { env, getAppUrl } from '../../../env/server';
 import { createLogger } from '../../../logger';
+import { SlackWebhookClient, SlackWebhookClientLive } from '../slack-client';
 import {
   formatCurrency,
   formatStackTrace,
@@ -24,7 +26,6 @@ import type {
   EventCategory,
   MonitoringEvent,
   MonitoringEventType,
-  SlackBlock,
   SlackMonitoringServiceInterface,
   SlackWebhookPayload,
 } from './types';
@@ -118,7 +119,7 @@ function buildStandaloneErrorPayload(
   const title = getEventTitle(type);
 
   // Header block with severity indicator
-  const headerBlocks = [
+  const headerBlocks: KnownBlock[] = [
     {
       type: 'header',
       text: {
@@ -139,7 +140,7 @@ function buildStandaloneErrorPayload(
   ];
 
   // Main error details in attachment (with color bar)
-  const attachmentBlocks: Array<Record<string, unknown>> = [];
+  const attachmentBlocks: KnownBlock[] = [];
 
   // Error message section with better formatting
   if (data.errorMessage) {
@@ -154,7 +155,7 @@ function buildStandaloneErrorPayload(
   }
 
   // Context fields in a structured grid
-  const contextFields: Array<{ type: string; text: string }> = [];
+  const contextFields: Array<{ type: 'mrkdwn'; text: string }> = [];
 
   if (data.endpoint) {
     contextFields.push({
@@ -248,7 +249,12 @@ function buildStandaloneErrorPayload(
   });
 
   // Action buttons
-  const actionElements: Array<Record<string, unknown>> = [];
+  const actionElements: Array<{
+    type: 'button';
+    text: { type: 'plain_text'; text: string; emoji?: boolean };
+    url: string;
+    action_id: string;
+  }> = [];
 
   if (data.organizationId) {
     actionElements.push({
@@ -302,11 +308,11 @@ function buildStandaloneErrorPayload(
 
   return {
     text: fallbackText,
-    blocks: headerBlocks as SlackBlock[],
+    blocks: headerBlocks,
     attachments: [
       {
         color: severityColor,
-        blocks: attachmentBlocks as unknown as SlackBlock[],
+        blocks: attachmentBlocks,
         fallback: fallbackText,
       },
     ],
@@ -366,15 +372,19 @@ export async function notifySlackMonitoring(
       type === 'video_processing_failed';
     if (isErrorEvent && data.errorMessage) {
       const payload = buildStandaloneErrorPayload(type as 'api_error' | 'webhook_failed' | 'integration_error', data);
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        log.warn('Slack webhook failed', { status: response.status });
-      }
+      await Effect.runPromise(
+        Effect.gen(function* () {
+          const client = yield* SlackWebhookClient;
+          const webhook = yield* client.create(webhookUrl);
+          yield* Effect.tryPromise({
+            try: () => webhook.send(payload),
+            catch: (error) =>
+              new Error(
+                `Failed to send Slack notification: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              ),
+          });
+        }).pipe(Effect.provide(SlackWebhookClientLive)),
+      );
       return;
     }
 
@@ -383,7 +393,7 @@ export async function notifySlackMonitoring(
     const title = getEventTitle(type);
 
     // Build simple block message
-    const blocks = [
+    const blocks: KnownBlock[] = [
       {
         type: 'header',
         text: {
@@ -395,7 +405,7 @@ export async function notifySlackMonitoring(
     ];
 
     // Build fields
-    const fields: Array<{ type: string; text: string }> = [];
+    const fields: Array<{ type: 'mrkdwn'; text: string }> = [];
 
     if (data.organizationName) {
       fields.push({ type: 'mrkdwn', text: `*Organization:* ${data.organizationName}` });
@@ -429,7 +439,7 @@ export async function notifySlackMonitoring(
       blocks.push({
         type: 'section',
         fields,
-      } as unknown as (typeof blocks)[0]);
+      });
     }
 
     // Add timestamp
@@ -441,7 +451,7 @@ export async function notifySlackMonitoring(
           text: `<!date^${Math.floor(Date.now() / 1000)}^{date_short_pretty} at {time}|${new Date().toISOString()}>`,
         },
       ],
-    } as unknown as (typeof blocks)[0]);
+    });
 
     const payload = {
       text: `${emoji} ${title}${data.organizationName ? ` - ${data.organizationName}` : ''}`,
@@ -450,15 +460,17 @@ export async function notifySlackMonitoring(
       unfurl_media: false,
     };
 
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      log.warn('Slack webhook failed', { status: response.status });
-    }
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const client = yield* SlackWebhookClient;
+        const webhook = yield* client.create(webhookUrl);
+        yield* Effect.tryPromise({
+          try: () => webhook.send(payload),
+          catch: (error) =>
+            new Error(`Failed to send Slack notification: ${error instanceof Error ? error.message : 'Unknown error'}`),
+        });
+      }).pipe(Effect.provide(SlackWebhookClientLive)),
+    );
   } catch (error) {
     // Log but don't throw - monitoring should never break the app
     log.warn('Failed to send Slack notification', { error: String(error) });

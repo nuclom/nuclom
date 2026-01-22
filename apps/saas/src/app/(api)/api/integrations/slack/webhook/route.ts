@@ -1,5 +1,6 @@
 import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
-import { Effect } from 'effect';
+import { SlackClientLive } from '@nuclom/lib/effect/services/slack-client';
+import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 
 interface SlackEventPayload {
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
   });
 
   try {
-    const isValid = await Effect.runPromise(Effect.provide(effect, SlackLive));
+    const slackLayer = SlackLive.pipe(Layer.provide(SlackClientLive));
+    const isValid = await Effect.runPromise(Effect.provide(effect, slackLayer));
 
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });

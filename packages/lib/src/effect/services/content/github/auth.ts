@@ -21,6 +21,8 @@ export const getGitHubAuthUrl = (clientId: string, redirectUri: string, state: s
   return `https://github.com/login/oauth/authorize?${params.toString()}`;
 };
 
+import { exchangeWebFlowCode } from '@octokit/oauth-methods';
+
 /**
  * Exchange GitHub OAuth code for access token
  */
@@ -29,25 +31,23 @@ export const exchangeGitHubCode = async (
   clientSecret: string,
   code: string,
 ): Promise<{ access_token: string; token_type: string; scope: string }> => {
-  const response = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
+  try {
+    const result = await exchangeWebFlowCode({
+      clientType: 'oauth-app',
+      clientId,
+      clientSecret,
       code,
-    }),
-  });
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`GitHub OAuth error: ${error}`);
+    return {
+      access_token: result.data.access_token,
+      token_type: result.data.token_type,
+      scope: result.data.scope ?? '',
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`GitHub OAuth error: ${message}`);
   }
-
-  return (await response.json()) as { access_token: string; token_type: string; scope: string };
 };
 
 // =============================================================================

@@ -1,7 +1,8 @@
 import { auth } from '@nuclom/lib/auth';
 import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
+import { SlackClientLive } from '@nuclom/lib/effect/services/slack-client';
 import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -47,7 +48,8 @@ export async function GET(request: Request) {
     return yield* slack.getAuthorizationUrl(state);
   });
 
-  const authUrl = await Effect.runPromise(Effect.provide(effect, SlackLive));
+  const slackLayer = SlackLive.pipe(Layer.provide(SlackClientLive));
+  const authUrl = await Effect.runPromise(Effect.provide(effect, slackLayer));
 
   return redirect(authUrl);
 }

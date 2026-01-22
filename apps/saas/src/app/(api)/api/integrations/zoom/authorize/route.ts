@@ -1,7 +1,8 @@
 import { auth } from '@nuclom/lib/auth';
 import { Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { ZoomClientLive } from '@nuclom/lib/effect/services/zoom-client';
 import { env } from '@nuclom/lib/env/server';
-import { Effect } from 'effect';
+import { Effect, Layer } from 'effect';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -47,7 +48,8 @@ export async function GET(request: Request) {
     return yield* zoom.getAuthorizationUrl(state);
   });
 
-  const authUrl = await Effect.runPromise(Effect.provide(effect, ZoomLive));
+  const zoomLayer = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+  const authUrl = await Effect.runPromise(Effect.provide(effect, zoomLayer));
 
   return redirect(authUrl);
 }

@@ -39,9 +39,6 @@ export type {
   EventCategory,
   MonitoringEvent,
   MonitoringEventType,
-  SlackAttachment,
-  SlackBlock,
   SlackMonitoringServiceInterface,
-  SlackTextElement,
   SlackWebhookPayload,
 } from './types';
