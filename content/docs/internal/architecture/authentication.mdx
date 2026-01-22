@@ -56,7 +56,7 @@ sequenceDiagram
 ### Core Configuration
 
 ```typescript
-// src/lib/auth.ts
+// packages/auth/src/auth.ts
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db";
@@ -91,8 +91,8 @@ export const auth = betterAuth({
 ### Authentication Endpoints
 
 ```typescript
-// src/app/api/auth/[...better-auth]/route.ts
-import { auth } from "@/lib/auth";
+// apps/saas/src/app/(api)/api/auth/[...better-auth]/route.ts
+import { auth } from "@nuclom/auth";
 import { toNextJsHandler } from "better-auth/nextjs";
 
 const { GET, POST } = toNextJsHandler(auth);
@@ -120,7 +120,7 @@ Nuclom uses Better Auth's organization plugin with access control for role-based
 ### Access Control Configuration
 
 ```typescript
-// src/lib/access-control.ts
+// packages/lib/src/access-control.ts
 import { createAccessControl } from "better-auth/plugins/access";
 
 // Define all resources and their possible actions
