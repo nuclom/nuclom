@@ -1,0 +1,88 @@
+---
+title: 'Managing Your Team'
+description: 'Set up your organization, invite members, and manage access'
+icon: 'users'
+---
+
+## Organizations
+
+An organization is your team's workspace containing all videos, settings, and members.
+
+### Create an organization
+
+1. Click the organization name in the top navigation
+2. Select **Create Organization**
+3. Enter a name and URL slug
+
+### Switch organizations
+
+Click the organization name in the top navigation and select another workspace.
+
+## Invite members
+
+1. Go to **Organization Settings → Members**
+2. Enter a teammate's email and select their role
+3. They'll receive an invite to join
+
+Pending invites appear in the Members list where you can resend or revoke them.
+
+## Roles and permissions
+
+| Role | What they can do |
+| ---- | ---------------- |
+| **Owner** | Full access, billing, delete org |
+| **Admin** | Manage members, settings, all videos |
+| **Member** | Upload, comment, view shared content |
+
+### Custom roles
+
+Create custom roles with specific permissions in **Organization Settings → Roles**.
+
+## Organization settings
+
+Access settings via the gear icon or **Organization Settings** in the sidebar.
+
+| Setting | Description |
+| ------- | ----------- |
+| **Organization** | Name, slug, delete workspace |
+| **Members** | Invite and manage teammates |
+| **Roles** | Create and edit permission sets |
+| **Integrations** | Connect Zoom, Google, Slack |
+| **SSO** | SAML/OIDC single sign-on (Enterprise) |
+| **Billing** | Subscription and payment |
+| **Audit Logs** | Security events (Enterprise) |
+
+## Personal settings
+
+Access via your avatar menu → **Settings**.
+
+- **Profile** — Name, avatar, timezone
+- **Account** — Email, password, delete account
+- **Security** — Two-factor auth, passkeys, sessions
+- **Notifications** — Email and in-app preferences
+- **Linked Accounts** — GitHub, Google connections
+
+## Security best practices
+
+<AccordionGroup>
+  <Accordion title="Enable SSO">
+    Use SAML or OIDC for centralized authentication (Enterprise plan).
+  </Accordion>
+  <Accordion title="Review audit logs">
+    Monitor sign-ins and admin actions regularly.
+  </Accordion>
+  <Accordion title="Use custom roles">
+    Give people only the access they need.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Features guide" icon="sparkles" href="/guides/features">
+    Learn what Nuclom can do.
+  </Card>
+  <Card title="Enterprise" icon="building" href="/enterprise">
+    SSO, audit logs, and dedicated support.
+  </Card>
+</CardGroup>
