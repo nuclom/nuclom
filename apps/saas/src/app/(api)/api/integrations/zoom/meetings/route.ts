@@ -4,6 +4,7 @@ import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { buildZoomOAuthToken, Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
 import { ZoomClientLive } from '@nuclom/lib/effect/services/zoom-client';
+import { logger } from '@nuclom/lib/logger';
 import type { MeetingsListMeetingsQueryParams } from '@zoom/rivet/meetings';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -104,7 +105,9 @@ export async function GET(request: NextRequest) {
         if (err instanceof HttpError) {
           return NextResponse.json({ success: false, error: err.message }, { status: err.status });
         }
-        console.error('[Zoom Meetings Error]', err);
+        logger.error('Zoom meetings error', err instanceof Error ? err : new Error(String(err)), {
+          component: 'zoom-meetings',
+        });
       }
       return NextResponse.json({ success: false, error: 'Failed to fetch meetings' }, { status: 500 });
     },

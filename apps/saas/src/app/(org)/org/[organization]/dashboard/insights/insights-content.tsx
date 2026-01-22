@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Brain, Download, Loader2, RefreshCw } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -192,7 +193,7 @@ export function InsightsContent({ organization, initialPeriod, initialTab }: Ins
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', error);
     } finally {
       setIsExporting(false);
     }
@@ -211,7 +212,7 @@ export function InsightsContent({ organization, initialPeriod, initialTab }: Ins
         mutateOverview();
       }
     } catch (error) {
-      console.error('Failed to update action item:', error);
+      logger.error('Failed to update action item', error);
     }
   };
 

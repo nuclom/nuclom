@@ -21,6 +21,9 @@
 import type { IntegrationProvider } from '@nuclom/lib/db/schema';
 import { FatalError } from 'workflow';
 import { processVideoWorkflow } from './video-processing';
+import { createWorkflowLogger } from './workflow-logger';
+
+const logger = createWorkflowLogger('import-meeting');
 
 // =============================================================================
 // Types
@@ -265,7 +268,7 @@ async function createSpeakerProfilesFromParticipants(
     }
   } catch (error) {
     // Log but don't fail the import
-    console.warn('Failed to create speaker profiles from participants:', error);
+    logger.warn({ error: String(error), organizationId }, 'Failed to create speaker profiles from participants');
   }
 }
 

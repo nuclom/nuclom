@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
 import type { IntegrationProvider } from '../db/schema';
 import { IntegrationRepository } from '../effect/services/integration-repository';
+import { logger } from '../logger';
 
 // =============================================================================
 // Types
@@ -109,7 +110,12 @@ export async function validateOAuthCallback(
 
   // Handle OAuth errors from provider
   if (error) {
-    console.error(`[${provider} OAuth Error]`, error, errorDescription);
+    logger.error('OAuth error from provider', undefined, {
+      provider,
+      error,
+      errorDescription,
+      component: 'oauth-handler',
+    });
     return { success: false, redirect: redirect(`${errorRedirectBase}?error=${providerKey}_oauth_failed`) };
   }
 

@@ -7,6 +7,7 @@
 import { createPublicLayer, mapErrorToApiResponse } from '@nuclom/lib/api-handler';
 import { auth } from '@nuclom/lib/auth';
 import { CollectionRepository, Storage, ValidationError, VideoRepository } from '@nuclom/lib/effect';
+import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import { sanitizeDescription, sanitizeTitle, validate } from '@nuclom/lib/validation';
 import { Effect, Schema } from 'effect';
@@ -266,7 +267,10 @@ export async function POST(request: NextRequest) {
     videoTitle: data.videoTitle,
     organizationId: body.organizationId,
   }).catch((err) => {
-    console.error('[Video Processing Workflow Error]', err);
+    logger.error('Video processing workflow error', err instanceof Error ? err : new Error(String(err)), {
+      videoId: data.videoId,
+      component: 'video-upload-url',
+    });
   });
 
   const response: ApiResponse<UrlUploadResponse> = {

@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react';
 import { Suspense, useEffect, useRef } from 'react';
+import { logger } from '../client-logger';
 import { env } from '../env/client';
 
 // Environment variables
@@ -18,7 +19,7 @@ const POSTHOG_HOST = env.NEXT_PUBLIC_POSTHOG_HOST;
 export function initPostHog() {
   if (typeof window === 'undefined') return;
   if (!POSTHOG_KEY) {
-    console.warn('[PostHog] NEXT_PUBLIC_POSTHOG_KEY is not set, analytics disabled');
+    logger.warn('PostHog NEXT_PUBLIC_POSTHOG_KEY is not set, analytics disabled', { component: 'posthog-client' });
     return;
   }
 

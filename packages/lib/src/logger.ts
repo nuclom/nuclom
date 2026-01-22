@@ -259,9 +259,15 @@ export const logger = {
   child(context: LogContext) {
     const childLogger = baseLogger.getSubLogger({ name: context.requestId || 'child' });
     return {
-      debug: (message: string, data?: Record<string, unknown>) => childLogger.debug(message, { ...context, ...data }),
-      info: (message: string, data?: Record<string, unknown>) => childLogger.info(message, { ...context, ...data }),
-      warn: (message: string, data?: Record<string, unknown>) => childLogger.warn(message, { ...context, ...data }),
+      debug: (message: string, data?: Record<string, unknown>) => {
+        childLogger.debug(message, { ...context, ...data });
+      },
+      info: (message: string, data?: Record<string, unknown>) => {
+        childLogger.info(message, { ...context, ...data });
+      },
+      warn: (message: string, data?: Record<string, unknown>) => {
+        childLogger.warn(message, { ...context, ...data });
+      },
       error: (message: string, error?: Error & { digest?: string; code?: string }, data?: Record<string, unknown>) => {
         const errorData = formatError(error);
         childLogger.error(message, { ...context, ...data, ...errorData });
