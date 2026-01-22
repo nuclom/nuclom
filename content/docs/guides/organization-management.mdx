@@ -1,336 +1,98 @@
 ---
 title: "Organization Management"
-description: "Create, configure, and manage your Nuclom organizations effectively"
+description: "Create, manage, and maintain your Nuclom organizations"
 icon: "building"
 ---
 
-Organizations are the foundation of your Nuclom experience. This guide covers everything you need to know about creating, managing, and optimizing your organizations.
+Organizations are shared workspaces for your team’s videos, insights, and settings.
 
-## Understanding Organizations
-
-### What is an Organization?
-
-An organization is a dedicated environment for your video collaboration. Each organization:
-
-- Contains all your videos, channels, and series
-- Has its own set of members and permissions
-- Maintains separate settings and preferences
-- Provides isolated collaboration space
-
-### Organization Types
-
-<CardGroup cols={3}>
-  <Card title="Personal" icon="user">
-    Created automatically with your account. Perfect for individual projects and testing.
-  </Card>
-  <Card title="Team" icon="users">
-    Designed for collaborative work with multiple members and advanced permission management.
-  </Card>
-  <Card title="Enterprise" icon="building">
-    Enterprise-level collaboration with advanced security, compliance features, and audit trails.
-  </Card>
-</CardGroup>
-
-## Creating an Organization
-
-### Step 1: Access Organization Creation
-
-<Steps>
-  <Step title="Open organization switcher">
-    Click the **organization switcher** in the top navigation
-  </Step>
-  <Step title="Select Create Organization">
-    Choose **Create Organization** from the dropdown
-  </Step>
-</Steps>
-
-<Tip>
-  Use the command bar shortcut: **Cmd/Ctrl + K** and type "create organization"
-</Tip>
-
-### Step 2: Basic Information
-
-| Field                 | Description                                    | Notes                             |
-| --------------------- | ---------------------------------------------- | --------------------------------- |
-| **Organization Name** | Descriptive name (e.g., "Marketing Team 2025") | Can be changed later              |
-| **Organization Slug** | Your URL: `nuclom.com/your-slug`               | Must be unique, cannot be changed |
-| **Description**       | Explain the organization purpose               | Optional but recommended          |
-
-### Step 3: Initial Setup
-
-**Organization Type**
-
-- **Team** - For collaborative work (recommended)
-- **Personal** - For individual use
-
-**Privacy Settings**
-
-- **Private** - Only invited members can access
-- **Internal** - Anyone in your company can request access
-- **Public** - Anyone can discover and request access
-
-## Organization Structure
-
-```
-Organization
-├── Videos (all videos in the organization)
-├── Channels (topical organization)
-│   ├── Marketing Videos
-│   ├── Product Demos
-│   └── Training Materials
-├── Series (sequential organization)
-│   ├── Onboarding Series
-│   ├── Feature Tutorials
-│   └── Weekly Updates
-└── Members (organization access)
-    ├── Owners
-    ├── Admins
-    └── Members
-```
-
-### Content Organization
-
-| Type         | Purpose            | Example                                 |
-| ------------ | ------------------ | --------------------------------------- |
-| **Videos**   | Primary content    | Product demo recording                  |
-| **Channels** | Group by topic     | "Customer Testimonials"                 |
-| **Series**   | Sequential content | "Getting Started Tutorial Part 1, 2, 3" |
-
-## Managing Organization Settings
-
-### Accessing Settings
-
-<Steps>
-  <Step title="Navigate to your organization">
-    Select the organization from the switcher
-  </Step>
-  <Step title="Open Settings">
-    Click **Settings** in the navigation menu or use **Cmd/Ctrl + K** and type "settings"
-  </Step>
-</Steps>
-
-### General Settings
-
-<AccordionGroup>
-  <Accordion title="Basic Information">
-    - **Name** - Update organization name
-    - **Description** - Modify organization description
-    - **Slug** - Cannot be changed after creation
-  </Accordion>
-  <Accordion title="Visibility">
-    - **Private** - Invitation only
-    - **Internal** - Organization members can request access
-    - **Public** - Anyone can discover and request access
-  </Accordion>
-</AccordionGroup>
-
-### Video Settings
-
-<AccordionGroup>
-  <Accordion title="Upload Defaults">
-    - **Default channel** - Auto-assign new videos to a channel
-    - **Quality settings** - Default video processing quality
-    - **Transcription** - Enable/disable automatic transcription
-    - **AI Summary** - Enable/disable AI-generated summaries
-  </Accordion>
-  <Accordion title="Playback Settings">
-    - **Default quality** - Set initial playback quality
-    - **Auto-play** - Enable/disable auto-play for series
-    - **Comments** - Enable/disable commenting by default
-  </Accordion>
-</AccordionGroup>
-
-### Security Settings
-
-<Warning>
-  Security settings affect all organization members. Review carefully before making changes.
-</Warning>
-
-**Access Control**
-
-- **Two-factor authentication** - Require 2FA for all members
-- **Session timeout** - Automatic logout after inactivity
-- **IP restrictions** - Limit access to specific IP ranges
-
-**Content Protection**
-
-- **Download permissions** - Allow/restrict video downloads
-- **Watermarking** - Add watermarks to videos
-- **Screen recording detection** - Alert when screen recording is detected
-
-## Channels and Series
-
-### Creating Channels
-
-<Tabs>
-  <Tab title="Via Navigation">
-    1. Go to **Channels** in your organization
-    2. Click **Create Channel**
-    3. Enter channel name and description
-    4. Set channel privacy
-    5. Click **Create**
-  </Tab>
-  <Tab title="Via Command Bar">
-    1. Press **Cmd/Ctrl + K**
-    2. Type "create channel"
-    3. Follow the prompts
-  </Tab>
-</Tabs>
-
-### Creating Series
-
-<Steps>
-  <Step title="Navigate to Series">
-    Go to **Series** in your organization
-  </Step>
-  <Step title="Create Series">
-    Click **Create Series**
-  </Step>
-  <Step title="Configure">
-    Enter series name, description, and set order (manual or automatic)
-  </Step>
-  <Step title="Add Videos">
-    Add initial videos or leave empty to add later
-  </Step>
-</Steps>
-
-## Organization Switching
-
-### Using the Organization Switcher
-
-The organization switcher in the top navigation allows you to:
-
-- **View all organizations** - See all organizations you have access to
-- **Switch between organizations** - Click to navigate
-- **Create new organizations** - Quick access to creation
-- **Search organizations** - Find specific organizations quickly
-
-### Keyboard Navigation
-
-| Shortcut               | Action                         |
-| ---------------------- | ------------------------------ |
-| `Cmd/Ctrl + 1-9`       | Switch to recent organizations |
-| `Cmd/Ctrl + Shift + W` | Open organization switcher     |
-
-## Best Practices
-
-### Naming Conventions
-
-<AccordionGroup>
-  <Accordion title="Organization Names">
-    Use descriptive, specific names that include team/department/project information.
-
-    **Good examples:**
-
-    - "Marketing Team 2025"
-    - "Product Engineering"
-    - "Sales Training"
-  </Accordion>
-  <Accordion title="Channel Names">
-    Be specific about content type and use consistent patterns.
-
-    **Good examples:**
-
-    - "Weekly Updates"
-    - "Feature Demos"
-    - "Customer Testimonials"
-  </Accordion>
-  <Accordion title="Series Names">
-    Indicate content sequence or progression.
-
-    **Good examples:**
-
-    - "Onboarding v2.0"
-    - "Q1 2025 Updates"
-    - "Product Training Series"
-  </Accordion>
-</AccordionGroup>
-
-### Organization Strategies
-
-<Tabs>
-  <Tab title="By Department">
-    ```
-    Marketing Organization
-    ├── Campaigns Channel
-    ├── Social Media Channel
-    ├── Analytics Channel
-    └── Brand Guidelines Series
-    ```
-  </Tab>
-  <Tab title="By Project">
-    ```
-    Project Alpha Organization
-    ├── Development Updates Channel
-    ├── User Testing Channel
-    ├── Launch Preparation Series
-    └── Post-Launch Analysis Series
-    ```
-  </Tab>
-  <Tab title="By Content Type">
-    ```
-    Training Organization
-    ├── New Employee Onboarding Series
-    ├── Software Training Channel
-    ├── Compliance Training Channel
-    └── Leadership Development Series
-    ```
-  </Tab>
-</Tabs>
-
-### Permission Management
-
-| Role        | Capabilities                   |
-| ----------- | ------------------------------ |
-| **Owners**  | Full control over organization |
-| **Admins**  | Manage content and members     |
-| **Members** | Create and view content        |
-| **Viewers** | View-only access               |
-
-## Advanced Features
-
-### Organization Analytics
-
-**Usage Statistics**
-
-- Video view counts and engagement
-- Member activity and participation
-- Content performance metrics
-- Storage usage and optimization
-
-### Integration Options
+## Organization Basics
 
 <CardGroup cols={2}>
-  <Card title="Single Sign-On" icon="key">
-    SAML 2.0, Active Directory, Google Organization integration
+  <Card title="Organization Name" icon="tag">
+    The name your team sees in the navigation and share links.
   </Card>
-  <Card title="API Access" icon="code">
-    REST API for custom integrations and webhooks
+  <Card title="Organization Slug" icon="link">
+    Appears in your URL: `nuclom.com/org/your-slug`.
   </Card>
 </CardGroup>
 
-## Troubleshooting
+<Note>
+  You can update the name and slug later in **Organization Settings** → **Organization**.
+</Note>
 
-<AccordionGroup>
-  <Accordion title="Cannot Create Organization">
-    - Check if you have permission to create organizations
-    - Verify organization slug is unique
-    - Ensure you're not at organization limit
-  </Accordion>
-  <Accordion title="Missing Videos or Channels">
-    - Verify you're in the correct organization
-    - Check permission settings
-    - Review channel/series filters
-  </Accordion>
-  <Accordion title="Organization Not Loading">
-    - Clear browser cache and cookies
-    - Check internet connection
-    - Try different browser or incognito mode
-  </Accordion>
-</AccordionGroup>
+## Create an Organization
+
+<Steps>
+  <Step title="Open the organization switcher">
+    Click the organization name in the top navigation.
+  </Step>
+  <Step title="Choose Create Organization">
+    Enter a name and slug for the new workspace.
+  </Step>
+  <Step title="Invite teammates">
+    Add teammates once the organization is created.
+  </Step>
+</Steps>
+
+## Switch Between Organizations
+
+<Steps>
+  <Step title="Open the switcher">
+    Click the organization name in the top navigation.
+  </Step>
+  <Step title="Select an organization">
+    Pick another organization to switch context.
+  </Step>
+</Steps>
+
+## Organization Settings Overview
+
+Use **Organization Settings** to manage the workspace:
+
+<CardGroup cols={2}>
+  <Card title="Members" icon="users">
+    Invite and manage teammates.
+  </Card>
+  <Card title="Roles" icon="shield">
+    Define permissions for different responsibilities.
+  </Card>
+  <Card title="Integrations" icon="plug">
+    Connect Zoom, Google Meet, Slack, Teams, and more.
+  </Card>
+  <Card title="Content Sources" icon="cloud">
+    Sync and manage imported content sources.
+  </Card>
+  <Card title="API Keys & OAuth Apps" icon="key">
+    Enable programmatic access and integrations.
+  </Card>
+  <Card title="SSO" icon="lock">
+    Configure SAML or OIDC sign-on for your organization.
+  </Card>
+</CardGroup>
+
+## Deleting an Organization
+
+<Warning>
+  Deleting an organization is permanent and removes all videos, settings, and access.
+</Warning>
+
+<Steps>
+  <Step title="Open Organization Settings">
+    Go to **Organization Settings** → **Organization**.
+  </Step>
+  <Step title="Delete">
+    Use the **Delete Organization** action in the danger zone.
+  </Step>
+</Steps>
 
 ## Next Steps
 
-<Card title="Video Organization" icon="video" href="/guides/video-organization">
-  Learn how to upload and organize your video content
-</Card>
+<CardGroup cols={2}>
+  <Card title="Team Management" icon="users-gear" href="/guides/team-management">
+    Invite members and manage access.
+  </Card>
+  <Card title="Settings & Preferences" icon="gear" href="/guides/settings-preferences">
+    Explore personal and organization settings.
+  </Card>
+</CardGroup>

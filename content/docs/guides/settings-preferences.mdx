@@ -1,354 +1,112 @@
 ---
 title: 'Settings & Preferences'
-description: 'Customize your Nuclom experience with personal and organization settings'
+description: 'Manage your profile, security, notifications, and organization settings'
 icon: 'gear'
 ---
 
-Customize your Nuclom experience with the comprehensive settings and preferences system.
+This guide walks through the key settings for individuals and organizations.
 
 ## Personal Settings
 
-### Profile Management
+<CardGroup cols={2}>
+  <Card title="Profile" icon="user">
+    Update your name, avatar, and timezone.
+  </Card>
+  <Card title="Linked Accounts" icon="link">
+    Connect GitHub or Google for faster sign-in.
+  </Card>
+</CardGroup>
 
-<Steps>
-  <Step title="Navigate to Settings">
-    Go to **Settings** → **Profile**
-  </Step>
-  <Step title="Update Profile">
-    Update display name, profile picture, timezone, and contact information
-  </Step>
-</Steps>
-
-**Profile Picture Options:**
-- Upload custom image (JPG, PNG, GIF - max 5MB)
-- Use Gravatar auto-sync
-- Use initials-based avatar
-- Remove picture (return to default)
-
-### Account Security
-
-#### Password Management
-
-<Steps>
-  <Step title="Access Security Settings">
-    Go to **Settings** → **Security**
-  </Step>
-  <Step title="Change Password">
-    Click **Change Password** and follow the prompts
-  </Step>
-</Steps>
-
-**Password Requirements:**
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- Special characters recommended
-
-#### Two-Factor Authentication (2FA)
-
-<Steps>
-  <Step title="Enable 2FA">
-    Go to **Settings** → **Security** and click **Enable 2FA**
-  </Step>
-  <Step title="Scan QR Code">
-    Use an authenticator app (Google Authenticator, Authy, 1Password)
-  </Step>
-  <Step title="Verify">
-    Enter the 6-digit code to complete setup
-  </Step>
-  <Step title="Save Backup Codes">
-    Save your backup codes securely for account recovery
-  </Step>
-</Steps>
-
-<Warning>
-  Backup codes are one-time use. Store them in a secure location.
-</Warning>
-
-#### Passkeys (WebAuthn)
-
-Passkeys provide passwordless authentication using biometrics or hardware security keys.
-
-<Steps>
-  <Step title="Add Passkey">
-    Go to **Settings** → **Security** and click **Add Passkey**
-  </Step>
-  <Step title="Name Your Passkey">
-    Enter a name (e.g., "MacBook Touch ID")
-  </Step>
-  <Step title="Register">
-    Follow your browser/device prompts to register
-  </Step>
-</Steps>
-
-#### Active Sessions
-
-View and manage all active login sessions:
-
-| Action | Description |
-| ------ | ----------- |
-| **View sessions** | See device info and IP address |
-| **Sign out session** | Revoke specific session |
-| **Sign out all** | Secure your account by ending all other sessions |
-
-### Account Settings
+### Account & Security
 
 <AccordionGroup>
-  <Accordion title="Changing Your Email">
-    1. Go to **Settings** → **Account**
-    2. Click **Change Email**
-    3. Enter new email address
-    4. Verify via email link
+  <Accordion title="Change email or password">
+    Go to **Settings** → **Account** or **Security** to update credentials.
   </Accordion>
-  <Accordion title="Data Export (GDPR)">
-    Export your data as JSON including: profile, preferences, videos, comments, watch progress, notifications, and API key metadata.
+  <Accordion title="Enable two-factor authentication">
+    Use **Settings** → **Security** to add a TOTP authenticator and backup codes.
   </Accordion>
-  <Accordion title="Account Deletion">
-    <Warning>This action is permanent and cannot be undone.</Warning>
-    1. Go to **Settings** → **Account**
-    2. Under "Danger Zone", click **Delete Account**
-    3. Enter password and type "delete my account" to confirm
+  <Accordion title="Passkeys and sessions">
+    Add passkeys and review active sessions from **Settings** → **Security**.
   </Accordion>
 </AccordionGroup>
 
-### Interface Preferences
-
-#### Theme Settings
-
-| Theme | Description |
-| ----- | ----------- |
-| **Dark mode** | Easier on eyes in low light |
-| **Light mode** | Traditional bright interface |
-| **System** | Follow device theme |
-| **High contrast** | Enhanced accessibility |
-
-#### Video Preferences
-
-<CardGroup cols={2}>
-  <Card title="Playback Settings" icon="play">
-    Default quality, auto-advance, playback speed, volume memory
-  </Card>
-  <Card title="Subtitle Preferences" icon="closed-captioning">
-    Auto-enable, language, font style, transcript visibility
-  </Card>
-</CardGroup>
-
-## Organization Settings
-
-### General Configuration
-
-<Steps>
-  <Step title="Navigate">
-    Go to **Settings** → **Organization**
-  </Step>
-  <Step title="Configure">
-    Update name, description, visibility, branding, and timezone
-  </Step>
-</Steps>
-
-#### Organization Branding
-
-| Setting | Recommendation |
-| ------- | -------------- |
-| **Logo** | 200x200px custom logo |
-| **Color scheme** | Primary and secondary colors |
-| **Custom domain** | Enterprise feature |
-| **Favicon** | Custom browser tab icon |
-
-### Content Settings
-
-<Tabs>
-  <Tab title="Upload Defaults">
-    - Default video quality
-    - Auto-transcription
-    - AI summaries
-    - Default channel assignment
-  </Tab>
-  <Tab title="Content Policies">
-    - Moderation requirements
-    - Content guidelines
-    - Retention policy
-    - Duplicate detection
-  </Tab>
-</Tabs>
-
-### Access and Security
-
-#### Member Management
-
-| Setting | Options |
-| ------- | ------- |
-| **New member role** | Default role for invites |
-| **Invitation settings** | Who can invite |
-| **Self-registration** | Domain-based auto-join |
-| **Guest access** | Temporary external access |
-
-#### Security Policies
-
-<CardGroup cols={2}>
-  <Card title="Authentication" icon="key">
-    2FA requirements, password policy, session management, login monitoring
-  </Card>
-  <Card title="Data Protection" icon="shield">
-    Encryption, data retention, backup policies, export restrictions
-  </Card>
-</CardGroup>
-
-### API and Integrations
-
-#### API Keys
-
-<Steps>
-  <Step title="Create Key">
-    Go to **Settings** → **API Keys** and click **Create API Key**
-  </Step>
-  <Step title="Configure">
-    Enter name and select expiration (7, 30, 90 days, 1 year, or never)
-  </Step>
-  <Step title="Copy Key">
-    Copy your API key immediately - you won't see it again!
-  </Step>
-</Steps>
-
-**Using API Keys:**
-
-```bash
-curl -X GET "https://api.nuclom.com/v1/videos" \
-  -H "x-api-key: nc_your_api_key_here"
-```
-
-<Note>
-  - Rate limit: 100 requests/minute per key
-  - All keys start with `nc_`
-  - Default expiration: 30 days
-</Note>
-
-#### OAuth Applications
-
-<Steps>
-  <Step title="Create App">
-    Go to **Settings** → **OAuth Apps** and click **Create Application**
-  </Step>
-  <Step title="Configure">
-    Enter name, icon URL, and redirect URLs
-  </Step>
-  <Step title="Copy Credentials">
-    Copy client ID and secret immediately!
-  </Step>
-</Steps>
-
-**OAuth 2.0 Endpoints:**
-
-| Endpoint | Path |
-| -------- | ---- |
-| **Authorization** | `/api/auth/oauth2/authorize` |
-| **Token** | `/api/auth/oauth2/token` |
-| **Scopes** | `openid`, `profile`, `email`, `offline_access` |
-
-#### Available Integrations
-
-<CardGroup cols={2}>
-  <Card title="Single Sign-On" icon="key">
-    SAML, OAuth, Active Directory
-  </Card>
-  <Card title="Calendar" icon="calendar">
-    Google Calendar, Outlook, Calendly
-  </Card>
-  <Card title="Project Management" icon="list-check">
-    Jira, Asana, Trello, Monday.com
-  </Card>
-  <Card title="Communication" icon="message">
-    Slack, Microsoft Teams, Discord
-  </Card>
-</CardGroup>
-
-## Notification Settings
-
-### Personal Notifications
+### Notifications
 
 <Tabs>
   <Tab title="Email">
-    - **Mentions** - When someone @mentions you
-    - **Replies** - Replies to your comments
-    - **Video updates** - New videos in subscribed channels
-    - **Frequency** - Real-time, digest, or disabled
+    Configure comment, mention, and video update notifications.
   </Tab>
-  <Tab title="In-App">
-    - Browser push notifications
-    - Sound alerts
-    - Badge counters
-    - Popup notifications
-  </Tab>
-  <Tab title="Mobile">
-    - Push notifications
-    - Notification grouping
-    - Quiet hours
-    - Priority levels
+  <Tab title="In-app">
+    Control alerts and quiet hours in **Settings** → **Notifications**.
   </Tab>
 </Tabs>
 
-### Organization Notifications
+## Organization Settings
 
-**Admin Notifications:**
-- New member joins
-- Role changes
-- Suspicious activity
-- Quota limits
+### Core Configuration
 
-**Content Notifications:**
-- New uploads
-- Moderation queue
-- Content reports
-- Bulk operations
+<Steps>
+  <Step title="Organization profile">
+    Update name and slug in **Organization Settings** → **Organization**.
+  </Step>
+  <Step title="Members and roles">
+    Invite teammates and manage permissions in **Members** and **Roles**.
+  </Step>
+</Steps>
 
-## Privacy and Compliance
-
-### Privacy Settings
+### Integrations & Automations
 
 <CardGroup cols={2}>
-  <Card title="Personal Data" icon="user-shield">
-    Data collection, sharing, retention, and export controls
+  <Card title="Integrations" icon="plug">
+    Connect Zoom, Google Meet, Slack, Teams, and Zapier.
   </Card>
-  <Card title="Content Privacy" icon="lock">
-    Video privacy, comment visibility, sharing restrictions
+  <Card title="Content Sources" icon="cloud">
+    Manage imported sources and sync behavior.
   </Card>
 </CardGroup>
 
-### Compliance Management
+### Security & Compliance
 
-| Standard | Description |
-| -------- | ----------- |
-| **GDPR** | European data protection |
-| **CCPA** | California consumer privacy |
-| **HIPAA** | Healthcare data (Enterprise) |
-| **SOC 2** | Security and availability |
+<Steps>
+  <Step title="SSO">
+    Configure SAML or OIDC under **Organization Settings** → **SSO**.
+  </Step>
+  <Step title="Audit logs">
+    Review access and admin actions in **Audit Logs**.
+  </Step>
+</Steps>
 
-## Troubleshooting
+### Developer Access
 
-<AccordionGroup>
-  <Accordion title="Settings Not Saving">
-    - Clear browser cache and cookies
-    - Disable browser extensions
-    - Try different browser or incognito mode
-    - Check JavaScript is enabled
-  </Accordion>
-  <Accordion title="Missing Notifications">
-    - Check notification settings
-    - Verify email address
-    - Check spam folders
-    - Confirm preferences
-  </Accordion>
-  <Accordion title="Too Many Notifications">
-    - Adjust notification frequency
-    - Disable unnecessary notifications
-    - Use digest mode
-    - Set up filtering
-  </Accordion>
-</AccordionGroup>
+<CardGroup cols={2}>
+  <Card title="API Keys" icon="key">
+    Create and rotate API keys for integrations.
+  </Card>
+  <Card title="OAuth Apps" icon="code">
+    Register OAuth apps and manage credentials.
+  </Card>
+</CardGroup>
+
+### Billing
+
+Manage subscriptions, payment methods, and usage in **Organization Settings** → **Billing**.
+
+## Account Deletion & Export
+
+<Warning>
+  Deleting your account permanently removes your videos, comments, and settings.
+</Warning>
+
+Use **Settings** → **Account** to export your data or delete your account.
 
 ## Next Steps
 
-<Card title="Workflow Templates" icon="wand-magic-sparkles" href="/guides/workflow-templates">
-  Set up automated video processing workflows
-</Card>
+<CardGroup cols={2}>
+  <Card title="Team Management" icon="users-gear" href="/guides/team-management">
+    Manage access and roles.
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Get help with common issues.
+  </Card>
+</CardGroup>
