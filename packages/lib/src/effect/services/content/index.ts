@@ -64,7 +64,7 @@ export {
   upsertContentItem,
 } from './content-repository';
 // GitHub Content Adapter
-export type { GitHubContentAdapterService } from './github-content-adapter';
+export type { GitHubContentAdapterService } from './github';
 export {
   cleanupExpiredFileCache,
   createGitHubContentAdapter,
@@ -73,7 +73,7 @@ export {
   GitHubContentAdapterLive,
   getGitHubAuthUrl,
   verifyGitHubWebhookSignature,
-} from './github-content-adapter';
+} from './github';
 // Notion Content Adapter
 export type { NotionContentAdapterService } from './notion-content-adapter';
 export {
@@ -84,7 +84,7 @@ export {
   NotionContentAdapterLive,
 } from './notion-content-adapter';
 // Slack Content Adapter
-export type { SlackContentAdapterService } from './slack-content-adapter';
+export type { SlackContentAdapterService } from './slack';
 export {
   createSlackContentAdapter,
   exchangeSlackCode,
@@ -96,7 +96,7 @@ export {
   SlackContentAdapter,
   SlackContentAdapterLive,
   verifySlackSignature,
-} from './slack-content-adapter';
+} from './slack';
 // Types
 export type {
   AdapterFetchOptions,

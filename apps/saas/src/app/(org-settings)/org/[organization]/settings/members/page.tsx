@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import type { Member, Organization, User } from '@nuclom/lib/db/schema';
 import { CheckCircle2, Clock, Loader2, Mail, MailX, MoreHorizontal, Plus, Shield, UserMinus } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -116,7 +117,7 @@ function MembersSettingsContent() {
         setInvitations(data || []);
       }
     } catch (error) {
-      console.error('Error loading organization and members:', error);
+      logger.error('Failed to load organization members', error);
       toast({
         title: 'Error',
         description: 'Failed to load organization members',
@@ -159,7 +160,7 @@ function MembersSettingsContent() {
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error('Error inviting member:', error);
+      logger.error('Failed to send invitation', error);
       toast({
         title: 'Error',
         description: 'Failed to send invitation. Please check the email and try again.',
@@ -187,7 +188,7 @@ function MembersSettingsContent() {
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error('Error updating member role:', error);
+      logger.error('Failed to update member role', error);
       toast({
         title: 'Error',
         description: 'Failed to update member role',
@@ -221,7 +222,7 @@ function MembersSettingsContent() {
       // Reload members
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error('Error removing member:', error);
+      logger.error('Failed to remove member', error);
       toast({
         title: 'Error',
         description: 'Failed to remove member',
@@ -262,7 +263,7 @@ function MembersSettingsContent() {
       // Reload data
       await loadOrganizationAndMembers();
     } catch (error) {
-      console.error('Error cancelling invitation:', error);
+      logger.error('Failed to cancel invitation', error);
       toast({
         title: 'Error',
         description: 'Failed to cancel invitation',

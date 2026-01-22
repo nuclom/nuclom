@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Bell, Loader2, Mail, MessageSquare, Video } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
@@ -60,7 +61,7 @@ function NotificationsContent() {
         setOriginalPreferences(prefs);
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      logger.error('Failed to load notification preferences', error);
       toast({
         title: 'Error',
         description: 'Failed to load notification preferences',
@@ -110,7 +111,7 @@ function NotificationsContent() {
         description: 'Your notification preferences have been updated',
       });
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Failed to save notification preferences', error);
       toast({
         title: 'Error',
         description: 'Failed to save notification preferences',

@@ -168,6 +168,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const encoder = new TextEncoder();
     const collectedSources: SourceReference[] = [];
 
+    // Track pending async operations to ensure they complete before stream closes
+    let finishPromise: Promise<void> | null = null;
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
@@ -185,64 +188,75 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'source', source })}\n\n`));
               },
               onFinish: (response) => {
-                // Save the assistant message (handled in a separate async context)
-                (async () => {
-                  const sourcesArray: StoredSource[] = response.sources.map((s) => ({
-                    type: s.type,
-                    id: s.id,
-                    relevance: s.relevance,
-                    preview: s.preview,
-                  }));
+                // Save the assistant message - track the promise to await before stream closes
+                finishPromise = (async () => {
+                  try {
+                    const sourcesArray: StoredSource[] = response.sources.map((s) => ({
+                      type: s.type,
+                      id: s.id,
+                      relevance: s.relevance,
+                      preview: s.preview,
+                    }));
 
-                  const assistantMessage = await Effect.runPromise(
-                    Effect.provide(
-                      repo.createMessage({
-                        conversationId: conversation.id,
-                        role: 'assistant',
-                        content: response.response,
-                        sources: sourcesArray,
-                        usage: response.usage,
-                      }),
-                      layer,
-                    ),
-                  );
-
-                  // Save context references
-                  if (response.sources.length > 0) {
-                    await Effect.runPromise(
+                    const assistantMessage = await Effect.runPromise(
                       Effect.provide(
-                        repo.addContexts(
-                          response.sources.map((s) => ({
-                            messageId: assistantMessage.id,
-                            sourceType: s.type,
-                            sourceId: s.id,
-                            relevanceScore: Math.round(s.relevance),
-                            contextSnippet: s.preview,
-                          })),
-                        ),
+                        repo.createMessage({
+                          conversationId: conversation.id,
+                          role: 'assistant',
+                          content: response.response,
+                          sources: sourcesArray,
+                          usage: response.usage,
+                        }),
                         layer,
                       ),
                     );
-                  }
 
-                  // Generate title for new conversations
-                  if (!conversation.title && existingMessages.length === 0) {
-                    // Use first ~50 chars of user message as title
-                    const autoTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
-                    await Effect.runPromise(
-                      Effect.provide(repo.updateConversationTitle(conversation.id, autoTitle), layer),
+                    // Save context references
+                    if (response.sources.length > 0) {
+                      await Effect.runPromise(
+                        Effect.provide(
+                          repo.addContexts(
+                            response.sources.map((s) => ({
+                              messageId: assistantMessage.id,
+                              sourceType: s.type,
+                              sourceId: s.id,
+                              relevanceScore: Math.round(s.relevance),
+                              contextSnippet: s.preview,
+                            })),
+                          ),
+                          layer,
+                        ),
+                      );
+                    }
+
+                    // Generate title for new conversations
+                    if (!conversation.title && existingMessages.length === 0) {
+                      // Use first ~50 chars of user message as title
+                      const autoTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+                      await Effect.runPromise(
+                        Effect.provide(repo.updateConversationTitle(conversation.id, autoTitle), layer),
+                      );
+                    }
+
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({
+                          type: 'done',
+                          messageId: assistantMessage.id,
+                          usage: response.usage,
+                        })}\n\n`,
+                      ),
+                    );
+                  } catch (err) {
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({
+                          type: 'error',
+                          error: err instanceof Error ? err.message : 'Failed to save message',
+                        })}\n\n`,
+                      ),
                     );
                   }
-
-                  controller.enqueue(
-                    encoder.encode(
-                      `data: ${JSON.stringify({
-                        type: 'done',
-                        messageId: assistantMessage.id,
-                        usage: response.usage,
-                      })}\n\n`,
-                    ),
-                  );
                 })();
               },
             });
@@ -258,6 +272,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           });
 
           await Effect.runPromise(Effect.provide(streamEffect, layer));
+
+          // Wait for the finish handler to complete before closing the stream
+          if (finishPromise) {
+            await finishPromise;
+          }
         } catch (error) {
           controller.enqueue(
             encoder.encode(

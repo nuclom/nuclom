@@ -8,7 +8,6 @@ import {
   auditLogs,
   type NewAuditLog,
 } from './db/schema';
-import { env } from './env/server';
 
 export interface AuditLogContext {
   actorId?: string;
@@ -88,11 +87,6 @@ export class AuditLogger {
     };
 
     await db.insert(auditLogs).values(auditLog);
-
-    // Log to console in development
-    if (env.NODE_ENV === 'development') {
-      console.log(`[Audit] ${entry.category}.${entry.action}: ${entry.description || 'No description'}`);
-    }
 
     return id;
   }

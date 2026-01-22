@@ -393,6 +393,26 @@ import Check from 'lucide-react/dist/esm/icons/check'
 import X from 'lucide-react/dist/esm/icons/x'
 ```
 
+### @nuclom/lib Import Guidelines
+
+The `@nuclom/lib` package supports direct imports for better tree-shaking:
+
+```typescript
+// PREFERRED: Direct imports (faster builds, better tree-shaking)
+import { createLogger } from '@nuclom/lib/logger'
+import { db } from '@nuclom/lib/db'
+import { videos, users } from '@nuclom/lib/db/schema'
+import type { VideoRepositoryService } from '@nuclom/lib/effect/services/video-repository.types'
+
+// For refactored services, use submodule paths:
+import { GitHubContentAdapter } from '@nuclom/lib/effect/services/content/github'
+import { SlackContentAdapter } from '@nuclom/lib/effect/services/content/slack'
+import { SlackMonitoringService } from '@nuclom/lib/effect/services/slack-monitoring'
+
+// AVOID: Barrel imports that pull in entire modules
+import { GitHubContentAdapter, SlackContentAdapter } from '@nuclom/lib/effect/services/content'
+```
+
 ### Data Fetching Patterns
 
 ```typescript

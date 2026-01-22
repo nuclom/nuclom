@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import {
   AlertCircle,
   Calendar,
@@ -140,7 +141,7 @@ function AuditLogsContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error loading audit logs:', error);
+      logger.error('Failed to load audit logs', error);
       toast({
         title: 'Error',
         description: 'Failed to load audit logs',
@@ -160,7 +161,7 @@ function AuditLogsContent() {
         setStats(data.data);
       }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      logger.error('Failed to load audit log stats', error);
     }
   }, [organizationId, dateRange]);
 
@@ -204,7 +205,7 @@ function AuditLogsContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error exporting:', error);
+      logger.error('Failed to export audit logs', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to start export',
@@ -300,7 +301,7 @@ function AuditLogsContent() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-[200px] max-w-sm">
+            <div className="flex-1 min-w-50 max-w-sm">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -434,13 +435,13 @@ function AuditLogsContent() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[180px]">Timestamp</TableHead>
+                  <TableHead className="w-45">Timestamp</TableHead>
                   <TableHead>Action</TableHead>
-                  <TableHead className="w-[120px]">Category</TableHead>
-                  <TableHead className="w-[100px]">Severity</TableHead>
+                  <TableHead className="w-30">Category</TableHead>
+                  <TableHead className="w-25">Severity</TableHead>
                   <TableHead>Actor</TableHead>
-                  <TableHead className="w-[100px]">IP Address</TableHead>
-                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead className="w-25">IP Address</TableHead>
+                  <TableHead className="w-15"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -455,7 +456,7 @@ function AuditLogsContent() {
                       <div>
                         <p className="font-medium">{log.action}</p>
                         {log.description && (
-                          <p className="text-xs text-muted-foreground truncate max-w-[300px]">{log.description}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-75">{log.description}</p>
                         )}
                       </div>
                     </TableCell>

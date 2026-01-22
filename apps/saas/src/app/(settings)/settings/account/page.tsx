@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient, useAuth } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { AlertTriangle, Download, Loader2, Mail, Trash2, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -75,7 +76,7 @@ function AccountContent() {
       setNewEmail('');
       setEmailPassword('');
     } catch (error) {
-      console.error('Error changing email:', error);
+      logger.error('Failed to change email address', error);
       toast({
         title: 'Error',
         description: 'Failed to change email address',
@@ -115,7 +116,7 @@ function AccountContent() {
         description: 'Your data has been downloaded',
       });
     } catch (error) {
-      console.error('Error exporting data:', error);
+      logger.error('Failed to export user data', error);
       toast({
         title: 'Error',
         description: 'Failed to export your data',
@@ -162,7 +163,7 @@ function AccountContent() {
       // Redirect to home page
       router.push('/');
     } catch (error) {
-      console.error('Error deleting account:', error);
+      logger.error('Failed to delete account', error);
       toast({
         title: 'Error',
         description: 'Failed to delete account',

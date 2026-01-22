@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Check, ChevronDown, ChevronRight, Edit2, Loader2, Plus, Trash2, UserSquare2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -108,7 +109,7 @@ function RolesContent() {
         setRoles(data.data);
       }
     } catch (error) {
-      console.error('Error loading roles:', error);
+      logger.error('Failed to load roles', error);
       toast({
         title: 'Error',
         description: 'Failed to load roles',
@@ -181,7 +182,7 @@ function RolesContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error saving role:', error);
+      logger.error('Failed to save role', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save role',
@@ -213,7 +214,7 @@ function RolesContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error deleting role:', error);
+      logger.error('Failed to delete role', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete role',

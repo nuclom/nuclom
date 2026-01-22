@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient, useAuth } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Film } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -40,8 +41,8 @@ export default function OnboardingPage() {
           router.replace(`/org/${orgs[0].slug}`);
           return;
         }
-      } catch (err) {
-        console.error('Error checking organizations:', err);
+      } catch (error) {
+        logger.error('Failed to check organizations', error);
       }
       setLoading(false);
     }
@@ -84,8 +85,8 @@ export default function OnboardingPage() {
         }));
         handleNext();
       }
-    } catch (err) {
-      console.error('Error creating organization:', err);
+    } catch (error) {
+      logger.error('Failed to create organization', error);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setCreating(false);

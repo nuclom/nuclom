@@ -22,11 +22,14 @@ import {
   videos,
 } from '../../db/schema';
 import { getAppUrl } from '../../env/server';
+import { createLogger } from '../../logger';
 import { VideoAIProcessingError } from '../errors';
 import { type ActionItemResult, AI, type ChapterResult } from './ai';
 import { Database } from './database';
 import { EmailNotifications } from './email-notifications';
 import { Transcription } from './transcription';
+
+const log = createLogger('video-ai-processor');
 
 // Re-export for convenience
 export { VideoAIProcessingError };
@@ -351,13 +354,13 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
         })
         .pipe(
           Effect.catchAll((error) => {
-            console.error('Failed to send video processing notification email:', error);
+            log.warn('Failed to send video processing notification email', { error: String(error) });
             return Effect.succeed(undefined);
           }),
         );
     }).pipe(
       Effect.catchAll((error) => {
-        console.error('Failed to send video processing notification:', error);
+        log.warn('Failed to send video processing notification', { error: String(error) });
         return Effect.succeed(undefined);
       }),
     );
@@ -404,7 +407,7 @@ const makeVideoAIProcessorService = Effect.gen(function* () {
           pipe(
             ai.generateVideoSummary(transcript),
             Effect.catchAll((e) => {
-              console.error('Failed to generate summary:', e);
+              log.warn('Failed to generate summary', { error: String(e) });
               return Effect.succeed('Summary generation failed');
             }),
           ),

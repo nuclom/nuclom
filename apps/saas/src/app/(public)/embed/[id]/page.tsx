@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertCircle, Loader2, Maximize, Play, Volume2, VolumeX } from 'lucide-react';
@@ -78,7 +79,7 @@ function EmbedContent() {
     try {
       await fetch(`/api/embed/${videoId}/view`, { method: 'POST' });
     } catch (error) {
-      console.error('Failed to track view:', error);
+      logger.error('Failed to track embed view', error);
     }
   }, [videoId]);
 
@@ -268,7 +269,7 @@ function EmbedContent() {
       <div
         className={cn(
           'absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300',
-          'bg-gradient-to-t from-black/80 via-black/40 to-transparent',
+          'bg-linear-to-t from-black/80 via-black/40 to-transparent',
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0',
         )}
       >

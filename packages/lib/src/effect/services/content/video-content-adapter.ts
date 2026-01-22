@@ -11,10 +11,13 @@
 import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { Effect, Option } from 'effect';
 import { videos } from '../../../db/schema';
+import { createLogger } from '../../../logger';
 import { ContentSourceSyncError } from '../../errors';
 import { Database, type DrizzleDB } from '../database';
 import { ContentRepository } from './content-repository';
 import type { ContentSourceAdapter, RawContentItem } from './types';
+
+const log = createLogger('video-content-adapter');
 
 // =============================================================================
 // Video to Content Item Mapping
@@ -263,7 +266,7 @@ export const syncNewVideoToContent = (videoId: string, organizationId: string) =
   }).pipe(
     // Don't fail the upload if content sync fails - just log
     Effect.catchAll((error) => {
-      console.error('[Content Sync] Failed to sync video to content_items:', error);
+      log.warn('Failed to sync video to content_items', { error: String(error) });
       return Effect.succeed(Option.none<string>());
     }),
   );
@@ -319,7 +322,7 @@ export const updateVideoContentItem = (
   }).pipe(
     // Don't fail the workflow if content update fails - just log
     Effect.catchAll((error) => {
-      console.error('[Content Update] Failed to update video content_item:', error);
+      log.warn('Failed to update video content_item', { error: String(error) });
       return Effect.succeed(Option.none<string>());
     }),
   );

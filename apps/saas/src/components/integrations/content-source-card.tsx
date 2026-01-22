@@ -6,6 +6,7 @@
  * Displays a content source connection with status and configuration options.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { formatDistanceToNow } from 'date-fns';
 import {
   AlertCircle,
@@ -219,7 +220,8 @@ export function ContentSourceCard({ source, onSync, onDelete, onConfigure }: Con
         title: 'Sync Started',
         description: `${config.name} sync has been started.`,
       });
-    } catch (_error) {
+    } catch (error) {
+      logger.error(`Failed to start sync for ${config.name}`, error);
       toast({
         title: 'Sync Failed',
         description: `Failed to start sync for ${config.name}.`,
@@ -238,7 +240,8 @@ export function ContentSourceCard({ source, onSync, onDelete, onConfigure }: Con
         title: 'Source Removed',
         description: `${config.name} source has been disconnected.`,
       });
-    } catch (_error) {
+    } catch (error) {
+      logger.error(`Failed to remove ${config.name} source`, error);
       toast({
         title: 'Delete Failed',
         description: `Failed to remove ${config.name} source.`,

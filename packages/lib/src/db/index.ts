@@ -1,7 +1,10 @@
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { env } from '../env/server';
+import { createLogger } from '../logger';
 import * as schema from './schema';
+
+const log = createLogger('database');
 
 // =============================================================================
 // Database Connection Configuration
@@ -101,14 +104,14 @@ export async function closeConnections(): Promise<void> {
 
   promises.push(
     primaryClient.end().catch((err) => {
-      console.error('Error closing primary database connection:', err);
+      log.error('Error closing primary database connection', err instanceof Error ? err : undefined);
     }),
   );
 
   if (replicaClient) {
     promises.push(
       replicaClient.end().catch((err) => {
-        console.error('Error closing replica database connection:', err);
+        log.error('Error closing replica database connection', err instanceof Error ? err : undefined);
       }),
     );
   }
@@ -135,9 +138,9 @@ export function registerShutdownHandlers(): void {
   shutdownHandlersRegistered = true;
 
   const gracefulShutdown = async (signal: string) => {
-    console.log(`Received ${signal}. Closing database connections...`);
+    log.info('Shutting down', { signal });
     await closeConnections();
-    console.log('Database connections closed.');
+    log.info('Database connections closed');
     process.exit(0);
   };
 

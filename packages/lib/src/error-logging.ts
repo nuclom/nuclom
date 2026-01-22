@@ -10,6 +10,7 @@
  * - React error boundary compatible
  * - Global error handlers for unhandled exceptions
  */
+/** biome-ignore-all lint/suspicious/noConsole: Logger */
 
 import { env } from './env/client';
 

@@ -6,6 +6,7 @@
  * Allows organization admins to manage custom vocabulary terms for improved transcription.
  */
 
+import { logger } from '@nuclom/lib/client-logger';
 import { BookText, Building2, Check, Code2, FileUp, Loader2, Package, Plus, Trash2, User, X } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -96,7 +97,7 @@ function VocabularyContent() {
         setVocabulary(data.data);
       }
     } catch (error) {
-      console.error('Error loading vocabulary:', error);
+      logger.error('Failed to load vocabulary', error);
       toast({
         title: 'Error',
         description: 'Failed to load vocabulary',
@@ -185,7 +186,7 @@ function VocabularyContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error saving vocabulary:', error);
+      logger.error('Failed to save vocabulary term', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to save vocabulary',
@@ -218,7 +219,7 @@ function VocabularyContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error deleting vocabulary:', error);
+      logger.error('Failed to delete vocabulary term', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete vocabulary',
@@ -294,7 +295,7 @@ function VocabularyContent() {
         throw new Error(data.error);
       }
     } catch (error) {
-      console.error('Error importing vocabulary:', error);
+      logger.error('Failed to import vocabulary', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to import vocabulary',

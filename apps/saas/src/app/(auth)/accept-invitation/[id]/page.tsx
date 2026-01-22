@@ -1,6 +1,9 @@
 import { getAppUrl } from '@nuclom/lib/env/server';
+import { createLogger } from '@nuclom/lib/logger';
 import { Suspense } from 'react';
 import { AcceptInvitationForm } from '@/components/auth/accept-invitation-form';
+
+const log = createLogger('accept-invitation');
 
 async function getInvitation(id: string) {
   try {
@@ -16,7 +19,7 @@ async function getInvitation(id: string) {
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
-    console.error('Error fetching invitation:', error);
+    log.error('Failed to fetch invitation', error instanceof Error ? error : undefined, { invitationId: id });
     return null;
   }
 }

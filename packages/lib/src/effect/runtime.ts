@@ -25,9 +25,9 @@ import { type ClipRepository, ClipRepositoryLive } from './services/clip-reposit
 import { type CollectionRepository, CollectionRepositoryLive } from './services/collection-repository';
 import { type ContentProcessor, ContentProcessorLive } from './services/content/content-processor';
 import { type ContentRepository, ContentRepositoryLive } from './services/content/content-repository';
-import { type GitHubContentAdapter, GitHubContentAdapterLive } from './services/content/github-content-adapter';
+import { type GitHubContentAdapter, GitHubContentAdapterLive } from './services/content/github';
 import { type NotionContentAdapter, NotionContentAdapterLive } from './services/content/notion-content-adapter';
-import { type SlackContentAdapter, SlackContentAdapterLive } from './services/content/slack-content-adapter';
+import { type SlackContentAdapter, SlackContentAdapterLive } from './services/content/slack';
 import { type Database, DatabaseLive } from './services/database';
 import { type Discovery, DiscoveryLive } from './services/discovery';
 import { type EmailNotifications, EmailNotificationsLive } from './services/email-notifications';

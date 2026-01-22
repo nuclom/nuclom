@@ -193,7 +193,7 @@ export function KnowledgeQAContainer({ organizationId, className }: KnowledgeQAC
       <ScrollArea className="flex-1" ref={scrollRef}>
         <div className="px-4 pb-4 max-w-4xl mx-auto">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[400px] text-center">
+            <div className="flex flex-col items-center justify-center h-100 text-center">
               <div className="rounded-full bg-primary/10 p-4 mb-4">
                 <MessageSquareText className="h-8 w-8 text-primary" />
               </div>
@@ -238,7 +238,7 @@ export function KnowledgeQAContainer({ organizationId, className }: KnowledgeQAC
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask a question about your team's knowledge..."
-              className="min-h-[80px] pr-12 resize-none"
+              className="min-h-20 pr-12 resize-none"
               disabled={isLoading}
             />
             <div className="absolute right-2 bottom-2">

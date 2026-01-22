@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Calendar,
@@ -378,7 +379,7 @@ function IntegrationsPageContent() {
         setIntegrations(data.data);
       }
     } catch (error) {
-      console.error('Failed to load integrations:', error);
+      logger.error('Failed to load integrations', error);
       toast({
         title: 'Error',
         description: 'Failed to load integrations',
@@ -403,7 +404,7 @@ function IntegrationsPageContent() {
 
       setImportedMeetings(allImports);
     } catch (error) {
-      console.error('Failed to load imported meetings:', error);
+      logger.error('Failed to load imported meetings', error);
     }
   }, [integrations]);
 
@@ -449,7 +450,8 @@ function IntegrationsPageContent() {
       } else {
         throw new Error('Failed to disconnect');
       }
-    } catch (_error) {
+    } catch (error) {
+      logger.error('Failed to disconnect integration', error);
       toast({
         title: 'Error',
         description: 'Failed to disconnect integration',
@@ -918,7 +920,7 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
         setWebhooks(data.webhooks);
       }
     } catch (error) {
-      console.error('Failed to load webhooks:', error);
+      logger.error('Failed to load webhooks', error);
       toast({
         title: 'Error',
         description: 'Failed to load webhooks',
@@ -970,7 +972,7 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
       setShowCreateForm(false);
       loadWebhooks();
     } catch (error) {
-      console.error('Failed to create webhook:', error);
+      logger.error('Failed to create webhook', error);
       toast({
         title: 'Error',
         description: 'Failed to create webhook',
@@ -999,7 +1001,7 @@ function ZapierWebhooksDialog({ open, onClose, organizationSlug: _organizationSl
 
       loadWebhooks();
     } catch (error) {
-      console.error('Failed to delete webhook:', error);
+      logger.error('Failed to delete webhook', error);
       toast({
         title: 'Error',
         description: 'Failed to delete webhook',

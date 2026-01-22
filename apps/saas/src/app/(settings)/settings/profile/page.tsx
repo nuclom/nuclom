@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient, useAuth } from '@nuclom/auth/client';
+import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
 import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -71,7 +72,7 @@ function ProfileForm() {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
       }
     } catch (error) {
-      console.error('Profile update error:', error);
+      logger.error('Failed to update profile', error);
       setMessage({ type: 'error', text: 'An unexpected error occurred' });
     } finally {
       setIsUpdating(false);
@@ -156,7 +157,7 @@ function PrivacyDataSection() {
           setMarketingConsent(data.marketingConsent ?? false);
         }
       } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        logger.error('Failed to fetch user data', error);
       } finally {
         setIsLoading(false);
       }
@@ -194,7 +195,7 @@ function PrivacyDataSection() {
 
       setMessage({ type: 'success', text: 'Your data has been exported successfully.' });
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Failed to export data', error);
       setMessage({ type: 'error', text: 'Failed to export data. Please try again.' });
     } finally {
       setIsExporting(false);
@@ -227,7 +228,7 @@ function PrivacyDataSection() {
       );
       setMessage({ type: 'success', text: data.message });
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Failed to request account deletion', error);
       setMessage({ type: 'error', text: 'Failed to request account deletion. Please try again.' });
     } finally {
       setIsDeleting(false);
@@ -263,7 +264,7 @@ function PrivacyDataSection() {
       );
       setMessage({ type: 'success', text: data.message });
     } catch (error) {
-      console.error('Cancel deletion error:', error);
+      logger.error('Failed to cancel deletion', error);
       setMessage({ type: 'error', text: 'Failed to cancel deletion. Please try again.' });
     } finally {
       setIsCancelling(false);
@@ -291,7 +292,7 @@ function PrivacyDataSection() {
         text: checked ? 'Marketing communications enabled.' : 'Marketing communications disabled.',
       });
     } catch (error) {
-      console.error('Consent update error:', error);
+      logger.error('Failed to update marketing consent preferences', error);
       setMessage({ type: 'error', text: 'Failed to update preferences.' });
     } finally {
       setIsUpdatingConsent(false);
