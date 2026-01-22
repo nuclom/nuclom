@@ -27,10 +27,29 @@ import { ZoomClientLive } from '../effect/services/zoom-client';
  */
 export const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
-const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
-const SlackLiveWithDeps = SlackLive.pipe(Layer.provide(SlackClientLive));
-const ZoomLiveWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
-const TeamsLiveWithDeps = MicrosoftTeamsLive.pipe(Layer.provide(MicrosoftTeamsClientLive));
+/**
+ * Google Meet service with GoogleClient dependency resolved
+ * Use this directly when you only need GoogleMeet without IntegrationRepository
+ */
+export const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+
+/**
+ * Slack service with SlackClient dependency resolved
+ * Use this directly when you only need Slack without IntegrationRepository
+ */
+export const SlackWithDeps = SlackLive.pipe(Layer.provide(SlackClientLive));
+
+/**
+ * Zoom service with ZoomClient dependency resolved
+ * Use this directly when you only need Zoom without IntegrationRepository
+ */
+export const ZoomWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+
+/**
+ * Microsoft Teams service with MicrosoftTeamsClient dependency resolved
+ * Use this directly when you only need Teams without IntegrationRepository
+ */
+export const TeamsWithDeps = MicrosoftTeamsLive.pipe(Layer.provide(MicrosoftTeamsClientLive));
 
 // =============================================================================
 // Provider-Specific Layers
@@ -44,17 +63,17 @@ export const GoogleIntegrationLayer = Layer.mergeAll(GoogleMeetWithDeps, Integra
 /**
  * Layer for Slack OAuth callbacks and API calls
  */
-export const SlackIntegrationLayer = Layer.mergeAll(SlackLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
+export const SlackIntegrationLayer = Layer.mergeAll(SlackWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 /**
  * Layer for Zoom OAuth callbacks and API calls
  */
-export const ZoomIntegrationLayer = Layer.mergeAll(ZoomLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
+export const ZoomIntegrationLayer = Layer.mergeAll(ZoomWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 /**
  * Layer for Microsoft Teams OAuth callbacks and API calls
  */
-export const TeamsIntegrationLayer = Layer.mergeAll(TeamsLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
+export const TeamsIntegrationLayer = Layer.mergeAll(TeamsWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 // =============================================================================
 // Layer Lookup by Provider

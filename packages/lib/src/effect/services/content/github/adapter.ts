@@ -689,9 +689,22 @@ const makeGitHubContentAdapter = Effect.gen(function* () {
       Effect.gen(function* () {
         const isRecord = (value: unknown): value is Record<string, unknown> =>
           typeof value === 'object' && value !== null;
-        const isGitHubPR = (value: unknown): value is GitHubPR => isRecord(value) && typeof value.number === 'number';
+
+        // PR guard: PRs have head/base refs for branches, title, and state
+        const isGitHubPR = (value: unknown): value is GitHubPR =>
+          isRecord(value) &&
+          typeof value.number === 'number' &&
+          typeof value.title === 'string' &&
+          isRecord(value.head) &&
+          typeof (value.head as Record<string, unknown>).ref === 'string';
+
+        // Issue guard: Issues have number, title, state, and assignees array
         const isGitHubIssue = (value: unknown): value is GitHubIssue =>
-          isRecord(value) && typeof value.number === 'number';
+          isRecord(value) &&
+          typeof value.number === 'number' &&
+          typeof value.title === 'string' &&
+          typeof value.state === 'string' &&
+          Array.isArray(value.assignees);
 
         if (!isRecord(payload)) return null;
 

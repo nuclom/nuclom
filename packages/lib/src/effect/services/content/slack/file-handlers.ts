@@ -6,9 +6,12 @@
 
 import { Effect } from 'effect';
 import type { SlackFileAttachment } from '../../../../db/schema';
+import { createLogger } from '../../../../logger';
 import type { StorageService } from '../../storage';
 import { MAX_FILE_SIZE_BYTES, SLACK_FILES_PREFIX } from './constants';
 import type { SlackMessage } from './types';
+
+const logger = createLogger('slack-file-handlers');
 
 /**
  * Download a file from Slack using the bot token
@@ -60,6 +63,14 @@ export const processSlackFile = async (
   const fileMime = file.mimetype ?? 'application/octet-stream';
   const fileUrl = file.url_private ?? '';
   const fileSize = file.size ?? 0;
+
+  // Log warning when using fallback values for critical fields
+  if (!file.id) {
+    logger.warn('Slack file missing ID, using fallback', { sourceId, fileName });
+  }
+  if (!file.name) {
+    logger.warn('Slack file missing name, using fallback', { sourceId, fileId });
+  }
 
   if (!fileUrl) {
     return {
@@ -169,15 +180,21 @@ export const processSlackFiles = async (
 
   // If syncFiles is disabled, just store metadata without downloading
   if (!syncFiles) {
-    return files.map((f) => ({
-      id: f.id ?? 'unknown',
-      name: f.name ?? 'unknown',
-      mimetype: f.mimetype ?? 'application/octet-stream',
-      url: f.url_private ?? '',
-      size: f.size ?? 0,
-      skipped: true,
-      skipReason: 'File sync disabled',
-    }));
+    return files.map((f) => {
+      // Log warning for missing critical fields
+      if (!f.id) {
+        logger.warn('Slack file missing ID when storing metadata', { sourceId, fileName: f.name });
+      }
+      return {
+        id: f.id ?? 'unknown',
+        name: f.name ?? 'unknown',
+        mimetype: f.mimetype ?? 'application/octet-stream',
+        url: f.url_private ?? '',
+        size: f.size ?? 0,
+        skipped: true,
+        skipReason: 'File sync disabled',
+      };
+    });
   }
 
   // Process files concurrently (limit concurrency to avoid rate limits)

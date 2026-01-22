@@ -103,8 +103,12 @@ const notionFetch = <T>(
 const isNotionPage = (result: NotionSearchResult): result is NotionPage =>
   result.object === 'page' && 'properties' in result;
 
-const isNotionDatabase = (result: NotionSearchResult): result is NotionDatabase =>
-  result.object === 'data_source' && 'title' in result;
+const isNotionDatabase = (result: NotionSearchResult): result is NotionDatabase => {
+  // The SDK types use 'data_source' but the actual API may return 'database'
+  // Use type assertion to handle both cases for compatibility
+  const objectType = result.object as string;
+  return (objectType === 'database' || objectType === 'data_source') && 'title' in result;
+};
 
 const isNotionBlock = (block: NotionBlock | PartialBlockObjectResponse): block is NotionBlock =>
   block.object === 'block' && 'type' in block;
@@ -825,7 +829,8 @@ const makeNotionContentAdapter = Effect.gen(function* () {
 
         do {
           const body: Record<string, unknown> = {
-            filter: { property: 'object', value: 'data_source' },
+            // The Notion REST API uses 'database' as the filter value
+            filter: { property: 'object', value: 'database' },
             page_size: 100,
           };
           if (cursor) body.start_cursor = cursor;
@@ -996,8 +1001,9 @@ const makeNotionContentAdapter = Effect.gen(function* () {
         };
         if (cursor) body.start_cursor = cursor;
 
+        // The Notion REST API uses /databases/ endpoint
         const response = yield* notionFetchWithClient<NotionDatabaseQueryResponse>(
-          `/data_sources/${databaseId}/query`,
+          `/databases/${databaseId}/query`,
           accessToken,
           {
             method: 'post',
