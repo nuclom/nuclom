@@ -1,49 +1,106 @@
 ---
 title: Quickstart
-description: 'Get up and running with Nuclom in under 5 minutes'
+description: 'Create an organization, import a video, and collaborate in minutes'
 ---
 
 ## Create Your Account
 
 <Steps>
-  <Step title="Sign Up">
-    Go to [nuclom.com](https://nuclom.com) and click **Get Started**. Choose your sign-up method:
-    - **Email** — Enter email and create a password
-    - **GitHub** — Sign in with your GitHub account
-    - **Google** — Sign in with your Google account
+  <Step title="Sign up">
+    Go to [nuclom.com](https://nuclom.com) and choose **Email**, **GitHub**, or **Google**.
   </Step>
-  <Step title="Complete Your Profile">
-    Set up your name, profile picture, and timezone.
+  <Step title="Complete your profile">
+    Add your name, avatar, and timezone so your team sees the right details.
   </Step>
-  <Step title="Create an Organization">
-    Click **Create Organization** and fill in your team's details.
-  </Step>
-  <Step title="Upload Your First Video">
-    Click the **New** button and select **New Video** to upload your first video.
+  <Step title="Create your organization">
+    Pick an organization name and slug to create your workspace.
   </Step>
 </Steps>
 
-## For Developers
+## Add Your First Video
+
+<Tabs>
+  <Tab title="Upload a file">
+    <Steps>
+      <Step title="Open Upload">
+        Click **Upload Video** in the left navigation.
+      </Step>
+      <Step title="Choose your file">
+        Drag and drop a video or browse your computer.
+      </Step>
+      <Step title="Add details">
+        Add a title, description, and optional channel or series.
+      </Step>
+      <Step title="Publish">
+        Upload and let Nuclom process the video.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Import recordings">
+    <Steps>
+      <Step title="Open Import">
+        Click **Import Videos** from the upload area.
+      </Step>
+      <Step title="Connect a source">
+        Choose Google Drive, Zoom, or Google Meet.
+      </Step>
+      <Step title="Select recordings">
+        Pick files to import and confirm the upload.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+<Note>
+  Video processing automatically generates transcripts, summaries, chapters, and action items.
+</Note>
+
+## Invite Your Team
 
 <Steps>
-  <Step title="Clone the Repository">
+  <Step title="Open Members settings">
+    Go to **Organization Settings** → **Members**.
+  </Step>
+  <Step title="Send invitations">
+    Add teammates by email and choose their role.
+  </Step>
+  <Step title="Share a video">
+    Use the **Share** button to send a secure link or set access levels.
+  </Step>
+</Steps>
+
+## Explore the Knowledge Hub
+
+<CardGroup cols={2}>
+  <Card title="Ask" icon="message-circle">
+    Ask natural-language questions about your video library.
+  </Card>
+  <Card title="Insights" icon="lightbulb">
+    Review decisions, topics, gaps, and key moments across videos.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Try **Cmd/Ctrl + K** to open the command bar and jump anywhere fast.
+</Tip>
+
+## For Developers (Optional)
+
+<Steps>
+  <Step title="Clone and install">
     ```bash
     git clone https://github.com/nuclom/nuclom.git
     cd nuclom
-    ```
-  </Step>
-  <Step title="Install Dependencies">
-    ```bash
     pnpm install
     ```
   </Step>
-  <Step title="Set Up Environment">
+  <Step title="Configure environment">
     ```bash
     cp .env.example .env.local
-    # Edit .env.local with your configuration
+    # Update the values for your environment
     ```
   </Step>
-  <Step title="Start Development Server">
+  <Step title="Run the app">
     ```bash
     pnpm dev
     ```
@@ -51,24 +108,22 @@ description: 'Get up and running with Nuclom in under 5 minutes'
 </Steps>
 
 <Info>
-  See the [Development Setup](/internal/reference/development-setup) guide for detailed instructions.
+  See the [Development Setup](/internal/reference/development-setup) guide for full setup instructions.
 </Info>
 
-## What's Next?
+## What’s Next?
 
 <CardGroup cols={2}>
-  <Card
-    title="User Guides"
-    icon="book-open"
-    href="/guides/getting-started"
-  >
-    Learn how to use Nuclom effectively
+  <Card title="Getting Started" icon="rocket" href="/guides/getting-started">
+    Learn the core workflow and navigation.
   </Card>
-  <Card
-    title="API Reference"
-    icon="code"
-    href="/api-reference/introduction"
-  >
-    Build integrations with our API
+  <Card title="Collaboration" icon="users" href="/guides/collaboration">
+    Share, comment, and track feedback.
+  </Card>
+  <Card title="Video Organization" icon="folder" href="/guides/video-organization">
+    Structure your library with channels and collections.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Build custom integrations.
   </Card>
 </CardGroup>
