@@ -8,33 +8,41 @@ Nuclom uses PostgreSQL with Drizzle ORM for type-safe database operations. The s
 
 ## Schema Organization
 
-The database schema is organized into multiple files in `src/lib/db/schema/`:
+The database schema is organized into multiple files in `packages/lib/src/db/schema/`:
 
 ```
-src/lib/db/schema/
-├── index.ts           # Re-exports all schema files
-├── enums.ts           # All PostgreSQL enum types (centralized)
-├── auth.ts            # Better-auth managed tables (DO NOT EDIT directly)
-│                      # Includes: users, sessions, accounts, organizations,
-│                      # members, invitations, teams, teamMembers, etc.
-├── user-extensions.ts # Application-specific user data (decoupled from auth)
-├── relations.ts       # All Drizzle ORM relations
-├── videos.ts          # Video and channel tables
-├── notifications.ts   # User notification tables
-├── billing.ts         # Subscription and payment tables
-├── integrations.ts    # External service integrations
-├── knowledge.ts       # Knowledge graph tables
-├── chat.ts            # AI chat knowledge base tables
-├── ai-insights.ts     # AI-extracted topics and action items
-├── analytics.ts       # Video analytics and metrics
-├── speakers.ts        # Speaker diarization tables
-├── search.ts          # Semantic search tables
-├── legal.ts           # Legal compliance tables
-├── audit-logs.ts      # Audit logging tables
-├── activity.ts        # Activity feed and webhooks
-├── clips.ts           # Video clips and highlights
-├── sharing.ts         # Video sharing links
-└── workflows.ts       # Workflow templates
+packages/lib/src/db/schema/
+├── index.ts              # Re-exports all schema files
+├── enums.ts              # All PostgreSQL enum types (centralized)
+├── types.ts              # Shared TypeScript types
+├── custom-types.ts       # Custom Drizzle types
+├── auth.ts               # Better-auth managed tables (DO NOT EDIT directly)
+│                         # Includes: users, sessions, accounts, organizations,
+│                         # members, invitations, teams, teamMembers, etc.
+├── auth-relations.ts     # Relations for auth tables
+├── user-extensions.ts    # Application-specific user data (decoupled from auth)
+├── videos.ts             # Video and channel tables
+├── notifications.ts      # User notification tables
+├── billing.ts            # Subscription and payment tables
+├── integrations.ts       # External service integrations
+├── knowledge.ts          # Knowledge graph tables
+├── knowledge-extended.ts # Extended knowledge features (embeddings, clusters)
+├── chat.ts               # AI chat knowledge base tables
+├── ai-insights.ts        # AI-extracted topics and action items
+├── analytics.ts          # Video analytics and metrics
+├── speakers.ts           # Speaker diarization tables
+├── search.ts             # Semantic search tables
+├── legal.ts              # Legal compliance tables
+├── audit-logs.ts         # Audit logging tables
+├── activity.ts           # Activity feed and webhooks
+├── clips.ts              # Video clips and highlights
+├── sharing.ts            # Video sharing links
+├── workflows.ts          # Workflow templates
+├── content.ts            # Content source abstraction
+├── github.ts             # GitHub integration tables
+├── notion.ts             # Notion integration tables
+├── slack.ts              # Slack integration tables
+└── vocabulary.ts         # Custom vocabulary for transcription
 ```
 
 ### Working with Better-Auth Tables
@@ -44,7 +52,7 @@ The `auth.ts` file contains tables managed by better-auth. **Do not modify these
 </Warning>
 
 To update auth schema:
-1. Modify better-auth configuration in `src/lib/auth.ts`
+1. Modify better-auth configuration in `packages/auth/src/auth.ts`
 2. Run: `pnpm auth:generate`
 3. Run: `pnpm db:generate && pnpm db:migrate`
 

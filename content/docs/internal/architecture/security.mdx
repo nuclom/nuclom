@@ -30,7 +30,7 @@ The platform implements comprehensive rate limiting to protect against abuse.
 
 ### Configuration
 
-Rate limits are configured in `src/lib/rate-limit.ts` and applied via Next.js middleware:
+Rate limits are configured in `packages/lib/src/rate-limit.ts` and applied via Next.js middleware:
 
 | Endpoint Type | Requests | Window | Use Case |
 |---------------|----------|--------|----------|
@@ -145,7 +145,7 @@ advanced: {
 
 ## CORS Configuration
 
-CORS is strictly configured in `src/lib/auth.ts`:
+CORS is strictly configured in `packages/auth/src/auth.ts`:
 
 - **Production**: Only the main app URL is trusted
 - **Preview deployments**: Vercel preview URLs are allowed (non-production only)
@@ -319,15 +319,15 @@ All security-relevant actions are logged for compliance and forensics.
 ## Related Files
 
 ```
-src/lib/rate-limit.ts           # Rate limiting implementation
-src/lib/redis.ts                # Redis client configuration
-src/lib/auth.ts                 # Authentication configuration
-src/lib/access-control.ts       # RBAC configuration
-src/lib/audit-log.ts            # Audit logging service
-src/middleware.ts               # Next.js middleware
-next.config.ts                  # Security headers
-src/app/api/user/sessions/      # Session management API
-src/app/api/organizations/[id]/sso/        # SSO configuration API
-src/app/api/organizations/[id]/roles/      # RBAC roles API
-src/app/api/organizations/[id]/audit-logs/ # Audit logs API
+packages/lib/src/rate-limit.ts                        # Rate limiting implementation
+packages/lib/src/redis.ts                             # Redis client configuration
+packages/auth/src/auth.ts                             # Authentication configuration
+packages/lib/src/access-control.ts                    # RBAC configuration
+packages/lib/src/audit-log.ts                         # Audit logging service
+apps/saas/src/middleware.ts                           # Next.js middleware
+apps/saas/next.config.ts                              # Security headers
+apps/saas/src/app/(api)/api/user/sessions/            # Session management API
+apps/saas/src/app/(api)/api/organizations/[id]/sso/   # SSO configuration API
+apps/saas/src/app/(api)/api/organizations/[id]/roles/ # RBAC roles API
+apps/saas/src/app/(api)/api/organizations/[id]/audit-logs/ # Audit logs API
 ```
