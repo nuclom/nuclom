@@ -1,34 +1,16 @@
 import { auth } from '@nuclom/lib/auth';
-import { UnauthorizedError } from '@nuclom/lib/effect/errors';
+import { HttpError, UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
-import { Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { buildZoomOAuthToken, Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { ZoomClientLive } from '@nuclom/lib/effect/services/zoom-client';
+import type { MeetingsListMeetingsQueryParams } from '@zoom/rivet/meetings';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const MeetingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive);
-
-interface ZoomMeetingListResponse {
-  page_count: number;
-  page_number: number;
-  page_size: number;
-  total_records: number;
-  next_page_token?: string;
-  meetings: Array<{
-    uuid: string;
-    id: number;
-    host_id: string;
-    topic: string;
-    type: number;
-    start_time: string;
-    duration: number;
-    timezone: string;
-    agenda?: string;
-    created_at: string;
-    join_url: string;
-  }>;
-}
+const ZoomWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+const MeetingsLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomWithDeps);
 
 // =============================================================================
 // GET /api/integrations/zoom/meetings - List Zoom scheduled/past meetings
@@ -60,63 +42,52 @@ export async function GET(request: NextRequest) {
       return { meetings: [] };
     }
 
-    // Check if token is expired and refresh if needed
-    let accessToken = integration.accessToken;
-    if (integration.expiresAt && new Date(integration.expiresAt) < new Date()) {
-      if (!integration.refreshToken) {
-        return yield* Effect.fail(
-          new UnauthorizedError({
-            message: 'Access token expired. Please reconnect your account.',
-          }),
-        );
-      }
+    if (integration.expiresAt && new Date(integration.expiresAt) < new Date() && !integration.refreshToken) {
+      return yield* Effect.fail(
+        new UnauthorizedError({
+          message: 'Access token expired. Please reconnect your account.',
+        }),
+      );
+    }
 
-      const newTokens = yield* zoom.refreshAccessToken(integration.refreshToken);
-      accessToken = newTokens.access_token;
+    const token = buildZoomOAuthToken({
+      accessToken: integration.accessToken,
+      refreshToken: integration.refreshToken,
+      expiresAt: integration.expiresAt,
+      scope: integration.scope,
+    });
 
+    const meetingType: MeetingsListMeetingsQueryParams['type'] =
+      type === 'scheduled' ||
+      type === 'live' ||
+      type === 'upcoming' ||
+      type === 'upcoming_meetings' ||
+      type === 'previous_meetings'
+        ? type
+        : 'scheduled';
+
+    const query: MeetingsListMeetingsQueryParams = {
+      type: meetingType,
+      page_size: 100,
+      from: from ? from.split('T')[0] : undefined,
+      to: to ? to.split('T')[0] : undefined,
+    };
+
+    const { response, refreshedToken } = yield* zoom.listMeetings(token, query);
+
+    if (refreshedToken) {
       yield* integrationRepo.updateIntegration(integration.id, {
-        accessToken: newTokens.access_token,
-        refreshToken: newTokens.refresh_token || integration.refreshToken,
-        expiresAt: new Date(Date.now() + newTokens.expires_in * 1000),
+        accessToken: refreshedToken.accessToken,
+        refreshToken: refreshedToken.refreshToken ?? integration.refreshToken ?? undefined,
+        expiresAt: new Date(refreshedToken.expirationTimeIso),
+        scope: refreshedToken.scopes.join(' '),
       });
     }
 
-    // Fetch meetings from Zoom API
-    const meetingsResponse = yield* Effect.tryPromise({
-      try: async () => {
-        const params = new URLSearchParams({
-          type,
-          page_size: '100',
-        });
-
-        if (from) {
-          params.set('from', from.split('T')[0]);
-        }
-        if (to) {
-          params.set('to', to.split('T')[0]);
-        }
-
-        const res = await fetch(`https://api.zoom.us/v2/users/me/meetings?${params.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Zoom API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<ZoomMeetingListResponse>;
-      },
-      catch: (error) =>
-        new Error(`Failed to fetch meetings: ${error instanceof Error ? error.message : 'Unknown error'}`),
-    });
-
     return {
-      meetings: meetingsResponse.meetings,
-      totalRecords: meetingsResponse.total_records,
-      nextPageToken: meetingsResponse.next_page_token,
+      meetings: response.meetings ?? [],
+      totalRecords: response.total_records ?? 0,
+      nextPageToken: response.next_page_token ?? undefined,
     };
   });
 
@@ -129,6 +100,9 @@ export async function GET(request: NextRequest) {
         const err = error.value;
         if (err instanceof UnauthorizedError) {
           return NextResponse.json({ success: false, error: err.message }, { status: 401 });
+        }
+        if (err instanceof HttpError) {
+          return NextResponse.json({ success: false, error: err.message }, { status: err.status });
         }
         console.error('[Zoom Meetings Error]', err);
       }

@@ -4,8 +4,10 @@
  * Provides type-safe Microsoft Graph API operations for OAuth and messaging.
  */
 
+import type { Channel, ChatMessage, ChatMessageAttachment, Team, User } from '@microsoft/microsoft-graph-types';
 import { Config, Context, Effect, Layer, Option } from 'effect';
 import { HttpError } from '../errors';
+import { type MicrosoftTeamsAuthConfig, MicrosoftTeamsClient } from './microsoft-teams-client';
 
 // =============================================================================
 // Types
@@ -26,29 +28,9 @@ export interface MicrosoftTokenResponse {
   readonly refresh_token?: string;
 }
 
-export interface MicrosoftUserInfo {
-  readonly id: string;
-  readonly displayName: string;
-  readonly mail: string;
-  readonly userPrincipalName: string;
-  readonly jobTitle?: string;
-  readonly officeLocation?: string;
-}
-
-export interface TeamsChannel {
-  readonly id: string;
-  readonly displayName: string;
-  readonly description?: string;
-  readonly webUrl: string;
-  readonly membershipType: 'standard' | 'private' | 'unknownFutureValue';
-}
-
-export interface TeamsTeam {
-  readonly id: string;
-  readonly displayName: string;
-  readonly description?: string;
-  readonly webUrl: string;
-}
+export type MicrosoftUserInfo = User;
+export type TeamsChannel = Channel;
+export type TeamsTeam = Team;
 
 export interface TeamsChannelsResponse {
   readonly value: TeamsChannel[];
@@ -60,22 +42,9 @@ export interface TeamsTeamsResponse {
   readonly '@odata.nextLink'?: string;
 }
 
-export interface TeamsMessagePayload {
-  readonly body: {
-    readonly contentType: 'text' | 'html';
-    readonly content: string;
-  };
-  readonly attachments?: TeamsAttachment[];
-}
+export type TeamsMessagePayload = ChatMessage;
 
-export interface TeamsAttachment {
-  readonly id: string;
-  readonly contentType: string;
-  readonly contentUrl?: string;
-  readonly name?: string;
-  readonly content?: string;
-  readonly thumbnailUrl?: string;
-}
+export type TeamsAttachment = ChatMessageAttachment;
 
 export interface TeamsAdaptiveCard {
   readonly type: 'AdaptiveCard';
@@ -110,24 +79,7 @@ export interface TeamsAdaptiveCardAction {
   readonly data?: Record<string, unknown>;
 }
 
-export interface TeamsMessageResponse {
-  readonly id: string;
-  readonly createdDateTime: string;
-  readonly body: {
-    readonly contentType: string;
-    readonly content: string;
-  };
-  readonly from: {
-    readonly user?: {
-      readonly id: string;
-      readonly displayName: string;
-    };
-    readonly application?: {
-      readonly id: string;
-      readonly displayName: string;
-    };
-  };
-}
+export type TeamsMessageResponse = ChatMessage;
 
 // =============================================================================
 // Microsoft Teams Service Interface
@@ -204,9 +156,6 @@ export class MicrosoftTeams extends Context.Tag('MicrosoftTeams')<MicrosoftTeams
 // Microsoft Teams Configuration
 // =============================================================================
 
-const MICROSOFT_AUTH_BASE = 'https://login.microsoftonline.com';
-const MICROSOFT_GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
-
 const MicrosoftTeamsConfigEffect = Config.all({
   clientId: Config.string('MICROSOFT_CLIENT_ID').pipe(Config.option),
   clientSecret: Config.string('MICROSOFT_CLIENT_SECRET').pipe(Config.option),
@@ -220,6 +169,7 @@ const MicrosoftTeamsConfigEffect = Config.all({
 
 const makeMicrosoftTeamsService = Effect.gen(function* () {
   const config = yield* MicrosoftTeamsConfigEffect;
+  const teamsClient = yield* MicrosoftTeamsClient;
 
   const isConfigured =
     Option.isSome(config.clientId) && Option.isSome(config.clientSecret) && Option.isSome(config.baseUrl);
@@ -234,32 +184,38 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
     };
   };
 
+  const getScopes = () => [
+    'User.Read',
+    'Team.ReadBasic.All',
+    'Channel.ReadBasic.All',
+    'ChannelMessage.Send',
+    'offline_access',
+  ];
+
+  const toAuthConfig = (cfg: MicrosoftTeamsConfig): MicrosoftTeamsAuthConfig => ({
+    clientId: cfg.clientId,
+    clientSecret: cfg.clientSecret,
+    tenantId: cfg.tenantId,
+  });
+
   const getAuthorizationUrl = (state: string): Effect.Effect<string, never> =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       const cfg = getConfig();
       if (!cfg) {
         throw new Error('Microsoft Teams is not configured');
       }
 
-      const scopes = [
-        'User.Read',
-        'Team.ReadBasic.All',
-        'Channel.ReadBasic.All',
-        'ChannelMessage.Send',
-        'offline_access',
-      ].join(' ');
-
-      const params = new URLSearchParams({
-        client_id: cfg.clientId,
-        response_type: 'code',
-        redirect_uri: cfg.redirectUri,
-        scope: scopes,
-        state,
-        response_mode: 'query',
+      const msal = yield* teamsClient.createMsalClient(toAuthConfig(cfg));
+      return yield* Effect.tryPromise({
+        try: () =>
+          msal.getAuthCodeUrl({
+            scopes: getScopes(),
+            redirectUri: cfg.redirectUri,
+            state,
+          }),
+        catch: (error) => error,
       });
-
-      return `${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
-    });
+    }).pipe(Effect.orDie);
 
   const exchangeCodeForToken = (code: string): Effect.Effect<MicrosoftTokenResponse, HttpError> =>
     Effect.gen(function* () {
@@ -273,34 +229,33 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         );
       }
 
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(`${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              client_id: cfg.clientId,
-              client_secret: cfg.clientSecret,
+      const response = yield* Effect.gen(function* () {
+        const msal = yield* teamsClient.createMsalClient(toAuthConfig(cfg));
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const result = await msal.acquireTokenByCode({
               code,
-              redirect_uri: cfg.redirectUri,
-              grant_type: 'authorization_code',
+              scopes: getScopes(),
+              redirectUri: cfg.redirectUri,
+            });
+
+            if (!result?.accessToken || !result.expiresOn || !result.tokenType) {
+              throw new Error('Microsoft token exchange returned incomplete result');
+            }
+
+            return {
+              access_token: result.accessToken,
+              token_type: result.tokenType,
+              expires_in: Math.max(0, Math.floor((result.expiresOn.getTime() - Date.now()) / 1000)),
+              scope: (result.scopes ?? []).join(' '),
+            } satisfies MicrosoftTokenResponse;
+          },
+          catch: (error) =>
+            new HttpError({
+              message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              status: 500,
             }),
-          });
-
-          if (!res.ok) {
-            const error = await res.text();
-            throw new Error(`Microsoft token exchange failed: ${res.status} - ${error}`);
-          }
-
-          return res.json() as Promise<MicrosoftTokenResponse>;
-        },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to exchange code for token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        });
       });
 
       return response;
@@ -318,105 +273,75 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
         );
       }
 
-      const response = yield* Effect.tryPromise({
-        try: async () => {
-          const res = await fetch(`${MICROSOFT_AUTH_BASE}/${cfg.tenantId}/oauth2/v2.0/token`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              client_id: cfg.clientId,
-              client_secret: cfg.clientSecret,
+      const response = yield* Effect.gen(function* () {
+        const msal = yield* teamsClient.createMsalClient(toAuthConfig(cfg));
+        return yield* Effect.tryPromise({
+          try: async () => {
+            const result = await msal.acquireTokenByRefreshToken({
+              refreshToken,
+              scopes: getScopes(),
+            });
+
+            if (!result?.accessToken || !result.expiresOn || !result.tokenType) {
+              throw new Error('Microsoft token refresh returned incomplete result');
+            }
+
+            return {
+              access_token: result.accessToken,
+              token_type: result.tokenType,
+              expires_in: Math.max(0, Math.floor((result.expiresOn.getTime() - Date.now()) / 1000)),
+              scope: (result.scopes ?? []).join(' '),
               refresh_token: refreshToken,
-              grant_type: 'refresh_token',
+            } satisfies MicrosoftTokenResponse;
+          },
+          catch: (error) =>
+            new HttpError({
+              message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              status: 500,
             }),
-          });
-
-          if (!res.ok) {
-            const error = await res.text();
-            throw new Error(`Microsoft token refresh failed: ${res.status} - ${error}`);
-          }
-
-          return res.json() as Promise<MicrosoftTokenResponse>;
-        },
-        catch: (error) =>
-          new HttpError({
-            message: `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            status: 500,
-          }),
+        });
       });
 
       return response;
     });
 
   const getUserInfo = (accessToken: string): Effect.Effect<MicrosoftUserInfo, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${MICROSOFT_GRAPH_BASE}/me`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Microsoft Graph API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<MicrosoftUserInfo>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* teamsClient.createGraphClient(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => (await client.api('/me').get()) as MicrosoftUserInfo,
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to get user info: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listTeams = (accessToken: string): Effect.Effect<TeamsTeamsResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${MICROSOFT_GRAPH_BASE}/me/joinedTeams`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Microsoft Graph API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<TeamsTeamsResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list teams: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* teamsClient.createGraphClient(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => (await client.api('/me/joinedTeams').get()) as TeamsTeamsResponse,
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list teams: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const listChannels = (accessToken: string, teamId: string): Effect.Effect<TeamsChannelsResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${MICROSOFT_GRAPH_BASE}/teams/${teamId}/channels`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Microsoft Graph API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<TeamsChannelsResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* teamsClient.createGraphClient(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () => (await client.api(`/teams/${teamId}/channels`).get()) as TeamsChannelsResponse,
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to list channels: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const sendMessage = (
@@ -425,29 +350,17 @@ const makeMicrosoftTeamsService = Effect.gen(function* () {
     channelId: string,
     payload: TeamsMessagePayload,
   ): Effect.Effect<TeamsMessageResponse, HttpError> =>
-    Effect.tryPromise({
-      try: async () => {
-        const res = await fetch(`${MICROSOFT_GRAPH_BASE}/teams/${teamId}/channels/${channelId}/messages`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Microsoft Graph API error: ${res.status} - ${error}`);
-        }
-
-        return res.json() as Promise<TeamsMessageResponse>;
-      },
-      catch: (error) =>
-        new HttpError({
-          message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          status: 500,
-        }),
+    Effect.gen(function* () {
+      const client = yield* teamsClient.createGraphClient(accessToken);
+      return yield* Effect.tryPromise({
+        try: async () =>
+          (await client.api(`/teams/${teamId}/channels/${channelId}/messages`).post(payload)) as TeamsMessageResponse,
+        catch: (error) =>
+          new HttpError({
+            message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: 500,
+          }),
+      });
     });
 
   const sendVideoNotification = (

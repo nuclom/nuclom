@@ -1,6 +1,7 @@
 import { auth } from '@nuclom/lib/auth';
 import { UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { GoogleClientLive } from '@nuclom/lib/effect/services/google-client';
 import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { logger } from '@nuclom/lib/logger';
@@ -8,7 +9,8 @@ import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const CalendarLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetLive);
+const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+const CalendarLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, GoogleMeetWithDeps);
 
 // =============================================================================
 // GET /api/integrations/google/calendar - List Google Calendar events with Meet links
@@ -68,7 +70,7 @@ export async function GET(request: NextRequest) {
     const response = yield* google.listCalendarEvents(accessToken, from, to, 100);
 
     // Filter events that have Google Meet links
-    const meetEvents = response.items.filter(
+    const meetEvents = (response.items ?? []).filter(
       (event) =>
         event.hangoutLink || (event.conferenceData && event.conferenceData.conferenceSolution?.name === 'Google Meet'),
     );

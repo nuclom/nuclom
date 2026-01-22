@@ -35,10 +35,11 @@ Additional capabilities:
 
 ### Service Layer
 
-The integrations use Effect-TS for type-safe API operations.
+The integrations use Effect-TS for type-safe API operations. SDK clients are created via Effect services (for example `GoogleClient`, `SlackClient`, `GitHubClient`, `NotionClient`, `MicrosoftTeamsClient`, `ZoomClient`, and `AssemblyAIClient`) and are provided via Layers so all API calls share consistent lifecycle management and error handling.
 
 ```
 src/lib/effect/services/
+├── zoom-client.ts             # Zoom SDK client factory (@zoom/rivet)
 ├── zoom.ts                    # Zoom API operations (OAuth, recordings, users)
 ├── google-meet.ts             # Google API operations (OAuth, Drive, Calendar)
 ├── slack.ts                   # Slack API operations (OAuth, messaging, channels)
@@ -47,6 +48,18 @@ src/lib/effect/services/
 ├── activity-feed-repository.ts # Activity tracking for organizations
 └── integration-repository.ts  # Database operations for integrations
 ```
+
+### Official SDKs
+
+All integration API calls use official, recommended SDKs where available:
+
+- GitHub: `octokit` + `@octokit/graphql` + `@octokit/oauth-methods`
+- Slack: `@slack/web-api` + `@slack/webhook`
+- Notion: `@notionhq/client`
+- Google: `googleapis`
+- Microsoft Teams: `@azure/msal-node` + `@microsoft/microsoft-graph-client`
+- AssemblyAI: `assemblyai`
+- Zoom: `@zoom/rivet`
 
 ### API Routes
 

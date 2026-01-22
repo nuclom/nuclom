@@ -2,17 +2,14 @@ import { auth } from '@nuclom/lib/auth';
 import { HttpError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
-import { Zoom, ZoomLive, type ZoomRecording } from '@nuclom/lib/effect/services/zoom';
+import { buildZoomOAuthToken, Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { ZoomClientLive } from '@nuclom/lib/effect/services/zoom-client';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const RecordingsLayer = Layer.mergeAll(ZoomLive, IntegrationRepositoryWithDeps, DatabaseLive);
-
-interface RecordingsResponse {
-  recordings: ZoomRecording[];
-  nextPageToken?: string;
-}
+const ZoomWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+const RecordingsLayer = Layer.mergeAll(ZoomWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 // =============================================================================
 // GET /api/integrations/zoom/recordings - List Zoom recordings
@@ -54,38 +51,46 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if token is expired and refresh if needed
-    let accessToken = integration.accessToken;
-    if (integration.expiresAt && new Date(integration.expiresAt) < new Date()) {
-      if (!integration.refreshToken) {
-        return yield* Effect.fail(
-          new UnauthorizedError({
-            message: 'Zoom access token expired. Please reconnect your account.',
-          }),
-        );
-      }
-
-      const newTokens = yield* zoom.refreshAccessToken(integration.refreshToken);
-      accessToken = newTokens.access_token;
-
-      // Update the integration with new tokens
-      yield* integrationRepo.updateIntegration(integration.id, {
-        accessToken: newTokens.access_token,
-        refreshToken: newTokens.refresh_token || integration.refreshToken,
-        expiresAt: new Date(Date.now() + newTokens.expires_in * 1000),
-      });
+    if (integration.expiresAt && new Date(integration.expiresAt) < new Date() && !integration.refreshToken) {
+      return yield* Effect.fail(
+        new UnauthorizedError({
+          message: 'Zoom access token expired. Please reconnect your account.',
+        }),
+      );
     }
 
-    // Fetch recordings
-    const response = yield* zoom.listRecordings(accessToken, from || defaultFrom, to || defaultTo, 30, pageToken);
+    const token = buildZoomOAuthToken({
+      accessToken: integration.accessToken,
+      refreshToken: integration.refreshToken,
+      expiresAt: integration.expiresAt,
+      scope: integration.scope,
+    });
+
+    // Fetch recordings (SDK handles refresh when needed)
+    const { response, refreshedToken } = yield* zoom.listRecordings(
+      token,
+      from || defaultFrom,
+      to || defaultTo,
+      30,
+      pageToken,
+    );
+
+    if (refreshedToken) {
+      yield* integrationRepo.updateIntegration(integration.id, {
+        accessToken: refreshedToken.accessToken,
+        refreshToken: refreshedToken.refreshToken ?? integration.refreshToken ?? undefined,
+        expiresAt: new Date(refreshedToken.expirationTimeIso),
+        scope: refreshedToken.scopes.join(' '),
+      });
+    }
 
     // Parse recordings into simplified format
     const recordings = zoom.parseRecordings(response);
 
     return {
       recordings,
-      nextPageToken: response.next_page_token,
-    } as RecordingsResponse;
+      nextPageToken: response.next_page_token ?? undefined,
+    };
   });
 
   const exit = await Effect.runPromiseExit(Effect.provide(effect, RecordingsLayer));

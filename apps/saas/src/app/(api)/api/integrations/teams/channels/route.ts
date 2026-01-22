@@ -2,12 +2,14 @@ import { auth } from '@nuclom/lib/auth';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { MicrosoftTeams, MicrosoftTeamsLive } from '@nuclom/lib/effect/services/microsoft-teams';
+import { MicrosoftTeamsClientLive } from '@nuclom/lib/effect/services/microsoft-teams-client';
 import { logger } from '@nuclom/lib/logger';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ChannelsLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
+const TeamsWithDeps = MicrosoftTeamsLive.pipe(Layer.provide(MicrosoftTeamsClientLive));
+const ChannelsLayer = Layer.mergeAll(TeamsWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -346,6 +346,9 @@ export {
   encryptJson,
   isEncrypted,
 } from './encryption';
+// Google Client
+export type { GoogleClientConfig, GoogleClientService } from './google-client';
+export { GoogleClient, GoogleClientLive } from './google-client';
 // Google Meet Service
 export type {
   GoogleConfig,
@@ -427,6 +430,9 @@ export {
   sendMicrosoftTeamsMessage,
   sendMicrosoftTeamsVideoNotification,
 } from './microsoft-teams';
+// Microsoft Teams Client
+export type { MicrosoftTeamsAuthConfig, MicrosoftTeamsClientService } from './microsoft-teams-client';
+export { MicrosoftTeamsClient, MicrosoftTeamsClientLive } from './microsoft-teams-client';
 export type {
   CreateNotificationInput,
   NotificationRepositoryService,
@@ -586,7 +592,6 @@ export {
 } from './semantic-search-repository';
 // Slack Service
 export type {
-  SlackChannel,
   SlackChannelsResponse,
   SlackConfig,
   SlackMessagePayload,
@@ -606,6 +611,9 @@ export {
   sendSlackVideoNotification,
   verifySlackSignature,
 } from './slack';
+// Slack Clients
+export type { SlackClientService, SlackWebhookClientService } from './slack-client';
+export { SlackClient, SlackClientLive, SlackWebhookClient, SlackWebhookClientLive } from './slack-client';
 // Slack Monitoring Service
 export type {
   MonitoringEvent,
@@ -841,16 +849,9 @@ export {
   ZapierWebhooksServiceLive,
 } from './zapier-webhooks';
 // Zoom Service
-export type {
-  ZoomConfig,
-  ZoomMeeting,
-  ZoomRecording,
-  ZoomRecordingsResponse,
-  ZoomServiceInterface,
-  ZoomTokenResponse,
-  ZoomUserInfo,
-} from './zoom';
+export type { ZoomRecording } from './zoom';
 export {
+  buildZoomOAuthToken,
   exchangeZoomCodeForToken,
   getZoomAuthorizationUrl,
   getZoomMeetingRecordings,
@@ -860,11 +861,14 @@ export {
   Zoom,
   ZoomLive,
 } from './zoom';
+export { ZoomClient, ZoomClientLive } from './zoom-client';
 
 // =============================================================================
 // Slack, Notion, GitHub Content Adapters
 // =============================================================================
 
+export type { AssemblyAIClientService } from './assemblyai-client';
+export { AssemblyAIClient, AssemblyAIClientLive } from './assemblyai-client';
 export type { GitHubContentAdapterService, NotionContentAdapterService, SlackContentAdapterService } from './content';
 export {
   cleanupExpiredFileCache,
@@ -888,6 +892,11 @@ export {
   SlackContentAdapterLive,
   verifyGitHubWebhookSignature,
 } from './content';
+// Integration SDK Clients
+export type { GitHubClientService } from './github-client';
+export { GitHubClient, GitHubClientLive } from './github-client';
+export type { NotionClientService } from './notion-client';
+export { NotionClient, NotionClientLive } from './notion-client';
 
 // =============================================================================
 // Knowledge Graph Services

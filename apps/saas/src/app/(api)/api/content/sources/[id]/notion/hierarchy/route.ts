@@ -88,17 +88,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       // Update hierarchy in database
       for (const page of pages) {
         const parentType =
-          page.parent.type === 'workspace' ? 'workspace' : page.parent.type === 'database' ? 'database' : 'page';
-        const parentId = page.parent.page_id || page.parent.database_id || null;
+          page.parent.type === 'workspace'
+            ? 'workspace'
+            : page.parent.type === 'data_source_id' || page.parent.type === 'database_id'
+              ? 'database'
+              : 'page';
+        const parentId =
+          page.parent.type === 'data_source_id'
+            ? page.parent.data_source_id
+            : page.parent.type === 'database_id'
+              ? page.parent.database_id
+              : page.parent.type === 'page_id'
+                ? page.parent.page_id
+                : page.parent.type === 'block_id'
+                  ? page.parent.block_id
+                  : null;
 
         // Extract title from properties
         let title = 'Untitled';
         for (const prop of Object.values(page.properties)) {
           if (prop.type === 'title') {
-            const titleValue = prop.title as Array<{ plain_text: string }> | undefined;
-            if (titleValue) {
-              title = titleValue.map((t) => t.plain_text).join('');
-            }
+            title = prop.title.map((t) => t.plain_text).join('');
           }
         }
 
@@ -116,8 +126,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
       // Update databases in hierarchy
       for (const database of databases) {
-        const parentType = database.parent.type === 'workspace' ? 'workspace' : 'page';
-        const parentId = database.parent.page_id || null;
+        const parentType =
+          database.database_parent.type === 'workspace'
+            ? 'workspace'
+            : database.database_parent.type === 'database_id'
+              ? 'database'
+              : 'page';
+        const parentId =
+          database.database_parent.type === 'page_id'
+            ? database.database_parent.page_id
+            : database.database_parent.type === 'database_id'
+              ? database.database_parent.database_id
+              : database.database_parent.type === 'block_id'
+                ? database.database_parent.block_id
+                : null;
         const title = database.title.map((t) => t.plain_text).join('') || 'Untitled Database';
 
         yield* notionAdapter.updatePageHierarchy(source.id, database.id, {

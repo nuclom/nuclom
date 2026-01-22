@@ -1,18 +1,15 @@
 import { auth } from '@nuclom/lib/auth';
 import { HttpError, NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
-import { GoogleMeet, GoogleMeetLive, type GoogleMeetRecording } from '@nuclom/lib/effect/services/google-meet';
+import { GoogleClientLive } from '@nuclom/lib/effect/services/google-client';
+import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const RecordingsLayer = Layer.mergeAll(GoogleMeetLive, IntegrationRepositoryWithDeps, DatabaseLive);
-
-interface RecordingsResponse {
-  recordings: GoogleMeetRecording[];
-  nextPageToken?: string;
-}
+const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+const RecordingsLayer = Layer.mergeAll(GoogleMeetWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 // =============================================================================
 // GET /api/integrations/google/recordings - List Google Meet recordings
@@ -78,8 +75,8 @@ export async function GET(request: NextRequest) {
 
     return {
       recordings,
-      nextPageToken: response.nextPageToken,
-    } as RecordingsResponse;
+      nextPageToken: response.nextPageToken ?? undefined,
+    };
   });
 
   const exit = await Effect.runPromiseExit(Effect.provide(effect, RecordingsLayer));

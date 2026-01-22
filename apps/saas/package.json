@@ -74,6 +74,7 @@
     "@vercel/analytics": "catalog:",
     "@vercel/config": "catalog:",
     "@vercel/microfrontends": "catalog:",
+    "@zoom/rivet": "catalog:",
     "ai": "catalog:",
     "autoprefixer": "catalog:",
     "bash-tool": "catalog:",

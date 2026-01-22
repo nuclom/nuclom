@@ -1,9 +1,11 @@
 import { auth } from '@nuclom/lib/auth';
 import { NotFoundError, UnauthorizedError } from '@nuclom/lib/effect/errors';
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
+import { GoogleClientLive } from '@nuclom/lib/effect/services/google-client';
 import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
 import { Zoom, ZoomLive } from '@nuclom/lib/effect/services/zoom';
+import { ZoomClientLive } from '@nuclom/lib/effect/services/zoom-client';
 import { logger } from '@nuclom/lib/logger';
 import { safeParse } from '@nuclom/lib/validation';
 import { Cause, Effect, Exit, Layer, Option, Schema } from 'effect';
@@ -11,7 +13,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { importMeetingWorkflow } from '@/workflows/import-meeting';
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
-const ImportLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomLive, GoogleMeetLive);
+const ZoomWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+const ImportLayer = Layer.mergeAll(IntegrationRepositoryWithDeps, DatabaseLive, ZoomWithDeps, GoogleMeetWithDeps);
 
 const ImportRecordingSchema = Schema.Struct({
   provider: Schema.Literal('zoom', 'google_meet'),
@@ -89,12 +93,13 @@ export async function POST(request: NextRequest) {
 
       if (provider === 'zoom') {
         const newTokens = yield* zoom.refreshAccessToken(integration.refreshToken);
-        accessToken = newTokens.access_token;
+        accessToken = newTokens.accessToken;
 
         yield* integrationRepo.updateIntegration(integration.id, {
-          accessToken: newTokens.access_token,
-          refreshToken: newTokens.refresh_token || integration.refreshToken,
-          expiresAt: new Date(Date.now() + newTokens.expires_in * 1000),
+          accessToken: newTokens.accessToken,
+          refreshToken: newTokens.refreshToken || integration.refreshToken,
+          expiresAt: new Date(newTokens.expirationTimeIso),
+          scope: newTokens.scopes.join(' '),
         });
       } else {
         const newTokens = yield* google.refreshAccessToken(integration.refreshToken);

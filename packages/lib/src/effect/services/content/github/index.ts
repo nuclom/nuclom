@@ -14,7 +14,7 @@ export {
 } from './adapter';
 
 // API Client
-export { GITHUB_API_BASE, GITHUB_GRAPHQL_URL, githubFetch, githubGraphQL } from './api-client';
+export { githubFetch, githubGraphQL } from './api-client';
 // Auth
 export { exchangeGitHubCode, getGitHubAuthUrl, verifyGitHubWebhookSignature } from './auth';
 // Content Converters

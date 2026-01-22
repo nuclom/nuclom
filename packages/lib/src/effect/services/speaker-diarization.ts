@@ -9,8 +9,10 @@
  * with combined transcription capabilities.
  */
 
+import type { AssemblyAI } from 'assemblyai';
 import { Context, Data, Effect, Layer } from 'effect';
 import { env } from '../../env/server';
+import { AssemblyAIClient, type AssemblyAIClientService } from './assemblyai-client';
 
 // =============================================================================
 // Error Types
@@ -135,43 +137,20 @@ export class SpeakerDiarization extends Context.Tag('SpeakerDiarization')<
 // AssemblyAI Types
 // =============================================================================
 
-interface AssemblyAITranscriptRequest {
-  audio_url: string;
-  speaker_labels: boolean;
-  speakers_expected?: number;
-  punctuate?: boolean;
-  format_text?: boolean;
-}
-
-interface AssemblyAIUtterance {
-  speaker: string;
-  start: number;
-  end: number;
-  text: string;
-  confidence: number;
-}
-
-interface AssemblyAITranscriptResponse {
-  id: string;
-  status: 'queued' | 'processing' | 'completed' | 'error';
-  text?: string;
-  utterances?: AssemblyAIUtterance[];
-  audio_duration?: number;
-  language_code?: string;
-  error?: string;
-}
+type AssemblyAITranscriptRequest = Parameters<AssemblyAI['transcripts']['create']>[0];
+type AssemblyAITranscriptResponse = Awaited<ReturnType<AssemblyAI['transcripts']['get']>>;
 
 // =============================================================================
 // Speaker Diarization Service Implementation
 // =============================================================================
 
-const ASSEMBLYAI_API_URL = 'https://api.assemblyai.com/v2';
 const POLLING_INTERVAL_MS = 3000;
 const MAX_POLLING_ATTEMPTS = 200; // ~10 minutes max
 
 const makeService = Effect.gen(function* () {
   const apiKey = env.ASSEMBLYAI_API_KEY;
   const isConfigured = !!apiKey;
+  const assemblyClient = yield* AssemblyAIClient;
 
   const isAvailable = (): boolean => isConfigured;
 
@@ -189,10 +168,10 @@ const makeService = Effect.gen(function* () {
       }
 
       // Step 1: Submit transcription request
-      const transcriptId = yield* submitTranscription(apiKey, audioUrl, options);
+      const transcriptId = yield* submitTranscription(assemblyClient, apiKey, audioUrl, options);
 
       // Step 2: Poll for completion
-      const result = yield* pollForCompletion(apiKey, transcriptId);
+      const result = yield* pollForCompletion(assemblyClient, apiKey, transcriptId);
 
       // Step 3: Process and return results (include expected speakers for UI matching)
       return processResult(result, options?.expectedSpeakers);
@@ -208,59 +187,51 @@ const makeService = Effect.gen(function* () {
  * Submit a transcription request to AssemblyAI
  */
 const submitTranscription = (
+  assemblyClient: AssemblyAIClientService,
   apiKey: string,
   audioUrl: string,
   options?: DiarizationOptions,
 ): Effect.Effect<string, DiarizationError> =>
-  Effect.tryPromise({
-    try: async () => {
-      // Use expected speakers count as hint if not explicitly provided
-      const speakersExpected =
-        options?.speakersExpected ?? (options?.expectedSpeakers?.length ? options.expectedSpeakers.length : undefined);
+  Effect.gen(function* () {
+    const client = yield* assemblyClient.create(apiKey);
+    return yield* Effect.tryPromise({
+      try: async () => {
+        // Use expected speakers count as hint if not explicitly provided
+        const speakersExpected =
+          options?.speakersExpected ??
+          (options?.expectedSpeakers?.length ? options.expectedSpeakers.length : undefined);
 
-      const requestBody: AssemblyAITranscriptRequest = {
-        audio_url: audioUrl,
-        speaker_labels: true,
-        speakers_expected: speakersExpected,
-        punctuate: options?.punctuate ?? true,
-        format_text: options?.formatText ?? true,
-      };
+        const requestBody: AssemblyAITranscriptRequest = {
+          audio_url: audioUrl,
+          speaker_labels: true,
+          speakers_expected: speakersExpected,
+          punctuate: options?.punctuate ?? true,
+          format_text: options?.formatText ?? true,
+        };
 
-      const response = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
-        method: 'POST',
-        headers: {
-          Authorization: apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AssemblyAI API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = (await response.json()) as { id: string };
-      return data.id;
-    },
-    catch: (error) =>
-      new DiarizationError({
-        message: 'Failed to submit transcription request',
-        operation: 'submitTranscription',
-        cause: error,
-      }),
+        const transcript = await client.transcripts.create(requestBody);
+        return transcript.id;
+      },
+      catch: (error) =>
+        new DiarizationError({
+          message: 'Failed to submit transcription request',
+          operation: 'submitTranscription',
+          cause: error,
+        }),
+    });
   });
 
 /**
  * Poll AssemblyAI for transcription completion
  */
 const pollForCompletion = (
+  assemblyClient: AssemblyAIClientService,
   apiKey: string,
   transcriptId: string,
 ): Effect.Effect<AssemblyAITranscriptResponse, DiarizationError> =>
   Effect.gen(function* () {
     for (let attempt = 0; attempt < MAX_POLLING_ATTEMPTS; attempt++) {
-      const status = yield* checkTranscriptStatus(apiKey, transcriptId);
+      const status = yield* checkTranscriptStatus(assemblyClient, apiKey, transcriptId);
 
       if (status.status === 'completed') {
         return status;
@@ -291,30 +262,21 @@ const pollForCompletion = (
  * Check the status of a transcript
  */
 const checkTranscriptStatus = (
+  assemblyClient: AssemblyAIClientService,
   apiKey: string,
   transcriptId: string,
 ): Effect.Effect<AssemblyAITranscriptResponse, DiarizationError> =>
-  Effect.tryPromise({
-    try: async () => {
-      const response = await fetch(`${ASSEMBLYAI_API_URL}/transcript/${transcriptId}`, {
-        headers: {
-          Authorization: apiKey,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AssemblyAI API error: ${response.status} - ${errorText}`);
-      }
-
-      return (await response.json()) as AssemblyAITranscriptResponse;
-    },
-    catch: (error) =>
-      new DiarizationError({
-        message: 'Failed to check transcript status',
-        operation: 'checkTranscriptStatus',
-        cause: error,
-      }),
+  Effect.gen(function* () {
+    const client = yield* assemblyClient.create(apiKey);
+    return yield* Effect.tryPromise({
+      try: () => client.transcripts.get(transcriptId),
+      catch: (error) =>
+        new DiarizationError({
+          message: 'Failed to check transcript status',
+          operation: 'checkTranscriptStatus',
+          cause: error,
+        }),
+    });
   });
 
 /**

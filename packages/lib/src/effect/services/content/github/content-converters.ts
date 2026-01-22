@@ -380,7 +380,7 @@ export function prToRawContentItem(
       DISMISSED: '–',
     };
     for (const review of reviews) {
-      sections.push(`${stateEmoji[review.state] || '○'} **${review.user.login}**: ${review.state}`);
+      sections.push(`${stateEmoji[review.state] || '○'} **${review.user?.login ?? 'unknown'}**: ${review.state}`);
       if (review.body) sections.push(`> ${review.body}`);
     }
     sections.push('');
@@ -390,7 +390,9 @@ export function prToRawContentItem(
   if (reviewComments.length > 0) {
     sections.push('## Review Comments');
     for (const comment of reviewComments.slice(0, 10)) {
-      sections.push(`**${comment.user.login}**${comment.path ? ` on \`${comment.path}:${comment.line}\`` : ''}:`);
+      sections.push(
+        `**${comment.user?.login ?? 'unknown'}**${comment.path ? ` on \`${comment.path}:${comment.line}\`` : ''}:`,
+      );
       sections.push(`> ${comment.body}`);
       sections.push('');
     }
@@ -424,18 +426,18 @@ export function prToRawContentItem(
     base_sha: pr.base.sha,
     head_sha: pr.head.sha,
     merge_commit_sha: pr.merge_commit_sha,
-    labels: pr.labels.map((l) => l.name),
-    assignees: pr.assignees.map((a) => a.login),
-    reviewers: pr.requested_reviewers.map((r) => r.login),
+    labels: (pr.labels ?? []).map((l) => (typeof l === 'string' ? l : l.name)),
+    assignees: (pr.assignees ?? []).map((a) => a.login),
+    reviewers: (pr.requested_reviewers ?? []).map((r) => r.login),
     review_state: reviewState,
     merged_by: pr.merged_by?.login,
     merged_at: pr.merged_at,
-    files_changed: pr.changed_files,
+    files_changed: pr.changed_files ?? 0,
     additions: pr.additions,
     deletions: pr.deletions,
     commits: pr.commits,
     comments: pr.comments,
-    review_comments: pr.review_comments,
+    review_comments: pr.review_comments ?? 0,
     linked_issues: linkedIssues,
     url: pr.url,
     html_url: pr.html_url,
@@ -451,20 +453,20 @@ export function prToRawContentItem(
     type: 'pull_request',
     title: `PR #${pr.number}: ${pr.title}`,
     content,
-    authorExternal: String(pr.user.id),
-    authorName: pr.user.login,
+    authorExternal: pr.user ? String(pr.user.id) : 'unknown',
+    authorName: pr.user?.login ?? 'unknown',
     createdAtSource: new Date(pr.created_at),
     updatedAtSource: new Date(pr.updated_at),
     metadata: { ...metadata, code_context: codeContext },
     participants: [
       {
-        externalId: String(pr.user.id),
-        name: pr.user.login,
+        externalId: pr.user ? String(pr.user.id) : 'unknown',
+        name: pr.user?.login ?? 'unknown',
         role: 'author' as const,
       },
       ...reviews.map((r) => ({
-        externalId: r.user.login,
-        name: r.user.login,
+        externalId: r.user?.login ?? 'unknown',
+        name: r.user?.login ?? 'unknown',
         role: 'reviewer' as const,
       })),
     ],
@@ -480,7 +482,7 @@ export function issueToRawContentItem(issue: GitHubIssue, comments: GitHubCommen
   if (comments.length > 0) {
     sections.push('', '## Comments', '');
     for (const comment of comments.slice(0, 20)) {
-      sections.push(`**${comment.user.login}** (${comment.created_at}):`);
+      sections.push(`**${comment.user?.login ?? 'unknown'}** (${comment.created_at}):`);
       sections.push(`> ${comment.body}`);
       sections.push('');
     }
@@ -493,24 +495,28 @@ export function issueToRawContentItem(issue: GitHubIssue, comments: GitHubCommen
     repo: issue.html_url.match(/github\.com\/([^/]+\/[^/]+)/)?.[1] || '',
     number: issue.number,
     node_id: issue.node_id,
-    state: issue.state,
-    state_reason: issue.state_reason,
-    labels: issue.labels.map((l) => l.name),
-    assignees: issue.assignees.map((a) => a.login),
+    state: issue.state === 'closed' ? 'closed' : 'open',
+    state_reason: issue.state_reason === 'duplicate' ? null : issue.state_reason,
+    labels: (issue.labels ?? [])
+      .map((l) => (typeof l === 'string' ? l : l.name))
+      .filter((label): label is string => Boolean(label)),
+    assignees: (issue.assignees ?? []).map((a) => a.login),
     milestone: issue.milestone?.title,
     linked_prs: linkedPRs,
     is_pull_request: !!issue.pull_request,
     comment_count: issue.comments,
-    reactions: [
-      { name: '+1', count: issue.reactions['+1'] },
-      { name: '-1', count: issue.reactions['-1'] },
-      { name: 'laugh', count: issue.reactions.laugh },
-      { name: 'hooray', count: issue.reactions.hooray },
-      { name: 'confused', count: issue.reactions.confused },
-      { name: 'heart', count: issue.reactions.heart },
-      { name: 'rocket', count: issue.reactions.rocket },
-      { name: 'eyes', count: issue.reactions.eyes },
-    ].filter((r) => r.count > 0),
+    reactions: issue.reactions
+      ? [
+          { name: '+1', count: issue.reactions['+1'] ?? 0 },
+          { name: '-1', count: issue.reactions['-1'] ?? 0 },
+          { name: 'laugh', count: issue.reactions.laugh ?? 0 },
+          { name: 'hooray', count: issue.reactions.hooray ?? 0 },
+          { name: 'confused', count: issue.reactions.confused ?? 0 },
+          { name: 'heart', count: issue.reactions.heart ?? 0 },
+          { name: 'rocket', count: issue.reactions.rocket ?? 0 },
+          { name: 'eyes', count: issue.reactions.eyes ?? 0 },
+        ].filter((r) => r.count > 0)
+      : [],
     url: issue.url,
     html_url: issue.html_url,
   };
@@ -520,20 +526,20 @@ export function issueToRawContentItem(issue: GitHubIssue, comments: GitHubCommen
     type: 'issue',
     title: `Issue #${issue.number}: ${issue.title}`,
     content,
-    authorExternal: String(issue.user.id),
-    authorName: issue.user.login,
+    authorExternal: issue.user ? String(issue.user.id) : 'unknown',
+    authorName: issue.user?.login ?? 'unknown',
     createdAtSource: new Date(issue.created_at),
     updatedAtSource: new Date(issue.updated_at),
     metadata,
     participants: [
       {
-        externalId: String(issue.user.id),
-        name: issue.user.login,
+        externalId: issue.user ? String(issue.user.id) : 'unknown',
+        name: issue.user?.login ?? 'unknown',
         role: 'author' as const,
       },
       ...comments.map((c) => ({
-        externalId: c.user.login,
-        name: c.user.login,
+        externalId: c.user?.login ?? 'unknown',
+        name: c.user?.login ?? 'unknown',
         role: 'participant' as const,
       })),
     ],

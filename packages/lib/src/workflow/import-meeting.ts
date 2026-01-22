@@ -5,10 +5,11 @@
  * Uses fire-and-forget async processing pattern similar to video upload.
  */
 
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, ManagedRuntime } from 'effect';
 import type { IntegrationProvider } from '../db/schema';
 import { AppLive } from '../effect/runtime';
 import { DatabaseLive } from '../effect/services/database';
+import { GoogleClientLive } from '../effect/services/google-client';
 import { GoogleMeet, GoogleMeetLive } from '../effect/services/google-meet';
 import { IntegrationRepository, IntegrationRepositoryLive } from '../effect/services/integration-repository';
 import { Storage } from '../effect/services/storage';
@@ -16,6 +17,7 @@ import { TranscriptionLive } from '../effect/services/transcription';
 import { VideoAIProcessor, VideoAIProcessorLive } from '../effect/services/video-ai-processor';
 import { VideoRepository } from '../effect/services/video-repository';
 import { Zoom, ZoomLive } from '../effect/services/zoom';
+import { ZoomClientLive } from '../effect/services/zoom-client';
 import { formatDuration } from '../format-utils';
 import { logger } from '../logger';
 
@@ -47,14 +49,18 @@ export interface ImportMeetingResult {
 
 const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 const VideoAIProcessorWithDeps = VideoAIProcessorLive.pipe(Layer.provide(Layer.mergeAll(AppLive, TranscriptionLive)));
+const ZoomLiveWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+const GoogleMeetLiveWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
 
 const ImportWorkflowLayer = Layer.mergeAll(
   AppLive,
-  ZoomLive,
-  GoogleMeetLive,
+  ZoomLiveWithDeps,
+  GoogleMeetLiveWithDeps,
   IntegrationRepositoryWithDeps,
   VideoAIProcessorWithDeps,
 );
+
+const ImportWorkflowRuntime = ManagedRuntime.make(ImportWorkflowLayer);
 
 // =============================================================================
 // Import Meeting Effect
@@ -201,10 +207,8 @@ export async function triggerImportMeeting(input: ImportMeetingInput): Promise<v
     ),
   );
 
-  const runnable = Effect.provide(effect, ImportWorkflowLayer);
-
   // Run in the background (fire and forget)
-  Effect.runPromise(runnable).catch((err) => {
+  ImportWorkflowRuntime.runPromise(effect).catch((err) => {
     logger.error('Import meeting workflow failed', err instanceof Error ? err : new Error(String(err)), {
       importedMeetingId: input.importedMeetingId,
       provider: input.provider,

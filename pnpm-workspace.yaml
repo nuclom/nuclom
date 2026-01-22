@@ -33,6 +33,7 @@ catalog:
   '@notionhq/client': 5.7.0
   '@octokit/graphql': 9.0.3
   '@octokit/oauth-methods': 6.0.2
+  '@octokit/types': 16.0.0
   '@playwright/test': 1.57.0
   '@posthog/nextjs-config': 1.8.3
   '@radix-ui/react-accordion': 1.2.12
@@ -79,6 +80,7 @@ catalog:
   '@vercel/analytics': 1.6.1
   '@vercel/config': 0.0.26
   '@vercel/microfrontends': 2.2.2
+  '@zoom/rivet': 0.4.0
   '@vitejs/plugin-react': 5.1.2
   '@vitest/coverage-v8': 4.0.17
   ai: 6.0.45

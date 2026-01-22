@@ -4,38 +4,31 @@
  * Low-level API helper for making Slack API requests.
  */
 
-import { SLACK_API_BASE } from './constants';
+import { Effect } from 'effect';
+import { SlackClient } from '../../slack-client';
 
 /**
  * Make a GET request to the Slack API
  */
-export const slackFetch = async <T>(
+export const slackFetch = <T>(
   endpoint: string,
   accessToken: string,
-  params?: Record<string, string>,
-): Promise<T> => {
-  const url = new URL(`${SLACK_API_BASE}/${endpoint}`);
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+  params?: Record<string, string | number | boolean>,
+): Effect.Effect<T, Error, SlackClient> =>
+  Effect.gen(function* () {
+    const slackClient = yield* SlackClient;
+    const client = yield* slackClient.create(accessToken);
+    return yield* Effect.tryPromise({
+      try: async () => {
+        const data = (await client.apiCall(endpoint, params ?? {})) as T & { ok: boolean; error?: string };
+        if (!data.ok) {
+          throw new Error(`Slack API error: ${data.error || 'Unknown error'}`);
+        }
+        return data;
+      },
+      catch: (error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return new Error(`Slack API error: ${message}`);
+      },
+    });
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Slack API error: ${response.status} - ${error}`);
-  }
-
-  const data = (await response.json()) as T & { ok: boolean; error?: string };
-  if (!data.ok) {
-    throw new Error(`Slack API error: ${data.error || 'Unknown error'}`);
-  }
-
-  return data;
-};

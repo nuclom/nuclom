@@ -7,12 +7,16 @@
 
 import { Layer } from 'effect';
 import { DatabaseLive } from '../effect/services/database';
+import { GoogleClientLive } from '../effect/services/google-client';
 // Import integration service layers
 import { GoogleMeetLive } from '../effect/services/google-meet';
 import { IntegrationRepositoryLive } from '../effect/services/integration-repository';
 import { MicrosoftTeamsLive } from '../effect/services/microsoft-teams';
+import { MicrosoftTeamsClientLive } from '../effect/services/microsoft-teams-client';
 import { SlackLive } from '../effect/services/slack';
+import { SlackClientLive } from '../effect/services/slack-client';
 import { ZoomLive } from '../effect/services/zoom';
+import { ZoomClientLive } from '../effect/services/zoom-client';
 
 // =============================================================================
 // Base Layer Compositions
@@ -23,6 +27,11 @@ import { ZoomLive } from '../effect/services/zoom';
  */
 export const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Layer.provide(DatabaseLive));
 
+const GoogleMeetWithDeps = GoogleMeetLive.pipe(Layer.provide(GoogleClientLive));
+const SlackLiveWithDeps = SlackLive.pipe(Layer.provide(SlackClientLive));
+const ZoomLiveWithDeps = ZoomLive.pipe(Layer.provide(ZoomClientLive));
+const TeamsLiveWithDeps = MicrosoftTeamsLive.pipe(Layer.provide(MicrosoftTeamsClientLive));
+
 // =============================================================================
 // Provider-Specific Layers
 // =============================================================================
@@ -30,22 +39,22 @@ export const IntegrationRepositoryWithDeps = IntegrationRepositoryLive.pipe(Laye
 /**
  * Layer for Google OAuth callbacks and API calls
  */
-export const GoogleIntegrationLayer = Layer.mergeAll(GoogleMeetLive, IntegrationRepositoryWithDeps, DatabaseLive);
+export const GoogleIntegrationLayer = Layer.mergeAll(GoogleMeetWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 /**
  * Layer for Slack OAuth callbacks and API calls
  */
-export const SlackIntegrationLayer = Layer.mergeAll(SlackLive, IntegrationRepositoryWithDeps, DatabaseLive);
+export const SlackIntegrationLayer = Layer.mergeAll(SlackLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 /**
  * Layer for Zoom OAuth callbacks and API calls
  */
-export const ZoomIntegrationLayer = Layer.mergeAll(ZoomLive, IntegrationRepositoryWithDeps, DatabaseLive);
+export const ZoomIntegrationLayer = Layer.mergeAll(ZoomLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 /**
  * Layer for Microsoft Teams OAuth callbacks and API calls
  */
-export const TeamsIntegrationLayer = Layer.mergeAll(MicrosoftTeamsLive, IntegrationRepositoryWithDeps, DatabaseLive);
+export const TeamsIntegrationLayer = Layer.mergeAll(TeamsLiveWithDeps, IntegrationRepositoryWithDeps, DatabaseLive);
 
 // =============================================================================
 // Layer Lookup by Provider

@@ -6,6 +6,7 @@
 
 import { Config, Context, Effect, Layer, Option } from 'effect';
 import { getAppUrl } from '../../../env/server';
+import { SlackWebhookClient } from '../slack-client';
 import { buildErrorEventPayload, buildEventBlocks, getEventCategory, getEventEmoji, getEventTitle } from './formatters';
 import type { EventCategory, MonitoringEvent, SlackMonitoringServiceInterface, SlackWebhookPayload } from './types';
 
@@ -38,6 +39,7 @@ const SlackMonitoringConfigEffect = Config.all({
 
 const makeSlackMonitoringService = Effect.gen(function* () {
   const config = yield* SlackMonitoringConfigEffect;
+  const slackWebhookClient = yield* SlackWebhookClient;
 
   // Check if any webhook is configured
   const hasDefaultWebhook = Option.isSome(config.defaultWebhook);
@@ -78,23 +80,13 @@ const makeSlackMonitoringService = Effect.gen(function* () {
   };
 
   const sendWebhook = (payload: SlackWebhookPayload, webhookUrl: string): Effect.Effect<void, Error> =>
-    Effect.tryPromise({
-      try: async () => {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`Slack webhook failed: ${response.status} - ${text}`);
-        }
-      },
-      catch: (error) =>
-        new Error(`Failed to send Slack notification: ${error instanceof Error ? error.message : 'Unknown error'}`),
+    Effect.gen(function* () {
+      const webhook = yield* slackWebhookClient.create(webhookUrl);
+      return yield* Effect.tryPromise({
+        try: () => webhook.send(payload),
+        catch: (error) =>
+          new Error(`Failed to send Slack notification: ${error instanceof Error ? error.message : 'Unknown error'}`),
+      });
     });
 
   const sendEvent = (event: MonitoringEvent): Effect.Effect<void, Error> => {

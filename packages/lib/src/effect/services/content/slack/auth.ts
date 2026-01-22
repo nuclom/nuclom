@@ -4,6 +4,9 @@
  * OAuth flow and request signature verification utilities.
  */
 
+import type { OauthV2AccessResponse } from '@slack/web-api';
+import { Effect } from 'effect';
+import { SlackClient } from '../../slack-client';
 import { SLACK_CONTENT_SCOPES } from './constants';
 
 /**
@@ -23,49 +26,36 @@ export const getSlackContentAuthUrl = (clientId: string, redirectUri: string, st
 /**
  * Exchange Slack OAuth code for access token
  */
-export const exchangeSlackCode = async (
+export const exchangeSlackCode = (
   clientId: string,
   clientSecret: string,
   code: string,
   redirectUri: string,
-): Promise<{
-  access_token: string;
-  token_type: string;
-  scope: string;
-  team: { id: string; name: string };
-  authed_user: { id: string };
-}> => {
-  const response = await fetch('https://slack.com/api/oauth.v2.access', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      redirect_uri: redirectUri,
-    }).toString(),
+): Effect.Effect<OauthV2AccessResponse, Error, SlackClient> =>
+  Effect.gen(function* () {
+    const slackClient = yield* SlackClient;
+    const client = yield* slackClient.create();
+    return yield* Effect.tryPromise({
+      try: async () => {
+        const data = await client.oauth.v2.access({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+        });
+
+        if (!data.ok) {
+          throw new Error(`Slack OAuth error: ${data.error || 'Unknown error'}`);
+        }
+
+        return data;
+      },
+      catch: (error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return new Error(`Slack OAuth error: ${message}`);
+      },
+    });
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Slack OAuth error: ${error}`);
-  }
-
-  const data = await response.json();
-  if (!data.ok) {
-    throw new Error(`Slack OAuth error: ${data.error || 'Unknown error'}`);
-  }
-
-  return data as {
-    access_token: string;
-    token_type: string;
-    scope: string;
-    team: { id: string; name: string };
-    authed_user: { id: string };
-  };
-};
 
 /**
  * Verify Slack request signature
