@@ -2,7 +2,7 @@
 
 import { logger } from '@nuclom/lib/client-logger';
 import { cn } from '@nuclom/lib/utils';
-import { AlertCircle, CheckCircle, Upload, Video, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Upload, Video, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,6 +12,92 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+
+type UploadStep = 'select' | 'details' | 'uploading' | 'processing' | 'complete';
+
+const UPLOAD_STEPS: { key: UploadStep; label: string }[] = [
+  { key: 'select', label: 'Select File' },
+  { key: 'details', label: 'Add Details' },
+  { key: 'uploading', label: 'Uploading' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'complete', label: 'Complete' },
+];
+
+function UploadStepIndicator({ currentStep, hasFile }: { currentStep: UploadStep; hasFile: boolean }) {
+  const getStepStatus = (step: UploadStep) => {
+    const stepIndex = UPLOAD_STEPS.findIndex((s) => s.key === step);
+    const currentIndex = UPLOAD_STEPS.findIndex((s) => s.key === currentStep);
+
+    // Special handling for file selection state
+    if (currentStep === 'select' && step === 'select') return 'current';
+    if (currentStep === 'select' && step === 'details' && hasFile) return 'current';
+
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'current';
+    return 'upcoming';
+  };
+
+  return (
+    <div className="flex items-center justify-between mb-6">
+      {UPLOAD_STEPS.map((step, index) => {
+        const status = getStepStatus(step.key);
+        return (
+          <div key={step.key} className="flex items-center flex-1">
+            <div className="flex flex-col items-center">
+              <div
+                className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all',
+                  status === 'completed' && 'bg-primary border-primary',
+                  status === 'current' && 'border-primary bg-primary/10',
+                  status === 'upcoming' && 'border-muted-foreground/30 bg-background',
+                )}
+              >
+                {status === 'completed' ? (
+                  <CheckCircle className="h-4 w-4 text-primary-foreground" />
+                ) : status === 'current' && step.key === 'uploading' ? (
+                  <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                ) : status === 'current' && step.key === 'processing' ? (
+                  <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                ) : (
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      status === 'current' && 'text-primary',
+                      status === 'upcoming' && 'text-muted-foreground/50',
+                    )}
+                  >
+                    {index + 1}
+                  </span>
+                )}
+              </div>
+              <span
+                className={cn(
+                  'text-xs mt-1 whitespace-nowrap',
+                  status === 'completed' && 'text-primary font-medium',
+                  status === 'current' && 'text-primary font-medium',
+                  status === 'upcoming' && 'text-muted-foreground/50',
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+            {index < UPLOAD_STEPS.length - 1 && (
+              <div
+                className={cn(
+                  'flex-1 h-0.5 mx-2 mt-[-16px]',
+                  getStepStatus(UPLOAD_STEPS[index + 1].key) === 'completed' ||
+                    getStepStatus(UPLOAD_STEPS[index + 1].key) === 'current'
+                    ? 'bg-primary'
+                    : 'bg-muted-foreground/20',
+                )}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 interface VideoUploadProps {
   organizationId: string;
@@ -51,6 +137,15 @@ export function VideoUpload({
   });
   const [dragActive, setDragActive] = useState(false);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  // Determine current step for the indicator
+  const getCurrentStep = (): UploadStep => {
+    if (uploadState.status === 'success') return 'complete';
+    if (uploadState.status === 'processing') return 'processing';
+    if (uploadState.status === 'uploading') return 'uploading';
+    if (file && title) return 'details';
+    return 'select';
+  };
 
   const handleCancelUpload = useCallback(() => {
     if (xhrRef.current) {
@@ -282,19 +377,6 @@ export function VideoUpload({
     }
   };
 
-  const getProgressMessage = () => {
-    switch (uploadState.status) {
-      case 'uploading':
-        return `Uploading... ${uploadState.progress}%`;
-      case 'processing':
-        return 'Processing video and generating thumbnail...';
-      case 'success':
-        return 'Video uploaded successfully!';
-      default:
-        return uploadState.message;
-    }
-  };
-
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -304,6 +386,9 @@ export function VideoUpload({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Step Indicator */}
+        <UploadStepIndicator currentStep={getCurrentStep()} hasFile={!!file} />
+
         {/* File Upload Area */}
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Click handler delegates to file input which handles keyboard */}
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: Click handler delegates to file input which handles keyboard */}
@@ -406,20 +491,30 @@ export function VideoUpload({
 
           {/* Progress Indicator */}
           {(uploadState.status === 'uploading' || uploadState.status === 'processing') && (
-            <div className="space-y-2">
-              <Progress value={uploadState.progress} className="w-full" />
-              <p className="text-sm text-muted-foreground text-center">{getProgressMessage()}</p>
-              {uploadState.status === 'uploading' && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancelUpload}
-                  className="mx-auto block"
-                >
-                  Cancel Upload
-                </Button>
-              )}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {uploadState.status === 'uploading' ? 'Uploading your video' : 'Processing video'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {uploadState.status === 'uploading'
+                      ? 'Transferring file to secure storage...'
+                      : 'Generating thumbnail and extracting metadata...'}
+                  </p>
+                </div>
+              </div>
+              <Progress value={uploadState.progress} className="w-full h-2" />
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">{uploadState.progress}% complete</p>
+                {uploadState.status === 'uploading' && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelUpload} className="h-7 text-xs">
+                    <X className="h-3 w-3 mr-1" />
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 

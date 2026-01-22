@@ -26,6 +26,8 @@ export interface QAResult {
   followUpQuestions: string[];
 }
 
+type ErrorType = 'network' | 'empty_knowledge_base' | 'rate_limit' | 'server' | 'unknown';
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -33,6 +35,50 @@ interface Message {
   confidence?: number;
   sources?: QASource[];
   followUpQuestions?: string[];
+  errorType?: ErrorType;
+}
+
+function getErrorMessage(error: unknown): { message: string; type: ErrorType } {
+  // Network errors
+  if (error instanceof TypeError && error.message.includes('fetch')) {
+    return {
+      type: 'network',
+      message: "I couldn't connect to the server. Please check your internet connection and try again.",
+    };
+  }
+
+  // Check for specific HTTP error responses
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+
+    if (message.includes('429') || message.includes('rate limit')) {
+      return {
+        type: 'rate_limit',
+        message: "You're asking questions too quickly. Please wait a moment and try again.",
+      };
+    }
+
+    if (message.includes('404') || message.includes('not found')) {
+      return {
+        type: 'empty_knowledge_base',
+        message:
+          'Your knowledge base appears to be empty. Try adding some content sources like Slack, Notion, or documents first.',
+      };
+    }
+
+    if (message.includes('500') || message.includes('server')) {
+      return {
+        type: 'server',
+        message: 'Something went wrong on our end. Our team has been notified. Please try again in a few minutes.',
+      };
+    }
+  }
+
+  return {
+    type: 'unknown',
+    message:
+      "I couldn't find an answer to your question. Try rephrasing your question or check if the relevant content has been added to your knowledge base.",
+  };
 }
 
 export interface KnowledgeQAContainerProps {
@@ -101,13 +147,15 @@ export function KnowledgeQAContainer({ organizationId, className }: KnowledgeQAC
         setTimeout(scrollToBottom, 100);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
+          const errorMessage = getErrorMessage(error);
           setMessages((prev) => [
             ...prev,
             {
               id: crypto.randomUUID(),
               role: 'assistant',
-              content: 'Sorry, an error occurred while searching the knowledge base. Please try again.',
-            },
+              content: errorMessage.message,
+              errorType: errorMessage.type,
+            } as Message,
           ]);
         }
       } finally {
@@ -164,6 +212,7 @@ export function KnowledgeQAContainer({ organizationId, className }: KnowledgeQAC
                     content={message.content}
                     confidence={message.confidence}
                     sources={message.sources}
+                    errorType={message.errorType}
                   />
                   {message.role === 'assistant' &&
                     message.followUpQuestions &&
