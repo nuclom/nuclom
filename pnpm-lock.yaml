@@ -416,7 +416,6 @@ catalogs:
       version: 4.0.1-beta.49
 
 overrides:
-  path-to-regexp@>=4.0.0 <6.3.0: '>=6.3.0'
   esbuild@<=0.24.2: '>=0.25.0'
   undici@<6.23.0: '>=6.23.0'
   devalue@>=5.1.0 <5.6.2: '>=5.6.2'
@@ -6942,8 +6941,8 @@ packages:
     resolution: {integrity: sha512-oWyT4gICAu+kaA7QWk/jvCHWarMKNs6pXOGWKDTr7cw4IGcUbW+PeTfbaQiLGheFRpjo6O9J0PmyMfQPjH71oA==}
     engines: {node: 20 || >=22}
 
-  path-to-regexp@8.3.0:
-    resolution: {integrity: sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==}
+  path-to-regexp@6.2.1:
+    resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==}
 
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
@@ -12050,7 +12049,7 @@ snapshots:
       jsonc-parser: 3.3.1
       md5: 2.3.0
       nanoid: 3.3.11
-      path-to-regexp: 8.3.0
+      path-to-regexp: 6.2.1
       semver: 7.7.3
     optionalDependencies:
       '@vercel/analytics': 1.6.1(next@16.1.4(@babel/core@7.28.6)(@opentelemetry/api@1.9.0)(@playwright/test@1.57.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
@@ -14637,7 +14636,7 @@ snapshots:
       lru-cache: 11.2.4
       minipass: 7.1.2
 
-  path-to-regexp@8.3.0: {}
+  path-to-regexp@6.2.1: {}
 
   path-type@4.0.0: {}
 
