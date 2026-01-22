@@ -15,9 +15,10 @@ import { Separator } from '@/components/ui/separator';
 
 interface LoginFormProps {
   readonly redirectTo?: string;
+  readonly signupsDisabled?: boolean;
 }
 
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm({ redirectTo, signupsDisabled }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -103,10 +104,19 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1 pb-4">
+        {signupsDisabled && (
+          <div className="inline-flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full w-fit mb-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            </span>
+            Private Beta
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <Link href={registerUrl} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-            Create account
+            {signupsDisabled ? 'Request access' : 'Create account'}
           </Link>
         </div>
         <CardDescription>Sign in to your account to continue</CardDescription>

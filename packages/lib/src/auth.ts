@@ -218,6 +218,14 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
+        before: async (user) => {
+          // Block new user creation (including OAuth signups) during private beta
+          if (env.DISABLE_SIGNUPS) {
+            log.info('Signup blocked during private beta', { email: user.email });
+            throw new Error('signup_disabled');
+          }
+          return { data: user };
+        },
         after: async (user) => {
           // Identify new user in PostHog and capture signup event
           identifyPostHogUser(user.id, {
@@ -233,6 +241,13 @@ export const auth = betterAuth({
           });
 
           log.info('New user created', { userId: user.id, email: user.email });
+
+          // Send Slack notification for new user registration
+          await notifySlackMonitoring('user_registered', {
+            userId: user.id,
+            userName: user.name || undefined,
+            userEmail: user.email,
+          });
         },
       },
     },
