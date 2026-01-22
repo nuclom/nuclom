@@ -3,6 +3,7 @@ import { MissingFieldError, ValidationError, VideoProcessor, VideoRepository } f
 import { syncNewVideoToContent } from '@nuclom/lib/effect/services';
 import { trackVideoUpload } from '@nuclom/lib/effect/services/billing-middleware';
 import { BillingRepository } from '@nuclom/lib/effect/services/billing-repository';
+import { logger } from '@nuclom/lib/logger';
 import type { ApiResponse } from '@nuclom/lib/types';
 import {
   sanitizeDescription,
@@ -154,7 +155,10 @@ export async function POST(request: NextRequest) {
         videoTitle: data.videoTitle,
       }).catch((err) => {
         // Log but don't fail - workflow will retry on its own
-        console.error('[Video Processing Workflow Error]', err);
+        logger.error('Video processing workflow error', err instanceof Error ? err : new Error(String(err)), {
+          videoId: data.videoId,
+          component: 'video-upload',
+        });
       });
     }
 

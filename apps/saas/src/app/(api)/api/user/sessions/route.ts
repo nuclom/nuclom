@@ -11,6 +11,7 @@ import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { sessions } from '@nuclom/lib/db/schema';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { logger } from '@nuclom/lib/logger';
 import { and, desc, eq, gt } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -93,7 +94,7 @@ export async function DELETE(request: NextRequest) {
       catch: (error) => new Error(`Failed to revoke sessions: ${error}`),
     });
 
-    console.log(`[Session] User ${user.id} revoked ${revokedCount} other sessions`);
+    logger.info('User revoked other sessions', { userId: user.id, revokedCount, component: 'session' });
 
     return {
       message: 'All other sessions have been revoked',

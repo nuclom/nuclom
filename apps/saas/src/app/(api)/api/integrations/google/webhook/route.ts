@@ -1,5 +1,6 @@
 import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { logger } from '@nuclom/lib/logger';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
   const channelToken = request.headers.get('x-goog-channel-token');
   const resourceState = request.headers.get('x-goog-resource-state');
 
-  console.log(`[Google Webhook] Received notification: ${resourceState} for channel ${channelId}`);
+  logger.info('Google webhook received notification', { resourceState, channelId, component: 'google-webhook' });
 
   // Verify channel token matches what we expect
   // In production, you should store and verify channel tokens
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   // Handle sync message (sent when watch is first created)
   if (resourceState === 'sync') {
-    console.log(`[Google Webhook] Sync notification for channel ${channelId}`);
+    logger.info('Google webhook sync notification', { channelId, component: 'google-webhook' });
     return NextResponse.json({ success: true, status: 'sync acknowledged' });
   }
 
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (!integrationId) {
-        console.log(`[Google Webhook] Could not parse integration ID from token`);
+        logger.warn('Could not parse integration ID from token', { channelToken, component: 'google-webhook' });
         return { processed: false, reason: 'Invalid channel token' };
       }
 
@@ -67,14 +68,17 @@ export async function POST(request: NextRequest) {
         .pipe(Effect.catchAll(() => Effect.succeed(null)));
 
       if (!integration) {
-        console.log(`[Google Webhook] No integration found for ID ${integrationId}`);
+        logger.warn('No integration found', { integrationId, component: 'google-webhook' });
         return { processed: false, reason: 'No matching integration' };
       }
 
       // Check if auto-import is enabled
       const metadata = (integration.metadata as Record<string, unknown>) || {};
       if (!metadata.autoImport) {
-        console.log(`[Google Webhook] Auto-import disabled for integration ${integration.id}`);
+        logger.info('Auto-import disabled for integration', {
+          integrationId: integration.id,
+          component: 'google-webhook',
+        });
         return { processed: false, reason: 'Auto-import disabled' };
       }
 
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
       // 2. Filter for Meet recordings
       // 3. Trigger auto-import for new recordings
 
-      console.log(`[Google Webhook] Change detected for integration ${integrationId}`);
+      logger.info('Change detected for integration', { integrationId, component: 'google-webhook' });
 
       return { processed: true, status: 'notification_recorded' };
     });
@@ -95,7 +99,10 @@ export async function POST(request: NextRequest) {
       onFailure: (cause) => {
         const error = Cause.failureOption(cause);
         if (Option.isSome(error)) {
-          console.error('[Google Webhook Error]', error.value);
+          // biome-ignore lint/suspicious/noExplicitAny: Effect's Option.value is unknown, need any for instanceof check
+          const errValue = error.value as any;
+          const errorObj: Error = errValue instanceof Error ? errValue : new Error(String(errValue));
+          logger.error('Google webhook error', errorObj, { component: 'google-webhook' });
         }
         return NextResponse.json({ success: false, error: 'Webhook processing failed' }, { status: 500 });
       },
@@ -107,7 +114,7 @@ export async function POST(request: NextRequest) {
 
   // Handle deletion
   if (resourceState === 'not_exists') {
-    console.log(`[Google Webhook] Resource deleted for channel ${channelId}`);
+    logger.info('Google webhook resource deleted', { channelId, component: 'google-webhook' });
     return NextResponse.json({ success: true, status: 'deletion acknowledged' });
   }
 

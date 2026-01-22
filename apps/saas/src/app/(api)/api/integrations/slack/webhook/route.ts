@@ -1,5 +1,6 @@
 import { Slack, SlackLive } from '@nuclom/lib/effect/services/slack';
 import { SlackClientLive } from '@nuclom/lib/effect/services/slack-client';
+import { logger } from '@nuclom/lib/logger';
 import { Effect, Layer } from 'effect';
 import { NextResponse } from 'next/server';
 
@@ -41,7 +42,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
   } catch (err) {
-    console.error('[Slack Webhook Signature Error]', err);
+    logger.error('Slack webhook signature error', err instanceof Error ? err : new Error(String(err)), {
+      component: 'slack-webhook',
+    });
     return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
   }
 
@@ -65,21 +68,21 @@ export async function POST(request: Request) {
     switch (event.type) {
       case 'app_home_opened':
         // User opened the app home tab
-        console.log('[Slack Event] App home opened by user:', event.user);
+        logger.info('App home opened by user', { userId: event.user, component: 'slack-webhook' });
         break;
 
       case 'message':
         // Handle direct messages to the bot
-        console.log('[Slack Event] Message received:', event.text);
+        logger.info('Message received', { text: event.text, component: 'slack-webhook' });
         break;
 
       case 'app_mention':
         // Bot was mentioned in a channel
-        console.log('[Slack Event] App mentioned:', event.text);
+        logger.info('App mentioned', { text: event.text, component: 'slack-webhook' });
         break;
 
       default:
-        console.log('[Slack Event] Unhandled event type:', event.type);
+        logger.info('Unhandled event type', { eventType: event.type, component: 'slack-webhook' });
     }
   }
 

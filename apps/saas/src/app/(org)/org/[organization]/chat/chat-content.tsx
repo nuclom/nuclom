@@ -1,5 +1,6 @@
 'use client';
 
+import { logger } from '@nuclom/lib/client-logger';
 import { Bot, Loader2, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -106,7 +107,7 @@ export function ChatContent({ organization, initialConversationId }: ChatContent
         setSelectedConversationId(newConversation.id);
       }
     } catch (error) {
-      console.error('Failed to create conversation:', error);
+      logger.error('Failed to create conversation', error);
     }
   }, [organization.id, mutateConversations]);
 
@@ -125,7 +126,7 @@ export function ChatContent({ organization, initialConversationId }: ChatContent
           }
         }
       } catch (error) {
-        console.error('Failed to delete conversation:', error);
+        logger.error('Failed to delete conversation', error);
       }
     },
     [mutateConversations, selectedConversationId, organization.slug, router],
@@ -144,7 +145,7 @@ export function ChatContent({ organization, initialConversationId }: ChatContent
           mutateConversations();
         }
       } catch (error) {
-        console.error('Failed to rename conversation:', error);
+        logger.error('Failed to rename conversation', error);
       }
     },
     [mutateConversations],

@@ -8,6 +8,7 @@ import { createFullLayer, handleEffectExit } from '@nuclom/lib/api-handler';
 import { sessions } from '@nuclom/lib/db/schema';
 import { Auth } from '@nuclom/lib/effect/services/auth';
 import { Database } from '@nuclom/lib/effect/services/database';
+import { logger } from '@nuclom/lib/logger';
 import { eq } from 'drizzle-orm';
 import { Effect } from 'effect';
 import type { NextRequest } from 'next/server';
@@ -56,7 +57,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       catch: (error) => new Error(`Failed to revoke session: ${error}`),
     });
 
-    console.log(`[Session Security] User ${user.id} revoked session ${sessionId}`);
+    logger.info('User revoked session', { userId: user.id, sessionId, component: 'session-security' });
 
     return {
       message: 'Session revoked successfully',

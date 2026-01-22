@@ -4,6 +4,7 @@ import { DatabaseLive } from '@nuclom/lib/effect/services/database';
 import { GoogleClientLive } from '@nuclom/lib/effect/services/google-client';
 import { GoogleMeet, GoogleMeetLive } from '@nuclom/lib/effect/services/google-meet';
 import { IntegrationRepository, IntegrationRepositoryLive } from '@nuclom/lib/effect/services/integration-repository';
+import { logger } from '@nuclom/lib/logger';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ success: false, error: err.message }, { status: err.status });
         }
       }
-      console.error('[Google Recordings Error]', cause);
+      logger.error('Google recordings error', undefined, { cause: String(cause), component: 'google-recordings' });
       return NextResponse.json({ success: false, error: 'Failed to fetch recordings' }, { status: 500 });
     },
     onSuccess: (data) => {

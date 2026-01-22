@@ -1,5 +1,6 @@
 import 'server-only';
 import { PostHog } from 'posthog-node';
+import { logger } from '../logger';
 
 // Environment variables
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -12,7 +13,9 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posth
  */
 function createServerPostHog(): PostHog | null {
   if (!POSTHOG_KEY) {
-    console.warn('[PostHog Server] NEXT_PUBLIC_POSTHOG_KEY is not set, server analytics disabled');
+    logger.warn('PostHog NEXT_PUBLIC_POSTHOG_KEY is not set, server analytics disabled', {
+      component: 'posthog-server',
+    });
     return null;
   }
 
