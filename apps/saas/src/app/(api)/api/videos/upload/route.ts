@@ -152,9 +152,8 @@ export async function POST(request: NextRequest) {
         videoId: data.videoId,
         videoUrl: data.videoUrl,
         videoTitle: data.videoTitle,
-      }).catch((err) => {
-        // Log but don't fail - workflow will retry on its own
-        console.error('[Video Processing Workflow Error]', err);
+      }).catch(() => {
+        // Workflow will retry on its own - no action needed here
       });
     }
 

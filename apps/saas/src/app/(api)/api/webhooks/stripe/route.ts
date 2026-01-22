@@ -66,24 +66,18 @@ const BETTER_AUTH_EVENTS = new Set([
 async function forwardToBetterAuth(body: string, signature: string): Promise<void> {
   const betterAuthWebhookUrl = `${getAppUrl()}/api/auth/stripe/webhook`;
 
-  try {
-    const response = await fetch(betterAuthWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'stripe-signature': signature,
-      },
-      body,
-    });
+  const response = await fetch(betterAuthWebhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'stripe-signature': signature,
+    },
+    body,
+  });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error(`[Webhook] Better Auth forwarding failed: ${response.status} - ${text}`);
-    } else {
-      console.log('[Webhook] Event forwarded to Better Auth successfully');
-    }
-  } catch (error) {
-    console.error('[Webhook] Failed to forward event to Better Auth:', error);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Better Auth forwarding failed: ${response.status} - ${text}`);
   }
 }
 
@@ -119,9 +113,6 @@ export async function POST(request: Request) {
     });
 
     if (existingEvent) {
-      console.log(
-        `[Webhook] Event ${event.id} already processed at ${existingEvent.processedAt.toISOString()}, skipping`,
-      );
       return { received: true, duplicate: true };
     }
 
@@ -133,11 +124,7 @@ export async function POST(request: Request) {
           eventType: event.type,
           source: 'stripe',
         }),
-      catch: (error) => {
-        // If insert fails due to unique constraint, another process is handling it
-        console.log(`[Webhook] Event ${event.id} is being processed by another handler`);
-        return error;
-      },
+      catch: (error) => error,
     });
 
     // Forward subscription/checkout events to Better Auth
@@ -164,7 +151,6 @@ export async function POST(request: Request) {
             catch: (error) => new Error(`Failed to start subscription created workflow: ${error}`),
           });
         }
-        console.log(`[Webhook] Subscription ${subscription.id} created - workflow started`);
         break;
       }
 
@@ -177,7 +163,6 @@ export async function POST(request: Request) {
             ]),
           catch: (error) => new Error(`Failed to start subscription updated workflow: ${error}`),
         });
-        console.log(`[Webhook] Subscription ${subscription.id} updated - workflow started`);
         break;
       }
 
@@ -190,7 +175,6 @@ export async function POST(request: Request) {
             ]),
           catch: (error) => new Error(`Failed to start subscription deleted workflow: ${error}`),
         });
-        console.log(`[Webhook] Subscription ${subscription.id} deleted - workflow started`);
         break;
       }
 
@@ -204,7 +188,6 @@ export async function POST(request: Request) {
           try: () => start(handleInvoicePaidWorkflow, [{ eventId: event.id, eventType: event.type, data: invoice }]),
           catch: (error) => new Error(`Failed to start invoice paid workflow: ${error}`),
         });
-        console.log(`[Webhook] Invoice ${invoice.id} paid - workflow started`);
         break;
       }
 
@@ -220,21 +203,18 @@ export async function POST(request: Request) {
             ]),
           catch: (error) => new Error(`Failed to start invoice failed workflow: ${error}`),
         });
-        console.log(`[Webhook] Invoice ${invoice.id} payment failed - workflow started`);
         break;
       }
 
       case 'invoice.created': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoiceCreated(invoice, billingRepo);
-        console.log(`[Webhook] Invoice ${invoice.id} created`);
         break;
       }
 
       case 'invoice.updated': {
         const invoice = event.data.object as Stripe.Invoice;
         yield* handleInvoiceUpdated(invoice, billingRepo);
-        console.log(`[Webhook] Invoice ${invoice.id} updated`);
         break;
       }
 
@@ -242,14 +222,12 @@ export async function POST(request: Request) {
       case 'payment_method.attached': {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
         yield* handlePaymentMethodAttached(paymentMethod, billingRepo);
-        console.log(`[Webhook] Payment method ${paymentMethod.id} attached`);
         break;
       }
 
       case 'payment_method.detached': {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
         yield* billingRepo.deletePaymentMethod(paymentMethod.id);
-        console.log(`[Webhook] Payment method ${paymentMethod.id} detached`);
         break;
       }
 
@@ -261,12 +239,11 @@ export async function POST(request: Request) {
             start(handleTrialEndingWorkflow, [{ eventId: event.id, eventType: event.type, data: subscription }]),
           catch: (error) => new Error(`Failed to start trial ending workflow: ${error}`),
         });
-        console.log(`[Webhook] Trial ending - workflow started for subscription ${subscription.id}`);
         break;
       }
 
       default:
-        console.log(`[Webhook] Event ${event.type} processed`);
+      // Unhandled event types are silently acknowledged
     }
 
     return { received: true };
@@ -343,7 +320,6 @@ const handleInvoicePaidEffect = (stripeInvoice: Stripe.Invoice, billingRepo: Bil
 
     const organizationId = getInvoiceReferenceId(stripeInvoice);
     if (!organizationId) {
-      console.log('[Webhook] No organizationId in invoice metadata');
       return;
     }
 
