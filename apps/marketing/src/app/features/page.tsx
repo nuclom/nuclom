@@ -540,7 +540,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* Quick Navigation */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-muted/30 sticky top-16 z-40">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 border-b bg-muted/30 top-16 z-40">
         <div className="w-full max-w-7xl mx-auto">
           <div className="flex flex-wrap gap-2 justify-center">
             {featureCategories.map((category) => (
