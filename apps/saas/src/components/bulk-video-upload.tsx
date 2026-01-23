@@ -161,11 +161,7 @@ function VideoThumbnail({ upload }: { upload: FileUpload }) {
   return (
     <div className="relative w-16 h-10 rounded-md overflow-hidden bg-muted shrink-0">
       {upload.thumbnailUrl ? (
-        <img
-          src={upload.thumbnailUrl}
-          alt={`Preview of ${upload.title}`}
-          className="w-full h-full object-cover"
-        />
+        <img src={upload.thumbnailUrl} alt={`Preview of ${upload.title}`} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <FileVideo className="h-5 w-5 text-muted-foreground/50" />
@@ -178,10 +174,12 @@ function VideoThumbnail({ upload }: { upload: FileUpload }) {
         </div>
       )}
       {/* File type badge */}
-      <div className={cn(
-        'absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold uppercase',
-        getExtensionColor(upload.file.name)
-      )}>
+      <div
+        className={cn(
+          'absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold uppercase',
+          getExtensionColor(upload.file.name),
+        )}
+      >
         {ext}
       </div>
     </div>
@@ -294,18 +292,17 @@ export function BulkVideoUpload({
 
         // Generate thumbnails and get duration in background (don't block)
         for (const upload of validFiles) {
-          Promise.all([
-            generateVideoThumbnail(upload.file),
-            getVideoDuration(upload.file),
-          ]).then(([thumbnailUrl, duration]) => {
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === upload.id
-                  ? { ...u, thumbnailUrl: thumbnailUrl ?? undefined, duration: duration ?? undefined }
-                  : u
-              )
-            );
-          });
+          Promise.all([generateVideoThumbnail(upload.file), getVideoDuration(upload.file)]).then(
+            ([thumbnailUrl, duration]) => {
+              setUploads((prev) =>
+                prev.map((u) =>
+                  u.id === upload.id
+                    ? { ...u, thumbnailUrl: thumbnailUrl ?? undefined, duration: duration ?? undefined }
+                    : u,
+                ),
+              );
+            },
+          );
         }
       }
     },
@@ -823,7 +820,10 @@ export function BulkVideoUpload({
                               )}
                             </div>
                           </div>
-                          <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs"
+                          >
                             Uploaded
                           </Badge>
                         </div>

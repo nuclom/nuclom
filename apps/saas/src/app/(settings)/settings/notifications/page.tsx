@@ -1,23 +1,30 @@
 'use client';
 
-import { cn } from '@nuclom/lib/utils';
 import { useAuth } from '@nuclom/auth/client';
 import { logger } from '@nuclom/lib/client-logger';
-import { Bell, Check, ChevronDown, ChevronUp, Loader2, Mail, MessageSquare, Sparkles, ToggleLeft, ToggleRight, Video } from 'lucide-react';
+import { cn } from '@nuclom/lib/utils';
+import {
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Sparkles,
+  ToggleLeft,
+  ToggleRight,
+  Video,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
 type NotificationPreferences = {
@@ -74,13 +81,7 @@ const notificationGroups: NotificationGroup[] = [
 ];
 
 // Notification summary component
-function NotificationSummary({
-  preferences,
-  loading,
-}: {
-  preferences: NotificationPreferences;
-  loading: boolean;
-}) {
+function NotificationSummary({ preferences, loading }: { preferences: NotificationPreferences; loading: boolean }) {
   const emailEnabled = preferences.emailNotifications;
   const emailSubCount = emailEnabled
     ? [
@@ -109,10 +110,12 @@ function NotificationSummary({
       <CardContent className="py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={cn(
-              'flex items-center justify-center w-12 h-12 rounded-full transition-colors',
-              emailEnabled ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
-            )}>
+            <div
+              className={cn(
+                'flex items-center justify-center w-12 h-12 rounded-full transition-colors',
+                emailEnabled ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
+              )}
+            >
               <Bell className="h-6 w-6" />
             </div>
             <div>
@@ -120,7 +123,8 @@ function NotificationSummary({
               <p className="text-sm text-muted-foreground">
                 {emailEnabled ? (
                   <>
-                    <span className="text-primary font-medium">{emailSubCount} of 5</span> email notification types enabled
+                    <span className="text-primary font-medium">{emailSubCount} of 5</span> email notification types
+                    enabled
                   </>
                 ) : (
                   'All email notifications are disabled'
@@ -194,10 +198,16 @@ function NotificationGroupCard({
         className="w-full flex items-center justify-between px-4 py-3 bg-muted/30 hover:bg-muted/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-md transition-colors',
-            allEnabled ? 'bg-primary/10 text-primary' : noneEnabled ? 'bg-muted text-muted-foreground' : 'bg-amber-500/10 text-amber-600'
-          )}>
+          <div
+            className={cn(
+              'flex items-center justify-center w-8 h-8 rounded-md transition-colors',
+              allEnabled
+                ? 'bg-primary/10 text-primary'
+                : noneEnabled
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-amber-500/10 text-amber-600',
+            )}
+          >
             <group.icon className="h-4 w-4" />
           </div>
           <div className="text-left">
@@ -219,10 +229,7 @@ function NotificationGroupCard({
                     e.stopPropagation();
                     handleToggleAll();
                   }}
-                  className={cn(
-                    'h-7 px-2 gap-1 text-xs',
-                    allEnabled ? 'text-primary' : 'text-muted-foreground'
-                  )}
+                  className={cn('h-7 px-2 gap-1 text-xs', allEnabled ? 'text-primary' : 'text-muted-foreground')}
                 >
                   {allEnabled ? (
                     <>
@@ -254,7 +261,7 @@ function NotificationGroupCard({
       <div
         className={cn(
           'overflow-hidden transition-all duration-200',
-          expanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          expanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
         )}
       >
         <div className="px-4 py-3 space-y-3 bg-background">
@@ -263,17 +270,14 @@ function NotificationGroupCard({
               key={key}
               className={cn(
                 'flex items-center justify-between p-3 rounded-lg transition-colors',
-                preferences[key] ? 'bg-primary/5' : 'bg-muted/30'
+                preferences[key] ? 'bg-primary/5' : 'bg-muted/30',
               )}
             >
               <div className="space-y-0.5">
                 <Label className="cursor-pointer">{labelMap[key].label}</Label>
                 <p className="text-xs text-muted-foreground">{labelMap[key].description}</p>
               </div>
-              <Switch
-                checked={preferences[key]}
-                onCheckedChange={() => onToggle(key)}
-              />
+              <Switch checked={preferences[key]} onCheckedChange={() => onToggle(key)} />
             </div>
           ))}
         </div>
@@ -410,10 +414,12 @@ function NotificationsContent() {
             </div>
             {/* Master Toggle */}
             <div className="flex items-center gap-3">
-              <span className={cn(
-                'text-sm transition-colors',
-                preferences.emailNotifications ? 'text-primary font-medium' : 'text-muted-foreground'
-              )}>
+              <span
+                className={cn(
+                  'text-sm transition-colors',
+                  preferences.emailNotifications ? 'text-primary font-medium' : 'text-muted-foreground',
+                )}
+              >
                 {preferences.emailNotifications ? 'Enabled' : 'Disabled'}
               </span>
               <Switch
@@ -463,10 +469,12 @@ function NotificationsContent() {
               <CardDescription className="mt-1.5">Configure in-app notification preferences</CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <span className={cn(
-                'text-sm transition-colors',
-                preferences.pushNotifications ? 'text-primary font-medium' : 'text-muted-foreground'
-              )}>
+              <span
+                className={cn(
+                  'text-sm transition-colors',
+                  preferences.pushNotifications ? 'text-primary font-medium' : 'text-muted-foreground',
+                )}
+              >
                 {preferences.pushNotifications ? 'Enabled' : 'Disabled'}
               </span>
               <Switch
@@ -477,15 +485,21 @@ function NotificationsContent() {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className={cn(
-            'rounded-lg p-4 transition-colors',
-            preferences.pushNotifications ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30 border border-transparent'
-          )}>
+          <div
+            className={cn(
+              'rounded-lg p-4 transition-colors',
+              preferences.pushNotifications
+                ? 'bg-primary/5 border border-primary/20'
+                : 'bg-muted/30 border border-transparent',
+            )}
+          >
             <div className="flex items-start gap-3">
-              <div className={cn(
-                'flex items-center justify-center w-10 h-10 rounded-full transition-colors',
-                preferences.pushNotifications ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
-              )}>
+              <div
+                className={cn(
+                  'flex items-center justify-center w-10 h-10 rounded-full transition-colors',
+                  preferences.pushNotifications ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
+                )}
+              >
                 <Bell className="h-5 w-5" />
               </div>
               <div className="flex-1">
@@ -505,7 +519,7 @@ function NotificationsContent() {
       <div
         className={cn(
           'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300',
-          hasChanges || showSuccess ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'
+          hasChanges || showSuccess ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none',
         )}
       >
         <Card className="shadow-lg border-primary/20">

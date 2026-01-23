@@ -1,8 +1,8 @@
 'use client';
 
 import { authClient, useAuth } from '@nuclom/auth/client';
-import { cn } from '@nuclom/lib/utils';
 import { logger } from '@nuclom/lib/client-logger';
+import { cn } from '@nuclom/lib/utils';
 import { Link } from '@vercel/microfrontends/next/client';
 import {
   AlertTriangle,
@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -173,9 +173,7 @@ function ProfileCompletionCard() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-green-700 dark:text-green-400">Profile Complete!</h3>
-              <p className="text-sm text-muted-foreground">
-                You've set up everything. Your profile is ready to go.
-              </p>
+              <p className="text-sm text-muted-foreground">You've set up everything. Your profile is ready to go.</p>
             </div>
             <Sparkles className="h-5 w-5 text-amber-500" />
           </div>
@@ -194,7 +192,7 @@ function ProfileCompletionCard() {
           <div className="flex items-center gap-3">
             <div className="relative">
               {/* Circular progress indicator */}
-              <svg className="w-12 h-12 -rotate-90">
+              <svg className="w-12 h-12 -rotate-90" aria-hidden="true">
                 <circle
                   cx="24"
                   cy="24"
@@ -233,11 +231,7 @@ function ProfileCompletionCard() {
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-muted-foreground"
           >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
       </CardHeader>
@@ -246,7 +240,7 @@ function ProfileCompletionCard() {
       <div
         className={cn(
           'overflow-hidden transition-all duration-300',
-          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
         )}
       >
         <CardContent className="pt-0 space-y-3">
@@ -265,35 +259,24 @@ function ProfileCompletionCard() {
                 key={step.id}
                 className={cn(
                   'flex items-center gap-3 p-3 rounded-lg transition-colors',
-                  step.isComplete
-                    ? 'bg-green-500/10'
-                    : 'bg-background hover:bg-muted/50'
+                  step.isComplete ? 'bg-green-500/10' : 'bg-background hover:bg-muted/50',
                 )}
               >
                 {/* Step icon */}
                 <div
                   className={cn(
                     'flex items-center justify-center w-8 h-8 rounded-full transition-colors',
-                    step.isComplete
-                      ? 'bg-green-500/20 text-green-600'
-                      : 'bg-muted text-muted-foreground'
+                    step.isComplete ? 'bg-green-500/20 text-green-600' : 'bg-muted text-muted-foreground',
                   )}
                 >
-                  {step.isComplete ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <step.icon className="h-4 w-4" />
-                  )}
+                  {step.isComplete ? <Check className="h-4 w-4" /> : <step.icon className="h-4 w-4" />}
                 </div>
 
                 {/* Step info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span
-                      className={cn(
-                        'font-medium text-sm',
-                        step.isComplete && 'line-through text-muted-foreground'
-                      )}
+                      className={cn('font-medium text-sm', step.isComplete && 'line-through text-muted-foreground')}
                     >
                       {step.label}
                     </span>
@@ -303,9 +286,7 @@ function ProfileCompletionCard() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {step.description}
-                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{step.description}</p>
                 </div>
 
                 {/* Action / Status */}
@@ -447,7 +428,7 @@ function ProfileForm() {
         <CardFooter
           className={cn(
             'border-t px-6 py-4 transition-colors duration-300',
-            showSuccess ? 'bg-green-500/10' : 'bg-muted/50'
+            showSuccess ? 'bg-green-500/10' : 'bg-muted/50',
           )}
         >
           <div className="flex items-center gap-3 w-full">
@@ -456,14 +437,14 @@ function ProfileForm() {
               disabled={isUpdating || !name.trim() || !hasChanges}
               className={cn(
                 'relative overflow-hidden transition-all duration-300',
-                showSuccess && 'bg-green-500 hover:bg-green-600'
+                showSuccess && 'bg-green-500 hover:bg-green-600',
               )}
             >
               {/* Success checkmark animation */}
               <span
                 className={cn(
                   'absolute inset-0 flex items-center justify-center transition-all duration-300',
-                  showSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+                  showSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50',
                 )}
               >
                 <Check className="h-5 w-5" />
@@ -472,7 +453,7 @@ function ProfileForm() {
               <span
                 className={cn(
                   'flex items-center gap-2 transition-all duration-300',
-                  showSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
+                  showSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100',
                 )}
               >
                 {isUpdating ? (
@@ -490,7 +471,7 @@ function ProfileForm() {
             <div
               className={cn(
                 'flex items-center gap-2 text-sm text-green-600 dark:text-green-400 transition-all duration-300',
-                showSuccess ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
+                showSuccess ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2',
               )}
             >
               <Sparkles className="h-4 w-4" />

@@ -6,12 +6,7 @@ import { Bell, ChevronRight, Link2, Search, Shield, User, UserCog, X } from 'luc
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type NavItem = {
   href: string;
@@ -94,11 +89,7 @@ function NavItemWithPreview({
       <div
         className={cn(
           'flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200',
-          isActive
-            ? 'bg-primary/10 text-primary'
-            : isHovered
-              ? 'bg-muted text-foreground'
-              : 'text-muted-foreground',
+          isActive ? 'bg-primary/10 text-primary' : isHovered ? 'bg-muted text-foreground' : 'text-muted-foreground',
         )}
       >
         <item.icon className="h-4 w-4" />
@@ -108,9 +99,7 @@ function NavItemWithPreview({
       <div className="flex-1 min-w-0">
         <span className="block truncate">{item.label}</span>
         {showDescription && (
-          <span className="block text-xs text-muted-foreground truncate mt-0.5">
-            {item.description}
-          </span>
+          <span className="block text-xs text-muted-foreground truncate mt-0.5">{item.description}</span>
         )}
       </div>
 
@@ -118,11 +107,7 @@ function NavItemWithPreview({
       <ChevronRight
         className={cn(
           'h-4 w-4 transition-all duration-200',
-          isActive
-            ? 'opacity-100 text-primary'
-            : isHovered
-              ? 'opacity-100 translate-x-0.5'
-              : 'opacity-0',
+          isActive ? 'opacity-100 text-primary' : isHovered ? 'opacity-100 translate-x-0.5' : 'opacity-0',
         )}
       />
     </Link>
@@ -182,14 +167,17 @@ export function UserSettingsSidebar() {
       (item) =>
         item.label.toLowerCase().includes(query) ||
         item.description.toLowerCase().includes(query) ||
-        item.keywords.some((kw) => kw.includes(query))
+        item.keywords.some((kw) => kw.includes(query)),
     );
   }, [searchQuery]);
 
-  // Reset selected index when filtered items change
+  // Reset selected index when search query changes
+  const currentSearchQuery = searchQuery;
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [filteredItems.length]);
+    if (currentSearchQuery !== undefined) {
+      setSelectedIndex(0);
+    }
+  }, [currentSearchQuery]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -220,7 +208,7 @@ export function UserSettingsSidebar() {
           break;
       }
     },
-    [filteredItems, selectedIndex, router]
+    [filteredItems, selectedIndex, router],
   );
 
   // Global keyboard shortcut to focus search
@@ -280,7 +268,7 @@ export function UserSettingsSidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="space-y-1" role="navigation" aria-label="Settings navigation">
+        <nav className="space-y-1" aria-label="Settings navigation">
           {filteredItems.length > 0 ? (
             filteredItems.map((item, index) => (
               <NavItemWithPreview
@@ -296,9 +284,7 @@ export function UserSettingsSidebar() {
             <div className="px-3 py-8 text-center">
               <Search className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
               <p className="text-sm text-muted-foreground">No settings found</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Try searching for "password" or "notifications"
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Try searching for "password" or "notifications"</p>
             </div>
           )}
         </nav>

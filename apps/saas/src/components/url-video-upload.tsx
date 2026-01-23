@@ -375,7 +375,7 @@ export function UrlVideoUpload({
               <div
                 className={cn(
                   'absolute left-3 top-1/2 -translate-y-1/2 z-10 transition-all duration-200',
-                  detectedPlatform ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                  detectedPlatform ? 'opacity-100 scale-100' : 'opacity-0 scale-75',
                 )}
               >
                 {detectedPlatform && (
@@ -393,7 +393,7 @@ export function UrlVideoUpload({
                 className={cn(
                   'pr-10 transition-all duration-200',
                   detectedPlatform && 'pl-11 border-primary/50 ring-1 ring-primary/20',
-                  !detectedPlatform && newUrl.trim() && 'border-orange-500/50'
+                  !detectedPlatform && newUrl.trim() && 'border-orange-500/50',
                 )}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -419,10 +419,7 @@ export function UrlVideoUpload({
               type="button"
               onClick={addUrl}
               disabled={!newUrl.trim() || isImporting}
-              className={cn(
-                'transition-all duration-200',
-                detectedPlatform && newUrl.trim() && 'bg-primary shadow-md'
-              )}
+              className={cn('transition-all duration-200', detectedPlatform && newUrl.trim() && 'bg-primary shadow-md')}
             >
               <Plus className="h-4 w-4 mr-1" />
               Add
@@ -434,9 +431,7 @@ export function UrlVideoUpload({
             <div
               className={cn(
                 'flex items-center gap-2 text-xs transition-all duration-200',
-                detectedPlatform && detectedPlatform !== 'unknown'
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
+                detectedPlatform && detectedPlatform !== 'unknown' ? 'text-primary' : 'text-muted-foreground',
               )}
             >
               {detectedPlatform && detectedPlatform !== 'unknown' ? (

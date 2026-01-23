@@ -558,7 +558,12 @@ export function VideoUpload({
                   ) : (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   )}
-                  <span className={cn('text-xs', uploadState.progress >= 10 ? 'text-green-600 dark:text-green-400' : 'text-primary')}>
+                  <span
+                    className={cn(
+                      'text-xs',
+                      uploadState.progress >= 10 ? 'text-green-600 dark:text-green-400' : 'text-primary',
+                    )}
+                  >
                     Preparing
                   </span>
                 </div>
@@ -571,7 +576,16 @@ export function VideoUpload({
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
                   )}
-                  <span className={cn('text-xs', uploadState.progress >= 85 ? 'text-green-600 dark:text-green-400' : uploadState.progress >= 10 ? 'text-primary' : 'text-muted-foreground')}>
+                  <span
+                    className={cn(
+                      'text-xs',
+                      uploadState.progress >= 85
+                        ? 'text-green-600 dark:text-green-400'
+                        : uploadState.progress >= 10
+                          ? 'text-primary'
+                          : 'text-muted-foreground',
+                    )}
+                  >
                     Uploading
                   </span>
                 </div>
@@ -584,7 +598,16 @@ export function VideoUpload({
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
                   )}
-                  <span className={cn('text-xs', uploadState.progress === 100 ? 'text-green-600 dark:text-green-400' : uploadState.status === 'processing' ? 'text-primary' : 'text-muted-foreground')}>
+                  <span
+                    className={cn(
+                      'text-xs',
+                      uploadState.progress === 100
+                        ? 'text-green-600 dark:text-green-400'
+                        : uploadState.status === 'processing'
+                          ? 'text-primary'
+                          : 'text-muted-foreground',
+                    )}
+                  >
                     Processing
                   </span>
                 </div>
@@ -597,7 +620,7 @@ export function VideoUpload({
                     <Upload className="h-5 w-5 text-primary" />
                   </div>
                   {/* Circular progress indicator */}
-                  <svg className="absolute inset-0 h-12 w-12 -rotate-90" viewBox="0 0 48 48">
+                  <svg className="absolute inset-0 h-12 w-12 -rotate-90" viewBox="0 0 48 48" aria-hidden="true">
                     <circle
                       cx="24"
                       cy="24"
@@ -728,7 +751,11 @@ export function VideoUpload({
 
           {/* Keyboard Shortcuts Panel */}
           {showShortcuts && (
-            <div className="mt-2 p-4 rounded-lg bg-muted/50 border text-sm" role="dialog" aria-label="Keyboard shortcuts">
+            <div
+              className="mt-2 p-4 rounded-lg bg-muted/50 border text-sm"
+              role="dialog"
+              aria-label="Keyboard shortcuts"
+            >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium flex items-center gap-2">
                   <Keyboard className="h-4 w-4" />

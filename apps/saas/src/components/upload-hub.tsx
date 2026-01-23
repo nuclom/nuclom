@@ -291,25 +291,33 @@ export function UploadHub({ organizationId, organizationSlug, authorId, collecti
         <div
           className={cn(
             'absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 rounded-tl-2xl transition-all duration-300',
-            dragActive ? 'border-primary opacity-100' : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
           )}
         />
         <div
           className={cn(
             'absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 rounded-tr-2xl transition-all duration-300',
-            dragActive ? 'border-primary opacity-100' : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
           )}
         />
         <div
           className={cn(
             'absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 rounded-bl-2xl transition-all duration-300',
-            dragActive ? 'border-primary opacity-100' : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
           )}
         />
         <div
           className={cn(
             'absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 rounded-br-2xl transition-all duration-300',
-            dragActive ? 'border-primary opacity-100' : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
           )}
         />
 
@@ -323,24 +331,15 @@ export function UploadHub({ organizationId, organizationSlug, authorId, collecti
           >
             <div className="relative">
               <Upload
-                className={cn(
-                  'h-12 w-12 text-primary transition-all duration-300',
-                  dragActive && 'animate-bounce',
-                )}
+                className={cn('h-12 w-12 text-primary transition-all duration-300', dragActive && 'animate-bounce')}
               />
               {/* Pulse ring when dragging */}
-              {dragActive && (
-                <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
-              )}
+              {dragActive && <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />}
             </div>
           </div>
 
           <h2 className="text-2xl font-semibold mb-2 transition-colors">
-            {dragActive ? (
-              <span className="text-primary">Release to upload</span>
-            ) : (
-              'Drag and drop videos to upload'
-            )}
+            {dragActive ? <span className="text-primary">Release to upload</span> : 'Drag and drop videos to upload'}
           </h2>
           <p className="text-muted-foreground mb-6">
             {dragActive ? 'Your files are ready to be uploaded' : 'or click to browse from your computer'}
@@ -367,9 +366,7 @@ export function UploadHub({ organizationId, organizationSlug, authorId, collecti
             </span>
           </div>
 
-          <p className="text-xs text-muted-foreground mt-3">
-            Supports MP4, MOV, AVI, MKV, WebM, and more
-          </p>
+          <p className="text-xs text-muted-foreground mt-3">Supports MP4, MOV, AVI, MKV, WebM, and more</p>
         </div>
       </div>
 
