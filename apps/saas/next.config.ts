@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
   // Skip during build - CI handles type checking
   typescript: { ignoreBuildErrors: true },
 
+  // Memory optimization for Vercel builds
+  // Increase timeout for static page generation (default 60s)
+  staticPageGenerationTimeout: 300,
+
   // Optimize barrel file imports for better bundle size and faster builds
   experimental: {
     optimizePackageImports: [
@@ -54,6 +58,9 @@ const nextConfig: NextConfig = {
       'posthog-js',
       'ai',
     ],
+    // Reduce parallelism during build to prevent OOM on Vercel
+    workerThreads: false,
+    cpus: 2,
   },
 
   // Image optimization configuration
