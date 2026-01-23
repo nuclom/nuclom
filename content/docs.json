@@ -26,19 +26,11 @@
         "groups": [
           {
             "group": "Get Started",
-            "pages": [
-              "docs/introduction",
-              "docs/quickstart"
-            ]
+            "pages": ["docs/introduction", "docs/quickstart"]
           },
           {
             "group": "Guides",
-            "pages": [
-              "docs/guides/features",
-              "docs/guides/team",
-              "docs/guides/troubleshooting",
-              "docs/enterprise"
-            ]
+            "pages": ["docs/guides/features", "docs/guides/team", "docs/guides/troubleshooting", "docs/enterprise"]
           }
         ]
       },
@@ -64,9 +56,7 @@
         "groups": [
           {
             "group": "Internal Documentation",
-            "pages": [
-              "docs/internal/overview"
-            ]
+            "pages": ["docs/internal/overview"]
           },
           {
             "group": "Architecture",
@@ -110,15 +100,11 @@
           },
           {
             "group": "Features",
-            "pages": [
-              "docs/internal/features/highlight-reel-rendering"
-            ]
+            "pages": ["docs/internal/features/highlight-reel-rendering"]
           },
           {
             "group": "Business",
-            "pages": [
-              "docs/internal/pricing"
-            ]
+            "pages": ["docs/internal/pricing"]
           }
         ]
       }
@@ -151,14 +137,7 @@
     ]
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "cursor",
-      "vscode"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "cursor", "vscode"]
   },
   "footer": {
     "socials": {

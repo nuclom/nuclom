@@ -8,16 +8,11 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "apps/**/*.ts",
-      "apps/**/*.tsx",
-      "apps/**/*.js",
-      "apps/**/*.jsx",
-      "packages/**/*.ts",
-      "packages/**/*.tsx",
-      "packages/**/*.js",
-      "packages/**/*.jsx",
-      "scripts/**/*.ts",
-      "e2e/**/*",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
       "!**/*.d.ts",
       "!**/public/openapi.json",
       "!**/public/openapi.yaml"

@@ -23,7 +23,10 @@ test.describe('Login Page', () => {
 
   test('should navigate to register page', async ({ page }) => {
     // Link text is "Create account" or "Request access" depending on DISABLE_SIGNUPS env
-    await page.getByText(/create account|request access/i).first().click();
+    await page
+      .getByText(/create account|request access/i)
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/register/);
   });
 
@@ -80,8 +83,14 @@ test.describe('Register Page', () => {
   test('should have OAuth buttons or beta form', async ({ page }) => {
     // If signups are enabled, GitHub OAuth button is shown
     // If signups are disabled, private beta form is shown
-    const hasGithub = await page.getByRole('button', { name: /github/i }).isVisible().catch(() => false);
-    const hasBetaForm = await page.getByText(/private beta/i).isVisible().catch(() => false);
+    const hasGithub = await page
+      .getByRole('button', { name: /github/i })
+      .isVisible()
+      .catch(() => false);
+    const hasBetaForm = await page
+      .getByText(/private beta/i)
+      .isVisible()
+      .catch(() => false);
     expect(hasGithub || hasBetaForm).toBeTruthy();
   });
 
@@ -92,7 +101,10 @@ test.describe('Register Page', () => {
 
   test('should navigate to login page', async ({ page }) => {
     // Link text is "Sign in instead" or "Already have access?" depending on DISABLE_SIGNUPS env
-    await page.getByText(/sign in instead|already have access/i).first().click();
+    await page
+      .getByText(/sign in instead|already have access/i)
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/login/);
   });
 

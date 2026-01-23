@@ -32,7 +32,11 @@ test.describe('Organization Dashboard', () => {
               .isVisible()
               .catch(() => false);
             // Check for any heading on the page (fallback)
-            const hasAnyHeading = await page.getByRole('heading').first().isVisible().catch(() => false);
+            const hasAnyHeading = await page
+              .getByRole('heading')
+              .first()
+              .isVisible()
+              .catch(() => false);
 
             return hasVideos || hasEmptyState || hasGreeting || hasAnyHeading;
           },
@@ -41,7 +45,10 @@ test.describe('Organization Dashboard', () => {
         .toBe(true);
 
       // Check if videos exist for further assertions
-      const hasVideos = await page.getByText('Continue Watching').isVisible().catch(() => false);
+      const hasVideos = await page
+        .getByText('Continue Watching')
+        .isVisible()
+        .catch(() => false);
       if (hasVideos) {
         // If videos exist, check for all sections
         await expect(page.getByText('Continue Watching')).toBeVisible();
