@@ -20,39 +20,39 @@ test.describe('Landing Page', () => {
     });
 
     test('should display hero section', async ({ page }) => {
-      // New knowledge hub headline
-      await expect(page.getByRole('heading', { name: /All Your Knowledge/i })).toBeVisible();
-      // Use first() as there are multiple "Start Free Trial" links on the page
-      await expect(page.getByRole('link', { name: /start free trial/i }).first()).toBeVisible();
+      // Hero headline: "Stop losing knowledge"
+      await expect(page.getByRole('heading', { name: /stop losing/i })).toBeVisible();
+      // CTA button: "Start free"
+      await expect(page.getByRole('link', { name: /start free/i }).first()).toBeVisible();
     });
 
-    test('should display features section', async ({ page }) => {
-      // Scroll to features section first to ensure it's visible
-      await page.locator('section#features').first().scrollIntoViewIfNeeded();
-      // Use first() as text may appear multiple times on the page - updated for knowledge hub
-      await expect(page.getByText('Slack Integration').first()).toBeVisible();
-      await expect(page.getByText('Knowledge Graph').first()).toBeVisible();
-      await expect(page.getByText('Unified Search').first()).toBeVisible();
+    test('should display value props section', async ({ page }) => {
+      // Scroll down to ensure value props section is visible
+      await page.mouse.wheel(0, 500);
+      // Value props heading
+      await expect(page.getByRole('heading', { name: /built for how teams/i })).toBeVisible();
+      // Value prop cards
+      await expect(page.getByText('Find anything instantly').first()).toBeVisible();
+      await expect(page.getByText('Never lose a decision').first()).toBeVisible();
     });
 
-    test('should display trust badges', async ({ page }) => {
-      // Use first() to get the trust badge in the hero section - updated for knowledge hub
-      await expect(page.getByText('Enterprise Security').first()).toBeVisible();
-      await expect(page.getByText('AI-Powered').first()).toBeVisible();
-      await expect(page.getByText('Multi-Source').first()).toBeVisible();
+    test('should display integration icons', async ({ page }) => {
+      // Integration icons in hero section
+      await expect(page.getByText('Messaging').first()).toBeVisible();
+      await expect(page.getByText('Documents').first()).toBeVisible();
+      await expect(page.getByText('Code').first()).toBeVisible();
     });
 
     test('should display how it works section', async ({ page }) => {
+      // Find the "Connect once. Search forever." section
       const howItWorksSection = page
         .locator('section')
-        .filter({ has: page.getByRole('heading', { name: 'Get Started in Minutes' }) })
+        .filter({ has: page.getByRole('heading', { name: /connect once/i }) })
         .first();
       await howItWorksSection.scrollIntoViewIfNeeded();
-      await expect(howItWorksSection.getByRole('heading', { name: 'Get Started in Minutes' })).toBeVisible();
-      // Updated for knowledge hub flow
-      await expect(howItWorksSection.getByRole('heading', { name: 'Connect Your Sources' })).toBeVisible();
-      await expect(howItWorksSection.getByRole('heading', { name: 'AI Processes Everything' })).toBeVisible();
-      await expect(howItWorksSection.getByRole('heading', { name: 'Discover & Search' })).toBeVisible();
+      await expect(howItWorksSection.getByRole('heading', { name: /connect once/i })).toBeVisible();
+      // Connected sources UI
+      await expect(howItWorksSection.getByText('Connected Sources').first()).toBeVisible();
     });
 
     test('should display footer with links', async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe('Landing Page', () => {
       const viewport = page.viewportSize();
       if (viewport && viewport.width < 768) {
         // On mobile, use the hero CTA button instead of header nav
-        const heroCta = page.getByRole('link', { name: /start free trial|get started/i }).first();
+        const heroCta = page.getByRole('link', { name: /start free|get started/i }).first();
         if (await heroCta.isVisible().catch(() => false)) {
           await heroCta.click();
           await expect(page).toHaveURL(/\/signup|\/register/, { timeout: 10000 });
@@ -126,7 +126,7 @@ test.describe('Landing Page - Mobile', () => {
     // Header should still be visible
     await expect(page.getByText('Nuclom').first()).toBeVisible();
 
-    // Hero content should be visible - updated for knowledge hub
-    await expect(page.getByRole('heading', { name: /All Your Knowledge/i })).toBeVisible();
+    // Hero content should be visible - "Stop losing knowledge"
+    await expect(page.getByRole('heading', { name: /stop losing/i })).toBeVisible();
   });
 });
