@@ -677,7 +677,6 @@ export type { StorageConfig, StorageService, UploadOptions, UploadProgress, Uplo
 // Storage Service
 export {
   deleteFile,
-  extractKeyFromUrl,
   generateFileKey,
   generatePresignedDownloadUrl,
   generatePresignedUploadUrl,

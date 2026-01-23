@@ -111,7 +111,6 @@ export interface MockStorageService {
   deleteFile: ReturnType<typeof vi.fn>;
   generatePresignedUploadUrl: ReturnType<typeof vi.fn>;
   generatePresignedDownloadUrl: ReturnType<typeof vi.fn>;
-  extractKeyFromUrl: ReturnType<typeof vi.fn>;
   generateFileKey: ReturnType<typeof vi.fn>;
   isConfigured: boolean;
 }
@@ -126,10 +125,6 @@ export function createMockStorageService(): MockStorageService {
     generatePresignedDownloadUrl: vi
       .fn()
       .mockImplementation((key) => Effect.succeed(`https://storage.example.com/download/${key}`)),
-    extractKeyFromUrl: vi.fn().mockImplementation((url: string) => {
-      const parts = url.split('.r2.cloudflarestorage.com/');
-      return parts.length === 2 ? parts[1] : null;
-    }),
     generateFileKey: vi
       .fn()
       .mockImplementation((orgId, filename, type = 'video') => `${orgId}/${type}s/${Date.now()}-${filename}`),
