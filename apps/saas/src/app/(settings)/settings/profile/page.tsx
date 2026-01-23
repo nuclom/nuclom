@@ -1,9 +1,10 @@
 'use client';
 
 import { authClient, useAuth } from '@nuclom/auth/client';
+import { cn } from '@nuclom/lib/utils';
 import { logger } from '@nuclom/lib/client-logger';
 import { Link } from '@vercel/microfrontends/next/client';
-import { AlertTriangle, Database, Download, Loader2, Mail, MessageSquare, Shield, Trash2, Video } from 'lucide-react';
+import { AlertTriangle, Check, Database, Download, Loader2, Mail, MessageSquare, Shield, Sparkles, Trash2, Video } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/auth-guard';
 import {
@@ -38,10 +39,17 @@ function ProfileForm() {
   const { user } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Track changes
+  useEffect(() => {
+    setHasChanges(name !== (user?.name || ''));
+  }, [name, user?.name]);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'U';
@@ -57,6 +65,7 @@ function ProfileForm() {
     e.preventDefault();
     setIsUpdating(true);
     setMessage(null);
+    setShowSuccess(false);
 
     try {
       const result = await authClient.updateUser({
@@ -69,7 +78,11 @@ function ProfileForm() {
           text: result.error.message || 'Failed to update profile',
         });
       } else {
+        setShowSuccess(true);
+        setHasChanges(false);
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        // Auto-hide success state after animation
+        setTimeout(() => setShowSuccess(false), 2000);
       }
     } catch (error) {
       logger.error('Failed to update profile', error);
@@ -125,10 +138,67 @@ function ProfileForm() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="bg-muted/50 border-t px-6 py-4">
-          <Button type="submit" disabled={isUpdating || !name.trim()}>
-            {isUpdating ? 'Saving...' : 'Save Changes'}
-          </Button>
+        <CardFooter
+          className={cn(
+            'border-t px-6 py-4 transition-colors duration-300',
+            showSuccess ? 'bg-green-500/10' : 'bg-muted/50'
+          )}
+        >
+          <div className="flex items-center gap-3 w-full">
+            <Button
+              type="submit"
+              disabled={isUpdating || !name.trim() || !hasChanges}
+              className={cn(
+                'relative overflow-hidden transition-all duration-300',
+                showSuccess && 'bg-green-500 hover:bg-green-600'
+              )}
+            >
+              {/* Success checkmark animation */}
+              <span
+                className={cn(
+                  'absolute inset-0 flex items-center justify-center transition-all duration-300',
+                  showSuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+                )}
+              >
+                <Check className="h-5 w-5" />
+              </span>
+              {/* Button text */}
+              <span
+                className={cn(
+                  'flex items-center gap-2 transition-all duration-300',
+                  showSuccess ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
+                )}
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </span>
+            </Button>
+
+            {/* Success message with animation */}
+            <div
+              className={cn(
+                'flex items-center gap-2 text-sm text-green-600 dark:text-green-400 transition-all duration-300',
+                showSuccess ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
+              )}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>Changes saved!</span>
+            </div>
+
+            {/* Unsaved changes indicator */}
+            {hasChanges && !showSuccess && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                <span>Unsaved changes</span>
+              </div>
+            )}
+          </div>
         </CardFooter>
       </form>
     </Card>
