@@ -1,0 +1,1066 @@
+# Nuclom Competitive Analysis Report
+
+**Date:** January 2026
+**Analysis Type:** Comprehensive Market & Competitor Analysis with SWOT
+
+---
+
+## Executive Summary
+
+Nuclom operates at the intersection of three major markets: **video collaboration**, **meeting intelligence**, and **enterprise knowledge management**. This unique positioning creates both opportunities and competitive pressures from multiple directions.
+
+**Key Finding:** Nuclom's unified approach to connecting multiple knowledge sources (Slack, Notion, GitHub, video meetings) into a single AI-powered knowledge hub is a significant differentiator. Most competitors focus on only one domain.
+
+---
+
+## Market Overview
+
+### Total Addressable Market
+
+| Market Segment | 2024 Value | 2032 Projection | CAGR |
+|----------------|------------|-----------------|------|
+| Collaboration Software | $8.41B | $20.17B | 12.75% |
+| Visual Collaboration Platform | $17.58B (2025) | $138.21B (2035) | 22.9% |
+| AI Meeting Assistant | $2.1B | $8.5B (est.) | 15%+ |
+
+### Market Trends (2026)
+
+1. **Async-First Workflows** - Teams moving away from meeting-heavy collaboration toward documentation and async communication
+2. **AI-Native Platforms** - AI is no longer an add-on; it's expected as core functionality
+3. **Vertical SaaS Growth** - Industry-specific solutions gaining favor over generic platforms
+4. **Unified Knowledge** - Demand for single-source-of-truth platforms that break down silos
+5. **Privacy & Compliance** - SOC 2, GDPR, HIPAA becoming table stakes
+
+---
+
+## Competitor Categories
+
+### Category 1: Video Messaging & Collaboration
+- Loom, Vidyard, Wistia, Claap
+
+### Category 2: AI Meeting Recorders & Note-Takers
+- Grain, Fireflies, Otter.ai, Fathom, tl;dv, MeetGeek, Avoma, Read.ai, Fellow
+
+### Category 3: Revenue/Conversation Intelligence
+- Gong, Chorus (ZoomInfo)
+
+### Category 4: Knowledge Management & Enterprise Search
+- Notion, Confluence, Slite, Guru, Glean, Sana Labs
+
+---
+
+## Detailed Competitor Analysis
+
+---
+
+### LOOM (Atlassian)
+
+**Overview:** Video messaging platform for workplace communication via screen/webcam recording.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free (Starter) | $0 | 5 min recordings, 100 video limit |
+| Business | $15-18/user/mo | Full analytics, team workspace |
+| Business + AI | $20-24/user/mo | AI titles, summaries, SOP generation |
+| Enterprise | Custom ($40k+/yr) | Advanced security, analytics |
+
+#### Features in Common with Nuclom
+- Video recording and hosting
+- Transcription and captions
+- AI-generated summaries
+- Video sharing with access controls
+- Time-stamped comments
+- Team workspaces
+
+#### Loom's Advantages
+- Backed by Atlassian ecosystem (Jira, Confluence integration)
+- Extremely easy-to-use, consumer-grade UX
+- Strong brand recognition
+- Free tier for education
+- Simpler value proposition (video messaging only)
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration (Slack, Notion, GitHub)
+- Unified search across all content types
+- AI decision tracking and extraction
+- Knowledge graph and expertise mapping
+- Deeper analytics (speaker diarization, talk time)
+- Topic clustering and trend detection
+- Full meeting auto-import (Zoom, Google Meet)
+
+---
+
+### VIDYARD
+
+**Overview:** B2B video hosting platform focused on sales enablement and marketing.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | 5 videos/month, basic features |
+| Starter | $59/user/mo | Full analytics, lead capture |
+| Teams | $99/user/mo | CRM integrations, CTAs, folders |
+| Enterprise | Custom | Video automation, advanced |
+
+#### Features in Common with Nuclom
+- Video hosting and sharing
+- Analytics and view tracking
+- Team organization features
+- CRM integrations (HubSpot, Salesforce)
+
+#### Vidyard's Advantages
+- Purpose-built for sales outreach
+- AI Avatars for personalized videos at scale
+- Deep marketing automation integrations
+- Lead capture and scoring
+- Established in B2B sales motion
+
+#### Nuclom's Advantages
+- Knowledge management, not just video hosting
+- AI transcription and semantic search
+- Multi-source integration beyond video
+- Meeting recording and analysis
+- Decision tracking and action items
+- Internal team focus (not sales outreach)
+
+---
+
+### GRAIN
+
+**Overview:** AI notetaker built specifically for customer-facing meetings.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | 20 meetings, basic features |
+| Starter | $15/user/mo | Unlimited transcription |
+| Business | Custom | Salesforce integration, advanced |
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI-generated summaries and notes
+- Shareable video clips
+- CRM sync (HubSpot, Salesforce)
+- Speaker identification
+- Action item extraction
+
+#### Grain's Advantages
+- Focused UX for customer-facing roles
+- Excellent real-time transcription (Zoom)
+- Built-in filler word removal
+- Custom vocabulary support
+- Clip playlists and stories
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Works beyond just meetings
+- Knowledge graph and expertise mapping
+- GitHub, Notion, Slack integration
+- Decision tracking across all sources
+- Topic clustering and trend analysis
+- Broader organizational use case
+
+---
+
+### FIREFLIES.AI
+
+**Overview:** AI meeting assistant with transcription, summaries, and conversation intelligence.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | 800 min storage, 3 transcripts |
+| Pro | $10/user/mo (annual) | Unlimited transcription, 8k min storage |
+| Business | $19/user/mo (annual) | Unlimited storage, video recording |
+| Enterprise | ~$39/user/mo | Custom, advanced security |
+
+**Note:** AI credits are limited; advanced features consume credits ($5-$600 packs).
+
+#### Features in Common with Nuclom
+- Automatic meeting join and recording
+- Transcription (100+ languages)
+- AI summaries and action items
+- CRM integration
+- Speaker analytics
+- Searchable meeting archive
+
+#### Fireflies' Advantages
+- Lower price point
+- 100+ language support
+- "Ask Fred" GPT-powered Q&A
+- AI Apps for custom workflows
+- Broader platform support
+
+#### Nuclom's Advantages
+- Knowledge beyond meetings
+- Multi-source integration (Slack, Notion, GitHub)
+- No credit-based AI limitations
+- Knowledge graph and relationships
+- Decision tracking across sources
+- Native video hosting (not just recordings)
+- Expertise mapping
+
+---
+
+### OTTER.AI
+
+**Overview:** Real-time transcription and meeting notes with AI-powered insights.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | 300 min/mo, 30 min/meeting |
+| Pro | $16.99/user/mo | 1200 min, 90 min/meeting |
+| Business | $30/user/mo | Unlimited, 4 hr/meeting |
+| Enterprise | Custom | SSO, HIPAA, 100+ users |
+
+#### Features in Common with Nuclom
+- Real-time transcription
+- Meeting summaries and action items
+- Speaker identification
+- Searchable transcripts
+- CRM sync (Salesforce, HubSpot)
+
+#### Otter's Advantages
+- Live transcription during meetings
+- Otter Sales Agent features
+- Voice-activated Q&A on past conversations
+- Mobile app for in-person transcription
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Not limited to meetings
+- Knowledge graph and expertise mapping
+- GitHub, Notion, Slack integration
+- Decision tracking
+- Topic clustering
+- Video hosting and collaboration
+
+---
+
+### FATHOM
+
+**Overview:** AI meeting assistant known for instant (30-second) post-meeting summaries.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Unlimited recordings, 5 AI summaries/mo |
+| Premium | $19/user/mo | Unlimited AI summaries |
+| Team | $29-39/user/mo | Collaboration features |
+| Business | Custom | Advanced security |
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries and action items
+- CRM integration
+- Searchable archive
+- 28 language support
+
+#### Fathom's Advantages
+- **Fastest summary generation** (30 seconds)
+- Generous free tier (unlimited recordings)
+- 95% transcription accuracy
+- Simple, focused product
+
+#### Nuclom's Advantages
+- Multi-source knowledge management
+- Knowledge graph and relationships
+- Integration with Slack, Notion, GitHub
+- Decision tracking
+- Topic analysis and trends
+- Native video collaboration
+- Expertise mapping
+
+---
+
+### TL;DV
+
+**Overview:** AI meeting notetaker with sales coaching features.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Unlimited recordings, 10 AI notes/mo |
+| Pro | $29/user/mo | Unlimited AI, multi-meeting reports |
+| Business | $59-98/user/mo | Sales coaching, AI insights |
+| Enterprise | Custom | Private AI hosting |
+
+**Note:** Free recordings deleted after 3 months.
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries and notes
+- 30+ language support
+- CRM integration
+- Multi-meeting reports
+
+#### tl;dv's Advantages
+- Sales playbook monitoring
+- AI-driven coaching
+- Speaker insights for sales
+- Partnership with Anthropic for AI
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Knowledge graph across sources
+- Not sales-specific (broader use case)
+- GitHub, Notion, Slack integration
+- Decision tracking
+- Permanent archive (no deletion)
+
+---
+
+### GONG
+
+**Overview:** Revenue intelligence platform with conversation analytics.
+
+#### Pricing
+| Component | Cost |
+|-----------|------|
+| Platform Fee | ~$5,000/year base |
+| Per-User License | $1,360-1,600/user/year (~$110-133/mo) |
+| Onboarding | ~$7,500 one-time |
+| **Effective Total** | **$1,400-1,600/user/year** |
+
+**Note:** 56% price increase from 2023-2025. Bundled pricing forces purchase of forecasting/engagement modules.
+
+#### Features in Common with Nuclom
+- Call recording and transcription
+- AI analytics and insights
+- Speaker identification
+- Topic and keyword tracking
+- CRM integration
+
+#### Gong's Advantages
+- Industry-leading revenue intelligence
+- Deep forecasting and deal analytics
+- Extensive coaching dashboards
+- 5,000+ enterprise customers (LinkedIn, Slack, Shopify)
+- Comprehensive RevOps features
+
+#### Nuclom's Advantages
+- **90% lower cost**
+- Multi-source knowledge (not just calls)
+- Knowledge graph across tools
+- GitHub, Notion, Slack integration
+- No bundled feature bloat
+- Broader organizational use case
+- Simpler deployment
+
+---
+
+### CHORUS (ZoomInfo)
+
+**Overview:** Conversation intelligence for sales, integrated with ZoomInfo data.
+
+#### Pricing
+| Component | Cost |
+|-----------|------|
+| Base Package | ~$8,000/year (3 seats) |
+| Additional Seats | $1,200/seat/year ($100/mo) |
+| **Minimum Cost** | **$100+/user/month** |
+
+**Note:** Usually requires 2-year contracts.
+
+#### Features in Common with Nuclom
+- Call recording and transcription
+- AI analytics
+- Topic tracking
+- CRM sync
+
+#### Chorus' Advantages
+- ZoomInfo data integration
+- 14 proprietary ML patents
+- Enterprise sales focus
+- Deal intelligence features
+
+#### Nuclom's Advantages
+- Significantly lower cost
+- Multi-source knowledge management
+- Not sales-specific
+- Knowledge graph features
+- Broader integrations (GitHub, Notion)
+- Faster deployment
+
+---
+
+### NOTION (with AI)
+
+**Overview:** All-in-one workspace with docs, wikis, and databases, plus AI features.
+
+#### Pricing
+| Plan | Price | AI Access |
+|------|-------|-----------|
+| Free | $0 | 20 AI responses/workspace |
+| Plus | $12/user/mo | Limited AI trial only |
+| Business | $20/user/mo | Full AI included |
+| Enterprise | Custom | Full AI + advanced security |
+
+#### Features in Common with Nuclom
+- Knowledge base and documentation
+- AI Q&A ("Ask Notion")
+- Team collaboration
+- Integrations (Slack, GitHub, Google Drive)
+- Search across workspace
+
+#### Notion's Advantages
+- Flexible document/database system
+- Massive user base and ecosystem
+- Templates and community resources
+- Lower barrier to entry
+- General-purpose productivity tool
+
+#### Nuclom's Advantages
+- Native video and meeting support
+- AI transcription and speaker diarization
+- Automatic decision extraction
+- Knowledge graph with relationships
+- Multi-source semantic search
+- Expertise mapping
+- Topic clustering and trends
+- Purpose-built for institutional knowledge
+
+---
+
+### CONFLUENCE (Atlassian)
+
+**Overview:** Team wiki and knowledge management, integrated with Atlassian ecosystem.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Up to 10 users, 2GB storage |
+| Standard | $5.75/user/mo | 250GB storage, business hours support |
+| Premium | $9.73-11/user/mo | AI features, analytics, unlimited storage |
+| Enterprise | Custom | 99.9% SLA, 24/7 support |
+
+#### Features in Common with Nuclom
+- Knowledge base and documentation
+- Team collaboration
+- Search and organization
+- Integrations (Jira, Trello)
+- AI-powered summaries (Premium)
+
+#### Confluence's Advantages
+- Atlassian ecosystem (Jira, Trello, Loom)
+- Established enterprise presence
+- Self-hosted Data Center option
+- Lower price point
+- Templates and macros ecosystem
+
+#### Nuclom's Advantages
+- Native video and meeting support
+- AI transcription from meetings
+- Multi-source integration (Slack, GitHub, Notion)
+- Decision extraction and tracking
+- Knowledge graph
+- Expertise mapping
+- Semantic search across sources
+
+---
+
+### SLITE
+
+**Overview:** AI-powered knowledge base designed for remote teams.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | 50 documents |
+| Standard | $8/user/mo | Unlimited docs, 40 AI asks/user/mo |
+| Premium | $16/user/mo | Unlimited AI, advanced integrations |
+| Enterprise | Custom | Audit logs, HIPAA, custom roles |
+
+#### Features in Common with Nuclom
+- Knowledge base and documentation
+- AI-powered "Ask" feature
+- Team collaboration
+- Document verification workflows
+- Integrations (Slack, GitHub, Notion)
+
+#### Slite's Advantages
+- Simple, focused knowledge base
+- Document verification system
+- Lower price point
+- "Super" cross-tool search add-on
+- SOC 2 Type II, GDPR compliant
+
+#### Nuclom's Advantages
+- Native video and meeting support
+- AI transcription
+- Decision extraction from any source
+- Knowledge graph with relationships
+- Expertise mapping
+- Topic clustering
+- Multi-source by default (not add-on)
+
+---
+
+### GLEAN
+
+**Overview:** AI-powered enterprise search connecting 100+ business applications.
+
+#### Pricing
+| Tier | Estimated Cost |
+|------|----------------|
+| Enterprise Search License | Custom |
+| Assistant/Chat Licenses | ~$15/user/mo add-on |
+| Full Enterprise | $50+/user/mo minimum |
+
+**Note:** No free tier. Consultation-based pricing.
+
+#### Features in Common with Nuclom
+- AI-powered search across sources
+- Connects to Slack, Google, Salesforce, etc.
+- Knowledge assistant chat
+- Enterprise security
+
+#### Glean's Advantages
+- 100+ integrations
+- Deeper enterprise search focus
+- RAG technology
+- Custom AI applications builder
+- Larger enterprise customer base
+- 93% adoption in 2 years reported
+
+#### Nuclom's Advantages
+- Native video/meeting support
+- AI transcription and speaker analytics
+- Decision extraction
+- Knowledge graph visualization
+- Expertise mapping
+- Topic clustering
+- More accessible price point
+- Video-first collaboration
+
+---
+
+### GURU
+
+**Overview:** AI-powered enterprise search, intranet, and wiki in one platform.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Starter | $0 | Up to 3 users |
+| Builder | ~$10/user/mo | Full features, credit-based AI |
+| Enterprise | Custom | Advanced security, API |
+
+**Note:** AI features consume credits.
+
+#### Features in Common with Nuclom
+- AI-powered search
+- Knowledge base/wiki
+- Integrations (Slack, Teams, Salesforce)
+- Verification workflow
+- Team collaboration
+
+#### Guru's Advantages
+- Card-based knowledge system
+- Browser extension for in-context answers
+- Strong verification workflow
+- Intranet features
+- Lower price point for small teams
+
+#### Nuclom's Advantages
+- Native video and meeting support
+- AI transcription
+- Decision extraction
+- Knowledge graph
+- Expertise mapping
+- Topic clustering
+- Multi-source semantic search
+- Not credit-based AI
+
+---
+
+### READ.AI
+
+**Overview:** AI copilot for meetings, emails, and messages across platforms.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Basic features |
+| Pro | $15-22.50/user/mo | Full AI assistant |
+| Enterprise | $25+/user/mo | Advanced features |
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries
+- Enterprise search across tools
+- Speaker analytics
+- Integrations (20+ platforms)
+
+#### Read.ai's Advantages
+- Works across meetings, email, chat
+- Real-time meeting metrics
+- Personalized coaching
+- In-person meeting support
+- Strong multi-platform coverage
+
+#### Nuclom's Advantages
+- Native video hosting
+- Decision extraction and tracking
+- Knowledge graph
+- Expertise mapping
+- GitHub and code integration
+- Topic clustering
+- Deeper content organization (channels, collections)
+
+---
+
+### AVOMA
+
+**Overview:** All-in-one AI platform for sales and customer success teams.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Meeting Assistant | $19/user/mo | Recording, transcription, summaries |
+| + Conversation Intel | +$29/user/mo | Call scoring, coaching |
+| + Revenue Intel | +$29/user/mo | Deal risk alerts, win-loss |
+| + Lead Router | +$19/user/mo | Meeting scheduling |
+
+**Note:** Modular pricing; can add features as needed.
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries and notes
+- 40+ language support
+- CRM integration
+- Action item extraction
+
+#### Avoma's Advantages
+- Live answer assistant during calls
+- AI call scoring with MEDDIC/SPICED
+- Modular pricing flexibility
+- Sales-specific coaching
+- Botless recording option
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Not sales-specific
+- Knowledge graph
+- GitHub, Notion, Slack integration
+- Decision tracking across sources
+- Topic clustering
+- Expertise mapping
+
+---
+
+### MEETGEEK
+
+**Overview:** AI meeting assistant with automated recording, transcription, and insights.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Basic features |
+| Pro | ~$15-19/user/mo | 100 hrs transcription/mo |
+| Business | ~$29/user/mo | Unlimited transcription |
+| Enterprise | Custom | Self-hosted storage |
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries and action items
+- 100+ language support
+- CRM integration
+- Speaker detection
+
+#### MeetGeek's Advantages
+- Lower price point
+- Automatic call type detection
+- 7,000+ Zapier integrations
+- Simple, focused product
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Knowledge graph
+- GitHub, Notion, Slack integration
+- Decision extraction
+- Topic clustering
+- Expertise mapping
+- Native video hosting
+
+---
+
+### FELLOW
+
+**Overview:** AI meeting management tool for productivity before, during, and after meetings.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Teams <10, basic features |
+| Pro | $7/user/mo | AI notetaker (limited) |
+| Business | $15/user/mo | Advanced integrations |
+| Enterprise | $25/user/mo | Advanced security |
+
+**Note:** AI Notetaker is an add-on (unlimited or pay-as-you-go).
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries
+- Action item tracking
+- Integrations (Asana, Jira, Slack)
+
+#### Fellow's Advantages
+- Meeting agenda templates
+- OKR tracking
+- Strong project management integrations
+- Lower price point
+- Bot vs. botless flexibility
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Knowledge graph
+- Decision extraction across sources
+- GitHub, Notion, Slack sync
+- Topic clustering
+- Expertise mapping
+- Deeper video analytics
+
+---
+
+### CLAAP
+
+**Overview:** AI sales assistant with async video collaboration and meeting recording.
+
+#### Pricing
+| Plan | Estimated Price | Key Features |
+|------|-----------------|--------------|
+| Basic | Free | Limited features |
+| Pro | ~$20-25/user/mo | Full recording, AI notes |
+| Business | ~$40/user/mo | Sales coaching, CRM |
+| Enterprise | Custom | Advanced features |
+
+**Note:** Claims "80% of Gong's value at 20% of the price."
+
+#### Features in Common with Nuclom
+- Meeting recording and transcription
+- AI summaries and notes
+- Screen recording
+- Video annotations and comments
+- CRM integration
+
+#### Claap's Advantages
+- Async video-first design
+- Sales coaching features
+- Competitive Gong alternative positioning
+- Video reply threading
+- Screen recording with annotations
+
+#### Nuclom's Advantages
+- Multi-source knowledge integration
+- Knowledge graph across tools
+- GitHub, Notion, Slack integration
+- Decision extraction
+- Topic clustering
+- Expertise mapping
+- Broader organizational use case
+
+---
+
+### WISTIA
+
+**Overview:** Video hosting and analytics platform for marketing and business.
+
+#### Pricing
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Free | $0 | Basic features |
+| Plus | $19/mo | 20 videos, analytics |
+| Pro | $79/mo | 50 videos, A/B testing |
+| Advanced | $319/mo | 2,000 videos, marketing automation |
+
+#### Features in Common with Nuclom
+- Video hosting
+- Analytics and engagement data
+- Customizable player
+- Lead capture
+- Integrations
+
+#### Wistia's Advantages
+- Marketing-focused features
+- Webinar hosting
+- Lead generation tools
+- Advanced video analytics (heatmaps)
+- Established brand (since 2006)
+
+#### Nuclom's Advantages
+- Meeting recording and transcription
+- Multi-source knowledge integration
+- AI summaries and decision tracking
+- Knowledge graph
+- Internal team focus
+- Expertise mapping
+
+---
+
+## Pricing Comparison Summary
+
+### Meeting Intelligence Tier
+
+| Competitor | Free Tier | Pro/Paid | Enterprise |
+|------------|-----------|----------|------------|
+| **Nuclom** | 14-day trial | $25/user/mo | Custom |
+| Fireflies | 800 min storage | $10-19/user/mo | ~$39/user/mo |
+| Otter.ai | 300 min/mo | $17-30/user/mo | Custom |
+| Fathom | 5 AI summaries/mo | $19-39/user/mo | Custom |
+| Grain | 20 meetings | $15+/user/mo | Custom |
+| tl;dv | 10 AI notes/mo | $29-98/user/mo | Custom |
+| MeetGeek | Basic | $15-29/user/mo | Custom |
+| Read.ai | Basic | $15-25/user/mo | $25+/user/mo |
+| Avoma | - | $19-96/user/mo | Custom |
+| Fellow | <10 users | $7-25/user/mo | Custom |
+| Claap | Basic | ~$20-40/user/mo | Custom |
+
+### Revenue Intelligence Tier
+
+| Competitor | Entry Cost | Per User | Notes |
+|------------|------------|----------|-------|
+| **Nuclom** | $25/user/mo | $25-45/user/mo | All features included |
+| Gong | $5k platform + $7.5k setup | $1,400-1,600/user/yr | Forces bundling |
+| Chorus | $8k base (3 seats) | $1,200/seat/yr | ZoomInfo ecosystem |
+
+### Knowledge Management Tier
+
+| Competitor | Free Tier | Pro/Paid | Enterprise |
+|------------|-----------|----------|------------|
+| **Nuclom** | 14-day trial | $25/user/mo | Custom |
+| Notion | 20 AI responses | $12-20/user/mo | Custom |
+| Confluence | 10 users | $5.75-11/user/mo | Custom |
+| Slite | 50 docs | $8-16/user/mo | Custom |
+| Guru | 3 users | ~$10/user/mo | Custom |
+| Glean | None | $50+/user/mo | Custom |
+
+### Video Collaboration Tier
+
+| Competitor | Free Tier | Pro/Paid | Enterprise |
+|------------|-----------|----------|------------|
+| **Nuclom** | 14-day trial | $25/user/mo | Custom |
+| Loom | 100 videos, 5 min | $15-24/user/mo | $40k+/yr |
+| Vidyard | 5 videos/mo | $59-99/user/mo | Custom |
+| Wistia | Basic | $19-319/mo | Custom |
+
+---
+
+## Feature Comparison Matrix
+
+### Core Features
+
+| Feature | Nuclom | Loom | Grain | Fireflies | Gong | Notion | Glean |
+|---------|--------|------|-------|-----------|------|--------|-------|
+| Video Recording | Yes | Yes | Yes | Yes | Yes | No | No |
+| Screen Recording | Yes | Yes | No | No | No | No | No |
+| AI Transcription | Yes | Yes | Yes | Yes | Yes | No | No |
+| AI Summaries | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Decision Extraction | **Yes** | No | No | No | Limited | No | No |
+| Knowledge Graph | **Yes** | No | No | No | No | No | No |
+| Expertise Mapping | **Yes** | No | No | No | No | No | No |
+| Topic Clustering | **Yes** | No | No | No | No | No | No |
+| Multi-Source Integration | **Yes** | Limited | No | No | No | Limited | **Yes** |
+| Slack Integration | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| GitHub Integration | **Yes** | No | No | No | No | Yes | Yes |
+| Notion Integration | **Yes** | No | No | No | No | N/A | Yes |
+| Semantic Search | **Yes** | No | Limited | Limited | Yes | Yes | **Yes** |
+| Speaker Diarization | Yes | No | Yes | Yes | Yes | No | No |
+| CRM Integration | Yes | Limited | Yes | Yes | Yes | Limited | Yes |
+
+### Unique Nuclom Features (Not Found in Competitors)
+
+1. **Unified Knowledge Hub** - Single platform connecting Slack, Notion, GitHub, and meetings
+2. **AI Decision Tracking** - Automatic extraction and tracking of decisions across all sources
+3. **Knowledge Graph** - Visual relationships between topics, people, decisions, and content
+4. **Expertise Mapping** - Automatic identification of subject matter experts by topic
+5. **Topic Clustering** - AI-grouped related content with trend detection
+6. **Knowledge Gap Analysis** - Identifies missing documentation and stale content
+7. **Cross-Source Semantic Search** - Search meaning across all connected sources simultaneously
+
+---
+
+## SWOT Analysis
+
+### Strengths
+
+| Strength | Impact | Evidence |
+|----------|--------|----------|
+| **Unified Multi-Source Integration** | High | Only platform natively connecting Slack, Notion, GitHub, and video meetings |
+| **AI Decision Tracking** | High | Unique feature extracting decisions from unstructured content |
+| **Knowledge Graph** | High | No competitor offers relationship visualization between entities |
+| **Expertise Mapping** | Medium-High | Automated SME identification not available elsewhere |
+| **Competitive Pricing** | High | 10-50x cheaper than Gong/Chorus for similar value |
+| **Topic Clustering & Trends** | Medium | Automatic content organization exceeds competitors |
+| **Modern Tech Stack** | Medium | Next.js 16, React 19, Effect-TS provides development velocity |
+| **Enterprise Security** | Medium | SOC 2, GDPR, BYOC options match enterprise requirements |
+
+### Weaknesses
+
+| Weakness | Impact | Mitigation Strategy |
+|----------|--------|---------------------|
+| **Brand Recognition** | High | Competitors like Loom, Gong, Notion have massive awareness |
+| **Single-Focus Competition** | Medium | Each competitor excels in their niche (Loom=video, Gong=sales) |
+| **Market Education** | Medium | "Unified knowledge hub" concept requires explanation |
+| **No Free Tier** | Medium | Competitors offer generous free plans |
+| **Smaller Integration Library** | Medium | Glean has 100+ integrations vs. Nuclom's focused 4 |
+| **Sales-Specific Features** | Low | Gong/Chorus have deeper revenue intelligence |
+| **Transcription Language Support** | Low | Some competitors support 100+ languages |
+
+### Opportunities
+
+| Opportunity | Potential | Action Required |
+|-------------|-----------|-----------------|
+| **Async-First Movement** | Very High | Position as solution for documentation-driven teams |
+| **AI Knowledge Explosion** | Very High | Market demand for AI-powered knowledge management growing rapidly |
+| **Gong/Chorus Price Fatigue** | High | Enterprises seeking alternatives to $40k+ annual contracts |
+| **Remote Work Permanence** | High | Distributed teams need unified knowledge systems |
+| **Notion/Confluence Gap** | High | Add video and meeting intelligence to existing KM |
+| **Developer Tool Integration** | Medium | GitHub/Linear/Jira integration differentiates for tech teams |
+| **Vertical Expansion** | Medium | Create industry-specific solutions (legal, healthcare, finance) |
+| **International Markets** | Medium | Expand language support for global teams |
+| **API/Platform Play** | Medium | Enable third-party integrations and custom workflows |
+
+### Threats
+
+| Threat | Severity | Defensive Strategy |
+|--------|----------|-------------------|
+| **Notion AI Expansion** | High | Deepen video/meeting features they can't easily replicate |
+| **Atlassian Suite** | High | Confluence + Loom + Jira integration is powerful |
+| **Glean Enterprise Push** | Medium-High | Focus on SMB/mid-market where Glean is overpriced |
+| **Microsoft Copilot** | Medium-High | MS bundling AI across Teams/365 is formidable |
+| **Google Workspace AI** | Medium | Gemini integration across Meet/Docs/Drive |
+| **Feature Commoditization** | Medium | AI transcription becoming table stakes |
+| **Economic Downturn** | Medium | "Nice to have" perception during budget cuts |
+| **Privacy Regulation** | Medium | EU AI Act and data sovereignty requirements |
+
+---
+
+## Strategic Recommendations
+
+### 1. Positioning Strategy
+
+**Primary Positioning:** "The organization's second brain that actually remembers"
+
+**Key Differentiator:** Emphasize the unified multi-source approach that competitors can't match:
+- Gong only knows your calls
+- Notion only knows your docs
+- Slack search only knows messages
+- **Nuclom knows everything, together**
+
+### 2. Competitive Battlecards
+
+#### vs. Meeting Tools (Fireflies, Otter, Grain, Fathom)
+- **Lead with:** Multi-source integration, knowledge graph, decision tracking
+- **Acknowledge:** They may have slightly lower prices for meeting-only use
+- **Counter:** "If you only need meeting transcription, they work. If you need institutional knowledge, you need Nuclom."
+
+#### vs. Gong/Chorus
+- **Lead with:** 90% cost savings, no forced bundling, faster deployment
+- **Acknowledge:** They have deeper sales-specific analytics
+- **Counter:** "Same core value, fraction of the cost, plus knowledge management they can't offer."
+
+#### vs. Notion/Confluence
+- **Lead with:** Native video/meeting support, AI transcription, decision extraction
+- **Acknowledge:** They're excellent documentation tools
+- **Counter:** "They're great for writing knowledge. We're built for capturing and connecting all knowledge."
+
+#### vs. Glean
+- **Lead with:** Video-native, meeting intelligence, more accessible pricing
+- **Acknowledge:** They have more integrations
+- **Counter:** "Glean searches your apps. Nuclom connects your knowledge with video, meetings, and decisions."
+
+### 3. Feature Investment Priorities
+
+**High Priority:**
+1. Expand integration library (Linear, Asana, Zoom direct)
+2. Add generous free tier to compete with Fireflies/Fathom
+3. Improve mobile experience for on-the-go access
+
+**Medium Priority:**
+1. Sales-specific features (playbook tracking, deal scoring)
+2. Additional language support (aim for 30+ languages)
+3. API and webhook expansion for platform play
+
+**Low Priority:**
+1. Marketing video features (Vidyard/Wistia territory)
+2. Webinar hosting (not core use case)
+
+### 4. Pricing Strategy Recommendations
+
+**Current:** $25-45/user/mo
+
+**Recommendations:**
+1. **Add Free Tier:**
+   - 3 users, 5 meetings/month, 1 knowledge source
+   - Removes friction for evaluation
+
+2. **Adjust Scale Plan:**
+   - Consider $19/user/mo to undercut Fireflies Pro
+   - Or keep at $25 but increase included features
+
+3. **Enterprise Positioning:**
+   - Emphasize "Gong alternative" in enterprise sales
+   - Calculate and publish TCO comparison vs. Gong/Chorus
+
+---
+
+## Conclusion
+
+Nuclom occupies a unique position in the market by combining video collaboration, meeting intelligence, and knowledge management into a unified platform. While competitors excel in their individual niches, none offer the multi-source integration, knowledge graph, and decision tracking that Nuclom provides.
+
+**Key Competitive Advantages:**
+1. Only platform connecting meetings + Slack + Notion + GitHub natively
+2. Unique AI decision extraction across all content types
+3. Knowledge graph and expertise mapping not found elsewhere
+4. 90% cheaper than Gong/Chorus for comparable value
+
+**Primary Challenges:**
+1. Building brand awareness against well-funded competitors
+2. Educating market on "unified knowledge hub" concept
+3. Potential feature encroachment from Notion AI and Microsoft Copilot
+
+**Recommended Focus:**
+Position as the **affordable Gong alternative** for enterprises and the **Notion + Loom + Grain replacement** for teams who want one unified platform instead of three separate tools.
+
+---
+
+## Sources
+
+### Video Collaboration
+- [Loom Pricing | Atlassian](https://www.atlassian.com/software/loom/pricing)
+- [Vidyard Pricing Plans](https://www.vidyard.com/pricing/)
+- [Wistia Pricing](https://wistia.com/pricing)
+- [Claap Pricing](https://www.claap.io/pricing)
+
+### Meeting Intelligence
+- [Grain Pricing](https://grain.com/pricing)
+- [Fireflies.ai Pricing](https://fireflies.ai/pricing)
+- [Otter.ai Pricing](https://otter.ai/pricing)
+- [Fathom Pricing](https://www.fathom.ai/pricing)
+- [tl;dv Pricing](https://tldv.io/app/pricing/)
+- [MeetGeek Pricing](https://meetgeek.ai/pricing)
+- [Read.ai Plans & Pricing](https://www.read.ai/plans-pricing)
+- [Avoma Pricing](https://www.avoma.com/pricing)
+- [Fellow Pricing](https://fellow.ai/pricing)
+
+### Revenue Intelligence
+- [Gong Pricing | G2](https://www.g2.com/products/gong/pricing)
+- [Chorus by ZoomInfo Pricing](https://www.zoominfo.com/products/chorus/pricing)
+- [Gong Pricing Guide | tl;dv](https://tldv.io/blog/gong-pricing/)
+
+### Knowledge Management
+- [Notion Pricing](https://www.notion.com/pricing)
+- [Confluence Pricing | Atlassian](https://www.atlassian.com/software/confluence/pricing)
+- [Slite AI-powered Knowledge Base](https://slite.com/)
+- [Guru Pricing](https://www.getguru.com/pricing)
+- [Glean Enterprise Search](https://www.glean.com/)
+- [Sana Labs Pricing](https://sanalabs.com/products/sana/pricing)
+
+### Market Research
+- [Collaboration Software Market | Verified Market Research](https://www.verifiedmarketresearch.com/product/collaboration-software-market/)
+- [Visual Collaboration Platform Market | Research Nester](https://www.researchnester.com/reports/visual-collaboration-platform-software-market/3150)
+- [Best Knowledge Management Software 2026 | Capterra](https://www.capterra.com/knowledge-management-software/)
+- [G2 Reviews](https://www.g2.com/)
