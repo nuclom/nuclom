@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@nuclom/ui/button';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowRight, Check, FileText, Github, MessageSquare, Sparkles, Video } from 'lucide-react';
 import { lazy, Suspense } from 'react';
@@ -13,7 +14,6 @@ import {
   StaggerChildren,
   StaggerItem,
 } from '@/components/motion/animated-section';
-import { Button } from '@/components/ui/button';
 
 // Lazy load 3D components for performance
 const KnowledgeNetwork = lazy(() =>

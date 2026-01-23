@@ -1,10 +1,10 @@
+import { Button } from '@nuclom/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nuclom/ui/card';
+import { Input } from '@nuclom/ui/input';
+import { Label } from '@nuclom/ui/label';
+import { Textarea } from '@nuclom/ui/textarea';
 import { Link } from '@vercel/microfrontends/next/client';
 import { ArrowLeft, Book, HelpCircle, Mail, MessageCircle, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 
 export default function SupportPage() {
   return (
