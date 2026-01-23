@@ -1,7 +1,7 @@
 'use client';
 
-import { type Locale, localeFlags, localeNames, locales } from '@nuclom/lib/i18n';
 import { setLocale } from '@nuclom/lib/i18n/actions';
+import { type Locale, localeFlags, localeNames, locales } from '@nuclom/lib/i18n/config';
 import { Check, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';

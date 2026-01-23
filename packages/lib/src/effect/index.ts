@@ -3,10 +3,11 @@
  *
  * This file serves as the main entry point for the Effect-TS module.
  * Import from "@/lib/effect" to access all Effect functionality.
+ *
+ * Note: For Effect core modules (Effect, Schema, Layer, etc.),
+ * import directly from 'effect' or '@effect/*' packages.
  */
 
-// Common Effect exports
-export * from './common';
 export type { DatabaseConfig as DatabaseConfigType } from './config';
 
 // Configuration - explicitly export to avoid conflicts
@@ -23,9 +24,66 @@ export {
   OptionalStorageConfig,
   ServerConfig,
 } from './config';
-
-// Custom error types
-export * from './errors';
+export type {
+  AppErrorTag,
+  AppErrorUnion,
+  AuthError,
+  BillingError,
+  ContentError,
+  CryptoError,
+  DbError,
+  ErrorTagMapping,
+  ExtractErrorByTag,
+  InputError,
+  StorageError,
+  VideoError,
+} from './errors';
+// Custom error types - explicitly export for tree-shaking
+export {
+  AIServiceError,
+  AppError,
+  AudioExtractionError,
+  assertExhaustive,
+  ConfigurationError,
+  ContentAdapterNotFoundError,
+  ContentItemNotFoundError,
+  ContentProcessingError,
+  ContentSourceAuthError,
+  ContentSourceNotFoundError,
+  ContentSourceSyncError,
+  DatabaseError,
+  DeleteError,
+  DuplicateError,
+  EncryptionError,
+  EncryptionKeyNotConfiguredError,
+  FileSizeExceededError,
+  ForbiddenError,
+  HttpError,
+  isAppError,
+  MissingFieldError,
+  NoSubscriptionError,
+  NotFoundError,
+  ParseError,
+  PaymentFailedError,
+  PlanLimitExceededError,
+  PlanNotFoundError,
+  PresignedUrlError,
+  SessionError,
+  StorageNotConfiguredError,
+  StripeApiError,
+  StripeNotConfiguredError,
+  SubscriptionError,
+  TransactionError,
+  TranscriptionError,
+  UnauthorizedError,
+  UnsupportedFormatError,
+  UploadError,
+  UsageTrackingError,
+  ValidationError,
+  VideoAIProcessingError,
+  VideoProcessingError,
+  WebhookSignatureError,
+} from './errors';
 export type { AppServices } from './runtime';
 
 // Runtime and layers

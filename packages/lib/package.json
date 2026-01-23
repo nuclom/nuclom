@@ -27,9 +27,7 @@
     "./validation": "./src/validation/index.ts",
     "./validation/*": "./src/validation/*.ts",
     "./posthog/*": "./src/posthog/*.ts",
-    "./i18n": "./src/i18n/index.ts",
     "./i18n/*": "./src/i18n/*.ts",
-    "./integrations": "./src/integrations/index.ts",
     "./integrations/*": "./src/integrations/*.ts",
     "./api/*": "./src/api/*.ts",
     "./workflow/*": "./src/workflow/*.ts"
