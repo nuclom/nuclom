@@ -39,12 +39,17 @@
     "DISABLE_SIGNUPS"
   ],
   "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
     "tsc": {
-      "dependsOn": ["^tsc"]
+      "dependsOn": ["transit"],
+      "outputs": ["tsconfig.tsbuildinfo", ".next/types/**"]
     },
     "//#lint": {},
     "test": {
