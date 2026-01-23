@@ -262,8 +262,8 @@ export function UploadHub({ organizationId, organizationSlug, authorId, collecti
         className={cn(
           'relative overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer group',
           dragActive
-            ? 'border-primary bg-primary/5 scale-[1.02]'
-            : 'border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/30',
+            ? 'border-primary bg-primary/5 scale-[1.01] shadow-lg shadow-primary/10'
+            : 'border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/30 hover:shadow-md',
         )}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -277,36 +277,96 @@ export function UploadHub({ organizationId, organizationSlug, authorId, collecti
         }}
         role="button"
         tabIndex={0}
+        aria-label="Drop zone for video upload"
       >
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Animated Background Gradient */}
+        <div
+          className={cn(
+            'absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 transition-opacity duration-500',
+            dragActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+          )}
+        />
+
+        {/* Animated Corner Accents */}
+        <div
+          className={cn(
+            'absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 rounded-tl-2xl transition-all duration-300',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+          )}
+        />
+        <div
+          className={cn(
+            'absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 rounded-tr-2xl transition-all duration-300',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+          )}
+        />
+        <div
+          className={cn(
+            'absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 rounded-bl-2xl transition-all duration-300',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+          )}
+        />
+        <div
+          className={cn(
+            'absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 rounded-br-2xl transition-all duration-300',
+            dragActive
+              ? 'border-primary opacity-100'
+              : 'border-transparent opacity-0 group-hover:border-primary/30 group-hover:opacity-100',
+          )}
+        />
 
         <div className="relative p-12 text-center">
-          {/* Animated Icon */}
+          {/* Animated Icon Container */}
           <div
             className={cn(
-              'inline-flex p-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 mb-6 transition-transform duration-300',
-              dragActive ? 'scale-110' : 'group-hover:scale-105',
+              'inline-flex p-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 mb-6 transition-all duration-300',
+              dragActive ? 'scale-125 bg-primary/15' : 'group-hover:scale-110',
             )}
           >
-            <Upload
-              className={cn('h-12 w-12 text-primary transition-all duration-300', dragActive && 'animate-bounce')}
-            />
+            <div className="relative">
+              <Upload
+                className={cn('h-12 w-12 text-primary transition-all duration-300', dragActive && 'animate-bounce')}
+              />
+              {/* Pulse ring when dragging */}
+              {dragActive && <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />}
+            </div>
           </div>
 
-          <h2 className="text-2xl font-semibold mb-2">
-            {dragActive ? 'Drop your videos here' : 'Drag and drop videos to upload'}
+          <h2 className="text-2xl font-semibold mb-2 transition-colors">
+            {dragActive ? <span className="text-primary">Release to upload</span> : 'Drag and drop videos to upload'}
           </h2>
-          <p className="text-muted-foreground mb-6">or click to browse from your computer</p>
+          <p className="text-muted-foreground mb-6">
+            {dragActive ? 'Your files are ready to be uploaded' : 'or click to browse from your computer'}
+          </p>
 
-          <Button size="lg" className="gap-2">
+          <Button size="lg" className="gap-2 transition-transform group-hover:scale-105">
             <Laptop className="h-5 w-5" />
             Choose Files
           </Button>
 
-          <p className="text-xs text-muted-foreground mt-4">
-            MP4, MOV, AVI, MKV, WebM supported · Up to 5GB per file · Multiple files supported
-          </p>
+          {/* Feature highlights */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-6 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+              Auto transcription
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              AI summaries
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+              Up to 5GB per file
+            </span>
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-3">Supports MP4, MOV, AVI, MKV, WebM, and more</p>
         </div>
       </div>
 

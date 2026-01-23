@@ -44,6 +44,146 @@ interface FileUpload {
   fileKey?: string;
   videoId?: string;
   abortController?: AbortController;
+  thumbnailUrl?: string;
+  duration?: number;
+}
+
+// Generate video thumbnail from file
+function generateVideoThumbnail(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+
+    const objectUrl = URL.createObjectURL(file);
+    video.src = objectUrl;
+
+    video.onloadeddata = () => {
+      // Seek to 1 second or 10% of duration, whichever is smaller
+      video.currentTime = Math.min(1, video.duration * 0.1);
+    };
+
+    video.onseeked = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 160;
+        canvas.height = 90;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+          URL.revokeObjectURL(objectUrl);
+          resolve(thumbnailUrl);
+        } else {
+          URL.revokeObjectURL(objectUrl);
+          resolve(null);
+        }
+      } catch {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    };
+
+    // Timeout fallback
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    }, 5000);
+  });
+}
+
+// Get video duration from file
+function getVideoDuration(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    const objectUrl = URL.createObjectURL(file);
+    video.src = objectUrl;
+
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(video.duration);
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    };
+
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(null);
+    }, 3000);
+  });
+}
+
+// Format duration in mm:ss or hh:mm:ss
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Get file extension badge color
+function getExtensionColor(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'mp4':
+      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400';
+    case 'mov':
+      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400';
+    case 'webm':
+      return 'bg-green-500/10 text-green-600 dark:text-green-400';
+    case 'avi':
+      return 'bg-orange-500/10 text-orange-600 dark:text-orange-400';
+    case 'mkv':
+      return 'bg-red-500/10 text-red-600 dark:text-red-400';
+    default:
+      return 'bg-muted text-muted-foreground';
+  }
+}
+
+// Video thumbnail component
+function VideoThumbnail({ upload }: { upload: FileUpload }) {
+  const ext = upload.file.name.split('.').pop()?.toUpperCase() || 'VIDEO';
+
+  return (
+    <div className="relative w-16 h-10 rounded-md overflow-hidden bg-muted shrink-0">
+      {upload.thumbnailUrl ? (
+        <img src={upload.thumbnailUrl} alt={`Preview of ${upload.title}`} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <FileVideo className="h-5 w-5 text-muted-foreground/50" />
+        </div>
+      )}
+      {/* Duration badge */}
+      {upload.duration && (
+        <div className="absolute bottom-0.5 right-0.5 px-1 py-0.5 bg-black/70 rounded text-[9px] font-medium text-white">
+          {formatDuration(upload.duration)}
+        </div>
+      )}
+      {/* File type badge */}
+      <div
+        className={cn(
+          'absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-[8px] font-bold uppercase',
+          getExtensionColor(upload.file.name),
+        )}
+      >
+        {ext}
+      </div>
+    </div>
+  );
 }
 
 // Supported video MIME types
@@ -95,7 +235,7 @@ export function BulkVideoUpload({
   const failedUploads = useMemo(() => uploads.filter((u) => u.status === 'failed'), [uploads]);
 
   const addFiles = useCallback(
-    (files: FileList | File[]) => {
+    async (files: FileList | File[]) => {
       const fileArray = Array.from(files);
       const validFiles: FileUpload[] = [];
       const errors: string[] = [];
@@ -149,6 +289,21 @@ export function BulkVideoUpload({
       if (validFiles.length > 0) {
         setUploads((prev) => [...prev, ...validFiles]);
         setExpandedSection('pending');
+
+        // Generate thumbnails and get duration in background (don't block)
+        for (const upload of validFiles) {
+          Promise.all([generateVideoThumbnail(upload.file), getVideoDuration(upload.file)]).then(
+            ([thumbnailUrl, duration]) => {
+              setUploads((prev) =>
+                prev.map((u) =>
+                  u.id === upload.id
+                    ? { ...u, thumbnailUrl: thumbnailUrl ?? undefined, duration: duration ?? undefined }
+                    : u,
+                ),
+              );
+            },
+          );
+        }
       }
     },
     [uploads, toast],
@@ -525,9 +680,9 @@ export function BulkVideoUpload({
                     className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20"
                   >
                     <div className="relative shrink-0">
-                      <FileVideo className="h-10 w-10 text-blue-500/50" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                      <VideoThumbnail upload={upload} />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-md">
+                        <Loader2 className="h-5 w-5 text-white animate-spin" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 space-y-1.5">
@@ -538,9 +693,11 @@ export function BulkVideoUpload({
                           {upload.progress}%
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(upload.file.size)} · {getStatusText(upload.status)}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatFileSize(upload.file.size)}</span>
+                        <span className="text-muted-foreground/50">·</span>
+                        <span className="text-blue-500">{getStatusText(upload.status)}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -573,7 +730,7 @@ export function BulkVideoUpload({
                           key={upload.id}
                           className="flex items-center gap-3 p-3 hover:bg-muted/20 transition-colors"
                         >
-                          <FileVideo className="h-8 w-8 text-muted-foreground shrink-0" />
+                          <VideoThumbnail upload={upload} />
                           <div className="flex-1 min-w-0 space-y-1">
                             <Input
                               value={upload.title}
@@ -582,7 +739,15 @@ export function BulkVideoUpload({
                               placeholder="Video title"
                               disabled={isUploading}
                             />
-                            <p className="text-xs text-muted-foreground">{formatFileSize(upload.file.size)}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{formatFileSize(upload.file.size)}</span>
+                              {upload.duration && (
+                                <>
+                                  <span className="text-muted-foreground/50">·</span>
+                                  <span>{formatDuration(upload.duration)}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
                           <Button
                             variant="ghost"
@@ -637,12 +802,30 @@ export function BulkVideoUpload({
                     <div className="divide-y divide-green-500/10">
                       {completedUploads.map((upload) => (
                         <div key={upload.id} className="flex items-center gap-3 p-3">
-                          <FileVideo className="h-8 w-8 text-green-500/50 shrink-0" />
+                          <div className="relative shrink-0">
+                            <VideoThumbnail upload={upload} />
+                            <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                              <CheckCircle className="h-3 w-3 text-white" />
+                            </div>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{upload.title}</p>
-                            <p className="text-xs text-muted-foreground">{formatFileSize(upload.file.size)}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{formatFileSize(upload.file.size)}</span>
+                              {upload.duration && (
+                                <>
+                                  <span className="text-muted-foreground/50">·</span>
+                                  <span>{formatDuration(upload.duration)}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-500/10 text-green-600 dark:text-green-400 text-xs"
+                          >
+                            Uploaded
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -689,7 +872,12 @@ export function BulkVideoUpload({
                     <div className="divide-y divide-destructive/10">
                       {failedUploads.map((upload) => (
                         <div key={upload.id} className="flex items-center gap-3 p-3">
-                          <FileVideo className="h-8 w-8 text-destructive/50 shrink-0" />
+                          <div className="relative shrink-0 opacity-60">
+                            <VideoThumbnail upload={upload} />
+                            <div className="absolute -bottom-1 -right-1 bg-destructive rounded-full p-0.5">
+                              <AlertCircle className="h-3 w-3 text-white" />
+                            </div>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{upload.title}</p>
                             <p className="text-xs text-destructive">{upload.error || 'Upload failed'}</p>
